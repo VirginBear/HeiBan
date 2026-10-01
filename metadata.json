@@ -1,0 +1,6 @@
+{
+  "name": "HeiBan 黑板",
+  "description": "仿造微軟白板與 Excalidraw 的高效能向量黑板／白板協作平台，支援平滑圖釘導航、畫筆控制板調整位置、圓形調色盤、圖層管理與 SVG/PDF 匯出。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

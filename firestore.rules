@@ -1,0 +1,101 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidBoard(data) {
+      return data.title is string && data.title.size() <= 100 &&
+             data.ownerId is string && data.ownerId.size() <= 128 &&
+             data.backgroundColor is string && data.backgroundColor.size() <= 30 &&
+             data.gridStyle is string && data.gridStyle in ['grid', 'dots', 'lines', 'blank'];
+    }
+
+    function isValidBoardObject(data) {
+      return data.boardId is string && data.boardId.size() <= 128 &&
+             data.type is string && data.type in ['stroke', 'highlighter', 'rect', 'circle', 'triangle', 'diamond', 'arrow', 'line', 'star', 'text', 'sticky', 'image', 'pin'] &&
+             data.x is number &&
+             data.y is number &&
+             data.createdBy is string && data.createdBy.size() <= 128 &&
+             data.zIndex is number;
+    }
+
+    function isValidUserPresence(data) {
+      return data.boardId is string && data.boardId.size() <= 128 &&
+             data.userId is string && data.userId.size() <= 128 &&
+             data.displayName is string && data.displayName.size() <= 100 &&
+             data.cursorX is number &&
+             data.cursorY is number;
+    }
+
+    // Boards collection
+    match /boards/{boardId} {
+      allow get: if isSignedIn() && isValidId(boardId);
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() &&
+                       isValidId(boardId) &&
+                       isValidBoard(incoming()) &&
+                       incoming().ownerId == request.auth.uid;
+      allow update: if isSignedIn() &&
+                       isValidId(boardId) &&
+                       isValidBoard(incoming());
+      allow delete: if isSignedIn() &&
+                       isValidId(boardId) &&
+                       existing().ownerId == request.auth.uid;
+
+      // Board objects subcollection (vector strokes, shapes, notes, images)
+      match /objects/{objectId} {
+        allow read: if isSignedIn() && isValidId(boardId);
+        allow create: if isSignedIn() &&
+                         isValidId(boardId) &&
+                         isValidId(objectId) &&
+                         isValidBoardObject(incoming());
+        allow update: if isSignedIn() &&
+                         isValidId(boardId) &&
+                         isValidId(objectId) &&
+                         isValidBoardObject(incoming());
+        allow delete: if isSignedIn() &&
+                         isValidId(boardId) &&
+                         isValidId(objectId);
+      }
+
+      // User presences subcollection (live cursors and presence)
+      match /presences/{userId} {
+        allow read: if isSignedIn() && isValidId(boardId);
+        allow create, update: if isSignedIn() &&
+                                 isValidId(boardId) &&
+                                 isValidId(userId) &&
+                                 isValidUserPresence(incoming()) &&
+                                 userId == request.auth.uid;
+        allow delete: if isSignedIn() &&
+                         isValidId(boardId) &&
+                         isValidId(userId) &&
+                         userId == request.auth.uid;
+      }
+    }
+
+    // Health check endpoint
+    match /test/{docId} {
+      allow read, write: if isSignedIn();
+    }
+  }
+}
