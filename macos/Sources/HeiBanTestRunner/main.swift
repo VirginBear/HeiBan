@@ -1492,7 +1492,7 @@ do {
 // -------------------------------------------------------------------------
 print("\n[測試 15] W14 & A11: 滾輪游標錨點縮放、Shift 橫移、Space 拖曳、觸控板增量與 Esc 恢復 (立靶驗收)")
 do {
-    let engine = BoardEngine()
+    let engine = BoardEngine(restoreSession: false)
     engine.viewport = ViewportTransform(x: 200, y: 150, zoom: 1.0)
 
     // 1. 預設滾輪以游標位置縮放，對應世界位置誤差 ≤ 1 螢幕 point (A11)
@@ -1611,7 +1611,7 @@ do {
 // -------------------------------------------------------------------------
 print("\n[測試 16] W15 & A13: 螢幕尺規、螢幕空間守恆、雙端旋轉、上下支點與端點外停止貼齊 (立靶驗收)")
 do {
-    let engine = BoardEngine()
+    let engine = BoardEngine(restoreSession: false)
     engine.ruler.enabled = true
     engine.ruler.screenCenterX = 400
     engine.ruler.screenCenterY = 200
@@ -1714,7 +1714,7 @@ do {
 // -------------------------------------------------------------------------
 print("\n[測試 17] W16 & A14: 整物件／局部向量橡皮擦、筆跡分段、樣式保留與單一交易 Undo (立靶驗收)")
 do {
-    let engine = BoardEngine()
+    let engine = BoardEngine(restoreSession: false)
     engine.viewport = ViewportTransform(x: 0, y: 0, zoom: 1.0)
 
     // 17.1 Object 模式橡皮擦 (A14)
@@ -1864,7 +1864,7 @@ do {
 // -------------------------------------------------------------------------
 print("\n[測試 18] W17 & A15: 原地文字編輯、空白取消、雙擊原地再編輯與局部富文本片段 (立靶驗收)")
 do {
-    let engine = BoardEngine()
+    let engine = BoardEngine(restoreSession: false)
     engine.viewport = ViewportTransform(x: 100, y: 100, zoom: 1.0)
     engine.clearHistory()
 
@@ -1959,7 +1959,7 @@ do {
 // -------------------------------------------------------------------------
 print("\n[測試 19] W18 & A16: 可愛便簽六大樣式、圓形色盤、換行與文字邊界約束 (立靶驗收)")
 do {
-    let engine = BoardEngine()
+    let engine = BoardEngine(restoreSession: false)
 
     // 19.1 六大便簽樣式定義與顯示名稱
     assertEqual(StickyStyle.allCases.count, 6, "便簽應涵蓋 6 種可愛樣式 (A16)")
@@ -2068,7 +2068,7 @@ do {
 // -------------------------------------------------------------------------
 print("\n[測試 20] W19 & A17: 實體世界座標圖釘、左上舒適書寫區導航、舊版視角遷移與拖曳 (立靶驗收)")
 do {
-    let engine = BoardEngine()
+    let engine = BoardEngine(restoreSession: false)
     engine.canvasSize = CGSize(width: 1000, height: 800)
     engine.viewport = ViewportTransform(x: 0, y: 0, zoom: 1.0)
     engine.board.pins = []
@@ -3442,6 +3442,124 @@ do {
     assertTrue(winDec.inputDispatcher.contains("Windows Ink"), "Windows 支援原生 Windows Ink 壓感")
 }
 
+// -------------------------------------------------------------------------
+// 34. Transform Handles & Dynamic Cursor Shapes (Image, Line, Rotate) (立靶驗收)
+// -------------------------------------------------------------------------
+print("\n[測試 34] 變形控制器周圍 8 點與旋轉點動態鼠標游標形狀驗證 (立靶驗收)")
+do {
+    // 34.1 變形控制點與游標類型對應規格
+    assertEqual(TransformHandle.middleLeft.cursorType, .resizeHorizontal, "左側中點為水平雙向箭頭 (左右拉長縮短)")
+    assertEqual(TransformHandle.middleRight.cursorType, .resizeHorizontal, "右側中點為水平雙向箭頭 (左右拉長縮短)")
+    assertEqual(TransformHandle.topCenter.cursorType, .resizeVertical, "頂部中點為垂直雙向箭頭 (上下拉長縮短)")
+    assertEqual(TransformHandle.bottomCenter.cursorType, .resizeVertical, "底部中點為垂直雙向箭頭 (上下拉長縮短)")
+    assertEqual(TransformHandle.topLeft.cursorType, .resizeDiagonalNWSE, "左上角點為 NW-SE 斜邊雙向箭頭")
+    assertEqual(TransformHandle.bottomRight.cursorType, .resizeDiagonalNWSE, "右下角點為 NW-SE 斜邊雙向箭頭")
+    assertEqual(TransformHandle.topRight.cursorType, .resizeDiagonalNESW, "右上角點為 NE-SW 斜邊雙向箭頭")
+    assertEqual(TransformHandle.bottomLeft.cursorType, .resizeDiagonalNESW, "左下角點為 NE-SW 斜邊雙向箭頭")
+    assertEqual(TransformHandle.rotate.cursorType, .rotate, "旋轉控制點為專用旋轉鼠標")
+
+    // 34.2 圖片物件周邊 8 個控制點與旋轉點之鼠標動態判定
+    let imageEngine = BoardEngine(restoreSession: false)
+    imageEngine.viewport = ViewportTransform(x: 0, y: 0, zoom: 1.0)
+    let testImage = BoardObject(
+        id: "img_test_cursor",
+        type: "image",
+        x: 100, y: 100, width: 200, height: 150
+    )
+    imageEngine.objects = [testImage]
+    imageEngine.selectedIds = [testImage.id]
+    imageEngine.currentTool = .select
+
+    guard let imgBounds = imageEngine.selectionBoundingBox else {
+        fatalError("圖片選取後 bounding box 不應為空")
+    }
+    assertEqual(imgBounds.minX, 100.0, "圖片 BoundingBox minX 正確")
+    assertEqual(imgBounds.maxX, 300.0, "圖片 BoundingBox maxX 正確")
+    assertEqual(imgBounds.minY, 100.0, "圖片 BoundingBox minY 正確")
+    assertEqual(imgBounds.maxY, 250.0, "圖片 BoundingBox maxY 正確")
+
+    let imgHandles = VectorMath.handlePositions(for: imgBounds, zoom: 1.0)
+
+    // 測試圖片 8 個控制點的鼠標游標判定
+    let ptML = Point(x: Double(imgHandles[.middleLeft]!.x), y: Double(imgHandles[.middleLeft]!.y))
+    imageEngine.updateHoveredHandle(at: ptML)
+    assertEqual(imageEngine.currentCursorType(at: ptML), .resizeHorizontal, "懸停於圖片左中點時出現水平雙向箭頭")
+
+    let ptMR = Point(x: Double(imgHandles[.middleRight]!.x), y: Double(imgHandles[.middleRight]!.y))
+    imageEngine.updateHoveredHandle(at: ptMR)
+    assertEqual(imageEngine.currentCursorType(at: ptMR), .resizeHorizontal, "懸停於圖片右中點時出現水平雙向箭頭")
+
+    let ptTC = Point(x: Double(imgHandles[.topCenter]!.x), y: Double(imgHandles[.topCenter]!.y))
+    imageEngine.updateHoveredHandle(at: ptTC)
+    assertEqual(imageEngine.currentCursorType(at: ptTC), .resizeVertical, "懸停於圖片頂中點時出現垂直雙向箭頭")
+
+    let ptBC = Point(x: Double(imgHandles[.bottomCenter]!.x), y: Double(imgHandles[.bottomCenter]!.y))
+    imageEngine.updateHoveredHandle(at: ptBC)
+    assertEqual(imageEngine.currentCursorType(at: ptBC), .resizeVertical, "懸停於圖片底中點時出現垂直雙向箭頭")
+
+    let ptTL = Point(x: Double(imgHandles[.topLeft]!.x), y: Double(imgHandles[.topLeft]!.y))
+    imageEngine.updateHoveredHandle(at: ptTL)
+    assertEqual(imageEngine.currentCursorType(at: ptTL), .resizeDiagonalNWSE, "懸停於圖片左上角時出現斜邊 NW-SE 雙向箭頭")
+
+    let ptBR = Point(x: Double(imgHandles[.bottomRight]!.x), y: Double(imgHandles[.bottomRight]!.y))
+    imageEngine.updateHoveredHandle(at: ptBR)
+    assertEqual(imageEngine.currentCursorType(at: ptBR), .resizeDiagonalNWSE, "懸停於圖片右下角時出現斜邊 NW-SE 雙向箭頭")
+
+    let ptTR = Point(x: Double(imgHandles[.topRight]!.x), y: Double(imgHandles[.topRight]!.y))
+    imageEngine.updateHoveredHandle(at: ptTR)
+    assertEqual(imageEngine.currentCursorType(at: ptTR), .resizeDiagonalNESW, "懸停於圖片右上角時出現斜邊 NE-SW 雙向箭頭")
+
+    let ptBL = Point(x: Double(imgHandles[.bottomLeft]!.x), y: Double(imgHandles[.bottomLeft]!.y))
+    imageEngine.updateHoveredHandle(at: ptBL)
+    assertEqual(imageEngine.currentCursorType(at: ptBL), .resizeDiagonalNESW, "懸停於圖片左下角時出現斜邊 NE-SW 雙向箭頭")
+
+    let ptRot = Point(x: Double(imgHandles[.rotate]!.x), y: Double(imgHandles[.rotate]!.y))
+    imageEngine.updateHoveredHandle(at: ptRot)
+    assertEqual(imageEngine.currentCursorType(at: ptRot), .rotate, "懸停於圖片旋轉控制點時出現旋轉鼠標")
+
+    // 懸停於無控制點空白處應恢復預設 (nil)
+    let ptBlank = Point(x: 50, y: 50)
+    imageEngine.updateHoveredHandle(at: ptBlank)
+    assertEqual(imageEngine.currentCursorType(at: ptBlank), nil, "懸停於空白處無特殊游標")
+
+    // 34.3 線條物件周邊控制點與旋轉點之鼠標動態判定
+    let lineEngine = BoardEngine(restoreSession: false)
+    lineEngine.viewport = ViewportTransform(x: 0, y: 0, zoom: 1.0)
+    let testLine = BoardObject(
+        id: "line_test_cursor",
+        type: "line",
+        x: 100, y: 150, width: 200, height: 100,
+        x1: 100, y1: 150, x2: 300, y2: 250
+    )
+    lineEngine.objects = [testLine]
+    lineEngine.selectedIds = [testLine.id]
+    lineEngine.currentTool = .select
+
+    guard let lineBounds = lineEngine.selectionBoundingBox else {
+        fatalError("線條選取後 bounding box 不應為空")
+    }
+    let lineHandles = VectorMath.handlePositions(for: lineBounds, zoom: 1.0)
+    let lineRotatePt = Point(x: Double(lineHandles[.rotate]!.x), y: Double(lineHandles[.rotate]!.y))
+    lineEngine.updateHoveredHandle(at: lineRotatePt)
+    assertEqual(lineEngine.currentCursorType(at: lineRotatePt), .rotate, "線條旋轉控制點出現旋轉鼠標")
+
+    let lineTLPt = Point(x: Double(lineHandles[.topLeft]!.x), y: Double(lineHandles[.topLeft]!.y))
+    lineEngine.updateHoveredHandle(at: lineTLPt)
+    assertEqual(lineEngine.currentCursorType(at: lineTLPt), .resizeDiagonalNWSE, "線條左上控制點出現對角雙向箭頭")
+
+    // 34.4 拖曳中游標鎖定與放開恢復 (Drag Cursor Locking)
+    lineEngine.beginPointerGesture(at: lineRotatePt, isShift: false)
+    assertEqual(lineEngine.activeTransformHandle, .rotate, "開始拖曳旋轉點時 activeTransformHandle 為 rotate")
+    // 拖曳至遠處 (游標不再控制點正上方)，游標形狀仍鎖定在 rotate
+    let farDragPt = Point(x: 500, y: 500)
+    assertEqual(lineEngine.currentCursorType(at: farDragPt), .rotate, "拖曳旋轉過程中游標形狀持續鎖定為旋轉鼠標")
+
+    // 放開拖曳後恢復
+    lineEngine.endPointerGesture(translation: .zero)
+    assertEqual(lineEngine.activeTransformHandle, nil, "放開後 activeTransformHandle 釋放")
+    assertEqual(lineEngine.currentCursorType(at: farDragPt), nil, "放開後遠處游標恢復預設狀態")
+}
+
 print("\n==================================================")
 if failedCount == 0 {
     print("🎉 驗收結果：全部通過！ (\(passedCount) 項斷言成功，0 項失敗)")
@@ -3450,5 +3568,6 @@ if failedCount == 0 {
     exit(1)
 }
 print("==================================================")
+
 
 

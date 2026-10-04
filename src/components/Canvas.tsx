@@ -267,18 +267,21 @@ export const Canvas: React.FC<CanvasProps> = ({
     initialY2: number;
   } | null>(null);
 
-  // General 2D Move / Resize state
+  // General 2D Move / Resize / Rotate state
   const [transformState, setTransformState] = useState<{
-    type: 'move' | 'resize';
+    type: 'move' | 'resize' | 'rotate';
     handle?: string;
     startWorldX: number;
     startWorldY: number;
+    center?: { x: number; y: number };
+    startAngle?: number;
     initialObjects: {
       id: string;
       x: number;
       y: number;
       width: number;
       height: number;
+      rotation?: number;
       x1?: number;
       y1?: number;
       x2?: number;
@@ -893,12 +896,42 @@ export const Canvas: React.FC<CanvasProps> = ({
           if (h.includes('l')) newX = anchorX - (bbox.maxX - init.x) * scaleX;
           if (h.includes('t')) newY = anchorY - (bbox.maxY - init.y) * scaleY;
 
-          onUpdateObject(init.id, {
-            x: Math.round(newX),
-            y: Math.round(newY),
-            width: newW,
-            height: newH,
-          });
+          if (init.x1 !== undefined && init.x2 !== undefined) {
+            const rx1 = init.x1 - anchorX;
+            const ry1 = (init.y1 || 0) - anchorY;
+            const rx2 = init.x2 - anchorX;
+            const ry2 = (init.y2 || 0) - anchorY;
+            onUpdateObject(init.id, {
+              x1: Math.round(anchorX + rx1 * scaleX),
+              y1: Math.round(anchorY + ry1 * scaleY),
+              x2: Math.round(anchorX + rx2 * scaleX),
+              y2: Math.round(anchorY + ry2 * scaleY),
+              x: Math.round(newX),
+              y: Math.round(newY),
+              width: newW,
+              height: newH,
+            });
+          } else {
+            onUpdateObject(init.id, {
+              x: Math.round(newX),
+              y: Math.round(newY),
+              width: newW,
+              height: newH,
+            });
+          }
+        }
+      } else if (transformState.type === 'rotate') {
+        const center = transformState.center || {
+          x: (transformState.initialBBox.minX + transformState.initialBBox.maxX) / 2,
+          y: (transformState.initialBBox.minY + transformState.initialBBox.maxY) / 2,
+        };
+        const currentAngle = Math.atan2(worldPt.y - center.y, worldPt.x - center.x) * 180 / Math.PI;
+        const delta = currentAngle - (transformState.startAngle || 0);
+
+        for (const init of transformState.initialObjects) {
+          const initRot = init.rotation || 0;
+          const newRot = Math.round((initRot + delta) % 360);
+          onUpdateObject(init.id, { rotation: newRot });
         }
       }
     }
@@ -1121,7 +1154,7 @@ export const Canvas: React.FC<CanvasProps> = ({
     (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
   };
 
-  // Resize handle pointer down for non-lines
+  // Resize handle pointer down
   const handleResizePointerDown = (handle: string, e: React.PointerEvent) => {
     e.stopPropagation();
     const worldPt = screenToWorld(e.clientX, e.clientY);
@@ -1130,10 +1163,21 @@ export const Canvas: React.FC<CanvasProps> = ({
 
     let bMinX = Infinity, bMinY = Infinity, bMaxX = -Infinity, bMaxY = -Infinity;
     for (const o of selectedObjs) {
-      bMinX = Math.min(bMinX, o.x);
-      bMinY = Math.min(bMinY, o.y);
-      bMaxX = Math.max(bMaxX, o.x + o.width);
-      bMaxY = Math.max(bMaxY, o.y + o.height);
+      if (o.type === 'line' || o.type === 'arrow') {
+        const x1 = o.x1 ?? o.x;
+        const y1 = o.y1 ?? o.y;
+        const x2 = o.x2 ?? (o.x + o.width);
+        const y2 = o.y2 ?? (o.y + o.height);
+        bMinX = Math.min(bMinX, Math.min(x1, x2));
+        bMinY = Math.min(bMinY, Math.min(y1, y2));
+        bMaxX = Math.max(bMaxX, Math.max(x1, x2));
+        bMaxY = Math.max(bMaxY, Math.max(y1, y2));
+      } else {
+        bMinX = Math.min(bMinX, o.x);
+        bMinY = Math.min(bMinY, o.y);
+        bMaxX = Math.max(bMaxX, o.x + o.width);
+        bMaxY = Math.max(bMaxY, o.y + o.height);
+      }
     }
 
     setTransformState({
@@ -1147,6 +1191,72 @@ export const Canvas: React.FC<CanvasProps> = ({
         y: o.y,
         width: o.width,
         height: o.height,
+        rotation: o.rotation || 0,
+        x1: o.x1,
+        y1: o.y1,
+        x2: o.x2,
+        y2: o.y2,
+      })),
+      initialBBox: {
+        minX: bMinX,
+        minY: bMinY,
+        maxX: bMaxX,
+        maxY: bMaxY,
+        width: Math.max(1, bMaxX - bMinX),
+        height: Math.max(1, bMaxY - bMinY),
+      },
+    });
+    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+  };
+
+  // Rotate handle pointer down
+  const handleRotatePointerDown = (e: React.PointerEvent) => {
+    e.stopPropagation();
+    const worldPt = screenToWorld(e.clientX, e.clientY);
+    const selectedObjs = objects.filter((o) => selectedIds.includes(o.id));
+    if (selectedObjs.length === 0) return;
+
+    let bMinX = Infinity, bMinY = Infinity, bMaxX = -Infinity, bMaxY = -Infinity;
+    for (const o of selectedObjs) {
+      if (o.type === 'line' || o.type === 'arrow') {
+        const x1 = o.x1 ?? o.x;
+        const y1 = o.y1 ?? o.y;
+        const x2 = o.x2 ?? (o.x + o.width);
+        const y2 = o.y2 ?? (o.y + o.height);
+        bMinX = Math.min(bMinX, Math.min(x1, x2));
+        bMinY = Math.min(bMinY, Math.min(y1, y2));
+        bMaxX = Math.max(bMaxX, Math.max(x1, x2));
+        bMaxY = Math.max(bMaxY, Math.max(y1, y2));
+      } else {
+        bMinX = Math.min(bMinX, o.x);
+        bMinY = Math.min(bMinY, o.y);
+        bMaxX = Math.max(bMaxX, o.x + o.width);
+        bMaxY = Math.max(bMaxY, o.y + o.height);
+      }
+    }
+
+    const centerX = (bMinX + bMaxX) / 2;
+    const centerY = (bMinY + bMaxY) / 2;
+    const startAngle = Math.atan2(worldPt.y - centerY, worldPt.x - centerX) * 180 / Math.PI;
+
+    setTransformState({
+      type: 'rotate',
+      handle: 'rotate',
+      startWorldX: worldPt.x,
+      startWorldY: worldPt.y,
+      center: { x: centerX, y: centerY },
+      startAngle,
+      initialObjects: selectedObjs.map((o) => ({
+        id: o.id,
+        x: o.x,
+        y: o.y,
+        width: o.width,
+        height: o.height,
+        rotation: o.rotation || 0,
+        x1: o.x1,
+        y1: o.y1,
+        x2: o.x2,
+        y2: o.y2,
       })),
       initialBBox: {
         minX: bMinX,
@@ -1186,18 +1296,29 @@ export const Canvas: React.FC<CanvasProps> = ({
   const isSingleLineSelected = selectedObjects.length === 1 && (selectedObjects[0].type === 'line' || selectedObjects[0].type === 'arrow');
   const singleLineObj = isSingleLineSelected ? selectedObjects[0] : null;
 
-  // Selection tight Bounding Box (Only for non-line objects or multi-selection)
+  // Selection tight Bounding Box (For all objects including lines and images)
   let selectionBox: { minX: number; minY: number; maxX: number; maxY: number; width: number; height: number } | null = null;
-  if (selectedObjects.length > 0 && !isSingleLineSelected) {
+  if (selectedObjects.length > 0) {
     let minX = Infinity;
     let minY = Infinity;
     let maxX = -Infinity;
     let maxY = -Infinity;
     for (const obj of selectedObjects) {
-      minX = Math.min(minX, obj.x);
-      minY = Math.min(minY, obj.y);
-      maxX = Math.max(maxX, obj.x + obj.width);
-      maxY = Math.max(maxY, obj.y + obj.height);
+      if (obj.type === 'line' || obj.type === 'arrow') {
+        const x1 = obj.x1 ?? obj.x;
+        const y1 = obj.y1 ?? obj.y;
+        const x2 = obj.x2 ?? (obj.x + obj.width);
+        const y2 = obj.y2 ?? (obj.y + obj.height);
+        minX = Math.min(minX, Math.min(x1, x2));
+        minY = Math.min(minY, Math.min(y1, y2));
+        maxX = Math.max(maxX, Math.max(x1, x2));
+        maxY = Math.max(maxY, Math.max(y1, y2));
+      } else {
+        minX = Math.min(minX, obj.x);
+        minY = Math.min(minY, obj.y);
+        maxX = Math.max(maxX, obj.x + obj.width);
+        maxY = Math.max(maxY, obj.y + obj.height);
+      }
     }
     selectionBox = {
       minX,
@@ -1862,8 +1983,8 @@ export const Canvas: React.FC<CanvasProps> = ({
         })()
       )}
 
-      {/* Non-Line Selection Bounding Box & 8 Handles */}
-      {selectionBox && !isSingleLineSelected && currentTool === 'select' && (
+      {/* Selection Bounding Box, 8 Handles & Rotation Handle */}
+      {selectionBox && currentTool === 'select' && (
         <div
           className="absolute pointer-events-none z-20 border-2 border-blue-500/90 rounded-sm shadow-sm"
           style={{
@@ -1873,19 +1994,36 @@ export const Canvas: React.FC<CanvasProps> = ({
             height: `${selectionBox.height * viewport.zoom}px`,
           }}
         >
+          {/* Rotation Handle Connector Stem */}
+          <div className="absolute left-1/2 -top-6 w-[1.5px] h-6 bg-blue-500 -translate-x-1/2 pointer-events-none" />
+
+          {/* Rotation Handle with Custom Circular Arrow Cursor */}
+          <div
+            onPointerDown={handleRotatePointerDown}
+            style={{
+              cursor: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24' fill='none' stroke='white' stroke-width='4' stroke-linecap='round'/%3E%3Cpolyline points='21 3 21 8 16 8' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24' fill='none' stroke='%230f172a' stroke-width='1.8' stroke-linecap='round'/%3E%3Cpolyline points='21 3 21 8 16 8' fill='none' stroke='%230f172a' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") 12 12, grab`,
+            }}
+            className="absolute left-1/2 -top-6 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-white border-2 border-blue-600 rounded-full shadow-md pointer-events-auto hover:scale-125 transition-transform flex items-center justify-center group"
+            title="旋轉控制點 (拖曳可旋轉物件)"
+          >
+            <div className="w-1.5 h-1.5 rounded-full bg-blue-600 pointer-events-none" />
+          </div>
+
+          {/* 8 Perimeter Resize Handles */}
           {[
-            { id: 'tl', class: '-left-2 -top-2 cursor-nwse-resize' },
-            { id: 'tm', class: 'left-1/2 -translate-x-1/2 -top-2 cursor-ns-resize' },
-            { id: 'tr', class: '-right-2 -top-2 cursor-nesw-resize' },
-            { id: 'mr', class: '-right-2 top-1/2 -translate-y-1/2 cursor-ew-resize' },
-            { id: 'br', class: '-right-2 -bottom-2 cursor-nwse-resize' },
-            { id: 'bm', class: 'left-1/2 -translate-x-1/2 -bottom-2 cursor-ns-resize' },
-            { id: 'bl', class: '-left-2 -bottom-2 cursor-nesw-resize' },
-            { id: 'ml', class: '-left-2 top-1/2 -translate-y-1/2 cursor-ew-resize' },
+            { id: 'tl', class: '-left-2 -top-2 cursor-nwse-resize', title: '左上角 (斜邊拉長縮短)' },
+            { id: 'tm', class: 'left-1/2 -translate-x-1/2 -top-2 cursor-ns-resize', title: '頂部 (上下拉長縮短)' },
+            { id: 'tr', class: '-right-2 -top-2 cursor-nesw-resize', title: '右上角 (斜邊拉長縮短)' },
+            { id: 'mr', class: '-right-2 top-1/2 -translate-y-1/2 cursor-ew-resize', title: '右側 (左右拉長縮短)' },
+            { id: 'br', class: '-right-2 -bottom-2 cursor-nwse-resize', title: '右下角 (斜邊拉長縮短)' },
+            { id: 'bm', class: 'left-1/2 -translate-x-1/2 -bottom-2 cursor-ns-resize', title: '底部 (上下拉長縮短)' },
+            { id: 'bl', class: '-left-2 -bottom-2 cursor-nesw-resize', title: '左下角 (斜邊拉長縮短)' },
+            { id: 'ml', class: '-left-2 top-1/2 -translate-y-1/2 cursor-ew-resize', title: '左側 (左右拉長縮短)' },
           ].map((h) => (
             <div
               key={h.id}
               onPointerDown={(e) => handleResizePointerDown(h.id, e)}
+              title={h.title}
               className={`absolute w-3.5 h-3.5 bg-white border-2 border-blue-600 rounded-sm shadow-md pointer-events-auto hover:scale-125 transition-transform ${h.class}`}
             />
           ))}

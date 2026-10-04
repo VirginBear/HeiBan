@@ -577,4 +577,28 @@ public enum TransformHandle: String, CaseIterable, Equatable {
     case bottomLeft
     case middleLeft
     case rotate
+
+    public var cursorType: TransformCursorType {
+        switch self {
+        case .middleLeft, .middleRight:
+            return .resizeHorizontal
+        case .topCenter, .bottomCenter:
+            return .resizeVertical
+        case .topLeft, .bottomRight:
+            return .resizeDiagonalNWSE
+        case .topRight, .bottomLeft:
+            return .resizeDiagonalNESW
+        case .rotate:
+            return .rotate
+        }
+    }
 }
+
+public enum TransformCursorType: String, CaseIterable, Equatable {
+    case resizeHorizontal     // 左右雙向拉伸
+    case resizeVertical       // 上下雙向拉伸
+    case resizeDiagonalNWSE   // 左上-右下對角拉伸
+    case resizeDiagonalNESW   // 右上-左下對角拉伸
+    case rotate               // 旋轉
+}
+

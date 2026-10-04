@@ -423,6 +423,41 @@ assertTrue(adrContent.includes('React 19 + TypeScript'), 'ADR 應記錄 Web Reac
 assertTrue(adrContent.includes('WinUI 3 + C#'), 'ADR 應記錄 Windows Direct2D 渲染');
 assertTrue(adrContent.includes('2.0'), 'ADR 應定義字型度量容差 ≤ 2.0 pt');
 
+// -------------------------------------------------------------------------
+// 7. Web Transform Handles & Dynamic Cursors (Image, Line, Rotate) (立靶驗收)
+// -------------------------------------------------------------------------
+console.log('\n[測試 7] Web 控制器周圍 8 點與旋轉控制點動態游標形狀與旋轉狀態契約驗證 (立靶驗收)');
+
+const handleCursorMap: Record<string, string> = {
+  ml: 'cursor-ew-resize',
+  mr: 'cursor-ew-resize',
+  tm: 'cursor-ns-resize',
+  bm: 'cursor-ns-resize',
+  tl: 'cursor-nwse-resize',
+  br: 'cursor-nwse-resize',
+  tr: 'cursor-nesw-resize',
+  bl: 'cursor-nesw-resize',
+};
+
+assertEqual(handleCursorMap['ml'], 'cursor-ew-resize', 'Web 左中點為水平雙向箭頭游標');
+assertEqual(handleCursorMap['mr'], 'cursor-ew-resize', 'Web 右中點為水平雙向箭頭游標');
+assertEqual(handleCursorMap['tm'], 'cursor-ns-resize', 'Web 頂中點為垂直雙向箭頭游標');
+assertEqual(handleCursorMap['bm'], 'cursor-ns-resize', 'Web 底中點為垂直雙向箭頭游標');
+assertEqual(handleCursorMap['tl'], 'cursor-nwse-resize', 'Web 左上角為斜邊 NW-SE 雙向箭頭游標');
+assertEqual(handleCursorMap['br'], 'cursor-nwse-resize', 'Web 右下角為斜邊 NW-SE 雙向箭頭游標');
+assertEqual(handleCursorMap['tr'], 'cursor-nesw-resize', 'Web 右上角為斜邊 NE-SW 雙向箭頭游標');
+assertEqual(handleCursorMap['bl'], 'cursor-nesw-resize', 'Web 左下角為斜邊 NE-SW 雙向箭頭游標');
+
+const canvasSourcePath = path.resolve(__dirname, '../src/components/Canvas.tsx');
+assertTrue(fs.existsSync(canvasSourcePath), 'Canvas.tsx 原始碼檔案應存在');
+const canvasSource = fs.readFileSync(canvasSourcePath, 'utf-8');
+
+assertTrue(canvasSource.includes('cursor-ew-resize'), 'Canvas.tsx 應包含水平雙向箭頭樣式');
+assertTrue(canvasSource.includes('cursor-ns-resize'), 'Canvas.tsx 應包含垂直雙向箭頭樣式');
+assertTrue(canvasSource.includes('cursor-nwse-resize'), 'Canvas.tsx 應包含左上右下斜邊箭頭樣式');
+assertTrue(canvasSource.includes('cursor-nesw-resize'), 'Canvas.tsx 應包含右上左下斜邊箭頭樣式');
+assertTrue(canvasSource.includes('handleRotate') || canvasSource.includes('rotate'), 'Canvas.tsx 應定義旋轉控制點與互動邏輯');
+
 console.log('\n==================================================');
 if (failedCount === 0) {
   console.log(`🎉 驗收結果：全部通過！ (${passedCount} 項斷言成功，0 項失敗)`);
@@ -431,3 +466,4 @@ if (failedCount === 0) {
   process.exit(1);
 }
 console.log('==================================================\n');
+

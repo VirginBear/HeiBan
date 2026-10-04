@@ -130,6 +130,7 @@ public class BoardEngine: ObservableObject {
     @Published public var selectedIds: Set<String> = []
     @Published public var marqueeRect: CGRect? = nil
     @Published public var activeTransformHandle: TransformHandle? = nil
+    @Published public var hoveredTransformHandle: TransformHandle? = nil
     @Published public var isShiftHeld: Bool = false
 
     public var isToolbarVertical: Bool {
@@ -138,6 +139,27 @@ public class BoardEngine: ObservableObject {
 
     public var selectionBoundingBox: CGRect? {
         VectorMath.selectionBounds(for: objects.filter { selectedIds.contains($0.id) && $0.isVisible != false })
+    }
+
+    public func updateHoveredHandle(at screenPoint: Point?) {
+        guard currentTool == .select, let screenPoint, let selBounds = selectionBoundingBox else {
+            hoveredTransformHandle = nil
+            return
+        }
+        let worldPoint = VectorMath.screenToWorld(screenPoint, viewport: viewport)
+        hoveredTransformHandle = VectorMath.hitTestHandle(point: worldPoint, bounds: selBounds, zoom: viewport.zoom)
+    }
+
+    public func currentCursorType(at screenPoint: Point? = nil) -> TransformCursorType? {
+        if let active = activeTransformHandle {
+            return active.cursorType
+        }
+        if let screenPoint {
+            guard currentTool == .select, let selBounds = selectionBoundingBox else { return nil }
+            let worldPoint = VectorMath.screenToWorld(screenPoint, viewport: viewport)
+            return VectorMath.hitTestHandle(point: worldPoint, bounds: selBounds, zoom: viewport.zoom)?.cursorType
+        }
+        return hoveredTransformHandle?.cursorType
     }
 
     private var initialTransformBounds: CGRect?

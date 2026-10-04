@@ -30,11 +30,16 @@ struct NativePointerSurface: NSViewRepresentable {
         override func updateTrackingAreas() {
             super.updateTrackingAreas()
             trackingAreas.forEach(removeTrackingArea)
-            addTrackingArea(NSTrackingArea(rect: bounds, options: [.mouseMoved, .mouseEnteredAndExited, .activeInKeyWindow, .inVisibleRect], owner: self, userInfo: nil))
+            addTrackingArea(NSTrackingArea(rect: bounds, options: [.mouseMoved, .mouseEnteredAndExited, .activeInKeyWindow, .inVisibleRect, .cursorUpdate], owner: self, userInfo: nil))
         }
-        override func mouseEntered(with event: NSEvent) { updateEraserCursor(event); updatePolygonCursor(event) }
-        override func mouseMoved(with event: NSEvent) { updateEraserCursor(event); updatePolygonCursor(event) }
-        override func mouseExited(with event: NSEvent) { engine.updateEraserCursor(at: nil) }
+        override func mouseEntered(with event: NSEvent) { updateEraserCursor(event); updatePolygonCursor(event); updateTransformCursor(event) }
+        override func mouseMoved(with event: NSEvent) { updateEraserCursor(event); updatePolygonCursor(event); updateTransformCursor(event) }
+        override func mouseExited(with event: NSEvent) {
+            engine.updateEraserCursor(at: nil)
+            engine.updateHoveredHandle(at: nil)
+            CursorHelper.setCursor(for: nil)
+        }
+        override func cursorUpdate(with event: NSEvent) { updateTransformCursor(event) }
         override func mouseDown(with event: NSEvent) {
             window?.makeFirstResponder(self)
             let location = point(event)
@@ -43,6 +48,7 @@ struct NativePointerSurface: NSViewRepresentable {
             updatePolygonCursor(event)
             let isShift = event.modifierFlags.contains(.shift)
             engine.beginPointerGesture(at: Point(location), isShift: isShift, clickCount: event.clickCount)
+            updateTransformCursor(event)
             scheduleHold()
         }
         override func mouseDragged(with event: NSEvent) {
@@ -52,6 +58,7 @@ struct NativePointerSurface: NSViewRepresentable {
             updatePolygonCursor(event)
             let isShift = event.modifierFlags.contains(.shift)
             engine.updatePointerGesture(at: Point(location), translation: translation(location), isShift: isShift)
+            updateTransformCursor(event)
             scheduleHold()
         }
         override func mouseUp(with event: NSEvent) {
@@ -65,6 +72,7 @@ struct NativePointerSurface: NSViewRepresentable {
             engine.holdTimer?.invalidate()
             engine.holdTimer = nil
             engine.endPointerGesture(translation: translation(location))
+            updateTransformCursor(event)
             start = nil
         }
         override func rightMouseDown(with event: NSEvent) {
@@ -126,6 +134,16 @@ struct NativePointerSurface: NSViewRepresentable {
         }
         private func updatePolygonCursor(_ event: NSEvent) {
             engine.updatePolygonDraftCursor(at: Point(point(event)))
+        }
+        private func updateTransformCursor(_ event: NSEvent) {
+            let loc = point(event)
+            let pt = Point(loc)
+            engine.updateHoveredHandle(at: pt)
+            if let cursorType = engine.currentCursorType(at: pt) {
+                CursorHelper.setCursor(for: cursorType)
+            } else if engine.currentTool == .select {
+                CursorHelper.setCursor(for: nil)
+            }
         }
 
         @objc private func deleteFromContext(_ sender: Any?) { engine.deleteSelected() }
