@@ -29,3 +29,113 @@
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.35);
 }
+
+/* HeiBan library: a quieter macOS surface with one restrained green accent. */
+.heiban-home {
+  --home-bg: #f4f6f3;
+  --home-surface: #ffffff;
+  --home-text: #202b24;
+  --home-muted: #69766e;
+  --home-border: #dfe5df;
+  --home-accent: #35634a;
+  background: var(--home-bg);
+  color: var(--home-text);
+}
+
+.heiban-home-header {
+  background: rgb(255 255 255 / 92%);
+  border-color: var(--home-border);
+}
+
+.heiban-home-header h1 { color: var(--home-text); }
+.heiban-home-header p { color: var(--home-muted); }
+
+.heiban-home-search,
+.heiban-home-utility,
+.heiban-home-theme-button {
+  background: var(--home-surface);
+  border-color: var(--home-border);
+  color: #4b5b51;
+}
+
+.heiban-home-search:focus-within,
+.heiban-home-utility:hover,
+.heiban-home-theme-button:hover {
+  border-color: #a8bcae;
+  color: #243b2d;
+}
+
+.heiban-home-signin,
+.heiban-home-create-button,
+.heiban-home-open-board {
+  background: var(--home-accent);
+}
+
+.heiban-home-signin:hover,
+.heiban-home-create-button:hover,
+.heiban-home-open-board:hover {
+  background: #284d39;
+}
+
+.heiban-home-create {
+  background: var(--home-surface);
+  border-color: var(--home-border);
+  box-shadow: 0 1px 2px rgb(22 40 29 / 4%);
+}
+
+.heiban-home-count {
+  background: #e9efe9;
+  color: #526359;
+}
+
+.heiban-home-board {
+  background: var(--home-surface);
+  border-color: var(--home-border);
+  box-shadow: 0 2px 6px rgb(22 40 29 / 5%);
+}
+
+.heiban-home-board:hover {
+  border-color: #aac0af;
+  box-shadow: 0 8px 24px rgb(22 40 29 / 10%);
+}
+
+.heiban-home-board-preview {
+  border-color: var(--home-border);
+}
+
+.heiban-home-board-footer { color: var(--home-text); }
+
+.heiban-toolbar-light {
+  color: #27352c;
+  border-color: #dfe5df;
+  box-shadow: 0 8px 28px rgb(17 32 21 / 18%);
+}
+
+.heiban-toolbar-light [class*="text-neutral-"] { color: #637168; }
+.heiban-toolbar-light [class*="border-white/10"] { border-color: rgb(35 55 41 / 12%); }
+.heiban-toolbar-light [class*="hover:bg-white/10"]:hover { background-color: #edf1ed; }
+.heiban-toolbar-light [class*="hover:text-white"]:hover { color: #24362a; }
+
+.heiban-topnav-left,
+.heiban-topnav-right {
+  background: rgb(255 255 255 / 94%);
+  border-color: #dfe5df;
+  box-shadow: 0 4px 16px rgb(14 31 20 / 12%);
+  color: #2b382f;
+}
+
+.heiban-topnav-left > div:first-child .text-white { color: #26342b; }
+
+.heiban-topnav-left .text-neutral-200,
+.heiban-topnav-right .text-neutral-200 { color: #26342b; }
+.heiban-topnav-left .text-neutral-300,
+.heiban-topnav-right .text-neutral-300 { color: #4f5e54; }
+.heiban-topnav-left .text-neutral-400,
+.heiban-topnav-right .text-neutral-400 { color: #647168; }
+.heiban-topnav-left [class*="border-neutral-700"],
+.heiban-topnav-right [class*="border-neutral-700"] { border-color: #dfe5df; }
+.heiban-topnav-left [class*="hover:bg-neutral-800"]:hover,
+.heiban-topnav-right [class*="hover:bg-neutral-800"]:hover { background-color: #edf1ed; }
+.heiban-topnav-left [class*="hover:text-white"]:hover,
+.heiban-topnav-right [class*="hover:text-white"]:hover { color: #26342b; }
+.heiban-topnav-right [class*="bg-gradient-to-r"] { background: #35634a; }

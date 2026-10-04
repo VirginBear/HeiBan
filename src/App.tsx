@@ -56,114 +56,30 @@ import {
 const DEFAULT_BOARD_ID = 'demo_blackboard_main';
 const DEFAULT_BOARD: BoardMetadata = {
   id: DEFAULT_BOARD_ID,
-  title: '物理與幾何課堂 - 向量黑板',
-  ownerId: 'default',
-  ownerName: '黑板老師',
+  title: '我的第一塊黑板',
+  ownerId: 'local',
+  ownerName: '本機使用者',
   backgroundColor: '#172e25',
   gridStyle: 'grid',
   boardTheme: 'blackboard',
   canvasMode: 'infinite',
   canvasPreset: 'infinite',
-  pins: [
-    {
-      id: 'pin_demo_1',
-      name: '板書起點 (左上舒適視角)',
-      x: 350,
-      y: 180,
-      zoom: 1,
-      createdAt: new Date().toISOString(),
-    },
-  ],
+  pins: [],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 };
 
-// Initial objects welcoming user to the blackboard
-const INITIAL_DEMO_OBJECTS: BoardObject[] = [
-  {
-    id: 'init_welcome_text',
-    boardId: DEFAULT_BOARD_ID,
-    type: 'text',
-    x: 120,
-    y: 80,
-    width: 600,
-    height: 70,
-    strokeColor: '#86efac',
-    fillColor: 'none',
-    strokeWidth: 1,
-    opacity: 1,
-    rotation: 0,
-    zIndex: 1,
-    text: '歡迎使用「黑板」向量協作白板 📐',
-    fontSize: 34,
-    fontFamily: 'system-ui, sans-serif',
-    createdBy: 'system',
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'init_sticky_tip',
-    boardId: DEFAULT_BOARD_ID,
-    type: 'sticky',
-    x: 120,
-    y: 180,
-    width: 260,
-    height: 220,
-    strokeColor: '#1f2937',
-    fillColor: '#fef08a',
-    strokeWidth: 1,
-    opacity: 1,
-    rotation: -2,
-    zIndex: 2,
-    text: '🌟 GoodNotes 級升級功能：\n1. 畫筆畫完停留 1 秒自動轉直線/圓形！\n2. 尺橫跨整個螢幕，兩端按鈕旋轉\n3. 支援螢幕截圖（可選螢幕 A / B 與局部裁切）\n4. 圖釘功能：點擊自動置於右上角舒適書寫區\n5. 支援實線與虛線切換\n6. 橡皮擦支援「整筆物件」或「精細像素」模式',
-    fontSize: 13,
-    createdBy: 'system',
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'init_sticky_figma',
-    boardId: DEFAULT_BOARD_ID,
-    type: 'sticky',
-    x: 420,
-    y: 180,
-    width: 220,
-    height: 180,
-    strokeColor: '#1f2937',
-    fillColor: '#93c5fd',
-    strokeWidth: 1,
-    opacity: 1,
-    rotation: 3,
-    zIndex: 3,
-    text: '⚡ 流暢互動操作：\n• 按住 Space + 拖曳或滑鼠滾輪平移\n• 滾輪縮放 (10% ~ 500%)\n• 緊湊直觀的選取變形框\n• 一鍵清除畫布按鈕',
-    fontSize: 14,
-    createdBy: 'system',
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'init_line_demo',
-    boardId: DEFAULT_BOARD_ID,
-    type: 'line',
-    x1: 680,
-    y1: 220,
-    x2: 900,
-    y2: 320,
-    x: 680,
-    y: 220,
-    width: 220,
-    height: 100,
-    extension: 'none',
-    strokeColor: '#f472b6',
-    fillColor: 'none',
-    strokeWidth: 4,
-    lineStyle: 'dashed',
-    opacity: 1,
-    rotation: 0,
-    zIndex: 4,
-    createdBy: 'system',
-    updatedAt: new Date().toISOString(),
-  },
-];
+// New local boards start clean; the feature-tour objects are not user content.
+const INITIAL_DEMO_OBJECTS: BoardObject[] = [];
 
 export default function App() {
+  const pendingPresenceRef = useRef<{ x: number; y: number; isDrawing: boolean } | null>(null);
+  const presenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const presenceWriteActiveRef = useRef(false);
+  const pendingObjectWritesRef = useRef(new Map<string, BoardObject>());
+  const objectWriteTimersRef = useRef(new Map<string, ReturnType<typeof setTimeout>>());
+  const pendingLocalObjectUpdatesRef = useRef(new Map<string, BoardObject>());
+  const localObjectFrameRef = useRef<number | null>(null);
   // Current user state
   const [user, setUser] = useState<User | null>(null);
 
@@ -260,7 +176,7 @@ export default function App() {
   const [isScreenCaptureOpen, setIsScreenCaptureOpen] = useState(false);
   const [syncStatus, setSyncStatus] = useState<'synced' | 'saving' | 'offline'>('synced');
   // View mode: 'home' dashboard (Word/Figma-like start screen) or 'canvas' editor
-  const [viewMode, setViewMode] = useState<'home' | 'canvas'>('canvas');
+  const [viewMode, setViewMode] = useState<'home' | 'canvas'>('home');
 
   // Push history checkpoint
   const pushHistory = useCallback((newObjects: BoardObject[]) => {
@@ -282,7 +198,7 @@ export default function App() {
 
   // Sync board metadata from Firestore
   useEffect(() => {
-    if (!board.id) return;
+    if (!user || !board.id) return;
     const boardDocRef = doc(db, 'boards', board.id);
     const unsub = onSnapshot(
       boardDocRef,
@@ -296,11 +212,11 @@ export default function App() {
       }
     );
     return () => unsub();
-  }, [board.id]);
+  }, [board.id, user?.uid]);
 
   // Sync objects from Firestore
   useEffect(() => {
-    if (!board.id) return;
+    if (!user || !board.id) return;
     const objectsColRef = collection(db, 'boards', board.id, 'objects');
     const unsub = onSnapshot(
       objectsColRef,
@@ -316,11 +232,11 @@ export default function App() {
       }
     );
     return () => unsub();
-  }, [board.id]);
+  }, [board.id, user?.uid]);
 
   // Sync collaborator presences from Firestore
   useEffect(() => {
-    if (!board.id) return;
+    if (!user || !board.id) return;
     const presencesColRef = collection(db, 'boards', board.id, 'presences');
     const unsub = onSnapshot(
       presencesColRef,
@@ -334,40 +250,50 @@ export default function App() {
       }
     );
     return () => unsub();
-  }, [board.id]);
+  }, [board.id, user?.uid]);
 
-  // Throttle user presence coordinates
-  const lastPresenceTimeRef = useRef(0);
+  // Keep only the latest cursor sample and serialize presence writes.
+  const flushPresence = useCallback(async () => {
+    presenceTimerRef.current = null;
+    const sample = pendingPresenceRef.current;
+    pendingPresenceRef.current = null;
+    if (!user || !sample || presenceWriteActiveRef.current) return;
+    presenceWriteActiveRef.current = true;
+    try {
+      await setDoc(
+        doc(db, 'boards', board.id, 'presences', user.uid),
+        {
+          boardId: board.id,
+          userId: user.uid,
+          displayName: user.displayName || '訪客',
+          photoURL: user.photoURL || '',
+          cursorX: Math.round(sample.x),
+          cursorY: Math.round(sample.y),
+          color: '#3b82f6',
+          isDrawing: sample.isDrawing,
+          currentTool,
+          updatedAt: new Date().toISOString(),
+        },
+        { merge: true }
+      );
+    } catch {
+      // Presence is ephemeral; a later sample will retry it.
+    } finally {
+      presenceWriteActiveRef.current = false;
+      if (pendingPresenceRef.current && !presenceTimerRef.current) {
+        presenceTimerRef.current = setTimeout(() => void flushPresence(), 100);
+      }
+    }
+  }, [user, board.id, currentTool]);
+
   const handlePointerTrack = useCallback(
-    async (x: number, y: number, isDrawing: boolean) => {
-      const now = Date.now();
-      if (now - lastPresenceTimeRef.current < 45) return;
-      lastPresenceTimeRef.current = now;
-
-      if (!user) return;
-      const presenceDocRef = doc(db, 'boards', board.id, 'presences', user.uid);
-      try {
-        await setDoc(
-          presenceDocRef,
-          {
-            boardId: board.id,
-            userId: user.uid,
-            displayName: user.displayName || '訪客',
-            photoURL: user.photoURL || '',
-            cursorX: Math.round(x),
-            cursorY: Math.round(y),
-            color: '#3b82f6',
-            isDrawing,
-            currentTool,
-            updatedAt: new Date().toISOString(),
-          },
-          { merge: true }
-        );
-      } catch (err) {
-        // silent
+    (x: number, y: number, isDrawing: boolean) => {
+      pendingPresenceRef.current = { x, y, isDrawing };
+      if (user && !presenceWriteActiveRef.current && !presenceTimerRef.current) {
+        presenceTimerRef.current = setTimeout(() => void flushPresence(), 100);
       }
     },
-    [user, board.id, currentTool]
+    [user, flushPresence]
   );
 
   // Firestore save object helper
@@ -385,6 +311,43 @@ export default function App() {
     }
   };
 
+  const scheduleObjectPersist = (obj: BoardObject) => {
+    pendingObjectWritesRef.current.set(obj.id, obj);
+    const existingTimer = objectWriteTimersRef.current.get(obj.id);
+    if (existingTimer) clearTimeout(existingTimer);
+    const timer = setTimeout(() => {
+      objectWriteTimersRef.current.delete(obj.id);
+      const latest = pendingObjectWritesRef.current.get(obj.id);
+      pendingObjectWritesRef.current.delete(obj.id);
+      if (latest) void persistObject(latest);
+    }, 180);
+    objectWriteTimersRef.current.set(obj.id, timer);
+  };
+
+  const cancelScheduledObjectPersist = (id: string) => {
+    const timer = objectWriteTimersRef.current.get(id);
+    if (timer) clearTimeout(timer);
+    objectWriteTimersRef.current.delete(id);
+    pendingObjectWritesRef.current.delete(id);
+    pendingLocalObjectUpdatesRef.current.delete(id);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (presenceTimerRef.current) clearTimeout(presenceTimerRef.current);
+      for (const timer of objectWriteTimersRef.current.values()) clearTimeout(timer);
+      for (const obj of pendingObjectWritesRef.current.values()) void persistObject(obj);
+      pendingObjectWritesRef.current.clear();
+      objectWriteTimersRef.current.clear();
+    };
+  }, [user, board.id]);
+
+  useEffect(() => () => {
+    if (localObjectFrameRef.current !== null) cancelAnimationFrame(localObjectFrameRef.current);
+    localObjectFrameRef.current = null;
+    pendingLocalObjectUpdatesRef.current.clear();
+  }, [board.id]);
+
   // Add object
   const handleAddObject = (obj: BoardObject) => {
     const updated = [...objects, obj];
@@ -395,16 +358,24 @@ export default function App() {
 
   // Update object
   const handleUpdateObject = (id: string, partial: Partial<BoardObject>) => {
-    const updated = objects.map((o) => (o.id === id ? { ...o, ...partial, updatedAt: new Date().toISOString() } : o));
-    setObjects(updated);
-    const target = updated.find((o) => o.id === id);
-    if (target) {
-      persistObject(target);
+    const base = pendingLocalObjectUpdatesRef.current.get(id) ?? objects.find((o) => o.id === id);
+    if (!base) return;
+    const target = { ...base, ...partial, updatedAt: new Date().toISOString() };
+    pendingLocalObjectUpdatesRef.current.set(id, target);
+    if (localObjectFrameRef.current === null) {
+      localObjectFrameRef.current = requestAnimationFrame(() => {
+        localObjectFrameRef.current = null;
+        const updates = new Map(pendingLocalObjectUpdatesRef.current);
+        pendingLocalObjectUpdatesRef.current.clear();
+        setObjects((current) => current.map((object) => updates.get(object.id) ?? object));
+      });
     }
+    scheduleObjectPersist(target);
   };
 
   // Delete objects
   const handleDeleteObjects = (ids: string[]) => {
+    ids.forEach(cancelScheduledObjectPersist);
     const updated = objects.filter((o) => !ids.includes(o.id));
     setObjects(updated);
     setSelectedIds((prev) => prev.filter((id) => !ids.includes(id)));
@@ -467,6 +438,7 @@ export default function App() {
     if (objects.length === 0) return;
     if (confirm('確定要清除黑板上的所有物件嗎？此動作可透過 Ctrl+Z 隨時復原。')) {
       const idsToDelete = objects.map((o) => o.id);
+      idsToDelete.forEach(cancelScheduledObjectPersist);
       setObjects([]);
       setSelectedIds([]);
       pushHistory([]);

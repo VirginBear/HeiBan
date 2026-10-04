@@ -1,7 +1,10 @@
 import { Point, BoardObject, RulerState, LineExtension } from '../types';
 
 /**
- * Convert an array of points into a smooth SVG bezier path
+ * Convert sampled points into a Catmull–Rom-derived cubic Bézier path.
+ * The old midpoint quadratic approximation cut corners and could look creased
+ * when pointer samples were sparse; these control points keep the curve tangent
+ * continuous while passing through each captured sample.
  */
 export function pointsToSvgPath(points: Point[]): string {
   if (!points || points.length === 0) return '';
@@ -13,12 +16,17 @@ export function pointsToSvgPath(points: Point[]): string {
   }
 
   let d = `M ${points[0].x} ${points[0].y}`;
-  for (let i = 1; i < points.length - 1; i++) {
-    const xc = (points[i].x + points[i + 1].x) / 2;
-    const yc = (points[i].y + points[i + 1].y) / 2;
-    d += ` Q ${points[i].x} ${points[i].y}, ${xc} ${yc}`;
+  for (let i = 0; i < points.length - 1; i++) {
+    const previous = points[Math.max(0, i - 1)];
+    const start = points[i];
+    const end = points[i + 1];
+    const next = points[Math.min(points.length - 1, i + 2)];
+    const cp1x = start.x + (end.x - previous.x) / 6;
+    const cp1y = start.y + (end.y - previous.y) / 6;
+    const cp2x = end.x - (next.x - start.x) / 6;
+    const cp2y = end.y - (next.y - start.y) / 6;
+    d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${end.x} ${end.y}`;
   }
-  d += ` L ${points[points.length - 1].x} ${points[points.length - 1].y}`;
   return d;
 }
 

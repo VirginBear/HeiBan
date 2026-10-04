@@ -105,31 +105,29 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
   ];
 
   return (
-    <div className="w-full h-full bg-neutral-950 text-neutral-100 flex flex-col overflow-y-auto font-sans select-none scrollbar-thin">
+    <div className="heiban-home w-full h-full flex flex-col overflow-y-auto font-sans select-none scrollbar-thin">
       {/* Top Header */}
-      <header className="sticky top-0 z-30 bg-neutral-900/90 backdrop-blur-xl border-b border-neutral-800 px-6 py-3.5 flex items-center justify-between gap-4">
+      <header className="heiban-home-header sticky top-0 z-30 backdrop-blur-xl border-b px-6 py-3.5 flex items-center justify-between gap-4">
         {/* Brand */}
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-white font-black text-base shadow-lg">
-            黑
-          </div>
+          <img src="/logo.png" alt="" className="w-9 h-9 rounded-xl object-cover" />
           <div>
-            <h1 className="font-extrabold text-lg text-white tracking-tight leading-none flex items-center gap-2">
-              HeiBan 黑板 <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">工作室</span>
+            <h1 className="font-semibold text-lg tracking-tight leading-none flex items-center gap-2">
+              HeiBan 黑板 <span className="text-xs font-medium">工作區</span>
             </h1>
-            <p className="text-[11px] text-neutral-400 mt-0.5">向量協作白板平台 • 仿微軟白板 & Excalidraw 手感</p>
+            <p className="text-[11px] mt-1">向量白板工作空間</p>
           </div>
         </div>
 
         {/* Center Search Bar */}
-        <div className="flex-1 max-w-md hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-neutral-800/70 border border-neutral-700/60 text-xs focus-within:border-emerald-500 transition-colors">
+        <div className="heiban-home-search flex-1 max-w-md hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs transition-colors">
           <Search className="w-4 h-4 text-neutral-400 shrink-0" />
           <input
             type="text"
             placeholder="搜尋我的黑板作品..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-transparent text-white placeholder-neutral-500 outline-none"
+            className="w-full bg-transparent placeholder-neutral-500 outline-none"
           />
         </div>
 
@@ -138,10 +136,10 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
           {/* Settings Button (首頁設定按鈕) */}
           <button
             onClick={() => setShowSettingsModal(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-neutral-800/80 hover:bg-neutral-800 border border-neutral-700/60 text-neutral-300 hover:text-white transition-colors text-xs font-medium"
+            className="heiban-home-utility flex items-center gap-1.5 px-3 py-2 rounded-xl border transition-colors text-xs font-medium"
             title="開啟系統偏好設定、Google帳號管理與意見回覆"
           >
-            <Settings className="w-4 h-4 text-emerald-400" />
+            <Settings className="w-4 h-4" />
             <span className="hidden sm:inline">設定</span>
           </button>
 
@@ -198,9 +196,9 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
                 )}
               </div>
             ) : (
-              <button
-                onClick={onSignIn}
-                className="flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium text-xs shadow-lg transition-all"
+                <button
+                  onClick={onSignIn}
+                className="heiban-home-signin flex items-center gap-2 px-4 py-2 rounded-xl text-white font-medium text-xs transition-colors"
               >
                 <LogIn className="w-4 h-4" />
                 <span>Google 登入</span>
@@ -211,33 +209,33 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
       </header>
 
       {/* Main Content Area */}
-      <main className="max-w-6xl w-full mx-auto px-6 py-6 space-y-8">
+      <main className="heiban-home-main max-w-6xl w-full mx-auto px-6 py-10 space-y-10">
         {/* Compact Quick Creation Bar (簡潔緊湊型建立畫布區，不再佔用巨大篇幅) */}
-        <div className="bg-neutral-900/60 border border-neutral-800/80 rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-3 shadow-md backdrop-blur-md">
+        <div className="heiban-home-create border rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
               onClick={() => {
                 setNewBoardTitle('');
                 setShowCreateModal(true);
               }}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-md transition-all active:scale-95 shrink-0"
+              className="heiban-home-create-button flex items-center gap-2 px-4 py-2.5 rounded-xl text-white font-medium text-sm transition-colors shrink-0"
             >
               <Plus className="w-4 h-4" />
               <span>建立全新黑板畫布</span>
             </button>
-            <span className="text-xs text-neutral-400 hidden lg:inline">
-              ✨ 預設無限無邊界畫布，亦支援 A4 橫向/直向、16:9 等規格
+            <span className="text-xs text-neutral-500 hidden lg:inline">
+              從空白畫布開始，之後可調整尺寸與底色
             </span>
           </div>
 
           {/* Quick Theme One-Click Create Chips */}
           <div className="flex items-center gap-1.5 overflow-x-auto">
-            <span className="text-[11px] text-neutral-500 mr-1 hidden sm:inline">快速開板:</span>
+            <span className="text-[11px] text-neutral-500 mr-1 hidden sm:inline">快速建立</span>
             {templateThemes.map((tpl) => (
               <button
                 key={tpl.id}
                 onClick={() => onCreateBoard(`未命名黑板 - ${tpl.title}`, tpl.id, 'infinite')}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-neutral-800 hover:border-neutral-700 bg-neutral-800/50 hover:bg-neutral-800 text-neutral-300 hover:text-white text-xs transition-colors shrink-0"
+                  className="heiban-home-theme-button flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-colors text-xs shrink-0"
                 title={`快速以 ${tpl.title} 建立無限無邊界畫布`}
               >
                 <div
@@ -254,10 +252,10 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
         <div>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-base font-bold text-white tracking-tight">我的黑板作品存檔</h2>
-              <p className="text-xs text-neutral-400">點選即可開啟畫布繼續創作，隨時跨裝置自動同步</p>
+              <h2 className="text-xl font-semibold tracking-tight">最近使用</h2>
+              <p className="text-sm text-neutral-500 mt-1">選取一面黑板，繼續你的工作。</p>
             </div>
-            <span className="text-xs font-mono px-2.5 py-1 rounded-full bg-neutral-800 text-neutral-400">
+            <span className="heiban-home-count text-xs px-2.5 py-1 rounded-full">
               共 {filteredBoards.length} 個作品
             </span>
           </div>
@@ -279,11 +277,11 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
                 <div
                   key={b.id}
                   onClick={() => onOpenBoard(b.id)}
-                  className="group relative rounded-3xl border border-neutral-800/80 bg-neutral-900/80 hover:bg-neutral-900 hover:border-emerald-500/50 shadow-xl overflow-hidden cursor-pointer transition-all hover:-translate-y-1 flex flex-col"
+                  className="heiban-home-board group relative rounded-2xl border overflow-hidden cursor-pointer transition-all hover:-translate-y-0.5 flex flex-col"
                 >
                   {/* Visual Board Canvas Preview (畫面截圖/縮圖) */}
                   <div
-                    className="relative w-full h-44 overflow-hidden border-b border-neutral-800 flex items-center justify-center bg-neutral-950"
+                    className="heiban-home-board-preview relative w-full h-44 overflow-hidden border-b flex items-center justify-center"
                     style={{ backgroundColor: b.backgroundColor || '#172e25' }}
                   >
                     {b.thumbnail ? (
@@ -299,11 +297,8 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
 
                         {/* Visual Blackboard Art Stamp Preview */}
                         <div className="text-center p-4 z-10 pointer-events-none">
-                          <div className="text-2xl font-black text-white/30 tracking-widest uppercase font-mono">
-                            {b.title || 'BLACKBOARD'}
-                          </div>
-                          <div className="text-[10px] text-emerald-400/80 font-mono mt-1">
-                            向量高畫質畫布
+                          <div className="text-2xl font-semibold tracking-tight text-white/40">
+                            {b.title || '未命名黑板'}
                           </div>
                         </div>
                       </>
@@ -311,16 +306,16 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
 
                     {/* Hover Action Overlay */}
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 backdrop-blur-[2px] transition-opacity flex items-center justify-center gap-3">
-                      <span className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg transition-transform scale-95 group-hover:scale-100">
-                        繼續編輯畫布 ✎
+                      <span className="heiban-home-open-board px-4 py-2 rounded-lg text-white text-sm font-medium transition-transform scale-95 group-hover:scale-100">
+                        開啟黑板
                       </span>
                     </div>
                   </div>
 
                   {/* Card Details Footer */}
-                  <div className="p-4 flex items-center justify-between">
+                  <div className="heiban-home-board-footer p-4 flex items-center justify-between">
                     <div className="min-w-0 pr-2">
-                      <div className="font-bold text-sm text-white truncate group-hover:text-emerald-300 transition-colors">
+                      <div className="font-semibold text-sm truncate group-hover:text-emerald-700 transition-colors">
                         {b.title || '未命名黑板'}
                       </div>
                       <div className="flex items-center gap-2 text-[11px] text-neutral-400 mt-1">

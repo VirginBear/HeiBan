@@ -131,23 +131,21 @@ export const TopNav: React.FC<TopNavProps> = ({
   ];
 
   return (
-    <header className="absolute top-3 left-3 right-3 z-30 pointer-events-none flex items-center justify-between gap-2">
+    <header className="heiban-topnav absolute top-3 left-3 right-3 z-30 pointer-events-none flex flex-nowrap items-center justify-between gap-2">
       {/* Left: App Logo, Board Title & Switcher */}
-      <div className="pointer-events-auto flex items-center gap-2 bg-neutral-900/90 backdrop-blur-xl border border-neutral-700/80 px-3 py-1.5 rounded-2xl shadow-xl">
+      <div className="heiban-topnav-left pointer-events-auto flex shrink-0 items-center gap-1.5 bg-neutral-900/90 backdrop-blur-xl border border-neutral-700/80 px-2.5 py-1.5 rounded-2xl shadow-xl">
         {/* Brand Logo & Return to Home Dashboard */}
         <div
           onClick={onGoHome || onOpenBoardsModal}
-          className="flex items-center gap-2 cursor-pointer group px-1 py-0.5 rounded-xl hover:bg-neutral-800/80 transition-colors"
+          className="flex items-center gap-2 cursor-pointer group px-1 py-0.5 rounded-xl hover:bg-neutral-800/80 transition-colors shrink-0"
           title="回首頁 (主畫面 / 所有存檔畫布)"
         >
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-white font-black text-sm shadow-md group-hover:scale-105 transition-transform">
-            黑
-          </div>
+          <img src="/logo.png" alt="" className="w-8 h-8 rounded-lg object-cover shrink-0" />
           <div className="flex flex-col">
             <span className="font-bold text-xs tracking-tight text-white flex items-center gap-1">
               HeiBan 黑板 <span className="text-[10px] text-emerald-400 group-hover:underline">首頁</span>
             </span>
-            <span className="text-[9px] text-neutral-400 leading-none flex items-center gap-0.5">
+            <span className="hidden lg:flex text-[9px] text-neutral-400 leading-none items-center gap-0.5">
               <Home className="w-2.5 h-2.5" /> 所有作品
             </span>
           </div>
@@ -172,7 +170,7 @@ export const TopNav: React.FC<TopNavProps> = ({
               setTitleInput(board.title);
               setIsEditingTitle(true);
             }}
-            className="flex items-center gap-1.5 text-xs text-neutral-200 hover:text-white cursor-pointer px-2 py-1 rounded-lg hover:bg-neutral-800 transition-colors max-w-[140px] sm:max-w-[200px]"
+            className="flex items-center gap-1 text-xs text-neutral-200 hover:text-white cursor-pointer px-1.5 py-1 rounded-lg hover:bg-neutral-800 transition-colors max-w-[92px] sm:max-w-[124px] lg:max-w-[170px] shrink-0 whitespace-nowrap"
             title="點擊修改黑板標題"
           >
             <span className="truncate font-medium">{board.title || '無標題黑板'}</span>
@@ -184,7 +182,7 @@ export const TopNav: React.FC<TopNavProps> = ({
         <div className="relative">
           <button
             onClick={() => setShowAutoSaveMenu(!showAutoSaveMenu)}
-            className="flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-xl bg-neutral-800/80 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-neutral-700/60 transition-colors"
+            className="flex shrink-0 items-center gap-1.5 text-[11px] px-2 py-1.5 rounded-xl bg-neutral-800/80 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-neutral-700/60 transition-colors"
             title="自動儲存設定 (可自訂每幾分鐘自動存檔)"
           >
             <Cloud
@@ -194,7 +192,7 @@ export const TopNav: React.FC<TopNavProps> = ({
                   : 'text-emerald-400'
               }`}
             />
-            <span className="hidden sm:inline font-mono">
+            <span className="hidden xl:inline font-mono whitespace-nowrap">
               {isAutoSaving || syncStatus === 'saving'
                 ? '儲存中...'
                 : autoSaveMinutes > 0
@@ -275,7 +273,7 @@ export const TopNav: React.FC<TopNavProps> = ({
         {/* Boards List Button */}
         <button
           onClick={onOpenBoardsModal}
-          className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors ml-1"
+          className="hidden lg:block shrink-0 p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
           title="管理黑板"
         >
           <FolderOpen className="w-4 h-4" />
@@ -284,7 +282,7 @@ export const TopNav: React.FC<TopNavProps> = ({
         {/* Pin (圖釘) Viewport Navigation Button - 位於左上方 */}
         <button
           onClick={onTogglePins}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs transition-colors ${
+          className={`flex shrink-0 items-center gap-1 px-2 py-1.5 rounded-xl text-xs transition-colors ${
             isPinOpen
               ? 'bg-rose-600/30 text-rose-300 border border-rose-500/40'
               : 'text-neutral-300 hover:text-white hover:bg-neutral-800 border border-neutral-700/60'
@@ -292,7 +290,7 @@ export const TopNav: React.FC<TopNavProps> = ({
           title="視野圖釘 (左上方) - 點擊快速平滑移動至指定位置，可自訂名稱"
         >
           <Pin className="w-3.5 h-3.5 text-rose-400 rotate-45" />
-          <span className="font-medium">圖釘</span>
+          <span className="hidden xl:inline font-medium">圖釘</span>
           {board.pins && board.pins.length > 0 && (
             <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-rose-500/40 text-rose-200 font-mono">
               {board.pins.length}
@@ -302,7 +300,7 @@ export const TopNav: React.FC<TopNavProps> = ({
       </div>
 
       {/* Right: Actions, Collaborators, Presence, Export, Login */}
-      <div className="pointer-events-auto flex items-center gap-1.5 bg-neutral-900/90 backdrop-blur-xl border border-neutral-700/80 px-2.5 py-1.5 rounded-2xl shadow-xl">
+      <div className="heiban-topnav-right pointer-events-auto flex min-w-0 shrink-0 items-center gap-1 bg-neutral-900/90 backdrop-blur-xl border border-neutral-700/80 px-2 py-1.5 rounded-2xl shadow-xl">
         {/* Background / Theme picker */}
         <div className="relative">
           <button
@@ -310,11 +308,11 @@ export const TopNav: React.FC<TopNavProps> = ({
               setShowThemeMenu(!showThemeMenu);
               setShowExportMenu(false);
             }}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs text-neutral-300 hover:text-white hover:bg-neutral-800 transition-colors"
+            className="flex shrink-0 items-center gap-1.5 px-2 py-1.5 rounded-xl text-xs text-neutral-300 hover:text-white hover:bg-neutral-800 transition-colors"
             title="調整底色與網格樣式"
           >
             <Palette className="w-4 h-4 text-emerald-400" />
-            <span className="hidden md:inline">底色/網格</span>
+            <span className="hidden xl:inline whitespace-nowrap">底色/網格</span>
           </button>
 
           {showThemeMenu && (
@@ -391,7 +389,7 @@ export const TopNav: React.FC<TopNavProps> = ({
               +{presences.length - 5}
             </div>
           )}
-          <span className="text-[10px] text-neutral-400 ml-2 hidden lg:inline font-mono">
+          <span className="text-[10px] text-neutral-400 ml-2 hidden 2xl:inline font-mono whitespace-nowrap">
             {presences.length}/10 在線
           </span>
         </div>
@@ -407,7 +405,7 @@ export const TopNav: React.FC<TopNavProps> = ({
           title="複製分享連結，邀請其他人一起線上即時繪圖"
         >
           {copiedShare ? <Check className="w-3.5 h-3.5" /> : <Share2 className="w-3.5 h-3.5" />}
-          <span className="hidden sm:inline">{copiedShare ? '已複製連結' : '分享'}</span>
+          <span className="hidden xl:inline whitespace-nowrap">{copiedShare ? '已複製連結' : '分享'}</span>
         </button>
 
         {/* Collaborator Cursor Toggle (User Requirement: 可以開啟/關閉軌跡) */}
@@ -431,7 +429,7 @@ export const TopNav: React.FC<TopNavProps> = ({
             title="無限無邊界畫布：無拘無束自由塗鴉、推導與筆記（不可還原為固定尺寸邊界）"
           >
             <Maximize className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="hidden lg:inline">♾️ 無邊界畫布</span>
+            <span className="hidden xl:inline">♾️ 無邊界畫布</span>
           </div>
         ) : (
           <div className="relative">
@@ -441,7 +439,7 @@ export const TopNav: React.FC<TopNavProps> = ({
               title="固定規格紙張（點擊調整紙張尺寸，或升級轉換為無邊界畫布）"
             >
               <Minimize className="w-3.5 h-3.5 text-cyan-400" />
-              <span className="hidden sm:inline">
+            <span className="hidden xl:inline whitespace-nowrap">
                 {board.canvasPreset === 'a4_landscape'
                   ? 'A4 橫向'
                   : board.canvasPreset === 'a4_portrait'
@@ -673,11 +671,11 @@ export const TopNav: React.FC<TopNavProps> = ({
         ) : (
           <button
             onClick={onSignIn}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium text-xs shadow-md transition-all ml-1"
+            className="flex shrink-0 items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-medium text-xs shadow-sm transition-colors ml-1"
             title="使用 Google 帳號登入以啟用多人即時協作與雲端儲存"
           >
             <LogIn className="w-3.5 h-3.5" />
-            <span>Google 登入協作</span>
+            <span className="hidden xl:inline whitespace-nowrap">Google 登入協作</span>
           </button>
         )}
       </div>

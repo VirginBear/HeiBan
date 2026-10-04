@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { ToolType } from '../types';
 import {
   Edit2,
@@ -91,9 +91,113 @@ export const BrushSettingsBar: React.FC<BrushSettingsBarProps> = ({
     }
   });
   const [isDragging, setIsDragging] = useState(false);
+  const [isVertical, setIsVertical] = useState(() => {
+    try {
+      return localStorage.getItem('heiban_brush_settings_orient') === 'vertical';
+    } catch {
+      return false;
+    }
+  });
+  const panelRef = useRef<HTMLDivElement>(null);
   const dragOffsetRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const dragPositionRef = useRef(position);
+  const dragFrameRef = useRef<number | null>(null);
+  const pendingDockEdgeRef = useRef<'top' | 'bottom' | 'left' | 'right' | null>(null);
   const [showCircularPicker, setShowCircularPicker] = useState(false);
   const [showDockMenu, setShowDockMenu] = useState(false);
+
+  useLayoutEffect(() => {
+    const node = panelRef.current;
+    if (!node) return;
+    if (!position) {
+      try {
+        const primaryPosition = JSON.parse(localStorage.getItem('blackboard_toolbar_pos') || 'null') as { x: number; y: number } | null;
+        if (primaryPosition && localStorage.getItem('blackboard_toolbar_orient') === 'vertical') {
+          const leftSide = primaryPosition.x < window.innerWidth / 2;
+          const next = {
+            x: leftSide ? primaryPosition.x + 56 + 12 : primaryPosition.x - node.getBoundingClientRect().width - 12,
+            y: Math.round((window.innerHeight - node.getBoundingClientRect().height) / 2),
+          };
+          dragPositionRef.current = next;
+          setIsVertical(true);
+          setPosition(next);
+        }
+      } catch {
+        // ignore stale preferences
+      }
+      return;
+    }
+    const rect = node.getBoundingClientRect();
+    const margin = 14;
+    const maxX = Math.max(margin, window.innerWidth - rect.width - margin);
+    const maxY = Math.max(margin, window.innerHeight - rect.height - margin);
+    let next = {
+      x: Math.max(margin, Math.min(maxX, position.x)),
+      y: Math.max(margin, Math.min(maxY, position.y)),
+    };
+
+    const edge = pendingDockEdgeRef.current;
+    if (edge === 'left') next.x = margin;
+    if (edge === 'right') next.x = maxX;
+    if (edge === 'top') next = { x: Math.max(margin, (window.innerWidth - rect.width) / 2), y: margin };
+    if (edge === 'bottom') next = { x: Math.max(margin, (window.innerWidth - rect.width) / 2), y: maxY };
+
+    if (isVertical) {
+      try {
+        const primaryPosition = JSON.parse(localStorage.getItem('blackboard_toolbar_pos') || 'null') as { x: number; y: number } | null;
+        const primaryOrientation = localStorage.getItem('blackboard_toolbar_orient');
+        if (primaryPosition && primaryOrientation === 'vertical') {
+          const primaryIsLeft = primaryPosition.x < 80;
+          const primaryIsRight = window.innerWidth - primaryPosition.x - 56 < 80;
+          const panelIsLeft = next.x < 80;
+          const panelIsRight = window.innerWidth - next.x - rect.width < 80;
+          if (primaryIsLeft && panelIsLeft) next.x = primaryPosition.x + 56 + 12;
+          if (primaryIsRight && panelIsRight) next.x = primaryPosition.x - rect.width - 12;
+        }
+      } catch {
+        // ignore stale preferences
+      }
+    }
+    pendingDockEdgeRef.current = null;
+    dragPositionRef.current = next;
+    if (Math.abs(next.x - position.x) > 1 || Math.abs(next.y - position.y) > 1) setPosition(next);
+    if (!isDragging) {
+      try {
+        localStorage.setItem('heiban_brush_settings_pos', JSON.stringify(next));
+        localStorage.setItem('heiban_brush_settings_orient', isVertical ? 'vertical' : 'horizontal');
+      } catch {
+        // ignore
+      }
+    }
+  }, [position, isVertical, isDragging]);
+
+  useEffect(() => {
+    const handlePrimaryToolbarLayout = (event: Event) => {
+      const current = dragPositionRef.current;
+      const panel = panelRef.current;
+      if (!panel) return;
+      const detail = (event as CustomEvent<{ position: { x: number; y: number }; orientation: 'horizontal' | 'vertical'; width: number }>).detail;
+      const rect = panel.getBoundingClientRect();
+      if (detail.orientation === 'vertical') {
+        setIsVertical(true);
+        const isLeft = detail.position.x < window.innerWidth / 2;
+        const next = {
+          x: isLeft ? detail.position.x + detail.width + 12 : detail.position.x - rect.width - 12,
+          y: Math.round((window.innerHeight - rect.height) / 2),
+        };
+        dragPositionRef.current = next;
+        setPosition(next);
+      } else {
+        setIsVertical(false);
+        const next = { x: Math.round((window.innerWidth - rect.width) / 2), y: 82 };
+        dragPositionRef.current = next;
+        setPosition(next);
+      }
+    };
+
+    window.addEventListener('heiban:toolbar-layout', handlePrimaryToolbarLayout);
+    return () => window.removeEventListener('heiban:toolbar-layout', handlePrimaryToolbarLayout);
+  }, []);
 
   // Window drag listeners
   useEffect(() => {
@@ -102,29 +206,41 @@ export const BrushSettingsBar: React.FC<BrushSettingsBarProps> = ({
     const onPointerMove = (e: PointerEvent) => {
       const winW = window.innerWidth;
       const winH = window.innerHeight;
+      const rect = panelRef.current?.getBoundingClientRect();
+      const width = rect?.width ?? 260;
+      const height = rect?.height ?? 56;
 
       let newX = e.clientX - dragOffsetRef.current.x;
       let newY = e.clientY - dragOffsetRef.current.y;
 
-      newX = Math.max(10, Math.min(winW - 160, newX));
-      newY = Math.max(10, Math.min(winH - 60, newY));
-
-      if (newX < 120 || winW - (newX + 80) < 120) {
-        setIsVertical(true);
-      } else if (newY < 120 || winH - (newY + 80) < 120) {
-        setIsVertical(false);
-      }
+      newX = Math.max(14, Math.min(Math.max(14, winW - width - 14), newX));
+      newY = Math.max(14, Math.min(Math.max(14, winH - height - 14), newY));
 
       const newPos = { x: newX, y: newY };
-      setPosition(newPos);
-      try {
-        localStorage.setItem('heiban_brush_settings_pos', JSON.stringify(newPos));
-      } catch {
-        // ignore
+      dragPositionRef.current = newPos;
+      if (dragFrameRef.current === null) {
+        dragFrameRef.current = requestAnimationFrame(() => {
+          dragFrameRef.current = null;
+          setPosition(dragPositionRef.current);
+        });
       }
     };
 
     const onPointerUp = () => {
+      if (dragFrameRef.current !== null) cancelAnimationFrame(dragFrameRef.current);
+      dragFrameRef.current = null;
+      const pos = dragPositionRef.current ?? { x: 14, y: 14 };
+      const rect = panelRef.current?.getBoundingClientRect();
+      const horizontalEdge = Math.min(pos.x, window.innerWidth - pos.x - (rect?.width ?? 260));
+      const verticalEdge = Math.min(pos.y, window.innerHeight - pos.y - (rect?.height ?? 56));
+      if (Math.min(horizontalEdge, verticalEdge) <= 76) {
+        const edge = horizontalEdge <= verticalEdge
+          ? pos.x + (rect?.width ?? 260) / 2 < window.innerWidth / 2 ? 'left' : 'right'
+          : pos.y + (rect?.height ?? 56) / 2 < window.innerHeight / 2 ? 'top' : 'bottom';
+        pendingDockEdgeRef.current = edge;
+        setIsVertical(edge === 'left' || edge === 'right');
+      }
+      setPosition(pos);
       setIsDragging(false);
     };
 
@@ -147,12 +263,12 @@ export const BrushSettingsBar: React.FC<BrushSettingsBarProps> = ({
         y: e.clientY - rect.top,
       };
       if (!position) {
-        setPosition({ x: rect.left, y: rect.top });
+        const startPosition = { x: rect.left, y: rect.top };
+        dragPositionRef.current = startPosition;
+        setPosition(startPosition);
       }
     }
   };
-
-  const [isVertical, setIsVertical] = useState(false);
 
   const handleDock = (loc: 'top' | 'bottom' | 'left' | 'right') => {
     const winW = window.innerWidth;
@@ -167,19 +283,16 @@ export const BrushSettingsBar: React.FC<BrushSettingsBarProps> = ({
       setIsVertical(false);
     }
     if (loc === 'left') {
-      pos = { x: 20, y: 130 };
+      pos = { x: 20, y: Math.round(winH / 2) };
       setIsVertical(true);
     }
     if (loc === 'right') {
-      pos = { x: Math.max(20, winW - 90), y: 130 };
+      pos = { x: Math.max(20, winW - 90), y: Math.round(winH / 2) };
       setIsVertical(true);
     }
+    pendingDockEdgeRef.current = loc;
+    dragPositionRef.current = pos;
     setPosition(pos);
-    try {
-      localStorage.setItem('heiban_brush_settings_pos', JSON.stringify(pos));
-    } catch {
-      // ignore
-    }
     setShowDockMenu(false);
   };
 
@@ -203,16 +316,17 @@ export const BrushSettingsBar: React.FC<BrushSettingsBarProps> = ({
       }
     : {
         position: 'absolute',
-        top: '64px',
+        top: '82px',
         left: '50%',
         transform: 'translateX(-50%)',
       };
 
   return (
     <div
+      ref={panelRef}
       onPointerDown={(e) => e.stopPropagation()}
       style={stylePosition}
-      className={`z-40 bg-neutral-900/95 backdrop-blur-xl border border-neutral-700/80 rounded-2xl shadow-2xl flex select-none animate-in fade-in zoom-in-95 duration-150 text-neutral-200 ${
+      className={`heiban-toolbar heiban-toolbar-light z-40 bg-white/95 backdrop-blur-xl border rounded-2xl shadow-xl flex select-none animate-in fade-in duration-150 text-neutral-700 ${
         isVertical
           ? 'flex-col items-center gap-3 p-2.5 w-16'
           : 'items-center gap-2.5 px-3 py-2 flex-wrap max-w-[95vw]'

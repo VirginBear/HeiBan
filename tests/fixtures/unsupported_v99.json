@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "99.0.0",
+  "board": {
+    "id": "future_board_01",
+    "title": "未來版本黑板",
+    "ownerId": "future_user",
+    "ownerName": "未來人",
+    "backgroundColor": "#172e25",
+    "gridStyle": "grid",
+    "boardTheme": "blackboard",
+    "createdAt": "2030-01-01T00:00:00.000Z",
+    "updatedAt": "2030-01-01T00:00:00.000Z"
+  },
+  "objects": [],
+  "exportedAt": "2030-01-01T00:00:00.000Z"
+}

@@ -1,0 +1,33 @@
+{
+  "board": {
+    "id": "legacy_board_01",
+    "title": "舊版無版本號黑板",
+    "ownerId": "legacy_user",
+    "ownerName": "舊版使用者",
+    "backgroundColor": "#172e25",
+    "gridStyle": "grid",
+    "boardTheme": "blackboard",
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "updatedAt": "2025-01-01T00:00:00.000Z"
+  },
+  "objects": [
+    {
+      "id": "legacy_obj_1",
+      "boardId": "legacy_board_01",
+      "type": "rect",
+      "x": 50,
+      "y": 60,
+      "width": 120,
+      "height": 80,
+      "strokeColor": "#ffffff",
+      "fillColor": "none",
+      "strokeWidth": 2,
+      "opacity": 1,
+      "rotation": 0,
+      "zIndex": 1,
+      "createdBy": "legacy_user",
+      "updatedAt": "2025-01-01T00:00:00.000Z"
+    }
+  ],
+  "exportedAt": "2025-01-01T00:00:00.000Z"
+}

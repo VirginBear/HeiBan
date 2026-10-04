@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { ToolType, EraserMode } from '../types';
 import {
   MousePointer,
@@ -60,8 +60,8 @@ interface ToolbarProps {
 }
 
 const TOOLBAR_COLORS = [
-  { id: 'rgba(23, 23, 23, 0.95)', name: '黑曜炭黑 (預設)', border: 'border-neutral-700/80' },
-  { id: 'rgba(74, 78, 86, 0.96)', name: '老鼠灰工作室', border: 'border-neutral-500/80' },
+  { id: 'rgba(249, 250, 248, 0.97)', name: '霧面白 (預設)', border: 'border-neutral-300' },
+  { id: 'rgba(44, 53, 47, 0.96)', name: '石墨灰', border: 'border-neutral-600/80' },
   { id: 'rgba(20, 48, 38, 0.95)', name: '墨綠黑板', border: 'border-emerald-600/60' },
   { id: 'rgba(30, 41, 59, 0.95)', name: '科技深藍', border: 'border-blue-600/60' },
   { id: 'rgba(49, 27, 85, 0.95)', name: '尊爵紫金', border: 'border-purple-600/60' },
@@ -96,9 +96,12 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const [showBrushColorMenu, setShowBrushColorMenu] = useState(false);
   const [toolbarBgColor, setToolbarBgColor] = useState(() => {
     try {
-      return localStorage.getItem('blackboard_toolbar_color') || 'rgba(23, 23, 23, 0.95)';
+      const savedColor = localStorage.getItem('blackboard_toolbar_color');
+      return !savedColor || savedColor === 'rgba(23, 23, 23, 0.95)'
+        ? 'rgba(249, 250, 248, 0.97)'
+        : savedColor;
     } catch {
-      return 'rgba(23, 23, 23, 0.95)';
+      return 'rgba(249, 250, 248, 0.97)';
     }
   });
 
@@ -122,7 +125,11 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     }
   });
   const [isDragging, setIsDragging] = useState(false);
+  const toolbarRef = useRef<HTMLElement | null>(null);
   const dragOffsetRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const dragPositionRef = useRef(position);
+  const dragFrameRef = useRef<number | null>(null);
+  const pendingDockEdgeRef = useRef<'top' | 'bottom' | 'left' | 'right' | null>(null);
 
   // Orientation: 'horizontal' vs 'vertical' (支援手動切換與側邊豎直排版)
   const [orientation, setOrientation] = useState<'horizontal' | 'vertical'>(() => {
@@ -147,41 +154,54 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       pos = { x: Math.round(winW / 2 - 240), y: 70 };
       setOrientation('horizontal');
     } else if (loc === 'left') {
-      pos = { x: 16, y: 120 };
+      pos = { x: 16, y: Math.round(winH / 2) };
       setOrientation('vertical');
     } else if (loc === 'right') {
-      pos = { x: Math.max(20, winW - 74), y: 120 };
+      pos = { x: Math.max(20, winW - 74), y: Math.round(winH / 2) };
       setOrientation('vertical');
     }
+    pendingDockEdgeRef.current = loc;
+    dragPositionRef.current = pos;
     setPosition(pos);
-    try {
-      localStorage.setItem('blackboard_toolbar_pos', JSON.stringify(pos));
-      localStorage.setItem('blackboard_toolbar_orient', loc === 'left' || loc === 'right' ? 'vertical' : 'horizontal');
-    } catch {}
     setShowDockMenu(false);
   };
 
-  // Determine orientation dynamically based on proximity to edges only if position exists and not user-pinned
-  useEffect(() => {
-    if (!position) return;
-    const winW = window.innerWidth;
-    const winH = window.innerHeight;
+  // Measure after orientation changes so docked controls fit completely on screen.
+  useLayoutEffect(() => {
+    const node = toolbarRef.current;
+    if (!node || !position) return;
+    const rect = node.getBoundingClientRect();
+    const margin = 14;
+    const maxX = Math.max(margin, window.innerWidth - rect.width - margin);
+    const maxY = Math.max(margin, window.innerHeight - rect.height - margin);
+    let next = {
+      x: Math.max(margin, Math.min(maxX, position.x)),
+      y: Math.max(margin, Math.min(maxY, position.y)),
+    };
 
-    const distTop = position.y;
-    const distBottom = winH - (position.y + 60);
-    const distLeft = position.x;
-    const distRight = winW - (position.x + 60);
+    const edge = pendingDockEdgeRef.current;
+    if (edge === 'left') next = { ...next, x: margin };
+    if (edge === 'right') next = { ...next, x: maxX };
+    if (edge === 'top') next = { x: Math.max(margin, (window.innerWidth - rect.width) / 2), y: margin };
+    if (edge === 'bottom') next = { x: Math.max(margin, (window.innerWidth - rect.width) / 2), y: maxY };
 
-    const minDistY = Math.min(distTop, distBottom);
-    const minDistX = Math.min(distLeft, distRight);
-
-    // If clearly closer to left or right screen edge (< 120px) -> switch to vertical
-    if (minDistX < 120 && minDistX < minDistY) {
-      setOrientation('vertical');
-    } else if (minDistY < 120 && minDistY <= minDistX) {
-      setOrientation('horizontal');
+    pendingDockEdgeRef.current = null;
+    dragPositionRef.current = next;
+    if (Math.abs(next.x - position.x) > 1 || Math.abs(next.y - position.y) > 1) {
+      setPosition(next);
     }
-  }, [position]);
+    if (!isDragging) {
+      try {
+        localStorage.setItem('blackboard_toolbar_pos', JSON.stringify(next));
+        localStorage.setItem('blackboard_toolbar_orient', orientation);
+      } catch {
+        // ignore
+      }
+      window.dispatchEvent(new CustomEvent('heiban:toolbar-layout', {
+        detail: { position: next, orientation, width: rect.width, height: rect.height },
+      }));
+    }
+  }, [orientation, position, isDragging]);
 
   // Global window listeners during dragging so dragging never drops or stutters
   useEffect(() => {
@@ -190,24 +210,40 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     const onWindowPointerMove = (e: PointerEvent) => {
       const winW = window.innerWidth;
       const winH = window.innerHeight;
+      const rect = toolbarRef.current?.getBoundingClientRect();
+      const width = rect?.width ?? 56;
+      const height = rect?.height ?? 56;
 
       let newX = e.clientX - dragOffsetRef.current.x;
       let newY = e.clientY - dragOffsetRef.current.y;
 
-      // Clamp within viewport
-      newX = Math.max(10, Math.min(winW - 70, newX));
-      newY = Math.max(10, Math.min(winH - 70, newY));
-
+      newX = Math.max(14, Math.min(Math.max(14, winW - width - 14), newX));
+      newY = Math.max(14, Math.min(Math.max(14, winH - height - 14), newY));
       const newPos = { x: newX, y: newY };
-      setPosition(newPos);
-      try {
-        localStorage.setItem('blackboard_toolbar_pos', JSON.stringify(newPos));
-      } catch {
-        // ignore
+      dragPositionRef.current = newPos;
+      if (dragFrameRef.current === null) {
+        dragFrameRef.current = requestAnimationFrame(() => {
+          dragFrameRef.current = null;
+          setPosition(dragPositionRef.current);
+        });
       }
     };
 
     const onWindowPointerUp = () => {
+      if (dragFrameRef.current !== null) cancelAnimationFrame(dragFrameRef.current);
+      dragFrameRef.current = null;
+      const pos = dragPositionRef.current ?? { x: 14, y: 14 };
+      const rect = toolbarRef.current?.getBoundingClientRect();
+      const horizontalEdge = Math.min(pos.x, window.innerWidth - pos.x - (rect?.width ?? 56));
+      const verticalEdge = Math.min(pos.y, window.innerHeight - pos.y - (rect?.height ?? 56));
+      if (Math.min(horizontalEdge, verticalEdge) <= 76) {
+        const edge = horizontalEdge <= verticalEdge
+          ? pos.x + (rect?.width ?? 56) / 2 < window.innerWidth / 2 ? 'left' : 'right'
+          : pos.y + (rect?.height ?? 56) / 2 < window.innerHeight / 2 ? 'top' : 'bottom';
+        pendingDockEdgeRef.current = edge;
+        setOrientation(edge === 'left' || edge === 'right' ? 'vertical' : 'horizontal');
+      }
+      setPosition(pos);
       setIsDragging(false);
     };
 
@@ -230,7 +266,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         y: e.clientY - rect.top,
       };
       if (!position) {
-        setPosition({ x: rect.left, y: rect.top });
+        const startPosition = { x: rect.left, y: rect.top };
+        dragPositionRef.current = startPosition;
+        setPosition(startPosition);
       }
     }
   };
@@ -282,13 +320,25 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       };
 
   const isRightSide = position ? position.x > window.innerWidth / 2 : false;
+  const isTopSide = position ? position.y < window.innerHeight / 2 : false;
+  const toolbarIsLight = (() => {
+    const rgb = toolbarBgColor.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+    if (rgb) return Number(rgb[1]) * 0.299 + Number(rgb[2]) * 0.587 + Number(rgb[3]) * 0.114 > 150;
+    const hex = toolbarBgColor.match(/^#([0-9a-f]{6})$/i)?.[1];
+    if (!hex) return false;
+    const channels = [0, 2, 4].map((offset) => parseInt(hex.slice(offset, offset + 2), 16));
+    return channels[0] * 0.299 + channels[1] * 0.587 + channels[2] * 0.114 > 150;
+  })();
 
   return (
     <nav
+      ref={toolbarRef}
       aria-label="白板工具列"
       style={stylePosition}
-      className={`z-30 pointer-events-auto flex items-center backdrop-blur-xl border border-neutral-700/80 rounded-2xl shadow-2xl text-neutral-200 select-none transition-all ${
-        orientation === 'horizontal' ? 'flex-row gap-1.5 px-3 py-2' : 'flex-col gap-1 p-2 w-14'
+      className={`heiban-toolbar ${toolbarIsLight ? 'heiban-toolbar-light' : ''} z-50 pointer-events-auto flex items-center backdrop-blur-xl border rounded-2xl shadow-xl select-none transition-all ${
+        orientation === 'horizontal'
+          ? 'flex-row gap-1.5 px-3 py-2 max-w-[calc(100vw-28px)] overflow-visible'
+          : 'flex-col gap-1 p-2 w-14'
       }`}
     >
       {/* Draggable Drag Handle & Quick Docking (可任意拖曳放置或一鍵停靠側邊豎直) */}
@@ -323,7 +373,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           <div
             className={`absolute z-50 w-36 bg-neutral-900/98 backdrop-blur-xl border border-neutral-700/80 rounded-2xl p-1.5 shadow-2xl space-y-1 text-xs animate-in fade-in duration-100 ${
               orientation === 'horizontal'
-                ? 'bottom-12 left-0'
+                ? isTopSide ? 'top-12 left-0' : 'bottom-12 left-0'
                 : isRightSide
                 ? 'right-16 top-0'
                 : 'left-16 top-0'

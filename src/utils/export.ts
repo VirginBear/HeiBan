@@ -1,4 +1,3 @@
-import { jsPDF } from 'jspdf';
 import { BoardObject, BoardMetadata, Point } from '../types';
 import { pointsToSvgPath } from './vector';
 
@@ -294,6 +293,7 @@ export async function exportToPdfFile(
 
   const imgData = canvas.toDataURL('image/png', 1.0);
   const orientation = width >= height ? 'l' : 'p';
+  const { jsPDF } = await import('jspdf');
   const pdf = new jsPDF({
     orientation,
     unit: 'px',
@@ -350,6 +350,7 @@ export async function exportToPngFile(
  */
 export function exportToJsonFile(objects: BoardObject[], board: BoardMetadata) {
   const payload = {
+    schemaVersion: '1.0.0',
     version: '1.0',
     board,
     objects,

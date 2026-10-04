@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback, useImperativeHandle, forwardRef } from 'react';
 import {
   BoardObject,
   ToolType,
@@ -24,6 +24,139 @@ import { recognizeGoodnotesShape, RecognizedShape } from '../utils/goodnotes';
 import { RulerOverlay } from './RulerOverlay';
 import { CollaboratorCursors } from './CollaboratorCursors';
 import { Pin, X, CornerLeftUp } from 'lucide-react';
+
+type FreehandPreviewHandle = {
+  setPoints: (points: Point[]) => void;
+  finish: () => void;
+  clear: () => void;
+};
+
+const PREVIEW_SEGMENTS_PER_PATH = 64;
+
+function getCurveSegment(points: Point[], index: number, includeMove: boolean) {
+  const previous = points[Math.max(0, index - 1)];
+  const start = points[index];
+  const end = points[index + 1];
+  const next = points[Math.min(points.length - 1, index + 2)];
+  const cp1x = start.x + (end.x - previous.x) / 6;
+  const cp1y = start.y + (end.y - previous.y) / 6;
+  const cp2x = end.x - (next.x - start.x) / 6;
+  const cp2y = end.y - (next.y - start.y) / 6;
+  const move = includeMove ? `M ${start.x} ${start.y}` : '';
+  return `${move} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${end.x} ${end.y}`;
+}
+
+const FreehandPreview = React.memo(forwardRef<FreehandPreviewHandle, {
+  visible: boolean;
+  color: string;
+  width: number;
+  opacity: number;
+}>(function FreehandPreview({ visible, color, width, opacity }, ref) {
+  const groupRef = useRef<SVGGElement>(null);
+  const latestPointsRef = useRef<Point[] | null>(null);
+  const frameRef = useRef<number | null>(null);
+  const committedSegmentsRef = useRef(0);
+  const chunkPathRef = useRef<SVGPathElement | null>(null);
+  const chunkSegmentCountRef = useRef(0);
+  const chunkDataRef = useRef('');
+  const tailPathRef = useRef<SVGPathElement | null>(null);
+
+  const createPath = () => {
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('fill', 'none');
+    groupRef.current?.appendChild(path);
+    return path;
+  };
+
+  const appendCommittedSegment = (points: Point[], index: number) => {
+    if (!chunkPathRef.current) {
+      chunkPathRef.current = createPath();
+      chunkSegmentCountRef.current = 0;
+      chunkDataRef.current = '';
+      chunkDataRef.current = getCurveSegment(points, index, true);
+    } else {
+      chunkDataRef.current += getCurveSegment(points, index, false);
+    }
+    chunkSegmentCountRef.current += 1;
+    if (chunkSegmentCountRef.current >= PREVIEW_SEGMENTS_PER_PATH) {
+      chunkPathRef.current.setAttribute('d', chunkDataRef.current);
+      chunkPathRef.current = null;
+      chunkSegmentCountRef.current = 0;
+      chunkDataRef.current = '';
+    }
+  };
+
+  const drawPendingSegments = (points: Point[], flush: boolean) => {
+    const group = groupRef.current;
+    if (!group || points.length === 0) return;
+    const stableSegmentCount = points.length < 3 ? 0 : points.length - 2;
+    const targetSegmentCount = flush ? Math.max(0, points.length - 1) : stableSegmentCount;
+
+    while (committedSegmentsRef.current < targetSegmentCount) {
+      appendCommittedSegment(points, committedSegmentsRef.current);
+      committedSegmentsRef.current += 1;
+    }
+    if (chunkPathRef.current && chunkDataRef.current) {
+      chunkPathRef.current.setAttribute('d', chunkDataRef.current);
+    }
+
+    if (flush) {
+      tailPathRef.current?.remove();
+      tailPathRef.current = null;
+      if (points.length === 1) {
+        const point = points[0];
+        const dot = tailPathRef.current ?? createPath();
+        dot.setAttribute('d', `M ${point.x} ${point.y} L ${point.x + 0.1} ${point.y + 0.1}`);
+        tailPathRef.current = dot;
+      }
+      return;
+    }
+
+    if (!tailPathRef.current) tailPathRef.current = createPath();
+    if (points.length === 1) {
+      const point = points[0];
+      tailPathRef.current.setAttribute('d', `M ${point.x} ${point.y} L ${point.x + 0.1} ${point.y + 0.1}`);
+    } else if (points.length === 2) {
+      tailPathRef.current.setAttribute('d', `M ${points[0].x} ${points[0].y} L ${points[1].x} ${points[1].y}`);
+    } else {
+      tailPathRef.current.setAttribute('d', `M ${points[points.length - 2].x} ${points[points.length - 2].y}${getCurveSegment(points, points.length - 2, false)}`);
+    }
+  };
+
+  const clear = () => {
+    if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
+    frameRef.current = null;
+    groupRef.current?.replaceChildren();
+    latestPointsRef.current = null;
+    committedSegmentsRef.current = 0;
+    chunkPathRef.current = null;
+    chunkSegmentCountRef.current = 0;
+    chunkDataRef.current = '';
+    tailPathRef.current = null;
+  };
+
+  useImperativeHandle(ref, () => ({
+    setPoints: (points) => {
+      latestPointsRef.current = points;
+      if (frameRef.current === null) {
+        frameRef.current = requestAnimationFrame(() => {
+          frameRef.current = null;
+          if (latestPointsRef.current) drawPendingSegments(latestPointsRef.current, false);
+        });
+      }
+    },
+    finish: () => {
+      if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
+      frameRef.current = null;
+      if (latestPointsRef.current) drawPendingSegments(latestPointsRef.current, true);
+    },
+    clear,
+  }), []);
+  useEffect(() => () => {
+    if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
+  }, []);
+  return <g ref={groupRef} display={visible ? undefined : 'none'} stroke={color} strokeWidth={width} fill="none" opacity={opacity} strokeLinecap="round" strokeLinejoin="round" />;
+}));
 
 interface CanvasProps {
   board: BoardMetadata;
@@ -108,6 +241,8 @@ export const Canvas: React.FC<CanvasProps> = ({
 
   // Freehand stroke in progress
   const [currentStroke, setCurrentStroke] = useState<Point[] | null>(null);
+  const currentStrokeRef = useRef<Point[] | null>(null);
+  const freehandPreviewRef = useRef<FreehandPreviewHandle>(null);
 
   // GoodNotes Gesture: Hold for 1 second to snap to shape
   const holdTimerRef = useRef<number | null>(null);
@@ -333,22 +468,26 @@ export const Canvas: React.FC<CanvasProps> = ({
 
     // Freehand Pen / Highlighter / Paint (油漆筆刷)
     if (currentTool === 'pen' || currentTool === 'highlighter' || currentTool === 'paint') {
-      setCurrentStroke([worldPt]);
+      const initialStroke = [worldPt];
+      freehandPreviewRef.current?.clear();
+      currentStrokeRef.current = initialStroke;
+      freehandPreviewRef.current?.setPoints(initialStroke);
+      setCurrentStroke(initialStroke);
       setSnappedShape(null);
       lastMovePosRef.current = worldPt;
 
       if (currentTool !== 'paint') {
         clearHoldTimer();
         holdTimerRef.current = window.setTimeout(() => {
-          setCurrentStroke((latestStroke) => {
+          const latestStroke = currentStrokeRef.current;
+          if (latestStroke) {
             if (latestStroke && latestStroke.length >= 5) {
               const recognized = recognizeGoodnotesShape(latestStroke);
               if (recognized) {
                 setSnappedShape(recognized);
               }
             }
-            return latestStroke;
-          });
+          }
         }, 850);
       }
 
@@ -624,27 +763,55 @@ export const Canvas: React.FC<CanvasProps> = ({
 
     // Freehand stroke
     if (currentStroke) {
-      setCurrentStroke((prev) => (prev ? [...prev, worldPt] : [worldPt]));
+      const nextStroke = currentStrokeRef.current ?? currentStroke;
+      const nativeEvent = e.nativeEvent as PointerEvent;
+      const coalescedSamples = nativeEvent.getCoalescedEvents?.() ?? [];
+      const samples = coalescedSamples.length > 0 ? coalescedSamples : [nativeEvent];
+      const appendSample = (sample: PointerEvent) => {
+        const sampleScreen: Point = {
+          x: sample.clientX,
+          y: sample.clientY,
+          pressure: sample.pressure || 0.5,
+        };
+        let sampleWorld = screenToWorld(sample.clientX, sample.clientY);
+        if (ruler.enabled && (currentTool === 'pen' || currentTool === 'highlighter' || currentTool === 'paint')) {
+          const { snapped, screenPt: snappedScreen } = snapToScreenRulerEdge(sampleScreen, ruler);
+          if (snapped) sampleWorld = screenToWorld(snappedScreen.x, snappedScreen.y);
+        }
 
-      if (lastMovePosRef.current) {
-        const jitter = Math.hypot(worldPt.x - lastMovePosRef.current.x, worldPt.y - lastMovePosRef.current.y);
-        if (jitter > 8) {
-          lastMovePosRef.current = worldPt;
-          setSnappedShape(null);
-          clearHoldTimer();
-          holdTimerRef.current = window.setTimeout(() => {
-            setCurrentStroke((latestStroke) => {
+        const previous = nextStroke[nextStroke.length - 1];
+        const screenDistance = Math.hypot(sampleWorld.x - previous.x, sampleWorld.y - previous.y) * viewport.zoom;
+        if (screenDistance < 0.35) return;
+        nextStroke.push(sampleWorld);
+
+        if (lastMovePosRef.current) {
+          const jitter = Math.hypot(
+            sampleWorld.x - lastMovePosRef.current.x,
+            sampleWorld.y - lastMovePosRef.current.y
+          );
+          if (jitter > 8) {
+            lastMovePosRef.current = sampleWorld;
+            setSnappedShape(null);
+            clearHoldTimer();
+            holdTimerRef.current = window.setTimeout(() => {
+              const latestStroke = currentStrokeRef.current;
               if (latestStroke && latestStroke.length >= 5) {
                 const recognized = recognizeGoodnotesShape(latestStroke);
-                if (recognized) {
-                  setSnappedShape(recognized);
-                }
+                if (recognized) setSnappedShape(recognized);
               }
-              return latestStroke;
-            });
-          }, 850);
+            }, 850);
+          }
         }
+      };
+
+      for (const sample of samples) appendSample(sample);
+      // Some browsers exclude the dispatching pointer event from the coalesced list.
+      const lastSample = samples[samples.length - 1];
+      if (lastSample.clientX !== e.clientX || lastSample.clientY !== e.clientY) {
+        appendSample(nativeEvent);
       }
+      currentStrokeRef.current = nextStroke;
+      freehandPreviewRef.current?.setPoints(nextStroke);
       return;
     }
 
@@ -752,7 +919,24 @@ export const Canvas: React.FC<CanvasProps> = ({
       return;
     }
 
-    onPointerTrack(screenToWorld(e.clientX, e.clientY).x, screenToWorld(e.clientX, e.clientY).y, false);
+    const pointerUpWorldPt = screenToWorld(e.clientX, e.clientY);
+    onPointerTrack(pointerUpWorldPt.x, pointerUpWorldPt.y, false);
+
+    if (currentStrokeRef.current && (currentTool === 'pen' || currentTool === 'highlighter' || currentTool === 'paint')) {
+      const screenPt: Point = { x: e.clientX, y: e.clientY, pressure: e.pressure || 0.5 };
+      let finalWorldPt = pointerUpWorldPt;
+      if (ruler.enabled) {
+        const { snapped, screenPt: snappedScreen } = snapToScreenRulerEdge(screenPt, ruler);
+        if (snapped) finalWorldPt = screenToWorld(snappedScreen.x, snappedScreen.y);
+      }
+      const latestStroke = currentStrokeRef.current;
+      const lastPoint = latestStroke[latestStroke.length - 1];
+      if (Math.hypot(finalWorldPt.x - lastPoint.x, finalWorldPt.y - lastPoint.y) * viewport.zoom >= 0.35) {
+        latestStroke.push(finalWorldPt);
+        freehandPreviewRef.current?.setPoints(latestStroke);
+      }
+    }
+    if (currentStrokeRef.current) freehandPreviewRef.current?.finish();
 
     if (draggingPinId) {
       setDraggingPinId(null);
@@ -815,13 +999,15 @@ export const Canvas: React.FC<CanvasProps> = ({
         onAddObject(newShape);
         onSelectObjects([newShape.id]);
       }
+      currentStrokeRef.current = null;
       setCurrentStroke(null);
       setSnappedShape(null);
       return;
     }
 
-    if (currentStroke && currentStroke.length > 0) {
-      const bbox = computeBoundingBox(currentStroke, activeStrokeWidth);
+    const completedStroke = currentStrokeRef.current ?? currentStroke;
+    if (completedStroke && completedStroke.length > 0) {
+      const bbox = computeBoundingBox(completedStroke, activeStrokeWidth);
       const isHighlighter = currentTool === 'highlighter';
       const newStroke: BoardObject = {
         id: 'stroke_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
@@ -831,7 +1017,7 @@ export const Canvas: React.FC<CanvasProps> = ({
         y: bbox.minY,
         width: bbox.width,
         height: bbox.height,
-        points: JSON.stringify(currentStroke),
+        points: JSON.stringify(completedStroke),
         strokeColor: isHighlighter ? (activeColor || '#facc15') : (activeColor || '#ffffff'),
         fillColor: 'none',
         strokeWidth: isHighlighter ? Math.max(12, activeStrokeWidth * 2) : activeStrokeWidth,
@@ -842,6 +1028,7 @@ export const Canvas: React.FC<CanvasProps> = ({
         updatedAt: new Date().toISOString(),
       };
       onAddObject(newStroke);
+      currentStrokeRef.current = null;
       setCurrentStroke(null);
       return;
     }
@@ -1506,18 +1693,14 @@ export const Canvas: React.FC<CanvasProps> = ({
             }
           })}
 
-        {/* Freehand preview */}
-        {currentStroke && currentStroke.length > 0 && !snappedShape && (
-          <path
-            d={pointsToSvgPath(currentStroke)}
-            stroke={currentTool === 'highlighter' ? (activeColor || '#facc15') : activeColor}
-            strokeWidth={currentTool === 'highlighter' ? Math.max(12, activeStrokeWidth * 2) : activeStrokeWidth}
-            fill="none"
-            opacity={currentTool === 'highlighter' ? (activeOpacity || 0.4) : (activeOpacity ?? 1)}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        )}
+        {/* Imperative memoized preview avoids rerendering every board object per pointer sample. */}
+        <FreehandPreview
+          ref={freehandPreviewRef}
+          visible={!!currentStroke && !snappedShape}
+          color={currentTool === 'highlighter' ? (activeColor || '#facc15') : activeColor}
+          width={currentTool === 'highlighter' ? Math.max(12, activeStrokeWidth * 2) : activeStrokeWidth}
+          opacity={currentTool === 'highlighter' ? (activeOpacity || 0.4) : (activeOpacity ?? 1)}
+        />
 
         {/* GoodNotes Snapped Shape Preview */}
         {snappedShape && (

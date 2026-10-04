@@ -40,6 +40,16 @@ export interface Point {
   pressure?: number;
 }
 
+export interface TextSpan {
+  text: string;
+  isBold?: boolean;
+  isItalic?: boolean;
+  isUnderline?: boolean;
+  isStrikethrough?: boolean;
+  color?: string;
+  highlightColor?: string;
+}
+
 export interface BoardObject {
   id: string;
   boardId: string;
@@ -86,15 +96,23 @@ export interface BoardObject {
   isStrikethrough?: boolean;
   highlightColor?: string;
   align?: 'left' | 'center' | 'right';
+  richTextSpans?: TextSpan[];
   imageUrl?: string;
   originalImageUrl?: string;
   originalWidth?: number;
   originalHeight?: number;
+  cropX?: number;
+  cropY?: number;
+  cropWidth?: number;
+  cropHeight?: number;
   isLocked?: boolean;
   isVisible?: boolean;
+  name?: string;
+  groupId?: string;
   createdBy: string;
   creatorName?: string;
   updatedAt: string;
+  [key: string]: unknown;
 }
 
 export interface BoardPin {
@@ -135,8 +153,19 @@ export interface BoardMetadata {
   pins?: BoardPin[];
   thumbnail?: string;
   itemCount?: number;
+  revision?: number;
   createdAt: string;
   updatedAt: string;
+  [key: string]: unknown;
+}
+
+export interface HeiBanDocument {
+  schemaVersion?: string;
+  version: string;
+  board: BoardMetadata;
+  objects: BoardObject[];
+  exportedAt: string;
+  [key: string]: unknown;
 }
 
 export interface ViewportTransform {
