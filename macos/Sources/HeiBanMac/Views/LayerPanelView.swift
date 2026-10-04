@@ -9,7 +9,7 @@ public struct LayerPanelView: View {
     }
 
     private var reversedObjects: [BoardObject] {
-        engine.objects.sorted { $0.zIndex > $1.zIndex }
+        engine.currentPageObjects.sorted { $0.zIndex > $1.zIndex }
     }
 
     public var body: some View {
@@ -19,7 +19,7 @@ public struct LayerPanelView: View {
                 Image(systemName: "square.3.layers.3d")
                     .foregroundColor(Color.accentColor)
                     .font(.system(size: 13, weight: .bold))
-                Text("圖層 (\(engine.objects.count))")
+                Text("圖層 (\(engine.currentPageObjects.count))")
                     .font(.system(size: 13, weight: .bold))
                 Spacer()
                 Button {
@@ -120,7 +120,7 @@ public struct LayerPanelView: View {
             Divider()
 
             // Layer Items List
-            if engine.objects.isEmpty {
+            if engine.currentPageObjects.isEmpty {
                 VStack(spacing: 8) {
                     Spacer()
                     Image(systemName: "square.dashed")

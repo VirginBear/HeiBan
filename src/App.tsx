@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   onAuthStateChanged,
   signInWithPopup,
@@ -32,6 +32,7 @@ import {
   BoardPin,
   CanvasMode,
   CanvasPreset,
+  BoardPage,
 } from './types';
 import { Canvas } from './components/Canvas';
 import { Toolbar } from './components/Toolbar';
@@ -350,11 +351,103 @@ export default function App() {
 
   // Add object
   const handleAddObject = (obj: BoardObject) => {
-    const updated = [...objects, obj];
+    const finalObj = { ...obj };
+    if (board.canvasMode === 'notebook' && !finalObj.pageId) {
+      finalObj.pageId = board.activePageId || board.pages?.[0]?.id;
+    }
+    const updated = [...objects, finalObj];
     setObjects(updated);
     pushHistory(updated);
-    persistObject(obj);
+    persistObject(finalObj);
   };
+
+  // Notebook page operations
+  const handleAddPage = (title?: string) => {
+    if (board.canvasMode !== 'notebook') return;
+    const currentPages = board.pages || [];
+    const newIndex = currentPages.length;
+    const newPageId = 'page_' + Date.now();
+    const newPage: BoardPage = {
+      id: newPageId,
+      title: title?.trim() || `第 ${newIndex + 1} 頁`,
+      index: newIndex,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    const updatedPages = [...currentPages, newPage];
+    const updatedBoard: BoardMetadata = {
+      ...board,
+      pages: updatedPages,
+      activePageId: newPageId,
+      updatedAt: new Date().toISOString(),
+    };
+    setBoard(updatedBoard);
+    setSelectedIds([]);
+  };
+
+  const handleDeletePage = (pageId: string) => {
+    if (board.canvasMode !== 'notebook') return;
+    const currentPages = board.pages || [];
+    if (currentPages.length <= 1) return;
+
+    const pageIndex = currentPages.findIndex((p) => p.id === pageId);
+    if (pageIndex === -1) return;
+
+    const updatedPages = currentPages
+      .filter((p) => p.id !== pageId)
+      .map((p, idx) => ({ ...p, index: idx }));
+
+    let nextActiveId = board.activePageId;
+    if (board.activePageId === pageId) {
+      const nextIndex = Math.min(pageIndex, updatedPages.length - 1);
+      nextActiveId = updatedPages[nextIndex].id;
+    }
+
+    const updatedObjects = objects.filter((o) => o.pageId !== pageId);
+    const updatedBoard: BoardMetadata = {
+      ...board,
+      pages: updatedPages,
+      activePageId: nextActiveId,
+      updatedAt: new Date().toISOString(),
+    };
+    setBoard(updatedBoard);
+    setObjects(updatedObjects);
+    setSelectedIds([]);
+  };
+
+  const handleSwitchPage = (pageId: string) => {
+    if (board.canvasMode !== 'notebook' || board.activePageId === pageId) return;
+    setBoard((prev) => ({ ...prev, activePageId: pageId }));
+    setSelectedIds([]);
+  };
+
+  const handleNextPage = () => {
+    if (board.canvasMode !== 'notebook') return;
+    const pages = board.pages || [];
+    const currentIndex = pages.findIndex((p) => p.id === board.activePageId);
+    if (currentIndex >= 0 && currentIndex < pages.length - 1) {
+      handleSwitchPage(pages[currentIndex + 1].id);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (board.canvasMode !== 'notebook') return;
+    const pages = board.pages || [];
+    const currentIndex = pages.findIndex((p) => p.id === board.activePageId);
+    if (currentIndex > 0) {
+      handleSwitchPage(pages[currentIndex - 1].id);
+    }
+  };
+
+  const currentPageObjects = useMemo(() => {
+    if (board.canvasMode !== 'notebook') return objects;
+    const currentId = board.activePageId;
+    const firstPageId = board.pages?.[0]?.id;
+    return objects.filter((o) => {
+      if (o.pageId) return o.pageId === currentId;
+      return currentId === firstPageId;
+    });
+  }, [board.canvasMode, board.activePageId, board.pages, objects]);
 
   // Update object
   const handleUpdateObject = (id: string, partial: Partial<BoardObject>) => {
@@ -867,6 +960,15 @@ export default function App() {
       slate: '#1e2430',
     };
     const newBoardId = 'board_' + Date.now();
+    const firstPageId = 'page_' + Date.now();
+    const firstPage: BoardPage = {
+      id: firstPageId,
+      title: '第 1 頁',
+      index: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
     const newBoard: BoardMetadata = {
       id: newBoardId,
       title,
@@ -877,9 +979,11 @@ export default function App() {
       gridStyle: 'grid',
       boardTheme: theme,
       canvasMode,
-      canvasPreset,
-      canvasWidth: width,
-      canvasHeight: height,
+      canvasPreset: canvasMode === 'notebook' ? 'notebook' : canvasPreset,
+      canvasWidth: canvasMode === 'notebook' ? 595 : width,
+      canvasHeight: canvasMode === 'notebook' ? 842 : height,
+      pages: canvasMode === 'notebook' ? [firstPage] : undefined,
+      activePageId: canvasMode === 'notebook' ? firstPageId : undefined,
       pins: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -984,12 +1088,17 @@ export default function App() {
         onOpenBoardsModal={() => setIsBoardModalOpen(true)}
         onSignIn={handleSignIn}
         onSignOut={handleSignOut}
+        onAddPage={handleAddPage}
+        onDeletePage={handleDeletePage}
+        onSwitchPage={handleSwitchPage}
+        onNextPage={handleNextPage}
+        onPrevPage={handlePrevPage}
       />
 
       {/* Selected Object Properties Floating Bar */}
       {selectedIds.length > 0 && (
         <PropertiesBar
-          selectedObjects={objects.filter((o) => selectedIds.includes(o.id))}
+          selectedObjects={currentPageObjects.filter((o) => selectedIds.includes(o.id))}
           onUpdate={(partial) => {
             if (partial.lineStyle) {
               setActiveLineStyle(partial.lineStyle);
@@ -1027,7 +1136,7 @@ export default function App() {
       {/* Main Vector Canvas */}
       <Canvas
         board={board}
-        objects={objects}
+        objects={currentPageObjects}
         selectedIds={selectedIds}
         currentTool={currentTool}
         eraserMode={eraserMode}
@@ -1077,7 +1186,7 @@ export default function App() {
 
       {/* Layer Management Sidebar */}
       <LayerPanel
-        objects={objects}
+        objects={currentPageObjects}
         selectedIds={selectedIds}
         isOpen={isLayerOpen}
         onClose={() => setIsLayerOpen(false)}

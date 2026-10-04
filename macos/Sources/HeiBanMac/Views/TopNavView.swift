@@ -26,6 +26,75 @@ public struct TopNavView: View {
             .padding(.vertical, 6)
             .background(Color.black.opacity(0.035), in: RoundedRectangle(cornerRadius: 8))
 
+            if engine.isNotebook {
+                HStack(spacing: 8) {
+                    Button {
+                        engine.goToPreviousPage()
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 11, weight: .bold))
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(engine.currentPageIndex <= 0)
+                    .help("上一頁")
+
+                    Menu {
+                        ForEach(engine.pages) { page in
+                            Button {
+                                engine.switchPage(to: page.id)
+                            } label: {
+                                HStack {
+                                    Text(page.title)
+                                    if page.id == engine.activePageId {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        }
+                        Divider()
+                        Button(role: .destructive) {
+                            if let activeId = engine.activePageId {
+                                engine.deletePage(id: activeId)
+                            }
+                        } label: {
+                            Label("刪除當前頁面", systemImage: "trash")
+                        }
+                        .disabled(engine.totalPages <= 1)
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "book.pages")
+                                .font(.system(size: 11))
+                            Text("第 \(engine.currentPageIndex + 1) / \(engine.totalPages) 頁")
+                                .font(.system(size: 12, weight: .semibold))
+                        }
+                    }
+                    .menuStyle(.borderlessButton)
+
+                    Button {
+                        engine.goToNextPage()
+                    } label: {
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 11, weight: .bold))
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(engine.currentPageIndex >= engine.totalPages - 1)
+                    .help("下一頁")
+
+                    Button {
+                        engine.addPage()
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 13))
+                            .foregroundStyle(Color.accentColor)
+                    }
+                    .buttonStyle(.plain)
+                    .help("新增筆記頁面")
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(Color.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+            }
+
             Spacer()
 
             Label(
@@ -119,7 +188,7 @@ public struct TopNavView: View {
                 HStack(spacing: 5) {
                     Image(systemName: "square.3.layers.3d")
                         .foregroundColor(engine.showLayerPanel ? Color.accentColor : Color.primary)
-                    Text("圖層 (\(engine.objects.count))")
+                    Text("圖層 (\(engine.currentPageObjects.count))")
                         .font(.system(size: 12, weight: .medium))
                 }
                 .padding(.horizontal, 10)

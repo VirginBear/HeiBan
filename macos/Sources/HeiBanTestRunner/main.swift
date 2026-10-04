@@ -3560,6 +3560,120 @@ do {
     assertEqual(lineEngine.currentCursorType(at: farDragPt), nil, "放開後遠處游標恢復預設狀態")
 }
 
+// -------------------------------------------------------------------------
+// 35. 畫布格式選擇 (無邊界 / 常見尺寸 / 多頁筆記本) 與頁面管理 (立靶驗收)
+// -------------------------------------------------------------------------
+print("\n[測試 35] 畫布格式選擇 (無邊界 / 常見尺寸 / 多頁筆記本) 與筆記本頁面增刪管理 (立靶驗收)")
+do {
+    // 35.1 畫布模式與尺寸規格契約
+    assertEqual(CanvasMode.infinite.rawValue, "infinite", "CanvasMode 包含 infinite")
+    assertEqual(CanvasMode.fixed.rawValue, "fixed", "CanvasMode 包含 fixed")
+    assertEqual(CanvasMode.notebook.rawValue, "notebook", "CanvasMode 包含 notebook")
+
+    assertEqual(CanvasPreset.one_one.dimensions.width, 1080.0, "1:1 正方形預設寬度 1080")
+    assertEqual(CanvasPreset.one_one.dimensions.height, 1080.0, "1:1 正方形預設高度 1080")
+    assertEqual(CanvasPreset.nine_sixteen.dimensions.width, 1080.0, "9:16 直式預設寬度 1080")
+    assertEqual(CanvasPreset.nine_sixteen.dimensions.height, 1920.0, "9:16 直式預設高度 1920")
+    assertEqual(CanvasPreset.notebook.dimensions.width, 595.0, "筆記本尺寸寬度預設為 A4 (595)")
+    assertEqual(CanvasPreset.notebook.dimensions.height, 842.0, "筆記本尺寸高度預設為 A4 (842)")
+
+    // 35.2 建立不同格式之黑板
+    let engine = BoardEngine(restoreSession: false)
+
+    // 無邊界黑板建立
+    engine.createBoard(title: "無邊界思維導圖", mode: .infinite)
+    assertEqual(engine.board.canvasMode, .infinite, "模式為無邊界")
+    assertTrue(!engine.isNotebook, "非筆記本模式")
+    assertEqual(engine.board.pages, nil, "無邊界黑板無需頁面列表")
+
+    // 固定尺寸黑板建立
+    engine.createBoard(title: "社群正方形貼文", mode: .fixed, preset: .one_one)
+    assertEqual(engine.board.canvasMode, .fixed, "模式為固定尺寸")
+    assertEqual(engine.board.canvasWidth, 1080.0, "固定寬度 1080")
+    assertEqual(engine.board.canvasHeight, 1080.0, "固定高度 1080")
+    assertTrue(!engine.isNotebook, "非筆記本模式")
+
+    // 多頁數筆記本建立
+    engine.createBoard(title: "課堂推導筆記本", mode: .notebook)
+    assertEqual(engine.board.canvasMode, .notebook, "模式為筆記本")
+    assertTrue(engine.isNotebook, "engine.isNotebook 應為 true")
+    assertEqual(engine.totalPages, 1, "新建筆記本預設有 1 頁")
+    assertEqual(engine.currentPageIndex, 0, "預設在第 1 頁 (index 0)")
+    let page1Id = engine.activePageId
+    assertTrue(page1Id != nil, "預設 activePageId 存在")
+    assertEqual(engine.pages.first?.title, "第 1 頁", "第 1 頁預設標題為第 1 頁")
+
+    // 35.3 筆記本繪圖與跨頁面物件隔離
+    // 在第 1 頁新增一個便簽
+    engine.addSticky(text: "第 1 頁物理力學推導", at: Point(x: 100, y: 100))
+    assertEqual(engine.currentPageObjects.count, 1, "第 1 頁有 1 個物件")
+    assertEqual(engine.objects.count, 1, "全域物件有 1 個")
+    assertEqual(engine.objects.first?.pageId, page1Id, "新物件自動蓋上當前 pageId")
+
+    // 新增第 2 頁
+    engine.addPage(title: "幾何光學")
+    assertEqual(engine.totalPages, 2, "新增頁面後總頁數為 2")
+    assertEqual(engine.currentPageIndex, 1, "自動切換至新建立之第 2 頁 (index 1)")
+    let page2Id = engine.activePageId
+    assertTrue(page2Id != nil && page2Id != page1Id, "第 2 頁擁有獨立的新 UUID")
+    assertEqual(engine.pages[1].title, "幾何光學", "第 2 頁自訂標題正確")
+
+    // 驗證第 2 頁物件隔離 (看不到第 1 頁物件)
+    assertEqual(engine.currentPageObjects.count, 0, "第 2 頁初始為空白，第 1 頁物件完全隔離不可見")
+
+    // 在第 2 頁新增物件
+    engine.addSticky(text: "第 2 頁折射率計算", at: Point(x: 150, y: 150))
+    assertEqual(engine.currentPageObjects.count, 1, "第 2 頁目前有 1 個物件")
+    assertEqual(engine.currentPageObjects.first?.text, "第 2 頁折射率計算", "第 2 頁內容正確")
+    assertEqual(engine.objects.count, 2, "全域累積 2 個物件 (分別隸屬不同頁面)")
+
+    // 切換回第 1 頁
+    engine.goToPreviousPage()
+    assertEqual(engine.currentPageIndex, 0, "成功返回第 1 頁")
+    assertEqual(engine.activePageId, page1Id, "activePageId 切換回第 1 頁 ID")
+    assertEqual(engine.currentPageObjects.count, 1, "返回第 1 頁時僅看到第 1 頁物件")
+    assertEqual(engine.currentPageObjects.first?.text, "第 1 頁物理力學推導", "第 1 頁物件內容未受干擾")
+
+    // 切換至第 2 頁 (透過 switchPage)
+    engine.switchPage(to: page2Id!)
+    assertEqual(engine.currentPageIndex, 1, "透過 switchPage 切換至第 2 頁")
+    assertEqual(engine.currentPageObjects.first?.text, "第 2 頁折射率計算", "第 2 頁物件完整呈現")
+
+    // 35.4 筆記本頁面防呆保護與刪除管理
+    // 當前有 2 頁，刪除第 2 頁
+    let deleteResult = engine.deletePage(id: page2Id!)
+    assertTrue(deleteResult, "成功刪除第 2 頁")
+    assertEqual(engine.totalPages, 1, "刪除後剩餘 1 頁")
+    assertEqual(engine.currentPageIndex, 0, "自動切換至相鄰第 1 頁")
+    assertEqual(engine.activePageId, page1Id, "當前啟用頁面為第 1 頁")
+    assertEqual(engine.objects.count, 1, "第 2 頁關聯物件亦隨之清除")
+
+    // 防呆保護：僅剩 1 頁時禁止刪除
+    let deleteLastResult = engine.deletePage(id: page1Id!)
+    assertTrue(!deleteLastResult, "僅剩 1 頁時禁止刪除 (防呆機制)")
+    assertEqual(engine.totalPages, 1, "總頁數維持 1 頁")
+
+    // 35.5 Undo / Redo 頁面異動支援
+    engine.undo()
+    assertEqual(engine.totalPages, 2, "Undo 復原已刪除之第 2 頁")
+    assertEqual(engine.objects.count, 2, "Undo 完整復原第 2 頁上的繪圖物件")
+
+    engine.redo()
+    assertEqual(engine.totalPages, 1, "Redo 重新套用刪除第 2 頁")
+    assertEqual(engine.objects.count, 1, "Redo 再次移除第 2 頁物件")
+
+    // 35.6 筆記本文件序列化與向下相容性驗證
+    let doc = HeiBanDocument(board: engine.board, objects: engine.objects)
+    let encoder = JSONEncoder()
+    let decoder = JSONDecoder()
+    let data = try encoder.encode(doc)
+    let restoredDoc = try decoder.decode(HeiBanDocument.self, from: data)
+    assertEqual(restoredDoc.board.canvasMode, .notebook, "反序列化筆記本模式一致")
+    assertEqual(restoredDoc.board.pages?.count, 1, "反序列化頁面數一致")
+    assertEqual(restoredDoc.board.activePageId, page1Id, "反序列化 activePageId 一致")
+    assertEqual(restoredDoc.objects.first?.pageId, page1Id, "物件關聯之 pageId 一致")
+}
+
 print("\n==================================================")
 if failedCount == 0 {
     print("🎉 驗收結果：全部通過！ (\(passedCount) 項斷言成功，0 項失敗)")

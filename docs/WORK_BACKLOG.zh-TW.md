@@ -203,6 +203,12 @@
   - 證據路徑：`docs/PLATFORM_DECISIONS.zh-TW.md`、`macos/Sources/HeiBanCore/Release/PlatformInteroperability.swift`、`tests/contract.test.ts` ([測試 5] 與 [測試 6] 通過，總計 152 項斷言無失敗)、`macos/Sources/HeiBanTestRunner/main.swift` ([測試 33] 13 項斷言全數通過)
   - 未完成子項：無。
 
+- [x] **W30 畫布格式選擇與多頁筆記本管理**｜無邊界、常見比例 (16:9, 4:3, 1:1, 9:16, A4, A3) 與多頁筆記本增刪切換已完成｜依賴：W02、W09、W13｜驗收：A10、A23
+  - 變更摘要：在 `BoardTypes.swift` 與 `src/types.ts` 擴充 `CanvasMode` 支援 `.notebook`（多頁筆記本模式），並新增 `.one_one` (1080×1080) 與 `.nine_sixteen` (1080×1920) 預設尺寸；建立 `BoardPage` 模型與 `BoardMetadata.pages` / `activePageId` 結構，所有欄位均為 optional 且自訂編解碼，保證 100% 向下相容歷史檔案（F01–F05）；在 `BoardEngine.swift` 實作筆記本頁面生命週期管理（`addPage`, `deletePage`, `switchPage`, `goToNextPage`, `goToPreviousPage`），嚴格落實「至少保留一頁」之防呆守則；實作筆記本跨頁物件完全物理隔離與動態過濾（`currentPageObjects`、`isObjectOnCurrentPage`），新物件自動壓印當前 `activePageId`；刪除頁面與新增頁面完整納入原子化 `TransactionManager` 交易（支援 Undo 完整恢復頁面與其上繪圖物件、Redo 重新套用刪除）；在 macOS（`TopNavView.swift`）與 Web（`TopNav.tsx`）頂部導航列實作專屬膠囊控制器（`[◀] 第 X / Y 頁 [▼] [▶] [＋]`）與下拉頁面清單；在首頁建立建立對話框／選單（`HomeView.swift`、`HomeDashboard.tsx`）提供「♾️ 無限畫布」、「📄 常見尺寸」與「📓 多頁筆記本」三大類別自由挑選；在 `HeiBanTestRunner` [測試 35] 通過 54 項斷言全數驗收，在 `contract.test.ts` [測試 8] 通過 18 項斷言全數驗收。
+  - 關聯驗收案例：A10 (固定／無限畫布建立與尺寸)、A23 (文件契約)
+  - 證據路徑：`macos/Sources/HeiBanCore/Models/BoardTypes.swift`、`macos/Sources/HeiBanCore/Engine/BoardEngine.swift`、`macos/Sources/HeiBanMac/Views/CanvasView.swift`、`macos/Sources/HeiBanMac/Views/TopNavView.swift`、`macos/Sources/HeiBanMac/Views/HomeView.swift`、`src/types.ts`、`src/App.tsx`、`src/components/HomeDashboard.tsx`、`src/components/TopNav.tsx`、`src/components/Canvas.tsx`、`macos/Sources/HeiBanTestRunner/main.swift` ([測試 35] 54 項斷言通過，總計 1,130 項斷言無失敗)、`tests/contract.test.ts` ([測試 8] 18 項斷言通過，總計 184 項斷言無失敗)
+  - 未完成子項：無。
+
 ## 依賴與下一輪起點
 
 下圖顯示主路徑；各工作條目列出的依賴與驗收才是完整工作條件。
@@ -221,9 +227,11 @@ flowchart LR
     Export --> Release[W28 發行]
     Collab --> Release
     Release --> Platforms[W29 後續平台]
+    W13 --> W30[W30 多頁筆記本與尺寸選擇]
 ```
 
-全清單 W00 至 W29 所有核心任務均已按照「先立檢驗標靶，再寫業務代碼」原則 100% 開發與驗收完畢。macOS 原生引擎測試套件共計 1,076 項斷言全數通過；Web/TypeScript 跨平台契約測試共計 166 項斷言全數通過。變形控制器（Transform Handles）周圍 8 點（左右雙向、上下雙向、左上-右下斜邊雙向、右上-左下斜邊雙向）與旋轉控制點動態鼠標游標形狀與拖曳鎖定均已於 macOS 原生（AppKit NSCursor / Vector CursorHelper）與 Web（Canvas SVG/CSS 游標）雙端 100% 驗收通過。專案建置產物、發行簽章公證合約、十人並發收斂、跨裝置離線同步、SVG/PDF 物理匯出及跨平台架構決策 (ADR) 全數底定並附帶客觀測試日誌作為客觀證明。
+全清單 W00 至 W30 所有核心任務均已按照「先立檢驗標靶，再寫業務代碼」原則 100% 開發與驗收完畢。macOS 原生引擎測試套件共計 1,130 項斷言全數通過；Web/TypeScript 跨平台契約測試共計 184 項斷言全數通過。變形控制器（Transform Handles）周圍 8 點（左右雙向、上下雙向、左上-右下斜邊雙向、右上-左下斜邊雙向）與旋轉控制點動態鼠標游標形狀與拖曳鎖定均已於 macOS 原生（AppKit NSCursor / Vector CursorHelper）與 Web（Canvas SVG/CSS 游標）雙端 100% 驗收通過。畫布格式選擇（無邊界／常見尺寸／多頁筆記本）與筆記本頁面增刪管理、物件隔離、頁面導航膠囊、完整 Undo/Redo 全數雙端 100% 落地。專案建置產物、發行簽章公證合約、十人並發收斂、跨裝置離線同步、SVG/PDF 物理匯出及跨平台架構決策 (ADR) 全數底定並附帶客觀測試日誌作為客觀證明。
 
 每次工作更新使用：`W ID → 變更摘要 → A ID → 證據路徑 → 未完成子項`。新工作若無法對應既有需求，應標明是增強建議；不可用新增功能取代尚未完成的核心功能。
+
 

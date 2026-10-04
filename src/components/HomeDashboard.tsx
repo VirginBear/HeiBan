@@ -21,6 +21,7 @@ import {
   Palette,
   Maximize2,
   FileText,
+  BookOpen,
 } from 'lucide-react';
 import { SettingsModal } from './SettingsModal';
 
@@ -459,7 +460,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
               <label className="text-xs text-neutral-400 font-medium block mb-1.5">
                 畫布邊界模式 (從一開始自由決定)：
               </label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => {
@@ -474,10 +475,10 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
                 >
                   <div className="flex items-center gap-1.5 font-bold text-xs text-emerald-400 mb-1">
                     <Maximize2 className="w-3.5 h-3.5" />
-                    <span>♾️ 無限無邊界畫布</span>
+                    <span>♾️ 無限畫布</span>
                   </div>
                   <div className="text-[10px] text-neutral-400 leading-relaxed">
-                    推薦！無限延伸，無拘無束自由塗鴉、推導與筆記。
+                    推薦！無限展開自由塗鴉、推導與筆記。
                   </div>
                 </button>
 
@@ -485,20 +486,41 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
                   type="button"
                   onClick={() => {
                     setNewCanvasMode('fixed');
-                    if (newCanvasPreset === 'infinite') setNewCanvasPreset('a4_landscape');
+                    if (newCanvasPreset === 'infinite' || newCanvasPreset === 'notebook') setNewCanvasPreset('16_9');
                   }}
                   className={`p-3 rounded-2xl border text-left transition-all ${
                     newCanvasMode === 'fixed'
-                      ? 'border-emerald-500 bg-emerald-500/10 text-white shadow-md ring-1 ring-emerald-500'
+                      ? 'border-cyan-500 bg-cyan-500/10 text-white shadow-md ring-1 ring-cyan-500'
                       : 'border-neutral-800 bg-neutral-800/40 text-neutral-400 hover:text-white hover:bg-neutral-800'
                   }`}
                 >
                   <div className="flex items-center gap-1.5 font-bold text-xs text-cyan-400 mb-1">
                     <FileText className="w-3.5 h-3.5" />
-                    <span>📄 固定規格紙張</span>
+                    <span>📄 常見尺寸</span>
                   </div>
                   <div className="text-[10px] text-neutral-400 leading-relaxed">
-                    限定紙張尺寸（如 A4、16:9），有邊界隨時可平滑升級為無邊界。
+                    提供 16:9、4:3、1:1、9:16、A4 紙張規格。
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewCanvasMode('notebook');
+                    setNewCanvasPreset('notebook');
+                  }}
+                  className={`p-3 rounded-2xl border text-left transition-all ${
+                    newCanvasMode === 'notebook'
+                      ? 'border-purple-500 bg-purple-500/10 text-white shadow-md ring-1 ring-purple-500'
+                      : 'border-neutral-800 bg-neutral-800/40 text-neutral-400 hover:text-white hover:bg-neutral-800'
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5 font-bold text-xs text-purple-400 mb-1">
+                    <BookOpen className="w-3.5 h-3.5" />
+                    <span>📓 多頁筆記本</span>
+                  </div>
+                  <div className="text-[10px] text-neutral-400 leading-relaxed">
+                    分頁筆記推導，隨時自由新增、切換與刪除頁面。
                   </div>
                 </button>
               </div>
@@ -506,14 +528,16 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
               {/* Fixed presets options if Fixed selected */}
               {newCanvasMode === 'fixed' && (
                 <div className="mt-2.5 p-2.5 rounded-2xl bg-neutral-800/60 border border-neutral-700/60 space-y-2">
-                  <div className="text-[11px] text-neutral-300 font-medium">常見紙張尺寸規格：</div>
-                  <div className="grid grid-cols-3 gap-1.5 text-xs">
+                  <div className="text-[11px] text-neutral-300 font-medium">常見紙張與圖像規格：</div>
+                  <div className="grid grid-cols-4 gap-1.5 text-xs">
                     {[
-                      { key: 'a4_landscape', label: 'A4 橫向', size: '1920 × 1358' },
-                      { key: 'a4_portrait', label: 'A4 直向', size: '1358 × 1920' },
                       { key: '16_9', label: '16:9 簡報', size: '1920 × 1080' },
-                      { key: 'a3_landscape', label: 'A3 橫向', size: '2715 × 1920' },
-                      { key: '4_3', label: '4:3 課堂', size: '1600 × 1200' },
+                      { key: '4_3', label: '4:3 課堂', size: '1440 × 1080' },
+                      { key: '1_1', label: '1:1 正方形', size: '1080 × 1080' },
+                      { key: '9_16', label: '9:16 直式', size: '1080 × 1920' },
+                      { key: 'a4_portrait', label: 'A4 直向', size: '595 × 842' },
+                      { key: 'a4_landscape', label: 'A4 橫向', size: '842 × 595' },
+                      { key: 'a3_landscape', label: 'A3 橫向', size: '1191 × 842' },
                       { key: 'custom', label: '2K 寬螢幕', size: '2560 × 1440' },
                     ].map((p) => (
                       <button
@@ -526,11 +550,19 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
                             : 'border-neutral-700 bg-neutral-800 text-neutral-400 hover:text-white'
                         }`}
                       >
-                        <div className="font-semibold">{p.label}</div>
+                        <div className="font-semibold text-[11px]">{p.label}</div>
                         <div className="text-[9px] text-neutral-400 font-mono">{p.size}</div>
                       </button>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* Notebook notice if Notebook selected */}
+              {newCanvasMode === 'notebook' && (
+                <div className="mt-2.5 p-3 rounded-2xl bg-purple-500/10 border border-purple-500/30 text-[11px] text-purple-200 flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-purple-400 shrink-0" />
+                  <span>多頁筆記本預設規格為 A4 分頁，進入筆記後可隨時於上方導覽列切換、新增與刪除頁面。</span>
                 </div>
               )}
             </div>
@@ -574,11 +606,34 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
                 onClick={() => {
                   const title = newBoardTitle.trim() || '未命名全新黑板';
                   let w = 1920, h = 1080;
-                  if (newCanvasPreset === 'a4_landscape') { w = 1920; h = 1358; }
-                  else if (newCanvasPreset === 'a4_portrait') { w = 1358; h = 1920; }
-                  else if (newCanvasPreset === 'a3_landscape') { w = 2715; h = 1920; }
-                  else if (newCanvasPreset === '4_3') { w = 1600; h = 1200; }
-                  else if (newCanvasPreset === 'custom') { w = 2560; h = 1440; }
+                  if (newCanvasMode === 'notebook') {
+                    w = 595;
+                    h = 842;
+                  } else if (newCanvasPreset === '1_1') {
+                    w = 1080;
+                    h = 1080;
+                  } else if (newCanvasPreset === '9_16') {
+                    w = 1080;
+                    h = 1920;
+                  } else if (newCanvasPreset === 'a4_portrait') {
+                    w = 595;
+                    h = 842;
+                  } else if (newCanvasPreset === 'a4_landscape') {
+                    w = 842;
+                    h = 595;
+                  } else if (newCanvasPreset === 'a3_landscape') {
+                    w = 1191;
+                    h = 842;
+                  } else if (newCanvasPreset === '4_3') {
+                    w = 1440;
+                    h = 1080;
+                  } else if (newCanvasPreset === '16_9') {
+                    w = 1920;
+                    h = 1080;
+                  } else if (newCanvasPreset === 'custom') {
+                    w = 2560;
+                    h = 1440;
+                  }
 
                   onCreateBoard(title, newBoardTheme, newCanvasMode, newCanvasPreset, w, h);
                   setShowCreateModal(false);

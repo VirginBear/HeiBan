@@ -76,25 +76,44 @@ public enum GridStyle: String, Codable, CaseIterable {
     }
 }
 
-public enum CanvasMode: String, Codable {
+public enum CanvasMode: String, Codable, CaseIterable {
     case fixed = "fixed"
     case infinite = "infinite"
+    case notebook = "notebook"
 }
 
-public enum CanvasPreset: String, Codable {
+public enum CanvasPreset: String, Codable, CaseIterable {
     case infinite = "infinite"
-    case a4_landscape = "a4_landscape"
     case a4_portrait = "a4_portrait"
+    case a4_landscape = "a4_landscape"
     case a3_landscape = "a3_landscape"
     case sixteen_nine = "16_9"
     case four_three = "4_3"
+    case one_one = "1_1"
+    case nine_sixteen = "9_16"
+    case notebook = "notebook"
     case custom = "custom"
+
+    public var displayName: String {
+        switch self {
+        case .infinite: return "無邊界畫布"
+        case .a4_portrait: return "A4 直式 (595 × 842)"
+        case .a4_landscape: return "A4 橫式 (842 × 595)"
+        case .a3_landscape: return "A3 橫式 (1191 × 842)"
+        case .sixteen_nine: return "16:9 簡報 (1920 × 1080)"
+        case .four_three: return "4:3 課堂 (1440 × 1080)"
+        case .one_one: return "1:1 正方形 (1080 × 1080)"
+        case .nine_sixteen: return "9:16 手機/直式 (1080 × 1920)"
+        case .notebook: return "多頁筆記本 (A4 分頁)"
+        case .custom: return "自訂尺寸"
+        }
+    }
 
     public func defaultDimensions() -> (width: Double, height: Double)? {
         switch self {
         case .infinite:
             return nil
-        case .a4_portrait:
+        case .a4_portrait, .notebook:
             return (width: 595.0, height: 842.0)
         case .a4_landscape:
             return (width: 842.0, height: 595.0)
@@ -104,9 +123,39 @@ public enum CanvasPreset: String, Codable {
             return (width: 1920.0, height: 1080.0)
         case .four_three:
             return (width: 1440.0, height: 1080.0)
+        case .one_one:
+            return (width: 1080.0, height: 1080.0)
+        case .nine_sixteen:
+            return (width: 1080.0, height: 1920.0)
         case .custom:
             return (width: 1200.0, height: 800.0)
         }
+    }
+
+    public var dimensions: (width: Double, height: Double) {
+        defaultDimensions() ?? (1920.0, 1080.0)
+    }
+}
+
+public struct BoardPage: Codable, Identifiable, Equatable {
+    public var id: String
+    public var title: String
+    public var index: Int
+    public var createdAt: String
+    public var updatedAt: String
+
+    public init(
+        id: String = UUID().uuidString,
+        title: String = "第 1 頁",
+        index: Int = 0,
+        createdAt: String = ISO8601DateFormatter().string(from: Date()),
+        updatedAt: String = ISO8601DateFormatter().string(from: Date())
+    ) {
+        self.id = id
+        self.title = title
+        self.index = index
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
     }
 }
 
@@ -375,6 +424,7 @@ public struct BoardObject: Codable, Identifiable, Equatable {
     public var createdBy: String
     public var creatorName: String?
     public var updatedAt: String
+    public var pageId: String?
     public var extraFields: [String: AnyCodableValue]?
 
     enum CodingKeys: String, CodingKey, CaseIterable {
@@ -386,7 +436,7 @@ public struct BoardObject: Codable, Identifiable, Equatable {
         case richTextSpans
         case imageUrl, originalImageUrl, originalWidth, originalHeight
         case cropX, cropY, cropWidth, cropHeight
-        case isLocked, isVisible, name, groupId, createdBy, creatorName, updatedAt
+        case isLocked, isVisible, name, groupId, createdBy, creatorName, updatedAt, pageId
     }
 
     public init(
@@ -440,6 +490,7 @@ public struct BoardObject: Codable, Identifiable, Equatable {
         groupId: String? = nil,
         createdBy: String = "local_mac",
         creatorName: String? = "Mac 使用者",
+        pageId: String? = nil,
         updatedAt: String = ISO8601DateFormatter().string(from: Date()),
         extraFields: [String: AnyCodableValue]? = nil
     ) {
@@ -493,6 +544,7 @@ public struct BoardObject: Codable, Identifiable, Equatable {
         self.groupId = groupId
         self.createdBy = createdBy
         self.creatorName = creatorName
+        self.pageId = pageId
         self.updatedAt = updatedAt
         self.extraFields = extraFields
     }
@@ -555,6 +607,7 @@ public struct BoardObject: Codable, Identifiable, Equatable {
         self.createdBy = try container.decode(String.self, forKey: .createdBy)
         self.creatorName = try container.decodeIfPresent(String.self, forKey: .creatorName)
         self.updatedAt = try container.decode(String.self, forKey: .updatedAt)
+        self.pageId = try container.decodeIfPresent(String.self, forKey: .pageId)
 
         // Capture unknown extra fields
         let dynamicContainer = try decoder.container(keyedBy: AnyCodingKey.self)
@@ -628,6 +681,7 @@ public struct BoardObject: Codable, Identifiable, Equatable {
         try container.encode(createdBy, forKey: .createdBy)
         try container.encodeIfPresent(creatorName, forKey: .creatorName)
         try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(pageId, forKey: .pageId)
 
         // Re-encode extra fields
         if let extraFields = extraFields {
@@ -723,12 +777,14 @@ public struct BoardMetadata: Codable, Identifiable, Equatable {
     public var collaboratorIds: [String]?
     public var createdAt: String
     public var updatedAt: String
+    public var pages: [BoardPage]?
+    public var activePageId: String?
     public var extraFields: [String: AnyCodableValue]?
 
     enum CodingKeys: String, CodingKey, CaseIterable {
         case id, title, ownerId, ownerName, ownerPhoto, backgroundColor, gridStyle, boardTheme
         case canvasMode, canvasPreset, canvasWidth, canvasHeight, pins, thumbnail, itemCount, revision
-        case collaboratorIds, createdAt, updatedAt
+        case collaboratorIds, createdAt, updatedAt, pages, activePageId
     }
 
     public init(
@@ -749,6 +805,8 @@ public struct BoardMetadata: Codable, Identifiable, Equatable {
         itemCount: Int? = 0,
         revision: Int? = 1,
         collaboratorIds: [String]? = nil,
+        pages: [BoardPage]? = nil,
+        activePageId: String? = nil,
         createdAt: String = ISO8601DateFormatter().string(from: Date()),
         updatedAt: String = ISO8601DateFormatter().string(from: Date()),
         extraFields: [String: AnyCodableValue]? = nil
@@ -770,6 +828,8 @@ public struct BoardMetadata: Codable, Identifiable, Equatable {
         self.itemCount = itemCount
         self.revision = revision
         self.collaboratorIds = collaboratorIds
+        self.pages = pages
+        self.activePageId = activePageId
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.extraFields = extraFields
@@ -795,6 +855,8 @@ public struct BoardMetadata: Codable, Identifiable, Equatable {
         self.revision = try container.decodeIfPresent(Int.self, forKey: .revision)
         self.createdAt = try container.decode(String.self, forKey: .createdAt)
         self.updatedAt = try container.decode(String.self, forKey: .updatedAt)
+        self.pages = try container.decodeIfPresent([BoardPage].self, forKey: .pages)
+        self.activePageId = try container.decodeIfPresent(String.self, forKey: .activePageId)
 
         // Capture unknown extra fields
         let dynamicContainer = try decoder.container(keyedBy: AnyCodingKey.self)
@@ -830,6 +892,8 @@ public struct BoardMetadata: Codable, Identifiable, Equatable {
         try container.encodeIfPresent(revision, forKey: .revision)
         try container.encode(createdAt, forKey: .createdAt)
         try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(pages, forKey: .pages)
+        try container.encodeIfPresent(activePageId, forKey: .activePageId)
 
         if let extraFields = extraFields {
             var dynamicContainer = encoder.container(keyedBy: AnyCodingKey.self)

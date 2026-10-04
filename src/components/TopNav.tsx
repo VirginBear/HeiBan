@@ -34,6 +34,10 @@ import {
   Settings,
   ChevronDown,
   FileText,
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  Trash2,
 } from 'lucide-react';
 
 interface TopNavProps {
@@ -64,6 +68,11 @@ interface TopNavProps {
   onSignOut: () => void;
   onStartRangeExport?: () => void;
   onOpenSettings?: () => void;
+  onAddPage?: () => void;
+  onDeletePage?: (pageId: string) => void;
+  onSwitchPage?: (pageId: string) => void;
+  onNextPage?: () => void;
+  onPrevPage?: () => void;
 }
 
 export const TopNav: React.FC<TopNavProps> = ({
@@ -94,11 +103,17 @@ export const TopNav: React.FC<TopNavProps> = ({
   onSignOut,
   onStartRangeExport,
   onOpenSettings,
+  onAddPage,
+  onDeletePage,
+  onSwitchPage,
+  onNextPage,
+  onPrevPage,
 }) => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleInput, setTitleInput] = useState(board.title);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showCanvasSizeMenu, setShowCanvasSizeMenu] = useState(false);
+  const [showPageMenu, setShowPageMenu] = useState(false);
   const [showThemeMenu, setShowThemeMenu] = useState(false);
   const [showAutoSaveMenu, setShowAutoSaveMenu] = useState(false);
   const [copiedShare, setCopiedShare] = useState(false);
@@ -431,6 +446,86 @@ export const TopNav: React.FC<TopNavProps> = ({
             <Maximize className="w-3.5 h-3.5 text-emerald-400" />
             <span className="hidden xl:inline">♾️ 無邊界畫布</span>
           </div>
+        ) : board.canvasMode === 'notebook' ? (
+          <div className="flex items-center gap-1 bg-neutral-800/90 text-purple-300 border border-purple-500/30 rounded-xl px-2 py-1 text-xs">
+            <button
+              onClick={onPrevPage}
+              disabled={!board.pages || board.pages.findIndex((p) => p.id === board.activePageId) <= 0}
+              className="p-1 hover:text-white disabled:opacity-30 disabled:hover:text-purple-300 transition-colors"
+              title="上一頁"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </button>
+            <div className="relative">
+              <button
+                onClick={() => setShowPageMenu(!showPageMenu)}
+                className="flex items-center gap-1 font-semibold px-1.5 py-0.5 hover:text-white rounded-lg hover:bg-neutral-700/50"
+              >
+                <BookOpen className="w-3.5 h-3.5 text-purple-400" />
+                <span>
+                  第 {(board.pages || []).findIndex((p) => p.id === board.activePageId) + 1} / {Math.max(1, (board.pages || []).length)} 頁
+                </span>
+                <ChevronDown className="w-3 h-3 text-neutral-400" />
+              </button>
+              {showPageMenu && (
+                <div className="absolute left-0 mt-2 w-48 bg-neutral-900 border border-neutral-700/80 rounded-2xl p-2 shadow-2xl text-xs space-y-1 z-50 animate-in fade-in duration-100">
+                  <div className="text-[10px] text-neutral-400 font-medium px-2 py-1">筆記本頁面清單</div>
+                  {(board.pages || []).map((page, index) => (
+                    <button
+                      key={page.id}
+                      onClick={() => {
+                        onSwitchPage?.(page.id);
+                        setShowPageMenu(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-2 py-1.5 rounded-xl text-left transition-colors ${
+                        page.id === board.activePageId
+                          ? 'bg-purple-600/30 text-purple-200 font-bold'
+                          : 'hover:bg-neutral-800 text-neutral-300'
+                      }`}
+                    >
+                      <span className="truncate">{page.title || `第 ${index + 1} 頁`}</span>
+                      {page.id === board.activePageId && <Check className="w-3.5 h-3.5 text-purple-400" />}
+                    </button>
+                  ))}
+                  {(board.pages || []).length > 1 && (
+                    <>
+                      <div className="border-t border-neutral-800 my-1" />
+                      <button
+                        onClick={() => {
+                          if (board.activePageId && confirm('確認要刪除當前頁面及其內容嗎？')) {
+                            onDeletePage?.(board.activePageId);
+                            setShowPageMenu(false);
+                          }
+                        }}
+                        className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded-xl text-red-400 hover:bg-red-500/10 text-left transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>刪除當前頁面</span>
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+            <button
+              onClick={onNextPage}
+              disabled={
+                !board.pages ||
+                board.pages.findIndex((p) => p.id === board.activePageId) >= (board.pages?.length || 1) - 1
+              }
+              className="p-1 hover:text-white disabled:opacity-30 disabled:hover:text-purple-300 transition-colors"
+              title="下一頁"
+            >
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={onAddPage}
+              className="p-1 hover:text-white text-purple-400 hover:bg-purple-500/20 rounded-lg transition-colors ml-0.5"
+              title="新增筆記頁面"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </button>
+          </div>
         ) : (
           <div className="relative">
             <button
@@ -446,6 +541,10 @@ export const TopNav: React.FC<TopNavProps> = ({
                   ? 'A4 直向'
                   : board.canvasPreset === '16_9'
                   ? '16:9 簡報'
+                  : board.canvasPreset === '1_1'
+                  ? '1:1 正方形'
+                  : board.canvasPreset === '9_16'
+                  ? '9:16 直式'
                   : board.canvasPreset === 'a3_landscape'
                   ? 'A3 橫向'
                   : board.canvasPreset === '4_3'
@@ -467,11 +566,13 @@ export const TopNav: React.FC<TopNavProps> = ({
 
                 <div className="grid grid-cols-2 gap-1.5">
                   {[
-                    { key: 'a4_landscape', label: 'A4 橫向', w: 1920, h: 1358 },
-                    { key: 'a4_portrait', label: 'A4 直向', w: 1358, h: 1920 },
                     { key: '16_9', label: '16:9 簡報', w: 1920, h: 1080 },
-                    { key: '4_3', label: '4:3 課堂', w: 1600, h: 1200 },
-                    { key: 'a3_landscape', label: 'A3 橫向', w: 2715, h: 1920 },
+                    { key: '4_3', label: '4:3 課堂', w: 1440, h: 1080 },
+                    { key: '1_1', label: '1:1 正方形', w: 1080, h: 1080 },
+                    { key: '9_16', label: '9:16 直式', w: 1080, h: 1920 },
+                    { key: 'a4_portrait', label: 'A4 直向', w: 595, h: 842 },
+                    { key: 'a4_landscape', label: 'A4 橫向', w: 842, h: 595 },
+                    { key: 'a3_landscape', label: 'A3 橫向', w: 1191, h: 842 },
                   ].map((p) => (
                     <button
                       key={p.key}

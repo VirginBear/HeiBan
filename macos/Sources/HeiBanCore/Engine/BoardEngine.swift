@@ -138,7 +138,7 @@ public class BoardEngine: ObservableObject {
     }
 
     public var selectionBoundingBox: CGRect? {
-        VectorMath.selectionBounds(for: objects.filter { selectedIds.contains($0.id) && $0.isVisible != false })
+        VectorMath.selectionBounds(for: currentPageObjects.filter { selectedIds.contains($0.id) && $0.isVisible != false })
     }
 
     public func updateHoveredHandle(at screenPoint: Point?) {
@@ -404,13 +404,205 @@ public class BoardEngine: ObservableObject {
         catch { showTemporaryStatus("開啟失敗：\(error.localizedDescription)") }
     }
 
-    public func createBoard(title: String, theme: BoardTheme = .dark) {
+    public func createBoard(
+        title: String,
+        theme: BoardTheme = .dark,
+        mode: CanvasMode = .infinite,
+        preset: CanvasPreset? = nil,
+        width: Double? = nil,
+        height: Double? = nil
+    ) {
         guard saveBeforeLeaving() else { return }
         let title = title.trimmingCharacters(in: .whitespacesAndNewlines)
-        activate(HeiBanDocument(board: BoardMetadata(id: UUID().uuidString, title: title.isEmpty ? "未命名黑板" : title,
-            backgroundColor: theme.defaultBackgroundColor, gridStyle: .dots, boardTheme: theme), objects: []))
+        let finalTitle = title.isEmpty ? "未命名黑板" : title
+
+        var meta = BoardMetadata(
+            id: UUID().uuidString,
+            title: finalTitle,
+            backgroundColor: theme.defaultBackgroundColor,
+            gridStyle: .dots,
+            boardTheme: theme
+        )
+        meta.canvasMode = mode
+
+        switch mode {
+        case .infinite:
+            meta.canvasPreset = .infinite
+            meta.canvasWidth = nil
+            meta.canvasHeight = nil
+            meta.pages = nil
+            meta.activePageId = nil
+        case .fixed:
+            let resolvedPreset = preset ?? .sixteen_nine
+            meta.canvasPreset = resolvedPreset
+            meta.canvasWidth = width ?? resolvedPreset.dimensions.width
+            meta.canvasHeight = height ?? resolvedPreset.dimensions.height
+            meta.pages = nil
+            meta.activePageId = nil
+        case .notebook:
+            let resolvedPreset = preset ?? .notebook
+            meta.canvasPreset = resolvedPreset
+            meta.canvasWidth = width ?? resolvedPreset.dimensions.width
+            meta.canvasHeight = height ?? resolvedPreset.dimensions.height
+            let firstPage = BoardPage(id: UUID().uuidString, title: "第 1 頁", index: 0)
+            meta.pages = [firstPage]
+            meta.activePageId = firstPage.id
+        }
+
+        activate(HeiBanDocument(board: meta, objects: []))
         scheduleAutosave()
     }
+
+    // MARK: - Multi-page Notebook Support (多頁筆記本支援)
+    public var isNotebook: Bool {
+        board.canvasMode == .notebook
+    }
+
+    public var pages: [BoardPage] {
+        get { board.pages ?? [] }
+        set { board.pages = newValue }
+    }
+
+    public var activePageId: String? {
+        get {
+            guard isNotebook else { return nil }
+            if let active = board.activePageId, pages.contains(where: { $0.id == active }) {
+                return active
+            }
+            return pages.first?.id
+        }
+        set {
+            board.activePageId = newValue
+        }
+    }
+
+    public var currentPageIndex: Int {
+        guard isNotebook, let activeId = activePageId else { return 0 }
+        return pages.firstIndex(where: { $0.id == activeId }) ?? 0
+    }
+
+    public var totalPages: Int {
+        guard isNotebook else { return 1 }
+        return max(1, pages.count)
+    }
+
+    public func isObjectOnCurrentPage(_ object: BoardObject) -> Bool {
+        guard isNotebook else { return true }
+        guard let currentId = activePageId else { return true }
+        if let pid = object.pageId {
+            return pid == currentId
+        } else {
+            // Downward compatibility: objects without pageId belong to page 1
+            return currentId == pages.first?.id
+        }
+    }
+
+    public var currentPageObjects: [BoardObject] {
+        guard isNotebook else { return objects }
+        return objects.filter { isObjectOnCurrentPage($0) }
+    }
+
+    @discardableResult
+    public func addPage(title: String? = nil) -> BoardPage {
+        cancelTransientInteraction()
+        selectedIds.removeAll()
+
+        var currentPages = pages
+        if currentPages.isEmpty {
+            let p1 = BoardPage(id: UUID().uuidString, title: "第 1 頁", index: 0)
+            currentPages.append(p1)
+        }
+
+        let newIndex = currentPages.count
+        let rawTitle = title?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let pageTitle = (rawTitle != nil && !rawTitle!.isEmpty) ? rawTitle! : "第 \(newIndex + 1) 頁"
+        let newPage = BoardPage(id: UUID().uuidString, title: pageTitle, index: newIndex)
+        currentPages.append(newPage)
+
+        let beforeBoard = board
+        var afterBoard = board
+        afterBoard.pages = currentPages
+        afterBoard.activePageId = newPage.id
+        board = afterBoard
+
+        transactionManager.push(.updateCanvas(before: beforeBoard, after: afterBoard))
+        scheduleAutosave()
+        showTemporaryStatus("已新增 \(newPage.title)")
+        return newPage
+    }
+
+    @discardableResult
+    public func deletePage(id: String) -> Bool {
+        guard isNotebook else { return false }
+        guard pages.count > 1 else {
+            showTemporaryStatus("筆記本至少需保留一頁")
+            return false
+        }
+        guard let pageIndex = pages.firstIndex(where: { $0.id == id }) else { return false }
+
+        cancelTransientInteraction()
+        selectedIds.removeAll()
+
+        let beforeBoard = board
+        let objectsToDelete = objects.filter { $0.pageId == id }
+
+        var newPages = pages
+        let deletedTitle = newPages[pageIndex].title
+        newPages.remove(at: pageIndex)
+        for i in newPages.indices {
+            newPages[i].index = i
+        }
+
+        var afterBoard = board
+        afterBoard.pages = newPages
+
+        if activePageId == id {
+            let nextIndex = min(pageIndex, newPages.count - 1)
+            afterBoard.activePageId = newPages[nextIndex].id
+        }
+
+        if !objectsToDelete.isEmpty {
+            let idsToDelete = Set(objectsToDelete.map(\.id))
+            objects.removeAll { idsToDelete.contains($0.id) }
+        }
+        board = afterBoard
+
+        if !objectsToDelete.isEmpty {
+            transactionManager.push(.composite([
+                .removeObjects(objectsToDelete),
+                .updateCanvas(before: beforeBoard, after: afterBoard)
+            ]))
+        } else {
+            transactionManager.push(.updateCanvas(before: beforeBoard, after: afterBoard))
+        }
+
+        scheduleAutosave()
+        showTemporaryStatus("已刪除 \(deletedTitle)")
+        return true
+    }
+
+    public func switchPage(to pageId: String) {
+        guard isNotebook, activePageId != pageId else { return }
+        guard pages.contains(where: { $0.id == pageId }) else { return }
+        cancelTransientInteraction()
+        selectedIds.removeAll()
+        board.activePageId = pageId
+    }
+
+    public func goToNextPage() {
+        guard isNotebook else { return }
+        let nextIdx = currentPageIndex + 1
+        guard nextIdx < pages.count else { return }
+        switchPage(to: pages[nextIdx].id)
+    }
+
+    public func goToPreviousPage() {
+        guard isNotebook else { return }
+        let prevIdx = currentPageIndex - 1
+        guard prevIdx >= 0 else { return }
+        switchPage(to: pages[prevIdx].id)
+    }
+
 
     public func duplicateLibraryBoard(_ id: String) {
         guard saveBeforeLeaving() else { return }
@@ -803,7 +995,7 @@ public class BoardEngine: ObservableObject {
             let worldPoint = VectorMath.screenToWorld(screenPoint, viewport: viewport)
 
             if clickCount >= 2,
-               let textObject = objects.reversed().first(where: {
+               let textObject = currentPageObjects.reversed().first(where: {
                    ($0.type == "text" || $0.type == "sticky") && $0.isVisible != false && $0.isLocked != true &&
                    VectorMath.isPointNearObject(point: worldPoint, object: $0, threshold: 8 / viewport.zoom)
                }) {
@@ -824,7 +1016,7 @@ public class BoardEngine: ObservableObject {
             }
 
             // 2. Check if user hit an object on canvas
-            if let hit = objects.reversed().first(where: {
+            if let hit = currentPageObjects.reversed().first(where: {
                 $0.isVisible != false && $0.isLocked != true &&
                 VectorMath.isPointNearObject(point: worldPoint, object: $0, threshold: 8 / viewport.zoom)
             }) {
@@ -1452,6 +1644,33 @@ public class BoardEngine: ObservableObject {
         scheduleAutosave()
     }
 
+    @discardableResult
+    public func addSticky(text: String, at worldPt: Point = Point(x: 200, y: 200)) -> BoardObject {
+        var maxZ = objects.map(\.zIndex).max() ?? 0
+        maxZ += 1
+        var obj = BoardObject(
+            boardId: board.id,
+            type: "sticky",
+            x: worldPt.x,
+            y: worldPt.y,
+            width: 200,
+            height: 150,
+            strokeColor: "#1f2937",
+            fillColor: StickyPalette.yellow,
+            strokeWidth: 1,
+            zIndex: maxZ,
+            text: text,
+            fontSize: 16,
+            fontFamily: "PingFang TC",
+            stickyStyle: .classic
+        )
+        if isNotebook {
+            obj.pageId = activePageId
+        }
+        addObject(obj)
+        return obj
+    }
+
     public func removeObjects(ids: Set<String>) {
         guard !ids.isEmpty else { return }
         let removed = objects.filter { ids.contains($0.id) }
@@ -1843,17 +2062,31 @@ public class BoardEngine: ObservableObject {
     }
 
     public func clearAll() {
-        guard !objects.isEmpty else { return }
-        let prev = objects
-        objects.removeAll()
-        selectedIds.removeAll()
-        transactionManager.push(.clearCanvas(clearedObjects: prev))
-        scheduleAutosave()
+        if isNotebook {
+            let pageObjs = currentPageObjects
+            guard !pageObjs.isEmpty else { return }
+            let pageObjIds = Set(pageObjs.map(\.id))
+            objects.removeAll { pageObjIds.contains($0.id) }
+            selectedIds.removeAll()
+            transactionManager.push(.removeObjects(pageObjs))
+            scheduleAutosave()
+        } else {
+            guard !objects.isEmpty else { return }
+            let prev = objects
+            objects.removeAll()
+            selectedIds.removeAll()
+            transactionManager.push(.clearCanvas(clearedObjects: prev))
+            scheduleAutosave()
+        }
     }
 
     private func appendInZOrder(_ object: BoardObject) {
-        objects.append(object)
-        if objects.count > 1 && objects[objects.count - 2].zIndex > object.zIndex {
+        var obj = object
+        if isNotebook && obj.pageId == nil {
+            obj.pageId = activePageId
+        }
+        objects.append(obj)
+        if objects.count > 1 && objects[objects.count - 2].zIndex > obj.zIndex {
             objects.sort { $0.zIndex < $1.zIndex }
         }
     }
@@ -2076,6 +2309,7 @@ public class BoardEngine: ObservableObject {
             objects.removeAll { obj in
                 // A24: Locked and hidden objects must not be erased
                 if obj.isLocked == true || obj.isVisible == false { return false }
+                if isNotebook && !isObjectOnCurrentPage(obj) { return false }
                 guard Self.isEraserEligible(obj.type) else { return false }
                 if VectorMath.isPointNearObject(point: worldPt, object: obj, threshold: max(18.0 / viewport.zoom, hitThreshold)) {
                     newlyDeleted.append(obj)
@@ -2099,6 +2333,7 @@ public class BoardEngine: ObservableObject {
 
             for obj in objects {
                 if obj.isLocked == true || obj.isVisible == false { continue }
+                if isNotebook && !isObjectOnCurrentPage(obj) { continue }
 
                 if obj.type == "stroke" || obj.type == "highlighter" || obj.type == "paint" || obj.type == "curve" {
                     let pts: [Point]
@@ -2752,11 +2987,11 @@ public class BoardEngine: ObservableObject {
 
     public func selectObjectsInBox(rect: CGRect, isShiftPressed: Bool) {
         var matchedIds = Set<String>()
-        for obj in objects {
+        for obj in currentPageObjects {
             guard obj.isVisible != false, obj.isLocked != true else { continue }
             if VectorMath.objectIntersectsRect(object: obj, rect: rect) {
                 if let gid = obj.groupId, !gid.isEmpty {
-                    let groupMembers = objects.filter { $0.groupId == gid && $0.isLocked != true && $0.isVisible != false }
+                    let groupMembers = currentPageObjects.filter { $0.groupId == gid && $0.isLocked != true && $0.isVisible != false }
                     for m in groupMembers { matchedIds.insert(m.id) }
                 } else {
                     matchedIds.insert(obj.id)
@@ -2870,6 +3105,9 @@ public class BoardEngine: ObservableObject {
             maxZ += 1
             pasted.zIndex = maxZ
             pasted.updatedAt = now
+            if isNotebook {
+                pasted.pageId = activePageId
+            }
             newObjects.append(pasted)
         }
 

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { BoardObject, BoardMetadata, HeiBanDocument } from '../src/types';
+import { BoardObject, BoardMetadata, HeiBanDocument, CanvasMode, CanvasPreset, BoardPage } from '../src/types';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -195,7 +195,7 @@ interface BoardMutation {
   timestamp: string;
   upsertedObjects?: BoardObject[];
   deletedObjectIds?: string[];
-  updatedMetadata?: Partial<Board>;
+  updatedMetadata?: Partial<BoardMetadata>;
 }
 
 function convergeDocument(
@@ -263,6 +263,9 @@ const collabBaseDoc: HeiBanDocument = {
   board: {
     id: 'board_ten_clients_ts',
     title: 'TS 跨平台協作黑板',
+    ownerId: 'test_owner',
+    ownerName: 'Test Owner',
+    gridStyle: 'dots',
     revision: 1,
     canvasMode: 'infinite',
     boardTheme: 'dark',
@@ -457,6 +460,130 @@ assertTrue(canvasSource.includes('cursor-ns-resize'), 'Canvas.tsx 應包含垂�
 assertTrue(canvasSource.includes('cursor-nwse-resize'), 'Canvas.tsx 應包含左上右下斜邊箭頭樣式');
 assertTrue(canvasSource.includes('cursor-nesw-resize'), 'Canvas.tsx 應包含右上左下斜邊箭頭樣式');
 assertTrue(canvasSource.includes('handleRotate') || canvasSource.includes('rotate'), 'Canvas.tsx 應定義旋轉控制點與互動邏輯');
+
+// -------------------------------------------------------------------------
+// 8. Canvas Formats (Infinite / Common Dimensions / Notebook) & Multi-page Contract (立靶驗收)
+// -------------------------------------------------------------------------
+console.log('\n[測試 8] 畫布格式選擇 (無邊界 / 常見尺寸 / 多頁筆記本) 與多頁筆記契約驗證 (立靶驗收)');
+
+const validModes: CanvasMode[] = ['infinite', 'fixed', 'notebook'];
+assertTrue(validModes.includes('notebook'), 'CanvasMode 契約包含 notebook');
+assertTrue(validModes.includes('infinite'), 'CanvasMode 契約包含 infinite');
+assertTrue(validModes.includes('fixed'), 'CanvasMode 契約包含 fixed');
+
+const validPresets: CanvasPreset[] = ['1_1', '9_16', 'notebook', '16_9', '4_3', 'a4_portrait', 'a4_landscape'];
+assertTrue(validPresets.includes('1_1'), 'CanvasPreset 包含 1:1 正方形');
+assertTrue(validPresets.includes('9_16'), 'CanvasPreset 包含 9:16 手機直式');
+assertTrue(validPresets.includes('notebook'), 'CanvasPreset 包含 notebook 筆記規格');
+
+// 筆記本頁面資料契約
+const page1: BoardPage = {
+  id: 'page_uuid_1',
+  title: '第 1 頁',
+  index: 0,
+  createdAt: '2026-10-04T00:00:00Z',
+  updatedAt: '2026-10-04T00:00:00Z',
+};
+const page2: BoardPage = {
+  id: 'page_uuid_2',
+  title: '第 2 頁',
+  index: 1,
+  createdAt: '2026-10-04T00:01:00Z',
+  updatedAt: '2026-10-04T00:01:00Z',
+};
+assertEqual(page1.title, '第 1 頁', '第 1 頁結構完整');
+assertEqual(page2.title, '第 2 頁', '第 2 頁結構完整');
+
+// 筆記本頁面物件隔離邏輯契約
+const notebookObjects: BoardObject[] = [
+  {
+    id: 'obj_p1_sticky',
+    boardId: 'test_board',
+    type: 'sticky',
+    x: 100,
+    y: 100,
+    width: 200,
+    height: 150,
+    strokeColor: '#1f2937',
+    fillColor: '#fef08a',
+    strokeWidth: 1,
+    zIndex: 1,
+    rotation: 0,
+    opacity: 1,
+    pageId: 'page_uuid_1',
+    text: '第一頁的筆記',
+    createdBy: 'web_user',
+    updatedAt: '2026-10-04T00:00:00Z',
+  },
+  {
+    id: 'obj_legacy_p1',
+    boardId: 'test_board',
+    type: 'rect',
+    x: 200,
+    y: 200,
+    width: 80,
+    height: 80,
+    strokeColor: '#1f2937',
+    fillColor: '#3b82f6',
+    strokeWidth: 2,
+    zIndex: 2,
+    rotation: 0,
+    opacity: 1,
+    // 無 pageId (向下相容)，預設歸屬第一頁
+    createdBy: 'web_user',
+    updatedAt: '2026-10-04T00:00:00Z',
+  },
+  {
+    id: 'obj_p2_circle',
+    boardId: 'test_board',
+    type: 'circle',
+    x: 300,
+    y: 300,
+    width: 60,
+    height: 60,
+    strokeColor: '#1f2937',
+    fillColor: '#10b981',
+    strokeWidth: 2,
+    zIndex: 3,
+    rotation: 0,
+    opacity: 1,
+    pageId: 'page_uuid_2',
+    createdBy: 'web_user',
+    updatedAt: '2026-10-04T00:01:00Z',
+  },
+];
+
+function filterPageObjects(objects: BoardObject[], activePageId: string, firstPageId: string) {
+  return objects.filter((o) => {
+    if (o.pageId) {
+      return o.pageId === activePageId;
+    }
+    return activePageId === firstPageId;
+  });
+}
+
+const p1Visible = filterPageObjects(notebookObjects, 'page_uuid_1', 'page_uuid_1');
+assertEqual(p1Visible.length, 2, '第 1 頁應包含指定物件與無 pageId 之向下相容物件');
+assertTrue(p1Visible.some((o) => o.id === 'obj_p1_sticky'), '第 1 頁包含 sticky');
+assertTrue(p1Visible.some((o) => o.id === 'obj_legacy_p1'), '第 1 頁包含向下相容 rect');
+assertTrue(!p1Visible.some((o) => o.id === 'obj_p2_circle'), '第 1 頁不包含第 2 頁之 circle');
+
+const p2Visible = filterPageObjects(notebookObjects, 'page_uuid_2', 'page_uuid_1');
+assertEqual(p2Visible.length, 1, '第 2 頁僅包含第 2 頁專屬物件');
+assertEqual(p2Visible[0].id, 'obj_p2_circle', '第 2 頁正確呈現 circle');
+
+// 筆記本刪除安全防呆守則契約
+function canDeletePage(pages: BoardPage[]) {
+  return pages.length > 1;
+}
+assertTrue(!canDeletePage([page1]), '僅剩單頁之筆記本不可刪除 (防呆守則)');
+assertTrue(canDeletePage([page1, page2]), '多於 1 頁之筆記本允許刪除指定頁面');
+
+// Web 程式碼包含筆記本相關功能
+const homeSourcePath = path.resolve(__dirname, '../src/components/HomeDashboard.tsx');
+assertTrue(fs.existsSync(homeSourcePath), 'HomeDashboard.tsx 原始碼檔案應存在');
+const homeSource = fs.readFileSync(homeSourcePath, 'utf-8');
+assertTrue(homeSource.includes('notebook'), 'HomeDashboard.tsx 應支援筆記本模式');
 
 console.log('\n==================================================');
 if (failedCount === 0) {

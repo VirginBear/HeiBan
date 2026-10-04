@@ -249,7 +249,7 @@ struct FixedCanvasFrameView: View {
     let height: Double?
 
     var body: some View {
-        if canvasMode == .fixed, let w = width, let h = height, w > 0, h > 0 {
+        if (canvasMode == .fixed || canvasMode == .notebook), let w = width, let h = height, w > 0, h > 0 {
             let zoom = viewport.zoom
             let pageX = viewport.x
             let pageY = viewport.y
@@ -358,7 +358,7 @@ struct CanvasObjectsView: View {
         Canvas { context, size in
             let visibleRect = VectorMath.visibleWorldRect(canvasSize: size, viewport: engine.viewport)
 
-            for obj in engine.objects {
+            for obj in engine.currentPageObjects {
                 guard obj.isVisible != false else { continue }
                 let isSelected = engine.selectedIds.contains(obj.id)
 
@@ -714,7 +714,7 @@ private struct LineEndpointHandlesView: View {
     @ObservedObject var preview: StrokePreviewStore
 
     private var selectedLine: BoardObject? {
-        engine.objects.reversed().first {
+        engine.currentPageObjects.reversed().first {
             engine.selectedIds.contains($0.id) && ($0.type == "line" || $0.type == "arrow")
         }
     }

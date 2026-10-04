@@ -1435,36 +1435,50 @@ export const Canvas: React.FC<CanvasProps> = ({
       {/* Infinite Canvas Background Grid (覆蓋全螢幕，無限畫布全幅展開，無邊界限制) */}
       {board.canvasMode === 'infinite' && renderBackgroundPattern()}
 
-      {/* Fixed Canvas Paper Surface (固定尺寸紙張：A4、16:9 等，外圍為老鼠灰工作區) */}
-      {board.canvasMode === 'fixed' && (
+      {/* Fixed Canvas Paper Surface / Multi-page Notebook Page Surface */}
+      {(board.canvasMode === 'fixed' || board.canvasMode === 'notebook') && (
         <div
           className="absolute rounded-3xl overflow-hidden pointer-events-none border-2 border-white/20 shadow-2xl transition-all"
           style={{
             left: `${viewport.x}px`,
             top: `${viewport.y}px`,
-            width: `${(board.canvasWidth || 1920) * viewport.zoom}px`,
-            height: `${(board.canvasHeight || 1080) * viewport.zoom}px`,
+            width: `${(board.canvasWidth || (board.canvasMode === 'notebook' ? 595 : 1920)) * viewport.zoom}px`,
+            height: `${(board.canvasHeight || (board.canvasMode === 'notebook' ? 842 : 1080)) * viewport.zoom}px`,
             backgroundColor: board.backgroundColor || '#172e25',
-            boxShadow: '0 35px 90px -15px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.12)',
+            boxShadow:
+              board.canvasMode === 'notebook'
+                ? '0 30px 80px -10px rgba(0,0,0,0.85), 0 0 0 1px rgba(168,85,247,0.3)'
+                : '0 35px 90px -15px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.12)',
           }}
         >
           {/* Inner Grid Pattern within the paper */}
           {renderBackgroundPattern()}
           <div className="absolute top-3 left-4 px-2.5 py-1 rounded-lg bg-black/60 text-neutral-300 text-[10px] font-mono border border-white/10 flex items-center gap-1.5 backdrop-blur-md">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+            <span
+              className={`w-1.5 h-1.5 rounded-full ${
+                board.canvasMode === 'notebook' ? 'bg-purple-400' : 'bg-cyan-400'
+              }`}
+            />
             <span>
-              {board.canvasPreset === 'a4_landscape'
+              {board.canvasMode === 'notebook'
+                ? `📓 筆記本第 ${(board.pages || []).findIndex((p) => p.id === board.activePageId) + 1} 頁 (A4)`
+                : board.canvasPreset === 'a4_landscape'
                 ? 'A4 橫向'
                 : board.canvasPreset === 'a4_portrait'
                 ? 'A4 直向'
                 : board.canvasPreset === '16_9'
                 ? '16:9 簡報'
+                : board.canvasPreset === '1_1'
+                ? '1:1 正方形'
+                : board.canvasPreset === '9_16'
+                ? '9:16 直式'
                 : board.canvasPreset === 'a3_landscape'
                 ? 'A3 橫向'
                 : board.canvasPreset === '4_3'
                 ? '4:3 課堂'
                 : '固定規格紙張'}{' '}
-              ({board.canvasWidth || 1920} × {board.canvasHeight || 1080})
+              ({board.canvasWidth || (board.canvasMode === 'notebook' ? 595 : 1920)} ×{' '}
+              {board.canvasHeight || (board.canvasMode === 'notebook' ? 842 : 1080)})
             </span>
           </div>
         </div>

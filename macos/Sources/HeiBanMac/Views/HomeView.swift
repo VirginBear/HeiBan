@@ -14,6 +14,7 @@ struct HomeView: View {
     @ViewState<String> private var renameTitle = ""
     @ViewState<Set<String>> private var selectedBoardIDs = []
     @ViewState<Bool> private var confirmDeleteBoards = false
+    @ViewState<HomeCanvasChoice> private var canvasChoice = .infinite
     private let sage = Color(red: 0.24, green: 0.43, blue: 0.35)
 
     var body: some View {
@@ -32,9 +33,12 @@ struct HomeView: View {
                 Image(systemName: "plus.square.fill").font(.title).foregroundStyle(sage)
                 TextField("替新黑板取個名字", text: $title).textFieldStyle(.plain)
                     .onSubmit { create() }
+                Picker("格式", selection: $canvasChoice) {
+                    ForEach(HomeCanvasChoice.allCases) { Text($0.rawValue).tag($0) }
+                }.frame(width: 150)
                 Picker("底色", selection: $theme) {
                     ForEach(BoardTheme.allCases, id: \.self) { Text($0.displayName).tag($0) }
-                }.frame(width: 170)
+                }.frame(width: 140)
                 Button("建立黑板") { create() }.buttonStyle(.borderedProminent).tint(sage)
             }.padding(20).background(.white, in: RoundedRectangle(cornerRadius: 18))
             HStack {
@@ -120,7 +124,41 @@ struct HomeView: View {
                 Text("將刪除 \(selectedBoardIDs.count) 張黑板及其本機備份，此操作無法復原。")
             }
     }
-    private func create() { engine.createBoard(title: title, theme: theme); title = "" }
+
+    private func create() {
+        switch canvasChoice {
+        case .infinite:
+            engine.createBoard(title: title, theme: theme, mode: .infinite)
+        case .notebook:
+            engine.createBoard(title: title, theme: theme, mode: .notebook, preset: .notebook)
+        case .sixteenNine:
+            engine.createBoard(title: title, theme: theme, mode: .fixed, preset: .sixteen_nine)
+        case .fourThree:
+            engine.createBoard(title: title, theme: theme, mode: .fixed, preset: .four_three)
+        case .oneOne:
+            engine.createBoard(title: title, theme: theme, mode: .fixed, preset: .one_one)
+        case .nineSixteen:
+            engine.createBoard(title: title, theme: theme, mode: .fixed, preset: .nine_sixteen)
+        case .a4Portrait:
+            engine.createBoard(title: title, theme: theme, mode: .fixed, preset: .a4_portrait)
+        case .a4Landscape:
+            engine.createBoard(title: title, theme: theme, mode: .fixed, preset: .a4_landscape)
+        }
+        title = ""
+    }
+}
+
+private enum HomeCanvasChoice: String, CaseIterable, Identifiable {
+    case infinite = "♾️ 無邊界黑板"
+    case notebook = "📓 多頁筆記本"
+    case sixteenNine = "📄 16:9 簡報"
+    case fourThree = "📄 4:3 課堂"
+    case oneOne = "📄 1:1 正方形"
+    case nineSixteen = "📄 9:16 直式"
+    case a4Portrait = "📄 A4 直式"
+    case a4Landscape = "📄 A4 橫式"
+
+    var id: String { rawValue }
 }
 
 private struct BoardThumbnailView: View {
@@ -129,8 +167,11 @@ private struct BoardThumbnailView: View {
 
     var body: some View {
         Canvas { context, size in
-            context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(Color(hex: board.backgroundColor)))
-            let visible = objects.filter { $0.isVisible != false }
+            let firstPageId = board.pages?.first?.id
+            let visible = objects.filter {
+                $0.isVisible != false &&
+                (board.canvasMode != .notebook || $0.pageId == nil || $0.pageId == firstPageId || $0.pageId == board.activePageId)
+            }
             guard !visible.isEmpty else {
                 context.draw(Text("空白黑板").font(.system(size: 13, weight: .medium)).foregroundColor(.white.opacity(0.45)), at: CGPoint(x: size.width / 2, y: size.height / 2))
                 return

@@ -78,7 +78,7 @@ struct NativePointerSurface: NSViewRepresentable {
         override func rightMouseDown(with event: NSEvent) {
             let location = point(event)
             let world = VectorMath.screenToWorld(Point(location), viewport: engine.viewport)
-            if let hit = engine.objects.reversed().first(where: {
+            if let hit = engine.currentPageObjects.reversed().first(where: {
                 $0.isVisible != false && $0.isLocked != true &&
                 VectorMath.isPointNearObject(point: world, object: $0, threshold: 8 / engine.viewport.zoom)
             }) {
@@ -206,7 +206,7 @@ struct NativePointerSurface: NSViewRepresentable {
             case .paste:
                 engine.pasteClipboard()
             case .selectAll:
-                engine.selectedIds = Set(engine.objects.map(\.id))
+                engine.selectedIds = Set(engine.currentPageObjects.map(\.id))
             case .duplicate:
                 engine.duplicateSelected()
             case .delete:

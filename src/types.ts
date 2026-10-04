@@ -22,7 +22,7 @@ export type EraserMode = 'object' | 'pixel';
 
 export type BoardTheme = 'blackboard' | 'dark' | 'whiteboard' | 'slate';
 export type GridStyle = 'grid' | 'dots' | 'lines' | 'blank';
-export type CanvasMode = 'fixed' | 'infinite';
+export type CanvasMode = 'fixed' | 'infinite' | 'notebook';
 export type CanvasPreset =
   | 'infinite'
   | 'a4_landscape'
@@ -30,9 +30,20 @@ export type CanvasPreset =
   | 'a3_landscape'
   | '16_9'
   | '4_3'
+  | '1_1'
+  | '9_16'
+  | 'notebook'
   | 'custom';
 export type StickyStyle = 'classic' | 'washi' | 'cat' | 'notebook' | 'grid' | 'soft';
 export type LineExtension = 'none' | 'start' | 'end' | 'both';
+
+export interface BoardPage {
+  id: string;
+  title: string;
+  index: number;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export interface Point {
   x: number;
@@ -111,6 +122,7 @@ export interface BoardObject {
   groupId?: string;
   createdBy: string;
   creatorName?: string;
+  pageId?: string;
   updatedAt: string;
   [key: string]: unknown;
 }
@@ -154,6 +166,8 @@ export interface BoardMetadata {
   thumbnail?: string;
   itemCount?: number;
   revision?: number;
+  pages?: BoardPage[];
+  activePageId?: string;
   createdAt: string;
   updatedAt: string;
   [key: string]: unknown;
