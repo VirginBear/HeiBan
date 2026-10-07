@@ -37,15 +37,19 @@ HeiBan 為高效能向量黑板／白板協作系統，在 Web（TypeScript / Re
 | `ownerName` | `String` | 是 | 建立者顯示名稱 |
 | `ownerPhoto` | `String?` | 否 | 建立者頭像 URL / Base64 |
 | `backgroundColor` | `String` | 是 | 畫布底色（十六進位 HEX，如 `#172e25`） |
-| `gridStyle` | `GridStyle` | 是 | 網格模式：`"grid" \| "dots" \| "lines" \| "blank"` |
+| `gridStyle` | `GridStyle` | 是 | 網格模式：`"grid" \| "dots" \| "lines" \| "staff" \| "blank"` |
 | `boardTheme` | `BoardTheme` | 是 | 預設主題：`"blackboard" \| "dark" \| "whiteboard" \| "slate"` |
-| `canvasMode` | `CanvasMode?` | 否 | 畫布模式：`"fixed" \| "infinite"` |
-| `canvasPreset` | `CanvasPreset?` | 否 | 固定尺寸預設：`"infinite" \| "a4_landscape" \| "a4_portrait" \| "a3_landscape" \| "16_9" \| "4_3" \| "custom"` |
+| `canvasMode` | `CanvasMode?` | 否 | 畫布模式：`"fixed" \| "infinite" \| "notebook"` |
+| `canvasPreset` | `CanvasPreset?` | 否 | 固定尺寸預設：`"infinite" \| "a4_landscape" \| "a4_portrait" \| "a3_landscape" \| "16_9" \| "4_3" \| "1_1" \| "9_16" \| "b5" \| "notebook" \| "custom"` |
 | `canvasWidth` | `Double?` | 否 | 固定尺寸畫布寬度 (世界座標單位) |
 | `canvasHeight` | `Double?` | 否 | 固定尺寸畫布高度 (世界座標單位) |
 | `pins` | `[BoardPin]?` | 否 | 畫布圖釘清單 |
 | `thumbnail` | `String?` | 否 | 縮圖 Data URL |
 | `itemCount` | `Int?` | 否 | 統計物件總數 |
+| `revision` | `Int?` | 否 | 文件修訂版本號 (LWW 並發版本管理) |
+| `collaboratorIds` | `[String]?` | 否 | 協作者 UID 清單 (上限 9 人，含 Owner 總人數至多 10 人) |
+| `memberRoles` | `[String: String]?` | 否 | 成員角色字典 (`'owner' \| 'editor' \| 'viewer' \| 'revoked'`) |
+| `source` | `String?` | 否 | 儲存來源識別 (`'local' \| 'cloud'`)，防止本機文件誤接雲端監聽器 |
 | `createdAt` | `String` | 是 | 建立時間 (ISO-8601) |
 | `updatedAt` | `String` | 是 | 更新時間 (ISO-8601) |
 | `...extraFields` | `[String: Any]` | 否 | 未知擴展欄位（無損保留） |
@@ -57,7 +61,7 @@ HeiBan 為高效能向量黑板／白板協作系統，在 Web（TypeScript / Re
 ### 4.1 核心與幾何欄位
 - `id`: `String` (唯一 ID)
 - `boardId`: `String`
-- `type`: `"stroke" | "highlighter" | "paint" | "rect" | "circle" | "triangle" | "diamond" | "arrow" | "line" | "star" | "text" | "sticky" | "image" | "pin"`
+- `type`: `"stroke" | "highlighter" | "paint" | "curve" | "rect" | "circle" | "triangle" | "quadrilateral" | "diamond" | "arrow" | "line" | "star" | "text" | "sticky" | "image" | "pin"`
 - `x`, `y`, `width`, `height`: `Double` (世界座標與尺寸)
 - `x1`, `y1`, `x2`, `y2`: `Double?` (A/B 點線段與箭頭專用端點座標，反向繪製時不翻轉端點)
 - `extension`: `"none" | "start" | "end" | "both"` (A/B 線段向兩端射線延伸模式)

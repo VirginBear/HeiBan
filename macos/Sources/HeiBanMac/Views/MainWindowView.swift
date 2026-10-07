@@ -47,26 +47,28 @@ public struct MainWindowView: View {
                                 HStack {
                                     Spacer()
                                     Button {
-                                        withAnimation(.easeOut(duration: 0.18)) { engine.showInspector = true }
+                                        withAnimation(.spring(response: 0.32, dampingFraction: 0.82)) { engine.showInspector = true }
                                     } label: {
-                                        VStack(spacing: 5) {
+                                        HStack(spacing: 6) {
                                             Image(systemName: "slider.horizontal.3")
-                                                .font(.system(size: 13, weight: .semibold))
+                                                .font(.system(size: 12, weight: .semibold))
                                             Text("屬性")
-                                                .font(.system(size: 10, weight: .semibold))
+                                                .font(.system(size: 11, weight: .medium))
                                         }
-                                        .foregroundStyle(.secondary)
-                                        .padding(.horizontal, 8)
-                                        .padding(.vertical, 12)
-                                        .background(.regularMaterial, in: UnevenRoundedRectangle(topLeadingRadius: 10, bottomLeadingRadius: 10, bottomTrailingRadius: 0, topTrailingRadius: 0))
-                                        .overlay(alignment: .leading) { Rectangle().fill(Color.accentColor.opacity(0.55)).frame(width: 2) }
+                                        .foregroundStyle(.primary.opacity(0.85))
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 8)
+                                        .background(.regularMaterial, in: Capsule())
+                                        .overlay(Capsule().stroke(Color.white.opacity(0.28), lineWidth: 1))
+                                        .shadow(color: Color.black.opacity(0.12), radius: 8, x: 0, y: 3)
                                     }
                                     .buttonStyle(.plain)
+                                    .padding(.trailing, 16)
                                     .help("開啟屬性檢查器")
                                 }
                                 Spacer()
                             }
-                            .transition(.opacity)
+                            .transition(.opacity.combined(with: .scale(scale: 0.95)))
                         }
                     }
                     .onChange(of: geo.size) { _, newSize in

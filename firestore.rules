@@ -20,19 +20,78 @@ service cloud.firestore {
     }
 
     function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Helper to get parent board data for subcollections
+    function getBoardData(boardId) {
+      return get(/databases/$(database)/documents/boards/$(boardId)).data;
+    }
+
+    // Member and Role Evaluation Functions
+    function isBoardOwner(boardData) {
+      return isSignedIn() && boardData.ownerId == request.auth.uid;
+    }
+
+    function isBoardMember(boardData) {
+      return isSignedIn() && (
+        boardData.ownerId == request.auth.uid ||
+        (
+          'collaboratorIds' in boardData &&
+          boardData.collaboratorIds is list &&
+          request.auth.uid in boardData.collaboratorIds &&
+          (!('memberRoles' in boardData) || !('revoked' == boardData.memberRoles[request.auth.uid]))
+        ) ||
+        (
+          'memberRoles' in boardData &&
+          boardData.memberRoles is map &&
+          request.auth.uid in boardData.memberRoles &&
+          boardData.memberRoles[request.auth.uid] in ['owner', 'editor', 'viewer']
+        )
+      );
+    }
+
+    function canEditBoard(boardData) {
+      return isSignedIn() && (
+        boardData.ownerId == request.auth.uid ||
+        (
+          'collaboratorIds' in boardData &&
+          boardData.collaboratorIds is list &&
+          request.auth.uid in boardData.collaboratorIds &&
+          (!('memberRoles' in boardData) || !('revoked' == boardData.memberRoles[request.auth.uid])) &&
+          (!('memberRoles' in boardData) || boardData.memberRoles[request.auth.uid] != 'viewer')
+        ) ||
+        (
+          'memberRoles' in boardData &&
+          boardData.memberRoles is map &&
+          request.auth.uid in boardData.memberRoles &&
+          boardData.memberRoles[request.auth.uid] in ['owner', 'editor']
+        )
+      );
+    }
+
+    function hasValidMemberCount(data) {
+      // Max 10 participants total (Owner + at most 9 collaborators)
+      return (!('collaboratorIds' in data) || (data.collaboratorIds is list && data.collaboratorIds.size() <= 9)) &&
+             (!('members' in data) || (data.members is map && data.members.size() <= 10)) &&
+             (!('memberRoles' in data) || (data.memberRoles is map && data.memberRoles.size() <= 10));
     }
 
     function isValidBoard(data) {
       return data.title is string && data.title.size() <= 100 &&
              data.ownerId is string && data.ownerId.size() <= 128 &&
              data.backgroundColor is string && data.backgroundColor.size() <= 30 &&
-             data.gridStyle is string && data.gridStyle in ['grid', 'dots', 'lines', 'blank'];
+             data.gridStyle is string && data.gridStyle in ['grid', 'dots', 'lines', 'staff', 'blank'] &&
+             hasValidMemberCount(data);
     }
 
     function isValidBoardObject(data) {
       return data.boardId is string && data.boardId.size() <= 128 &&
-             data.type is string && data.type in ['stroke', 'highlighter', 'rect', 'circle', 'triangle', 'diamond', 'arrow', 'line', 'star', 'text', 'sticky', 'image', 'pin'] &&
+             data.type is string && data.type in [
+               'stroke', 'highlighter', 'paint', 'curve',
+               'rect', 'circle', 'triangle', 'quadrilateral', 'diamond', 'star',
+               'arrow', 'line', 'text', 'sticky', 'image', 'pin'
+             ] &&
              data.x is number &&
              data.y is number &&
              data.createdBy is string && data.createdBy.size() <= 128 &&
@@ -49,45 +108,56 @@ service cloud.firestore {
 
     // Boards collection
     match /boards/{boardId} {
-      allow get: if isSignedIn() && isValidId(boardId);
+      allow get: if isValidId(boardId) && isBoardMember(resource.data);
       allow list: if isSignedIn();
       allow create: if isSignedIn() &&
                        isValidId(boardId) &&
                        isValidBoard(incoming()) &&
                        incoming().ownerId == request.auth.uid;
-      allow update: if isSignedIn() &&
-                       isValidId(boardId) &&
-                       isValidBoard(incoming());
-      allow delete: if isSignedIn() &&
-                       isValidId(boardId) &&
-                       existing().ownerId == request.auth.uid;
+      allow update: if isValidId(boardId) &&
+                       isValidBoard(incoming()) &&
+                       (
+                         // Owner can update any board metadata including members
+                         isBoardOwner(resource.data) ||
+                         // Collaborator can update content metadata but cannot forge/change ownerId or change member lists
+                         (
+                           canEditBoard(resource.data) &&
+                           incoming().ownerId == resource.data.ownerId &&
+                           (!('collaboratorIds' in incoming()) || incoming().collaboratorIds == resource.data.collaboratorIds) &&
+                           (!('memberRoles' in incoming()) || incoming().memberRoles == resource.data.memberRoles)
+                         )
+                       );
+      allow delete: if isValidId(boardId) && isBoardOwner(resource.data);
 
       // Board objects subcollection (vector strokes, shapes, notes, images)
       match /objects/{objectId} {
-        allow read: if isSignedIn() && isValidId(boardId);
-        allow create: if isSignedIn() &&
-                         isValidId(boardId) &&
+        allow read: if isValidId(boardId) &&
+                       isValidId(objectId) &&
+                       isBoardMember(getBoardData(boardId));
+        allow create: if isValidId(boardId) &&
                          isValidId(objectId) &&
-                         isValidBoardObject(incoming());
-        allow update: if isSignedIn() &&
-                         isValidId(boardId) &&
+                         isValidBoardObject(incoming()) &&
+                         canEditBoard(getBoardData(boardId));
+        allow update: if isValidId(boardId) &&
                          isValidId(objectId) &&
-                         isValidBoardObject(incoming());
-        allow delete: if isSignedIn() &&
-                         isValidId(boardId) &&
-                         isValidId(objectId);
+                         isValidBoardObject(incoming()) &&
+                         canEditBoard(getBoardData(boardId));
+        allow delete: if isValidId(boardId) &&
+                         isValidId(objectId) &&
+                         canEditBoard(getBoardData(boardId));
       }
 
       // User presences subcollection (live cursors and presence)
       match /presences/{userId} {
-        allow read: if isSignedIn() && isValidId(boardId);
-        allow create, update: if isSignedIn() &&
-                                 isValidId(boardId) &&
+        allow read: if isValidId(boardId) &&
+                       isValidId(userId) &&
+                       isBoardMember(getBoardData(boardId));
+        allow create, update: if isValidId(boardId) &&
                                  isValidId(userId) &&
+                                 userId == request.auth.uid &&
                                  isValidUserPresence(incoming()) &&
-                                 userId == request.auth.uid;
-        allow delete: if isSignedIn() &&
-                         isValidId(boardId) &&
+                                 canEditBoard(getBoardData(boardId));
+        allow delete: if isValidId(boardId) &&
                          isValidId(userId) &&
                          userId == request.auth.uid;
       }
@@ -95,7 +165,7 @@ service cloud.firestore {
 
     // Health check endpoint
     match /test/{docId} {
-      allow read, write: if isSignedIn();
+      allow read, write: if isSignedIn() && isValidId(docId);
     }
   }
 }

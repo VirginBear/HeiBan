@@ -1,7 +1,6 @@
 import Foundation
 import CoreGraphics
 import SwiftUI
-import AppKit
 import UniformTypeIdentifiers
 
 public enum LineEndpoint: String, Equatable {
@@ -172,6 +171,8 @@ public class BoardEngine: ObservableObject {
     @Published public var eraserMode: EraserMode = .object
     @Published public var eraserSize: Double = 24.0
     @Published public var eraserCursorPoint: Point?
+    @Published public var hoverCursorPoint: Point?
+    @Published public var hoverCursorDiameter: Double?
     @Published public var polygonDraftPoints: [Point] = []
     @Published public var polygonDraftCursorPoint: Point?
     @Published public var ruler: RulerState = RulerState()
@@ -410,7 +411,12 @@ public class BoardEngine: ObservableObject {
         mode: CanvasMode = .infinite,
         preset: CanvasPreset? = nil,
         width: Double? = nil,
-        height: Double? = nil
+        height: Double? = nil,
+        orientation: String? = nil,
+        coverStyle: String? = nil,
+        gridStyle: GridStyle = .dots,
+        backgroundColor: String? = nil,
+        gridColor: String? = nil
     ) {
         guard saveBeforeLeaving() else { return }
         let title = title.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -419,9 +425,12 @@ public class BoardEngine: ObservableObject {
         var meta = BoardMetadata(
             id: UUID().uuidString,
             title: finalTitle,
-            backgroundColor: theme.defaultBackgroundColor,
-            gridStyle: .dots,
-            boardTheme: theme
+            backgroundColor: backgroundColor ?? theme.defaultBackgroundColor,
+            gridStyle: gridStyle,
+            boardTheme: theme,
+            coverStyle: coverStyle,
+            orientation: orientation,
+            gridColor: gridColor
         )
         meta.canvasMode = mode
 
@@ -435,15 +444,29 @@ public class BoardEngine: ObservableObject {
         case .fixed:
             let resolvedPreset = preset ?? .sixteen_nine
             meta.canvasPreset = resolvedPreset
-            meta.canvasWidth = width ?? resolvedPreset.dimensions.width
-            meta.canvasHeight = height ?? resolvedPreset.dimensions.height
+            var w = width ?? resolvedPreset.dimensions.width
+            var h = height ?? resolvedPreset.dimensions.height
+            if orientation == "landscape" || orientation == "橫向" {
+                if w < h { swap(&w, &h) }
+            } else if orientation == "portrait" || orientation == "直向" {
+                if w > h { swap(&w, &h) }
+            }
+            meta.canvasWidth = w
+            meta.canvasHeight = h
             meta.pages = nil
             meta.activePageId = nil
         case .notebook:
             let resolvedPreset = preset ?? .notebook
             meta.canvasPreset = resolvedPreset
-            meta.canvasWidth = width ?? resolvedPreset.dimensions.width
-            meta.canvasHeight = height ?? resolvedPreset.dimensions.height
+            var w = width ?? resolvedPreset.dimensions.width
+            var h = height ?? resolvedPreset.dimensions.height
+            if orientation == "landscape" || orientation == "橫向" {
+                if w < h { swap(&w, &h) }
+            } else if orientation == "portrait" || orientation == "直向" {
+                if w > h { swap(&w, &h) }
+            }
+            meta.canvasWidth = w
+            meta.canvasHeight = h
             let firstPage = BoardPage(id: UUID().uuidString, title: "第 1 頁", index: 0)
             meta.pages = [firstPage]
             meta.activePageId = firstPage.id
@@ -820,15 +843,7 @@ public class BoardEngine: ObservableObject {
     }
 
     public func updateRulerPivot(at screenPoint: Point) {
-        let angle = ruler.angle * .pi / 180
-        let dx = screenPoint.x - ruler.screenCenterX
-        let dy = screenPoint.y - ruler.screenCenterY
-        let localX = dx * cos(angle) + dy * sin(angle)
-        let localY = -dx * sin(angle) + dy * cos(angle)
-        ruler.pivotRatio = max(0, min(1, localX / max(1, ruler.width) + 0.5))
-        if localY < -ruler.height * 0.22 { ruler.pivotEdge = "top" }
-        else if localY > ruler.height * 0.22 { ruler.pivotEdge = "bottom" }
-        else { ruler.pivotEdge = "center" }
+        RulerToolEngine.updatePivot(at: screenPoint, ruler: &ruler)
     }
 
     public func rotateRuler(toward screenPoint: Point, fromLeftEnd: Bool) {
@@ -2292,6 +2307,43 @@ public class BoardEngine: ObservableObject {
     }
 
     public func updateEraserCursor(at point: Point?) { eraserCursorPoint = point }
+    public func updateHoverCursor(at point: Point?, diameter: Double?) {
+        hoverCursorPoint = point
+        hoverCursorDiameter = diameter
+    }
+
+    public var hoverPosition: Point? {
+        get { hoverCursorPoint }
+        set { hoverCursorPoint = newValue }
+    }
+
+    public var hoverRadius: Double {
+        get { (hoverCursorDiameter ?? 0) / 2.0 }
+        set { hoverCursorDiameter = newValue * 2.0 }
+    }
+
+    public func captureCanvasStateSnapshot() -> CanvasStateSnapshot {
+        let selBounds: Rect? = selectionBoundingBox.map { box in
+            Rect(minX: box.minX, minY: box.minY, maxX: box.maxX, maxY: box.maxY)
+        }
+        return CanvasStateSnapshot(
+            selectedObjectIds: selectedIds,
+            selectionBounds: selBounds,
+            selectionRotation: 0.0,
+            activeTransformHandle: activeTransformHandle,
+            hoverPreview: HoverPreviewSnapshot(
+                position: hoverPosition,
+                radius: hoverRadius,
+                cursorShape: currentCursorType(),
+                tool: currentTool
+            ),
+            rulerState: ruler,
+            isEraserActive: isEraserSwipeActive || pointerGesture == .erasing,
+            currentTool: currentTool,
+            isNotebook: isNotebook,
+            activePageId: activePageId
+        )
+    }
 
     // MARK: - Eraser Engine (A04 & A24 & A14)
     public func beginEraserSwipe() {
@@ -2327,7 +2379,7 @@ public class BoardEngine: ObservableObject {
                 }
             }
         } else {
-            // Partial / Vector Splitting mode (W16, A14)
+            // Partial / Vector Splitting mode (W16, A14) via EraserToolEngine
             var toRemoveIds = Set<String>()
             var newlySplitSegments: [BoardObject] = []
 
@@ -2336,45 +2388,8 @@ public class BoardEngine: ObservableObject {
                 if isNotebook && !isObjectOnCurrentPage(obj) { continue }
 
                 if obj.type == "stroke" || obj.type == "highlighter" || obj.type == "paint" || obj.type == "curve" {
-                    let pts: [Point]
-                    if obj.type == "curve", obj.parsedPoints.count >= 3 {
-                        let controlPoints = obj.parsedPoints
-                        pts = (0...48).map { step in
-                            let t = Double(step) / 48
-                            let u = 1 - t
-                            return Point(
-                                x: u * u * controlPoints[0].x + 2 * u * t * controlPoints[1].x + t * t * controlPoints[2].x,
-                                y: u * u * controlPoints[0].y + 2 * u * t * controlPoints[1].y + t * t * controlPoints[2].y
-                            )
-                        }
-                    } else {
-                        pts = obj.parsedPoints
-                    }
-                    guard !pts.isEmpty else { continue }
-                    let strokeHalfW = (obj.strokeWidth ?? 3.0) / 2.0
-                    let effectiveRadius = hitThreshold + strokeHalfW
-
-                    var hasHit = false
-                    var runs: [[Point]] = []
-                    var currentRun: [Point] = []
-
-                    for pt in pts {
-                        let dist = hypot(pt.x - worldPt.x, pt.y - worldPt.y)
-                        if dist <= effectiveRadius {
-                            hasHit = true
-                            if !currentRun.isEmpty {
-                                runs.append(currentRun)
-                                currentRun = []
-                            }
-                        } else {
-                            currentRun.append(pt)
-                        }
-                    }
-                    if !currentRun.isEmpty {
-                        runs.append(currentRun)
-                    }
-
-                    if hasHit {
+                    let segments = EraserToolEngine.sliceStroke(object: obj, eraserCenter: worldPt, eraserRadius: hitThreshold)
+                    if segments != [obj] {
                         toRemoveIds.insert(obj.id)
                         if let insIdx = activeEraserInsertedObjects.firstIndex(where: { $0.id == obj.id }) {
                             activeEraserInsertedObjects.remove(at: insIdx)
@@ -2382,36 +2397,7 @@ public class BoardEngine: ObservableObject {
                             activeEraserDeletedObjects.append(obj)
                         }
 
-                        // Each run with >= 2 points becomes a new vector stroke segment
-                        for run in runs where run.count >= 2 {
-                            let xs = run.map(\.x)
-                            let ys = run.map(\.y)
-                            let minX = xs.min() ?? 0
-                            let maxX = xs.max() ?? 0
-                            let minY = ys.min() ?? 0
-                            let maxY = ys.max() ?? 0
-                            let w = max(1.0, maxX - minX)
-                            let h = max(1.0, maxY - minY)
-                            let pointsJSON = String(data: (try? JSONEncoder().encode(run)) ?? Data(), encoding: .utf8)
-
-                            let segment = BoardObject(
-                                id: UUID().uuidString,
-                                boardId: obj.boardId,
-                                type: obj.type == "curve" ? "stroke" : obj.type,
-                                x: minX,
-                                y: minY,
-                                width: w,
-                                height: h,
-                                points: pointsJSON,
-                                strokeColor: obj.strokeColor,
-                                fillColor: obj.fillColor,
-                                strokeWidth: obj.strokeWidth,
-                                lineStyle: obj.lineStyle,
-                                opacity: obj.opacity,
-                                rotation: obj.rotation,
-                                zIndex: obj.zIndex,
-                                groupId: obj.groupId
-                            )
+                        for segment in segments {
                             newlySplitSegments.append(segment)
                             activeEraserInsertedObjects.append(segment)
                         }
@@ -3050,13 +3036,10 @@ public class BoardEngine: ObservableObject {
         let selected = objects.filter { selectedIds.contains($0.id) }
         guard !selected.isEmpty else { return }
         internalClipboard = selected
-        #if canImport(AppKit)
         if let data = try? JSONEncoder().encode(selected),
            let jsonStr = String(data: data, encoding: .utf8) {
-            NSPasteboard.general.clearContents()
-            NSPasteboard.general.setString(jsonStr, forType: .string)
+            pasteboardService?.copyString(jsonStr)
         }
-        #endif
     }
 
     public func cutSelected() {
@@ -3066,14 +3049,12 @@ public class BoardEngine: ObservableObject {
 
     public func pasteClipboard(offset: CGPoint = CGPoint(x: 20, y: 20)) {
         var sourceObjects = internalClipboard
-        #if canImport(AppKit)
         if sourceObjects.isEmpty,
-           let clipStr = NSPasteboard.general.string(forType: .string),
+           let clipStr = pasteboardService?.pasteString(),
            let data = clipStr.data(using: .utf8),
            let decoded = try? JSONDecoder().decode([BoardObject].self, from: data) {
             sourceObjects = decoded
         }
-        #endif
         guard !sourceObjects.isEmpty else { return }
 
         var groupMap: [String: String] = [:]
@@ -3217,6 +3198,8 @@ public class BoardEngine: ObservableObject {
     }
 
     public weak var dialogService: PlatformDialogService?
+    public var pasteboardService: PlatformPasteboardService?
+    public var imageDecoderService: PlatformImageDecoderService?
 
     public func jumpToPin(_ pin: BoardPin) {
         let target = targetViewportForPin(pin, canvasSize: canvasSize)
@@ -3319,13 +3302,13 @@ public class BoardEngine: ObservableObject {
         }
 
         guard let data = try? Data(contentsOf: tempFileURL),
-              let nsImg = NSImage(data: data) else {
+              let (pixelWidth, pixelHeight) = imageDecoderService?.getImageDimensions(from: data) ?? CoreImageDecoder.getDimensions(from: data) else {
             showTemporaryStatus("載入截圖失敗")
             try? FileManager.default.removeItem(at: tempFileURL)
             return
         }
 
-        _ = importImage(data: data, originalSize: nsImg.size)
+        _ = importImage(data: data, originalSize: CGSize(width: pixelWidth, height: pixelHeight))
         try? FileManager.default.removeItem(at: tempFileURL)
         showTemporaryStatus("已將螢幕截圖置入黑板！")
     }
@@ -3358,19 +3341,12 @@ public class BoardEngine: ObservableObject {
     }
 
     public func pasteImageFromClipboard() {
-        let pasteboard = NSPasteboard.general
-        guard let image = NSImage(pasteboard: pasteboard) else {
+        guard let (data, width, height) = pasteboardService?.pasteImageData() else {
             showTemporaryStatus("剪貼簿無可用圖片")
             return
         }
 
-        guard let tiffData = image.tiffRepresentation,
-              let bitmap = NSBitmapImageRep(data: tiffData),
-              let pngData = bitmap.representation(using: .png, properties: [:]) else {
-            return
-        }
-
-        _ = importImage(data: pngData, originalSize: image.size)
+        _ = importImage(data: data, originalSize: CGSize(width: width, height: height))
         showTemporaryStatus("已將剪貼簿圖片置入黑板！")
     }
 
@@ -3378,86 +3354,79 @@ public class BoardEngine: ObservableObject {
     /// The original bytes are embedded in the board document so saving the board
     /// preserves the imported image without a separate asset folder.
     public func importImageFromFilePrompt() {
-        let panel = NSOpenPanel()
-        panel.allowedContentTypes = [.image]
-        panel.allowsMultipleSelection = true
-        panel.canChooseDirectories = false
-        panel.canChooseFiles = true
-        panel.prompt = "匯入圖片"
-        panel.message = "選擇要放入目前白板的圖片"
-
-        guard panel.runModal() == .OK, !panel.urls.isEmpty else { return }
-
-        let centerScreen = Point(x: Double(canvasSize.width / 2), y: Double(canvasSize.height / 2))
-        let worldCenter = VectorMath.screenToWorld(centerScreen, viewport: viewport)
-        var imported: [BoardObject] = []
-        var failures: [String] = []
-
-        for (index, url) in panel.urls.enumerated() {
-            do {
-                let data = try Data(contentsOf: url)
-                guard let image = NSImage(data: data), image.isValid,
-                      let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
-                    failures.append(url.lastPathComponent)
-                    continue
-                }
-
-                let pixelWidth = Double(cgImage.width)
-                let pixelHeight = Double(cgImage.height)
-                guard pixelWidth > 0, pixelHeight > 0 else {
-                    failures.append(url.lastPathComponent)
-                    continue
-                }
-
-                let maxDisplayWidth = 420.0
-                let scale = min(1.0, maxDisplayWidth / pixelWidth)
-                let width = pixelWidth * scale
-                let height = pixelHeight * scale
-                let offset = Double(index) * 28
-                let mimeType = UTType(filenameExtension: url.pathExtension)?.preferredMIMEType ?? "application/octet-stream"
-                let dataURL = "data:\(mimeType);base64,\(data.base64EncodedString())"
-
-                let object = BoardObject(
-                    boardId: board.id,
-                    type: "image",
-                    x: worldCenter.x - width / 2 + offset,
-                    y: worldCenter.y - height / 2 + offset,
-                    width: width,
-                    height: height,
-                    zIndex: objects.count + imported.count + 1,
-                    imageUrl: dataURL,
-                    originalImageUrl: dataURL,
-                    originalWidth: pixelWidth,
-                    originalHeight: pixelHeight,
-                    name: url.lastPathComponent
-                )
-                imported.append(object)
-            } catch {
-                failures.append(url.lastPathComponent)
-            }
-        }
-
-        guard !imported.isEmpty else {
-            showTemporaryStatus(failures.isEmpty ? "沒有匯入圖片" : "無法讀取圖片：\(failures.joined(separator: "、"))")
+        guard let dialogService = dialogService else {
+            showTemporaryStatus("平台對話框服務未就緒")
             return
         }
 
-        imported.forEach(addObject)
-        selectedIds = Set(imported.map(\.id))
-        scheduleAutosave()
-        let suffix = failures.isEmpty ? "" : "；\(failures.count) 個檔案無法讀取"
-        showTemporaryStatus("已匯入 \(imported.count) 張圖片，可直接選取、移動並隨白板儲存\(suffix)")
+        dialogService.runOpenPanel(allowedExtensions: ["png", "jpg", "jpeg", "gif", "webp", "bmp", "tiff"], allowsMultiple: true) { [weak self] urls in
+            guard let self = self, let urls = urls, !urls.isEmpty else { return }
+
+            let centerScreen = Point(x: Double(self.canvasSize.width / 2), y: Double(self.canvasSize.height / 2))
+            let worldCenter = VectorMath.screenToWorld(centerScreen, viewport: self.viewport)
+            var imported: [BoardObject] = []
+            var failures: [String] = []
+
+            for (index, url) in urls.enumerated() {
+                do {
+                    let data = try Data(contentsOf: url)
+                    guard let (pixelWidth, pixelHeight) = self.imageDecoderService?.getImageDimensions(from: data) ?? CoreImageDecoder.getDimensions(from: data),
+                          pixelWidth > 0, pixelHeight > 0 else {
+                        failures.append(url.lastPathComponent)
+                        continue
+                    }
+
+                    let maxDisplayWidth = 420.0
+                    let scale = min(1.0, maxDisplayWidth / pixelWidth)
+                    let width = pixelWidth * scale
+                    let height = pixelHeight * scale
+                    let offset = Double(index) * 28
+                    let mimeType = UTType(filenameExtension: url.pathExtension)?.preferredMIMEType ?? "application/octet-stream"
+                    let dataURL = "data:\(mimeType);base64,\(data.base64EncodedString())"
+
+                    let object = BoardObject(
+                        boardId: self.board.id,
+                        type: "image",
+                        x: worldCenter.x - width / 2 + offset,
+                        y: worldCenter.y - height / 2 + offset,
+                        width: width,
+                        height: height,
+                        zIndex: self.objects.count + imported.count + 1,
+                        imageUrl: dataURL,
+                        originalImageUrl: dataURL,
+                        originalWidth: pixelWidth,
+                        originalHeight: pixelHeight,
+                        cropX: 0,
+                        cropY: 0,
+                        cropWidth: pixelWidth,
+                        cropHeight: pixelHeight,
+                        name: url.lastPathComponent
+                    )
+                    imported.append(object)
+                } catch {
+                    failures.append(url.lastPathComponent)
+                }
+            }
+
+            guard !imported.isEmpty else {
+                self.showTemporaryStatus(failures.isEmpty ? "沒有匯入圖片" : "無法讀取圖片：\(failures.joined(separator: "、"))")
+                return
+            }
+
+            imported.forEach(self.addObject)
+            self.selectedIds = Set(imported.map(\.id))
+            self.scheduleAutosave()
+            let suffix = failures.isEmpty ? "" : "；\(failures.count) 個檔案無法讀取"
+            self.showTemporaryStatus("已匯入 \(imported.count) 張圖片，可直接選取、移動並隨白板儲存\(suffix)")
+        }
     }
 
     public func insertDroppedImage(_ data: Data, filename: String, at screenPoint: Point) {
-        guard let image = NSImage(data: data), image.isValid,
-              let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil),
-              cgImage.width > 0, cgImage.height > 0 else {
+        guard let (pixelWidth, pixelHeight) = imageDecoderService?.getImageDimensions(from: data) ?? CoreImageDecoder.getDimensions(from: data),
+              pixelWidth > 0, pixelHeight > 0 else {
             showTemporaryStatus("無法讀取拖入的圖片")
             return
         }
-        let pixelWidth = Double(cgImage.width)
-        let pixelHeight = Double(cgImage.height)
         let scale = min(1.0, 420.0 / pixelWidth)
         let width = pixelWidth * scale
         let height = pixelHeight * scale
@@ -3502,6 +3471,17 @@ public class BoardEngine: ObservableObject {
         showTemporaryStatus("成功載入黑板檔案：\(doc.board.title)")
     }
 
+    public func loadShowcaseBoard() {
+        guard saveBeforeLeaving() else { return }
+        if let doc = FeatureShowcaseDocument.makeDocument() {
+            activate(doc)
+            scheduleAutosave()
+            showTemporaryStatus("已載入功能示範黑板")
+        } else {
+            showTemporaryStatus("載入示範黑板失敗")
+        }
+    }
+
     public func save(to url: URL) throws {
         let data = try exportToJsonData()
         try data.write(to: url)
@@ -3516,57 +3496,142 @@ public class BoardEngine: ObservableObject {
         let cleanTitle = board.title.replacingOccurrences(of: "/", with: "_")
         let defaultName = "\(cleanTitle).blackboard.json"
 
-        if let dialogService = dialogService {
-            dialogService.runSavePanel(defaultName: defaultName) { [weak self] url in
-                guard let self = self, let url = url else { return }
-                do {
-                    try self.save(to: url)
-                    self.showTemporaryStatus("已儲存黑板至檔案")
-                } catch {
-                    self.showTemporaryStatus("儲存失敗: \(error.localizedDescription)")
-                }
-            }
+        guard let dialogService = dialogService else {
+            showTemporaryStatus("平台對話框服務未就緒")
             return
         }
 
-        // AppKit Fallback
-        let panel = NSSavePanel()
-        panel.allowedContentTypes = [.json]
-        panel.nameFieldStringValue = defaultName
-
-        if panel.runModal() == .OK, let url = panel.url {
+        dialogService.runSavePanel(defaultName: defaultName, allowedExtensions: ["blackboard.json", "json"]) { [weak self] url in
+            guard let self = self, let url = url else { return }
             do {
                 try self.save(to: url)
-                showTemporaryStatus("已儲存黑板至檔案")
+                self.showTemporaryStatus("已儲存黑板至檔案")
             } catch {
-                showTemporaryStatus("儲存失敗: \(error.localizedDescription)")
+                self.showTemporaryStatus("儲存失敗: \(error.localizedDescription)")
             }
         }
     }
 
     public func openFromFilePrompt() {
-        if let dialogService = dialogService {
-            dialogService.runOpenPanel { [weak self] url in
-                guard let self = self, let url = url else { return }
-                do {
-                    try self.load(from: url)
-                } catch {
-                    self.showTemporaryStatus("載入失敗: \(error.localizedDescription)")
-                }
-            }
+        guard let dialogService = dialogService else {
+            showTemporaryStatus("平台對話框服務未就緒")
             return
         }
 
-        // AppKit Fallback
-        let panel = NSOpenPanel()
-        panel.allowedContentTypes = [.json]
-        panel.allowsMultipleSelection = false
-
-        if panel.runModal() == .OK, let url = panel.url {
+        dialogService.runOpenPanel(allowedExtensions: ["blackboard.json", "json", "heiban"], allowsMultiple: false) { [weak self] urls in
+            guard let self = self, let url = urls?.first else { return }
             do {
                 try self.load(from: url)
             } catch {
-                showTemporaryStatus("載入失敗: \(error.localizedDescription)")
+                self.showTemporaryStatus("載入失敗: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    public func exportHTMLPrompt() {
+        let defaultName = "\(board.title.isEmpty ? "黑板" : board.title).html"
+        guard let dialogService = dialogService else {
+            showTemporaryStatus("平台對話框服務未就緒")
+            return
+        }
+
+        let exporter = BoardExporter(document: document)
+        let htmlStr: String
+        do {
+            htmlStr = try exporter.exportHTML(scope: .allObjects, selectedIds: selectedIds)
+        } catch {
+            showTemporaryStatus("匯出 HTML 失敗：\(error.localizedDescription)")
+            return
+        }
+
+        dialogService.runSavePanel(defaultName: defaultName, allowedExtensions: ["html"]) { [weak self] url in
+            guard let self = self, let url = url else { return }
+            do {
+                try htmlStr.write(to: url, atomically: true, encoding: .utf8)
+                self.showTemporaryStatus("已匯出 HTML 離線網頁檔")
+            } catch {
+                self.showTemporaryStatus("儲存 HTML 失敗：\(error.localizedDescription)")
+            }
+        }
+    }
+
+    public func exportSVGPrompt() {
+        let defaultName = "\(board.title.isEmpty ? "黑板" : board.title).svg"
+        guard let dialogService = dialogService else {
+            showTemporaryStatus("平台對話框服務未就緒")
+            return
+        }
+
+        let exporter = BoardExporter(document: document)
+        let svgStr: String
+        do {
+            svgStr = try exporter.exportSVG(scope: .allObjects, selectedIds: selectedIds)
+        } catch {
+            showTemporaryStatus("匯出 SVG 失敗：\(error.localizedDescription)")
+            return
+        }
+
+        dialogService.runSavePanel(defaultName: defaultName, allowedExtensions: ["svg"]) { [weak self] url in
+            guard let self = self, let url = url else { return }
+            do {
+                try svgStr.write(to: url, atomically: true, encoding: .utf8)
+                self.showTemporaryStatus("已匯出 SVG 向量圖")
+            } catch {
+                self.showTemporaryStatus("儲存 SVG 失敗：\(error.localizedDescription)")
+            }
+        }
+    }
+
+    public func exportPDFPrompt() {
+        let defaultName = "\(board.title.isEmpty ? "黑板" : board.title).pdf"
+        guard let dialogService = dialogService else {
+            showTemporaryStatus("平台對話框服務未就緒")
+            return
+        }
+
+        let exporter = BoardExporter(document: document)
+        let pdfData: Data
+        do {
+            pdfData = try exporter.exportPDF(scope: .allObjects, selectedIds: selectedIds)
+        } catch {
+            showTemporaryStatus("匯出 PDF 失敗：\(error.localizedDescription)")
+            return
+        }
+
+        dialogService.runSavePanel(defaultName: defaultName, allowedExtensions: ["pdf"]) { [weak self] url in
+            guard let self = self, let url = url else { return }
+            do {
+                try pdfData.write(to: url)
+                self.showTemporaryStatus("已匯出 PDF 文件")
+            } catch {
+                self.showTemporaryStatus("儲存 PDF 失敗：\(error.localizedDescription)")
+            }
+        }
+    }
+
+    public func exportPNGPrompt() {
+        let defaultName = "\(board.title.isEmpty ? "黑板" : board.title).png"
+        guard let dialogService = dialogService else {
+            showTemporaryStatus("平台對話框服務未就緒")
+            return
+        }
+
+        let exporter = BoardExporter(document: document)
+        let pngData: Data
+        do {
+            pngData = try exporter.exportPNG(scope: .allObjects, selectedIds: selectedIds, scale: 2.0)
+        } catch {
+            showTemporaryStatus("匯出 PNG 失敗：\(error.localizedDescription)")
+            return
+        }
+
+        dialogService.runSavePanel(defaultName: defaultName, allowedExtensions: ["png"]) { [weak self] url in
+            guard let self = self, let url = url else { return }
+            do {
+                try pngData.write(to: url)
+                self.showTemporaryStatus("已匯出 PNG 高清圖")
+            } catch {
+                self.showTemporaryStatus("儲存 PNG 失敗：\(error.localizedDescription)")
             }
         }
     }
@@ -3579,10 +3644,5 @@ public class BoardEngine: ObservableObject {
             }
         }
     }
-}
-
-public protocol PlatformDialogService: AnyObject {
-    func runSavePanel(defaultName: String, completion: @escaping (URL?) -> Void)
-    func runOpenPanel(completion: @escaping (URL?) -> Void)
 }
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User } from 'firebase/auth';
-import { BoardMetadata, BoardTheme, CanvasMode, CanvasPreset } from '../types';
+import { BoardMetadata, BoardTheme, CanvasMode, CanvasPreset, GridStyle } from '../types';
 import {
   FolderPlus,
   Plus,
@@ -36,9 +36,17 @@ interface HomeDashboardProps {
     canvasMode?: CanvasMode,
     canvasPreset?: CanvasPreset,
     width?: number,
-    height?: number
+    height?: number,
+    options?: {
+      orientation?: 'portrait' | 'landscape';
+      coverStyle?: string;
+      gridStyle?: GridStyle;
+      backgroundColor?: string;
+      gridColor?: string;
+    }
   ) => void;
   onDeleteBoard: (boardId: string) => void;
+  onLoadShowcaseBoard?: () => void;
   onSignIn: () => void;
   onSignOut: () => void;
   defaultTheme?: BoardTheme;
@@ -54,6 +62,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
   onOpenBoard,
   onCreateBoard,
   onDeleteBoard,
+  onLoadShowcaseBoard,
   onSignIn,
   onSignOut,
   defaultTheme = 'blackboard',
@@ -69,7 +78,12 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
   const [newBoardTitle, setNewBoardTitle] = useState('');
   const [newBoardTheme, setNewBoardTheme] = useState<BoardTheme>('blackboard');
   const [newCanvasMode, setNewCanvasMode] = useState<CanvasMode>('infinite');
-  const [newCanvasPreset, setNewCanvasPreset] = useState<CanvasPreset>('infinite');
+  const [newCanvasPreset, setNewCanvasPreset] = useState<CanvasPreset>('a4_portrait');
+  const [newOrientation, setNewOrientation] = useState<'portrait' | 'landscape'>('portrait');
+  const [newCoverStyle, setNewCoverStyle] = useState<string>('classic_blackboard');
+  const [newGridStyle, setNewGridStyle] = useState<GridStyle>('grid');
+  const [newBgColor, setNewBgColor] = useState<string>('#172e25');
+  const [newGridColor, setNewGridColor] = useState<string | undefined>(undefined);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [feedbackText, setFeedbackText] = useState('');
   const [feedbackSuccess, setFeedbackSuccess] = useState(false);
@@ -229,14 +243,14 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
             </span>
           </div>
 
-          {/* Quick Theme One-Click Create Chips */}
+          {/* Quick Theme One-Click Create Chips & Showcase */}
           <div className="flex items-center gap-1.5 overflow-x-auto">
             <span className="text-[11px] text-neutral-500 mr-1 hidden sm:inline">快速建立</span>
             {templateThemes.map((tpl) => (
               <button
                 key={tpl.id}
                 onClick={() => onCreateBoard(`未命名黑板 - ${tpl.title}`, tpl.id, 'infinite')}
-                  className="heiban-home-theme-button flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-colors text-xs shrink-0"
+                className="heiban-home-theme-button flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-colors text-xs shrink-0"
                 title={`快速以 ${tpl.title} 建立無限無邊界畫布`}
               >
                 <div
@@ -246,6 +260,16 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
                 <span>{tpl.title}</span>
               </button>
             ))}
+            {onLoadShowcaseBoard && (
+              <button
+                onClick={onLoadShowcaseBoard}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-purple-500/40 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 transition-colors text-xs shrink-0 font-medium"
+                title="載入涵蓋筆刷、幾何、便簽、尺規全功能說明的示範黑板"
+              >
+                <span>✨</span>
+                <span>全功能示範黑板</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -262,15 +286,29 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
           </div>
 
           {filteredBoards.length === 0 ? (
-            <div className="py-16 text-center border-2 border-dashed border-neutral-800 rounded-3xl bg-neutral-900/30 space-y-3">
+            <div className="py-16 text-center border-2 border-dashed border-neutral-800 rounded-3xl bg-neutral-900/30 space-y-4">
               <FolderPlus className="w-10 h-10 text-neutral-600 mx-auto" />
-              <p className="text-sm text-neutral-400">尚無符合的黑板作品</p>
-              <button
-                onClick={() => onCreateBoard('新黑板', 'blackboard')}
-                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium"
-              >
-                立即建立第一塊黑板
-              </button>
+              <div>
+                <p className="text-sm text-neutral-300 font-medium">尚無黑板作品</p>
+                <p className="text-xs text-neutral-500 mt-0.5">你可以建立新黑板，或載入內建的全功能示範黑板快速探索。</p>
+              </div>
+              <div className="flex items-center justify-center gap-3 pt-1">
+                <button
+                  onClick={() => onCreateBoard('新黑板', 'blackboard')}
+                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium shadow-md transition-colors"
+                >
+                  ＋ 建立新黑板
+                </button>
+                {onLoadShowcaseBoard && (
+                  <button
+                    onClick={onLoadShowcaseBoard}
+                    className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-medium shadow-md transition-colors flex items-center gap-1.5"
+                  >
+                    <span>✨</span>
+                    <span>載入功能示範黑板</span>
+                  </button>
+                )}
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -343,20 +381,18 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
                         {copiedId === b.id ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
                       </button>
 
-                      {boards.length > 1 && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (confirm(`確定要刪除「${b.title}」嗎？`)) {
-                              onDeleteBoard(b.id);
-                            }
-                          }}
-                          className="p-2 rounded-xl text-neutral-400 hover:text-red-400 hover:bg-red-500/20 transition-colors"
-                          title="刪除黑板"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (confirm(`確定要刪除「${b.title}」嗎？`)) {
+                            onDeleteBoard(b.id);
+                          }
+                        }}
+                        className="p-2 rounded-xl text-neutral-400 hover:text-red-400 hover:bg-red-500/20 transition-colors"
+                        title="刪除黑板"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -496,7 +532,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
                 >
                   <div className="flex items-center gap-1.5 font-bold text-xs text-cyan-400 mb-1">
                     <FileText className="w-3.5 h-3.5" />
-                    <span>📄 常見尺寸</span>
+                    <span>📄 固定單頁規格</span>
                   </div>
                   <div className="text-[10px] text-neutral-400 leading-relaxed">
                     提供 16:9、4:3、1:1、9:16、A4 紙張規格。
@@ -507,7 +543,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
                   type="button"
                   onClick={() => {
                     setNewCanvasMode('notebook');
-                    setNewCanvasPreset('notebook');
+                    setNewCanvasPreset('a4_portrait');
                   }}
                   className={`p-3 rounded-2xl border text-left transition-all ${
                     newCanvasMode === 'notebook'
@@ -520,62 +556,182 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
                     <span>📓 多頁筆記本</span>
                   </div>
                   <div className="text-[10px] text-neutral-400 leading-relaxed">
-                    分頁筆記推導，隨時自由新增、切換與刪除頁面。
+                    支援多頁增刪、封面風格、方向與五線譜/格子內頁。
                   </div>
                 </button>
               </div>
 
-              {/* Fixed presets options if Fixed selected */}
-              {newCanvasMode === 'fixed' && (
-                <div className="mt-2.5 p-2.5 rounded-2xl bg-neutral-800/60 border border-neutral-700/60 space-y-2">
-                  <div className="text-[11px] text-neutral-300 font-medium">常見紙張與圖像規格：</div>
-                  <div className="grid grid-cols-4 gap-1.5 text-xs">
-                    {[
-                      { key: '16_9', label: '16:9 簡報', size: '1920 × 1080' },
-                      { key: '4_3', label: '4:3 課堂', size: '1440 × 1080' },
-                      { key: '1_1', label: '1:1 正方形', size: '1080 × 1080' },
-                      { key: '9_16', label: '9:16 直式', size: '1080 × 1920' },
-                      { key: 'a4_portrait', label: 'A4 直向', size: '595 × 842' },
-                      { key: 'a4_landscape', label: 'A4 橫向', size: '842 × 595' },
-                      { key: 'a3_landscape', label: 'A3 橫向', size: '1191 × 842' },
-                      { key: 'custom', label: '2K 寬螢幕', size: '2560 × 1440' },
-                    ].map((p) => (
+              {/* Bounded Notebook / Fixed Canvas Customization Options */}
+              {(newCanvasMode === 'notebook' || newCanvasMode === 'fixed') && (
+                <div className="mt-3 p-3.5 rounded-2xl bg-neutral-800/60 border border-neutral-700/60 space-y-3">
+                  {/* Paper Size */}
+                  <div>
+                    <div className="text-[11px] text-neutral-300 font-medium mb-1.5">1. 頁面尺寸規格：</div>
+                    <div className="grid grid-cols-4 gap-1.5 text-xs">
+                      {[
+                        { key: 'a4_portrait', label: 'A4 紙張', size: '595 × 842' },
+                        { key: 'a3_landscape', label: 'A3 紙張', size: '1191 × 842' },
+                        { key: 'b5', label: 'B5 筆記', size: '499 × 709' },
+                        { key: '16_9', label: '16:9 簡報', size: '1920 × 1080' },
+                        { key: '4_3', label: '4:3 課堂', size: '1440 × 1080' },
+                        { key: '1_1', label: '1:1 正方形', size: '1080 × 1080' },
+                        { key: '9_16', label: '9:16 手機直式', size: '1080 × 1920' },
+                        { key: 'custom', label: '2K 寬螢幕', size: '2560 × 1440' },
+                      ].map((p) => (
+                        <button
+                          key={p.key}
+                          type="button"
+                          onClick={() => setNewCanvasPreset(p.key as any)}
+                          className={`p-2 rounded-xl text-left border transition-all ${
+                            newCanvasPreset === p.key
+                              ? 'border-purple-400 bg-purple-500/20 text-white font-bold'
+                              : 'border-neutral-700 bg-neutral-800 text-neutral-400 hover:text-white'
+                          }`}
+                        >
+                          <div className="font-semibold text-[11px]">{p.label}</div>
+                          <div className="text-[9px] text-neutral-400 font-mono">{p.size}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Orientation: Portrait vs Landscape */}
+                  <div>
+                    <div className="text-[11px] text-neutral-300 font-medium mb-1.5">2. 頁面方向：</div>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
                       <button
-                        key={p.key}
                         type="button"
-                        onClick={() => setNewCanvasPreset(p.key as any)}
-                        className={`p-2 rounded-xl text-left border transition-all ${
-                          newCanvasPreset === p.key
-                            ? 'border-cyan-400 bg-cyan-500/20 text-white font-bold'
+                        onClick={() => setNewOrientation('portrait')}
+                        className={`p-2 rounded-xl border text-center transition-all ${
+                          newOrientation === 'portrait'
+                            ? 'border-purple-400 bg-purple-500/20 text-white font-bold'
                             : 'border-neutral-700 bg-neutral-800 text-neutral-400 hover:text-white'
                         }`}
                       >
-                        <div className="font-semibold text-[11px]">{p.label}</div>
-                        <div className="text-[9px] text-neutral-400 font-mono">{p.size}</div>
+                        📱 直向 (Portrait)
                       </button>
-                    ))}
+                      <button
+                        type="button"
+                        onClick={() => setNewOrientation('landscape')}
+                        className={`p-2 rounded-xl border text-center transition-all ${
+                          newOrientation === 'landscape'
+                            ? 'border-purple-400 bg-purple-500/20 text-white font-bold'
+                            : 'border-neutral-700 bg-neutral-800 text-neutral-400 hover:text-white'
+                        }`}
+                      >
+                        💻 橫向 (Landscape)
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
 
-              {/* Notebook notice if Notebook selected */}
-              {newCanvasMode === 'notebook' && (
-                <div className="mt-2.5 p-3 rounded-2xl bg-purple-500/10 border border-purple-500/30 text-[11px] text-purple-200 flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-purple-400 shrink-0" />
-                  <span>多頁筆記本預設規格為 A4 分頁，進入筆記後可隨時於上方導覽列切換、新增與刪除頁面。</span>
+                  {/* Notebook Cover Style */}
+                  {newCanvasMode === 'notebook' && (
+                    <div>
+                      <div className="text-[11px] text-neutral-300 font-medium mb-1.5">3. 筆記本封面風格：</div>
+                      <div className="grid grid-cols-3 gap-1.5 text-xs">
+                        {[
+                          { id: 'classic_blackboard', name: '經典黑板', bg: '#172e25' },
+                          { id: 'vintage_leather', name: '復古皮革', bg: '#4a2c11' },
+                          { id: 'obsidian_black', name: '曜石黑', bg: '#18181b' },
+                          { id: 'warm_kraft', name: '溫暖牛皮', bg: '#c49a6c' },
+                          { id: 'morning_pastel', name: '晨曦粉彩', bg: '#fbcfe8' },
+                          { id: 'modern_white', name: '現代純白', bg: '#ffffff' },
+                        ].map((cv) => (
+                          <button
+                            key={cv.id}
+                            type="button"
+                            onClick={() => setNewCoverStyle(cv.id)}
+                            className={`p-2 rounded-xl border flex items-center gap-2 transition-all ${
+                              newCoverStyle === cv.id
+                                ? 'border-purple-400 bg-purple-500/20 text-white font-bold'
+                                : 'border-neutral-700 bg-neutral-800 text-neutral-400 hover:text-white'
+                            }`}
+                          >
+                            <span
+                              className="w-3.5 h-3.5 rounded-full border border-neutral-600 shrink-0"
+                              style={{ backgroundColor: cv.bg }}
+                            />
+                            <span className="truncate text-[11px]">{cv.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Inner Page Default Style (格子 / 橫線 / 五線譜 / 全白 / 點點) */}
+                  <div>
+                    <div className="text-[11px] text-neutral-300 font-medium mb-1.5">4. 內頁風格：</div>
+                    <div className="grid grid-cols-5 gap-1 text-xs">
+                      {[
+                        { id: 'grid', name: '格子' },
+                        { id: 'lines', name: '橫線' },
+                        { id: 'staff', name: '五線譜' },
+                        { id: 'blank', name: '全白' },
+                        { id: 'dots', name: '點點' },
+                      ].map((st) => (
+                        <button
+                          key={st.id}
+                          type="button"
+                          onClick={() => setNewGridStyle(st.id as GridStyle)}
+                          className={`py-1.5 px-1 rounded-xl border text-center transition-all ${
+                            newGridStyle === st.id
+                              ? 'border-purple-400 bg-purple-500/20 text-white font-bold'
+                              : 'border-neutral-700 bg-neutral-800 text-neutral-400 hover:text-white'
+                          }`}
+                        >
+                          <span className="text-[11px]">{st.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Grid Color */}
+                  <div>
+                    <div className="text-[11px] text-neutral-300 font-medium mb-1.5">5. 格線顏色：</div>
+                    <div className="grid grid-cols-5 gap-1 text-xs">
+                      {[
+                        { id: undefined, name: '自適應' },
+                        { id: '#94a3b8', name: '淺灰' },
+                        { id: '#475569', name: '深灰' },
+                        { id: '#ffffff', name: '白色' },
+                        { id: '#18181b', name: '柔黑' },
+                      ].map((gc) => (
+                        <button
+                          key={gc.name}
+                          type="button"
+                          onClick={() => setNewGridColor(gc.id)}
+                          className={`py-1 px-1 rounded-xl border text-center transition-all ${
+                            newGridColor === gc.id
+                              ? 'border-purple-400 bg-purple-500/20 text-white font-bold'
+                              : 'border-neutral-700 bg-neutral-800 text-neutral-400 hover:text-white'
+                          }`}
+                        >
+                          <span className="text-[10px]">{gc.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
 
-            {/* Theme Picker */}
+            {/* Theme & Background Picker */}
             <div>
               <label className="text-xs text-neutral-400 font-medium block mb-1">黑板底色風格：</label>
               <div className="grid grid-cols-4 gap-2">
-                {templateThemes.map((tpl) => (
+                {[
+                  { id: 'blackboard', title: '經典綠', bg: '#172e25' },
+                  { id: 'dark', title: '曜石黑', bg: '#121316' },
+                  { id: 'whiteboard', title: '象牙暖白', bg: '#FAF8F5' },
+                  { id: 'slate', title: '石板灰', bg: '#1e2430' },
+                ].map((tpl) => (
                   <button
                     key={tpl.id}
                     type="button"
-                    onClick={() => setNewBoardTheme(tpl.id)}
+                    onClick={() => {
+                      setNewBoardTheme(tpl.id as BoardTheme);
+                      setNewBgColor(tpl.bg);
+                    }}
                     className={`p-2 rounded-xl border flex flex-col items-center gap-1.5 transition-all ${
                       newBoardTheme === tpl.id
                         ? 'border-emerald-500 bg-emerald-500/10 text-white ring-1 ring-emerald-500'
@@ -586,7 +742,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
                       className="w-5 h-5 rounded-full border border-white/20 shadow-inner"
                       style={{ backgroundColor: tpl.bg }}
                     />
-                    <span className="text-[11px] font-medium truncate">{tpl.title.replace('黑板', '').replace('風格', '')}</span>
+                    <span className="text-[11px] font-medium truncate">{tpl.title}</span>
                   </button>
                 ))}
               </div>
@@ -604,18 +760,18 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
               <button
                 type="button"
                 onClick={() => {
-                  const title = newBoardTitle.trim() || '未命名全新黑板';
+                  const title = newBoardTitle.trim() || (newCanvasMode === 'notebook' ? '未命名多頁筆記本' : '未命名全新黑板');
                   let w = 1920, h = 1080;
-                  if (newCanvasMode === 'notebook') {
-                    w = 595;
-                    h = 842;
+                  if (newCanvasPreset === 'b5') {
+                    w = 499;
+                    h = 709;
                   } else if (newCanvasPreset === '1_1') {
                     w = 1080;
                     h = 1080;
                   } else if (newCanvasPreset === '9_16') {
                     w = 1080;
                     h = 1920;
-                  } else if (newCanvasPreset === 'a4_portrait') {
+                  } else if (newCanvasPreset === 'a4_portrait' || newCanvasMode === 'notebook') {
                     w = 595;
                     h = 842;
                   } else if (newCanvasPreset === 'a4_landscape') {
@@ -635,7 +791,24 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
                     h = 1440;
                   }
 
-                  onCreateBoard(title, newBoardTheme, newCanvasMode, newCanvasPreset, w, h);
+                  // Handle orientation flipping
+                  if (newOrientation === 'landscape' && w < h) {
+                    const temp = w;
+                    w = h;
+                    h = temp;
+                  } else if (newOrientation === 'portrait' && w > h) {
+                    const temp = w;
+                    w = h;
+                    h = temp;
+                  }
+
+                  onCreateBoard(title, newBoardTheme, newCanvasMode, newCanvasPreset, w, h, {
+                    orientation: newOrientation,
+                    coverStyle: newCoverStyle,
+                    gridStyle: newGridStyle,
+                    backgroundColor: newBgColor,
+                    gridColor: newGridColor,
+                  });
                   setShowCreateModal(false);
                 }}
                 className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md transition-all active:scale-95"

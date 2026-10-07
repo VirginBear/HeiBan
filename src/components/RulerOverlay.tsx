@@ -53,17 +53,41 @@ export const RulerOverlay: React.FC<RulerOverlayProps> = ({
       centerY: ruler.screenCenterY,
     };
 
+    let rafId: number | null = null;
+    let pendingPos: { x: number; y: number } | null = null;
+
     const handlePointerMove = (moveEv: PointerEvent) => {
       if (!isDraggingBodyRef.current) return;
       const dx = moveEv.clientX - dragStartRef.current.x;
       const dy = moveEv.clientY - dragStartRef.current.y;
-      onUpdateRuler({
-        screenCenterX: dragStartRef.current.centerX + dx,
-        screenCenterY: dragStartRef.current.centerY + dy,
-      });
+      pendingPos = {
+        x: dragStartRef.current.centerX + dx,
+        y: dragStartRef.current.centerY + dy,
+      };
+      if (rafId === null) {
+        rafId = requestAnimationFrame(() => {
+          rafId = null;
+          if (pendingPos) {
+            onUpdateRuler({
+              screenCenterX: pendingPos.x,
+              screenCenterY: pendingPos.y,
+            });
+          }
+        });
+      }
     };
 
     const handlePointerUp = () => {
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+      if (pendingPos) {
+        onUpdateRuler({
+          screenCenterX: pendingPos.x,
+          screenCenterY: pendingPos.y,
+        });
+      }
       isDraggingBodyRef.current = false;
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('pointerup', handlePointerUp);
@@ -76,6 +100,9 @@ export const RulerOverlay: React.FC<RulerOverlayProps> = ({
   // Drag the Pivot point to set custom rotation center
   const handlePivotPointerDown = (e: React.PointerEvent) => {
     e.stopPropagation();
+    let rafId: number | null = null;
+    let pendingPivot: { pivotRatio: number; pivotEdge: 'top' | 'center' | 'bottom' } | null = null;
+
     const handlePointerMove = (moveEv: PointerEvent) => {
       // Convert pointer to ruler local coordinates
       const dx = moveEv.clientX - ruler.screenCenterX;
@@ -90,13 +117,25 @@ export const RulerOverlay: React.FC<RulerOverlayProps> = ({
       if (locY < -rulerHeight / 4) newEdge = 'top';
       else if (locY > rulerHeight / 4) newEdge = 'bottom';
 
-      onUpdateRuler({
-        pivotRatio: newRatio,
-        pivotEdge: newEdge,
-      });
+      pendingPivot = { pivotRatio: newRatio, pivotEdge: newEdge };
+      if (rafId === null) {
+        rafId = requestAnimationFrame(() => {
+          rafId = null;
+          if (pendingPivot) {
+            onUpdateRuler(pendingPivot);
+          }
+        });
+      }
     };
 
     const handlePointerUp = () => {
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+      if (pendingPivot) {
+        onUpdateRuler(pendingPivot);
+      }
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('pointerup', handlePointerUp);
     };
@@ -108,6 +147,8 @@ export const RulerOverlay: React.FC<RulerOverlayProps> = ({
   // Drag either left or right handle at the ends to rotate the ruler AROUND THE PIVOT
   const handleEndHandleRotate = (isRightEnd: boolean, e: React.PointerEvent) => {
     e.stopPropagation();
+    let rafId: number | null = null;
+    let pendingRotate: { angle: number; screenCenterX: number; screenCenterY: number } | null = null;
 
     const handlePointerMove = (moveEv: PointerEvent) => {
       // Angle from pivot point to cursor
@@ -139,14 +180,30 @@ export const RulerOverlay: React.FC<RulerOverlayProps> = ({
       const newCenterX = screenPivotX - (localPivotX * nCos - localPivotY * nSin);
       const newCenterY = screenPivotY - (localPivotX * nSin + localPivotY * nCos);
 
-      onUpdateRuler({
+      pendingRotate = {
         angle: Math.round(newAngle),
         screenCenterX: newCenterX,
         screenCenterY: newCenterY,
-      });
+      };
+
+      if (rafId === null) {
+        rafId = requestAnimationFrame(() => {
+          rafId = null;
+          if (pendingRotate) {
+            onUpdateRuler(pendingRotate);
+          }
+        });
+      }
     };
 
     const handlePointerUp = () => {
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+      if (pendingRotate) {
+        onUpdateRuler(pendingRotate);
+      }
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('pointerup', handlePointerUp);
     };

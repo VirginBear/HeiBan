@@ -32,10 +32,11 @@ struct NativePointerSurface: NSViewRepresentable {
             trackingAreas.forEach(removeTrackingArea)
             addTrackingArea(NSTrackingArea(rect: bounds, options: [.mouseMoved, .mouseEnteredAndExited, .activeInKeyWindow, .inVisibleRect, .cursorUpdate], owner: self, userInfo: nil))
         }
-        override func mouseEntered(with event: NSEvent) { updateEraserCursor(event); updatePolygonCursor(event); updateTransformCursor(event) }
-        override func mouseMoved(with event: NSEvent) { updateEraserCursor(event); updatePolygonCursor(event); updateTransformCursor(event) }
+        override func mouseEntered(with event: NSEvent) { updateEraserCursor(event); updatePolygonCursor(event); updateTransformCursor(event); updateHoverToolCursor(event) }
+        override func mouseMoved(with event: NSEvent) { updateEraserCursor(event); updatePolygonCursor(event); updateTransformCursor(event); updateHoverToolCursor(event) }
         override func mouseExited(with event: NSEvent) {
             engine.updateEraserCursor(at: nil)
+            engine.updateHoverCursor(at: nil, diameter: nil)
             engine.updateHoveredHandle(at: nil)
             CursorHelper.setCursor(for: nil)
         }
@@ -143,6 +144,23 @@ struct NativePointerSurface: NSViewRepresentable {
                 CursorHelper.setCursor(for: cursorType)
             } else if engine.currentTool == .select {
                 CursorHelper.setCursor(for: nil)
+            }
+        }
+        private func updateHoverToolCursor(_ event: NSEvent) {
+            let loc = point(event)
+            let pt = Point(loc)
+            let zoom = engine.viewport.zoom
+            if engine.currentTool == .eraser {
+                let diameter = engine.eraserSize * zoom
+                engine.updateHoverCursor(at: pt, diameter: diameter)
+            } else if [.pen, .highlighter, .paint].contains(engine.currentTool) {
+                let multiplier = engine.currentTool == .highlighter ? 3.5 : (engine.currentTool == .paint ? 8.0 : 1.0)
+                let minWidth = engine.currentTool == .highlighter ? 12.0 : (engine.currentTool == .paint ? 24.0 : 4.0)
+                let width = max(minWidth, engine.activeStrokeWidth * multiplier)
+                let diameter = max(4, width * zoom)
+                engine.updateHoverCursor(at: pt, diameter: diameter)
+            } else {
+                engine.updateHoverCursor(at: nil, diameter: nil)
             }
         }
 

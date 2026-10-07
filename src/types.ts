@@ -21,7 +21,7 @@ export type ToolType =
 export type EraserMode = 'object' | 'pixel';
 
 export type BoardTheme = 'blackboard' | 'dark' | 'whiteboard' | 'slate';
-export type GridStyle = 'grid' | 'dots' | 'lines' | 'blank';
+export type GridStyle = 'grid' | 'dots' | 'lines' | 'staff' | 'blank';
 export type CanvasMode = 'fixed' | 'infinite' | 'notebook';
 export type CanvasPreset =
   | 'infinite'
@@ -32,6 +32,7 @@ export type CanvasPreset =
   | '4_3'
   | '1_1'
   | '9_16'
+  | 'b5'
   | 'notebook'
   | 'custom';
 export type StickyStyle = 'classic' | 'washi' | 'cat' | 'notebook' | 'grid' | 'soft';
@@ -68,6 +69,7 @@ export interface BoardObject {
     | 'stroke'
     | 'highlighter'
     | 'paint'
+    | 'curve'
     | 'rect'
     | 'circle'
     | 'triangle'
@@ -149,6 +151,8 @@ export interface UserPresence {
   updatedAt: string;
 }
 
+export type MemberRole = 'owner' | 'editor' | 'viewer' | 'revoked';
+
 export interface BoardMetadata {
   id: string;
   title: string;
@@ -166,8 +170,14 @@ export interface BoardMetadata {
   thumbnail?: string;
   itemCount?: number;
   revision?: number;
+  collaboratorIds?: string[];
+  memberRoles?: Record<string, MemberRole>;
   pages?: BoardPage[];
   activePageId?: string;
+  coverStyle?: string;
+  orientation?: 'portrait' | 'landscape' | string;
+  gridColor?: string;
+  source?: 'local' | 'cloud';
   createdAt: string;
   updatedAt: string;
   [key: string]: unknown;

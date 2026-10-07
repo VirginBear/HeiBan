@@ -89,15 +89,20 @@ public struct LocalBoardLibrary {
         return trashDirectory.appendingPathComponent(filename + ".blackboard.json")
     }
 
-    /// 原子寫入黑板文件，含修訂版號保護、快照備份、真實縮圖與索引更新
-    public func save(_ document: HeiBanDocument, expectedRevision: Int? = nil, createBackup: Bool = true, generateThumbnail: Bool = true) throws {
-        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    /// 原子寫入黑板文件至任意目標路徑，含修訂版號保護、快照備份、真實縮圖與索引更新
+    public func saveToFile(
+        _ document: HeiBanDocument,
+        at targetURL: URL,
+        expectedRevision: Int? = nil,
+        createBackup: Bool = true,
+        generateThumbnail: Bool = true
+    ) throws {
+        let parentDir = targetURL.deletingLastPathComponent()
+        try FileManager.default.createDirectory(at: parentDir, withIntermediateDirectories: true)
         try FileManager.default.createDirectory(at: backupsDirectory, withIntermediateDirectories: true)
         try FileManager.default.createDirectory(at: tempDirectory, withIntermediateDirectories: true)
         try FileManager.default.createDirectory(at: thumbnailsDirectory, withIntermediateDirectories: true)
         try FileManager.default.createDirectory(at: trashDirectory, withIntermediateDirectories: true)
-
-        let targetURL = fileURL(id: document.board.id)
 
         // 1. 修訂衝突防護：若磁碟上已存在較新修訂版號，禁止覆蓋
         let incomingRev = document.board.revision ?? 1
@@ -144,8 +149,21 @@ public struct LocalBoardLibrary {
             }
         }
 
-        // 5. 更新 metadata 索引檔
-        updateIndex(with: snapshot.board)
+        // 5. 若目標路徑位於 library 專屬 Boards 目錄下，更新 metadata 索引檔
+        if targetURL.standardizedFileURL.path.hasPrefix(directory.standardizedFileURL.path) {
+            updateIndex(with: snapshot.board)
+        }
+    }
+
+    /// 原子寫入黑板文件，含修訂版號保護、快照備份、真實縮圖與索引更新
+    public func save(_ document: HeiBanDocument, expectedRevision: Int? = nil, createBackup: Bool = true, generateThumbnail: Bool = true) throws {
+        try saveToFile(
+            document,
+            at: fileURL(id: document.board.id),
+            expectedRevision: expectedRevision,
+            createBackup: createBackup,
+            generateThumbnail: generateThumbnail
+        )
     }
 
     /// 批次寫入並建立 500 張黑板 metadata 索引 (效能壓力測試專用)

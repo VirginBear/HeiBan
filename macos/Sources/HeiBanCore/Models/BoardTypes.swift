@@ -64,6 +64,7 @@ public enum GridStyle: String, Codable, CaseIterable {
     case grid = "grid"
     case dots = "dots"
     case lines = "lines"
+    case staff = "staff"
     case blank = "blank"
 
     public var displayName: String {
@@ -71,6 +72,7 @@ public enum GridStyle: String, Codable, CaseIterable {
         case .grid: return "網格線"
         case .dots: return "點陣網格"
         case .lines: return "橫線筆記"
+        case .staff: return "五線譜"
         case .blank: return "純淨空白"
         }
     }
@@ -91,6 +93,7 @@ public enum CanvasPreset: String, Codable, CaseIterable {
     case four_three = "4_3"
     case one_one = "1_1"
     case nine_sixteen = "9_16"
+    case b5 = "b5"
     case notebook = "notebook"
     case custom = "custom"
 
@@ -104,6 +107,7 @@ public enum CanvasPreset: String, Codable, CaseIterable {
         case .four_three: return "4:3 課堂 (1440 × 1080)"
         case .one_one: return "1:1 正方形 (1080 × 1080)"
         case .nine_sixteen: return "9:16 手機/直式 (1080 × 1920)"
+        case .b5: return "B5 筆記 (499 × 709)"
         case .notebook: return "多頁筆記本 (A4 分頁)"
         case .custom: return "自訂尺寸"
         }
@@ -127,6 +131,8 @@ public enum CanvasPreset: String, Codable, CaseIterable {
             return (width: 1080.0, height: 1080.0)
         case .nine_sixteen:
             return (width: 1080.0, height: 1920.0)
+        case .b5:
+            return (width: 499.0, height: 709.0)
         case .custom:
             return (width: 1200.0, height: 800.0)
         }
@@ -180,6 +186,18 @@ public enum StickyStyle: String, Codable, CaseIterable {
     case notebook = "notebook"
     case grid = "grid"
     case soft = "soft"
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let raw = try container.decode(String.self)
+        if raw == "soft_card" || raw == "soft" {
+            self = .soft
+        } else if let val = StickyStyle(rawValue: raw) {
+            self = val
+        } else {
+            self = .classic
+        }
+    }
 
     public var displayName: String {
         switch self {
@@ -566,18 +584,18 @@ public struct BoardObject: Codable, Identifiable, Equatable {
         self.extensionMode = try container.decodeIfPresent(LineExtension.self, forKey: .extensionMode)
 
         self.points = try container.decodeIfPresent(String.self, forKey: .points)
-        self.strokeColor = try container.decode(String.self, forKey: .strokeColor)
-        self.fillColor = try container.decode(String.self, forKey: .fillColor)
+        self.strokeColor = try container.decodeIfPresent(String.self, forKey: .strokeColor) ?? "#ffffff"
+        self.fillColor = try container.decodeIfPresent(String.self, forKey: .fillColor) ?? "none"
         self.fillOpacity = try container.decodeIfPresent(Double.self, forKey: .fillOpacity) ?? 1.0
         self.fillGradientStart = try container.decodeIfPresent(String.self, forKey: .fillGradientStart)
         self.fillGradientEnd = try container.decodeIfPresent(String.self, forKey: .fillGradientEnd)
-        self.strokeWidth = try container.decode(Double.self, forKey: .strokeWidth)
+        self.strokeWidth = try container.decodeIfPresent(Double.self, forKey: .strokeWidth) ?? 2.0
         self.lineStyle = try container.decodeIfPresent(String.self, forKey: .lineStyle)
         self.arrowHeadLength = try container.decodeIfPresent(Double.self, forKey: .arrowHeadLength)
         self.arrowHeadWidth = try container.decodeIfPresent(Double.self, forKey: .arrowHeadWidth)
-        self.opacity = try container.decode(Double.self, forKey: .opacity)
-        self.rotation = try container.decode(Double.self, forKey: .rotation)
-        self.zIndex = try container.decode(Int.self, forKey: .zIndex)
+        self.opacity = try container.decodeIfPresent(Double.self, forKey: .opacity) ?? 1.0
+        self.rotation = try container.decodeIfPresent(Double.self, forKey: .rotation) ?? 0.0
+        self.zIndex = try container.decodeIfPresent(Int.self, forKey: .zIndex) ?? 0
 
         self.text = try container.decodeIfPresent(String.self, forKey: .text)
         self.fontSize = try container.decodeIfPresent(Double.self, forKey: .fontSize)
@@ -779,12 +797,17 @@ public struct BoardMetadata: Codable, Identifiable, Equatable {
     public var updatedAt: String
     public var pages: [BoardPage]?
     public var activePageId: String?
+    public var coverStyle: String?
+    public var orientation: String?
+    public var gridColor: String?
+    public var memberRoles: [String: String]?
+    public var source: String?
     public var extraFields: [String: AnyCodableValue]?
 
     enum CodingKeys: String, CodingKey, CaseIterable {
         case id, title, ownerId, ownerName, ownerPhoto, backgroundColor, gridStyle, boardTheme
         case canvasMode, canvasPreset, canvasWidth, canvasHeight, pins, thumbnail, itemCount, revision
-        case collaboratorIds, createdAt, updatedAt, pages, activePageId
+        case collaboratorIds, memberRoles, source, createdAt, updatedAt, pages, activePageId, coverStyle, orientation, gridColor
     }
 
     public init(
@@ -805,8 +828,13 @@ public struct BoardMetadata: Codable, Identifiable, Equatable {
         itemCount: Int? = 0,
         revision: Int? = 1,
         collaboratorIds: [String]? = nil,
+        memberRoles: [String: String]? = nil,
+        source: String? = nil,
         pages: [BoardPage]? = nil,
         activePageId: String? = nil,
+        coverStyle: String? = nil,
+        orientation: String? = nil,
+        gridColor: String? = nil,
         createdAt: String = ISO8601DateFormatter().string(from: Date()),
         updatedAt: String = ISO8601DateFormatter().string(from: Date()),
         extraFields: [String: AnyCodableValue]? = nil
@@ -828,8 +856,13 @@ public struct BoardMetadata: Codable, Identifiable, Equatable {
         self.itemCount = itemCount
         self.revision = revision
         self.collaboratorIds = collaboratorIds
+        self.memberRoles = memberRoles
+        self.source = source
         self.pages = pages
         self.activePageId = activePageId
+        self.coverStyle = coverStyle
+        self.orientation = orientation
+        self.gridColor = gridColor
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.extraFields = extraFields
@@ -853,10 +886,16 @@ public struct BoardMetadata: Codable, Identifiable, Equatable {
         self.thumbnail = try container.decodeIfPresent(String.self, forKey: .thumbnail)
         self.itemCount = try container.decodeIfPresent(Int.self, forKey: .itemCount)
         self.revision = try container.decodeIfPresent(Int.self, forKey: .revision)
+        self.collaboratorIds = try container.decodeIfPresent([String].self, forKey: .collaboratorIds)
+        self.memberRoles = try container.decodeIfPresent([String: String].self, forKey: .memberRoles)
+        self.source = try container.decodeIfPresent(String.self, forKey: .source)
         self.createdAt = try container.decode(String.self, forKey: .createdAt)
         self.updatedAt = try container.decode(String.self, forKey: .updatedAt)
         self.pages = try container.decodeIfPresent([BoardPage].self, forKey: .pages)
         self.activePageId = try container.decodeIfPresent(String.self, forKey: .activePageId)
+        self.coverStyle = try container.decodeIfPresent(String.self, forKey: .coverStyle)
+        self.orientation = try container.decodeIfPresent(String.self, forKey: .orientation)
+        self.gridColor = try container.decodeIfPresent(String.self, forKey: .gridColor)
 
         // Capture unknown extra fields
         let dynamicContainer = try decoder.container(keyedBy: AnyCodingKey.self)
@@ -890,10 +929,16 @@ public struct BoardMetadata: Codable, Identifiable, Equatable {
         try container.encodeIfPresent(thumbnail, forKey: .thumbnail)
         try container.encodeIfPresent(itemCount, forKey: .itemCount)
         try container.encodeIfPresent(revision, forKey: .revision)
+        try container.encodeIfPresent(collaboratorIds, forKey: .collaboratorIds)
+        try container.encodeIfPresent(memberRoles, forKey: .memberRoles)
+        try container.encodeIfPresent(source, forKey: .source)
         try container.encode(createdAt, forKey: .createdAt)
         try container.encode(updatedAt, forKey: .updatedAt)
         try container.encodeIfPresent(pages, forKey: .pages)
         try container.encodeIfPresent(activePageId, forKey: .activePageId)
+        try container.encodeIfPresent(coverStyle, forKey: .coverStyle)
+        try container.encodeIfPresent(orientation, forKey: .orientation)
+        try container.encodeIfPresent(gridColor, forKey: .gridColor)
 
         if let extraFields = extraFields {
             var dynamicContainer = encoder.container(keyedBy: AnyCodingKey.self)

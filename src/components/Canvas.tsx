@@ -20,6 +20,8 @@ import {
   erasePointsAtPoint,
   computeLineRenderCoordinates,
 } from '../utils/vector';
+import { getCurveSegment, getHandleCursor } from '../utils/strokeSmoothing';
+import { getToolStrokeWidth, getToolHoverDiameter, getEraserRadius } from '../utils/toolMetrics';
 import { recognizeGoodnotesShape, RecognizedShape } from '../utils/goodnotes';
 import { RulerOverlay } from './RulerOverlay';
 import { CollaboratorCursors } from './CollaboratorCursors';
@@ -33,18 +35,6 @@ type FreehandPreviewHandle = {
 
 const PREVIEW_SEGMENTS_PER_PATH = 64;
 
-function getCurveSegment(points: Point[], index: number, includeMove: boolean) {
-  const previous = points[Math.max(0, index - 1)];
-  const start = points[index];
-  const end = points[index + 1];
-  const next = points[Math.min(points.length - 1, index + 2)];
-  const cp1x = start.x + (end.x - previous.x) / 6;
-  const cp1y = start.y + (end.y - previous.y) / 6;
-  const cp2x = end.x - (next.x - start.x) / 6;
-  const cp2y = end.y - (next.y - start.y) / 6;
-  const move = includeMove ? `M ${start.x} ${start.y}` : '';
-  return `${move} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${end.x} ${end.y}`;
-}
 
 const FreehandPreview = React.memo(forwardRef<FreehandPreviewHandle, {
   visible: boolean;
@@ -248,6 +238,9 @@ export const Canvas: React.FC<CanvasProps> = ({
   const holdTimerRef = useRef<number | null>(null);
   const lastMovePosRef = useRef<Point | null>(null);
   const [snappedShape, setSnappedShape] = useState<RecognizedShape | null>(null);
+
+  // Brush / Eraser translucent hover preview shape
+  const [hoverPos, setHoverPos] = useState<{ x: number; y: number } | null>(null);
 
   // Direct Line / Shape in progress
   const [shapeStart, setShapeStart] = useState<Point | null>(null);
@@ -464,6 +457,7 @@ export const Canvas: React.FC<CanvasProps> = ({
 
     // Eraser Tool
     if (currentTool === 'eraser') {
+      setHoverPos({ x: e.clientX, y: e.clientY });
       handleEraseAtPoint(worldPt);
       (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
       return;
@@ -635,15 +629,15 @@ export const Canvas: React.FC<CanvasProps> = ({
 
   // Eraser handler helper
   const handleEraseAtPoint = (worldPt: Point) => {
+    const eraserRadius = getEraserRadius(eraserMode);
     if (eraserMode === 'object') {
-      const hit = objects.filter((o) => !o.isLocked && isPointInObject(worldPt, o, 16)).map((o) => o.id);
+      const hit = objects.filter((o) => !o.isLocked && isPointInObject(worldPt, o, eraserRadius)).map((o) => o.id);
       if (hit.length > 0) {
         onDeleteObjects(hit);
       }
     } else {
-      const eraserRadius = 14;
       for (const obj of objects) {
-        if (obj.isLocked || (obj.type !== 'stroke' && obj.type !== 'highlighter' && obj.type !== 'paint') || !obj.points) {
+        if (obj.isLocked || (obj.type !== 'stroke' && obj.type !== 'highlighter' && obj.type !== 'paint' && obj.type !== 'curve') || !obj.points) {
           if (!obj.isLocked && isPointInObject(worldPt, obj, 10)) {
             onDeleteObjects([obj.id]);
           }
@@ -695,6 +689,7 @@ export const Canvas: React.FC<CanvasProps> = ({
 
     const screenPt: Point = { x: e.clientX, y: e.clientY, pressure: e.pressure || 0.5 };
     let worldPt = screenToWorld(e.clientX, e.clientY);
+    setHoverPos({ x: e.clientX, y: e.clientY });
 
     // Ruler snap check
     if (ruler.enabled && (currentTool === 'pen' || currentTool === 'highlighter' || currentTool === 'line')) {
@@ -1040,21 +1035,35 @@ export const Canvas: React.FC<CanvasProps> = ({
 
     const completedStroke = currentStrokeRef.current ?? currentStroke;
     if (completedStroke && completedStroke.length > 0) {
-      const bbox = computeBoundingBox(completedStroke, activeStrokeWidth);
       const isHighlighter = currentTool === 'highlighter';
+      const isPaint = currentTool === 'paint';
+      const actualStrokeWidth = getToolStrokeWidth(currentTool, activeStrokeWidth);
+      const bbox = computeBoundingBox(completedStroke, actualStrokeWidth);
+      const strokeType = isHighlighter ? 'highlighter' : (isPaint ? 'paint' : 'stroke');
+      const strokeColor = isHighlighter
+        ? (activeColor || '#facc15')
+        : isPaint
+        ? (activeColor || '#60a5fa')
+        : (activeColor || '#ffffff');
+      const opacity = isHighlighter
+        ? (activeOpacity || 0.4)
+        : isPaint
+        ? (activeOpacity || 0.8)
+        : (activeOpacity ?? 1);
+
       const newStroke: BoardObject = {
         id: 'stroke_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
         boardId: board.id,
-        type: isHighlighter ? 'highlighter' : 'stroke',
+        type: strokeType,
         x: bbox.minX,
         y: bbox.minY,
         width: bbox.width,
         height: bbox.height,
         points: JSON.stringify(completedStroke),
-        strokeColor: isHighlighter ? (activeColor || '#facc15') : (activeColor || '#ffffff'),
+        strokeColor: strokeColor,
         fillColor: 'none',
-        strokeWidth: isHighlighter ? Math.max(12, activeStrokeWidth * 2) : activeStrokeWidth,
-        opacity: isHighlighter ? (activeOpacity || 0.4) : (activeOpacity ?? 1),
+        strokeWidth: actualStrokeWidth,
+        opacity: opacity,
         rotation: 0,
         zIndex: objects.length + 1,
         createdBy: currentUserId || 'anonymous',
@@ -1336,8 +1345,59 @@ export const Canvas: React.FC<CanvasProps> = ({
     if (gridStyle === 'blank') return null;
 
     const patternSize = 32 * viewport.zoom;
-    const strokeColor = board.boardTheme === 'whiteboard' ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.09)';
-    const dotColor = board.boardTheme === 'whiteboard' ? 'rgba(0,0,0,0.18)' : 'rgba(255,255,255,0.18)';
+
+    // Detect background luminance to make grid clearly visible even on light colors
+    const bg = board.backgroundColor || (board.boardTheme === 'whiteboard' ? '#f8fafc' : '#172e25');
+    const isLightBg = (() => {
+      if (board.boardTheme === 'whiteboard') return true;
+      if (typeof bg === 'string' && bg.startsWith('#') && bg.length >= 7) {
+        const hex = bg.replace('#', '');
+        const r = parseInt(hex.substring(0, 2), 16) || 0;
+        const g = parseInt(hex.substring(2, 4), 16) || 0;
+        const b = parseInt(hex.substring(4, 6), 16) || 0;
+        return (r * 0.299 + g * 0.587 + b * 0.114) > 130;
+      }
+      return false;
+    })();
+
+    const defaultStroke = isLightBg ? 'rgba(0,0,0,0.18)' : 'rgba(255,255,255,0.09)';
+    const defaultDot = isLightBg ? 'rgba(0,0,0,0.25)' : 'rgba(255,255,255,0.18)';
+    const strokeColor = board.gridColor ? board.gridColor : defaultStroke;
+    const dotColor = board.gridColor ? board.gridColor : defaultDot;
+
+    if (gridStyle === 'staff') {
+      const lineGap = 8 * viewport.zoom;
+      const staveGap = 40 * viewport.zoom;
+      const staveHeight = lineGap * 4 + staveGap;
+      const patWidth = 40 * viewport.zoom;
+      return (
+        <svg className="absolute inset-0 w-full h-full pointer-events-none">
+          <defs>
+            <pattern
+              id="staff-pattern"
+              x={viewport.x % patWidth}
+              y={viewport.y % staveHeight}
+              width={patWidth}
+              height={staveHeight}
+              patternUnits="userSpaceOnUse"
+            >
+              {[0, 1, 2, 3, 4].map((i) => (
+                <line
+                  key={i}
+                  x1="0"
+                  y1={i * lineGap}
+                  x2={patWidth}
+                  y2={i * lineGap}
+                  stroke={strokeColor}
+                  strokeWidth="1"
+                />
+              ))}
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#staff-pattern)" />
+        </svg>
+      );
+    }
 
     if (gridStyle === 'dots') {
       return (
@@ -1404,6 +1464,8 @@ export const Canvas: React.FC<CanvasProps> = ({
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
+      onPointerEnter={(e) => setHoverPos({ x: e.clientX, y: e.clientY })}
+      onPointerLeave={() => setHoverPos(null)}
       onDoubleClick={(e) => {
         const worldPt = screenToWorld(e.clientX, e.clientY);
         const sorted = [...objects].sort((a, b) => b.zIndex - a.zIndex);
@@ -1423,6 +1485,8 @@ export const Canvas: React.FC<CanvasProps> = ({
           ? 'cursor-crosshair'
           : currentTool === 'select'
           ? 'cursor-default'
+          : hoverPos && ['pen', 'highlighter', 'paint', 'curve', 'eraser'].includes(currentTool)
+          ? 'cursor-none'
           : currentTool === 'eraser'
           ? 'cursor-cell'
           : 'cursor-crosshair'
@@ -1504,7 +1568,9 @@ export const Canvas: React.FC<CanvasProps> = ({
 
             switch (obj.type) {
               case 'stroke':
-              case 'highlighter': {
+              case 'highlighter':
+              case 'paint':
+              case 'curve': {
                 if (!obj.points) return null;
                 try {
                   const pts: Point[] = JSON.parse(obj.points);
@@ -1832,9 +1898,21 @@ export const Canvas: React.FC<CanvasProps> = ({
         <FreehandPreview
           ref={freehandPreviewRef}
           visible={!!currentStroke && !snappedShape}
-          color={currentTool === 'highlighter' ? (activeColor || '#facc15') : activeColor}
-          width={currentTool === 'highlighter' ? Math.max(12, activeStrokeWidth * 2) : activeStrokeWidth}
-          opacity={currentTool === 'highlighter' ? (activeOpacity || 0.4) : (activeOpacity ?? 1)}
+          color={
+            currentTool === 'highlighter'
+              ? (activeColor || '#facc15')
+              : currentTool === 'paint'
+              ? (activeColor || '#60a5fa')
+              : activeColor
+          }
+          width={getToolStrokeWidth(currentTool, activeStrokeWidth)}
+          opacity={
+            currentTool === 'highlighter'
+              ? (activeOpacity || 0.4)
+              : currentTool === 'paint'
+              ? (activeOpacity || 0.8)
+              : (activeOpacity ?? 1)
+          }
         />
 
         {/* GoodNotes Snapped Shape Preview */}
@@ -2456,6 +2534,37 @@ export const Canvas: React.FC<CanvasProps> = ({
         viewport={viewport}
         visible={showCursors}
       />
+
+      {/* Translucent Hover Preview for Brush & Eraser (未繪圖時懸停範圍指示，1:1 實繪尺寸對齊) */}
+      {hoverPos && ['pen', 'highlighter', 'paint', 'curve', 'eraser'].includes(currentTool) && (() => {
+        const hoverDiameter = getToolHoverDiameter(currentTool, activeStrokeWidth, viewport.zoom, eraserMode);
+        if (hoverDiameter <= 0) return null;
+        const isEraser = currentTool === 'eraser';
+        return (
+          <div
+            className={`pointer-events-none fixed -translate-x-1/2 -translate-y-1/2 rounded-full z-50 transition-none flex items-center justify-center ${
+              isEraser
+                ? 'border-2 border-dashed border-rose-400/90 bg-rose-500/25 shadow-md backdrop-blur-[0.5px]'
+                : 'border border-dashed border-white/90 bg-neutral-400/35 shadow-sm backdrop-blur-[0.5px]'
+            }`}
+            style={{
+              left: `${hoverPos.x}px`,
+              top: `${hoverPos.y}px`,
+              width: `${hoverDiameter}px`,
+              height: `${hoverDiameter}px`,
+            }}
+          >
+            {/* Precision center dot: visible when diameter is large enough */}
+            {hoverDiameter >= 8 && (
+              <div
+                className={`w-1 h-1 rounded-full ${
+                  isEraser ? 'bg-rose-300' : 'bg-white/90'
+                } pointer-events-none shadow`}
+              />
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 };

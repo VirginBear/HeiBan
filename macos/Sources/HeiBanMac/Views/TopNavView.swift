@@ -138,17 +138,26 @@ public struct TopNavView: View {
 
             // Grid Style Selector Menu
             Menu {
-                ForEach(GridStyle.allCases, id: \.self) { grid in
-                    Button {
-                        engine.board.gridStyle = grid
-                    } label: {
-                        HStack {
-                            Text(grid.displayName)
-                            if engine.board.gridStyle == grid {
-                                Image(systemName: "checkmark")
+                Section("網格樣式") {
+                    ForEach(GridStyle.allCases, id: \.self) { grid in
+                        Button {
+                            engine.board.gridStyle = grid
+                        } label: {
+                            HStack {
+                                Text(grid.displayName)
+                                if engine.board.gridStyle == grid {
+                                    Image(systemName: "checkmark")
+                                }
                             }
                         }
                     }
+                }
+                Section("格線深淺顏色") {
+                    Button("智慧自適應") { engine.board.gridColor = nil }
+                    Button("純白色") { engine.board.gridColor = "#ffffff" }
+                    Button("淺灰色") { engine.board.gridColor = "#94a3b8" }
+                    Button("深灰色") { engine.board.gridColor = "#475569" }
+                    Button("柔黑色") { engine.board.gridColor = "#18181b" }
                 }
             } label: {
                 HStack(spacing: 6) {
@@ -247,7 +256,7 @@ public struct TopNavView: View {
             .padding(.vertical, 4)
             .background(Color.black.opacity(0.035), in: RoundedRectangle(cornerRadius: 8))
 
-            // File IO Buttons
+            // File IO & Export Buttons
             HStack(spacing: 6) {
                 Button {
                     engine.openFromFilePrompt()
@@ -266,6 +275,40 @@ public struct TopNavView: View {
                 }
                 .buttonStyle(.plain)
                 .help("儲存為黑板專案檔 (.blackboard.json)")
+
+                Menu {
+                    Button {
+                        engine.exportHTMLPrompt()
+                    } label: {
+                        Label("匯出為獨立離線 HTML 網頁 (.html)", systemImage: "safari")
+                    }
+                    Button {
+                        engine.exportPNGPrompt()
+                    } label: {
+                        Label("匯出為高清 PNG 圖檔 (.png)", systemImage: "photo")
+                    }
+                    Button {
+                        engine.exportPDFPrompt()
+                    } label: {
+                        Label("匯出為向量 PDF 文件 (.pdf)", systemImage: "doc.richtext")
+                    }
+                    Button {
+                        engine.exportSVGPrompt()
+                    } label: {
+                        Label("匯出為 SVG 向量圖檔 (.svg)", systemImage: "square.and.arrow.up")
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "square.and.arrow.up")
+                            .font(.system(size: 13))
+                        Text("匯出")
+                            .font(.system(size: 12, weight: .medium))
+                    }
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
+                }
+                .menuStyle(.borderlessButton)
+                .help("匯出為 HTML 網頁、PNG 圖片、PDF 或 SVG")
             }
             .padding(.horizontal, 6)
             .padding(.vertical, 4)

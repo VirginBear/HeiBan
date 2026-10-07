@@ -50,8 +50,11 @@ import {
   exportToPdfFile,
   exportToPngFile,
   exportToJsonFile,
+  exportToHtmlFile,
   generateBoardThumbnailDataUrl,
 } from './utils/export';
+import { useBoardSession } from './hooks/useBoardSession';
+import { getFeatureShowcaseDocument } from './data/featureShowcaseBoard';
 
 // Initial default board configuration
 const DEFAULT_BOARD_ID = 'demo_blackboard_main';
@@ -66,6 +69,7 @@ const DEFAULT_BOARD: BoardMetadata = {
   canvasMode: 'infinite',
   canvasPreset: 'infinite',
   pins: [],
+  source: 'local',
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 };
@@ -84,8 +88,8 @@ export default function App() {
   // Current user state
   const [user, setUser] = useState<User | null>(null);
 
-  // Board state
-  const [board, setBoard] = useState<BoardMetadata>(DEFAULT_BOARD);
+  // Board state managed by decoupled session hook
+  const { board, setBoard, syncStatus: boardSyncStatus } = useBoardSession(DEFAULT_BOARD);
   const [allBoards, setAllBoards] = useState<BoardMetadata[]>([DEFAULT_BOARD]);
   const [isBoardModalOpen, setIsBoardModalOpen] = useState(false);
 
@@ -197,15 +201,15 @@ export default function App() {
     return () => unsub();
   }, []);
 
-  // Sync board metadata from Firestore
+  // Sync board metadata from Firestore (only for cloud boards)
   useEffect(() => {
-    if (!user || !board.id) return;
+    if (!user || !board.id || board.source !== 'cloud') return;
     const boardDocRef = doc(db, 'boards', board.id);
     const unsub = onSnapshot(
       boardDocRef,
       (snapshot) => {
         if (snapshot.exists()) {
-          setBoard(snapshot.data() as BoardMetadata);
+          setBoard({ ...(snapshot.data() as BoardMetadata), source: 'cloud' });
         }
       },
       (error) => {
@@ -213,18 +217,38 @@ export default function App() {
       }
     );
     return () => unsub();
-  }, [board.id, user?.uid]);
+  }, [board.id, board.source, user?.uid]);
 
-  // Sync objects from Firestore
+  // Sync objects from Firestore (only for cloud boards)
   useEffect(() => {
-    if (!user || !board.id) return;
+    if (!user || !board.id || board.source !== 'cloud') return;
     const objectsColRef = collection(db, 'boards', board.id, 'objects');
     const unsub = onSnapshot(
       objectsColRef,
       (snapshot) => {
-        if (!snapshot.empty) {
+        if (snapshot.empty) {
+          const pendingWrites = pendingObjectWritesRef.current;
+          if (pendingWrites.size === 0) {
+            setObjects([]);
+          } else {
+            setObjects(Array.from(pendingWrites.values()));
+          }
+        } else {
           const list: BoardObject[] = [];
-          snapshot.forEach((d) => list.push(d.data() as BoardObject));
+          const cloudIds = new Set<string>();
+          snapshot.forEach((d) => {
+            const cloudObj = d.data() as BoardObject;
+            cloudIds.add(cloudObj.id);
+            const localPending =
+              pendingObjectWritesRef.current.get(cloudObj.id) ||
+              pendingLocalObjectUpdatesRef.current.get(cloudObj.id);
+            list.push(localPending || cloudObj);
+          });
+          for (const [id, localObj] of pendingObjectWritesRef.current.entries()) {
+            if (!cloudIds.has(id)) {
+              list.push(localObj);
+            }
+          }
           setObjects(list);
         }
       },
@@ -233,11 +257,11 @@ export default function App() {
       }
     );
     return () => unsub();
-  }, [board.id, user?.uid]);
+  }, [board.id, board.source, user?.uid]);
 
-  // Sync collaborator presences from Firestore
+  // Sync collaborator presences from Firestore (only for cloud boards)
   useEffect(() => {
-    if (!user || !board.id) return;
+    if (!user || !board.id || board.source !== 'cloud') return;
     const presencesColRef = collection(db, 'boards', board.id, 'presences');
     const unsub = onSnapshot(
       presencesColRef,
@@ -251,14 +275,14 @@ export default function App() {
       }
     );
     return () => unsub();
-  }, [board.id, user?.uid]);
+  }, [board.id, board.source, user?.uid]);
 
   // Keep only the latest cursor sample and serialize presence writes.
   const flushPresence = useCallback(async () => {
     presenceTimerRef.current = null;
     const sample = pendingPresenceRef.current;
     pendingPresenceRef.current = null;
-    if (!user || !sample || presenceWriteActiveRef.current) return;
+    if (!user || !sample || presenceWriteActiveRef.current || board.source !== 'cloud') return;
     presenceWriteActiveRef.current = true;
     try {
       await setDoc(
@@ -285,23 +309,23 @@ export default function App() {
         presenceTimerRef.current = setTimeout(() => void flushPresence(), 100);
       }
     }
-  }, [user, board.id, currentTool]);
+  }, [user, board.id, board.source, currentTool]);
 
   const handlePointerTrack = useCallback(
     (x: number, y: number, isDrawing: boolean) => {
       pendingPresenceRef.current = { x, y, isDrawing };
-      if (user && !presenceWriteActiveRef.current && !presenceTimerRef.current) {
+      if (user && board.source === 'cloud' && !presenceWriteActiveRef.current && !presenceTimerRef.current) {
         presenceTimerRef.current = setTimeout(() => void flushPresence(), 100);
       }
     },
-    [user, flushPresence]
+    [user, board.source, flushPresence]
   );
 
   // Firestore save object helper
   const persistObject = async (obj: BoardObject) => {
     setSyncStatus('saving');
     try {
-      if (user) {
+      if (user && board.source === 'cloud') {
         const docRef = doc(db, 'boards', board.id, 'objects', obj.id);
         await setDoc(docRef, obj);
       }
@@ -474,7 +498,7 @@ export default function App() {
     setSelectedIds((prev) => prev.filter((id) => !ids.includes(id)));
     pushHistory(updated);
 
-    if (user) {
+    if (user && board.source === 'cloud') {
       for (const id of ids) {
         deleteDoc(doc(db, 'boards', board.id, 'objects', id)).catch(() => {});
       }
@@ -536,7 +560,7 @@ export default function App() {
       setSelectedIds([]);
       pushHistory([]);
 
-      if (user) {
+      if (user && board.source === 'cloud') {
         for (const id of idsToDelete) {
           deleteDoc(doc(db, 'boards', board.id, 'objects', id)).catch(() => {});
         }
@@ -671,12 +695,11 @@ export default function App() {
         prev.map((b) => (b.id === board.id ? updatedBoard : b))
       );
 
-      // Save board metadata to Firestore
-      const boardDocRef = doc(db, 'boards', board.id);
-      await setDoc(boardDocRef, updatedBoard, { merge: true });
+      // Save board metadata and objects to Firestore only if user logged in and cloud board
+      if (user && board.source === 'cloud') {
+        const boardDocRef = doc(db, 'boards', board.id);
+        await setDoc(boardDocRef, updatedBoard, { merge: true });
 
-      // Save objects to Firestore if user logged in
-      if (user) {
         for (const obj of objects) {
           const objDocRef = doc(db, 'boards', board.id, 'objects', obj.id);
           await setDoc(objDocRef, obj, { merge: true });
@@ -829,7 +852,7 @@ export default function App() {
     setBoard(updated);
     setAllBoards((prev) => prev.map((b) => (b.id === board.id ? updated : b)));
 
-    if (user) {
+    if (user && board.source === 'cloud') {
       try {
         await setDoc(doc(db, 'boards', board.id), updated, { merge: true });
       } catch (err) {
@@ -951,7 +974,14 @@ export default function App() {
     canvasMode: CanvasMode = 'infinite',
     canvasPreset: CanvasPreset = 'infinite',
     width: number = 1920,
-    height: number = 1080
+    height: number = 1080,
+    options?: {
+      orientation?: 'portrait' | 'landscape' | string;
+      coverStyle?: string;
+      gridStyle?: GridStyle;
+      backgroundColor?: string;
+      gridColor?: string;
+    }
   ) => {
     const themeBgs: Record<BoardTheme, string> = {
       blackboard: '#172e25',
@@ -969,22 +999,34 @@ export default function App() {
       updatedAt: new Date().toISOString(),
     };
 
+    let w = canvasMode === 'notebook' ? 595 : width;
+    let h = canvasMode === 'notebook' ? 842 : height;
+    if (options?.orientation === 'landscape' && w < h) {
+      const tmp = w; w = h; h = tmp;
+    } else if (options?.orientation === 'portrait' && w > h) {
+      const tmp = w; w = h; h = tmp;
+    }
+
     const newBoard: BoardMetadata = {
       id: newBoardId,
       title,
       ownerId: user?.uid || 'anonymous',
       ownerName: user?.displayName || '黑板協作者',
       ownerPhoto: user?.photoURL || '',
-      backgroundColor: themeBgs[theme],
-      gridStyle: 'grid',
+      backgroundColor: options?.backgroundColor || themeBgs[theme],
+      gridStyle: options?.gridStyle || 'grid',
       boardTheme: theme,
       canvasMode,
       canvasPreset: canvasMode === 'notebook' ? 'notebook' : canvasPreset,
-      canvasWidth: canvasMode === 'notebook' ? 595 : width,
-      canvasHeight: canvasMode === 'notebook' ? 842 : height,
+      canvasWidth: w,
+      canvasHeight: h,
+      coverStyle: options?.coverStyle,
+      orientation: options?.orientation,
+      gridColor: options?.gridColor,
       pages: canvasMode === 'notebook' ? [firstPage] : undefined,
       activePageId: canvasMode === 'notebook' ? firstPageId : undefined,
       pins: [],
+      source: user ? 'cloud' : 'local',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -997,7 +1039,7 @@ export default function App() {
     setHistoryIndex(0);
     setIsBoardModalOpen(false);
 
-    if (user) {
+    if (user && newBoard.source === 'cloud') {
       try {
         await setDoc(doc(db, 'boards', newBoardId), newBoard);
       } catch (err) {
@@ -1008,18 +1050,69 @@ export default function App() {
 
   // Delete board
   const handleDeleteBoard = async (boardId: string) => {
-    setAllBoards((prev) => prev.filter((b) => b.id !== boardId));
-    if (board.id === boardId) {
-      const remaining = allBoards.filter((b) => b.id !== boardId);
-      setBoard(remaining.length > 0 ? remaining[0] : DEFAULT_BOARD);
+    const targetBoard = allBoards.find((b) => b.id === boardId) || (board.id === boardId ? board : null);
+    const remaining = allBoards.filter((b) => b.id !== boardId);
+    setAllBoards(remaining);
+
+    if (remaining.length === 0) {
+      // All boards deleted: switch cleanly to Home view, DO NOT automatically spawn DEFAULT_BOARD!
+      setViewMode('home');
+      setObjects([]);
+      setBoard({
+        id: '',
+        title: '',
+        ownerId: 'local',
+        ownerName: '本機使用者',
+        backgroundColor: '#172e25',
+        gridStyle: 'grid',
+        boardTheme: 'blackboard',
+        canvasMode: 'infinite',
+        canvasPreset: 'infinite',
+        pins: [],
+        source: 'local',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+    } else if (board.id === boardId) {
+      const nextBoard = remaining[0];
+      setBoard(nextBoard);
+      const snapshot = persistenceManager.loadBoardSnapshot(nextBoard.id);
+      if (snapshot && Array.isArray(snapshot.objects)) {
+        setObjects(snapshot.objects);
+      } else {
+        setObjects([]);
+      }
     }
-    if (user) {
+
+    persistenceManager.deleteBoardSnapshot(boardId);
+
+    if (user && targetBoard?.source === 'cloud') {
       try {
         await deleteDoc(doc(db, 'boards', boardId));
       } catch (err) {
         handleFirestoreError(err, OperationType.DELETE, `boards/${boardId}`);
       }
     }
+  };
+
+  // Load Feature Showcase Demonstration Board (功能展示說明圖示範黑板)
+  const handleLoadShowcaseBoard = () => {
+    const showcase = getFeatureShowcaseDocument();
+    setAllBoards((prev) => {
+      const exists = prev.some((b) => b.id === showcase.board.id);
+      return exists
+        ? prev.map((b) => (b.id === showcase.board.id ? showcase.board : b))
+        : [showcase.board, ...prev];
+    });
+    setBoard(showcase.board);
+    setObjects(showcase.objects);
+    pushHistory(showcase.objects);
+    persistenceManager.saveBoardSnapshot(showcase.board.id, {
+      board: showcase.board,
+      objects: showcase.objects,
+      revision: 1,
+    });
+    setViewMode('canvas');
   };
 
   // Import JSON
@@ -1029,7 +1122,11 @@ export default function App() {
       try {
         const data = JSON.parse(e.target?.result as string);
         if (data.board && data.objects) {
-          setBoard(data.board);
+          const importedBoard: BoardMetadata = {
+            ...data.board,
+            source: data.board.source || 'local',
+          };
+          setBoard(importedBoard);
           setObjects(data.objects);
           pushHistory(data.objects);
         }
@@ -1047,11 +1144,12 @@ export default function App() {
         currentBoardId={board.id}
         user={user}
         onOpenBoard={handleOpenBoard}
-        onCreateBoard={(title, theme, canvasMode, canvasPreset, w, h) => {
-          handleCreateBoard(title, theme, canvasMode, canvasPreset, w, h);
+        onCreateBoard={(title, theme, canvasMode, canvasPreset, w, h, options) => {
+          handleCreateBoard(title, theme, canvasMode, canvasPreset, w, h, options);
           setViewMode('canvas');
         }}
         onDeleteBoard={handleDeleteBoard}
+        onLoadShowcaseBoard={handleLoadShowcaseBoard}
         onSignIn={handleSignIn}
         onSignOut={handleSignOut}
       />
@@ -1083,8 +1181,10 @@ export default function App() {
         onExportSvg={() => exportToSvgFile(objects, board)}
         onExportPdf={() => exportToPdfFile(objects, board)}
         onExportPng={() => exportToPngFile(objects, board)}
+        onExportHtml={() => exportToHtmlFile(objects, board)}
         onExportJson={() => exportToJsonFile(objects, board)}
         onImportJson={handleImportJson}
+        onLoadShowcaseBoard={handleLoadShowcaseBoard}
         onOpenBoardsModal={() => setIsBoardModalOpen(true)}
         onSignIn={handleSignIn}
         onSignOut={handleSignOut}

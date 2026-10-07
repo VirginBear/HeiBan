@@ -176,20 +176,18 @@ export const BoardModal: React.FC<BoardModalProps> = ({
                     </div>
 
                     <div className="flex items-center gap-1">
-                      {boards.length > 1 && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (confirm(`確定要刪除黑板「${b.title}」嗎？此動作無法復原。`)) {
-                              onDeleteBoard(b.id);
-                            }
-                          }}
-                          className="p-2 hover:bg-red-500/20 text-neutral-400 hover:text-red-400 rounded-xl transition-colors"
-                          title="刪除黑板"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (confirm(`確定要刪除黑板「${b.title}」嗎？此動作無法復原。`)) {
+                            onDeleteBoard(b.id);
+                          }
+                        }}
+                        className="p-2 hover:bg-red-500/20 text-neutral-400 hover:text-red-400 rounded-xl transition-colors"
+                        title="刪除黑板"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
                 );

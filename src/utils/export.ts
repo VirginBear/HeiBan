@@ -70,7 +70,8 @@ export function generateSvg(
     switch (obj.type) {
       case 'stroke':
       case 'highlighter':
-      case 'paint': {
+      case 'paint':
+      case 'curve': {
         if (obj.points) {
           try {
             const points: Point[] = JSON.parse(obj.points);
@@ -359,4 +360,162 @@ export function exportToJsonFile(objects: BoardObject[], board: BoardMetadata) {
   const jsonStr = JSON.stringify(payload, null, 2);
   const cleanTitle = (board.title || 'blackboard').replace(/[^\w\u4e00-\u9fa5]/gi, '_');
   downloadFile(jsonStr, `${cleanTitle}.blackboard.json`, 'application/json');
+}
+
+/**
+ * Generate a standalone offline interactive HTML document
+ */
+export function generateStandaloneHtml(
+  objects: BoardObject[],
+  board: BoardMetadata,
+  customBounds?: { minX: number; minY: number; maxX: number; maxY: number }
+): string {
+  const { svgString, width, height } = generateSvg(objects, board, 40, customBounds);
+  const title = board.title || 'HeiBan 黑板作品';
+  const bgColor = board.backgroundColor || '#172e25';
+  const payload = {
+    schemaVersion: '1.0.0',
+    version: '1.0',
+    board,
+    objects,
+    exportedAt: new Date().toISOString(),
+  };
+  const jsonStr = JSON.stringify(payload, null, 2);
+
+  const pages = board.pages || [];
+  let pageTabsHtml = '';
+  if (pages.length > 1) {
+    pageTabsHtml = "<div class='page-bar'>";
+    pages.forEach((p, idx) => {
+      const activeClass = idx === 0 ? 'active' : '';
+      pageTabsHtml += `<button class='page-tab ${activeClass}' onclick='switchPage("${p.id}")'>${p.title}</button>`;
+    });
+    pageTabsHtml += '</div>';
+  }
+
+  return `<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title} - HeiBan 離線導出</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body, html { width: 100%; height: 100%; overflow: hidden; background-color: ${bgColor}; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; }
+    #header { position: absolute; top: 16px; left: 16px; z-index: 100; display: flex; align-items: center; gap: 12px; background: rgba(20, 24, 33, 0.82); backdrop-filter: blur(16px); padding: 8px 16px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.12); color: #fff; box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+    #title { font-size: 14px; font-weight: 600; }
+    .badge { font-size: 10px; background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 2px 8px; border-radius: 999px; border: 1px solid rgba(56, 189, 248, 0.3); }
+    #controls { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; gap: 8px; background: rgba(20, 24, 33, 0.85); backdrop-filter: blur(16px); padding: 6px 12px; border-radius: 30px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 8px 30px rgba(0,0,0,0.35); }
+    .ctrl-btn { background: transparent; border: none; color: #e2e8f0; font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 20px; cursor: pointer; transition: background 0.15s, color 0.15s; }
+    .ctrl-btn:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+    #viewport { width: 100%; height: 100%; position: absolute; inset: 0; cursor: grab; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    #viewport:active { cursor: grabbing; }
+    #canvas-container { transform-origin: 0 0; transition: transform 0.04s ease-out; box-shadow: 0 10px 40px rgba(0,0,0,0.4); border-radius: 8px; }
+    svg { display: block; width: 100%; height: 100%; }
+    .page-bar { display: flex; gap: 4px; margin-left: 8px; }
+    .page-tab { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.12); color: #cbd5e1; font-size: 11px; padding: 4px 10px; border-radius: 8px; cursor: pointer; }
+    .page-tab.active { background: #3b82f6; color: #fff; font-weight: bold; border-color: #60a5fa; }
+  </style>
+</head>
+<body>
+  <div id="header">
+    <span id="title">${title}</span>
+    <span class="badge">HeiBan 向量畫布</span>
+    ${pageTabsHtml}
+  </div>
+
+  <div id="controls">
+    <button class="ctrl-btn" onclick="zoomIn()">放大 (+)</button>
+    <button class="ctrl-btn" onclick="resetZoom()">100%</button>
+    <button class="ctrl-btn" onclick="zoomOut()">縮小 (-)</button>
+    <button class="ctrl-btn" onclick="fitView()">適配視窗</button>
+  </div>
+
+  <div id="viewport" onmousedown="startPan(event)" onwheel="handleWheel(event)">
+    <div id="canvas-container">
+      ${svgString}
+    </div>
+  </div>
+
+  <script id="heiban-data" type="application/json">
+  ${jsonStr}
+  </script>
+
+  <script>
+    let scale = 1.0;
+    let panX = 0, panY = 0;
+    let isPanning = false;
+    let startX = 0, startY = 0;
+    const container = document.getElementById('canvas-container');
+    const origWidth = ${width};
+    const origHeight = ${height};
+
+    function updateTransform() {
+      container.style.transform = \`translate(\${panX}px, \${panY}px) scale(\${scale})\`;
+    }
+
+    function zoomIn() { scale = Math.min(6.0, scale * 1.25); updateTransform(); }
+    function zoomOut() { scale = Math.max(0.1, scale / 1.25); updateTransform(); }
+    function resetZoom() { scale = 1.0; panX = (window.innerWidth - origWidth) / 2; panY = (window.innerHeight - origHeight) / 2; updateTransform(); }
+    function fitView() {
+      const padding = 60;
+      const scaleX = (window.innerWidth - padding) / origWidth;
+      const scaleY = (window.innerHeight - padding) / origHeight;
+      scale = Math.min(scaleX, scaleY, 1.5);
+      panX = (window.innerWidth - origWidth * scale) / 2;
+      panY = (window.innerHeight - origHeight * scale) / 2;
+      updateTransform();
+    }
+
+    function startPan(e) {
+      if (e.target.closest('#header') || e.target.closest('#controls')) return;
+      isPanning = true;
+      startX = e.clientX - panX;
+      startY = e.clientY - panY;
+      window.addEventListener('mousemove', onPan);
+      window.addEventListener('mouseup', endPan);
+    }
+
+    function onPan(e) {
+      if (!isPanning) return;
+      panX = e.clientX - startX;
+      panY = e.clientY - startY;
+      updateTransform();
+    }
+
+    function endPan() {
+      isPanning = false;
+      window.removeEventListener('mousemove', onPan);
+      window.removeEventListener('mouseup', endPan);
+    }
+
+    function handleWheel(e) {
+      e.preventDefault();
+      const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+      const mouseX = e.clientX;
+      const mouseY = e.clientY;
+      const newScale = Math.min(8.0, Math.max(0.1, scale * zoomFactor));
+      panX = mouseX - (mouseX - panX) * (newScale / scale);
+      panY = mouseY - (mouseY - panY) * (newScale / scale);
+      scale = newScale;
+      updateTransform();
+    }
+
+    window.addEventListener('load', fitView);
+  </script>
+</body>
+</html>`;
+}
+
+/**
+ * Export board to standalone interactive HTML file
+ */
+export function exportToHtmlFile(
+  objects: BoardObject[],
+  board: BoardMetadata,
+  customBounds?: { minX: number; minY: number; maxX: number; maxY: number }
+) {
+  const htmlContent = generateStandaloneHtml(objects, board, customBounds);
+  const cleanTitle = (board.title || 'blackboard').replace(/[^\w\u4e00-\u9fa5]/gi, '_');
+  downloadFile(htmlContent, `${cleanTitle}${customBounds ? '_custom_range' : ''}.html`, 'text/html');
 }

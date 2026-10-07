@@ -38,6 +38,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Trash2,
+  Globe,
 } from 'lucide-react';
 
 interface TopNavProps {
@@ -61,8 +62,10 @@ interface TopNavProps {
   onExportSvg: () => void;
   onExportPdf: () => void;
   onExportPng: () => void;
+  onExportHtml?: () => void;
   onExportJson: () => void;
   onImportJson: (file: File) => void;
+  onLoadShowcaseBoard?: () => void;
   onOpenBoardsModal: () => void;
   onSignIn: () => void;
   onSignOut: () => void;
@@ -96,8 +99,10 @@ export const TopNav: React.FC<TopNavProps> = ({
   onExportSvg,
   onExportPdf,
   onExportPng,
+  onExportHtml,
   onExportJson,
   onImportJson,
+  onLoadShowcaseBoard,
   onOpenBoardsModal,
   onSignIn,
   onSignOut,
@@ -142,7 +147,16 @@ export const TopNav: React.FC<TopNavProps> = ({
     { id: 'grid', name: '方格網格' },
     { id: 'dots', name: '點陣 (FigJam)' },
     { id: 'lines', name: '筆記橫線' },
+    { id: 'staff', name: '五線譜' },
     { id: 'blank', name: '純淨無格' },
+  ];
+
+  const gridColorPresets = [
+    { label: '自適應', color: undefined },
+    { label: '純白', color: '#ffffff' },
+    { label: '淺灰', color: '#94a3b8' },
+    { label: '深灰', color: '#475569' },
+    { label: '柔黑', color: '#18181b' },
   ];
 
   return (
@@ -375,6 +389,28 @@ export const TopNav: React.FC<TopNavProps> = ({
                       }`}
                     >
                       {g.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="border-t border-neutral-800 pt-2">
+                <div className="text-[11px] font-medium text-neutral-400 mb-1.5">格線深淺顏色</div>
+                <div className="grid grid-cols-5 gap-1">
+                  {gridColorPresets.map((gc) => (
+                    <button
+                      key={gc.label}
+                      onClick={() => {
+                        onUpdateBoard({ gridColor: gc.color });
+                        setShowThemeMenu(false);
+                      }}
+                      className={`py-1 px-1 rounded-lg border text-center text-[10px] transition-all ${
+                        board.gridColor === gc.color
+                          ? 'border-emerald-500 bg-emerald-500/20 text-white font-bold'
+                          : 'border-neutral-800 hover:bg-neutral-800 text-neutral-400'
+                      }`}
+                    >
+                      {gc.label}
                     </button>
                   ))}
                 </div>
@@ -711,6 +747,22 @@ export const TopNav: React.FC<TopNavProps> = ({
                 </div>
               </button>
 
+              {onExportHtml && (
+                <button
+                  onClick={() => {
+                    onExportHtml();
+                    setShowExportMenu(false);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-neutral-200 hover:bg-neutral-800 hover:text-white text-left transition-colors"
+                >
+                  <Globe className="w-4 h-4 text-emerald-400" />
+                  <div>
+                    <div className="font-medium">獨立 HTML 網頁</div>
+                    <div className="text-[10px] text-neutral-400">免裝軟體，瀏覽器離線互動檢視</div>
+                  </div>
+                </button>
+              )}
+
               <div className="border-t border-neutral-800 my-1" />
 
               <button
@@ -738,6 +790,23 @@ export const TopNav: React.FC<TopNavProps> = ({
                   }}
                 />
               </label>
+
+              {onLoadShowcaseBoard && (
+                <>
+                  <div className="border-t border-neutral-800 my-1" />
+                  <button
+                    onClick={() => {
+                      onLoadShowcaseBoard();
+                      setShowExportMenu(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-1.5 rounded-xl text-purple-300 hover:bg-purple-950/40 hover:text-purple-200 text-left transition-colors font-medium text-xs"
+                    title="載入涵蓋筆刷、幾何、便簽、尺規全功能說明的示範黑板"
+                  >
+                    <span>✨</span>
+                    <span>載入功能示範黑板</span>
+                  </button>
+                </>
+              )}
             </div>
           )}
         </div>

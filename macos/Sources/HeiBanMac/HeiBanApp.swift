@@ -4,7 +4,13 @@ import HeiBanCore
 
 @main
 struct HeiBanApp: App {
-    @StateObject private var engine = BoardEngine()
+    @StateObject private var engine: BoardEngine = {
+        let eng = BoardEngine()
+        eng.dialogService = MacPlatformDialogService()
+        eng.pasteboardService = MacPlatformPasteboardService()
+        eng.imageDecoderService = MacPlatformImageDecoderService()
+        return eng
+    }()
 
     var body: some Scene {
         WindowGroup {

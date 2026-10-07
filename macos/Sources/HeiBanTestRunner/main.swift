@@ -3674,6 +3674,497 @@ do {
     assertEqual(restoredDoc.objects.first?.pageId, page1Id, "物件關聯之 pageId 一致")
 }
 
+// ==============================================================================
+// 測試 36: 筆記格式強化 (五線譜/B5/封面/格線顏色)、HTML 匯出與懸停預覽游標 (立靶驗收)
+// ==============================================================================
+print("\n[測試 36] 筆記格式強化 (五線譜/B5/封面/格線顏色)、HTML 匯出與懸停預覽游標 (立靶驗收)")
+do {
+    // 36.1 五線譜與 B5 格式支援
+    assertTrue(GridStyle.allCases.contains(.staff), "GridStyle 包含 staff 五線譜")
+    assertEqual(GridStyle.staff.displayName, "五線譜", "五線譜顯示名稱相符")
+    assertTrue(CanvasPreset.allCases.contains(.b5), "CanvasPreset 包含 b5 規格")
+    assertEqual(CanvasPreset.b5.dimensions.width, 499.0, "B5 寬度為 499")
+    assertEqual(CanvasPreset.b5.dimensions.height, 709.0, "B5 高度為 709")
+
+    // 36.2 有邊界筆記本客製化建立 (方向/封面/內頁/底色/格線色)
+    let engine = BoardEngine()
+    engine.createBoard(
+        title: "莫札特奏鳴曲",
+        theme: .whiteboard,
+        mode: .notebook,
+        preset: .a4_portrait,
+        orientation: "landscape",
+        coverStyle: "vintage_leather",
+        gridStyle: .staff,
+        backgroundColor: "#FAF8F5",
+        gridColor: "#4A5568"
+    )
+    assertEqual(engine.board.title, "莫札特奏鳴曲", "標題正確設定")
+    assertEqual(engine.board.canvasMode, .notebook, "模式為 notebook")
+    assertEqual(engine.board.gridStyle, .staff, "內頁風格為 staff 五線譜")
+    assertEqual(engine.board.coverStyle, "vintage_leather", "封面風格為 vintage_leather")
+    assertEqual(engine.board.backgroundColor, "#FAF8F5", "底色為象牙暖白")
+    assertEqual(engine.board.gridColor, "#4A5568", "格線顏色為自訂深灰")
+    // 橫向判定：A4 原本為 595x842，設定 landscape 後寬度 > 高度
+    assertTrue(engine.board.canvasWidth! > engine.board.canvasHeight!, "橫向頁面寬度大於高度 (842 x 595)")
+
+    // 36.3 序列化與向下相容驗證
+    let doc = HeiBanDocument(board: engine.board, objects: [])
+    let encoder = JSONEncoder()
+    let decoder = JSONDecoder()
+    let data = try encoder.encode(doc)
+    let restoredDoc = try decoder.decode(HeiBanDocument.self, from: data)
+    assertEqual(restoredDoc.board.gridStyle, .staff, "反序列化 staff 五線譜一致")
+    assertEqual(restoredDoc.board.coverStyle, "vintage_leather", "反序列化封面風格一致")
+    assertEqual(restoredDoc.board.gridColor, "#4A5568", "反序列化格線顏色一致")
+
+    // 36.4 HTML 離線互動單檔匯出
+    engine.addSticky(text: "第一樂章 快板 Allegro", at: Point(x: 120, y: 150))
+    let exporter = BoardExporter(document: engine.document)
+    let htmlOutput = try exporter.exportHTML(scope: .allObjects, selectedIds: [])
+    assertTrue(htmlOutput.contains("<!DOCTYPE html>"), "匯出 HTML 具備合法 DOCTYPE")
+    assertTrue(htmlOutput.contains("莫札特奏鳴曲"), "匯出 HTML 標題符合黑板名稱")
+    assertTrue(htmlOutput.contains("第一樂章 快板 Allegro"), "匯出 HTML 包含畫布文字內容")
+    assertTrue(htmlOutput.contains("heiban-data"), "匯出 HTML 內嵌無損 JSON 資料")
+    assertTrue(htmlOutput.contains("zoomIn()") && htmlOutput.contains("zoomOut()"), "匯出 HTML 具備縮放控制函式")
+
+    // 36.5 懸停游標模型驗證 (畫筆與橡皮擦範圍預覽)
+    engine.currentTool = .pen
+    engine.activeStrokeWidth = 8.0
+    engine.viewport.zoom = 1.5
+    // 模擬游標移動至 (200, 300)
+    let penDiameter = engine.activeStrokeWidth * engine.viewport.zoom
+    engine.updateHoverCursor(at: Point(x: 200, y: 300), diameter: penDiameter)
+    assertEqual(engine.hoverCursorPoint?.x, 200.0, "畫筆懸停 X 座標相符")
+    assertEqual(engine.hoverCursorPoint?.y, 300.0, "畫筆懸停 Y 座標相符")
+    assertEqual(engine.hoverCursorDiameter, 12.0, "畫筆懸停直徑等於 strokeWidth * zoom (8 * 1.5 = 12)")
+
+    // 橡皮擦模式
+    engine.currentTool = .eraser
+    engine.eraserSize = 32.0
+    let eraserDiameter = engine.eraserSize * engine.viewport.zoom
+    engine.updateHoverCursor(at: Point(x: 250, y: 350), diameter: eraserDiameter)
+    assertEqual(engine.hoverCursorDiameter, 48.0, "橡皮擦懸停直徑等於 eraserSize * zoom (32 * 1.5 = 48)")
+
+    // 移出畫布時清空
+    engine.updateHoverCursor(at: nil, diameter: nil)
+    assertTrue(engine.hoverCursorPoint == nil, "移出畫布時懸停座標清空")
+    assertTrue(engine.hoverCursorDiameter == nil, "移出畫布時懸停直徑清空")
+}
+
+// =========================================================================
+// [測試 37] AG-12: 本機／雲端文件 Session 邊界與 source 欄位契約驗收 (立靶驗收)
+// =========================================================================
+do {
+    print("\n[測試 37] AG-12: 本機／雲端文件 Session 邊界與 source 欄位契約驗收 (立靶驗收)")
+
+    // 37.1 BoardMetadata source 欄位與序列化
+    var localMeta = BoardMetadata(id: "board_local_native", title: "本機原創設計", ownerId: "local_mac")
+    localMeta.source = "local"
+    var cloudMeta = BoardMetadata(id: "board_cloud_native", title: "雲端團隊專案", ownerId: "user_cloud_1")
+    cloudMeta.source = "cloud"
+
+    assertEqual(localMeta.source, "local", "本機黑板 source 為 local")
+    assertEqual(cloudMeta.source, "cloud", "雲端黑板 source 為 cloud")
+
+    let encoder = JSONEncoder()
+    let decoder = JSONDecoder()
+
+    let localDoc = HeiBanDocument(board: localMeta, objects: [])
+    let localData = try encoder.encode(localDoc)
+    let restoredLocalDoc = try decoder.decode(HeiBanDocument.self, from: localData)
+    assertEqual(restoredLocalDoc.board.source, "local", "反序列化本機 board.source 一致")
+
+    let cloudDoc = HeiBanDocument(board: cloudMeta, objects: [])
+    let cloudData = try encoder.encode(cloudDoc)
+    let restoredCloudDoc = try decoder.decode(HeiBanDocument.self, from: cloudData)
+    assertEqual(restoredCloudDoc.board.source, "cloud", "反序列化雲端 board.source 一致")
+
+    // 37.2 本機與雲端 Session 邊界隔離模擬
+    func reconcileSwiftSnapshot(
+        board: BoardMetadata,
+        remoteObjects: [BoardObject],
+        isEmptySnapshot: Bool,
+        pendingWrites: [String: BoardObject],
+        currentObjects: [BoardObject]
+    ) -> [BoardObject] {
+        if board.source != "cloud" {
+            return currentObjects // 本機文件不受任何雲端 snapshot 影響
+        }
+        if isEmptySnapshot {
+            if pendingWrites.isEmpty {
+                return [] // 雲端空板清空前板殘留
+            }
+            return Array(pendingWrites.values)
+        }
+        var result: [BoardObject] = []
+        var cloudIds = Set<String>()
+        for obj in remoteObjects {
+            cloudIds.insert(obj.id)
+            if let pending = pendingWrites[obj.id] {
+                result.append(pending)
+            } else {
+                result.append(obj)
+            }
+        }
+        for (id, localObj) in pendingWrites where !cloudIds.contains(id) {
+            result.append(localObj)
+        }
+        return result
+    }
+
+    // 案例 A：切換至雲端空板，清空前板殘留
+    let prevObjects = [BoardObject(id: "obj_prev_1", type: "rect", x: 10, y: 10, width: 20, height: 20)]
+    let emptyResult = reconcileSwiftSnapshot(
+        board: cloudMeta,
+        remoteObjects: [],
+        isEmptySnapshot: true,
+        pendingWrites: [:],
+        currentObjects: prevObjects
+    )
+    assertEqual(emptyResult.count, 0, "Swift 雲端空板清空前板內容")
+
+    // 案例 B：本機板嚴禁被雲端快照清空
+    let localKeptObjects = [BoardObject(id: "obj_secret", type: "circle", x: 50, y: 50, width: 30, height: 30)]
+    let localResult = reconcileSwiftSnapshot(
+        board: localMeta,
+        remoteObjects: [],
+        isEmptySnapshot: true,
+        pendingWrites: [:],
+        currentObjects: localKeptObjects
+    )
+    assertEqual(localResult.count, 1, "Swift 本機板嚴禁被外部空快照清空")
+    assertEqual(localResult[0].id, "obj_secret", "Swift 本機物件完整保留")
+
+    // 案例 C：未保存之本地修改優先，不被雲端 snapshot 靜默覆蓋
+    let remoteObj = BoardObject(id: "obj_conflict", type: "line", x: 0, y: 0, width: 100, height: 100, strokeColor: "#ffffff")
+    var localPending = remoteObj
+    localPending.strokeColor = "#ffff00" // 本地修改為黃色
+    let conflictResult = reconcileSwiftSnapshot(
+        board: cloudMeta,
+        remoteObjects: [remoteObj],
+        isEmptySnapshot: false,
+        pendingWrites: ["obj_conflict": localPending],
+        currentObjects: [localPending]
+    )
+    assertEqual(conflictResult.count, 1, "Swift 衝突物件數維持 1")
+    assertEqual(conflictResult[0].strokeColor, "#ffff00", "Swift 本地未保存修改優先獲勝 (防靜默覆蓋)")
+}
+
+// =========================================================================
+// [測試 38] AG-20: 統一 Native 保存入口、修訂版號衝突防護與多視窗 Session 協調 (立靶驗收)
+// =========================================================================
+do {
+    print("\n[測試 38] AG-20: 統一 Native 保存入口、修訂版號衝突防護與多視窗 Session 協調 (立靶驗收)")
+    let sandboxDir = FileManager.default.temporaryDirectory.resolvingSymlinksInPath()
+        .appendingPathComponent("HeiBanTest_AG20_\(UUID().uuidString)")
+    try FileManager.default.createDirectory(at: sandboxDir, withIntermediateDirectories: true)
+
+    let customLibrary = LocalBoardLibrary(directory: sandboxDir)
+    let sessionManager = DocumentSessionManager(library: customLibrary)
+
+    // 38.1 LocalBoardLibrary.saveToFile 與備份快照生成
+    let testDocURL = sandboxDir.appendingPathComponent("Workspaces/test_proj.blackboard.json")
+    let initialDoc = HeiBanDocument(
+        board: BoardMetadata(id: "doc_ag20_1", title: "工程架構圖", revision: 2),
+        objects: [BoardObject(id: "obj_box", type: "rect", x: 10, y: 10, width: 80, height: 60)]
+    )
+    try customLibrary.saveToFile(initialDoc, at: testDocURL)
+    assertTrue(FileManager.default.fileExists(atPath: testDocURL.path), "檔案成功原子寫入至目標路徑")
+    let expectedBackup = customLibrary.backupURL(id: "doc_ag20_1")
+    assertTrue(FileManager.default.fileExists(atPath: expectedBackup.path), "備份快照已同步生成")
+
+    // 38.2 DocumentSession.save 接入統一保存管線並進行修訂版號防護
+    let session = try sessionManager.openDocument(at: testDocURL)
+    assertEqual(session.openWindowCount, 1, "初始視窗計數為 1")
+
+    // 模擬外部或另一客戶端先行寫入了較新修訂版號 (rev 5)
+    let newerDoc = HeiBanDocument(
+        board: BoardMetadata(id: "doc_ag20_1", title: "工程架構圖 (外部更新)", revision: 5),
+        objects: []
+    )
+    let newerData = try HeiBanDocumentCodec.encode(newerDoc)
+    try newerData.write(to: testDocURL, options: .atomic)
+
+    // 嘗試以記憶體舊版號 (rev 2) 儲存，必須被拒絕並拋出 revisionConflict
+    var conflictTriggered = false
+    do {
+        try session.save()
+    } catch PersistenceError.revisionConflict(let current, let incoming) {
+        conflictTriggered = true
+        assertEqual(current, 5, "衝突當前版號為 5")
+        assertEqual(incoming, 2, "衝突傳入版號為 2")
+    } catch {
+        assertTrue(false, "預期應拋出 revisionConflict，實際拋出: \(error)")
+    }
+    assertTrue(conflictTriggered, "覆蓋較新 revision 遭到嚴格拒絕以保全資料")
+
+    // 當 session 修訂版號對齊最新或更高時 (rev 6)，儲存成功
+    session.engine.board.revision = 6
+    try session.save()
+    let savedData = try Data(contentsOf: testDocURL)
+    let savedDoc = try HeiBanDocumentCodec.decode(from: savedData)
+    assertEqual(savedDoc.board.revision, 6, "對齊最新修訂版號後成功寫入")
+
+    // 38.3 多視窗重複開啟相同文件協調至同一個 Session 實例
+    let duplicateSession = try sessionManager.openDocument(at: testDocURL)
+    assertTrue(duplicateSession === session, "重複開啟相同文件回傳同一個 Session 實例")
+    assertEqual(session.openWindowCount, 2, "開啟第二視窗時 openWindowCount 遞增為 2")
+
+    // 關閉第一個視窗，Session 仍保持活躍
+    sessionManager.closeWindow(for: session)
+    assertEqual(session.openWindowCount, 1, "關閉一視窗後 openWindowCount 遞減為 1")
+    assertEqual(sessionManager.activeSessions.count, 1, "Session 仍處於 activeSessions 中")
+
+    // 關閉最後一個視窗，Session 釋放
+    sessionManager.closeWindow(for: session)
+    assertEqual(sessionManager.activeSessions.count, 0, "全部視窗關閉後 Session 正確釋放")
+
+    // 38.4 openBoard(id:) 整合驗證
+    let libraryDoc = HeiBanDocument(
+        board: BoardMetadata(id: "lib_board_alpha", title: "資料庫黑板", revision: 1),
+        objects: []
+    )
+    try customLibrary.save(libraryDoc)
+    let libSession = try sessionManager.openBoard(id: "lib_board_alpha")
+    assertEqual(libSession.engine.board.id, "lib_board_alpha", "openBoard 成功載入黑板")
+    assertEqual(sessionManager.activeSessions.count, 1, "openBoard 成功註冊 Session")
+    sessionManager.closeWindow(for: libSession)
+}
+
+// =========================================================================
+// [測試 39] AG-21: HeiBanCore 與 macOS 介面隔離與平台 Adapters 契約驗證 (立靶驗收)
+// =========================================================================
+do {
+    print("\n[測試 39] AG-21: HeiBanCore 與 macOS 介面隔離與平台 Adapters 契約驗證 (立靶驗收)")
+
+    final class MockDialogService: PlatformDialogService {
+        var lastSavedName: String?
+        var lastAllowedExtensions: [String]?
+        var returnURL: URL?
+
+        func runSavePanel(defaultName: String, allowedExtensions: [String], completion: @escaping (URL?) -> Void) {
+            self.lastSavedName = defaultName
+            self.lastAllowedExtensions = allowedExtensions
+            completion(returnURL)
+        }
+
+        func runOpenPanel(allowedExtensions: [String], allowsMultiple: Bool, completion: @escaping ([URL]?) -> Void) {
+            self.lastAllowedExtensions = allowedExtensions
+            if let returnURL = returnURL {
+                completion([returnURL])
+            } else {
+                completion(nil)
+            }
+        }
+    }
+
+    final class MockPasteboardService: PlatformPasteboardService {
+        var stringBuffer: String?
+        var imageBuffer: (data: Data, width: Double, height: Double)?
+
+        func copyString(_ text: String) {
+            stringBuffer = text
+        }
+        func pasteString() -> String? {
+            return stringBuffer
+        }
+        func pasteImageData() -> (data: Data, width: Double, height: Double)? {
+            return imageBuffer
+        }
+    }
+
+    let engine = BoardEngine(restoreSession: false)
+
+    // 39.1 無 DialogService 狀態下的安全防護 (無 AppKit 依賴時安全回退)
+    engine.dialogService = nil
+    engine.saveToFilePrompt()
+    assertEqual(engine.statusMessage, "平台對話框服務未就緒", "無對話框服務時安全提示狀態，不崩潰")
+
+    engine.openFromFilePrompt()
+    assertEqual(engine.statusMessage, "平台對話框服務未就緒", "開啟對話框在無介面環境下安全拒絕")
+
+    // 39.2 注入 MockDialogService 驗收文件面板解耦
+    let mockDialog = MockDialogService()
+    engine.dialogService = mockDialog
+
+    let testSaveTarget = FileManager.default.temporaryDirectory.appendingPathComponent("engine_save_test.blackboard.json")
+    mockDialog.returnURL = testSaveTarget
+
+    engine.board.title = "幾何速繪"
+    engine.saveToFilePrompt()
+    assertEqual(mockDialog.lastAllowedExtensions?.contains("json"), true, "儲存對話框允許 json 延伸檔名")
+    assertEqual(FileManager.default.fileExists(atPath: testSaveTarget.path), true, "透過 DialogService 回調完成儲存")
+
+    // 39.3 注入 MockPasteboardService 驗收剪貼簿解耦
+    let mockPasteboard = MockPasteboardService()
+    engine.pasteboardService = mockPasteboard
+
+    let testObj = BoardObject(id: "obj_copy_test", type: "circle", x: 20, y: 20, width: 40, height: 40)
+    engine.addObject(testObj)
+    engine.selectedIds = [testObj.id]
+
+    engine.copySelected()
+    assertTrue(mockPasteboard.stringBuffer != nil, "複製物件寫入至 PlatformPasteboardService")
+    assertTrue(mockPasteboard.stringBuffer!.contains("obj_copy_test"), "剪貼簿內容包含物件 ID")
+
+    // 清空選取與內部剪貼簿，僅依賴 PlatformPasteboardService 進行貼上
+    engine.internalClipboard = []
+    let initialCount = engine.objects.count
+    engine.pasteClipboard()
+    assertEqual(engine.objects.count, initialCount + 1, "從 PlatformPasteboardService 成功還原並貼上物件")
+
+    // 39.4 剪貼簿圖片貼上
+    let dummyImageData = Data([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]) // PNG header bytes
+    mockPasteboard.imageBuffer = (data: dummyImageData, width: 320.0, height: 240.0)
+    engine.pasteImageFromClipboard()
+    assertEqual(engine.statusMessage, "已將剪貼簿圖片置入黑板！", "成功自 PlatformPasteboard 匯入圖片")
+}
+
+// -------------------------------------------------------------------------
+// 40. AG-22: BoardEngine 模組化拆分、選取變形協調器、尺規／橡皮擦子引擎與畫布狀態快照 (立靶驗收)
+// -------------------------------------------------------------------------
+print("\n[測試 40] AG-22: BoardEngine 拆小、變形協調器、尺規／橡皮擦引擎與狀態快照 (立靶驗收)")
+do {
+    // 40.1 SelectionTransformCoordinator: 幾何手柄位置、命中測試與變形計算
+    let bounds = Rect(minX: 100, minY: 100, maxX: 300, maxY: 200) // 寬 200, 高 100, 中心 (200, 150)
+    let handles = SelectionTransformCoordinator.calculateHandlePositions(for: bounds, rotation: 0, zoom: 1.0)
+    
+    assertEqual(handles.topLeft.x, 100.0, "左上手柄 X 應為 100")
+    assertEqual(handles.topLeft.y, 100.0, "左上手柄 Y 應為 100")
+    assertEqual(handles.bottomRight.x, 300.0, "右下手柄 X 應為 300")
+    assertEqual(handles.bottomRight.y, 200.0, "右下手柄 Y 應為 200")
+    assertEqual(handles.topCenter.x, 200.0, "頂部中間手柄 X 應為 200")
+    assertEqual(handles.topCenter.y, 100.0, "頂部中間手柄 Y 應為 100")
+    assertEqual(handles.rotationHandle.x, 200.0, "旋轉手柄 X 應居中 (200)")
+    assertEqual(handles.rotationHandle.y, 75.0, "旋轉手柄 Y 應向上偏移 25 pt (75)")
+
+    // 命中測試手柄
+    let hitTopLeft = SelectionTransformCoordinator.hitTestHandle(
+        point: Point(x: 102, y: 101),
+        bounds: bounds,
+        rotation: 0,
+        zoom: 1.0,
+        handleRadius: 10.0
+    )
+    assertEqual(hitTopLeft, .topLeft, "點擊 (102, 101) 應精準命中 topLeft 手柄")
+
+    let hitRotate = SelectionTransformCoordinator.hitTestHandle(
+        point: Point(x: 200, y: 76),
+        bounds: bounds,
+        rotation: 0,
+        zoom: 1.0,
+        handleRadius: 10.0
+    )
+    assertEqual(hitRotate, .rotate, "點擊 (200, 76) 應精準命中 rotate 手柄")
+
+    let hitNone = SelectionTransformCoordinator.hitTestHandle(
+        point: Point(x: 200, y: 150),
+        bounds: bounds,
+        rotation: 0,
+        zoom: 1.0,
+        handleRadius: 10.0
+    )
+    assertEqual(hitNone == nil, true, "點擊選取框中心不應命中任何手柄")
+
+    // 40.2 變形計算驗收 (Resize & Rotate)
+    let resizedRect = SelectionTransformCoordinator.applyResize(
+        handle: .bottomRight,
+        initialBounds: bounds,
+        delta: CGPoint(x: 50, y: 20),
+        maintainAspectRatio: false
+    )
+    assertEqual(resizedRect.maxX, 350.0, "右下拖曳 +50 maxX 應為 350")
+    assertEqual(resizedRect.maxY, 220.0, "右下拖曳 +20 maxY 應為 220")
+    assertEqual(resizedRect.minX, 100.0, "右下拖曳 minX 保持 100")
+    assertEqual(resizedRect.minY, 100.0, "右下拖曳 minY 保持 100")
+
+    let angle = SelectionTransformCoordinator.calculateRotationAngle(
+        currentPoint: Point(x: 300, y: 150),
+        center: Point(x: 200, y: 150)
+    )
+    assertEqual(angle, 0.0, "正右方水平點角度應為 0 弧度")
+
+    // 40.3 RulerToolEngine 專用子引擎驗收
+    var testRuler = RulerState()
+    testRuler.enabled = true
+    testRuler.screenCenterX = 400
+    testRuler.screenCenterY = 300
+    testRuler.width = 400
+    testRuler.height = 60
+    testRuler.angle = 0
+    testRuler.pivotRatio = 0.5
+    testRuler.pivotEdge = "center"
+
+    let rulerSnapResult = RulerToolEngine.snapPointToRuler(
+        point: Point(x: 300, y: 265),
+        ruler: testRuler,
+        snapTolerance: 15.0
+    )
+    assertEqual(rulerSnapResult.snapped, true, "頂緣容差內應吸附")
+    assertEqual(rulerSnapResult.snappedPoint.y, 270.0, "頂緣 Y 座標吸附至 270")
+
+    let rulerOutOfBounds = RulerToolEngine.snapPointToRuler(
+        point: Point(x: 650, y: 265),
+        ruler: testRuler,
+        snapTolerance: 15.0
+    )
+    assertEqual(rulerOutOfBounds.snapped, false, "超出尺規兩端長度停止吸附")
+
+    // 40.4 EraserToolEngine 分段與物件擦除引擎驗收
+    let strokePoints: [Point] = (0..<10).map { Point(x: Double($0 * 20), y: 50, pressure: 0.5) }
+    let strokePointsJSON = String(data: (try? JSONEncoder().encode(strokePoints)) ?? Data(), encoding: .utf8)
+    var strokeObj = BoardObject(id: "stroke_erase_split_test", type: "stroke", x: 0, y: 50, width: 180, height: 10, points: strokePointsJSON)
+    strokeObj.strokeWidth = 4.0
+    
+    // 擦除中間段 (X = 80, 100, Y = 50，中心在 90)
+    let eraserCenter = Point(x: 90, y: 50)
+    let eraserRadius = 15.0
+    let splitStrokes = EraserToolEngine.sliceStroke(object: strokeObj, eraserCenter: eraserCenter, eraserRadius: eraserRadius)
+    assertEqual(splitStrokes.count, 2, "中間段局部擦除應將筆跡分裂為 2 條獨立筆跡")
+    assertEqual(splitStrokes[0].parsedPoints.count, 4, "前半筆跡包含 4 個點 (0, 20, 40, 60)")
+    assertEqual(splitStrokes[1].parsedPoints.count, 4, "後半筆跡包含 4 個點 (120, 140, 160, 180)")
+
+    // 40.5 CanvasStateSnapshot: 畫布狀態快照解耦與唯讀快照提取
+    let engine = BoardEngine(restoreSession: false)
+    let rectObj = BoardObject(id: "obj_snapshot_1", type: "rect", x: 50, y: 50, width: 100, height: 80)
+    engine.addObject(rectObj)
+    engine.selectedIds = [rectObj.id]
+    engine.hoverPosition = Point(x: 75, y: 75)
+    engine.hoverRadius = 8.0
+
+    let snapshot = engine.captureCanvasStateSnapshot()
+    assertEqual(snapshot.selectedObjectIds, [rectObj.id], "快照正確捕捉選取物件 ID")
+    assertEqual(snapshot.selectionBounds?.minX, 50.0, "快照選取外框 minX 一致")
+    assertEqual(snapshot.selectionBounds?.width, 100.0, "快照選取外框寬度一致")
+    assertEqual(snapshot.hoverPreview.position?.x, 75.0, "快照懸停預覽 X 座標一致")
+    assertEqual(snapshot.hoverPreview.radius, 8.0, "快照懸停半徑一致")
+    assertEqual(snapshot.hasActiveSelection, true, "快照反映有作用中選取")
+}
+
+print("\n[測試 41] 功能導覽與示範黑板資料契約與載入驗證 (立靶驗收)")
+do {
+    let data = FeatureShowcaseDocument.jsonString.data(using: .utf8)!
+    do {
+        let decoder = JSONDecoder()
+        _ = try decoder.decode(HeiBanDocument.self, from: data)
+    } catch {
+        print("Decode Error detail: \(error)")
+    }
+    let engine = BoardEngine(restoreSession: false)
+    engine.loadShowcaseBoard()
+
+    assertEqual(engine.board.id, "demo_feature_showcase", "示範黑板 ID 相符")
+    assertEqual(engine.board.title, "✨ HeiBan 功能導覽與示範黑板", "示範黑板標題相符")
+    assertTrue(!engine.objects.isEmpty, "示範黑板物件集合不為空")
+    assertEqual(engine.board.pins?.count, 6, "示範黑板導覽圖釘精準為 6 個")
+    assertTrue(engine.objects.contains(where: { $0.type == "stroke" }), "示範黑板包含鋼筆物件")
+    assertTrue(engine.objects.contains(where: { $0.type == "highlighter" }), "示範黑板包含螢光筆物件")
+    assertTrue(engine.objects.contains(where: { $0.type == "paint" }), "示範黑板包含油漆筆物件")
+    assertTrue(engine.objects.contains(where: { $0.type == "curve" }), "示範黑板包含貝茲平滑曲線物件")
+    assertTrue(engine.objects.contains(where: { $0.type == "sticky" }), "示範黑板包含便簽物件")
+}
+
 print("\n==================================================")
 if failedCount == 0 {
     print("🎉 驗收結果：全部通過！ (\(passedCount) 項斷言成功，0 項失敗)")
@@ -3682,6 +4173,9 @@ if failedCount == 0 {
     exit(1)
 }
 print("==================================================")
+
+
+
 
 
 

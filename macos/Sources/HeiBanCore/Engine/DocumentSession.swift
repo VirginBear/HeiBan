@@ -95,25 +95,50 @@ public final class DocumentSession: Identifiable {
     public var fileURL: URL
     public let engine: BoardEngine
     public let coordinator: DocumentCoordinator
+    public let library: LocalBoardLibrary
+    public private(set) var openWindowCount: Int
 
-    public init(id: String = UUID().uuidString, fileURL: URL, engine: BoardEngine) {
+    public init(
+        id: String = UUID().uuidString,
+        fileURL: URL,
+        engine: BoardEngine,
+        library: LocalBoardLibrary = BoardEngine.library,
+        openWindowCount: Int = 1
+    ) {
         self.id = id
         self.fileURL = fileURL
         self.engine = engine
         self.coordinator = DocumentCoordinator(documentURL: fileURL)
+        self.library = library
+        self.openWindowCount = openWindowCount
+    }
+
+    @discardableResult
+    public func registerWindow() -> Int {
+        openWindowCount += 1
+        return openWindowCount
+    }
+
+    @discardableResult
+    public func unregisterWindow() -> Int {
+        if openWindowCount > 0 {
+            openWindowCount -= 1
+        }
+        return openWindowCount
     }
 
     public func save() throws {
+        try library.saveToFile(engine.document, at: fileURL, createBackup: true, generateThumbnail: true)
         let data = try HeiBanDocumentCodec.encode(engine.document, prettyPrinted: true)
-        try data.write(to: fileURL, options: .atomic)
         coordinator.recordSelfSave(contentData: data)
     }
 
     public func saveAs(to newURL: URL, repointSession: Bool = false) throws {
-        let data = try HeiBanDocumentCodec.encode(engine.document, prettyPrinted: true)
-        try data.write(to: newURL, options: .atomic)
+        try library.saveToFile(engine.document, at: newURL, createBackup: true, generateThumbnail: true)
         if repointSession {
             self.fileURL = newURL
+            let data = try HeiBanDocumentCodec.encode(engine.document, prettyPrinted: true)
+            coordinator.recordSelfSave(contentData: data)
         }
     }
 
@@ -128,11 +153,15 @@ public final class DocumentSession: Identifiable {
 
 public final class DocumentSessionManager {
     public private(set) var activeSessions: [DocumentSession] = []
+    public let library: LocalBoardLibrary
 
-    public init() {}
+    public init(library: LocalBoardLibrary = BoardEngine.library) {
+        self.library = library
+    }
 
     public func openDocument(at url: URL) throws -> DocumentSession {
         if let existing = activeSessions.first(where: { $0.fileURL.standardizedFileURL == url.standardizedFileURL }) {
+            _ = existing.registerWindow()
             return existing
         }
 
@@ -142,13 +171,25 @@ public final class DocumentSessionManager {
         engine.board = doc.board
         engine.objects = doc.objects.sorted { $0.zIndex < $1.zIndex }
 
-        let session = DocumentSession(fileURL: url, engine: engine)
+        let session = DocumentSession(fileURL: url, engine: engine, library: library, openWindowCount: 1)
         session.coordinator.recordSelfSave(contentData: data)
         activeSessions.append(session)
         return session
     }
 
+    public func openBoard(id: String) throws -> DocumentSession {
+        let targetURL = library.fileURL(id: id)
+        return try openDocument(at: targetURL)
+    }
+
     public func closeSession(id: String) {
         activeSessions.removeAll { $0.id == id }
+    }
+
+    public func closeWindow(for session: DocumentSession) {
+        let remaining = session.unregisterWindow()
+        if remaining <= 0 {
+            closeSession(id: session.id)
+        }
     }
 }
