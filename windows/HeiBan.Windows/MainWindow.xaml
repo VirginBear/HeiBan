@@ -1,0 +1,63 @@
+<Window
+    x:Class="HeiBan.Windows.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:canvas="using:Microsoft.Graphics.Canvas.UI.Xaml"
+    Title="HeiBan 黑板">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="48" /> <!-- 現代自訂標題列 (整合 Windows 11 Snap Layouts) -->
+            <RowDefinition Height="*" />  <!-- Win2D Direct2D 硬體加速畫布 -->
+        </Grid.RowDefinitions>
+
+        <!-- 自訂標題列 -->
+        <Grid x:Name="AppTitleBar" Grid.Row="0" Background="Transparent" Padding="16,0,0,0">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="12">
+                <TextBlock Text="黑板" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" />
+                <TextBlock x:Name="BoardTitleText" Text="未命名黑板" FontSize="14" Opacity="0.7" VerticalAlignment="Center" />
+                
+                <!-- 免安裝綠色版專屬指示標記 -->
+                <Border x:Name="PortableBadge" Background="#10b981" CornerRadius="4" Padding="6,2" Visibility="Collapsed">
+                    <TextBlock Text="免安裝便攜模式" FontSize="10" Foreground="White" FontWeight="Bold" />
+                </Border>
+            </StackPanel>
+        </Grid>
+
+        <!-- 畫布容器與浮動 Fluent 工具列 -->
+        <Grid Grid.Row="1">
+            <!-- Win2D Direct2D 繪圖控制項 -->
+            <canvas:CanvasControl 
+                x:Name="CanvasSurface"
+                CreateResources="CanvasSurface_CreateResources"
+                Draw="CanvasSurface_Draw"
+                PointerPressed="CanvasSurface_PointerPressed"
+                PointerMoved="CanvasSurface_PointerMoved"
+                PointerReleased="CanvasSurface_PointerReleased" />
+
+            <!-- 頂部浮動工具列 (Fluent 圓角毛玻璃風格) -->
+            <Border 
+                HorizontalAlignment="Center" 
+                VerticalAlignment="Top" 
+                Margin="0,16,0,0" 
+                Background="#cc1e293b" 
+                CornerRadius="16" 
+                Padding="12,8"
+                BorderBrush="#33ffffff"
+                BorderThickness="1">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button x:Name="BtnSelect" Content="選取 (V)" Click="Tool_Click" Tag="select" />
+                    <Button x:Name="BtnPen" Content="鋼筆 (P)" Click="Tool_Click" Tag="pen" />
+                    <Button x:Name="BtnHighlighter" Content="螢光筆 (H)" Click="Tool_Click" Tag="highlighter" />
+                    <Button x:Name="BtnPaint" Content="油漆筆" Click="Tool_Click" Tag="paint" />
+                    <Button x:Name="BtnEraser" Content="橡皮擦 (E)" Click="Tool_Click" Tag="eraser" />
+                    <AppBarSeparator />
+                    <Button x:Name="BtnRuler" Content="尺規" Click="ToggleRuler_Click" />
+                    <Button x:Name="BtnSticky" Content="便簽" Click="AddSticky_Click" />
+                    <AppBarSeparator />
+                    <Button x:Name="BtnSave" Content="儲存 (Ctrl+S)" Click="Save_Click" />
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>
