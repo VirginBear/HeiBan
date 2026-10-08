@@ -3,7 +3,7 @@
 
 param (
     [string]$Configuration = "Release",
-    [string]$Runtime = "win-x64"
+    [string]$Runtime = $(if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") { "win-arm64" } else { "win-x64" })
 )
 
 $ErrorActionPreference = "Stop"
