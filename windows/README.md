@@ -8,7 +8,7 @@
 
 ## 公開下載與安裝
 
-公開自包含包等待 Windows SDK 授權例外確認，暫未建立 Release；既有本機封裝保留。[完整安裝／更新指南](../docs/INSTALL.zh-TW.md) · [已知限制](../docs/KNOWN_ISSUES.zh-TW.md)。公開安裝包為 ZIP，完整解壓後執行內含的 Setup EXE；公開包加入 GPL 與第三方原始授權，程式 payload 保持原 preview.5。
+[下載 ARM64／x64 公開預覽](https://github.com/VirginBear/HeiBan/releases/tag/windows-v0.1.0-preview.5) · [完整安裝／更新指南](../docs/INSTALL.zh-TW.md) · [已知限制](../docs/KNOWN_ISSUES.zh-TW.md)。公開安裝包為 ZIP，完整解壓後執行內含的 Setup EXE；公開包加入 GPL 與第三方原始授權，程式 payload 保持原 preview.5。
 
 ## 發行型態
 
@@ -105,3 +105,7 @@ pwsh -File HeiBan.Windows/Packaging/Package-Installer.ps1 -Runtime win-arm64 -Is
 - [架構決策](docs/ARCHITECTURE.zh-TW.md)
 - [移植、開發與驗收清單](docs/WORKLIST.zh-TW.md)
 - [建置記錄](docs/BUILD_STATUS.zh-TW.md)
+
+## 授權
+
+HeiBan 原創程式依 GPL-3.0-only，另附 [限定 Windows SDK 連結／散布例外](LICENSE-WINDOWS-EXCEPTION.txt)。散布 HeiBan 衍生程式仍須提供相應原始碼；Microsoft runtime／SDK 元件保持原授權，安裝或使用前必須閱讀並同意公開包 third-party/ 的原始條款。

@@ -54,4 +54,4 @@ ADR-M08 依據：[Apple 首點輸入契約](https://developer.apple.com/document
 
 Windows 原 Setup／Portable 保持不變；公開 Installer ZIP 包裝原 EXE，Portable 追加授權與說明，重新計算公開包雜湊。最新 HTML 手冊另供下載，避免不重編譯卻聲稱換了包內資源。Mac 不加入 Windows 元件／授權副本。作品、憑證、參考專案與原始編譯日誌排除；Firebase 公開用戶端設定不冒稱 Admin secret，雲端實際規則不在本輪驗收。
 
-原因：同時保存既有產物的可追溯性與公開再散布資訊，清楚區分已完成、未驗收與規劃功能；下載不含作品。代價：未正式簽章的預覽有首次開啟提示；Windows 套件使用實際 Microsoft 條款，其 GPL 連結例外待擁有者確認。
+原因：同時保存既有產物的可追溯性與公開再散布資訊，清楚區分已完成、未驗收與規劃功能；下載不含作品。代價：未正式簽章的預覽有首次開啟提示；Windows 套件使用實際 Microsoft 條款，使用者已明確同意其限定 GPL 連結／散布例外；HeiBan 衍生仍須 GPL 開源。

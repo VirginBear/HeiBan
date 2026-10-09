@@ -121,6 +121,6 @@ LocalBoardLibrary 的主要原稿失敗會 throw，但部分備份、縮圖／�
 
 原私人 Windows preview.5 ZIP 沒有 license entries，儲存庫沒有 LICENSE／Release。使用者明確授權公開並選 GPL-3.0。補 GNU 官方完整授權；實際 NuGet runtime 條款不同於 GitHub 原始庫 MIT，因此按精確版本取得 nupkg 內文／notice，不能只附一張來源 MIT 檔。
 
-失敗方案：urllib 直接將 gzip registration 視為 UTF-8 JSON，UnicodeDecodeError。修正：辨識 gzip magic 解壓後讀 metadata；舊 licenseUrl 部分 deprecated／轉址，改 HTTP Range 讀 nupkg ZIP 內文。Win2D 舊 license URL 已轉到教學頁，記錄此缺口並附官方來源授權。Windows SDK 相依例外已具體擬稿並向擁有者詢問。
+失敗方案：urllib 直接將 gzip registration 視為 UTF-8 JSON，UnicodeDecodeError。修正：辨識 gzip magic 解壓後讀 metadata；舊 licenseUrl 部分 deprecated／轉址，改 HTTP Range 讀 nupkg ZIP 內文。Win2D 舊 license URL 已轉到教學頁，記錄此缺口並附官方來源授權。Windows SDK 相依例外已具體擬稿並向擁有者詢問，使用者已同意限定平台元件例外。
 
 包裝不改 Windows 程式 payload、原 dist 不覆寫；公開 ZIP 明列授權，SHA-256 重新計算。Mac 採 ARM64 DMG／ZIP；hdiutil create 成功但新系統提示命令 deprecated，未影響此次成品，後續改用 diskutil 時需核對較舊 macOS 工具相容性。git diff --check 的既有 Swift 行尾空白只作格式清理；未加／未跑測試。

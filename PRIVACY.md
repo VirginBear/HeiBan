@@ -12,6 +12,8 @@ Mac 螢幕註記另存 `ScreenAnnotations/`；可編輯註記檔只保留註記�
 
 目前原生 Google 登入／雲端同步未正式開放；不要把準備中的設定當成已連線同步。App 可能依使用者動作啟動外部連結；作業系統的安全檢查、崩潰紀錄與執行歷史不由黑板控制，免安裝版不承諾「零痕跡」。
 
+Windows 自包含包附帶 Microsoft runtime／SDK；其原始條款說明可能有診斷、更新等資料與連線行為，依元件政策處理。本輪未量測全部網路行為；詳見 [第三方條款與版本](THIRD_PARTY_NOTICES.md)。
+
 ## Web 原型
 
 `src/` 中的早期原型含 Firebase 登入、Firestore 與本機 localStorage 管線；如自行執行或部署，可能聯絡 Google/Firebase。這次沒有部署正式 Web 站台，也沒有確認雲端服務的正式隱私、授權或安全規則配置。

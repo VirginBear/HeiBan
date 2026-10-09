@@ -56,6 +56,22 @@ def common_files(platform: str) -> dict[str, bytes]:
     }
     if platform == "macos":
         return files
+    exception = ROOT / "windows/LICENSE-WINDOWS-EXCEPTION.txt"
+    if not exception.is_file():
+        raise ValueError("Windows SDK distribution requires the approved GPL section 7 exception")
+    files["INSTALL-README.txt"] += (
+        "\nWindows 安裝／使用前請閱讀 WINDOWS-RUNTIME-TERMS.txt 與 third-party/。\n"
+        "Windows 限定 SDK 例外見 LICENSE-WINDOWS-EXCEPTION.txt；HeiBan 本身仍須 GPL 開源。\n"
+    ).encode()
+    files["LICENSE-WINDOWS-EXCEPTION.txt"] = exception.read_bytes()
+    files["WINDOWS-RUNTIME-TERMS.txt"] = (
+        "Windows runtime terms / Microsoft 元件條款\n\n"
+        "Before installing or using the bundled Microsoft Windows components, "
+        "you must read and agree to their original license terms in third-party/. "
+        "Do not install or use these bundled components if you do not agree.\n"
+        "安裝或使用附帶的 Microsoft Windows 元件前，必須閱讀並同意 third-party/ 的原始條款；"
+        "若不同意，請勿安裝或使用這些元件。此要求僅適用於這些元件，不變更 HeiBan 的 GPL 權利。\n"
+    ).encode()
     for path in (ROOT / "docs/third-party").iterdir():
         if path.is_file():
             files[f"third-party/{path.name}"] = path.read_bytes()
@@ -77,6 +93,7 @@ def finish(folder: Path, files: list[Path], platform: str, version: str) -> None
     (folder / "SHA256SUMS.txt").write_text("".join(f"{a['sha256']}  {a['filename']}\n" for a in metadata))
     (folder / "PUBLIC_ARTIFACTS.json").write_text(json.dumps({
         "platform": platform, "version": version, "license": "GPL-3.0-only",
+        "additionalPermission": "LICENSE-WINDOWS-EXCEPTION.txt" if platform.startswith("windows") else None,
         "preview": True, "artifacts": metadata,
     }, ensure_ascii=False, indent=2) + "\n")
     print(json.dumps({"platform": platform, "output": str(folder), "files": [a['filename'] for a in metadata]}, ensure_ascii=False))

@@ -148,3 +148,11 @@
      `PASS: 457 Windows interaction geometry, screenshot coordinator, calculator, compass/arc, timer & offline guide checks`（退出碼 0，0 錯誤、0 警告）。
 
 
+
+## 2026-10-09 — GitHub 公開發行文件與封裝整理
+
+授權：使用者要求公開專案、Mac／Windows 安裝使用文件，選 GPL-3.0 並同意 Windows SDK 限定例外。不改 Windows 功能來源／產物 payload。
+
+實際工作：同步既有 preview.5 來源；加入公開 README／指南／隱私／第三方原文／限定 SDK例外。核對原 4包與既有manifest雜湊，InstallerZIP包含原Setup EXE，Portable逐entry複製原bytes再附license／notice／terms；新SHA另記。最新版source HTML為獨立asset，未替換編譯包內舊手冊。沒有執行測試套件／Windows重建／安裝驗收；以前的475等數字屬以前批次，不是公開整理結果。
+
+困難：NuGet gzip metadata不能直接JSON解碼，改解壓；實際runtime條款不同於GitHub來源MIT，改從精確nupkg取得。Win2D舊URL轉到教學頁，保留metadata與官方來源license並記錄缺口。全staged diff第三方原文CRLF／空白保留；公開檔與payload檢查詳見 [公開稽核](../../docs/PUBLIC_RELEASE_2026-10-09.zh-TW.md)。原始compiler logs留本機不公開，摘要保留在本文件與ISSUE_HISTORY。

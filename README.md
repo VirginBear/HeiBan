@@ -11,10 +11,10 @@
 | 電腦 | 版本 | 下載 |
 | --- | --- | --- |
 | Apple Silicon Mac（M 系列），macOS 14+ | 1.0.8 | [DMG 安裝映像](https://github.com/VirginBear/HeiBan/releases/download/macos-v1.0.8/HeiBan-macOS-1.0.8-arm64.dmg) · [ZIP](https://github.com/VirginBear/HeiBan/releases/download/macos-v1.0.8/HeiBan-macOS-1.0.8-arm64.zip) |
-| Windows 11，Intel／AMD 64 位元 | 0.1.0-preview.5 | 自包含安裝／免安裝包準備中，等待 Windows SDK 授權例外確認 |
-| Windows 11，ARM／Apple Silicon 上的 ARM Windows | 0.1.0-preview.5 | 同上；可先閱讀 [Windows 說明](windows/README.md)與原始碼 |
+| Windows 11，Intel／AMD 64 位元 | 0.1.0-preview.5 | [安裝版](https://github.com/VirginBear/HeiBan/releases/download/windows-v0.1.0-preview.5/HeiBan-Windows-Installer-0.1.0-preview.5-win-x64.zip) · [免安裝版](https://github.com/VirginBear/HeiBan/releases/download/windows-v0.1.0-preview.5/HeiBan-Windows-Portable-0.1.0-preview.5-win-x64.zip) |
+| Windows 11，ARM／Apple Silicon 上的 ARM Windows | 0.1.0-preview.5 | [安裝版](https://github.com/VirginBear/HeiBan/releases/download/windows-v0.1.0-preview.5/HeiBan-Windows-Installer-0.1.0-preview.5-win-arm64.zip) · [免安裝版](https://github.com/VirginBear/HeiBan/releases/download/windows-v0.1.0-preview.5/HeiBan-Windows-Portable-0.1.0-preview.5-win-arm64.zip) |
 
-預計 Windows 公開安裝版下載檔為 ZIP，內含 `HeiBan-Setup-….exe`、說明與授權；解壓後執行安裝檔。免安裝版必須完整解壓，不能只取出 EXE。每個 Release 都附 `SHA256SUMS.txt`。
+Windows 安裝版下載檔為 ZIP，內含 `HeiBan-Setup-….exe`、說明與授權；解壓後執行安裝檔。免安裝版必須完整解壓，不能只取出 EXE。每個 Release 都附 `SHA256SUMS.txt`。
 
 Mac 目前只提供 ARM64 下載包；尚無 Intel／Universal 包。Mac 未完成 Developer ID 簽章與 Apple 公證，Windows 未完成 Authenticode 簽章；第一次開啟可能有系統安全提示，詳見安裝指南。沒有宣稱通過所有裝置的操作或性能驗收。
 
@@ -59,4 +59,4 @@ Mac 目前只提供 ARM64 下載包；尚無 Intel／Universal 包。Mac 未完�
 
 Copyright © 2026 VirginBear and HeiBan contributors.
 
-HeiBan 原創原始碼以 **GPL-3.0-only** 發佈；完整條款見 [LICENSE](LICENSE)。散布修改版本時須依 GPL 提供相應原始碼與授權聲明。第三方套件與系統元件仍依各自條款，見 [第三方聲明](THIRD_PARTY_NOTICES.md)。參考軟體的完整副本不隨本專案發佈。
+HeiBan 原創原始碼以 **GPL-3.0-only** 發佈；完整條款見 [LICENSE](LICENSE)。散布修改版本時須依 GPL 提供相應原始碼與授權聲明。Windows 另含僅限平台 SDK 的 [連結／散布例外](windows/LICENSE-WINDOWS-EXCEPTION.txt)，HeiBan 與衍生程式仍須 GPL 開源。第三方套件與系統元件仍依各自條款，見 [第三方聲明](THIRD_PARTY_NOTICES.md)。參考軟體的完整副本不隨本專案發佈。

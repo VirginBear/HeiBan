@@ -8,6 +8,8 @@ Swift／SwiftUI／AppKit／CoreGraphics／ImageIO／ScreenCaptureKit／WebKit �
 
 ## 原生 Windows 公開包
 
+HeiBan Windows 另附 [GPL 第 7 節限定 SDK 例外](windows/LICENSE-WINDOWS-EXCEPTION.txt)，只授權連結／散布列明的平台元件；HeiBan 本身與衍生程式仍須 GPL 開源。Microsoft 元件必須遵守原始條款，公開包的 WINDOWS-RUNTIME-TERMS.txt 要求安裝／使用前閱讀並同意，未把這些元件的限制加到 HeiBan 原創程式。
+
 `HeiBan.Windows.csproj` 明列 Windows App SDK 2.5.1、Win2D 1.4.0、Windows SDK BuildTools 10.0.26100.8249。自包含包另含 .NET runtime 與 SDK 的傳遞相依套件。公開包內附 `third-party/` 與 `WINDOWS-DEPENDENCIES.json`，記錄實際 Portable `HeiBan.deps.json` 的版本；原生 DLL 的原有版本／著作權資訊保留。
 
 - [.NET runtime 授權](docs/third-party/DOTNET-LICENSE.txt)及[第三方 notices](docs/third-party/DOTNET-NOTICES.txt)，來源 [dotnet/runtime](https://github.com/dotnet/runtime)。

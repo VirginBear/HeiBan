@@ -1,0 +1,23 @@
+{
+  "platform": "macos-arm64",
+  "version": "1.0.8",
+  "license": "GPL-3.0-only",
+  "preview": true,
+  "artifacts": [
+    {
+      "filename": "HeiBan-macOS-1.0.8-arm64.zip",
+      "bytes": 4301289,
+      "sha256": "e44d9bb5186a0b2e77cc88f10f851d3c57c14c7b63974d35e64dd1d5dab6e4a8"
+    },
+    {
+      "filename": "HeiBan-macOS-1.0.8-arm64.dmg",
+      "bytes": 4911646,
+      "sha256": "a0b8b01a93810e62f93f193c6aeee1aaa5bf4b2503099838375ff5e57d5c5248"
+    },
+    {
+      "filename": "HeiBan-User-Guide-macOS-1.0.8.html",
+      "bytes": 26848,
+      "sha256": "ab46b6fba9316c290713133e78af8d6d77f317dc5fd4defba75309fc8360471a"
+    }
+  ]
+}

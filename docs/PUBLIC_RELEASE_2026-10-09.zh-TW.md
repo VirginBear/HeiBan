@@ -1,12 +1,12 @@
 # 2026-10-09 公開發行稽核
 
-狀態：公開準備中；實際 commit／Release／公開狀態須以本頁最後結果核對。
+狀態：來源及 Mac 已公開，Windows 公開包已完成本機核對，接著上傳。
 
 ## 授權與範圍
 
 使用者授權把目前專案上傳 VirginBear/HeiBan 並公開，選 GPL-3.0。HeiBan 原創程式採 GPL-3.0-only。Mac／Windows／Web 既有來源與歷史保留，這次只整理發行文件、授權與封裝；沒有移植或修正 Windows 功能，沒有部署 Web。
 
-Windows 實際 NuGet 包的 Windows App SDK／ML runtime 含 Microsoft 專屬條款，與 GitHub 原始庫的 MIT 不同。已擬定僅限 Windows 平台元件的 GPL 第 7 節連結例外，等待擁有者選擇；在選擇確認之前不公開 Windows 自包含二進位。來源與安裝文件先公開，現有四包原本的 SHA-256 保持不變。
+Windows 實際 NuGet 包的 Windows App SDK／ML runtime 含 Microsoft 專屬條款，與 GitHub 原始庫的 MIT 不同。使用者已明確同意僅限 Windows 平台元件的 GPL 第 7 節連結／散布例外，保存在 windows/LICENSE-WINDOWS-EXCEPTION.txt。HeiBan 與衍生程式仍須 GPL 開源，runtime 按原始條款分發；原四包保持不變。
 
 ## 檔案邊界與資料檢查
 
@@ -37,4 +37,7 @@ Windows 原四包與 ARTIFACTS_2026-10-09_preview5.json 的大小／雜湊吻合
 
 ## 公開結果
 
-待完成：原始碼 push、Mac Release、儲存庫 PUBLIC 與 GitHub API 核對。Windows 自包含 Release 等待授權例外決定。
+- 原始碼：38d9893 已推送 main；私人儲存庫改 PUBLIC，未改寫歷史。未登入的 GitHub API 與 raw README 讀取成功，GPL-3.0 偵測成功。
+- Mac：macos-v1.0.8，5個 assets已 publish prerelease；遠端每個 asset 大小與 GitHub SHA-256 digest 等於本機，5檔完整。
+- Windows：擁有者同意限定 SDK 例外，四個公開 ZIP 已產生；逐 entry 比對 Portable 原 payload 完全相同，Installer ZIP 內 EXE 與原 SHA 相同，附 GPL／exception／runtime terms／精確 SDK條款。7個 assets（四 ZIP／HTML／SHA／manifest）準備上傳。
+- GitHub private vulnerability reporting 已啟用。公開 tags／下載 manifest保留追溯資料；來源／Mac與Windows版本獨立。

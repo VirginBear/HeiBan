@@ -40,3 +40,9 @@
 
 歷史使用者問題與 preview.4 修正見 [互動紀錄](INTERACTION_FIXES_preview4.zh-TW.md)。本輪已跑通 433 項核心幾何與協調器斷言，0 失敗。
 
+
+## 2026-10-09 — 公開包缺 license／精確 runtime 條款差異
+
+症狀與證據：原 preview.5 Portable 無 license entries；GitHub來源MIT不代表NuGet二進位全部MIT。NuGetregistration直接解析會UnicodeDecodeError（gzip）。舊licenseUrl有deprecated／無關轉址。
+
+處理：gzip解壓、HTTP Range讀官方精確nupkg的license／notice；Win2D轉址缺口保留。擁有者同意限定WindowsSDK例外；HeiBan本身與衍生仍須GPL開源。新InstallerZIP／Portable附GPL、exception、元件terms與原始notice；原EXE／payload／Data邊界保持，新公開SHA另計。公開採prerelease，沒有重跑功能／安裝流程。防止再犯：發行清單記精確版本及licenseFiles，公開打包檢查原包SHA，缺exception立即停止。

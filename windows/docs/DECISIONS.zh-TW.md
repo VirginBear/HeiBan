@@ -33,3 +33,9 @@
 - **圓規與 arc 資料模型相容**：Mac 與 Windows 統一採 `type: "arc"`，並將 `ArcRadius`、`ArcStartAngle`、`ArcSweepAngle` 作為第一公民具名欄位，支持 Direct2D 開口圓弧路徑與整圓退回繪製，並全面納入橡皮擦與包圍盒計算。
 - **工具偏好與自訂排序**：工具偏好儲存使用使用者自訂順序；`ShowCustomizeToolbarDialog` 具備 ↑/↓ 排序與 CheckBox 顯示切換，精簡工具列預設 8 項，新工具預設收納至「更多」，保全使用者排版習慣。
 
+
+## 2026-10-09 — 公開 GPL 來源與限定 Windows SDK 例外
+
+使用者明確選 GPL-3.0，並同意限定平台元件的 GPL 第 7 節連結／散布例外。HeiBan 與衍生仍須提供相應原始碼；Microsoft SDK／runtime 保持原始條款。精確 nupkg license／notice 及第三方版本清單收入公開文件與 ZIP，安裝／使用前要求閱讀並同意該元件條款。
+
+原 preview.5 二進位 payload 不改動；Installer ZIP／Portable 另放 dist/public，重新計算公開包SHA而原 dist保留。最新來源手冊另供下載，未聲稱替換原 App 內手冊。公開 UI 功能／性能未重驗，保持 prerelease與已知限制。

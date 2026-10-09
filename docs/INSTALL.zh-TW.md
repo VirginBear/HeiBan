@@ -40,7 +40,7 @@ ZIP 也能使用：完整解壓，把 `HeiBan.app` 移到「應用程式」。�
 
 ## Windows 公開包狀態
 
-目前公開來源與以下安裝說明；自包含下載包正在確認 Windows SDK 的授權例外，尚未上架。請以 Releases 的實際檔案為準。
+Windows ARM64／x64 的安裝版與免安裝版由獨立 Release 提供；HeiBan 使用 GPL-3.0-only 加限定 Windows SDK 例外。安裝／使用附帶的 Microsoft 元件前，必須閱讀並同意 ZIP 內 WINDOWS-RUNTIME-TERMS.txt 與 third-party/ 的原始條款。
 
 ## Windows：安裝版
 

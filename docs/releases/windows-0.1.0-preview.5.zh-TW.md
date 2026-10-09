@@ -1,6 +1,6 @@
 # 黑板 Windows 0.1.0-preview.5 · 公開預覽
 
-Windows 11，ARM64／x64；安裝版與免安裝版皆為自包含下載。GPL-3.0-only；相應來源在本 Release tag，第三方相依仍使用原授權。
+Windows 11，ARM64／x64；安裝版與免安裝版皆為自包含下載。GPL-3.0-only；相應來源在本 Release tag，附 [限定 Windows SDK 連結／散布例外](https://github.com/VirginBear/HeiBan/blob/main/windows/LICENSE-WINDOWS-EXCEPTION.txt)，HeiBan 衍生程式仍須 GPL 開源，第三方相依保持原授權。安裝／使用 Microsoft 元件前，必須閱讀並同意 ZIP 的 WINDOWS-RUNTIME-TERMS.txt 與 third-party/ 原始條款。
 
 ## 選擇與安裝
 

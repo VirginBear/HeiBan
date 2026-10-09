@@ -68,3 +68,7 @@ ARM64／x64 各完成 self-contained publish、Portable ZIP 與 Inno Setup 安�
 ## 開發環境隔離
 
 Windows SDK／編譯器放在 VM 的 `C:\HeiBanBuildTools`，本地編譯副本／快取放在 `C:\HeiBanBuild\source`；專案完整原始碼與可搬移發行包在本機 `windows/`。開發 VM 在本輪起始為 suspended，建置結束後恢復 suspended，避免長時間占用 Mac 資源。
+
+## 公開文件中的日誌邊界
+
+上述 build-logs 檔保留本機，避免上傳含機器環境的原始輸出；公開 Git 只有建置摘要、錯誤原因／修正與驗收界線。公開下載清單另見 docs/releases 的 preview.5 assets manifest，與原內部 dist 的 SHA 不同。
