@@ -117,7 +117,7 @@ LocalBoardLibrary 的主要原稿失敗會 throw，但部分備份、縮圖／�
 
 ## M13 — 公開包缺授權及套件 metadata 解碼失敗
 
-日期：2026-10-09。狀態：文件與封裝處理中，發佈結果見公開稽核。
+日期：2026-10-09。狀態：本次公開文件與封裝完成，兩平台公開下載大小／SHA／HEAD已核對；正式簽章／完整互動驗收仍待辦。發佈結果見公開稽核。
 
 原私人 Windows preview.5 ZIP 沒有 license entries，儲存庫沒有 LICENSE／Release。使用者明確授權公開並選 GPL-3.0。補 GNU 官方完整授權；實際 NuGet runtime 條款不同於 GitHub 原始庫 MIT，因此按精確版本取得 nupkg 內文／notice，不能只附一張來源 MIT 檔。
 

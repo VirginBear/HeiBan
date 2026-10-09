@@ -2,11 +2,11 @@
 
 更新：2026-10-09。平台：macOS；最新工作為 GitHub 公開準備，前批為透明螢幕畫布修正。
 
-## 公開發行準備
+## 公開發行完成
 
-採 GPL-3.0-only；加入 README、安裝／快速開始／隱私／已知限制／貢獻／安全回報與第三方原文。1.0.8 原 App 保持不變，公開 ARM64 DMG／ZIP 在 macos/dist/public；Windows 附授權的新 ZIP 在其獨立 dist/public。公開二進位皆標示預覽，簽章與驗收限制明列。進度與實際發佈證據見 [公開稽核](../../../docs/PUBLIC_RELEASE_2026-10-09.zh-TW.md)及當日日誌 03。
+採 GPL-3.0-only；加入 README、安裝／快速開始／隱私／已知限制／貢獻／安全回報與第三方原文。1.0.8 原 App 保持不變，公開 ARM64 DMG／ZIP 在 macos/dist/public；Windows 附授權的新 ZIP 在其獨立 dist/public。公開二進位皆標示預覽，簽章與驗收限制明列。儲存庫 PUBLIC、Mac 5assets／Windows 7assets 已上架為 prerelease，遠端SHA及下載連結核對完成。實際發佈證據見 [公開稽核](../../../docs/PUBLIC_RELEASE_2026-10-09.zh-TW.md)及當日日誌 03。
 
-本次不改功能、不執行測試套件。前批大量未提交內容將完整保留並收入公開快照；參考專案、作品、憑證、原始編譯日誌與產物不進 Git。
+本次不改功能、不執行測試套件。前批未提交內容已收入公開快照；發佈期間新增的Windows程式變更留在本機、未包含本次tag。參考專案、作品、憑證、原始編譯日誌與產物不進 Git。
 
 ## 版本與成品
 

@@ -4,7 +4,7 @@
 
 ## GitHub 公開預覽整理
 
-原始碼已公開；本次只整理文件與下載包，不修改 Windows 功能、不重建／不執行測試套件。原創採 GPL-3.0-only 加 [限定 Windows SDK 例外](../LICENSE-WINDOWS-EXCEPTION.txt)，使用者已同意。公開 Installer ZIP 包裝原 EXE，Portable 保持 payload 並加入原始授權；ARM64／x64 各兩包，另附最新版來源 HTML。新公開雜湊見 [下載清單](../../docs/releases/windows-0.1.0-preview.5.assets.json)，原 dist manifest 保留。實際發佈進度見 [公開稽核](../../docs/PUBLIC_RELEASE_2026-10-09.zh-TW.md)。
+原始碼已公開；本次只整理文件與下載包，不修改 Windows 功能、不重建／不執行測試套件。原創採 GPL-3.0-only 加 [限定 Windows SDK 例外](../LICENSE-WINDOWS-EXCEPTION.txt)，使用者已同意。公開 Installer ZIP 包裝原 EXE，Portable 保持 payload 並加入原始授權；ARM64／x64 各兩包，另附最新版來源 HTML。新公開雜湊見 [下載清單](../../docs/releases/windows-0.1.0-preview.5.assets.json)，原 dist manifest 保留。7個 assets已公開為prerelease，遠端digest／大小及4個主要下載HEAD已核對；來源tag指向991835a。發佈期間後續程式變更未收入該tag，保留本機供後續開發。實際發佈證據見 [公開稽核](../../docs/PUBLIC_RELEASE_2026-10-09.zh-TW.md)。
 
 ## 原 preview.5 開發批次與驗收（歷史）
 

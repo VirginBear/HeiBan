@@ -1,6 +1,6 @@
 # 2026-10-09 公開發行稽核
 
-狀態：來源及 Mac 已公開，Windows 公開包已完成本機核對，接著上傳。
+狀態：完成。來源、Mac 與 Windows 公開預覽均已公開並核對。
 
 ## 授權與範圍
 
@@ -39,5 +39,11 @@ Windows 原四包與 ARTIFACTS_2026-10-09_preview5.json 的大小／雜湊吻合
 
 - 原始碼：38d9893 已推送 main；私人儲存庫改 PUBLIC，未改寫歷史。未登入的 GitHub API 與 raw README 讀取成功，GPL-3.0 偵測成功。
 - Mac：macos-v1.0.8，5個 assets已 publish prerelease；遠端每個 asset 大小與 GitHub SHA-256 digest 等於本機，5檔完整。
-- Windows：擁有者同意限定 SDK 例外，四個公開 ZIP 已產生；逐 entry 比對 Portable 原 payload 完全相同，Installer ZIP 內 EXE 與原 SHA 相同，附 GPL／exception／runtime terms／精確 SDK條款。7個 assets（四 ZIP／HTML／SHA／manifest）準備上傳。
+- Windows：擁有者同意限定 SDK 例外，四個公開 ZIP 已產生；逐 entry 比對 Portable 原 payload 完全相同，Installer ZIP 內 EXE 與原 SHA 相同，附 GPL／exception／runtime terms／精確 SDK條款。7個 assets（四 ZIP／HTML／SHA／manifest）已 publish prerelease，Windows tag 指向 991835a。遠端7檔大小／SHA與本機一致。
 - GitHub private vulnerability reporting 已啟用。公開 tags／下載 manifest保留追溯資料；來源／Mac與Windows版本獨立。
+
+### 最終核對與來源邊界
+
+兩個公開 prerelease 共12個 assets的 GitHub digest／size／uploaded 狀態與本機一致。未登入的6個主要包下載HEAD皆200；公開README／GPL資訊可讀；私人漏洞回報 enabled=true。Mac來源tag指向38d9893，Windows來源tag指向991835a，main後續只補發行完成紀錄，不移動tag。
+
+發佈期間工作區另出現8個Windows程式變更（EditorSession、ToolbarPreferences、MainWindow Chrome／Input／XAML／主檔、NativeOverlayWindow、ScreenAnnotationWindow）。這些後續修改不在本次preview.5來源tag，保持未提交原樣，不混入本輪發行完成紀錄的commit。後續建置需另確認版本／來源／驗收。這一批沒有宣稱工作區完全乾淨或把並行的新程式當成本次下載包。
