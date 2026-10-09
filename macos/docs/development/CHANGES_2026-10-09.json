@@ -1,0 +1,235 @@
+{
+  "date": "2026-10-09",
+  "scope": "macOS and project maintenance documentation",
+  "baseline": "working tree at start of this task; preserves pre-existing changes",
+  "files": [
+    {
+      "path": "README.md",
+      "change": "modified"
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "change": "modified"
+    },
+    {
+      "path": "docs/PROJECT_AUDIT.zh-TW.md",
+      "change": "modified"
+    },
+    {
+      "path": "macos/docs/USER_GUIDE.zh-TW.html",
+      "change": "modified"
+    },
+    {
+      "path": "macos/docs/USER_GUIDE.zh-TW.md",
+      "change": "modified"
+    },
+    {
+      "path": "macos/scripts/generate_brand_icons.swift",
+      "change": "moved-out-or-removed"
+    },
+    {
+      "path": "macos/scripts/generate_lively_hb_icons.swift",
+      "change": "moved-out-or-removed"
+    },
+    {
+      "path": "macos/scripts/generate_hb_stylus_icons.swift",
+      "change": "moved-out-or-removed"
+    },
+    {
+      "path": "macos/scripts/generate_centered_coral_icons.swift",
+      "change": "moved-out-or-removed"
+    },
+    {
+      "path": "macos/scripts/build_app.sh",
+      "change": "modified"
+    },
+    {
+      "path": "macos/scripts/generate_tool_icons.swift",
+      "change": "moved-out-or-removed"
+    },
+    {
+      "path": "macos/scripts/generate_wild_hb_icons.swift",
+      "change": "moved-out-or-removed"
+    },
+    {
+      "path": "macos/Sources/HeiBanCore/Auth/KeychainService.swift",
+      "change": "modified"
+    },
+    {
+      "path": "macos/Sources/HeiBanCore/Auth/GoogleAuthAdapter.swift",
+      "change": "modified"
+    },
+    {
+      "path": "macos/Sources/HeiBanCore/Algorithms/BoardPathCache.swift",
+      "change": "modified"
+    },
+    {
+      "path": "macos/Sources/HeiBanCore/Sync/CloudSyncCoordinator.swift",
+      "change": "modified"
+    },
+    {
+      "path": "macos/Sources/HeiBanCore/Engine/BoardEngine+Navigation.swift",
+      "change": "modified"
+    },
+    {
+      "path": "macos/Sources/HeiBanCore/Engine/EraserToolEngine.swift",
+      "change": "modified"
+    },
+    {
+      "path": "macos/Sources/HeiBanCore/Engine/DocumentSession.swift",
+      "change": "modified"
+    },
+    {
+      "path": "macos/Sources/HeiBanCore/Engine/BoardEngine.swift",
+      "change": "modified"
+    },
+    {
+      "path": "macos/Sources/HeiBanMac/Resources/HeiBanUserGuide.html",
+      "change": "modified"
+    },
+    {
+      "path": "macos/Sources/HeiBanMac/ScreenAnnotation/ScreenAnnotationController.swift",
+      "change": "modified"
+    },
+    {
+      "path": "macos/Sources/HeiBanMac/Views/SettingsView.swift",
+      "change": "modified"
+    },
+    {
+      "path": "macos/Sources/HeiBanMac/Views/InspectorView.swift",
+      "change": "modified"
+    },
+    {
+      "path": "macos/Sources/HeiBanMac/Views/MainWindowView.swift",
+      "change": "modified"
+    },
+    {
+      "path": "AGENTS.md",
+      "change": "added"
+    },
+    {
+      "path": "docs/DEVELOPMENT_INDEX.zh-TW.md",
+      "change": "added"
+    },
+    {
+      "path": "macos/Sources/HeiBanCore/Models/BoardInteractionTypes.swift",
+      "change": "added"
+    },
+    {
+      "path": "macos/Sources/HeiBanCore/Engine/BoardPersistenceState.swift",
+      "change": "added"
+    },
+    {
+      "path": "macos/Sources/HeiBanCore/Engine/BoardEngine+TextEditing.swift",
+      "change": "added"
+    },
+    {
+      "path": "macos/Sources/HeiBanCore/Engine/BoardEngine+Drawing.swift",
+      "change": "added"
+    },
+    {
+      "path": "macos/Sources/HeiBanCore/Engine/BoardEngine+Images.swift",
+      "change": "added"
+    },
+    {
+      "path": "macos/Sources/HeiBanCore/Engine/BoardEngine+Persistence.swift",
+      "change": "added"
+    },
+    {
+      "path": "macos/Sources/HeiBanCore/Engine/BoardEngine+Library.swift",
+      "change": "added"
+    },
+    {
+      "path": "macos/Sources/HeiBanCore/Engine/BoardEngine+CanvasConfiguration.swift",
+      "change": "added"
+    },
+    {
+      "path": "macos/Sources/HeiBanCore/Engine/BoardEngine+FileIO.swift",
+      "change": "added"
+    },
+    {
+      "path": "macos/Sources/HeiBanCore/Engine/BoardEngine+Notebook.swift",
+      "change": "added"
+    },
+    {
+      "path": "macos/Sources/HeiBanCore/Engine/BoardEngine+SelectionStyle.swift",
+      "change": "added"
+    },
+    {
+      "path": "macos/Sources/HeiBanCore/Engine/BoardEngine+Layers.swift",
+      "change": "added"
+    },
+    {
+      "path": "macos/Sources/HeiBanCore/Engine/StrokePreviewStore.swift",
+      "change": "added"
+    },
+    {
+      "path": "macos/Sources/HeiBanTestRunner/Fixtures/MockKeychainStore.swift",
+      "change": "added"
+    },
+    {
+      "path": "macos/Sources/HeiBanTestRunner/Fixtures/MockCloudSyncTransport.swift",
+      "change": "added"
+    },
+    {
+      "path": "macos/Sources/HeiBanMac/ScreenAnnotation/ScreenAnnotationSession.swift",
+      "change": "added"
+    },
+    {
+      "path": "macos/Sources/HeiBanMac/ScreenAnnotation/ScreenAnnotationControls.swift",
+      "change": "added"
+    },
+    {
+      "path": "macos/Sources/HeiBanMac/ScreenAnnotation/ScreenAnnotationCanvas.swift",
+      "change": "added"
+    },
+    {
+      "path": "macos/scripts/generate_user_guide.py",
+      "change": "added"
+    },
+    {
+      "path": "macos/scripts/new_dev_entry.py",
+      "change": "added"
+    },
+    {
+      "path": "macos/Release.json",
+      "change": "added"
+    },
+    {
+      "path": "macos/.swift-format",
+      "change": "added"
+    },
+    {
+      "path": "macos/design/archive/icon-scripts/generate_brand_icons.swift",
+      "change": "added"
+    },
+    {
+      "path": "macos/design/archive/icon-scripts/generate_lively_hb_icons.swift",
+      "change": "added"
+    },
+    {
+      "path": "macos/design/archive/icon-scripts/generate_hb_stylus_icons.swift",
+      "change": "added"
+    },
+    {
+      "path": "macos/design/archive/icon-scripts/README.zh-TW.md",
+      "change": "added"
+    },
+    {
+      "path": "macos/design/archive/icon-scripts/generate_centered_coral_icons.swift",
+      "change": "added"
+    },
+    {
+      "path": "macos/design/archive/icon-scripts/generate_tool_icons.swift",
+      "change": "added"
+    },
+    {
+      "path": "macos/design/archive/icon-scripts/generate_wild_hb_icons.swift",
+      "change": "added"
+    },
+    {
+      "path": "macos/docs/development/",
+      "change": "added-documentation-and-build-evidence"
+    }
+  ]
+}

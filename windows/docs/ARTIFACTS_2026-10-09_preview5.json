@@ -1,0 +1,36 @@
+{
+  "version": "0.1.0-preview.5",
+  "builtOn": "Windows 11 ARM64 / .NET10.0.401",
+  "artifacts": [
+    {
+      "filename": "HeiBan-Setup-0.1.0-preview.5-arm64.exe",
+      "bytes": 63785398,
+      "sha256": "e57c3fe9e1b6589ec084d8fe6a5f6317d31b4aa8576f6dabbcf6eb9658385dbf",
+      "sha256Verified": true
+    },
+    {
+      "filename": "HeiBan-Setup-0.1.0-preview.5-x64.exe",
+      "bytes": 66435300,
+      "sha256": "355c53e608a3737ae9f1b14b3c35601a89dc36e22403513dee093dea73a4a361",
+      "sha256Verified": true
+    },
+    {
+      "filename": "HeiBan-Windows-Portable-0.1.0-preview.5-win-arm64.zip",
+      "bytes": 92420370,
+      "sha256": "f6b60ccdbb7faf2b1802af5563a80a649c9944ef1484e8816c5416629c8b95c6",
+      "sha256Verified": true,
+      "peMachine": "0xaa64",
+      "requiredResourcesVerified": true,
+      "emptyUserDataVerified": true
+    },
+    {
+      "filename": "HeiBan-Windows-Portable-0.1.0-preview.5-win-x64.zip",
+      "bytes": 95125643,
+      "sha256": "778f127ce3ec89c6819ee04efa9b23cc8f710ac8865948f20779e79421495526",
+      "sha256Verified": true,
+      "peMachine": "0x8664",
+      "requiredResourcesVerified": true,
+      "emptyUserDataVerified": true
+    }
+  ]
+}

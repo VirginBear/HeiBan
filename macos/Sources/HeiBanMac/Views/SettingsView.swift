@@ -1,6 +1,6 @@
-import SwiftUI
-import HeiBanCore
 import AppKit
+import HeiBanCore
+import SwiftUI
 
 public class SettingsViewModel: ObservableObject {
     @Published public var selectedTab: Int = 0
@@ -124,7 +124,7 @@ public struct NativeSettingsView: View {
                 }
             }
             .pickerStyle(.segmented)
-            .onChange(of: vm.settings.appTheme) { newTheme in
+            .onChange(of: vm.settings.appTheme) { _, newTheme in
                 AppSettingsManager.shared.update { $0.appTheme = newTheme }
             }
 
@@ -136,7 +136,7 @@ public struct NativeSettingsView: View {
                     Text(freq.displayName).tag(freq)
                 }
             }
-            .onChange(of: vm.settings.autoSaveFrequency) { newFreq in
+            .onChange(of: vm.settings.autoSaveFrequency) { _, newFreq in
                 AppSettingsManager.shared.update { $0.autoSaveFrequency = newFreq }
             }
             Text("黑板採用原子替換（Atomic Write）機制保存至專屬沙盒，防止電源中斷導致檔案毀損。")
@@ -154,12 +154,12 @@ public struct NativeSettingsView: View {
                 Text("自由浮動").tag("floating")
             }
             .pickerStyle(.segmented)
-            .onChange(of: vm.settings.defaultToolbarDock) { newDock in
+            .onChange(of: vm.settings.defaultToolbarDock) { _, newDock in
                 AppSettingsManager.shared.update { $0.defaultToolbarDock = newDock }
             }
 
             Toggle("啟用觸控板震動回饋與手柄吸附提醒", isOn: $vm.settings.isHapticFeedbackEnabled)
-                .onChange(of: vm.settings.isHapticFeedbackEnabled) { val in
+                .onChange(of: vm.settings.isHapticFeedbackEnabled) { _, val in
                     AppSettingsManager.shared.update { $0.isHapticFeedbackEnabled = val }
                 }
         }
@@ -174,7 +174,7 @@ public struct NativeSettingsView: View {
                 Text("固定比例畫布").tag(CanvasMode.fixed)
             }
             .pickerStyle(.segmented)
-            .onChange(of: vm.settings.defaultCanvasMode) { newMode in
+            .onChange(of: vm.settings.defaultCanvasMode) { _, newMode in
                 AppSettingsManager.shared.update { $0.defaultCanvasMode = newMode }
             }
 
@@ -185,13 +185,13 @@ public struct NativeSettingsView: View {
                     Text("16:9 簡報 (1920 x 1080)").tag("16:9")
                     Text("4:3 課堂 (1024 x 768)").tag("4:3")
                 }
-                .onChange(of: vm.settings.defaultPaperPreset) { newPreset in
+                .onChange(of: vm.settings.defaultPaperPreset) { _, newPreset in
                     AppSettingsManager.shared.update { $0.defaultPaperPreset = newPreset }
                 }
             }
 
             Toggle("顯示背景微點方格參考線", isOn: $vm.settings.showCanvasGrid)
-                .onChange(of: vm.settings.showCanvasGrid) { val in
+                .onChange(of: vm.settings.showCanvasGrid) { _, val in
                     AppSettingsManager.shared.update { $0.showCanvasGrid = val }
                 }
 
@@ -201,13 +201,16 @@ public struct NativeSettingsView: View {
             HStack {
                 TextField("預設字體名稱", text: $vm.settings.defaultFontFamily)
                     .textFieldStyle(.roundedBorder)
-                    .onChange(of: vm.settings.defaultFontFamily) { newFont in
+                    .onChange(of: vm.settings.defaultFontFamily) { _, newFont in
                         AppSettingsManager.shared.update { $0.defaultFontFamily = newFont }
                     }
-                Stepper("字級：\(Int(vm.settings.defaultFontSize)) pt", value: $vm.settings.defaultFontSize, in: 12...72, step: 2)
-                    .onChange(of: vm.settings.defaultFontSize) { newSize in
-                        AppSettingsManager.shared.update { $0.defaultFontSize = newSize }
-                    }
+                Stepper(
+                    "字級：\(Int(vm.settings.defaultFontSize)) pt", value: $vm.settings.defaultFontSize,
+                    in: 12...72, step: 2
+                )
+                .onChange(of: vm.settings.defaultFontSize) { _, newSize in
+                    AppSettingsManager.shared.update { $0.defaultFontSize = newSize }
+                }
             }
         }
     }
@@ -218,9 +221,12 @@ public struct NativeSettingsView: View {
             Text("帳號狀態").font(.headline)
 
             HStack(spacing: 12) {
-                Image(systemName: vm.settings.loggedInUserEmail != nil ? "checkmark.circle.fill" : "internaldrive")
-                    .font(.title2)
-                    .foregroundStyle(vm.settings.loggedInUserEmail != nil ? .green : sage)
+                Image(
+                    systemName: vm.settings.loggedInUserEmail != nil
+                        ? "checkmark.circle.fill" : "internaldrive"
+                )
+                .font(.title2)
+                .foregroundStyle(vm.settings.loggedInUserEmail != nil ? .green : sage)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(vm.syncState.displayName)
                         .font(.subheadline.weight(.semibold))
@@ -251,16 +257,12 @@ public struct NativeSettingsView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
 
-                    Button("以 Google 帳號登入 (準備中)") {
-                        AppSettingsManager.shared.setSyncState(.authenticating)
-                        vm.syncState = AppSettingsManager.shared.syncState
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                            AppSettingsManager.shared.loginUser(email: "user@heiban.app")
-                            vm.refresh()
-                        }
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(sage)
+                    // 真正 OAuth／同步尚未接入；不能用示範帳號冒充成功授權。
+                    Button("以 Google 帳號登入 (準備中)") {}
+                        .buttonStyle(.borderedProminent)
+                        .tint(sage)
+                        .disabled(true)
+                        .help("尚未接入正式 Google 授權與雲端同步，目前作品保存在本機")
                 }
             }
         }
@@ -270,9 +272,7 @@ public struct NativeSettingsView: View {
     private var aboutView: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 14) {
-                Image(systemName: "square.and.pencil")
-                    .font(.system(size: 42))
-                    .foregroundStyle(sage)
+                HeiBanLogo().frame(width: 108, height: 60)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(AboutInfo.appName).font(.title2.weight(.bold))
                     Text("版本 \(AboutInfo.appVersion) (\(AboutInfo.buildNumber)) · \(AboutInfo.engineVersion)")

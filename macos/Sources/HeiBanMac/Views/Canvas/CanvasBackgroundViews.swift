@@ -1,6 +1,24 @@
 import SwiftUI
 import HeiBanCore
 
+/// Keep stored content intact when changing formats, while drawing only on the paper.
+struct CanvasContentBounds: Shape {
+    private let pageRect: CGRect?
+
+    init(board: BoardMetadata, viewport: ViewportTransform) {
+        if (board.canvasMode == .fixed || board.canvasMode == .notebook),
+           let width = board.canvasWidth, let height = board.canvasHeight {
+            pageRect = CGRect(x: viewport.x, y: viewport.y, width: width * viewport.zoom, height: height * viewport.zoom)
+        } else {
+            pageRect = nil
+        }
+    }
+
+    func path(in rect: CGRect) -> Path {
+        Path(pageRect ?? rect)
+    }
+}
+
 struct CanvasBackgroundView: View {
     let theme: BoardTheme
     let gridStyle: GridStyle
@@ -13,14 +31,31 @@ struct CanvasBackgroundView: View {
 
     var body: some View {
         let bgHex = backgroundColor ?? theme.defaultBackgroundColor
-        Color(hex: bgHex)
-            .overlay(
-                GridPatternView(gridStyle: gridStyle, viewport: viewport, backgroundColor: bgHex, gridColor: gridColor)
-            )
-            .overlay(
+        let bounded = canvasMode == .fixed || canvasMode == .notebook
+        GeometryReader { geo in
+            ZStack {
+                if bounded, let w = canvasWidth, let h = canvasHeight {
+                    Color(red: 0.82, green: 0.84, blue: 0.85)
+                    Rectangle()
+                        .fill(Color(hex: bgHex))
+                        .frame(width: w * viewport.zoom, height: h * viewport.zoom)
+                        .shadow(color: .black.opacity(0.24), radius: 8, x: 0, y: 4)
+                        .position(x: viewport.x + w * viewport.zoom / 2, y: viewport.y + h * viewport.zoom / 2)
+                    GridPatternView(gridStyle: gridStyle, viewport: viewport, backgroundColor: bgHex, gridColor: gridColor)
+                        .mask {
+                            Rectangle()
+                                .frame(width: w * viewport.zoom, height: h * viewport.zoom)
+                                .position(x: viewport.x + w * viewport.zoom / 2, y: viewport.y + h * viewport.zoom / 2)
+                        }
+                } else {
+                    Color(hex: bgHex)
+                    GridPatternView(gridStyle: gridStyle, viewport: viewport, backgroundColor: bgHex, gridColor: gridColor)
+                }
                 FixedCanvasFrameView(viewport: viewport, canvasMode: canvasMode, width: canvasWidth, height: canvasHeight)
-            )
-            .ignoresSafeArea()
+            }
+            .frame(width: geo.size.width, height: geo.size.height)
+        }
+        .allowsHitTesting(false)
     }
 }
 
@@ -40,9 +75,7 @@ struct FixedCanvasFrameView: View {
             let rect = CGRect(x: pageX, y: pageY, width: pageW, height: pageH)
 
             Canvas { context, _ in
-                let shadowRect = rect.offsetBy(dx: 4 * zoom, dy: 6 * zoom)
-                context.fill(Path(roundedRect: shadowRect, cornerRadius: 4), with: .color(Color.black.opacity(0.35)))
-                context.stroke(Path(roundedRect: rect, cornerRadius: 4), with: .color(Color.white.opacity(0.45)), lineWidth: 1.5)
+                context.stroke(Path(rect), with: .color(Color.black.opacity(0.22)), lineWidth: 1)
             }
             .allowsHitTesting(false)
         }

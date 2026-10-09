@@ -104,9 +104,10 @@ export class GestureTransactionTracker {
 
   public endGesture(
     objectId: string,
-    type: string,
+    type: BoardObject['type'],
     strokeColor: string,
-    strokeWidth: number
+    strokeWidth: number,
+    boardId: string = ''
   ): GestureTransaction | null {
     if (this.activeSamples.length === 0) return null;
     this.committed = true;
@@ -120,6 +121,7 @@ export class GestureTransactionTracker {
 
     const committedObj: BoardObject = {
       id: objectId,
+      boardId,
       type,
       x: minX,
       y: minY,

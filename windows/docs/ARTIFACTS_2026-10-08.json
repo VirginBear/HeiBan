@@ -1,0 +1,40 @@
+[
+  {
+    "file": "HeiBan-Setup-0.1.0-preview.1-arm64.exe",
+    "bytes": 63434285,
+    "sha256": "8acb9c0b33bbea8f5c2913626d800f454a3c412284082afc17a984908cff56e8"
+  },
+  {
+    "file": "HeiBan-Setup-0.1.0-preview.1-x64.exe",
+    "bytes": 66073866,
+    "sha256": "03d70fcc5caa56d0d5ff43295957b03efb8da308dc44ea8c2e2dcaacfbcce5d2"
+  },
+  {
+    "file": "HeiBan-Windows-Portable-0.1.0-preview.1-win-arm64.zip",
+    "bytes": 91782666,
+    "sha256": "91bd0a082201581bbf8d8c1d6c6dc7e1be2e7d51b270110bedeb3a57d2594ed1",
+    "machine": "ARM64",
+    "files": 527,
+    "portable": true,
+    "icon_png_dimensions": [
+      256,
+      256
+    ],
+    "has_dotnet_runtime": true,
+    "has_winui_runtime": true
+  },
+  {
+    "file": "HeiBan-Windows-Portable-0.1.0-preview.1-win-x64.zip",
+    "bytes": 94487951,
+    "sha256": "1dc203a8b8d519790d4639841f02876bc30769149bf1737245ee176c749736c5",
+    "machine": "x64",
+    "files": 531,
+    "portable": true,
+    "icon_png_dimensions": [
+      256,
+      256
+    ],
+    "has_dotnet_runtime": true,
+    "has_winui_runtime": true
+  }
+]

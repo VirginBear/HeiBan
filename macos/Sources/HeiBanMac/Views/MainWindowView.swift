@@ -1,6 +1,6 @@
-import SwiftUI
 import AppKit
 import HeiBanCore
+import SwiftUI
 
 public struct MainWindowView: View {
     @ObservedObject private var engine: BoardEngine
@@ -13,73 +13,105 @@ public struct MainWindowView: View {
                 HomeView(engine: engine)
             } else {
                 GeometryReader { geo in
-                    let vertical = engine.toolbarDock == "left" || engine.toolbarDock == "right"
                     ZStack(alignment: .top) {
                         CanvasView(engine: engine).ignoresSafeArea()
-                        VStack { TopNavView(engine: engine); Spacer() }
-                        ToolbarView(engine: engine)
-                            .frame(width: vertical ? 64 : min(geo.size.width - 32, 800),
-                                   height: vertical ? min(geo.size.height - 150, 700) : 60)
-                            .position(engine.toolbarPosition(in: geo.size))
 
-                        if engine.showInspector || engine.showLayerPanel {
+                        if engine.readingMode {
+                            VStack {
+                                HStack {
+                                    Spacer()
+                                    ReadingNavigationView(engine: engine)
+                                }.padding(16)
+                                Spacer()
+                            }
+                        } else if !engine.isImmersiveMode {
+                            VStack {
+                                HStack {
+                                    Spacer()
+                                    TopNavView(engine: engine)
+                                }
+                                .padding(.trailing, 16)
+                                .padding(.top, 12)
+                                Spacer()
+                            }
+                            ToolbarView(engine: engine, windowSize: geo.size)
+                        } else {
+                            // Immersive mode subtle floating restore pill
+                            VStack {
+                                HStack {
+                                    Spacer()
+                                    Button {
+                                        engine.toggleImmersiveMode()
+                                    } label: {
+                                        HStack(spacing: 5) {
+                                            Image(systemName: "arrow.down.right.and.arrow.up.left")
+                                            Text("退出沉浸模式")
+                                        }
+                                        .font(.system(size: 11, weight: .medium))
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 6)
+                                        .background(.regularMaterial, in: Capsule())
+                                        .overlay(Capsule().stroke(Color.primary.opacity(0.12), lineWidth: 1))
+                                        .shadow(color: .black.opacity(0.1), radius: 6, y: 2)
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                                .padding(.trailing, 16)
+                                .padding(.top, 12)
+                                Spacer()
+                            }
+                        }
+
+                        if !engine.isImmersiveMode {
+                            VStack {
+                                Spacer()
+                                HStack {
+                                    WorkspaceNavigationView(engine: engine)
+                                    Spacer()
+                                }
+                                .padding(
+                                    .leading, engine.toolbarDock == "left" && !engine.readingMode ? 92 : 16
+                                )
+                                .padding(
+                                    .bottom, engine.toolbarDock == "bottom" && !engine.readingMode ? 96 : 16)
+                            }
+                        }
+
+                        if !engine.readingMode && engine.showLayerPanel && !engine.isImmersiveMode {
                             VStack {
                                 Spacer().frame(height: 56)
                                 HStack(alignment: .top, spacing: 12) {
                                     Spacer()
-                                    if engine.showInspector {
-                                        InspectorView(engine: engine)
-                                            .transition(.move(edge: .trailing).combined(with: .opacity))
-                                    }
-                                    if engine.showLayerPanel {
-                                        LayerPanelView(engine: engine)
-                                            .transition(.move(edge: .trailing).combined(with: .opacity))
-                                    }
+                                    LayerPanelView(engine: engine)
+                                        .transition(.move(edge: .trailing).combined(with: .opacity))
                                 }
                                 .padding(.trailing, 16)
                                 Spacer()
                             }
                         }
 
-                        if !engine.showInspector {
-                            VStack {
-                                Spacer()
-                                HStack {
-                                    Spacer()
-                                    Button {
-                                        withAnimation(.spring(response: 0.32, dampingFraction: 0.82)) { engine.showInspector = true }
-                                    } label: {
-                                        HStack(spacing: 6) {
-                                            Image(systemName: "slider.horizontal.3")
-                                                .font(.system(size: 12, weight: .semibold))
-                                            Text("屬性")
-                                                .font(.system(size: 11, weight: .medium))
-                                        }
-                                        .foregroundStyle(.primary.opacity(0.85))
-                                        .padding(.horizontal, 12)
-                                        .padding(.vertical, 8)
-                                        .background(.regularMaterial, in: Capsule())
-                                        .overlay(Capsule().stroke(Color.white.opacity(0.28), lineWidth: 1))
-                                        .shadow(color: Color.black.opacity(0.12), radius: 8, x: 0, y: 3)
-                                    }
-                                    .buttonStyle(.plain)
-                                    .padding(.trailing, 16)
-                                    .help("開啟屬性檢查器")
-                                }
-                                Spacer()
-                            }
-                            .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                        if !engine.readingMode && !engine.isImmersiveMode {
+                            InspectorDockView(engine: engine, windowSize: geo.size)
                         }
+
+                        // Floating Auxiliary Tool Windows
+                        CalculatorPanelView(model: engine.calculator, engine: engine, workspaceSize: geo.size)
+                        TimerPanelView(
+                            coordinator: engine.timerCoordinator, engine: engine, workspaceSize: geo.size)
                     }
-                    .onChange(of: geo.size) { _, newSize in
-                        engine.repositionPanelsIfNeeded(windowSize: newSize)
-                    }
+                    .coordinateSpace(name: "HeiBan.workspace")
                 }
             }
         }
         .frame(minWidth: 960, minHeight: 640)
-        .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in engine.flushAutosave() }
+        // 退出保存集中在 HeiBanAppDelegate；此處再保存會重複增加修訂版號。
+        // 以下觀察涵蓋 UI 直接修改資料的情況，與命令保存共用同一 debounce 排程。
         .onChange(of: engine.objects) { _, _ in engine.scheduleAutosave() }
-        .onChange(of: engine.board) { _, _ in engine.scheduleAutosave() }
+        .onChange(of: engine.board) { previous, current in
+            // A successful save only advances the revision; it must not schedule another save.
+            var contentBefore = previous
+            contentBefore.revision = current.revision
+            if contentBefore != current { engine.scheduleAutosave() }
+        }
     }
 }

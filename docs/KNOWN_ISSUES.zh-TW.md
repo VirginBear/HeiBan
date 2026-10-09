@@ -1,0 +1,18 @@
+# 公開預覽的已知限制
+
+更新：2026-10-09。版本：Mac 1.0.8、Windows 0.1.0-preview.5。以下為現況，不把計畫或核心原型當成正式功能。
+
+| 範圍 | 現況 |
+| --- | --- |
+| Mac 下載 | ARM64、macOS 14+；未提供 Intel／Universal，未完成 Developer ID／Apple 公證 |
+| Windows 下載 | ARM64／x64、安裝／免安裝；未做 Authenticode 簽章；x64 與安裝升級的完整實機流程未驗收 |
+| 全功能一致性 | 平台功能仍有差距，跨平台文件中的物件可能尚無對應 UI |
+| Google／同步 | 原生登入、雲端與協作未正式啟用；不提供公開 Web 服務 |
+| PDF／SVG | Mac 支援匯出；外部 PDF 插入註記、自匯 PDF 恢復、完整 SVG 匯入編輯未交付；Windows 未完整移植 |
+| Mac 螢幕畫布 | 已修正工具重設／疊層／整屏輸入；跨 App 真正落筆、PNG 合成、多螢幕、特殊全螢幕仍待驗收；約 1% 透明 backing |
+| Windows 螢幕畫布／雷射 | 尚未提供；preview.5 包內舊手冊有規劃描述，以目前來源文件為準 |
+| 手寫硬體 | Windows 取樣筆壓，但尚未完整接可變粗細；手掌誤觸與裝置延遲未驗收 |
+| 大型作品 | 內嵌圖片 JSON、解析／部分匯出仍可能同步；沒有固定 FPS／延遲保證 |
+| 主題與偏好 | Mac 主題／部分保存偏好未完整接入 |
+
+細節：[Mac 狀態](../macos/docs/development/CURRENT_STATUS.zh-TW.md)、[Mac 排錯紀錄](../macos/docs/development/ISSUE_HISTORY.zh-TW.md)、[Windows 狀態](../windows/docs/CURRENT_STATUS.zh-TW.md)。

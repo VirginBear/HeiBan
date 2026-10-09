@@ -1,5 +1,5 @@
-import Foundation
 import CoreGraphics
+import Foundation
 import SwiftUI
 
 private final class CachedPathWrapper: NSObject {
@@ -9,17 +9,43 @@ private final class CachedPathWrapper: NSObject {
     }
 }
 
+/// 使用實際幾何資料作 key，不能只看 points 字數或秒級 updatedAt。
+/// 相同字數的新控制點、快速重畫、undo 都可能保持舊時間戳／尺寸。
+private final class PathCacheKey: NSObject {
+    private struct Geometry: Hashable {
+        let id: String
+        let type: String
+        let x: Double
+        let y: Double
+        let width: Double
+        let height: Double
+        let points: String?
+    }
+
+    private let geometry: Geometry
+    init(_ object: BoardObject) {
+        geometry = Geometry(
+            id: object.id, type: object.type, x: object.x, y: object.y,
+            width: object.width, height: object.height, points: object.points)
+    }
+    override var hash: Int { geometry.hashValue }
+    override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? PathCacheKey else { return false }
+        return geometry == other.geometry
+    }
+}
+
 public enum BoardPathCache {
-    private static let storage: NSCache<NSString, CachedPathWrapper> = {
-        let cache = NSCache<NSString, CachedPathWrapper>()
+    private static let storage: NSCache<PathCacheKey, CachedPathWrapper> = {
+        let cache = NSCache<PathCacheKey, CachedPathWrapper>()
         cache.countLimit = 8192
-        cache.totalCostLimit = 128 * 1024 * 1024 // 128 MB
+        cache.totalCostLimit = 128 * 1024 * 1024  // 128 MB
         return cache
     }()
 
     /// 取得筆跡或向量物件的世界座標路徑（含快取）
     public static func worldPath(for object: BoardObject) -> Path {
-        let key = "\(object.id):\(object.updatedAt):\(object.points?.count ?? 0):\(object.width):\(object.height)" as NSString
+        let key = PathCacheKey(object)
         if let cached = storage.object(forKey: key) {
             return cached.path
         }
@@ -74,7 +100,9 @@ public enum BoardPathCache {
             path = Path()
         }
 
-        storage.setObject(CachedPathWrapper(path), forKey: key)
+        // NSCache 的 totalCostLimit 只有傳入 cost 才有意義；此為估算，非精確記憶體量測。
+        let estimatedCost = max(256, (object.points?.utf8.count ?? 0) * 4)
+        storage.setObject(CachedPathWrapper(path), forKey: key, cost: estimatedCost)
         return path
     }
 

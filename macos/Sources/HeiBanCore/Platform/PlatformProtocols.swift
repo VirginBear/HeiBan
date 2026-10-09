@@ -29,6 +29,17 @@ public protocol PlatformImageDecoderService: AnyObject {
     func convertImageToPNGData(from data: Data) -> Data?
 }
 
+public enum ScreenCaptureResult {
+    case image(Data)
+    case cancelled
+    case failed(String)
+}
+
+/// Native UI and capture permissions belong to the platform, not the board model.
+public protocol PlatformScreenCaptureService: AnyObject {
+    func capture(mode: ScreenCaptureMode, completion: @escaping (ScreenCaptureResult) -> Void)
+}
+
 public struct CoreImageDecoder {
     public static func getDimensions(from data: Data) -> (width: Double, height: Double)? {
         guard let source = CGImageSourceCreateWithData(data as CFData, nil) else { return nil }

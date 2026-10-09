@@ -73,6 +73,60 @@ public enum VectorMath {
         )
     }
 
+    /// Check whether a test angle is included in the angular span from startAngle by sweepAngle
+    public static func isAngleInSpan(angle: Double, start: Double, sweep: Double) -> Bool {
+        if abs(sweep) >= 360.0 { return true }
+        if sweep == 0 { return false }
+        var normA = angle.truncatingRemainder(dividingBy: 360.0)
+        if normA < 0 { normA += 360.0 }
+        var normStart = start.truncatingRemainder(dividingBy: 360.0)
+        if normStart < 0 { normStart += 360.0 }
+
+        if sweep > 0 {
+            var diff = normA - normStart
+            if diff < 0 { diff += 360.0 }
+            return diff <= sweep + 0.0001
+        } else {
+            var diff = normStart - normA
+            if diff < 0 { diff += 360.0 }
+            return diff <= abs(sweep) + 0.0001
+        }
+    }
+
+    /// Compute tight bounding box of an arc in world coordinates
+    public static func computeArcBoundingBox(
+        center: Point,
+        radius: Double,
+        startAngle: Double,
+        sweepAngle: Double,
+        strokeWidth: Double = 2.0
+    ) -> BoundingBox {
+        let pad = strokeWidth / 2.0
+        guard radius > 0, !radius.isNaN, !radius.isInfinite else {
+            return BoundingBox(minX: center.x - pad, minY: center.y - pad, maxX: center.x + pad, maxY: center.y + pad, width: max(1.0, strokeWidth), height: max(1.0, strokeWidth))
+        }
+        if abs(sweepAngle) >= 360.0 {
+            let bMinX = center.x - radius - pad
+            let bMinY = center.y - radius - pad
+            let bMaxX = center.x + radius + pad
+            let bMaxY = center.y + radius + pad
+            return BoundingBox(minX: bMinX, minY: bMinY, maxX: bMaxX, maxY: bMaxY, width: max(1.0, bMaxX - bMinX), height: max(1.0, bMaxY - bMinY))
+        }
+
+        let rad = Double.pi / 180.0
+        let p1 = Point(x: center.x + radius * cos(startAngle * rad), y: center.y + radius * sin(startAngle * rad))
+        let endAngle = startAngle + sweepAngle
+        let p2 = Point(x: center.x + radius * cos(endAngle * rad), y: center.y + radius * sin(endAngle * rad))
+        var pts = [p1, p2]
+
+        for cardinal in [0.0, 90.0, 180.0, 270.0] {
+            if isAngleInSpan(angle: cardinal, start: startAngle, sweep: sweepAngle) {
+                pts.append(Point(x: center.x + radius * cos(cardinal * rad), y: center.y + radius * sin(cardinal * rad)))
+            }
+        }
+        return computeBoundingBox(points: pts, strokeWidth: strokeWidth)
+    }
+
     /// Snap point to ruler straight edge WITH strict length limiter (A13)
     public static func snapToRulerEdge(
         screenPt: Point,
@@ -197,7 +251,7 @@ public enum VectorMath {
                 }
             }
             return false
-        } else if object.type == "line" || object.type == "arrow" {
+        } else if object.type == "line" || object.type == "arrow" || object.type == "connector" {
             let start = CGPoint(x: object.x1 ?? object.x, y: object.y1 ?? object.y)
             let end = CGPoint(x: object.x2 ?? (object.x + object.width), y: object.y2 ?? (object.y + object.height))
             let maxDist = max(threshold, object.strokeWidth / 2)
@@ -213,6 +267,19 @@ public enum VectorMath {
             case .both:
                 return distanceToInfiniteLine(from: point.cgPoint, p1: start, p2: end) <= maxDist
             }
+        } else if object.type == "arc" {
+            let radius = object.arcRadius ?? (object.width / 2.0)
+            let center = CGPoint(x: object.x + object.width / 2.0, y: object.y + object.height / 2.0)
+            let hitRadius = max(threshold, object.strokeWidth / 2.0)
+            let dist = hypot(point.x - center.x, point.y - center.y)
+            guard abs(dist - radius) <= hitRadius else { return false }
+            let sweep = object.arcSweepAngle ?? 360.0
+            if abs(sweep) >= 360.0 { return true }
+            let start = object.arcStartAngle ?? 0.0
+            let ptAngleRad = atan2(point.y - center.y, point.x - center.x)
+            var ptAngleDeg = ptAngleRad * 180.0 / Double.pi
+            if ptAngleDeg < 0 { ptAngleDeg += 360.0 }
+            return isAngleInSpan(angle: ptAngleDeg, start: start, sweep: sweep)
         } else {
             // Box hit test
             let minX = min(object.x, object.x + object.width) - threshold
@@ -304,7 +371,7 @@ public enum VectorMath {
                     if oMinY < minY { minY = oMinY }
                     if oMaxY > maxY { maxY = oMaxY }
                 }
-            } else if object.type == "line" || object.type == "arrow" {
+            } else if object.type == "line" || object.type == "arrow" || object.type == "connector" {
                 let x1 = object.x1 ?? object.x
                 let y1 = object.y1 ?? object.y
                 let x2 = object.x2 ?? (object.x + object.width)
@@ -317,6 +384,16 @@ public enum VectorMath {
                 if lMaxX > maxX { maxX = lMaxX }
                 if lMinY < minY { minY = lMinY }
                 if lMaxY > maxY { maxY = lMaxY }
+            } else if object.type == "arc" {
+                let radius = object.arcRadius ?? (object.width / 2.0)
+                let center = Point(x: object.x + object.width / 2.0, y: object.y + object.height / 2.0)
+                let start = object.arcStartAngle ?? 0.0
+                let sweep = object.arcSweepAngle ?? 360.0
+                let box = computeArcBoundingBox(center: center, radius: radius, startAngle: start, sweepAngle: sweep, strokeWidth: object.strokeWidth)
+                if box.minX < minX { minX = box.minX }
+                if box.maxX > maxX { maxX = box.maxX }
+                if box.minY < minY { minY = box.minY }
+                if box.maxY > maxY { maxY = box.maxY }
             } else {
                 let oMinX = min(object.x, object.x + object.width)
                 let oMaxX = max(object.x, object.x + object.width)
@@ -564,6 +641,34 @@ public enum VectorMath {
         }
         updated.updatedAt = ISO8601DateFormatter().string(from: Date())
         return updated
+    }
+
+    /// Tests whether a 2D point is inside an arbitrary polygon using ray casting
+    public static func isPointInPolygon(point: Point, polygon: [Point]) -> Bool {
+        guard polygon.count >= 3 else { return false }
+        var inside = false
+        var j = polygon.count - 1
+        for i in 0..<polygon.count {
+            let pi = polygon[i]
+            let pj = polygon[j]
+            if ((pi.y > point.y) != (pj.y > point.y)) &&
+               (point.x < (pj.x - pi.x) * (point.y - pi.y) / (pj.y - pi.y) + pi.x) {
+                inside.toggle()
+            }
+            j = i
+        }
+        return inside
+    }
+
+    /// Computes vertices for a regular n-sided polygon
+    public static func computePolygonVertices(center: Point, radius: Double, sides: Int, rotation: Double = 0.0) -> [Point] {
+        let n = max(3, sides)
+        let rotRad = (rotation - 90.0) * .pi / 180.0 // start from top apex
+        let step = 2.0 * .pi / Double(n)
+        return (0..<n).map { i in
+            let angle = rotRad + Double(i) * step
+            return Point(x: center.x + radius * cos(angle), y: center.y + radius * sin(angle))
+        }
     }
 }
 

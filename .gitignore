@@ -10,3 +10,18 @@ macos/.build/
 macos/dist/
 .build/
 參考/
+
+# Private data, certificates and machine-specific outputs
+*.heiban
+*.blackboard.json
+*.blackboard.json.*
+*.pfx
+*.p12
+*.pem
+*.key
+*.user
+*.pdb
+ScreenAnnotations/
+Data/
+macos/docs/development/build-output/
+windows/docs/build-logs/

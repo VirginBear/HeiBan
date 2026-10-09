@@ -76,8 +76,12 @@ public final class WorkspaceRepository {
     public func listBlackboardFiles() throws -> [WorkspaceFileInfo] {
         guard FileManager.default.fileExists(atPath: folderURL.path) else { return [] }
         let resolvedFolder = folderURL.resolvingSymlinksInPath()
-        let urls = try FileManager.default.contentsOfDirectory(at: resolvedFolder, includingPropertiesForKeys: [.contentModificationDateKey])
-            .filter { $0.lastPathComponent.hasSuffix(".blackboard.json") || $0.lastPathComponent.hasSuffix(".heiban") }
+        let urls = try FileManager.default.contentsOfDirectory(
+            at: resolvedFolder, includingPropertiesForKeys: [.contentModificationDateKey]
+        )
+        .filter {
+            $0.lastPathComponent.hasSuffix(".blackboard.json") || $0.lastPathComponent.hasSuffix(".heiban")
+        }
 
         var results: [WorkspaceFileInfo] = []
         for u in urls {
@@ -90,11 +94,12 @@ public final class WorkspaceRepository {
     }
 }
 
+/// 多文件協調的核心基礎；目前一般 Mac 視窗仍使用作品庫流程，尚未接入多文件 UI。
 public final class DocumentSession: Identifiable {
     public let id: String
     public var fileURL: URL
     public let engine: BoardEngine
-    public let coordinator: DocumentCoordinator
+    public private(set) var coordinator: DocumentCoordinator
     public let library: LocalBoardLibrary
     public private(set) var openWindowCount: Int
 
@@ -137,6 +142,8 @@ public final class DocumentSession: Identifiable {
         try library.saveToFile(engine.document, at: newURL, createBackup: true, generateThumbnail: true)
         if repointSession {
             self.fileURL = newURL
+            // 另存後協調器也要追蹤新 URL，否則外部變更檢查仍讀舊檔。
+            self.coordinator = DocumentCoordinator(documentURL: newURL)
             let data = try HeiBanDocumentCodec.encode(engine.document, prettyPrinted: true)
             coordinator.recordSelfSave(contentData: data)
         }
@@ -145,8 +152,8 @@ public final class DocumentSession: Identifiable {
     public func resolveConflictWithReload() throws {
         let data = try Data(contentsOf: fileURL)
         let loaded = try HeiBanDocumentCodec.decode(from: data)
-        engine.board = loaded.board
-        engine.objects = loaded.objects.sorted { $0.zIndex < $1.zIndex }
+        // 共用啟用入口才能一併保留未知文件欄位，且清除舊文件的 undo／暫態手勢。
+        engine.activate(loaded)
         coordinator.recordSelfSave(contentData: data)
     }
 }
@@ -160,16 +167,18 @@ public final class DocumentSessionManager {
     }
 
     public func openDocument(at url: URL) throws -> DocumentSession {
-        if let existing = activeSessions.first(where: { $0.fileURL.standardizedFileURL == url.standardizedFileURL }) {
+        if let existing = activeSessions.first(where: {
+            $0.fileURL.standardizedFileURL == url.standardizedFileURL
+        }) {
             _ = existing.registerWindow()
             return existing
         }
 
         let data = try Data(contentsOf: url)
         let doc = try HeiBanDocumentCodec.decode(from: data)
-        let engine = BoardEngine(restoreSession: false)
-        engine.board = doc.board
-        engine.objects = doc.objects.sorted { $0.zIndex < $1.zIndex }
+        // Session 的 library 負責存檔，避免另一條自動保存管線寫入全域作品庫。
+        let engine = BoardEngine(restoreSession: false, persistenceEnabled: false)
+        engine.activate(doc)
 
         let session = DocumentSession(fileURL: url, engine: engine, library: library, openWindowCount: 1)
         session.coordinator.recordSelfSave(contentData: data)

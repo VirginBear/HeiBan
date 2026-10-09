@@ -20,7 +20,7 @@ struct InFlightStrokeView: View {
                     if let cursor = engine.polygonDraftCursorPoint {
                         let cursorScreen = CGPoint(x: cursor.x * zoom + vx, y: cursor.y * zoom + vy)
                         draft.addLine(to: cursorScreen)
-                        context.stroke(draft, with: .color(Color(hex: engine.activeColor)), style: StrokeStyle(lineWidth: max(2, engine.activeStrokeWidth * zoom), lineCap: .round, lineJoin: .round))
+                        context.stroke(draft, with: .color(Color(hex: engine.activeColor)), style: StrokeStyle(lineWidth: max(2, engine.activeBrushWidth * zoom), lineCap: .round, lineJoin: .round))
                         if anchors.count > 1 {
                             var closingEdge = Path()
                             closingEdge.move(to: cursorScreen)
@@ -30,7 +30,7 @@ struct InFlightStrokeView: View {
                         let cursorMarker = CGRect(x: cursorScreen.x - 4, y: cursorScreen.y - 4, width: 8, height: 8)
                         context.fill(Path(ellipseIn: cursorMarker), with: .color(Color(hex: engine.activeColor).opacity(0.45)))
                     } else {
-                        context.stroke(draft, with: .color(Color(hex: engine.activeColor)), style: StrokeStyle(lineWidth: max(2, engine.activeStrokeWidth * zoom), lineCap: .round, lineJoin: .round))
+                        context.stroke(draft, with: .color(Color(hex: engine.activeColor)), style: StrokeStyle(lineWidth: max(2, engine.activeBrushWidth * zoom), lineCap: .round, lineJoin: .round))
                     }
                 }
                 for screen in anchors {
@@ -58,27 +58,27 @@ struct InFlightStrokeView: View {
                     path.move(to: CGPoint(x: x1, y: y1))
                     path.addLine(to: CGPoint(x: x2, y: y2))
                     let strokeStyle = StrokeStyle(
-                        lineWidth: engine.activeStrokeWidth * zoom,
+                        lineWidth: engine.activeBrushWidth * zoom,
                         lineCap: .round,
                         dash: dashPattern(for: engine.activeLineStyle, zoom: zoom)
                     )
-                    context.opacity = engine.activeOpacity
+                    context.opacity = engine.currentTool == .highlighter ? engine.activeHighlighterOpacity : engine.activeOpacity
                     context.stroke(path, with: .color(color), style: strokeStyle)
                 case "circle", "ellipse":
                     let rect = CGRect(x: sx, y: sy, width: sw, height: sh)
                     let strokeStyle = StrokeStyle(
-                        lineWidth: engine.activeStrokeWidth * zoom,
+                        lineWidth: engine.activeBrushWidth * zoom,
                         dash: dashPattern(for: engine.activeLineStyle, zoom: zoom)
                     )
-                    context.opacity = engine.activeOpacity
+                    context.opacity = engine.currentTool == .highlighter ? engine.activeHighlighterOpacity : engine.activeOpacity
                     context.stroke(Path(ellipseIn: rect), with: .color(color), style: strokeStyle)
                 default: // rect
                     let rect = CGRect(x: sx, y: sy, width: sw, height: sh)
                     let strokeStyle = StrokeStyle(
-                        lineWidth: engine.activeStrokeWidth * zoom,
+                        lineWidth: engine.activeBrushWidth * zoom,
                         dash: dashPattern(for: engine.activeLineStyle, zoom: zoom)
                     )
-                    context.opacity = engine.activeOpacity
+                    context.opacity = engine.currentTool == .highlighter ? engine.activeHighlighterOpacity : engine.activeOpacity
                     context.stroke(Path(roundedRect: rect, cornerRadius: 6), with: .color(color), style: strokeStyle)
                 }
                 return
@@ -87,10 +87,8 @@ struct InFlightStrokeView: View {
             // Otherwise draw active points
             guard !preview.points.isEmpty else { return }
             let opacity = engine.currentTool == .highlighter ? engine.activeHighlighterOpacity : engine.activeOpacity
-            let multiplier = engine.currentTool == .highlighter ? 3.5 : (engine.currentTool == .paint ? 8.0 : 1.0)
-            let minimumWidth = engine.currentTool == .highlighter ? 12.0 : (engine.currentTool == .paint ? 24.0 : 0.0)
             let color = Color(hex: engine.activeColor)
-            let width = max(minimumWidth, engine.activeStrokeWidth * multiplier)
+            let width = engine.activeBrushWidth
             context.opacity = opacity
             // Composite translucent ink once, preventing darker seams between cached chunks.
             context.drawLayer { layer in

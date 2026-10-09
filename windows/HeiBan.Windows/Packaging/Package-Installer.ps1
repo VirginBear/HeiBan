@@ -1,41 +1,35 @@
-# HeiBan Windows 安裝版一鍵自動打包腳本
-# 執行環境：Windows PowerShell 5.1+ / PowerShell 7+
-
-param (
-    [string]$Configuration = "Release",
-    [string]$Runtime = $(if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") { "win-arm64" } else { "win-x64" })
+﻿param(
+    [ValidateSet('Debug','Release')][string]$Configuration='Release',
+    [ValidateSet('win-x64','win-arm64')][string]$Runtime='win-x64',
+    [string]$IsccPath
 )
-
-$ErrorActionPreference = "Stop"
-Write-Host "==================================================" -ForegroundColor Cyan
-Write-Host "🚀 開始建置 HeiBan Windows 安裝版 ($Runtime - $Configuration)" -ForegroundColor Cyan
-Write-Host "==================================================" -ForegroundColor Cyan
-
-$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$ProjectDir = Resolve-Path "$ScriptDir\.."
-$OutputDir = "$ProjectDir\..\..\dist\windows"
-
-if (-not (Test-Path $OutputDir)) {
-    New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
+$ErrorActionPreference='Stop'
+. (Join-Path $PSScriptRoot 'Publish-Common.ps1')
+$root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
+$version = Get-HeiBanVersion
+$dist = Join-Path $root 'dist'
+$staging = Join-Path $root ".staging\installer-$Runtime-$([guid]::NewGuid().ToString('N'))"
+if(-not $IsccPath) {
+    $command = Get-Command ISCC.exe -ErrorAction SilentlyContinue
+    if($command){$IsccPath=$command.Source}
+    else {
+        foreach($candidate in @("${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe", "$env:ProgramFiles\Inno Setup 7\ISCC.exe")) {
+            if(Test-Path $candidate){$IsccPath=$candidate;break}
+        }
+    }
 }
-
-# 1. 執行 dotnet publish 發行原生自包含程式庫
-Write-Host "📦 正在編譯與發行主程式..." -ForegroundColor Yellow
-dotnet publish "$ProjectDir\HeiBan.Windows.csproj" `
-    -c $Configuration `
-    -r $Runtime `
-    --self-contained true `
-    /p:WindowsPackageType=None `
-    /p:PublishSingleFile=false
-
-# 2. 呼叫 Inno Setup 編譯安裝檔 (若系統有安裝 ISCC.exe)
-$IsccPath = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
-if (Test-Path $IsccPath) {
-    Write-Host "🛠️ 正在生成 Inno Setup 安裝程式 (HeiBan-Setup-x64.exe)..." -ForegroundColor Yellow
-    & $IsccPath "$ScriptDir\inno_setup.iss"
-    Write-Host "✅ 安裝版打包成功！產物位於: $OutputDir\HeiBan-Setup-x64.exe" -ForegroundColor Green
-} else {
-    Write-Host "ℹ️ 提示：未偵測到 Inno Setup 編譯器，已完成標準 Publish 產物輸出至 bin\Release 目錄。" -ForegroundColor Gray
+if(-not $IsccPath -or -not (Test-Path $IsccPath)){throw '找不到 Inno Setup 的 ISCC.exe；請安裝官方編譯器或指定 -IsccPath。'}
+New-Item -ItemType Directory -Force $dist | Out-Null
+try {
+    Publish-HeiBan $Configuration $Runtime $staging
+    if(Test-Path (Join-Path $staging 'portable.dat')){throw '安裝版不可含 portable.dat。'}
+    $arch = if($Runtime -eq 'win-arm64'){'arm64'}else{'x64'}
+    & $IsccPath "/DSourceDir=$staging" "/DOutputDir=$dist" "/DAppVersion=$version" "/DArch=$arch" (Join-Path $PSScriptRoot 'inno_setup.iss')
+    if($LASTEXITCODE -ne 0){throw "ISCC 失敗，代碼 $LASTEXITCODE"}
+    $exe = Join-Path $dist "HeiBan-Setup-$version-$arch.exe"
+    if(-not (Test-Path $exe)){throw '安裝檔未產生。'}
+    (Get-FileHash $exe -Algorithm SHA256).Hash + '  ' + [IO.Path]::GetFileName($exe) | Set-Content "$exe.sha256" -Encoding ascii
+    Write-Host "安裝版：$exe"
+} finally {
+    if(Test-Path $staging){Remove-Item $staging -Recurse -Force}
 }
-
-Write-Host "🎉 安裝版建置程序結束！" -ForegroundColor Cyan

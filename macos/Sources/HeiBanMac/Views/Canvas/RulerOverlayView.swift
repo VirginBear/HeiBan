@@ -19,7 +19,7 @@ struct StaticRulerTicksView: View, Equatable {
                 var tick = Path()
                 tick.move(to: CGPoint(x: CGFloat(mark), y: 0))
                 tick.addLine(to: CGPoint(x: CGFloat(mark), y: length))
-                context.stroke(tick, with: .color(.white.opacity(major ? 0.95 : 0.62)), lineWidth: major ? 1.5 : 1)
+                context.stroke(tick, with: .color(Color(hex: labelColor).opacity(major ? 0.95 : 0.62)), lineWidth: major ? 1.5 : 1)
                 if major {
                     let label = Text("\(mark)").font(.system(size: 8, weight: .medium, design: .monospaced)).foregroundColor(Color(hex: labelColor).opacity(0.95))
                     context.draw(label, at: CGPoint(x: CGFloat(mark + 10), y: size.height - 8))
@@ -31,37 +31,41 @@ struct StaticRulerTicksView: View, Equatable {
     }
 }
 
+private struct RulerBodyView: View, Equatable {
+    let width: Double
+    let height: Double
+    let opacity: Double
+    let appearance: RulerAppearance
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: 8)
+            .fill(Color(hex: appearance.body).opacity(opacity))
+            .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color(hex: appearance.ink).opacity(0.4), lineWidth: 1))
+            .overlay(StaticRulerTicksView(width: width, height: height, labelColor: appearance.ink).equatable())
+            .frame(width: width, height: height)
+    }
+}
+
 // MARK: - Virtual Ruler Overlay
 struct RulerOverlayView: View {
-    @ObservedObject var engine: BoardEngine
-    let labelColor: String
+    let engine: BoardEngine
+    let appearance: RulerAppearance
+    @ObservedObject private var rulerStore: RulerStateStore
+    @ViewState private var showSettings = false
 
-    private var ruler: RulerState { engine.ruler }
+    init(engine: BoardEngine, appearance: RulerAppearance) {
+        self.engine = engine
+        self.appearance = appearance
+        _rulerStore = ObservedObject(wrappedValue: engine.rulerStore)
+    }
+
+    private var ruler: RulerState { rulerStore.state }
 
     var body: some View {
         ZStack {
             // Ruler Body
-            RoundedRectangle(cornerRadius: 8)
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.white.opacity(0.35), lineWidth: 1)
-                )
-                .overlay(
-                    StaticRulerTicksView(width: ruler.width, height: ruler.height, labelColor: labelColor)
-                        .equatable()
-                )
-                .overlay(alignment: .topTrailing) {
-                    Text("\(Int(ruler.angle))°")
-                        .font(.system(size: 12, weight: .bold, design: .monospaced))
-                        .foregroundColor(Color(hex: labelColor))
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 3)
-                        .background(Color.black.opacity(0.4), in: Capsule())
-                        .padding(.top, 3)
-                        .padding(.trailing, 40)
-                }
-                .frame(width: ruler.width, height: ruler.height)
+            RulerBodyView(width: ruler.width, height: ruler.height, opacity: ruler.opacity, appearance: appearance)
+                .equatable()
                 .rotationEffect(.degrees(ruler.angle))
                 .position(x: ruler.screenCenterX, y: ruler.screenCenterY)
                 .gesture(
@@ -71,15 +75,36 @@ struct RulerOverlayView: View {
                         }
                         .onEnded { _ in engine.endRulerDrag() }
                 )
-                .opacity(ruler.opacity)
 
             rotationHandle(fromLeft: true)
             rotationHandle(fromLeft: false)
             pivotHandle
             moveHandle
+            angleButton
         }
         .coordinateSpace(name: "rulerOverlay")
         .allowsHitTesting(true)
+        .transaction { $0.animation = nil }
+    }
+
+    private var angleButton: some View {
+        let angle = ruler.angle * .pi / 180
+        let localX = ruler.width / 2 - 90
+        let localY = -ruler.height / 2 + 16
+        return Button { showSettings = true } label: {
+            Text(String(format: "%.1f°", ruler.angle))
+                .font(.system(size: 12, weight: .bold, design: .monospaced))
+                .foregroundStyle(Color(hex: appearance.ink))
+                .frame(width: 86, height: 26)
+                .background(Color(hex: appearance.badge).opacity(0.95), in: Capsule())
+                .overlay(Capsule().strokeBorder(Color(hex: appearance.ink).opacity(0.25)))
+        }
+        .buttonStyle(.plain)
+        .popover(isPresented: $showSettings) { RulerSettingsView(engine: engine) }
+        .position(x: ruler.screenCenterX + localX * cos(angle) - localY * sin(angle),
+                  y: ruler.screenCenterY + localX * sin(angle) + localY * cos(angle))
+        .accessibilityLabel("尺規角度 \(String(format: "%.1f", ruler.angle)) 度，點擊輸入角度")
+        .help("點擊輸入角度與設定尺規配色（精度 0.1°）")
     }
 
     private func rotationHandle(fromLeft: Bool) -> some View {

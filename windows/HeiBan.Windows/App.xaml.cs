@@ -1,37 +1,40 @@
-using HeiBan.Windows.Engine;
 using Microsoft.UI.Xaml;
-using Microsoft.Windows.AppLifecycle;
-
 namespace HeiBan.Windows;
-
-/// <summary>
-/// 應用程式生命週期管理與單一實例重定向協調
-/// </summary>
 public partial class App : Application
 {
-    private Window? _window;
-    public static Window? MainWindowInstance { get; private set; }
-
+    private MainWindow? _window;
+    private Window? _errorWindow;
+    private readonly List<string> _resourceErrors=[];
+    internal static string StartupStage { get; set; }="建立主視窗";
     public App()
     {
+        DebugSettings.IsXamlResourceReferenceTracingEnabled=true;
+        DebugSettings.XamlResourceReferenceFailed+=(_,e)=>_resourceErrors.Add(e.Message);
         InitializeComponent();
     }
-
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
-        // 1. 初始化文件會話管理器 (自動檢測便攜版 Portable 模式)
-        _ = DocumentSessionManager.Shared;
-
-        // 2. 建立並啟動主視窗
-        _window = new MainWindow();
-        MainWindowInstance = _window;
-        _window.Activate();
-
-        // 3. 處理開啟檔案命令列引數 (如雙擊 .blackboard.json 開檔)
-        var appArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
-        if (appArgs.Kind == ExtendedActivationKind.File)
+        try { _window = new MainWindow(); _window.Activate(); }
+        catch(Exception e)
         {
-            // 檔案關聯啟動處理
+            string? log=null;
+            try
+            {
+                var folder=Path.Combine(Path.GetTempPath(),"HeiBan","StartupLogs");
+                Directory.CreateDirectory(folder);
+                log=Path.Combine(folder,$"startup-{DateTime.UtcNow:yyyyMMdd-HHmmss-fff}.log");
+                File.WriteAllText(log,$"黑板 {typeof(App).Assembly.GetName().Version}\n階段：{StartupStage}\n架構：{System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture}\n{e}\n\n"+string.Join("\n",_resourceErrors));
+            }
+            catch { /* The error screen must still work if a diagnostic cannot be written. */ }
+            var hint=StartupStage=="建立作品資料夾"
+                ? "無法建立 Windows 作品資料夾。請確認資料夾可寫入；免安裝版請完整解壓縮到可寫入的資料夾。"
+                : "Windows 介面載入失敗。請使用新版黑板，或提供下方診斷紀錄以協助修復。";
+            _errorWindow=new Window {Title="黑板：無法啟動",Content=new Microsoft.UI.Xaml.Controls.TextBlock {
+                Text=hint+"\n\n階段："+StartupStage+"\n"+e.Message+(log is null?"":"\n\n診斷紀錄："+log),
+                TextWrapping=TextWrapping.Wrap,Margin=new Thickness(24) }};
+            _errorWindow.Activate();return;
         }
+        var file=Environment.GetCommandLineArgs().Skip(1).FirstOrDefault(File.Exists);
+        _window.InitializeAsync(file);
     }
 }

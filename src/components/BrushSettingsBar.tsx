@@ -18,11 +18,13 @@ import {
   Rows,
 } from 'lucide-react';
 import { CircularColorPicker } from './CircularColorPicker';
+import { getToolStrokeWidth } from '../utils/toolMetrics';
 
 interface BrushSettingsBarProps {
   currentTool: ToolType;
   activeColor: string;
   activeStrokeWidth: number;
+  zoom: number;
   activeLineStyle: 'solid' | 'dashed';
   activeOpacity: number;
   onChangeColor: (color: string) => void;
@@ -73,6 +75,7 @@ export const BrushSettingsBar: React.FC<BrushSettingsBarProps> = ({
   currentTool,
   activeColor,
   activeStrokeWidth,
+  zoom,
   activeLineStyle,
   activeOpacity,
   onChangeColor,
@@ -104,6 +107,8 @@ export const BrushSettingsBar: React.FC<BrushSettingsBarProps> = ({
   const dragFrameRef = useRef<number | null>(null);
   const pendingDockEdgeRef = useRef<'top' | 'bottom' | 'left' | 'right' | null>(null);
   const [showCircularPicker, setShowCircularPicker] = useState(false);
+  const [showSizePreview, setShowSizePreview] = useState(false);
+  const previewDiameter = getToolStrokeWidth(currentTool, activeStrokeWidth) * zoom;
   const [showDockMenu, setShowDockMenu] = useState(false);
 
   useLayoutEffect(() => {
@@ -517,11 +522,32 @@ export const BrushSettingsBar: React.FC<BrushSettingsBarProps> = ({
                   ? 'border-blue-400 bg-blue-500/20 text-white font-bold'
                   : 'border-neutral-700 text-neutral-400 hover:bg-neutral-800'
               }`}
-              title={`${p.label} (${p.width}px)`}
+              title={`${p.label} · 畫布上 ${Math.round(getToolStrokeWidth(currentTool, p.width) * zoom * 10) / 10}px`}
             >
               {p.label}
             </button>
           ))}
+        </div>
+        <div className="relative">
+          <button type="button" onClick={() => setShowSizePreview((open) => !open)}
+            className="px-1.5 py-1 text-[10px] text-neutral-300 rounded hover:bg-neutral-700"
+            title="查看與目前畫布相同大小的筆刷圓圈">
+            實際大小
+          </button>
+          {showSizePreview && (
+            <div className={`absolute z-50 w-64 rounded-xl border border-neutral-700 bg-neutral-900 p-3 shadow-xl ${isVertical ? 'left-full top-0 ml-3' : 'top-full left-0 mt-3'}`}>
+              <div className="flex items-center justify-between mb-2 text-xs text-neutral-200">
+                <span>直徑 {Math.round(previewDiameter * 10) / 10}px · {Math.round(zoom * 100)}%</span>
+                <button type="button" onClick={() => setShowSizePreview(false)} aria-label="關閉尺寸預覽"><X size={14} /></button>
+              </div>
+              <div className="h-28 overflow-auto rounded bg-neutral-700">
+                <div className="flex items-center justify-center" style={{width: Math.max(220, previewDiameter + 24), height: Math.max(100, previewDiameter + 24)}}>
+                  <div className="shrink-0 rounded-full" style={{width: previewDiameter, height: previewDiameter, backgroundColor: activeColor, opacity: activeOpacity}} />
+                </div>
+              </div>
+              <p className="mt-2 text-[10px] text-neutral-400">大筆刷可以捲動查看，圓圈不會縮小。</p>
+            </div>
+          )}
         </div>
         {!isVertical && (
           <>
@@ -532,9 +558,9 @@ export const BrushSettingsBar: React.FC<BrushSettingsBarProps> = ({
               value={activeStrokeWidth}
               onChange={(e) => onChangeStrokeWidth(parseInt(e.target.value, 10))}
               className="w-14 h-1.5 bg-neutral-700 rounded-full appearance-none cursor-pointer ml-1"
-              title={`目前粗細: ${activeStrokeWidth}px`}
+              title={`目前筆寬: ${getToolStrokeWidth(currentTool, activeStrokeWidth)}px`}
             />
-            <span className="text-[10px] font-mono text-neutral-400 w-6">{activeStrokeWidth}px</span>
+            <span className="text-[10px] font-mono text-neutral-400 min-w-6">{getToolStrokeWidth(currentTool, activeStrokeWidth)}px</span>
           </>
         )}
       </div>

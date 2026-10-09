@@ -1,5 +1,7 @@
 # HeiBan 專案架構與冗餘稽核
 
+後續：本頁保留 2026-10-06 的歷史發現；2026-10-09 Mac 實際整理與仍待處理項見 [最新程式稽核](../macos/docs/development/CODE_REVIEW_2026-10-09.zh-TW.md)、[開發紀錄入口](DEVELOPMENT_INDEX.zh-TW.md)。
+
 稽核日期：2026-10-06  
 範圍：React/Vite 網頁端、Swift/macOS 端、文件／儲存邊界、Firebase 權限、依賴與建置設定。此為靜態原始碼稽核；沒有執行 App、效能測試或雲端規則部署。
 

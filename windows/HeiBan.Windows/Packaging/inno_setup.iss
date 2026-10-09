@@ -1,53 +1,58 @@
-; HeiBan 黑板 — Inno Setup 安裝版腳本
-; 生成支援檔案關聯、開始功能表捷徑與右鍵選單之專業安裝檔
-
+#ifndef SourceDir
+  #error SourceDir must be supplied by Package-Installer.ps1
+#endif
+#ifndef OutputDir
+  #error OutputDir must be supplied
+#endif
+#ifndef AppVersion
+  #define AppVersion "0.1.0-preview.4"
+#endif
+#ifndef Arch
+  #define Arch "x64"
+#endif
 #define MyAppName "HeiBan 黑板"
-#define MyAppVersion "1.0.1"
-#define MyAppPublisher "HeiBan Team"
-#define MyAppURL "https://github.com/heiban/heiban"
-#define MyAppExeName "HeiBan.exe"
-
 [Setup]
 AppId={{9F5734A2-9E1F-43DE-8409-C3A6284E5B91}
 AppName={#MyAppName}
-AppVersion={#MyAppVersion}
-AppPublisher={#MyAppPublisher}
-AppPublisherURL={#MyAppURL}
-AppSupportURL={#MyAppURL}
-AppUpdatesURL={#MyAppURL}
-DefaultDirName={autopf}\HeiBan
+AppVersion={#AppVersion}
+AppPublisher=HeiBan Team
+AppPublisherURL=https://github.com/VirginBear/HeiBan
+DefaultDirName={localappdata}\Programs\HeiBan
 DefaultGroupName={#MyAppName}
-AllowNoIcons=yes
-LicenseFile=..\..\..\LICENSE
-OutputDir=..\..\..\dist\windows
-OutputBaseFilename=HeiBan-Setup-x64
-Compression=lzma2/ultra64
+OutputDir={#OutputDir}
+OutputBaseFilename=HeiBan-Setup-{#AppVersion}-{#Arch}
+SetupIconFile={#SourceDir}\Assets\AppIcon.ico
+UninstallDisplayIcon={app}\HeiBan.exe
+Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
-ArchitecturesInstallIn64BitMode=x64compatible
 PrivilegesRequired=lowest
-
+MinVersion=10.0.17763
+ChangesAssociations=yes
+#if Arch == "arm64"
+ArchitecturesAllowed=arm64
+ArchitecturesInstallIn64BitMode=arm64
+#else
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
+#endif
 [Languages]
-Name: "chinesetraditional"; MessagesFile: "compiler:Languages\ChineseTraditional.isl"
+Name: "chinesetraditional"; MessagesFile: "ChineseTraditional.isl"
 Name: "english"; MessagesFile: "compiler:Default.isl"
-
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
-
+Name: "fileassociation"; Description: "將 .heiban 文件與黑板關聯"; Flags: unchecked
 [Files]
-Source: "..\bin\Release\net9.0-windows10.0.22621.0\win-x64\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-
+Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 [Icons]
-Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
-Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
-
-; 關聯 .blackboard.json 檔案格式與右鍵功能表
+Name: "{group}\{#MyAppName}"; Filename: "{app}\HeiBan.exe"
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\HeiBan.exe"; Tasks: desktopicon
 [Registry]
-Root: HKCU; Subkey: "Software\Classes\.blackboard.json"; ValueType: string; ValueName: ""; ValueData: "HeiBan.Document"; Flags: uninsdeletevalue
-Root: HKCU; Subkey: "Software\Classes\HeiBan.Document"; ValueType: string; ValueName: ""; ValueData: "HeiBan 黑板文件"; Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\HeiBan.Document\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\{#MyAppExeName},0"
-Root: HKCU; Subkey: "Software\Classes\HeiBan.Document\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""
-
+; Windows recognizes the final extension. Do not register .blackboard.json or hijack all .json files.
+Root: HKCU; Subkey: "Software\Classes\.heiban\OpenWithProgids"; ValueType: string; ValueName: "HeiBan.Document"; ValueData: ""; Flags: uninsdeletevalue; Tasks: fileassociation
+Root: HKCU; Subkey: "Software\Classes\HeiBan.Document"; ValueType: string; ValueName: ""; ValueData: "HeiBan 黑板文件"; Flags: uninsdeletekey; Tasks: fileassociation
+Root: HKCU; Subkey: "Software\Classes\HeiBan.Document\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\Assets\AppIcon.ico"; Tasks: fileassociation
+Root: HKCU; Subkey: "Software\Classes\HeiBan.Document\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\HeiBan.exe"" ""%1"""; Tasks: fileassociation
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\HeiBan.exe"; Description: "{cm:LaunchProgram,{#MyAppName}}"; Flags: nowait postinstall skipifsilent
+; Keep user-created documents in LocalAppData\HeiBan\Windows on uninstall.

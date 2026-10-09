@@ -16,13 +16,13 @@ public final class MacOSKeychainStore: KeychainStore {
     }
 
     public func save(key: String, data: Data) -> Bool {
-        delete(key: key)
+        _ = delete(key: key)
         let query: [CFString: Any] = [
             kSecClass: kSecClassGenericPassword,
             kSecAttrService: service,
             kSecAttrAccount: key,
             kSecValueData: data,
-            kSecAttrAccessible: kSecAttrAccessibleAfterFirstUnlock
+            kSecAttrAccessible: kSecAttrAccessibleAfterFirstUnlock,
         ]
         let status = SecItemAdd(query as CFDictionary, nil)
         return status == errSecSuccess
@@ -34,7 +34,7 @@ public final class MacOSKeychainStore: KeychainStore {
             kSecAttrService: service,
             kSecAttrAccount: key,
             kSecReturnData: true,
-            kSecMatchLimit: kSecMatchLimitOne
+            kSecMatchLimit: kSecMatchLimitOne,
         ]
         var item: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &item)
@@ -48,7 +48,7 @@ public final class MacOSKeychainStore: KeychainStore {
         let query: [CFString: Any] = [
             kSecClass: kSecClassGenericPassword,
             kSecAttrService: service,
-            kSecAttrAccount: key
+            kSecAttrAccount: key,
         ]
         let status = SecItemDelete(query as CFDictionary)
         return status == errSecSuccess || status == errSecItemNotFound
@@ -57,32 +57,8 @@ public final class MacOSKeychainStore: KeychainStore {
     public func clearAll() {
         let query: [CFString: Any] = [
             kSecClass: kSecClassGenericPassword,
-            kSecAttrService: service
+            kSecAttrService: service,
         ]
         SecItemDelete(query as CFDictionary)
-    }
-}
-
-public final class MockKeychainStore: KeychainStore {
-    private var storage: [String: Data] = [:]
-
-    public init() {}
-
-    public func save(key: String, data: Data) -> Bool {
-        storage[key] = data
-        return true
-    }
-
-    public func load(key: String) -> Data? {
-        return storage[key]
-    }
-
-    public func delete(key: String) -> Bool {
-        storage.removeValue(forKey: key)
-        return true
-    }
-
-    public func clearAll() {
-        storage.removeAll()
     }
 }

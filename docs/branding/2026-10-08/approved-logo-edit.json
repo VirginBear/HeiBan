@@ -1,0 +1,8 @@
+{
+  "selected": "05-note-handwriting.png",
+  "operation": "transparent background extraction",
+  "tool": "image_gen",
+  "transparent_background": true,
+  "prompt": "Use case: background-extraction. Edit target: the provided HeiBan logo chosen by the user. Remove ONLY the off-white background to genuine alpha transparency. Preserve exactly the two Traditional Chinese characters 黑板, their original forest-green handwritten strokes, open-book outline, small yellow tab, relative layout and original proportions. Do not redraw or reinterpret any letter, no spelling changes, no additional elements, no outline added, no shadows. Crop excess whitespace to a compact landscape wordmark approximately 1.9:1 ratio with 4 percent transparent padding around the complete logo. Output clean high resolution raster with transparent background for use as a macOS app logo. All off-white paper background pixels must become transparent; solid ink and yellow tab retain original appearance.",
+  "output": "macos/Sources/HeiBanMac/Resources/HeiBanLogo.png"
+}

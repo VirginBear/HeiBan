@@ -22,6 +22,7 @@ import {
   Maximize2,
   FileText,
   BookOpen,
+  CircleHelp,
 } from 'lucide-react';
 import { SettingsModal } from './SettingsModal';
 
@@ -125,7 +126,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
       <header className="heiban-home-header sticky top-0 z-30 backdrop-blur-xl border-b px-6 py-3.5 flex items-center justify-between gap-4">
         {/* Brand */}
         <div className="flex items-center gap-3">
-          <img src="/logo.png" alt="" className="w-9 h-9 rounded-xl object-cover" />
+          <img src="/wordmark.png" alt="黑板：手寫筆記 Logo" width={112} height={60} className="w-28 h-15 rounded-xl bg-[#fafaf2] p-1.5 object-contain shrink-0" />
           <div>
             <h1 className="font-semibold text-lg tracking-tight leading-none flex items-center gap-2">
               HeiBan 黑板 <span className="text-xs font-medium">工作區</span>
@@ -243,7 +244,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
             </span>
           </div>
 
-          {/* Quick Theme One-Click Create Chips & Showcase */}
+          {/* Quick theme choices and optional help */}
           <div className="flex items-center gap-1.5 overflow-x-auto">
             <span className="text-[11px] text-neutral-500 mr-1 hidden sm:inline">快速建立</span>
             {templateThemes.map((tpl) => (
@@ -263,11 +264,10 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
             {onLoadShowcaseBoard && (
               <button
                 onClick={onLoadShowcaseBoard}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-purple-500/40 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 transition-colors text-xs shrink-0 font-medium"
-                title="載入涵蓋筆刷、幾何、便簽、尺規全功能說明的示範黑板"
+                className="p-1.5 rounded-lg text-neutral-500 hover:text-neutral-200 transition-colors shrink-0"
+                title="開啟功能導覽" aria-label="開啟功能導覽"
               >
-                <span>✨</span>
-                <span>全功能示範黑板</span>
+                <CircleHelp size={16} />
               </button>
             )}
           </div>
@@ -290,24 +290,15 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
               <FolderPlus className="w-10 h-10 text-neutral-600 mx-auto" />
               <div>
                 <p className="text-sm text-neutral-300 font-medium">尚無黑板作品</p>
-                <p className="text-xs text-neutral-500 mt-0.5">你可以建立新黑板，或載入內建的全功能示範黑板快速探索。</p>
+                <p className="text-xs text-neutral-500 mt-0.5">選擇有邊界畫布、無邊界畫布或筆記本，開始第一份作品。</p>
               </div>
               <div className="flex items-center justify-center gap-3 pt-1">
                 <button
-                  onClick={() => onCreateBoard('新黑板', 'blackboard')}
+                  onClick={() => setShowCreateModal(true)}
                   className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium shadow-md transition-colors"
                 >
                   ＋ 建立新黑板
                 </button>
-                {onLoadShowcaseBoard && (
-                  <button
-                    onClick={onLoadShowcaseBoard}
-                    className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-medium shadow-md transition-colors flex items-center gap-1.5"
-                  >
-                    <span>✨</span>
-                    <span>載入功能示範黑板</span>
-                  </button>
-                )}
               </div>
             </div>
           ) : (

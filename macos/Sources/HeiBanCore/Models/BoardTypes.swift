@@ -23,6 +23,52 @@ public extension ToolType {
     static let image = "image"
     static let pin = "pin"
     static let laser = "laser"
+    static let tape = "tape"
+    static let lasso = "lasso"
+    static let roundedRect = "rounded_rect"
+    static let polygon = "polygon"
+    static let connector = "connector"
+    static let frame = "frame"
+    static let mindmap = "mindmap"
+    static let table = "table"
+    static let formula = "formula"
+}
+
+public enum BrushKind: String, Codable, CaseIterable, Sendable {
+    case pen = "pen"
+    case fountain = "fountain"
+    case pencil = "pencil"
+    case watercolor = "watercolor"
+    case highlighter = "highlighter"
+    case crayon = "crayon"
+    case calligraphy = "calligraphy"
+    case paint = "paint"
+
+    public var displayName: String {
+        switch self {
+        case .pen: return "向量單線"
+        case .fountain: return "鋼筆 (壓感)"
+        case .pencil: return "鉛筆 (紋理)"
+        case .watercolor: return "水彩 (水暈)"
+        case .highlighter: return "螢光筆"
+        case .crayon: return "蠟筆 (顆粒)"
+        case .calligraphy: return "書法 (斜角)"
+        case .paint: return "油漆刷"
+        }
+    }
+
+    public var systemIconName: String {
+        switch self {
+        case .pen: return "pencil.tip"
+        case .fountain: return "signature"
+        case .pencil: return "pencil"
+        case .watercolor: return "paintbrush.pointed"
+        case .highlighter: return "highlighter"
+        case .crayon: return "scribble"
+        case .calligraphy: return "pencil.and.outline"
+        case .paint: return "paintbrush.fill"
+        }
+    }
 }
 
 public enum EraserMode: String, Codable, CaseIterable {
@@ -78,7 +124,7 @@ public enum GridStyle: String, Codable, CaseIterable {
     }
 }
 
-public enum CanvasMode: String, Codable, CaseIterable {
+public enum CanvasMode: String, Codable, CaseIterable, Sendable {
     case fixed = "fixed"
     case infinite = "infinite"
     case notebook = "notebook"
@@ -253,7 +299,7 @@ public enum PropertyValue<T: Equatable>: Equatable {
     }
 }
 
-public struct Point: Codable, Equatable, Hashable {
+public struct Point: Codable, Equatable, Hashable, Sendable {
     public var x: Double
     public var y: Double
     public var pressure: Double?
@@ -385,6 +431,111 @@ public struct TextSpan: Codable, Equatable, Hashable {
     }
 }
 
+public struct MindMapNode: Codable, Identifiable, Equatable, Sendable {
+    public var id: String
+    public var text: String
+    public var parentId: String?
+    public var childrenIds: [String]
+    public var color: String?
+    public var isCollapsed: Bool?
+    public var direction: String?
+    public var relativeX: Double?
+    public var relativeY: Double?
+
+    public init(
+        id: String = UUID().uuidString,
+        text: String,
+        parentId: String? = nil,
+        childrenIds: [String] = [],
+        color: String? = nil,
+        isCollapsed: Bool? = false,
+        direction: String? = "auto",
+        relativeX: Double? = nil,
+        relativeY: Double? = nil
+    ) {
+        self.id = id
+        self.text = text
+        self.parentId = parentId
+        self.childrenIds = childrenIds
+        self.color = color
+        self.isCollapsed = isCollapsed
+        self.direction = direction
+        self.relativeX = relativeX
+        self.relativeY = relativeY
+    }
+}
+
+public struct MindMapData: Codable, Equatable, Sendable {
+    public var rootId: String
+    public var nodes: [String: MindMapNode]
+    public var theme: String?
+
+    public init(rootId: String, nodes: [String: MindMapNode], theme: String? = "default") {
+        self.rootId = rootId
+        self.nodes = nodes
+        self.theme = theme
+    }
+}
+
+public struct TableCell: Codable, Identifiable, Equatable, Sendable {
+    public var id: String
+    public var row: Int
+    public var col: Int
+    public var text: String
+    public var textColor: String?
+    public var bgColor: String?
+    public var align: String?
+    public var isHeader: Bool?
+    public var rowSpan: Int?
+    public var colSpan: Int?
+
+    public init(
+        id: String = UUID().uuidString,
+        row: Int,
+        col: Int,
+        text: String = "",
+        textColor: String? = nil,
+        bgColor: String? = nil,
+        align: String? = "left",
+        isHeader: Bool? = false,
+        rowSpan: Int? = 1,
+        colSpan: Int? = 1
+    ) {
+        self.id = id
+        self.row = row
+        self.col = col
+        self.text = text
+        self.textColor = textColor
+        self.bgColor = bgColor
+        self.align = align
+        self.isHeader = isHeader
+        self.rowSpan = rowSpan
+        self.colSpan = colSpan
+    }
+}
+
+public struct TableData: Codable, Equatable, Sendable {
+    public var rowCount: Int
+    public var colCount: Int
+    public var colWidths: [Double]
+    public var rowHeights: [Double]
+    public var cells: [TableCell]
+
+    public init(
+        rowCount: Int,
+        colCount: Int,
+        colWidths: [Double],
+        rowHeights: [Double],
+        cells: [TableCell]
+    ) {
+        self.rowCount = rowCount
+        self.colCount = colCount
+        self.colWidths = colWidths
+        self.rowHeights = rowHeights
+        self.cells = cells
+    }
+}
+
 public struct BoardObject: Codable, Identifiable, Equatable {
     public var id: String
     public var boardId: String
@@ -443,6 +594,24 @@ public struct BoardObject: Codable, Identifiable, Equatable {
     public var creatorName: String?
     public var updatedAt: String
     public var pageId: String?
+    public var arcRadius: Double?
+    public var arcStartAngle: Double?
+    public var arcSweepAngle: Double?
+    public var isRevealed: Bool?
+    public var tapeStyle: String?
+    public var brushKind: String?
+    public var textureSeed: Int?
+    public var cornerRadius: Double?
+    public var polygonSides: Int?
+    public var startObjectId: String?
+    public var endObjectId: String?
+    public var connectorType: String?
+    public var frameTitle: String?
+    public var childIds: [String]?
+    public var mindMapData: MindMapData?
+    public var tableData: TableData?
+    public var latex: String?
+    public var formulaFontSize: Double?
     public var extraFields: [String: AnyCodableValue]?
 
     enum CodingKeys: String, CodingKey, CaseIterable {
@@ -455,6 +624,9 @@ public struct BoardObject: Codable, Identifiable, Equatable {
         case imageUrl, originalImageUrl, originalWidth, originalHeight
         case cropX, cropY, cropWidth, cropHeight
         case isLocked, isVisible, name, groupId, createdBy, creatorName, updatedAt, pageId
+        case arcRadius, arcStartAngle, arcSweepAngle
+        case isRevealed, tapeStyle, brushKind, textureSeed, cornerRadius, polygonSides, startObjectId, endObjectId, connectorType
+        case frameTitle, childIds, mindMapData, tableData, latex, formulaFontSize
     }
 
     public init(
@@ -509,6 +681,24 @@ public struct BoardObject: Codable, Identifiable, Equatable {
         createdBy: String = "local_mac",
         creatorName: String? = "Mac 使用者",
         pageId: String? = nil,
+        arcRadius: Double? = nil,
+        arcStartAngle: Double? = nil,
+        arcSweepAngle: Double? = nil,
+        isRevealed: Bool? = nil,
+        tapeStyle: String? = nil,
+        brushKind: String? = nil,
+        textureSeed: Int? = nil,
+        cornerRadius: Double? = nil,
+        polygonSides: Int? = nil,
+        startObjectId: String? = nil,
+        endObjectId: String? = nil,
+        connectorType: String? = nil,
+        frameTitle: String? = nil,
+        childIds: [String]? = nil,
+        mindMapData: MindMapData? = nil,
+        tableData: TableData? = nil,
+        latex: String? = nil,
+        formulaFontSize: Double? = nil,
         updatedAt: String = ISO8601DateFormatter().string(from: Date()),
         extraFields: [String: AnyCodableValue]? = nil
     ) {
@@ -563,6 +753,24 @@ public struct BoardObject: Codable, Identifiable, Equatable {
         self.createdBy = createdBy
         self.creatorName = creatorName
         self.pageId = pageId
+        self.arcRadius = arcRadius
+        self.arcStartAngle = arcStartAngle
+        self.arcSweepAngle = arcSweepAngle
+        self.isRevealed = isRevealed
+        self.tapeStyle = tapeStyle
+        self.brushKind = brushKind
+        self.textureSeed = textureSeed
+        self.cornerRadius = cornerRadius
+        self.polygonSides = polygonSides
+        self.startObjectId = startObjectId
+        self.endObjectId = endObjectId
+        self.connectorType = connectorType
+        self.frameTitle = frameTitle
+        self.childIds = childIds
+        self.mindMapData = mindMapData
+        self.tableData = tableData
+        self.latex = latex
+        self.formulaFontSize = formulaFontSize
         self.updatedAt = updatedAt
         self.extraFields = extraFields
     }
@@ -626,6 +834,24 @@ public struct BoardObject: Codable, Identifiable, Equatable {
         self.creatorName = try container.decodeIfPresent(String.self, forKey: .creatorName)
         self.updatedAt = try container.decode(String.self, forKey: .updatedAt)
         self.pageId = try container.decodeIfPresent(String.self, forKey: .pageId)
+        self.arcRadius = try container.decodeIfPresent(Double.self, forKey: .arcRadius)
+        self.arcStartAngle = try container.decodeIfPresent(Double.self, forKey: .arcStartAngle)
+        self.arcSweepAngle = try container.decodeIfPresent(Double.self, forKey: .arcSweepAngle)
+        self.isRevealed = try container.decodeIfPresent(Bool.self, forKey: .isRevealed)
+        self.tapeStyle = try container.decodeIfPresent(String.self, forKey: .tapeStyle)
+        self.brushKind = try container.decodeIfPresent(String.self, forKey: .brushKind)
+        self.textureSeed = try container.decodeIfPresent(Int.self, forKey: .textureSeed)
+        self.cornerRadius = try container.decodeIfPresent(Double.self, forKey: .cornerRadius)
+        self.polygonSides = try container.decodeIfPresent(Int.self, forKey: .polygonSides)
+        self.startObjectId = try container.decodeIfPresent(String.self, forKey: .startObjectId)
+        self.endObjectId = try container.decodeIfPresent(String.self, forKey: .endObjectId)
+        self.connectorType = try container.decodeIfPresent(String.self, forKey: .connectorType)
+        self.frameTitle = try container.decodeIfPresent(String.self, forKey: .frameTitle)
+        self.childIds = try container.decodeIfPresent([String].self, forKey: .childIds)
+        self.mindMapData = try container.decodeIfPresent(MindMapData.self, forKey: .mindMapData)
+        self.tableData = try container.decodeIfPresent(TableData.self, forKey: .tableData)
+        self.latex = try container.decodeIfPresent(String.self, forKey: .latex)
+        self.formulaFontSize = try container.decodeIfPresent(Double.self, forKey: .formulaFontSize)
 
         // Capture unknown extra fields
         let dynamicContainer = try decoder.container(keyedBy: AnyCodingKey.self)
@@ -700,6 +926,24 @@ public struct BoardObject: Codable, Identifiable, Equatable {
         try container.encodeIfPresent(creatorName, forKey: .creatorName)
         try container.encode(updatedAt, forKey: .updatedAt)
         try container.encodeIfPresent(pageId, forKey: .pageId)
+        try container.encodeIfPresent(arcRadius, forKey: .arcRadius)
+        try container.encodeIfPresent(arcStartAngle, forKey: .arcStartAngle)
+        try container.encodeIfPresent(arcSweepAngle, forKey: .arcSweepAngle)
+        try container.encodeIfPresent(isRevealed, forKey: .isRevealed)
+        try container.encodeIfPresent(tapeStyle, forKey: .tapeStyle)
+        try container.encodeIfPresent(brushKind, forKey: .brushKind)
+        try container.encodeIfPresent(textureSeed, forKey: .textureSeed)
+        try container.encodeIfPresent(cornerRadius, forKey: .cornerRadius)
+        try container.encodeIfPresent(polygonSides, forKey: .polygonSides)
+        try container.encodeIfPresent(startObjectId, forKey: .startObjectId)
+        try container.encodeIfPresent(endObjectId, forKey: .endObjectId)
+        try container.encodeIfPresent(connectorType, forKey: .connectorType)
+        try container.encodeIfPresent(frameTitle, forKey: .frameTitle)
+        try container.encodeIfPresent(childIds, forKey: .childIds)
+        try container.encodeIfPresent(mindMapData, forKey: .mindMapData)
+        try container.encodeIfPresent(tableData, forKey: .tableData)
+        try container.encodeIfPresent(latex, forKey: .latex)
+        try container.encodeIfPresent(formulaFontSize, forKey: .formulaFontSize)
 
         // Re-encode extra fields
         if let extraFields = extraFields {
@@ -719,6 +963,11 @@ public struct BoardObject: Codable, Identifiable, Equatable {
         switch type {
         case "pen", "stroke": return "手寫筆跡"
         case "curve": return "曲線"
+        case "arc": return "可編輯圓弧"
+        case "tape": return "遮題膠帶"
+        case "rounded_rect": return "圓角矩形"
+        case "polygon": return "多邊形"
+        case "connector": return "連接線"
         case "highlighter": return "螢光筆劃記"
         case "paint": return "油漆塗鴉"
         case "rect": return "矩形"
@@ -742,6 +991,19 @@ public struct BoardObject: Codable, Identifiable, Equatable {
             return "便條紙"
         case "image": return "置入圖片"
         case "pin": return "實體圖釘"
+        case "frame":
+            if let frameTitle = frameTitle, !frameTitle.isEmpty {
+                return "畫框 (\(frameTitle))"
+            }
+            return "畫框 / 簡報頁"
+        case "mindmap": return "思維導圖"
+        case "table": return "原生表格"
+        case "formula":
+            if let latex = latex, !latex.isEmpty {
+                let snippet = latex.prefix(12)
+                return "公式 (\(snippet))"
+            }
+            return "LaTeX 數學公式"
         default: return type
         }
     }
@@ -752,6 +1014,10 @@ public struct BoardObject: Codable, Identifiable, Equatable {
         case "curve": return "point.topleft.down.to.point.bottomright.curvepath"
         case "highlighter": return "highlighter"
         case "paint": return "paintbrush.fill"
+        case "tape": return "eye.slash"
+        case "rounded_rect": return "rectangle.roundedtop"
+        case "polygon": return "hexagon"
+        case "connector": return "arrow.triangle.branch"
         case "rect": return "rectangle"
         case "circle": return "circle"
         case "triangle": return "triangle"
@@ -763,6 +1029,10 @@ public struct BoardObject: Codable, Identifiable, Equatable {
         case "sticky": return "note.text"
         case "image": return "photo"
         case "pin": return "location.north.circle"
+        case "frame": return "viewfinder.rectangular"
+        case "mindmap": return "point.filled.topleft.down.curvedto.point.bottomright.up"
+        case "table": return "tablecells"
+        case "formula": return "function"
         default: return "square.on.circle"
         }
     }

@@ -1,0 +1,31 @@
+{
+  "generator": "built-in image_gen",
+  "purpose": "Five original Traditional Chinese 黑板 logo concepts; user selection pending",
+  "prompts": [
+    {
+      "name": "01-chalk-rounded",
+      "title": "粉筆圓體",
+      "prompt": "Use case: logo-brand. Asset type: one original logo concept image for a native macOS drawing and notebook app. Primary request: design a polished logo from the TWO exact Traditional Chinese characters \"黑板\". Text (verbatim): \"黑板\". Spell the second character 板 correctly, never 版. Clear readable complete characters; preserve recognizable radical structure, no pseudo-Chinese. Square clean ivory-white background, centered logo, generous whitespace. One logo only, no mockup, no UI, no multiple variants, no English, no subtitle, no watermarks. Original typography and composition, no imitation of any existing brand. Flat vector-friendly mark with crisp edges, suitable for future app icon adaptation. Direction 1: friendly contemporary Traditional Chinese custom rounded lettering. Deep forest-green rounded-square chalkboard as the compact mark, warm white 黑板 written in two balanced side-by-side characters, restrained chalk stroke endings but solid clean outlines, tiny short chalk underline in muted mint, soft human warmth, legible at reduced size."
+    },
+    {
+      "name": "02-modern-seal",
+      "title": "現代印章",
+      "prompt": "Use case: logo-brand. Asset type: one original logo concept image for a native macOS drawing and notebook app. Primary request: design a polished logo from the TWO exact Traditional Chinese characters \"黑板\". Text (verbatim): \"黑板\". Spell the second character 板 correctly, never 版. Clear readable complete characters; preserve recognizable radical structure, no pseudo-Chinese. Square clean ivory-white background, centered logo, generous whitespace. One logo only, no mockup, no UI, no multiple variants, no English, no subtitle, no watermarks. Original typography and composition, no imitation of any existing brand. Flat vector-friendly mark with crisp edges, suitable for future app icon adaptation. Direction 2: contemporary Taiwanese typographic seal. Vermilion red compact square with subtly rounded corners; exact 黑 above 板 in a vertical two-character stack, off-white readable bold characters with expressive carved-style terminals but fully modern and readable, minimal elegant seal-inspired identity. Modern minimal linework; no archaic illegible seal script, no extra characters."
+    },
+    {
+      "name": "03-geometric-ink",
+      "title": "幾何墨字",
+      "prompt": "Use case: logo-brand. Asset type: one original logo concept image for a native macOS drawing and notebook app. Primary request: design a polished logo from the TWO exact Traditional Chinese characters \"黑板\". Text (verbatim): \"黑板\". Spell the second character 板 correctly, never 版. Clear readable complete characters; preserve recognizable radical structure, no pseudo-Chinese. Square clean ivory-white background, centered logo, generous whitespace. One logo only, no mockup, no UI, no multiple variants, no English, no subtitle, no watermarks. Original typography and composition, no imitation of any existing brand. Flat vector-friendly mark with crisp edges, suitable for future app icon adaptation. Direction 3: precise modern typographic wordmark from 黑板 side by side, charcoal-black custom geometric Traditional Chinese strokes, open counters and clever aligned terminals, a very subtle thin rectangular dark-green frame suggesting a board, professional macOS productivity tone. Clear full characters, refined proportions, strong optical balance, no serif, no decorative pictorial mascot."
+    },
+    {
+      "name": "04-literary-serif",
+      "title": "書房宋體",
+      "prompt": "Use case: logo-brand. Asset type: one original logo concept image for a native macOS drawing and notebook app. Primary request: design a polished logo from the TWO exact Traditional Chinese characters \"黑板\". Text (verbatim): \"黑板\". Spell the second character 板 correctly, never 版. Clear readable complete characters; preserve recognizable radical structure, no pseudo-Chinese. Square clean ivory-white background, centered logo, generous whitespace. One logo only, no mockup, no UI, no multiple variants, no English, no subtitle, no watermarks. Original typography and composition, no imitation of any existing brand. Flat vector-friendly mark with crisp edges, suitable for future app icon adaptation. Direction 4: literary and calm Chinese typography, side-by-side 黑板 in an original contemporary Song/Ming serif treatment, dark ink and subtle aged-gold hairline corner accents suggesting a notebook page. Emphasize elegant stroke contrasts, readable traditional character structure and editorial spacing. Refined compact brand mark, modern Taiwanese stationery feeling, no brush splatter or ornate calligraphy."
+    },
+    {
+      "name": "05-note-handwriting",
+      "title": "手寫筆記",
+      "prompt": "Use case: logo-brand. Asset type: one original logo concept image for a native macOS drawing and notebook app. Primary request: design a polished logo from the TWO exact Traditional Chinese characters \"黑板\". Text (verbatim): \"黑板\". Spell the second character 板 correctly, never 版. Clear readable complete characters; preserve recognizable radical structure, no pseudo-Chinese. Square clean ivory-white background, centered logo, generous whitespace. One logo only, no mockup, no UI, no multiple variants, no English, no subtitle, no watermarks. Original typography and composition, no imitation of any existing brand. Flat vector-friendly mark with crisp edges, suitable for future app icon adaptation. Direction 5: welcoming creative notebook identity. Side-by-side 黑板 in legible original bold Traditional Chinese handwritten lettering, dark forest green strokes and one small warm-yellow page-tab accent, a simple open-page contour woven gently into the surrounding composition, free natural hand-drawn terminals with coherent lineweight, understated playful personality. No smiling face, no mascot, no extra text."
+    }
+  ]
+}

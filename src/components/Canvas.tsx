@@ -630,19 +630,16 @@ export const Canvas: React.FC<CanvasProps> = ({
   // Eraser handler helper
   const handleEraseAtPoint = (worldPt: Point) => {
     const eraserRadius = getEraserRadius(eraserMode);
+    const eligible = (o: BoardObject) => !o.isLocked && o.isVisible !== false &&
+      !['image', 'text', 'sticky', 'pin'].includes(o.type);
     if (eraserMode === 'object') {
-      const hit = objects.filter((o) => !o.isLocked && isPointInObject(worldPt, o, eraserRadius)).map((o) => o.id);
+      const hit = objects.filter((o) => eligible(o) && isPointInObject(worldPt, o, eraserRadius)).map((o) => o.id);
       if (hit.length > 0) {
         onDeleteObjects(hit);
       }
     } else {
       for (const obj of objects) {
-        if (obj.isLocked || (obj.type !== 'stroke' && obj.type !== 'highlighter' && obj.type !== 'paint' && obj.type !== 'curve') || !obj.points) {
-          if (!obj.isLocked && isPointInObject(worldPt, obj, 10)) {
-            onDeleteObjects([obj.id]);
-          }
-          continue;
-        }
+        if (!eligible(obj) || !['stroke', 'highlighter', 'paint', 'curve'].includes(obj.type) || !obj.points) continue;
         try {
           const pts: Point[] = JSON.parse(obj.points);
           const segments = erasePointsAtPoint(pts, worldPt, eraserRadius);

@@ -1,77 +1,62 @@
-# HeiBan (黑板)
+<p align="center"><img src="public/wordmark.png" alt="黑板 HeiBan" width="260"></p>
 
-高效能向量黑板／白板協作系統，專為流暢書寫、精確幾何工具、無限畫布與多頁筆記本設計。
+# 黑板 HeiBan
 
----
+在電腦上寫、畫、整理想法。黑板提供筆記本、無邊界筆記和有邊界黑板；macOS 與 Windows 各自使用原生介面與繪圖技術。
 
-## 平台與架構
+**目前是公開預覽版。** 各平台的功能與驗收進度不同，請先備份重要作品。[安裝與更新](docs/INSTALL.zh-TW.md) · [快速開始](docs/QUICK_START.zh-TW.md) · [下載全部版本](https://github.com/VirginBear/HeiBan/releases)
 
-* **macOS 原生應用程式 (`macos/`)**：基於 Swift / SwiftUI 與原生 Metal 硬體加速渲染，支援極致低延遲 120 FPS 筆跡、Apple Silicon 原生架構、本機原子保存與資料保全。
-* **Web 端應用程式 (`src/`)**：基於 React 19、TypeScript 與 Vite，支援無縫跨平台瀏覽、獨立離線 HTML 匯出檢視與即時協作。
-* **文件契約 (`docs/DOCUMENT_SCHEMA_CONTRACT.md`)**：跨平台統一版本化 JSON 檔案格式（`schemaVersion: 1.0.0`），具備幾何容差保證與雙向無損未知欄位保護。
+## 下載
 
----
+| 電腦 | 版本 | 下載 |
+| --- | --- | --- |
+| Apple Silicon Mac（M 系列），macOS 14+ | 1.0.8 | [DMG 安裝映像](https://github.com/VirginBear/HeiBan/releases/download/macos-v1.0.8/HeiBan-macOS-1.0.8-arm64.dmg) · [ZIP](https://github.com/VirginBear/HeiBan/releases/download/macos-v1.0.8/HeiBan-macOS-1.0.8-arm64.zip) |
+| Windows 11，Intel／AMD 64 位元 | 0.1.0-preview.5 | 自包含安裝／免安裝包準備中，等待 Windows SDK 授權例外確認 |
+| Windows 11，ARM／Apple Silicon 上的 ARM Windows | 0.1.0-preview.5 | 同上；可先閱讀 [Windows 說明](windows/README.md)與原始碼 |
 
-## 開發環境與工具鏈需求
+預計 Windows 公開安裝版下載檔為 ZIP，內含 `HeiBan-Setup-….exe`、說明與授權；解壓後執行安裝檔。免安裝版必須完整解壓，不能只取出 EXE。每個 Release 都附 `SHA256SUMS.txt`。
 
-### Web 端
-* **Node.js**：`>= 20.0.0`
-* **套件管理器**：**pnpm**（正式鎖定來源：`pnpm-lock.yaml`，版本 `11.22.0`）
+Mac 目前只提供 ARM64 下載包；尚無 Intel／Universal 包。Mac 未完成 Developer ID 簽章與 Apple 公證，Windows 未完成 Authenticode 簽章；第一次開啟可能有系統安全提示，詳見安裝指南。沒有宣稱通過所有裝置的操作或性能驗收。
 
-```bash
-# 安裝依賴
-pnpm install
+## 可以做什麼
 
-# 啟動本機開發伺服器 (http://localhost:3000)
-pnpm run dev
+- 建立三種畫布，調整背景，管理作品縮圖、名稱與垃圾桶。
+- 手寫、螢光筆、幾何圖形、文字與便簽，置入圖片。
+- 修改顏色、粗細、填色、透明度、線型及物件順序，使用選取與復原／重做。
+- 使用可移動／旋轉的尺規、圓規、圖釘、計算機與計時器。
+- 本機保存與可編輯作品；Mac 提供 `.heiban` 原稿與 PNG／PDF／SVG／HTML 匯出，Windows 目前提供 JSON／`.heiban` 與 PNG。
+- Mac 提供透明螢幕畫布與雷射工具，用於講解；跨 App／全螢幕的完整操作仍待驗收。
 
-# 執行跨平台契約檢驗 (TypeScript Contract Test Runner)
-pnpm run check
+**尚未完成：** 原生 Google 登入／雲端同步、完整 PDF／SVG 編輯、跨平台全功能一致性。Windows 透明螢幕畫布、雷射等仍待移植；包內部分舊手冊文字不代表功能已可使用，請以最新線上文件為準。沒有正式公開的 Web 服務網址。
 
-# 產生正式發行打包檔案
-pnpm run build
-```
+## 操作說明
 
-### macOS 原生端
-* **作業系統**：macOS 14.0 (Sonoma) 或更新版本
-* **編譯工具**：Xcode 15+ / Swift 5.9+
+- [快速開始](docs/QUICK_START.zh-TW.md)
+- [Mac 完整手冊](macos/docs/USER_GUIDE.zh-TW.md)／[下載 HTML 手冊](https://github.com/VirginBear/HeiBan/releases/download/macos-v1.0.8/HeiBan-User-Guide-macOS-1.0.8.html)
+- [Windows 操作與開發說明](windows/README.md)
+- [已知限制](docs/KNOWN_ISSUES.zh-TW.md)
+- [隱私與資料保存](PRIVACY.md)
+- [更新紀錄](CHANGELOG.md)
 
-```bash
-# 切換至 macOS 專案目錄
-cd macos
+## 給開發者
 
-# 編譯原生核心與 App
-swift build
+| 目錄 | 技術／責任 |
+| --- | --- |
+| `macos/` | Swift／SwiftUI／AppKit，Mac 原生 App、文件與打包腳本 |
+| `windows/` | C#／.NET 10／WinUI 3／Win2D，Windows 原生 App、文件與打包腳本 |
+| `src/` | React／TypeScript／Vite，早期 Web 原型；Firebase 設定與服務須自行管理 |
+| `docs/` | 文件契約、平台設計、安裝、公開發行及歷史紀錄 |
 
-# 執行原生核心測試套件 (HeiBanTestRunner)
-swift run HeiBanTestRunner
+[從原始碼建置](docs/BUILDING.zh-TW.md) · [貢獻指南](CONTRIBUTING.md) · [開發紀錄入口](docs/DEVELOPMENT_INDEX.zh-TW.md)
 
-# 執行正式發行打包腳本 (產出 dist/HeiBan.app)
-./scripts/build_app.sh
-```
+各平台程式、快取與發行產物分開；共同遵循 JSON 文件語意，不能假設所有平台已支援全部物件。120 FPS 等為開發目標，尚未量測證實。
 
----
+## 回報問題
 
-## 核心功能特色
+請在 [GitHub Issues](https://github.com/VirginBear/HeiBan/issues) 附上版本、作業系統、CPU 架構與重現步驟。避免上傳含私人內容的作品或截圖；安全漏洞請依 [SECURITY.md](SECURITY.md) 私下回報。
 
-1. **極致低延遲筆跡**：預覽筆跡點緩存架構、封存路徑批次繪製、120 FPS 原生流暢度。
-2. **多頁筆記本與畫布格式**：
-   * 無邊界黑板 (Infinite)
-   * 固定尺寸 (A4, A3, B5, 16:9, 4:3, 1:1, 9:16)
-   * 多頁筆記本 (支援多頁增刪、封面風格、格子／橫線／五線譜／點點內頁、底色與自訂格線深淺顏色)
-3. **精確工具與量角尺規**：虛擬直尺、雙向角度旋轉、中點與樞軸拖曳、落筆與橡皮擦半透明範圍預覽。
-4. **廣泛匯出與資料保全**：
-   * 獨立離線互動網頁檔 (`.html`)：任何瀏覽器免安裝軟體即可離線檢視並內嵌備份資料。
-   * 向量 PDF / SVG、高品質 PNG、原生 `.heiban` 備份。
-   * 本機冷安裝與 Application Support 隔離儲存，保護使用者資料安全。
+## 授權與第三方
 
----
+Copyright © 2026 VirginBear and HeiBan contributors.
 
-## 文件導覽
-
-* [Antigravity 工作清單](docs/ANTIGRAVITY_WORKLIST.zh-TW.md)
-* [專案架構與冗餘稽核](docs/PROJECT_AUDIT.zh-TW.md)
-* [開發目標與階段計畫](docs/DEVELOPMENT_PLAN.zh-TW.md)
-* [驗收標準 (A01–A31)](docs/ACCEPTANCE_CRITERIA.zh-TW.md)
-* [跨平台架構決策 (ADR)](docs/PLATFORM_DECISIONS.zh-TW.md)
-* [文件契約規範](docs/DOCUMENT_SCHEMA_CONTRACT.md)
+HeiBan 原創原始碼以 **GPL-3.0-only** 發佈；完整條款見 [LICENSE](LICENSE)。散布修改版本時須依 GPL 提供相應原始碼與授權聲明。第三方套件與系統元件仍依各自條款，見 [第三方聲明](THIRD_PARTY_NOTICES.md)。參考軟體的完整副本不隨本專案發佈。

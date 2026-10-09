@@ -24,9 +24,11 @@ private struct InlineTextEditorRepresentable: NSViewRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
     func makeNSView(context: Context) -> NSScrollView {
-        let scroll = NSScrollView()
+        let scroll = InlineTextScrollView()
         scroll.drawsBackground = false
         scroll.hasVerticalScroller = true
+        scroll.autohidesScrollers = true
+        scroll.hasHorizontalScroller = false
         scroll.borderType = .noBorder
 
         let textView = InlineNSTextView(frame: NSRect(x: 0, y: 0, width: 360, height: 120))
@@ -35,9 +37,13 @@ private struct InlineTextEditorRepresentable: NSViewRepresentable {
         textView.allowsUndo = true
         textView.isVerticallyResizable = true
         textView.isHorizontallyResizable = false
+        textView.minSize = .zero
+        textView.maxSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
         textView.autoresizingMask = [.width]
         textView.textContainer?.widthTracksTextView = true
-        textView.textContainerInset = NSSize(width: 3, height: 5)
+        textView.textContainer?.containerSize = NSSize(width: 360, height: CGFloat.greatestFiniteMagnitude)
+        textView.textContainerInset = NSSize(width: 10, height: 10)
+        textView.setAccessibilityLabel("文字內容")
         textView.drawsBackground = false
         textView.onCommit = onCommit
         textView.onCancel = onCancel
@@ -290,6 +296,30 @@ private struct InlineTextEditorRepresentable: NSViewRepresentable {
     }
 }
 
+/// SwiftUI resizes the scroll view after creation; AppKit's document view must
+/// follow the final clip width instead of retaining its initial 360 pt width.
+private final class InlineTextScrollView: NSScrollView {
+    override func layout() {
+        super.layout()
+        guard let textView = documentView as? NSTextView else { return }
+        let width = contentSize.width
+        guard width > 0 else { return }
+        textView.minSize = NSSize(width: width, height: contentSize.height)
+        textView.maxSize = NSSize(width: width, height: CGFloat.greatestFiniteMagnitude)
+        let containerWidth = max(0, width - textView.textContainerInset.width * 2)
+        if textView.textContainer?.containerSize.width != containerWidth {
+            textView.textContainer?.containerSize = NSSize(width: containerWidth, height: CGFloat.greatestFiniteMagnitude)
+        }
+        if textView.frame.width != width || textView.frame.height < contentSize.height {
+            textView.setFrameSize(NSSize(width: width, height: max(textView.frame.height, contentSize.height)))
+        }
+        if contentView.bounds.origin.x != 0 {
+            contentView.scroll(to: NSPoint(x: 0, y: contentView.bounds.origin.y))
+            reflectScrolledClipView(contentView)
+        }
+    }
+}
+
 private final class InlineNSTextView: NSTextView {
     var onCommit: (() -> Void)?
     var onCancel: (() -> Void)?
@@ -311,18 +341,52 @@ struct InlineTextEditorOverlay: View {
     @ObservedObject var engine: BoardEngine
 
     private var isSticky: Bool { engine.textEntryKind == .sticky }
-    private var editorWidth: CGFloat { max(300, CGFloat(isSticky ? 260 : 320) * CGFloat(engine.viewport.zoom)) }
-    private var panelWidth: CGFloat { min(max(520, editorWidth), max(320, engine.canvasSize.width - 16)) }
-    private var editorHeight: CGFloat { isSticky ? 260 : 210 }
-    private var screenOrigin: CGPoint {
-        let x = engine.inlineTextPoint.x * engine.viewport.zoom + engine.viewport.x
-        let y = engine.inlineTextPoint.y * engine.viewport.zoom + engine.viewport.y
-        return CGPoint(x: min(max(8, x), max(8, engine.canvasSize.width - panelWidth - 8)),
-                       y: min(max(8, y), max(8, engine.canvasSize.height - editorHeight - 8)))
+    private var inputBackground: Color {
+        if isSticky {
+            let sticky = engine.objects.first { $0.id == engine.editingTextObjectId }
+            return Color(hex: sticky?.fillColor ?? StickyPalette.yellow)
+        }
+        return Color(hex: engine.board.backgroundColor)
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 7) {
+        GeometryReader { geometry in
+            // Keep the complete panel inside the canvas and clear of the docked controls.
+            let left: CGFloat = engine.toolbarDock == "left" ? 82 : 12
+            let right: CGFloat = engine.toolbarDock == "right" ? 82 : 12
+            let top: CGFloat = engine.toolbarDock == "top" ? 140 : 80
+            let bottom: CGFloat = engine.toolbarDock == "bottom" ? 84 : 12
+            let width = min(520, max(0, geometry.size.width - left - right))
+            let height = min(360, max(0, geometry.size.height - top - bottom))
+            let anchorX = engine.inlineTextPoint.x * engine.viewport.zoom + engine.viewport.x
+            let anchorY = engine.inlineTextPoint.y * engine.viewport.zoom + engine.viewport.y
+            let x = min(max(left, anchorX), max(left, geometry.size.width - right - width))
+            let y = min(max(top, anchorY), max(top, geometry.size.height - bottom - height))
+
+            editorPanel
+                .frame(width: width, height: height)
+                .background(Color(nsColor: .windowBackgroundColor), in: RoundedRectangle(cornerRadius: 14))
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.primary.opacity(0.16), lineWidth: 1))
+                .shadow(color: .black.opacity(0.2), radius: 12, y: 5)
+                .position(x: x + width / 2, y: y + height / 2)
+        }
+    }
+
+    private var editorPanel: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Label(isSticky ? "編輯便簽" : "編輯文字", systemImage: isSticky ? "note.text" : "character.cursor.ibeam")
+                    .font(.system(size: 13, weight: .semibold))
+                Spacer()
+                Button("取消") { engine.cancelInlineTextEntry() }
+                    .keyboardShortcut(.cancelAction)
+                Button("完成") { engine.commitInlineTextEntry() }
+                    .keyboardShortcut(.return, modifiers: .command)
+                    .buttonStyle(.borderedProminent)
+                    .tint(Color(hex: "#4f8c70"))
+            }
+            .controlSize(.small)
+
             HStack(spacing: 5) {
                 formatButton("B", help: "粗體", format: .bold).fontWeight(.bold)
                 formatButton("I", help: "斜體", format: .italic).italic()
@@ -336,27 +400,7 @@ struct InlineTextEditorOverlay: View {
                 ))
                 .labelsHidden()
                 .frame(width: 26)
-                Spacer(minLength: 8)
-                Button("取消") { engine.cancelInlineTextEntry() }
-                    .keyboardShortcut(.cancelAction)
-                Button("完成") { engine.commitInlineTextEntry() }
-                    .keyboardShortcut(.defaultAction)
-                    .buttonStyle(.borderedProminent)
-                    .tint(Color(hex: "#4f8c70"))
-            }
-            .controlSize(.small)
-
-            HStack(spacing: 8) {
-                TextField("字體", text: $engine.editingFontFamily)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 112)
-                Stepper(value: $engine.editingFontSize, in: 8...144, step: 1) {
-                    Text("\(Int(engine.editingFontSize)) pt").monospacedDigit()
-                }
-                .frame(width: 108)
-                Text("不透明度")
-                Slider(value: $engine.editingTextOpacity, in: 0.05...1)
-                    .frame(width: 92)
+                Spacer(minLength: 0)
                 Picker("對齊", selection: $engine.editingTextAlign) {
                     Text("靠左").tag("left")
                     Text("置中").tag("center")
@@ -364,6 +408,24 @@ struct InlineTextEditorOverlay: View {
                 }
                 .labelsHidden()
                 .frame(width: 84)
+            }
+            .controlSize(.small)
+
+            HStack(spacing: 8) {
+                TextField("字體", text: $engine.editingFontFamily)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 112)
+                    .accessibilityLabel("字體")
+                Stepper(value: $engine.editingFontSize, in: 8...144, step: 1) {
+                    Text("\(Int(engine.editingFontSize)) pt").monospacedDigit()
+                }
+                .frame(width: 108)
+                Text("不透明度").font(.system(size: 11))
+                Slider(value: $engine.editingTextOpacity, in: 0.05...1)
+                    .accessibilityLabel("文字不透明度")
+                Text(engine.editingTextOpacity, format: .percent.precision(.fractionLength(0)))
+                    .font(.system(size: 11).monospacedDigit())
+                    .frame(width: 34, alignment: .trailing)
             }
             .controlSize(.small)
 
@@ -380,14 +442,17 @@ struct InlineTextEditorOverlay: View {
                 onCommit: engine.commitInlineTextEntry,
                 onCancel: engine.cancelInlineTextEntry
             )
-            .frame(width: min(max(280, editorWidth - 16), panelWidth - 16), height: max(80, editorHeight - 110))
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(inputBackground, in: RoundedRectangle(cornerRadius: 8))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.primary.opacity(0.12), lineWidth: 1))
+
+            Text("Enter 換行 · ⌘Enter 完成 · Esc 取消")
+                .font(.system(size: 10))
+                .foregroundStyle(.secondary)
         }
-        .padding(8)
-        .background(isSticky ? Color(hex: "#fef08a") : Color(nsColor: .windowBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(isSticky ? Color(hex: "#d4a72c") : Color.accentColor.opacity(0.7), lineWidth: 1))
-        .shadow(color: .black.opacity(0.2), radius: 12, y: 5)
-        .frame(width: panelWidth, height: editorHeight, alignment: .topLeading)
-        .position(x: screenOrigin.x + panelWidth / 2, y: screenOrigin.y + editorHeight / 2)
+        .padding(12)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private func formatButton(_ title: String, help: String, format: InlineTextFormat) -> some View {

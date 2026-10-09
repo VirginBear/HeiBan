@@ -1,0 +1,38 @@
+name: HeiBan Windows packages
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'windows/**'
+      - '.github/workflows/windows-build.yml'
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        runtime: [win-x64, win-arm64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Verify Windows interaction geometry
+        shell: pwsh
+        run: dotnet run --project windows/HeiBan.Windows.Core.Tests -c Release
+      - name: Install Inno Setup compiler
+        run: choco install innosetup --no-progress -y
+      - name: Build portable package
+        shell: pwsh
+        run: ./windows/HeiBan.Windows/Packaging/Package-Portable.ps1 -Runtime '${{ matrix.runtime }}'
+      - name: Build installer
+        shell: pwsh
+        run: ./windows/HeiBan.Windows/Packaging/Package-Installer.ps1 -Runtime '${{ matrix.runtime }}'
+      - name: Keep Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: heiban-windows-${{ matrix.runtime }}
+          path: windows/dist/*
+          if-no-files-found: error

@@ -4,6 +4,26 @@
 用途：提供 Antigravity 分階段整理架構、修正資料／效能問題與完成 HeiBan 功能的可執行工作單。  
 參考：[專案稽核](PROJECT_AUDIT.zh-TW.md)、[開發計畫](DEVELOPMENT_PLAN.zh-TW.md)、[驗收目標](ACCEPTANCE_CRITERIA.zh-TW.md)、[工作清單](WORK_BACKLOG.zh-TW.md)、[文件契約](DOCUMENT_SCHEMA_CONTRACT.md)、[功能對照表](FEATURE_PARITY_CHECKLIST.md)。
 
+## 2026-10-09 最新優先工作：Mac 頂列改版與完整功能
+
+使用者要求圓規、計算機正式加入，並依 ProDrafts 改掉滿寬頂列。請優先執行 [Mac 專用 Antigravity 工作單 AGM-00–AGM-24](../macos/docs/ANTIGRAVITY_PRODRAFTS_WORKLIST_2026-10-09.zh-TW.md)，對照 [影片功能盤點 R01–R58](../macos/docs/PRODRAFTS_FEATURE_INVENTORY_2026-10-09.zh-TW.md)。第一批必交精簡右上頂列、計算機、可編輯圓弧的圓規、正／倒計時；膠帶、雷射筆、子畫板、思維導圖、表格、公式、媒體、附件等都有後續正式工作與驗收條件。
+
+本工作單取代先前「上述工具只做後續評估」的安排。新增項目均待實作／待驗收，本次交付的是工作單，沒有宣稱新 App 已有這些功能。只開發 Mac；保留 Windows、Web 及工作樹既有內容。
+
+## 2026-10-09：先專注 Mac
+
+使用者最新指示為本對話只開發 Mac，暫不同步 Windows。ProDrafts 的作品庫與閱讀體驗已完成第一輪原生實作；下一步優先处理縮圖完整度、筆跡／尺規／平移性能與操作回饋。實作與待驗收狀態見 [Mac 參考與工作清單](../macos/docs/PRODRAFTS_REFERENCE_2026-10-09.zh-TW.md)。此前 Windows 計畫仍保留，這一輪未交付 Windows 改版。
+
+### 同日操作錄影補充
+
+依 ProDrafts 操作錄影新增 [Mac 操作改善 V01–V06](../macos/docs/PRODRAFTS_VIDEO_REVIEW_2026-10-09.zh-TW.md)：工具列自訂、附近操作列、快速設定、尺寸與旋轉回饋、圖釘搜尋已有部分實作及先前完成回報。接手時需讀現有程式並查核；原有性能要求仍需實際量測。本次新工作的執行順序以本頁最上方 AGM 工作單為準。
+
+## 2026-10-07 使用體驗修正與驗收狀態更正
+
+詳見 [本次修正紀錄](UI_CORRECTIONS_2026-10-07.zh-TW.md)。本次確認舊 `HeiBanTestRunner` 將 44 張空白測試板寫入正式本機作品庫，並發現筆刷預覽、橡皮擦指示尺寸與實際處理尺寸不同。已隔離預設測試資料目錄，修正相關互動與首頁入口，並封存已確認來源的空白測試板。
+
+下方 `[x]` 與斷言數量是先前的開發回報，不能視為使用者體驗、效能或正式發行已驗收。後續每一項都需要對應的實機證據；本次未重新驗收登入、協作、公證或 120 FPS 效能。全專案 `pnpm lint` 仍有既有契約測試資料的型別錯誤，不能回報全專案檢查全部通過。
+
 ## 給 Antigravity 的執行原則
 
 1. 先讀上述文件及目前程式碼，再確認 `git status`。保留工作樹既有未提交修改；不得使用 reset、checkout、clean 等方式清除使用者內容。

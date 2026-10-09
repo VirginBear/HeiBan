@@ -34,64 +34,6 @@ public protocol CloudSyncTransport: AnyObject {
     var isOnline: Bool { get set }
 }
 
-public final class MockCloudSyncTransport: CloudSyncTransport {
-    public var isOnline: Bool = true
-    public var remoteRevisions: [String: Int] = [:]
-    public var remoteDocuments: [String: HeiBanDocument] = [:]
-    public var receivedMutationIds: Set<String> = []
-    public var onMutationPushed: ((SyncMutation) -> Void)?
-
-    public init() {}
-
-    public func pushMutation(_ mutation: SyncMutation) throws -> Int {
-        guard isOnline else {
-            throw NSError(domain: "HeiBanSync", code: 503, userInfo: [NSLocalizedDescriptionKey: "網路離線中"])
-        }
-
-        // 冪等性去重保證：重複的 mutationId 不會引發二次寫入
-        if receivedMutationIds.contains(mutation.id) {
-            return remoteRevisions[mutation.boardId] ?? mutation.baseRevision
-        }
-
-        receivedMutationIds.insert(mutation.id)
-        let currentRev = remoteRevisions[mutation.boardId] ?? mutation.baseRevision
-        let newRev = currentRev + 1
-        remoteRevisions[mutation.boardId] = newRev
-
-        var doc = remoteDocuments[mutation.boardId] ?? HeiBanDocument(
-            board: mutation.updatedMetadata ?? BoardMetadata(id: mutation.boardId, title: "雲端黑板", revision: newRev),
-            objects: []
-        )
-        doc.board.revision = newRev
-        if let meta = mutation.updatedMetadata {
-            doc.board = meta
-            doc.board.revision = newRev
-        }
-
-        let delSet = Set(mutation.deletedObjectIds)
-        doc.objects.removeAll(where: { delSet.contains($0.id) })
-
-        for obj in mutation.insertedObjects {
-            if let idx = doc.objects.firstIndex(where: { $0.id == obj.id }) {
-                doc.objects[idx] = obj
-            } else {
-                doc.objects.append(obj)
-            }
-        }
-
-        remoteDocuments[mutation.boardId] = doc
-        onMutationPushed?(mutation)
-        return newRev
-    }
-
-    public func pullLatestDocument(boardId: String) throws -> HeiBanDocument? {
-        guard isOnline else {
-            throw NSError(domain: "HeiBanSync", code: 503, userInfo: [NSLocalizedDescriptionKey: "網路離線中"])
-        }
-        return remoteDocuments[boardId]
-    }
-}
-
 public enum SyncCoordinatorStatus: Equatable {
     case idle
     case syncing(pendingCount: Int)
@@ -111,13 +53,16 @@ public final class CloudSyncCoordinator {
     public private(set) var status: SyncCoordinatorStatus = .idle
 
     public init(
-        transport: CloudSyncTransport = MockCloudSyncTransport(),
+        // 明確注入實際／檢查 transport；正式核心不能默默選用記憶體假雲端。
+        transport: CloudSyncTransport,
         queueDirectory: URL? = nil,
         library: LocalBoardLibrary = LocalBoardLibrary()
     ) {
         self.transport = transport
         self.library = library
-        let dir = queueDirectory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        let dir =
+            queueDirectory
+            ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("HeiBan/SyncQueue", isDirectory: true)
         self.queueDirectory = dir
         self.queueFileURL = dir.appendingPathComponent("queue.json")
@@ -128,7 +73,8 @@ public final class CloudSyncCoordinator {
 
     private func loadQueueFromDisk() {
         if let data = try? Data(contentsOf: queueFileURL),
-           let loaded = try? JSONDecoder().decode([SyncMutation].self, from: data) {
+            let loaded = try? JSONDecoder().decode([SyncMutation].self, from: data)
+        {
             self.queue = loaded
         } else {
             self.queue = []
@@ -239,8 +185,7 @@ public final class CloudSyncCoordinator {
         if !transport.isOnline {
             status = .offline(pendingCount: queue.count)
         } else if queue.isEmpty {
-            if case .synced = status {}
-            else { status = .idle }
+            if case .synced = status {} else { status = .idle }
         } else {
             status = .syncing(pendingCount: queue.count)
         }

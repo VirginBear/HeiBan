@@ -114,6 +114,29 @@ struct CanvasObjectsView: View {
             )
             context.stroke(Path(ellipseIn: rect), with: .color(strokeColor), style: strokeStyle)
 
+        case "arc":
+            let radius = (obj.arcRadius ?? (obj.width / 2.0)) * zoom
+            let center = CGPoint(x: screenX + screenW / 2.0, y: screenY + screenH / 2.0)
+            let startDeg = obj.arcStartAngle ?? 0.0
+            let sweepDeg = obj.arcSweepAngle ?? 360.0
+            let endDeg = startDeg + sweepDeg
+
+            var path = Path()
+            path.addArc(
+                center: center,
+                radius: radius,
+                startAngle: Angle(degrees: startDeg),
+                endAngle: Angle(degrees: endDeg),
+                clockwise: sweepDeg < 0
+            )
+
+            let strokeStyle = StrokeStyle(
+                lineWidth: strokeW,
+                lineCap: .round,
+                dash: dashPattern(for: obj.lineStyle, zoom: zoom)
+            )
+            context.stroke(path, with: .color(strokeColor), style: strokeStyle)
+
         case "triangle", "quadrilateral", "diamond", "star":
             var path = Path()
             let polygonPoints = obj.parsedPoints
@@ -183,6 +206,73 @@ struct CanvasObjectsView: View {
             head.addLine(to: CGPoint(x: baseX + headHalfWidth * sin(angle), y: baseY - headHalfWidth * cos(angle)))
             head.closeSubpath()
             context.fill(head, with: .color(strokeColor))
+
+        case "tape":
+            let rect = CGRect(x: screenX, y: screenY, width: screenW, height: screenH)
+            let isRevealed = obj.isRevealed ?? false
+            let tapeColor = Color(hex: obj.strokeColor.isEmpty || obj.strokeColor == "#86efac" ? "#f59e0b" : obj.strokeColor)
+
+            if isRevealed {
+                // Ghost/revealed state: transparent dashed outline with soft tinted background, revealing underlying content
+                context.fill(Path(roundedRect: rect, cornerRadius: 4 * zoom), with: .color(tapeColor.opacity(0.12)))
+                let dashStyle = StrokeStyle(lineWidth: 1.5 * zoom, dash: [5 * zoom, 3 * zoom])
+                context.stroke(Path(roundedRect: rect, cornerRadius: 4 * zoom), with: .color(tapeColor.opacity(0.6)), style: dashStyle)
+            } else {
+                // Obscured state: pleasant washi tape look with diagonal stripes
+                context.fill(Path(roundedRect: rect, cornerRadius: 4 * zoom), with: .color(tapeColor.opacity(0.96 * obj.opacity)))
+                let clipPath = Path(roundedRect: rect, cornerRadius: 4 * zoom)
+                var patternPath = Path()
+                let step: CGFloat = 16.0 * CGFloat(zoom)
+                for x in stride(from: -rect.height, to: rect.width + rect.height, by: step) {
+                    patternPath.move(to: CGPoint(x: rect.minX + x, y: rect.minY))
+                    patternPath.addLine(to: CGPoint(x: rect.minX + x + rect.height, y: rect.maxY))
+                }
+                var subContext = context
+                subContext.clip(to: clipPath)
+                subContext.stroke(patternPath, with: .color(Color.white.opacity(0.25)), lineWidth: 3.0 * zoom)
+                context.stroke(Path(roundedRect: rect, cornerRadius: 4 * zoom), with: .color(tapeColor.opacity(0.85)), lineWidth: 1.2 * zoom)
+            }
+
+        case "rounded_rect":
+            let cornerR = (obj.cornerRadius ?? 16.0) * zoom
+            let rect = CGRect(x: screenX, y: screenY, width: screenW, height: screenH)
+            if obj.fillColor != "none" {
+                fillShape(Path(roundedRect: rect, cornerRadius: cornerR), bounds: rect, object: obj, context: &context)
+            }
+            let strokeStyle = StrokeStyle(
+                lineWidth: strokeW,
+                dash: dashPattern(for: obj.lineStyle, zoom: zoom)
+            )
+            context.stroke(Path(roundedRect: rect, cornerRadius: cornerR), with: .color(strokeColor), style: strokeStyle)
+
+        case "polygon":
+            let sides = obj.polygonSides ?? 5
+            let centerWorld = Point(x: obj.x + obj.width / 2.0, y: obj.y + obj.height / 2.0)
+            let radiusWorld = min(obj.width, obj.height) / 2.0
+            let vertices = VectorMath.computePolygonVertices(center: centerWorld, radius: radiusWorld, sides: sides, rotation: obj.rotation)
+            var polyPath = Path()
+            for (idx, v) in vertices.enumerated() {
+                let sPt = CGPoint(x: v.x * zoom + vx, y: v.y * zoom + vy)
+                if idx == 0 { polyPath.move(to: sPt) } else { polyPath.addLine(to: sPt) }
+            }
+            polyPath.closeSubpath()
+            let rect = CGRect(x: screenX, y: screenY, width: screenW, height: screenH)
+            if obj.fillColor != "none" {
+                fillShape(polyPath, bounds: rect, object: obj, context: &context)
+            }
+            let strokeStyle = StrokeStyle(lineWidth: strokeW, dash: dashPattern(for: obj.lineStyle, zoom: zoom))
+            context.stroke(polyPath, with: .color(strokeColor), style: strokeStyle)
+
+        case "connector":
+            let (start, end) = lineEndpoints(for: obj, canvasSize: canvasSize)
+            var path = Path()
+            path.move(to: start)
+            path.addLine(to: end)
+            let strokeStyle = StrokeStyle(lineWidth: strokeW, lineCap: .round, dash: dashPattern(for: obj.lineStyle, zoom: zoom))
+            context.stroke(path, with: .color(strokeColor), style: strokeStyle)
+            let dotRadius: CGFloat = max(3.5 * CGFloat(zoom), strokeW * 0.9)
+            context.fill(Path(ellipseIn: CGRect(x: start.x - dotRadius, y: start.y - dotRadius, width: dotRadius * 2, height: dotRadius * 2)), with: .color(strokeColor))
+            context.fill(Path(ellipseIn: CGRect(x: end.x - dotRadius, y: end.y - dotRadius, width: dotRadius * 2, height: dotRadius * 2)), with: .color(strokeColor))
 
         case "sticky":
             let style = obj.stickyStyle ?? .classic
@@ -281,6 +371,18 @@ struct CanvasObjectsView: View {
                 context.draw(Image(nsImage: nsImg), in: rect)
             }
 
+        case "frame":
+            renderFrame(obj: obj, screenX: screenX, screenY: screenY, screenW: screenW, screenH: screenH, zoom: zoom, strokeColor: strokeColor, context: &context)
+
+        case "mindmap":
+            renderMindMap(obj: obj, screenX: screenX, screenY: screenY, zoom: zoom, strokeColor: strokeColor, context: &context)
+
+        case "table":
+            renderTable(obj: obj, screenX: screenX, screenY: screenY, zoom: zoom, strokeColor: strokeColor, context: &context)
+
+        case "formula":
+            renderFormula(obj: obj, screenX: screenX, screenY: screenY, zoom: zoom, strokeColor: strokeColor, context: &context)
+
         default:
             break
         }
@@ -359,6 +461,183 @@ struct CanvasObjectsView: View {
                 CGPoint(x: start.x - ux * extensionLength, y: start.y - uy * extensionLength),
                 CGPoint(x: end.x + ux * extensionLength, y: end.y + uy * extensionLength)
             )
+        }
+    }
+
+    private func renderFrame(
+        obj: BoardObject,
+        screenX: Double,
+        screenY: Double,
+        screenW: Double,
+        screenH: Double,
+        zoom: Double,
+        strokeColor: Color,
+        context: inout GraphicsContext
+    ) {
+        let rect = CGRect(x: screenX, y: screenY, width: screenW, height: screenH)
+        let cornerR = 8.0 * zoom
+        let path = Path(roundedRect: rect, cornerRadius: cornerR)
+
+        if obj.fillColor != "none" {
+            context.fill(path, with: .color(Color(hex: obj.fillColor).opacity(obj.opacity * obj.fillOpacity)))
+        }
+
+        let borderStyle = StrokeStyle(
+            lineWidth: max(1.5, obj.strokeWidth * zoom),
+            dash: [6.0 * zoom, 4.0 * zoom]
+        )
+        context.stroke(path, with: .color(strokeColor.opacity(0.85)), style: borderStyle)
+
+        let titleText = obj.frameTitle ?? "畫框"
+        let tabHeight = 24.0 * zoom
+        let tabWidth = min(screenW, max(80.0 * zoom, Double(titleText.count * 14) * zoom + 20.0 * zoom))
+        let tabRect = CGRect(x: screenX, y: screenY - tabHeight, width: tabWidth, height: tabHeight)
+        let tabPath = Path(roundedRect: tabRect, cornerRadius: 4.0 * zoom)
+        context.fill(tabPath, with: .color(Color(hex: "#1e293b").opacity(0.9)))
+        context.stroke(tabPath, with: .color(strokeColor.opacity(0.85)), lineWidth: 1.0 * zoom)
+
+        let font = Font.system(size: 11.0 * zoom, weight: .bold)
+        let resolved = context.resolve(Text(titleText).font(font).foregroundColor(.white))
+        context.draw(resolved, in: tabRect)
+    }
+
+    private func renderMindMap(
+        obj: BoardObject,
+        screenX: Double,
+        screenY: Double,
+        zoom: Double,
+        strokeColor: Color,
+        context: inout GraphicsContext
+    ) {
+        guard let data = obj.mindMapData else { return }
+        let nodeDict = data.nodes
+        let nodeW = 120.0 * zoom
+        let nodeH = 34.0 * zoom
+
+        for node in data.nodes.values {
+            guard node.isCollapsed != true else { continue }
+            let pX = screenX + (node.relativeX ?? 0.0) * zoom
+            let pY = screenY + (node.relativeY ?? 0.0) * zoom
+            let pOut = CGPoint(x: pX + nodeW, y: pY + nodeH / 2.0)
+
+            for childId in node.childrenIds {
+                guard let child = nodeDict[childId] else { continue }
+                let cX = screenX + (child.relativeX ?? 0.0) * zoom
+                let cY = screenY + (child.relativeY ?? 0.0) * zoom
+                let cIn = CGPoint(x: cX, y: cY + nodeH / 2.0)
+
+                var curve = Path()
+                curve.move(to: pOut)
+                let midX = (pOut.x + cIn.x) / 2.0
+                curve.addCurve(to: cIn, control1: CGPoint(x: midX, y: pOut.y), control2: CGPoint(x: midX, y: cIn.y))
+
+                let lineColor = child.color.map { Color(hex: $0) } ?? strokeColor
+                context.stroke(curve, with: .color(lineColor.opacity(0.7)), lineWidth: 2.0 * zoom)
+            }
+        }
+
+        for node in data.nodes.values {
+            let nX = screenX + (node.relativeX ?? 0.0) * zoom
+            let nY = screenY + (node.relativeY ?? 0.0) * zoom
+            let nRect = CGRect(x: nX, y: nY, width: nodeW, height: nodeH)
+            let nPath = Path(roundedRect: nRect, cornerRadius: 8.0 * zoom)
+
+            let nodeColor = node.color.map { Color(hex: $0) } ?? Color(hex: "#6366f1")
+            context.fill(nPath, with: .color(nodeColor.opacity(0.22)))
+            context.stroke(nPath, with: .color(nodeColor), lineWidth: 1.5 * zoom)
+
+            let font = Font.system(size: 13.0 * zoom, weight: .medium)
+            let resolved = context.resolve(Text(node.text).font(font).foregroundColor(.white))
+            context.draw(resolved, in: nRect)
+
+            if node.isCollapsed == true && !node.childrenIds.isEmpty {
+                let badgeR = 7.0 * zoom
+                let badgeCenter = CGPoint(x: nRect.maxX, y: nRect.midY)
+                let badgeRect = CGRect(x: badgeCenter.x - badgeR, y: badgeCenter.y - badgeR, width: badgeR * 2, height: badgeR * 2)
+                context.fill(Path(ellipseIn: badgeRect), with: .color(nodeColor))
+                let badgeTxt = context.resolve(Text("+").font(Font.system(size: 9.0 * zoom, weight: .bold)).foregroundColor(.white))
+                context.draw(badgeTxt, in: badgeRect)
+            }
+        }
+    }
+
+    private func renderTable(
+        obj: BoardObject,
+        screenX: Double,
+        screenY: Double,
+        zoom: Double,
+        strokeColor: Color,
+        context: inout GraphicsContext
+    ) {
+        guard let data = obj.tableData else { return }
+
+        var curY = screenY
+        for r in 0..<data.rowCount {
+            let rowH = (r < data.rowHeights.count ? data.rowHeights[r] : 36.0) * zoom
+            var curX = screenX
+            for c in 0..<data.colCount {
+                let colW = (c < data.colWidths.count ? data.colWidths[c] : 120.0) * zoom
+                let cell = data.cells.first(where: { $0.row == r && $0.col == c })
+
+                let rowSpan = max(1, cell?.rowSpan ?? 1)
+                let colSpan = max(1, cell?.colSpan ?? 1)
+
+                var spanW = colW
+                if colSpan > 1 {
+                    spanW = (c..<(c + colSpan)).map { ($0 < data.colWidths.count ? data.colWidths[$0] : 120.0) * zoom }.reduce(0, +)
+                }
+                var spanH = rowH
+                if rowSpan > 1 {
+                    spanH = (r..<(r + rowSpan)).map { ($0 < data.rowHeights.count ? data.rowHeights[$0] : 36.0) * zoom }.reduce(0, +)
+                }
+
+                let cellRect = CGRect(x: curX, y: curY, width: spanW, height: spanH)
+
+                if let cell = cell {
+                    let bgHex = cell.bgColor ?? (cell.isHeader == true ? "#334155" : (r % 2 == 1 ? "#1e293b" : "#0f172a"))
+                    context.fill(Path(cellRect), with: .color(Color(hex: bgHex).opacity(0.85 * obj.opacity)))
+                    context.stroke(Path(cellRect), with: .color(strokeColor.opacity(0.3)), lineWidth: 1.0 * zoom)
+
+                    if !cell.text.isEmpty {
+                        let txtColor = cell.textColor.map { Color(hex: $0) } ?? Color.white
+                        let isHeader = cell.isHeader == true
+                        let font = Font.system(size: (isHeader ? 13.0 : 12.0) * zoom, weight: isHeader ? .bold : .regular)
+                        let resolved = context.resolve(Text(cell.text).font(font).foregroundColor(txtColor))
+                        context.draw(resolved, in: cellRect.insetBy(dx: 6.0 * zoom, dy: 4.0 * zoom))
+                    }
+                }
+                curX += colW
+            }
+            curY += rowH
+        }
+    }
+
+    private func renderFormula(
+        obj: BoardObject,
+        screenX: Double,
+        screenY: Double,
+        zoom: Double,
+        strokeColor: Color,
+        context: inout GraphicsContext
+    ) {
+        let latex = obj.latex ?? ""
+        let baseSize = (obj.formulaFontSize ?? 24.0) * zoom
+        let layoutResult = LaTeXParserEngine.layout(latex: latex, baseFontSize: baseSize)
+
+        for line in layoutResult.lines {
+            let lRect = CGRect(
+                x: screenX + line.x,
+                y: screenY + line.y,
+                width: line.width,
+                height: max(1.0, line.height)
+            )
+            context.fill(Path(lRect), with: .color(strokeColor))
+        }
+
+        for glyph in layoutResult.glyphs {
+            let font = Font.system(size: glyph.fontSize, weight: glyph.isItalic ? .regular : .medium, design: glyph.isItalic ? .serif : .default)
+            let resolved = context.resolve(Text(glyph.text).font(font).foregroundColor(strokeColor))
+            context.draw(resolved, at: CGPoint(x: screenX + glyph.x, y: screenY + glyph.y), anchor: .topLeading)
         }
     }
 }

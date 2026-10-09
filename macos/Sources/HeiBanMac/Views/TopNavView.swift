@@ -1,8 +1,25 @@
 import SwiftUI
+import AppKit
 import HeiBanCore
 
 public struct TopNavView: View {
     @ObservedObject var engine: BoardEngine
+    @ViewState private var showLaserSettings = false
+    @ViewState private var showBackgroundSettings = false
+    @ViewState private var showNoteInfoPopover = false
+    @ViewState private var showToolbarCustomizer = false
+
+    private var saveLabel: String {
+        if engine.autosaveStatus.contains("失敗") || engine.autosaveStatus.contains("無法") { return "儲存失敗" }
+        if engine.autosaveStatus == "儲存中…" { return "儲存中" }
+        if engine.autosaveStatus == "尚未儲存" { return "尚未儲存" }
+        return "本機已存"
+    }
+
+    private var worldCenterPoint: Point {
+        let centerScreen = Point(x: Double(engine.canvasSize.width / 2.0), y: Double(engine.canvasSize.height / 2.0))
+        return VectorMath.screenToWorld(centerScreen, viewport: engine.viewport)
+    }
 
     public init(engine: BoardEngine) {
         self.engine = engine
@@ -10,327 +27,326 @@ public struct TopNavView: View {
 
     public var body: some View {
         HStack(spacing: 12) {
-            Button { engine.returnHome() } label: { Image(systemName: "house") }.buttonStyle(.plain).help("回到我的黑板")
-            // App Branding & Title
-            HStack(spacing: 8) {
-                Image(systemName: "square.fill.and.line.vertical.and.square.fill")
-                    .foregroundColor(Color.accentColor)
-                    .font(.system(size: 16))
-
-                TextField("黑板標題", text: $engine.board.title)
-                    .textFieldStyle(.plain)
-                    .font(.system(size: 14, weight: .bold))
-                    .frame(maxWidth: 240)
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(Color.black.opacity(0.035), in: RoundedRectangle(cornerRadius: 8))
-
-            if engine.isNotebook {
-                HStack(spacing: 8) {
-                    Button {
-                        engine.goToPreviousPage()
-                    } label: {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 11, weight: .bold))
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(engine.currentPageIndex <= 0)
-                    .help("上一頁")
-
-                    Menu {
-                        ForEach(engine.pages) { page in
-                            Button {
-                                engine.switchPage(to: page.id)
-                            } label: {
-                                HStack {
-                                    Text(page.title)
-                                    if page.id == engine.activePageId {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                        }
-                        Divider()
-                        Button(role: .destructive) {
-                            if let activeId = engine.activePageId {
-                                engine.deletePage(id: activeId)
-                            }
-                        } label: {
-                            Label("刪除當前頁面", systemImage: "trash")
-                        }
-                        .disabled(engine.totalPages <= 1)
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "book.pages")
-                                .font(.system(size: 11))
-                            Text("第 \(engine.currentPageIndex + 1) / \(engine.totalPages) 頁")
-                                .font(.system(size: 12, weight: .semibold))
-                        }
-                    }
-                    .menuStyle(.borderlessButton)
-
-                    Button {
-                        engine.goToNextPage()
-                    } label: {
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 11, weight: .bold))
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(engine.currentPageIndex >= engine.totalPages - 1)
-                    .help("下一頁")
-
-                    Button {
-                        engine.addPage()
-                    } label: {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.system(size: 13))
-                            .foregroundStyle(Color.accentColor)
-                    }
-                    .buttonStyle(.plain)
-                    .help("新增筆記頁面")
-                }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
-                .background(Color.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
-            }
-
-            Spacer()
-
-            Label(
-                engine.autosaveStatus.hasPrefix("自動儲存失敗") ? "儲存失敗" : (engine.autosaveStatus == "儲存中…" ? "儲存中" : "本機已存"),
-                systemImage: engine.autosaveStatus.hasPrefix("自動儲存失敗") ? "exclamationmark.icloud" : (engine.autosaveStatus == "儲存中…" ? "arrow.triangle.2.circlepath" : "internaldrive")
-            )
-                .font(.system(size: 10, weight: .medium))
-                .foregroundColor(engine.autosaveStatus.hasPrefix("自動儲存失敗") ? .orange : .secondary)
-                .frame(width: 82, alignment: .leading)
-                .help("\(engine.autosaveStatus)；黑板會自動儲存在本機")
-                .accessibilityLabel("儲存狀態：\(engine.autosaveStatus)")
-
-            Spacer()
-
-            // Theme Selector Menu
-            Menu {
-                ForEach(BoardTheme.allCases, id: \.self) { theme in
-                    Button {
-                        engine.board.boardTheme = theme
-                        engine.board.backgroundColor = theme.defaultBackgroundColor
-                    } label: {
-                        HStack {
-                            Text(theme.displayName)
-                            if engine.board.boardTheme == theme {
-                                Image(systemName: "checkmark")
-                            }
-                        }
-                    }
-                }
+            // 1. Back to Library
+            Button {
+                engine.returnHome()
             } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "paintpalette")
-                    Text(engine.board.boardTheme.displayName)
-                        .font(.system(size: 12, weight: .medium))
-                }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(Color.black.opacity(0.035), in: RoundedRectangle(cornerRadius: 8))
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 13, weight: .semibold))
+                    .frame(width: 24, height: 24)
             }
-            .menuStyle(.borderlessButton)
+            .help("回到作品庫")
 
-            // Grid Style Selector Menu
-            Menu {
-                Section("網格樣式") {
-                    ForEach(GridStyle.allCases, id: \.self) { grid in
-                        Button {
-                            engine.board.gridStyle = grid
-                        } label: {
-                            HStack {
-                                Text(grid.displayName)
-                                if engine.board.gridStyle == grid {
-                                    Image(systemName: "checkmark")
-                                }
-                            }
-                        }
-                    }
-                }
-                Section("格線深淺顏色") {
-                    Button("智慧自適應") { engine.board.gridColor = nil }
-                    Button("純白色") { engine.board.gridColor = "#ffffff" }
-                    Button("淺灰色") { engine.board.gridColor = "#94a3b8" }
-                    Button("深灰色") { engine.board.gridColor = "#475569" }
-                    Button("柔黑色") { engine.board.gridColor = "#18181b" }
-                }
+            Divider().frame(height: 16)
+
+            // 2. Reading / Drawing Mode Switch
+            Button {
+                engine.setReadingMode(!engine.readingMode)
             } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "circle.grid.2x2")
-                    Text(engine.board.gridStyle.displayName)
-                        .font(.system(size: 12, weight: .medium))
-                }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(Color.black.opacity(0.035), in: RoundedRectangle(cornerRadius: 8))
+                Image(systemName: engine.readingMode ? "pencil" : "hand.draw")
+                    .font(.system(size: 13, weight: .medium))
+                    .frame(width: 24, height: 24)
             }
-            .menuStyle(.borderlessButton)
+            .help(engine.readingMode ? "回到編輯模式" : "閱讀模式：拖曳移動畫布，不會畫線")
 
-            // Pin Viewport Manager Button
+            // 3. Oblique Pin Navigation
             Button {
                 engine.showPinPopover.toggle()
             } label: {
-                HStack(spacing: 5) {
-                    Image(systemName: "pin.fill")
-                        .foregroundColor(Color.accentColor)
-                    Text("圖釘 (\(engine.board.pins?.count ?? 0))")
-                        .font(.system(size: 12, weight: .medium))
-                }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(Color.black.opacity(0.035), in: RoundedRectangle(cornerRadius: 8))
+                HeiBanPinIcon()
+                    .frame(width: 20, height: 20)
+                    .foregroundStyle(Color.accentColor)
             }
-            .buttonStyle(.plain)
+            .help("圖釘視角導航")
             .popover(isPresented: $engine.showPinPopover) {
                 PinManagerPopover(engine: engine, isPresented: $engine.showPinPopover)
             }
 
-            // Layer Panel Toggle Button (A24)
-            Button {
-                engine.showLayerPanel.toggle()
-            } label: {
-                HStack(spacing: 5) {
-                    Image(systemName: "square.3.layers.3d")
-                        .foregroundColor(engine.showLayerPanel ? Color.accentColor : Color.primary)
-                    Text("圖層 (\(engine.currentPageObjects.count))")
-                        .font(.system(size: 12, weight: .medium))
-                }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(engine.showLayerPanel ? Color.accentColor.opacity(0.12) : Color.black.opacity(0.035), in: RoundedRectangle(cornerRadius: 8))
-            }
-            .buttonStyle(.plain)
-            .help("開啟／關閉圖層面板 (A24)")
+            // 4. "+" Insert Menu (Categorized)
+            insertMenu
 
-            // Inspector Toggle Button (A07, W11)
-            Button {
-                engine.showInspector.toggle()
-            } label: {
-                HStack(spacing: 5) {
-                    Image(systemName: "slider.horizontal.3")
-                        .foregroundColor(engine.showInspector ? Color.accentColor : Color.primary)
-                    Text("屬性")
-                        .font(.system(size: 12, weight: .medium))
-                }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(engine.showInspector ? Color.accentColor.opacity(0.12) : Color.black.opacity(0.035), in: RoundedRectangle(cornerRadius: 8))
-            }
-            .buttonStyle(.plain)
-            .help("開啟／關閉物件屬性檢查器 (A07)")
+            // 5. "⋯" More Menu
+            moreMenu
 
-            // Zoom Controls
-            HStack(spacing: 4) {
-                Button {
-                    engine.viewport.zoom = max(0.08, engine.viewport.zoom / 1.15)
-                } label: {
-                    Image(systemName: "minus")
-                        .frame(width: 22, height: 22)
-                }
-                .buttonStyle(.plain)
+            Divider().frame(height: 16)
 
-                Text("\(Int(engine.viewport.zoom * 100))%")
-                    .font(.system(size: 12, weight: .bold, design: .monospaced))
-                    .frame(width: 44)
-                    .onTapGesture {
-                        withAnimation {
-                            engine.viewport.zoom = 1.0
-                        }
-                    }
-                    .help("點擊重設為 100%")
-
-                Button {
-                    engine.viewport.zoom = min(8.0, engine.viewport.zoom * 1.15)
-                } label: {
-                    Image(systemName: "plus")
-                        .frame(width: 22, height: 22)
-                }
-                .buttonStyle(.plain)
-            }
-            .padding(.horizontal, 6)
-            .padding(.vertical, 4)
-            .background(Color.black.opacity(0.035), in: RoundedRectangle(cornerRadius: 8))
-
-            // File IO & Export Buttons
-            HStack(spacing: 6) {
-                Button {
-                    engine.openFromFilePrompt()
-                } label: {
-                    Image(systemName: "folder")
-                        .frame(width: 26, height: 26)
-                }
-                .buttonStyle(.plain)
-                .help("開啟黑板專案檔 (.blackboard.json)")
-
-                Button {
-                    engine.saveToFilePrompt()
-                } label: {
-                    Image(systemName: "square.and.arrow.down")
-                        .frame(width: 26, height: 26)
-                }
-                .buttonStyle(.plain)
-                .help("儲存為黑板專案檔 (.blackboard.json)")
-
-                Menu {
-                    Button {
-                        engine.exportHTMLPrompt()
-                    } label: {
-                        Label("匯出為獨立離線 HTML 網頁 (.html)", systemImage: "safari")
-                    }
-                    Button {
-                        engine.exportPNGPrompt()
-                    } label: {
-                        Label("匯出為高清 PNG 圖檔 (.png)", systemImage: "photo")
-                    }
-                    Button {
-                        engine.exportPDFPrompt()
-                    } label: {
-                        Label("匯出為向量 PDF 文件 (.pdf)", systemImage: "doc.richtext")
-                    }
-                    Button {
-                        engine.exportSVGPrompt()
-                    } label: {
-                        Label("匯出為 SVG 向量圖檔 (.svg)", systemImage: "square.and.arrow.up")
-                    }
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "square.and.arrow.up")
-                            .font(.system(size: 13))
-                        Text("匯出")
-                            .font(.system(size: 12, weight: .medium))
-                    }
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 3)
-                }
-                .menuStyle(.borderlessButton)
-                .help("匯出為 HTML 網頁、PNG 圖片、PDF 或 SVG")
-            }
-            .padding(.horizontal, 6)
-            .padding(.vertical, 4)
-            .background(Color.black.opacity(0.035), in: RoundedRectangle(cornerRadius: 8))
+            // 6. Compact Status Light Indicator
+            statusIndicatorView
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .background(Color.white.opacity(0.97))
-        .overlay(alignment: .bottom) {
-            if let msg = engine.statusMessage {
-                Text(msg)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 5)
-                    .background(Color.accentColor.opacity(0.92), in: Capsule())
-                    .shadow(color: .black.opacity(0.15), radius: 5, y: 2)
-                    .offset(y: 34)
-                    .transition(.opacity)
-                    .allowsHitTesting(false)
+        .buttonStyle(.plain)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 7)
+        .background(.regularMaterial, in: Capsule())
+        .overlay(Capsule().stroke(Color.primary.opacity(0.09), lineWidth: 1))
+        .shadow(color: Color.black.opacity(0.08), radius: 6, x: 0, y: 2)
+        .fixedSize(horizontal: true, vertical: true)
+        .popover(isPresented: $showBackgroundSettings) {
+            backgroundSettingsPopover
+        }
+        .popover(isPresented: $showNoteInfoPopover) {
+            noteInfoPopover
+        }
+        .popover(isPresented: $showLaserSettings) {
+            LaserSettingsView(laser: engine.laserEngine)
+        }
+        .sheet(isPresented: $showToolbarCustomizer) {
+            ToolbarCustomizeSheet(engine: engine, isPresented: $showToolbarCustomizer)
+        }
+    }
+
+    // MARK: - Insert Menu
+    @ViewBuilder
+    private var insertMenu: some View {
+        Menu {
+            Section("內容") {
+                Button {
+                    engine.beginInlineTextEntry(at: worldCenterPoint, kind: .text)
+                } label: {
+                    Label("文字", systemImage: "textformat")
+                }
+
+                Button {
+                    engine.beginInlineTextEntry(at: worldCenterPoint, kind: .sticky)
+                } label: {
+                    Label("便條紙", systemImage: "note.text")
+                }
+
+                Button {
+                    engine.captureScreenAndPaste()
+                } label: {
+                    Label("截圖置入…", systemImage: "camera.viewfinder")
+                }
+
+                Button {
+                    engine.importImageFromFilePrompt()
+                } label: {
+                    Label("圖片匯入…", systemImage: "photo.badge.plus")
+                }
+            }
+
+            Section("輔助工具") {
+                Button { ScreenAnnotationController.shared.start() } label: {
+                    Label("我的螢幕就是我的畫布", systemImage: "rectangle.and.pencil.and.ellipsis")
+                }
+                Button("雷射筆設定…") { showLaserSettings = true }
+
+                Button {
+                    engine.toggleCompass()
+                } label: {
+                    Label("圓規", systemImage: "circle.circle")
+                }
+
+                Button {
+                    engine.toggleCalculator()
+                } label: {
+                    Label("計算機", systemImage: "plus.forwardslash.minus")
+                }
+
+                Button {
+                    engine.toggleTimer()
+                } label: {
+                    Label("計時器", systemImage: "timer")
+                }
+            }
+        } label: {
+            MenuDisclosureLabel("插入內容或輔助工具") {
+                Image(systemName: "plus")
+                    .font(.system(size: 16, weight: .semibold))
+                    .frame(width: 18, height: 24)
             }
         }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize(horizontal: true, vertical: true)
+        .help("插入內容或輔助工具")
+    }
+
+    // MARK: - More Menu
+    @ViewBuilder
+    private var moreMenu: some View {
+        Menu {
+            Section("筆記") {
+                Button {
+                    showNoteInfoPopover = true
+                } label: {
+                    Label("筆記資訊與改名…", systemImage: "info.circle")
+                }
+
+                Button {
+                    engine.toggleImmersiveMode()
+                } label: {
+                    Label(engine.isImmersiveMode ? "退出沉浸模式" : "進入沉浸模式", systemImage: "arrow.up.left.and.arrow.down.right")
+                }
+            }
+
+            Section("畫布背景與格線") {
+                ForEach(BoardTheme.allCases, id: \.self) { theme in
+                    Button(theme.displayName) { engine.updateBoardTheme(theme) }
+                }
+                Button("自訂背景與格線…") { showBackgroundSettings = true }
+            }
+
+            Section("圖層與屬性") {
+                Button {
+                    engine.showLayerPanel.toggle()
+                } label: {
+                    Label("物件圖層", systemImage: "square.3.layers.3d")
+                }
+
+                Button {
+                    engine.showInspector.toggle()
+                } label: {
+                    Label("物件屬性", systemImage: "slider.horizontal.3")
+                }
+            }
+
+            Section("文件與匯出") {
+                Button("匯入／開啟…") { engine.openFromFilePrompt() }
+                Button("另存黑板專案…") { engine.saveToFilePrompt() }
+                Button("PNG 圖片…") { engine.exportPNGPrompt() }
+                Button("PDF 向量文件…") { engine.exportPDFPrompt() }
+                Button("SVG 向量圖檔…") { engine.exportSVGPrompt() }
+                Button("離線 HTML…") { engine.exportHTMLPrompt() }
+            }
+
+            Section("使用說明") {
+                Button("黑板使用手冊") { HeiBanUserGuide.shared.show() }
+            }
+
+            Section("偏好設定") {
+                Button {
+                    showToolbarCustomizer = true
+                } label: {
+                    Label("自訂工具列…", systemImage: "wrench.and.screwdriver")
+                }
+            }
+        } label: {
+            MenuDisclosureLabel("更多") {
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 16, weight: .semibold))
+                    .frame(width: 18, height: 24)
+            }
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize(horizontal: true, vertical: true)
+        .help("筆記資訊、背景、圖層、匯出與偏好")
+    }
+
+    // MARK: - Status Indicator
+    private var statusIndicatorView: some View {
+        Group {
+            if saveLabel == "儲存失敗" {
+                HStack(spacing: 4) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.red)
+                        .font(.system(size: 11))
+                    Text("儲存失敗")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.red)
+                }
+                .help(engine.autosaveStatus)
+            } else if saveLabel == "儲存中" {
+                ProgressView()
+                    .controlSize(.mini)
+                    .frame(width: 14, height: 14)
+                    .help("儲存中…")
+            } else {
+                Circle()
+                    .fill(Color.green.opacity(0.85))
+                    .frame(width: 8, height: 8)
+                    .help("本機已儲存：所有變更已安全寫入")
+            }
+        }
+    }
+
+    // MARK: - Note Info Popover
+    private var noteInfoPopover: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: "info.circle.fill")
+                    .foregroundStyle(Color.accentColor)
+                Text("筆記資訊與改名")
+                    .font(.system(size: 13, weight: .bold))
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("筆記名稱").font(.caption).foregroundStyle(.secondary)
+                TextField("筆記標題", text: $engine.board.title)
+                    .textFieldStyle(.roundedBorder)
+            }
+
+            Divider()
+
+            VStack(alignment: .leading, spacing: 6) {
+                infoRow(label: "畫布格式", value: engine.board.canvasPreset?.displayName ?? "自訂")
+                infoRow(label: "建立時間", value: String(engine.board.createdAt.prefix(19)))
+                infoRow(label: "最後修改", value: String(engine.board.updatedAt.prefix(19)))
+                infoRow(label: "物件數量", value: "\(engine.objects.count) 個物件")
+                infoRow(label: "儲存狀態", value: engine.autosaveStatus)
+            }
+            .font(.system(size: 11))
+
+            HStack {
+                Spacer()
+                Button("完成") {
+                    showNoteInfoPopover = false
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.small)
+            }
+        }
+        .padding(14)
+        .frame(width: 280)
+    }
+
+    private func infoRow(label: String, value: String) -> some View {
+        HStack {
+            Text(label).foregroundStyle(.secondary)
+            Spacer()
+            Text(value).foregroundStyle(.primary).lineLimit(1)
+        }
+    }
+
+    // MARK: - Background Settings Popover
+    private var backgroundSettingsPopover: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("畫布背景與格線").font(.headline)
+
+            ColorPicker("背景顏色", selection: Binding(
+                get: { Color(hex: engine.board.backgroundColor) },
+                set: { color in
+                    guard let rgb = NSColor(color).usingColorSpace(.deviceRGB) else { return }
+                    let hex = String(
+                        format: "#%02X%02X%02X",
+                        Int(round(rgb.redComponent * 255)),
+                        Int(round(rgb.greenComponent * 255)),
+                        Int(round(rgb.blueComponent * 255))
+                    )
+                    engine.updateBoardBackgroundColor(hex)
+                }
+            ), supportsOpacity: false)
+
+            Picker("格線顏色", selection: Binding(
+                get: { engine.board.gridColor ?? "" },
+                set: { engine.updateGridColor($0.isEmpty ? nil : $0) }
+            )) {
+                Text("自適應").tag("")
+                Text("白色").tag("#ffffff")
+                Text("淺灰").tag("#94a3b8")
+                Text("深灰").tag("#475569")
+                Text("柔黑").tag("#18181b")
+            }
+
+            HStack {
+                Spacer()
+                Button("完成") { showBackgroundSettings = false }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
+            }
+        }
+        .padding(16)
+        .frame(width: 280)
     }
 }
 
@@ -338,11 +354,14 @@ public struct TopNavView: View {
 struct PinManagerPopover: View {
     @ObservedObject var engine: BoardEngine
     @Binding var isPresented: Bool
+    @ViewState private var pinSearchQuery = ""
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("📍 圖釘視角導航 (Bookmarks)")
-                .font(.system(size: 13, weight: .bold))
+            HStack(spacing: 7) {
+                HeiBanPinIcon().frame(width: 20, height: 20).foregroundStyle(Color.accentColor)
+                Text("圖釘視角導航").font(.system(size: 13, weight: .bold))
+            }
 
             // Add pin input
             HStack {
@@ -356,11 +375,35 @@ struct PinManagerPopover: View {
                 }
             }
 
+            // Search pins input
+            HStack(spacing: 6) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.secondary)
+                    .font(.system(size: 11))
+                TextField("搜尋圖釘…", text: $pinSearchQuery)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 12))
+                if !pinSearchQuery.isEmpty {
+                    Button {
+                        pinSearchQuery = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.secondary)
+                            .font(.system(size: 11))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 6)
+            .padding(.vertical, 4)
+            .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 6))
+
             Divider()
 
-            let pins = engine.board.pins ?? []
+            let allPins = engine.board.pins ?? []
+            let pins = PinSearchFilter.filter(pins: allPins, query: pinSearchQuery)
             if pins.isEmpty {
-                Text("尚無圖釘，點選新增將當前視角存為書籤！")
+                Text(allPins.isEmpty ? "尚無圖釘，點選新增將當前視角存為書籤！" : "找不到符合的圖釘")
                     .font(.system(size: 11))
                     .foregroundColor(.secondary)
                     .padding(.vertical, 8)
@@ -371,12 +414,15 @@ struct PinManagerPopover: View {
                             HStack {
                                 Button {
                                     engine.jumpToPin(pin)
-                                    isPresented = false
+                                    if !engine.viewportLocked { isPresented = false }
                                 } label: {
-                                    Image(systemName: "mappin.and.ellipse")
-                                        .foregroundColor(.accentColor)
+                                    HeiBanPinIcon().frame(width: 20, height: 20)
+                                        .foregroundStyle(Color.accentColor)
                                 }
                                 .buttonStyle(.plain)
+                                .disabled(engine.viewportLocked)
+                                .accessibilityLabel("前往圖釘：\(pin.name)")
+                                .help("前往圖釘：\(pin.name)")
 
                                 TextField("圖釘名稱", text: Binding(
                                     get: { engine.board.pins?.first(where: { $0.id == pin.id })?.name ?? pin.name },
@@ -405,6 +451,12 @@ struct PinManagerPopover: View {
                     }
                 }
                 .frame(maxHeight: 220)
+            }
+
+            if engine.viewportLocked {
+                Text("視角已鎖定，解除鎖定後即可跳轉")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
             }
         }
         .padding(14)

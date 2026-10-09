@@ -28,11 +28,11 @@ export function getToolHoverDiameter(
   zoom: number,
   eraserMode: string = 'object'
 ): number {
-  const currentZoom = Math.max(0.1, zoom || 1.0);
+  const currentZoom = zoom > 0 ? zoom : 1;
   if (tool === 'eraser') {
     const radius = getEraserRadius(eraserMode);
-    return Math.max(8, radius * 2 * currentZoom);
+    return radius * 2 * currentZoom;
   }
   const strokeWidth = getToolStrokeWidth(tool, activeStrokeWidth);
-  return Math.max(3, strokeWidth * currentZoom);
+  return strokeWidth * currentZoom;
 }

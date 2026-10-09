@@ -53,7 +53,9 @@ public struct LocalBoardLibrary {
     public let indexFileURL: URL
 
     public init(directory: URL? = nil) {
-        let base = directory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        let sandbox = ProcessInfo.processInfo.environment["HEIBAN_DATA_DIRECTORY"]
+            .flatMap { $0.isEmpty ? nil : URL(fileURLWithPath: $0, isDirectory: true) }
+        let base = directory ?? sandbox ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("HeiBan", isDirectory: true)
 
         self.directory = base.appendingPathComponent("Boards", isDirectory: true)
@@ -336,7 +338,7 @@ public struct LocalBoardLibrary {
             throw PersistenceError.documentNotFound(id: id)
         }
         if FileManager.default.fileExists(atPath: targetURL.path) {
-            try? FileManager.default.removeItem(at: targetURL)
+            throw CocoaError(.fileWriteFileExists)
         }
         try FileManager.default.moveItem(at: sourceURL, to: targetURL)
         removeFromIndex(id: id)
@@ -365,15 +367,25 @@ public struct LocalBoardLibrary {
             throw PersistenceError.documentNotFound(id: id)
         }
         if FileManager.default.fileExists(atPath: targetURL.path) {
-            try? FileManager.default.removeItem(at: targetURL)
+            throw PersistenceError.revisionConflict(current: (try? load(id: id).board.revision) ?? 1, incoming: 0)
         }
+        _ = try HeiBanDocumentCodec.decode(from: Data(contentsOf: trashURL))
         try FileManager.default.moveItem(at: trashURL, to: targetURL)
         let doc = try load(id: id)
         updateIndex(with: doc.board)
         return doc
     }
 
-    /// 清空垃圾桶
+    /// 讀取可還原的作品中繼資料。
+    public func trashBoards() throws -> [BoardMetadata] {
+        guard FileManager.default.fileExists(atPath: trashDirectory.path) else { return [] }
+        return try FileManager.default.contentsOfDirectory(at: trashDirectory, includingPropertiesForKeys: nil)
+            .filter { $0.lastPathComponent.hasSuffix(".blackboard.json") }
+            .compactMap { url in (try? HeiBanDocumentCodec.decode(from: Data(contentsOf: url)))?.board }
+            .sorted { $0.updatedAt > $1.updatedAt }
+    }
+
+    /// 清空垃圾桶。
     public func emptyTrash() throws {
         guard FileManager.default.fileExists(atPath: trashDirectory.path) else { return }
         let files = try FileManager.default.contentsOfDirectory(at: trashDirectory, includingPropertiesForKeys: nil)

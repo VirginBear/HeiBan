@@ -6,6 +6,7 @@ import HeiBanCore
 public struct CanvasView: View {
     @ObservedObject var engine: BoardEngine
     @AppStorage("HeiBan.rulerLabelColor") private var rulerLabelColor = "#FFFFFF"
+    @AppStorage("HeiBan.rulerColorMode") private var rulerColorMode = "adaptive"
 
     public init(engine: BoardEngine) {
         self.engine = engine
@@ -28,12 +29,14 @@ public struct CanvasView: View {
 
                 // 2. Render Board Objects
                 CanvasObjectsLayer(engine: engine)
+                    .mask(CanvasContentBounds(board: engine.board, viewport: engine.viewport))
 
                 // 3. Render In-flight Stroke & GoodNotes Snapped Preview
                 InFlightStrokeView(engine: engine, preview: engine.strokePreview)
+                    .mask(CanvasContentBounds(board: engine.board, viewport: engine.viewport))
 
                 // 3.5 Selection Bounding Box & Transform Handles Overlay
-                SelectionOverlayView(engine: engine)
+                if !engine.readingMode { SelectionOverlayView(engine: engine) }
 
                 // 4. Gesture surface sits behind the ruler so ruler handles can receive drags.
                 NativePointerSurface(engine: engine)
@@ -43,27 +46,59 @@ public struct CanvasView: View {
                     EraserCursorOverlayView(engine: engine, point: point)
                         .allowsHitTesting(false)
                         .zIndex(12)
-                } else if let pt = engine.hoverCursorPoint, let d = engine.hoverCursorDiameter, d > 0 {
-                    HoverCursorOverlayView(point: pt, diameter: d)
+                } else if let pt = engine.hoverCursorPoint, let d = engine.toolCursorDiameter, d > 0 {
+                    HoverCursorOverlayView(point: pt, diameter: d, color: Color(hex: engine.activeColor), outline: cursorOutlineColor)
                         .allowsHitTesting(false)
                         .zIndex(13)
                 }
 
-                LineEndpointHandlesView(engine: engine, preview: engine.strokePreview)
-                PolygonVertexHandlesView(engine: engine)
+                if !engine.readingMode {
+                    LineEndpointHandlesView(engine: engine, preview: engine.strokePreview)
+                    PolygonVertexHandlesView(engine: engine)
+                }
 
                 // 5. Virtual Screen Ruler Overlay
-                if engine.ruler.enabled {
-                    RulerOverlayView(engine: engine, labelColor: rulerLabelColor)
+                if engine.ruler.enabled && !engine.readingMode {
+                    RulerOverlayView(engine: engine, appearance: RulerAppearance(
+                        backgroundColor: engine.board.backgroundColor,
+                        customInk: rulerColorMode == "custom" ? rulerLabelColor : nil
+                    ))
                 }
 
                 PinMarkerOverlayView(engine: engine)
 
-                // Wheel zoom is anchored to the pointer, like CAD editors.
-                ScrollWheelMonitor { point, deltaX, deltaY, shift in
-                    engine.handleScrollWheel(at: point, deltaX: deltaX, deltaY: deltaY, shift: shift)
+                if !engine.readingMode {
+                    SelectionQuickActionBar(engine: engine)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                // Alignment Guides
+                if !engine.readingMode {
+                    AlignmentGuidesOverlayView(engine: engine)
+                        .zIndex(10)
+                }
+
+                // In-flight Lasso
+                if engine.currentTool == .lasso {
+                    LassoOverlayView(engine: engine)
+                        .zIndex(11)
+                }
+
+                // Share the exact canvas origin with committed arcs, including title-bar safe areas.
+                CompassOverlayView(compass: engine.compassEngine, engine: engine)
+                    .zIndex(15)
+
+                // Laser Overlay
+                LaserOverlayView(laser: engine.laserEngine, viewport: engine.viewport)
+                    .zIndex(14)
+
+                // World Coordinate Ruler (R10)
+                if engine.showWorldRuler && !engine.readingMode {
+                    WorldRulerOverlayView(engine: engine)
+                        .zIndex(16)
+                }
+
+                // NativePointerSurface handles canvas wheel input. AppKit routes
+                // editor/panel scrolling to the view under the pointer instead.
 
                 if engine.showInlineTextEditor {
                     InlineTextEditorOverlay(engine: engine)
@@ -83,15 +118,17 @@ public struct CanvasView: View {
             }
             .clipped()
             .focusable()
-            .onKeyPress(.space) {
-                engine.isHoldingSpace = true
-                return .handled
-            }
             .onKeyPress(.escape) {
                 engine.cancelTransientInteraction()
                 return .handled
             }
         }
+    }
+
+    private var cursorOutlineColor: Color {
+        guard let rgb = NSColor(Color(hex: engine.board.backgroundColor)).usingColorSpace(.deviceRGB) else { return .white }
+        let luminance = rgb.redComponent * 0.299 + rgb.greenComponent * 0.587 + rgb.blueComponent * 0.114
+        return luminance > 0.5 ? .black : .white
     }
 }
 
@@ -99,6 +136,7 @@ private struct CanvasImageDropDelegate: DropDelegate {
     let engine: BoardEngine
 
     func performDrop(info: DropInfo) -> Bool {
+        guard !engine.readingMode else { return false }
         let screenPoint = Point(info.location)
         let providers = info.itemProviders(for: [.fileURL, .image])
         guard !providers.isEmpty else { return false }
@@ -146,12 +184,13 @@ private struct PinMarkerOverlayView: View {
             let pinWorld = pin.resolveWorldPosition(canvasSize: engine.canvasSize)
             let point = VectorMath.worldToScreen(pinWorld, viewport: engine.viewport)
             VStack(spacing: 2) {
-                Image(systemName: "mappin.and.ellipse")
-                    .font(.system(size: 22, weight: .bold))
-                    .foregroundStyle(.white)
-                    .padding(5)
-                    .background(Color.accentColor, in: Circle())
-                    .overlay(Circle().stroke(.white, lineWidth: 1.5))
+                HeiBanPinIcon()
+                    .frame(width: 32, height: 32)
+                    .foregroundStyle(Color.accentColor)
+                    .padding(4)
+                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 10))
+                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(.white.opacity(0.75), lineWidth: 1))
+                    .shadow(color: .black.opacity(0.15), radius: 3, y: 2)
                 Text(pin.name)
                     .font(.system(size: 10, weight: .semibold))
                     .lineLimit(1)
@@ -163,12 +202,15 @@ private struct PinMarkerOverlayView: View {
             .onTapGesture { engine.jumpToPin(pin) }
             .gesture(
                 DragGesture(minimumDistance: 4, coordinateSpace: .named("canvas"))
-                    .onChanged { engine.updatePinDrag(id: pin.id, at: Point($0.location)) }
+                    .onChanged { if !engine.readingMode { engine.updatePinDrag(id: pin.id, at: Point($0.location)) } }
                     .onEnded { _ in engine.endPinDrag(id: pin.id) }
             )
             .position(x: point.x, y: point.y)
             .zIndex(15)
             .help("圖釘：\(pin.name)；點擊返回此視角")
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("圖釘：\(pin.name)")
+            .accessibilityAddTraits(.isButton)
         }
     }
 }
@@ -190,24 +232,24 @@ private struct PolygonVertexHandlesView: View {
     }
 }
 
-private struct EraserCursorOverlayView: View {
+struct EraserCursorOverlayView: View {
     @ObservedObject var engine: BoardEngine
     let point: Point
 
     var body: some View {
-        let diameter = engine.eraserSize * engine.viewport.zoom
+        let diameter = engine.eraserSize
         Circle()
             .fill(Color(red: 0.95, green: 0.35, blue: 0.45).opacity(0.24))
             .overlay(
                 Circle()
-                    .stroke(Color(red: 0.95, green: 0.35, blue: 0.45).opacity(0.85), style: StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
+                    .strokeBorder(Color(red: 0.95, green: 0.35, blue: 0.45).opacity(0.85), style: StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
             )
             .overlay(
                 Circle()
                     .fill(Color.white.opacity(0.85))
                     .frame(width: 3, height: 3)
             )
-            .frame(width: max(8, diameter), height: max(8, diameter))
+            .frame(width: diameter, height: diameter)
             .position(x: point.x, y: point.y)
     }
 }
@@ -215,13 +257,15 @@ private struct EraserCursorOverlayView: View {
 private struct HoverCursorOverlayView: View {
     let point: Point
     let diameter: Double
+    let color: Color
+    let outline: Color
 
     var body: some View {
         Circle()
-            .fill(Color.white.opacity(0.22))
+            .fill(color.opacity(0.3))
             .overlay(
                 Circle()
-                    .stroke(Color.white.opacity(0.85), style: StrokeStyle(lineWidth: 1.2, dash: [4, 3]))
+                    .strokeBorder(outline.opacity(0.85), style: StrokeStyle(lineWidth: 1.2, dash: [4, 3]))
             )
             .overlay(
                 Group {
@@ -232,7 +276,7 @@ private struct HoverCursorOverlayView: View {
                     }
                 }
             )
-            .frame(width: max(4, diameter), height: max(4, diameter))
+            .frame(width: diameter, height: diameter)
             .position(x: point.x, y: point.y)
     }
 }
@@ -273,4 +317,3 @@ struct CanvasObjectsLayer: View {
             .onReceive(engine.strokePreview.$shapeObject.removeDuplicates()) { shape = $0 }
     }
 }
-

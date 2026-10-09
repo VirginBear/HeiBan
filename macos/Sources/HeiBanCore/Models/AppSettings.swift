@@ -84,14 +84,28 @@ public struct ChangelogEntry: Codable, Equatable, Identifiable {
 
 public struct AboutInfo: Equatable {
     public static let appName = "HeiBan 黑板"
-    public static let appVersion = "1.0.0"
-    public static let buildNumber = "20261003.1"
+    public static let appVersion = "1.0.5"
+    public static let buildNumber = "20261009.4"
     public static let engineVersion = "HeiBan Blackboard Vector Engine 1.0"
     public static let copyright = "© 2026 HeiBan Team. All rights reserved."
     public static let feedbackUrl = "https://github.com/heiban/heiban/issues"
     public static let supportEmail = "support@heiban.app"
 
     public static let changelog: [ChangelogEntry] = [
+        ChangelogEntry(version: "1.0.5", releaseDate: "2026-10-09", highlights: [
+            "截圖改用原生 ScreenCaptureKit，支援系統選取授權與區域框選",
+            "截圖失敗顯示原因，取消不再誤貼剪貼簿，封裝時簽署完整 App"
+        ]),
+        ChangelogEntry(version: "1.0.4", releaseDate: "2026-10-09", highlights: [
+            "屬性標籤與標題可拖曳到四邊停靠，記住位置",
+            "畫布與作品庫的選單箭頭改用一致間距",
+            "滑鼠滾輪以游標位置為中心縮放；觸控板保持雙指平移與捏合縮放"
+        ]),
+        ChangelogEntry(version: "1.0.1", releaseDate: "2026-10-08", highlights: [
+            "採用繁體手寫「黑板」Logo，首頁、關於及 App 圖示統一",
+            "首頁改為作品優先；新增畫布設定集中在新增視窗",
+            "原創斜向圖釘統一外觀；首頁標示三種畫布格式"
+        ]),
         ChangelogEntry(
             version: "1.0.0",
             releaseDate: "2026-10-03",

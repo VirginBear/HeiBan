@@ -4,6 +4,10 @@ VisualStudioVersion = 17.10.34928.147
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HeiBan.Windows", "HeiBan.Windows\HeiBan.Windows.csproj", "{4B63D852-B4E0-4D5F-82D1-729B5C953E2B}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HeiBan.Windows.Core", "HeiBan.Windows.Core\HeiBan.Windows.Core.csproj", "{F5F1F8B3-1197-4380-A377-D9EBD8248C22}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HeiBan.Windows.Core.Tests", "HeiBan.Windows.Core.Tests\HeiBan.Windows.Core.Tests.csproj", "{C58145C8-6E2C-40AA-B410-0E02131F1C18}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -12,6 +16,22 @@ Global
 		Release|ARM64 = Release|ARM64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F5F1F8B3-1197-4380-A377-D9EBD8248C22}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F5F1F8B3-1197-4380-A377-D9EBD8248C22}.Debug|x64.Build.0 = Debug|Any CPU
+		{F5F1F8B3-1197-4380-A377-D9EBD8248C22}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{F5F1F8B3-1197-4380-A377-D9EBD8248C22}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{F5F1F8B3-1197-4380-A377-D9EBD8248C22}.Release|x64.ActiveCfg = Release|Any CPU
+		{F5F1F8B3-1197-4380-A377-D9EBD8248C22}.Release|x64.Build.0 = Release|Any CPU
+		{F5F1F8B3-1197-4380-A377-D9EBD8248C22}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{F5F1F8B3-1197-4380-A377-D9EBD8248C22}.Release|ARM64.Build.0 = Release|Any CPU
+		{C58145C8-6E2C-40AA-B410-0E02131F1C18}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C58145C8-6E2C-40AA-B410-0E02131F1C18}.Debug|x64.Build.0 = Debug|Any CPU
+		{C58145C8-6E2C-40AA-B410-0E02131F1C18}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{C58145C8-6E2C-40AA-B410-0E02131F1C18}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{C58145C8-6E2C-40AA-B410-0E02131F1C18}.Release|x64.ActiveCfg = Release|Any CPU
+		{C58145C8-6E2C-40AA-B410-0E02131F1C18}.Release|x64.Build.0 = Release|Any CPU
+		{C58145C8-6E2C-40AA-B410-0E02131F1C18}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{C58145C8-6E2C-40AA-B410-0E02131F1C18}.Release|ARM64.Build.0 = Release|Any CPU
 		{4B63D852-B4E0-4D5F-82D1-729B5C953E2B}.Debug|x64.ActiveCfg = Debug|x64
 		{4B63D852-B4E0-4D5F-82D1-729B5C953E2B}.Debug|x64.Build.0 = Debug|x64
 		{4B63D852-B4E0-4D5F-82D1-729B5C953E2B}.Debug|x64.Deploy.0 = Debug|x64

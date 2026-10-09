@@ -8,24 +8,26 @@ public enum EraserToolEngine {
         eraserCenter: Point,
         eraserRadius: Double
     ) -> [BoardObject] {
+        let controlPoints = object.parsedPoints
         let pts: [Point]
-        if object.type == "curve", object.parsedPoints.count >= 3 {
-            let controlPoints = object.parsedPoints
+        if object.type == "curve", controlPoints.count >= 3 {
             pts = (0...48).map { step in
                 let t = Double(step) / 48
                 let u = 1 - t
                 return Point(
-                    x: u * u * controlPoints[0].x + 2 * u * t * controlPoints[1].x + t * t * controlPoints[2].x,
-                    y: u * u * controlPoints[0].y + 2 * u * t * controlPoints[1].y + t * t * controlPoints[2].y
+                    x: u * u * controlPoints[0].x + 2 * u * t * controlPoints[1].x + t * t
+                        * controlPoints[2].x,
+                    y: u * u * controlPoints[0].y + 2 * u * t * controlPoints[1].y + t * t
+                        * controlPoints[2].y
                 )
             }
         } else {
-            pts = object.parsedPoints
+            pts = controlPoints
         }
 
         guard !pts.isEmpty else { return [object] }
 
-        let strokeHalfW = (object.strokeWidth ?? 3.0) / 2.0
+        let strokeHalfW = object.strokeWidth / 2.0
         let effectiveRadius = eraserRadius + strokeHalfW
 
         var hasHit = false

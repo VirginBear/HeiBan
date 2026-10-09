@@ -6,186 +6,189 @@ typealias ViewState<Value> = SwiftUI.State<Value>
 
 struct HomeView: View {
     @ObservedObject var engine: BoardEngine
-    @ViewState<String> private var title = ""
-    @ViewState<BoardTheme> private var theme: BoardTheme = .blackboard
-    @ViewState<String> private var search = ""
-    @ViewState<Bool> private var settings = false
-    @ViewState<BoardMetadata?> private var renaming: BoardMetadata?
-    @ViewState<String> private var renameTitle = ""
-    @ViewState<Set<String>> private var selectedBoardIDs = []
-    @ViewState<Bool> private var confirmDeleteBoards = false
-    @ViewState<HomeCanvasChoice> private var canvasChoice = .infinite
-    @ViewState<Bool> private var showAdvancedSheet = false
+    @StateObject private var shelf = LibraryShelf(library: BoardEngine.library)
+    @AppStorage("HeiBan.home.sidebar") private var sidebar = true
+    @AppStorage("HeiBan.home.cardWidth") private var cardWidth = 190.0
+    @AppStorage("HeiBan.home.sort") private var sort = "updated"
+    @ViewState private var section = "all"
+    @ViewState private var format = "all"
+    @ViewState private var search = ""
+    @ViewState private var settings = false
+    @ViewState private var selectionMode = false
+    @ViewState private var selectedBoardIDs: Set<String> = []
+    @ViewState private var confirmDeleteBoards = false
+    @ViewState private var showAdvancedSheet = false
+    @ViewState private var renaming: BoardMetadata?
+    @ViewState private var renameTitle = ""
     private let sage = Color(red: 0.24, green: 0.43, blue: 0.35)
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 28) {
-            HStack {
-                Label("黑板", systemImage: "square.and.pencil").font(.system(size: 27, weight: .semibold))
-                Spacer()
-                Button { settings = true } label: { Label("帳號與設定", systemImage: "person.crop.circle") }
-                Button { engine.openFromFilePrompt() } label: { Label("匯入黑板", systemImage: "folder") }
-                Button { engine.loadShowcaseBoard() } label: { Label("示範黑板", systemImage: "sparkles") }
-            }
-            VStack(alignment: .leading, spacing: 8) {
-                Text("留一片空間，給你的想法。") .font(.system(size: 32, weight: .medium))
-                Text("在 Mac 上寫、畫、整理。黑板自動保存在這台電腦。") .foregroundStyle(.secondary)
-            }
-            HStack(spacing: 14) {
-                Image(systemName: "plus.square.fill").font(.title).foregroundStyle(sage)
-                TextField("替新黑板取個名字", text: $title).textFieldStyle(.plain)
-                    .onSubmit { create() }
-                Picker("格式", selection: $canvasChoice) {
-                    ForEach(HomeCanvasChoice.allCases) { Text($0.rawValue).tag($0) }
-                }.frame(width: 175)
-                Picker("底色", selection: $theme) {
-                    ForEach(BoardTheme.allCases, id: \.self) { Text($0.displayName).tag($0) }
-                }.frame(width: 130)
-                Button("建立") { create() }.buttonStyle(.borderedProminent).tint(sage)
-                Button {
-                    showAdvancedSheet = true
-                } label: {
-                    Label("自訂筆記…", systemImage: "slider.horizontal.3")
-                }
-            }.padding(20).background(.white, in: RoundedRectangle(cornerRadius: 18))
-            HStack {
-                Text("我的黑板").font(.title2.weight(.semibold))
-                Text("\(engine.libraryBoards.count)").foregroundStyle(.secondary)
-                Spacer()
-                TextField("搜尋黑板", text: $search).textFieldStyle(.roundedBorder).frame(width: 240)
-            }
-            if !selectedBoardIDs.isEmpty {
-                HStack(spacing: 12) {
-                    Text("已選取 \(selectedBoardIDs.count) 張").font(.subheadline.weight(.medium))
-                    Button("全選") {
-                        selectedBoardIDs = Set(engine.libraryBoards.map(\.id))
-                    }
-                    Button("刪除") { confirmDeleteBoards = true }
-                        .buttonStyle(.borderedProminent).tint(.red)
-                    Button("取消選取") { selectedBoardIDs.removeAll() }
-                    Spacer()
-                }
-                .padding(.horizontal, 4)
-            }
-            ScrollView {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: 20)], spacing: 20) {
-                    ForEach(engine.libraryBoards.filter { search.isEmpty || $0.title.localizedCaseInsensitiveContains(search) }) { board in
-                        VStack(alignment: .leading, spacing: 12) {
-                            Button { engine.openLibraryBoard(board.id) } label: {
-                                BoardThumbnailView(board: board).frame(height: 130).clipShape(RoundedRectangle(cornerRadius: 12))
-                            }.buttonStyle(.plain).accessibilityLabel("開啟 \(board.title)")
-                            HStack {
-                                Text(board.title).font(.headline).lineLimit(1)
-                                Spacer()
-                                Button {
-                                    if selectedBoardIDs.contains(board.id) { selectedBoardIDs.remove(board.id) }
-                                    else { selectedBoardIDs.insert(board.id) }
-                                } label: {
-                                    Image(systemName: selectedBoardIDs.contains(board.id) ? "checkmark.circle.fill" : "circle.dashed")
-                                        .foregroundStyle(selectedBoardIDs.contains(board.id) ? sage : .secondary)
-                                }
-                                .buttonStyle(.plain)
-                                .help("選取黑板以批次刪除")
-                                Menu {
-                                    Button("重新命名") { renameTitle = board.title; renaming = board }
-                                    Button("製作副本") { engine.duplicateLibraryBoard(board.id) }
-                                    Button(selectedBoardIDs.contains(board.id) ? "取消選取" : "選取") {
-                                        if selectedBoardIDs.contains(board.id) { selectedBoardIDs.remove(board.id) }
-                                        else { selectedBoardIDs.insert(board.id) }
-                                    }
-                                    Divider()
-                                    Button("刪除黑板…", role: .destructive) {
-                                        selectedBoardIDs = [board.id]
-                                        confirmDeleteBoards = true
-                                    }
-                                } label: { Image(systemName: "ellipsis") }.menuStyle(.borderlessButton).frame(width: 22)
-                            }.contentShape(Rectangle())
-                            Text("\(board.itemCount ?? 0) 個物件 · 本機儲存").font(.caption).foregroundStyle(.secondary)
-                        }
-                        .padding(14)
-                        .background(.white, in: RoundedRectangle(cornerRadius: 18))
-                        .overlay(RoundedRectangle(cornerRadius: 18).stroke(selectedBoardIDs.contains(board.id) ? sage : .clear, lineWidth: 2))
-                    }
-                }
-                if engine.libraryBoards.isEmpty {
-                    VStack(spacing: 16) {
-                        ContentUnavailableView("第一張黑板，從這裡開始", systemImage: "square.and.pencil", description: Text("輸入名稱後建立，或匯入現有的黑板檔案。"))
-                        Button {
-                            engine.loadShowcaseBoard()
-                        } label: {
-                            Label("載入全功能示範黑板", systemImage: "sparkles")
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(sage)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 32)
-                }
-            }
-            if let status = engine.statusMessage { Text(status).foregroundStyle(sage) }
-        }.padding(40).background(Color(red: 0.95, green: 0.96, blue: 0.94))
-            .sheet(isPresented: $settings) { NativeSettingsView() }
-            .sheet(item: $renaming) { board in
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("重新命名黑板").font(.headline)
-                    TextField("名稱", text: $renameTitle).textFieldStyle(.roundedBorder)
-                    HStack { Spacer(); Button("取消") { renaming = nil }; Button("儲存") { engine.renameLibraryBoard(board.id, title: renameTitle); renaming = nil }.keyboardShortcut(.defaultAction) }
-                }.padding(24).frame(width: 360)
-            }
-            .sheet(isPresented: $showAdvancedSheet) {
-                AdvancedBoardSheet(engine: engine, isPresented: $showAdvancedSheet)
-            }
-            .alert("刪除所選黑板？", isPresented: $confirmDeleteBoards) {
-                Button("取消", role: .cancel) { }
-                Button("刪除", role: .destructive) {
-                    engine.deleteLibraryBoards(selectedBoardIDs)
-                    selectedBoardIDs.removeAll()
-                }
-            } message: {
-                Text("將刪除 \(selectedBoardIDs.count) 張黑板及其本機備份，此操作無法復原。")
-            }
-    }
-
-    private func create() {
-        switch canvasChoice {
-        case .infinite:
-            engine.createBoard(title: title, theme: theme, mode: .infinite)
-        case .notebook:
-            engine.createBoard(title: title, theme: theme, mode: .notebook, preset: .notebook)
-        case .notebookStaff:
-            engine.createBoard(title: title, theme: theme, mode: .notebook, preset: .notebook, gridStyle: .staff)
-        case .sixteenNine:
-            engine.createBoard(title: title, theme: theme, mode: .fixed, preset: .sixteen_nine)
-        case .fourThree:
-            engine.createBoard(title: title, theme: theme, mode: .fixed, preset: .four_three)
-        case .oneOne:
-            engine.createBoard(title: title, theme: theme, mode: .fixed, preset: .one_one)
-        case .nineSixteen:
-            engine.createBoard(title: title, theme: theme, mode: .fixed, preset: .nine_sixteen)
-        case .a4Portrait:
-            engine.createBoard(title: title, theme: theme, mode: .fixed, preset: .a4_portrait)
-        case .a4Landscape:
-            engine.createBoard(title: title, theme: theme, mode: .fixed, preset: .a4_landscape)
-        case .b5:
-            engine.createBoard(title: title, theme: theme, mode: .fixed, preset: .b5)
+    private var boards: [BoardMetadata] {
+        let source = section == "trash" ? engine.trashedLibraryBoards : engine.libraryBoards
+        return source.filter {
+            (section != "favorites" || shelf.favorites.contains($0.id)) &&
+            (format == "all" || $0.iconCanvasMode.rawValue == format) &&
+            (search.isEmpty || $0.title.localizedCaseInsensitiveContains(search))
+        }.sorted {
+            if sort == "title" { return $0.title.localizedStandardCompare($1.title) == .orderedAscending }
+            if sort == "created" { return $0.createdAt > $1.createdAt }
+            return $0.updatedAt > $1.updatedAt
         }
-        title = ""
     }
-}
-
-private enum HomeCanvasChoice: String, CaseIterable, Identifiable {
-    case infinite = "♾️ 無邊界黑板"
-    case notebook = "📓 多頁筆記本 (A4)"
-    case notebookStaff = "🎼 五線譜筆記本 (A4)"
-    case b5 = "📄 B5 常用規格"
-    case sixteenNine = "📄 16:9 簡報"
-    case fourThree = "📄 4:3 課堂"
-    case oneOne = "📄 1:1 正方形"
-    case nineSixteen = "📄 9:16 直式"
-    case a4Portrait = "📄 A4 直式"
-    case a4Landscape = "📄 A4 橫式"
-
-    var id: String { rawValue }
+    private var heading: String { section == "favorites" ? "收藏" : section == "trash" ? "垃圾桶" : "我的作品" }
+    var body: some View {
+        HStack(spacing: 0) {
+            sidebarView
+            Divider()
+            VStack(alignment: .leading, spacing: 18) {
+                HStack(spacing: 12) {
+                    HeiBanLogo().frame(width: 112, height: 60)
+                    Spacer()
+                    Button { selectionMode.toggle(); selectedBoardIDs.removeAll() } label: { Image(systemName: selectionMode ? "checkmark.circle.fill" : "checkmark.circle") }
+                        .disabled(section == "trash").help("選取多份作品").accessibilityLabel(selectionMode ? "結束多選" : "選取多份作品")
+                    Button { engine.openFromFilePrompt() } label: { Label("匯入", systemImage: "square.and.arrow.down") }
+                    Button { showAdvancedSheet = true } label: { Image(systemName: "plus") }
+                        .buttonStyle(.borderedProminent).tint(sage).keyboardShortcut("n", modifiers: .command).help("新增筆記本、無邊界筆記或有邊界黑板")
+                    TextField("搜尋作品", text: $search).textFieldStyle(.roundedBorder).frame(width: 200)
+                }
+                HStack {
+                    Text(heading).font(.title2.weight(.semibold))
+                    Text("\(boards.count)").foregroundStyle(.secondary).monospacedDigit()
+                    Spacer()
+                    Picker("格式", selection: $format) {
+                        Text("全部格式").tag("all"); Text("筆記本").tag("notebook")
+                        Text("無邊界筆記").tag("infinite"); Text("有邊界黑板").tag("fixed")
+                    }.labelsHidden().frame(width: 132)
+                    Picker("排序", selection: $sort) {
+                        Text("最近修改").tag("updated"); Text("建立日期").tag("created"); Text("名稱").tag("title")
+                    }.labelsHidden().frame(width: 112)
+                    Menu {
+                        Button("緊湊") { cardWidth = 160 }; Button("適中") { cardWidth = 190 }; Button("大圖") { cardWidth = 250 }
+                    } label: {
+                        MenuDisclosureLabel("縮圖大小") { Image(systemName: "square.grid.2x2").font(.system(size: 16)) }
+                    }.menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize().help("縮圖大小")
+                }
+                if selectionMode {
+                    HStack {
+                        Text("已選 \(selectedBoardIDs.count) 份").font(.subheadline)
+                        Button("全選目前結果") { selectedBoardIDs = Set(boards.map(\.id)) }
+                        Button("移到垃圾桶") { confirmDeleteBoards = true }.disabled(selectedBoardIDs.isEmpty)
+                        Spacer()
+                        Button("完成") { selectionMode = false; selectedBoardIDs.removeAll() }
+                    }.padding(10).background(sage.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
+                }
+                if section == "trash" { Text("這裡的作品可還原，原本的筆跡、圖片與頁面都會保留。").font(.caption).foregroundStyle(.secondary) }
+                ScrollView {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: cardWidth), spacing: 20)], spacing: 24) {
+                        ForEach(boards) { board in card(board) }
+                    }.padding(.vertical, 4)
+                    if boards.isEmpty {
+                        ContentUnavailableView(heading == "垃圾桶" ? "垃圾桶是空的" : section == "favorites" && search.isEmpty ? "收藏常用的作品" : engine.libraryBoards.isEmpty ? "第一份作品，從這裡開始" : "沒有符合的作品", systemImage: section == "favorites" ? "star" : section == "trash" ? "trash" : "square.grid.2x2", description: Text(section == "favorites" ? "點作品上的星號，就能在這裡快速找到。" : "使用上方搜尋與格式篩選，或點＋建立作品。"))
+                            .frame(maxWidth: .infinity).padding(.top, 60)
+                    }
+                }
+                if let error = shelf.errorMessage { Text(error).font(.caption).foregroundStyle(.orange) }
+                if let status = engine.statusMessage { Text(status).font(.caption).foregroundStyle(sage) }
+            }.padding(24).background(Color(red: 0.98, green: 0.985, blue: 0.975))
+        }
+        .buttonStyle(.bordered)
+        .onAppear { shelf.reload(); engine.refreshLibrary() }
+        .onChange(of: section) { _, _ in selectionMode = false; selectedBoardIDs.removeAll() }
+        .onChange(of: search) { _, _ in retainVisibleSelection() }
+        .onChange(of: format) { _, _ in retainVisibleSelection() }
+        .sheet(isPresented: $settings) { NativeSettingsView() }
+        .sheet(item: $renaming) { board in
+            VStack(alignment: .leading, spacing: 16) {
+                Text("重新命名黑板").font(.headline)
+                TextField("名稱", text: $renameTitle).textFieldStyle(.roundedBorder)
+                HStack { Spacer(); Button("取消") { renaming = nil }; Button("儲存") { engine.renameLibraryBoard(board.id, title: renameTitle); renaming = nil }.keyboardShortcut(.defaultAction) }
+            }.padding(24).frame(width: 360)
+        }
+        .sheet(isPresented: $showAdvancedSheet) {
+            AdvancedBoardSheet(engine: engine, isPresented: $showAdvancedSheet, initialMode: .notebook, initialTheme: .whiteboard)
+        }
+        .alert("移到垃圾桶？", isPresented: $confirmDeleteBoards) {
+            Button("取消", role: .cancel) { }
+            Button("移到垃圾桶", role: .destructive) { engine.trashLibraryBoards(selectedBoardIDs); selectedBoardIDs.removeAll() }
+        } message: { Text("所選 \(selectedBoardIDs.count) 份作品會保留在垃圾桶，可從左側還原。") }
+    }
+    private var sidebarView: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Button { withAnimation(.easeInOut(duration: 0.18)) { sidebar.toggle() } } label: { Image(systemName: "sidebar.left") }.buttonStyle(.plain).help(sidebar ? "收合側欄" : "展開側欄")
+                if sidebar { Text("作品庫").font(.headline); Spacer() }
+            }.padding(.bottom, 20)
+            shelfButton("all", "所有作品", "square.grid.2x2", engine.libraryBoards.count)
+            shelfButton("favorites", "收藏", "star", engine.libraryBoards.filter { shelf.favorites.contains($0.id) }.count)
+            shelfButton("trash", "垃圾桶", "trash", engine.trashedLibraryBoards.count)
+            Spacer()
+            Button { settings = true } label: {
+                HStack { Image(systemName: "person.crop.circle"); if sidebar { Text("帳號與設定") } }
+            }.buttonStyle(.plain).help("帳號與設定")
+            Menu {
+                Button("使用手冊") { HeiBanUserGuide.shared.show() }
+                Button("我的螢幕就是我的畫布") { ScreenAnnotationController.shared.start() }
+                Divider()
+                Button("建立功能示範黑板") { engine.loadShowcaseBoard() }
+            } label: {
+                HStack { Image(systemName: "questionmark.circle"); if sidebar { Text("使用說明") } }
+            }.menuStyle(.borderlessButton).menuIndicator(.hidden).help("使用說明")
+        }.padding(16).padding(.top, 28).frame(width: sidebar ? 188 : 56).frame(maxHeight: .infinity)
+            .background(Color(red: 0.925, green: 0.94, blue: 0.915))
+    }
+    private func shelfButton(_ key: String, _ title: String, _ icon: String, _ count: Int) -> some View {
+        Button { section = key } label: {
+            HStack(spacing: 10) { Image(systemName: icon).frame(width: 20); if sidebar { Text(title); Spacer(); Text("\(count)").font(.caption).foregroundStyle(.secondary) } }
+                .foregroundStyle(section == key ? sage : .primary).padding(.vertical, 10).padding(.horizontal, sidebar ? 8 : 0)
+                .frame(maxWidth: .infinity, alignment: .leading).background(section == key ? sage.opacity(0.12) : .clear, in: RoundedRectangle(cornerRadius: 8))
+        }.buttonStyle(.plain).help(title)
+    }
+    private func retainVisibleSelection() { selectedBoardIDs.formIntersection(Set(boards.map(\.id))) }
+    private func toggleSelection(_ id: String) { if selectedBoardIDs.contains(id) { selectedBoardIDs.remove(id) } else { selectedBoardIDs.insert(id) } }
+    private func card(_ board: BoardMetadata) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Button {
+                if section == "trash" { engine.restoreLibraryBoard(board.id) }
+                else if selectionMode { toggleSelection(board.id) }
+                else { engine.openLibraryBoard(board.id) }
+            } label: {
+                BoardThumbnailView(board: board).id(board.id + board.updatedAt)
+                    .frame(height: cardWidth * 0.85).background(Color(hex: board.backgroundColor))
+                    .overlay(alignment: .topLeading) { BoardFormatBadge(board: board).scaleEffect(0.85, anchor: .topLeading).padding(7) }
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(selectedBoardIDs.contains(board.id) ? sage : Color.black.opacity(0.07), lineWidth: selectedBoardIDs.contains(board.id) ? 2 : 1))
+            }.buttonStyle(.plain)
+                .accessibilityLabel(section == "trash" ? "還原 \(board.title)" : selectionMode ? "\(selectedBoardIDs.contains(board.id) ? "取消選取" : "選取") \(board.title)" : "開啟 \(board.title)，\(board.canvasFormatLabel)")
+                    .overlay(alignment: .bottomTrailing) {
+                        if section != "trash" {
+                            Button { shelf.toggleFavorite(board.id) } label: { Image(systemName: shelf.favorites.contains(board.id) ? "star.fill" : "star").foregroundStyle(shelf.favorites.contains(board.id) ? sage : .secondary).padding(7).background(.regularMaterial, in: Circle()) }
+                                .buttonStyle(.plain).help(shelf.favorites.contains(board.id) ? "取消收藏" : "加入收藏")
+                                .accessibilityLabel("\(shelf.favorites.contains(board.id) ? "取消收藏" : "收藏") \(board.title)").padding(7)
+                        }
+                    }
+            HStack {
+                if selectionMode { Image(systemName: selectedBoardIDs.contains(board.id) ? "checkmark.circle.fill" : "circle").foregroundStyle(sage) }
+                Text(board.title).font(.system(size: 13, weight: .medium)).lineLimit(1)
+                Spacer(minLength: 0)
+                Menu {
+                    if section == "trash" { Button("還原") { engine.restoreLibraryBoard(board.id) } }
+                    else {
+                        Button(shelf.favorites.contains(board.id) ? "取消收藏" : "加入收藏") { shelf.toggleFavorite(board.id) }
+                        Button("重新命名") { renameTitle = board.title; renaming = board }
+                        Button("製作副本") { engine.duplicateLibraryBoard(board.id) }
+                        Divider()
+                        Button("移到垃圾桶…", role: .destructive) { selectedBoardIDs = [board.id]; confirmDeleteBoards = true }
+                    }
+                } label: {
+                    MenuDisclosureLabel("作品的更多動作") { Image(systemName: "ellipsis").font(.system(size: 16, weight: .semibold)) }
+                }.menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize().help("作品的更多動作")
+            }
+            Text(dateLabel(board.updatedAt)).font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
+        }
+    }
+    private func dateLabel(_ value: String) -> String {
+        let date = ISO8601DateFormatter().date(from: value)
+        return date?.formatted(date: .abbreviated, time: .shortened) ?? "本機儲存"
+    }
 }
 
 struct AdvancedBoardSheet: View {
@@ -200,6 +203,16 @@ struct AdvancedBoardSheet: View {
     @ViewState<GridStyle> private var gridStyle: GridStyle = .dots
     @ViewState<String> private var bgColor: String = "#172e25"
     @ViewState<String> private var gridColor: String = ""
+
+    init(engine: BoardEngine, isPresented: Binding<Bool>, initialMode: CanvasMode = .notebook,
+         initialTitle: String = "", initialTheme: BoardTheme = .whiteboard) {
+        self.engine = engine
+        self._isPresented = isPresented
+        self._mode = ViewState(initialValue: initialMode)
+        self._title = ViewState(initialValue: initialTitle)
+        self._bgColor = ViewState(initialValue: initialTheme.defaultBackgroundColor)
+        self._gridStyle = ViewState(initialValue: initialMode == .notebook ? .lines : .dots)
+    }
 
     private let sage = Color(red: 0.24, green: 0.43, blue: 0.35)
 
@@ -232,7 +245,7 @@ struct AdvancedBoardSheet: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("自訂筆記本與畫布規格")
+                Text("新增筆記或黑板")
                     .font(.headline)
                 Spacer()
                 Button("關閉") { isPresented = false }
@@ -246,9 +259,9 @@ struct AdvancedBoardSheet: View {
                 Section("基本資訊") {
                     TextField("筆記名稱", text: $title)
                     Picker("畫布型態", selection: $mode) {
-                        Text("📓 多頁筆記本").tag(CanvasMode.notebook)
-                        Text("♾️ 無邊界黑板").tag(CanvasMode.infinite)
-                        Text("📄 單頁固定畫布").tag(CanvasMode.fixed)
+                        Text("筆記本").tag(CanvasMode.notebook)
+                        Text("無邊界筆記").tag(CanvasMode.infinite)
+                        Text("有邊界黑板").tag(CanvasMode.fixed)
                     }
                 }
 
@@ -347,15 +360,21 @@ private struct BoardThumbnailView: View {
     let board: BoardMetadata
     @ViewState<[BoardObject]> private var objects: [BoardObject] = []
 
+    private var emptyInk: Color {
+        let rgb = NSColor(Color(hex: board.backgroundColor)).usingColorSpace(.deviceRGB) ?? .black
+        let luminance = rgb.redComponent * 0.299 + rgb.greenComponent * 0.587 + rgb.blueComponent * 0.114
+        return (luminance > 0.5 ? Color.black : Color.white).opacity(0.5)
+    }
+
     var body: some View {
         Canvas { context, size in
             let firstPageId = board.pages?.first?.id
             let visible = objects.filter {
                 $0.isVisible != false &&
-                (board.canvasMode != .notebook || $0.pageId == nil || $0.pageId == firstPageId || $0.pageId == board.activePageId)
+                (board.canvasMode != .notebook || $0.pageId == nil || $0.pageId == firstPageId )
             }
             guard !visible.isEmpty else {
-                context.draw(Text("空白黑板").font(.system(size: 13, weight: .medium)).foregroundColor(.white.opacity(0.45)), at: CGPoint(x: size.width / 2, y: size.height / 2))
+                context.draw(Text(board.iconCanvasMode == .notebook ? "空白筆記本" : "空白黑板").font(.system(size: 13, weight: .medium)).foregroundColor(emptyInk), at: CGPoint(x: size.width / 2, y: size.height / 2))
                 return
             }
             let minX = visible.map(\.x).min() ?? 0
@@ -371,21 +390,72 @@ private struct BoardThumbnailView: View {
                 let bounds = frame(object)
                 let stroke = Color(hex: object.strokeColor).opacity(object.opacity)
                 let fill = Color(hex: object.fillColor).opacity(object.opacity * object.fillOpacity)
+                var itemContext = context
+                if object.rotation != 0 {
+                    itemContext.translateBy(x: bounds.midX, y: bounds.midY)
+                    itemContext.rotate(by: Angle.degrees(object.rotation))
+                    itemContext.translateBy(x: -bounds.midX, y: -bounds.midY)
+                }
                 switch object.type {
                 case "rect", "sticky":
-                    if object.fillColor != "none" { context.fill(Path(roundedRect: bounds, cornerRadius: 3), with: .color(fill)) }
-                    context.stroke(Path(roundedRect: bounds, cornerRadius: 3), with: .color(stroke), lineWidth: max(0.7, object.strokeWidth * scale))
+                    if object.fillColor != "none" { itemContext.fill(Path(roundedRect: bounds, cornerRadius: 3), with: .color(fill)) }
+                    itemContext.stroke(Path(roundedRect: bounds, cornerRadius: 3), with: .color(stroke), lineWidth: max(0.7, object.strokeWidth * scale))
                     if object.type == "sticky", let text = object.text, !text.isEmpty {
-                        context.draw(Text(text).font(.system(size: max(5, (object.fontSize ?? 14) * scale))).foregroundColor(stroke), at: CGPoint(x: bounds.midX, y: bounds.midY))
+                        itemContext.draw(Text(text).font(.system(size: max(5, (object.fontSize ?? 14) * scale))).foregroundColor(stroke), at: CGPoint(x: bounds.midX, y: bounds.midY))
                     }
                 case "circle":
-                    if object.fillColor != "none" { context.fill(Path(ellipseIn: bounds), with: .color(fill)) }
-                    context.stroke(Path(ellipseIn: bounds), with: .color(stroke), lineWidth: max(0.7, object.strokeWidth * scale))
-                case "line", "arrow":
+                    if object.fillColor != "none" { itemContext.fill(Path(ellipseIn: bounds), with: .color(fill)) }
+                    itemContext.stroke(Path(ellipseIn: bounds), with: .color(stroke), lineWidth: max(0.7, object.strokeWidth * scale))
+                case "arc":
+                    let radius = (object.arcRadius ?? (object.width / 2.0)) * scale
+                    let center = CGPoint(x: bounds.midX, y: bounds.midY)
+                    let startDeg = object.arcStartAngle ?? 0.0
+                    let sweepDeg = object.arcSweepAngle ?? 360.0
+                    var path = Path()
+                    path.addArc(
+                        center: center,
+                        radius: radius,
+                        startAngle: Angle(degrees: startDeg),
+                        endAngle: Angle(degrees: startDeg + sweepDeg),
+                        clockwise: sweepDeg < 0
+                    )
+                    itemContext.stroke(path, with: .color(stroke), lineWidth: max(0.7, object.strokeWidth * scale))
+                case "triangle", "quadrilateral", "diamond", "star":
+                    let pts = object.parsedPoints
+                    if pts.count >= 3 {
+                        var path = Path()
+                        path.move(to: CGPoint(x: 10 + (pts[0].x - minX) * scale, y: 10 + (pts[0].y - minY) * scale))
+                        for pt in pts.dropFirst() {
+                            path.addLine(to: CGPoint(x: 10 + (pt.x - minX) * scale, y: 10 + (pt.y - minY) * scale))
+                        }
+                        path.closeSubpath()
+                        if object.fillColor != "none" { itemContext.fill(path, with: .color(fill)) }
+                        itemContext.stroke(path, with: .color(stroke), lineWidth: max(0.7, object.strokeWidth * scale))
+                    }
+                case "line", "arrow", "connector":
                     let start = CGPoint(x: bounds.minX, y: bounds.minY)
                     let end = CGPoint(x: 10 + ((object.x2 ?? object.x + object.width) - minX) * scale, y: 10 + ((object.y2 ?? object.y + object.height) - minY) * scale)
                     var path = Path(); path.move(to: start); path.addLine(to: end)
-                    context.stroke(path, with: .color(stroke), lineWidth: max(0.7, object.strokeWidth * scale))
+                    itemContext.stroke(path, with: .color(stroke), lineWidth: max(0.7, object.strokeWidth * scale))
+                case "rounded_rect":
+                    let cornerR = (object.cornerRadius ?? 16.0) * scale
+                    if object.fillColor != "none" { itemContext.fill(Path(roundedRect: bounds, cornerRadius: cornerR), with: .color(fill)) }
+                    itemContext.stroke(Path(roundedRect: bounds, cornerRadius: cornerR), with: .color(stroke), lineWidth: max(0.7, object.strokeWidth * scale))
+                case "tape":
+                    itemContext.fill(Path(roundedRect: bounds, cornerRadius: 3), with: .color(Color(hex: "#f59e0b").opacity(0.85)))
+                case "polygon":
+                    let sides = object.polygonSides ?? 5
+                    let center = Point(x: Double(bounds.midX), y: Double(bounds.midY))
+                    let radius = Double(min(bounds.width, bounds.height) / 2.0)
+                    let vertices = VectorMath.computePolygonVertices(center: center, radius: radius, sides: sides)
+                    var path = Path()
+                    for (idx, v) in vertices.enumerated() {
+                        let pt = CGPoint(x: v.x, y: v.y)
+                        if idx == 0 { path.move(to: pt) } else { path.addLine(to: pt) }
+                    }
+                    path.closeSubpath()
+                    if object.fillColor != "none" { itemContext.fill(path, with: .color(fill)) }
+                    itemContext.stroke(path, with: .color(stroke), lineWidth: max(0.7, object.strokeWidth * scale))
                 case "stroke", "pen", "highlighter", "paint", "curve":
                     let points = object.parsedPoints
                     guard points.count > 1 else { continue }
@@ -399,15 +469,18 @@ private struct BoardThumbnailView: View {
                     } else {
                         for point in points.dropFirst() { path.addLine(to: CGPoint(x: 10 + (point.x - minX) * scale, y: 10 + (point.y - minY) * scale)) }
                     }
-                    context.stroke(path, with: .color(stroke), style: StrokeStyle(lineWidth: max(0.8, object.strokeWidth * scale), lineCap: .round, lineJoin: .round))
+                    itemContext.stroke(path, with: .color(stroke), style: StrokeStyle(lineWidth: max(0.8, object.strokeWidth * scale), lineCap: .round, lineJoin: .round))
                 case "text":
                     if let text = object.text, !text.isEmpty {
-                        context.draw(Text(text).font(.system(size: max(5, (object.fontSize ?? 14) * scale))).foregroundColor(stroke), at: CGPoint(x: bounds.midX, y: bounds.midY))
+                        itemContext.draw(Text(text).font(.system(size: max(5, (object.fontSize ?? 14) * scale))).foregroundColor(stroke), at: CGPoint(x: bounds.midX, y: bounds.midY))
                     }
                 case "image":
-                    if let raw = object.imageUrl?.components(separatedBy: ",").last,
-                       let data = Data(base64Encoded: raw), let image = NSImage(data: data) {
-                        context.draw(Image(nsImage: image), in: bounds)
+                    if let dataURL = object.imageUrl ?? object.originalImageUrl,
+                       let image = CanvasImageCache.image(for: dataURL) {
+                        itemContext.draw(Image(nsImage: image), in: bounds)
+                    } else if let raw = object.imageUrl?.components(separatedBy: ",").last,
+                              let data = Data(base64Encoded: raw), let image = NSImage(data: data) {
+                        itemContext.draw(Image(nsImage: image), in: bounds)
                     }
                 default: break
                 }
@@ -421,7 +494,7 @@ private struct BoardThumbnailView: View {
                    let thumbDoc = try? JSONDecoder().decode(HeiBanDocument.self, from: thumbData) {
                     DispatchQueue.main.async { objects = thumbDoc.objects }
                 } else {
-                    let loaded = (try? library.load(id: board.id).objects) ?? []
+                    let loaded = (try? library.load(id: board.id).objects) ?? (try? HeiBanDocumentCodec.decode(from: Data(contentsOf: library.trashFileURL(id: board.id))).objects) ?? []
                     DispatchQueue.main.async { objects = loaded }
                 }
             }

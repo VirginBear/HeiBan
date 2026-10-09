@@ -1,0 +1,38 @@
+name: 問題回報
+description: 回報黑板的操作、繪圖、保存或安裝問題
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "請勿上傳私人作品、token、帳號或完整個人日誌。安全漏洞請使用 Security 的私人回報。"
+  - type: dropdown
+    id: platform
+    attributes:
+      label: 平台
+      options: [macOS ARM64, Windows ARM64, Windows x64, Web 原型]
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: 黑板版本與作業系統版本
+      placeholder: "例如 Mac 1.0.8 / macOS 14.7"
+    validations:
+      required: true
+  - type: dropdown
+    id: package
+    attributes:
+      label: 使用的版本
+      options: [Mac DMG 或 ZIP, Windows 安裝版, Windows 免安裝版, 自行建置]
+  - type: textarea
+    id: steps
+    attributes:
+      label: 重現步驟、預期與實際結果
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: 補充
+      description: "螢幕畫布問題請附背後程式名稱及是否全螢幕；截圖先遮住私人資料。"

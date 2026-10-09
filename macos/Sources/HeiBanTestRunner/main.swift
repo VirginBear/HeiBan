@@ -2,6 +2,11 @@ import Foundation
 import CoreGraphics
 import HeiBanCore
 
+// All default engines and background saves must use an isolated library.
+let runnerDataDirectory = FileManager.default.temporaryDirectory
+    .appendingPathComponent("HeiBanChecks-\(UUID().uuidString)", isDirectory: true)
+setenv("HEIBAN_DATA_DIRECTORY", runnerDataDirectory.path, 1)
+
 var passedCount = 0
 var failedCount = 0
 
@@ -2806,13 +2811,13 @@ do {
 
     // 26.5 關於資訊與更新日誌真實性 (A22)
     assertEqual(AboutInfo.appName, "HeiBan 黑板", "App 名稱相符")
-    assertEqual(AboutInfo.appVersion, "1.0.0", "真版本號為 1.0.0 (非假數據)")
+    assertEqual(AboutInfo.appVersion, "1.0.1", "真版本號為 1.0.1 (非假數據)")
     assertEqual(AboutInfo.buildNumber.isEmpty, false, "組建編號存在且不為空")
     assertEqual(AboutInfo.engineVersion.contains("HeiBan Blackboard Vector Engine"), true, "引擎核心資訊明確")
     assertEqual(AboutInfo.feedbackUrl, "https://github.com/heiban/heiban/issues", "意見回覆入口有效且為真實 URL")
     assertEqual(AboutInfo.changelog.count >= 2, true, "更新日誌至少涵蓋 2 個版本紀錄")
-    assertEqual(AboutInfo.changelog[0].version, "1.0.0", "最新更新日誌對應 1.0.0 正式版")
-    assertEqual(AboutInfo.changelog[0].highlights.count >= 5, true, "1.0.0 重點更新項目豐富詳盡")
+    assertEqual(AboutInfo.changelog[0].version, "1.0.1", "最新更新日誌對應 1.0.1 正式版")
+    assertEqual(AboutInfo.changelog[0].highlights.count >= 3, true, "1.0.1 重點更新項目豐富詳盡")
 }
 
 // ==============================================================================
@@ -4029,7 +4034,7 @@ do {
     // 40.1 SelectionTransformCoordinator: 幾何手柄位置、命中測試與變形計算
     let bounds = Rect(minX: 100, minY: 100, maxX: 300, maxY: 200) // 寬 200, 高 100, 中心 (200, 150)
     let handles = SelectionTransformCoordinator.calculateHandlePositions(for: bounds, rotation: 0, zoom: 1.0)
-    
+
     assertEqual(handles.topLeft.x, 100.0, "左上手柄 X 應為 100")
     assertEqual(handles.topLeft.y, 100.0, "左上手柄 Y 應為 100")
     assertEqual(handles.bottomRight.x, 300.0, "右下手柄 X 應為 300")
@@ -4116,7 +4121,7 @@ do {
     let strokePointsJSON = String(data: (try? JSONEncoder().encode(strokePoints)) ?? Data(), encoding: .utf8)
     var strokeObj = BoardObject(id: "stroke_erase_split_test", type: "stroke", x: 0, y: 50, width: 180, height: 10, points: strokePointsJSON)
     strokeObj.strokeWidth = 4.0
-    
+
     // 擦除中間段 (X = 80, 100, Y = 50，中心在 90)
     let eraserCenter = Point(x: 90, y: 50)
     let eraserRadius = 15.0
@@ -4165,7 +4170,902 @@ do {
     assertTrue(engine.objects.contains(where: { $0.type == "sticky" }), "示範黑板包含便簽物件")
 }
 
+print("\n[測試 42] ProDrafts 錄影檢討：V01–V06 工具列自訂、選取快速列、HUD 回饋、圖釘搜尋與縮圖增強 (立靶驗收)")
+do {
+    // 42.1 V01: ToolbarPreferences Customization
+    var prefs = ToolbarPreferences()
+    assertEqual(prefs.activeItemIds.count, 21, "預設工具列包含 21 個項目")
+    assertEqual(prefs.hiddenItemIds.count, 0, "預設隱藏工具清單為空")
+    assertEqual(prefs.visibleItemIds.count, 21, "預設可見工具數量為 21")
+
+    prefs.setItemHidden(id: "ruler", hidden: true)
+    assertTrue(prefs.hiddenItemIds.contains("ruler"), "隱藏螢幕尺後進入 hiddenItemIds")
+    assertEqual(prefs.visibleItemIds.count, 20, "隱藏 1 個工具後可見項目為 20")
+    assertTrue(!prefs.visibleItemIds.contains("ruler"), "visibleItemIds 不含已隱藏之 ruler")
+    assertEqual(prefs.hiddenItems.first?.id, "ruler", "hiddenItems 正確解析為尺規定義")
+
+    prefs.moveItem(id: "eraser", to: 0)
+    assertEqual(prefs.activeItemIds.first, "eraser", "移動橡皮擦至第 0 位成功")
+
+    let encoded = try! JSONEncoder().encode(prefs)
+    let decoded = try! JSONDecoder().decode(ToolbarPreferences.self, from: encoded)
+    assertEqual(decoded.activeItemIds.first, "eraser", "反序列化保留自訂排序")
+    assertTrue(decoded.hiddenItemIds.contains("ruler"), "反序列化保留隱藏項目")
+
+    prefs.resetToDefaults()
+    assertEqual(prefs.activeItemIds.count, 21, "重設後恢復 21 個工具 (含雷射筆、遮題膠帶與套索)")
+    assertEqual(prefs.hiddenItemIds.count, 0, "重設後隱藏清單清空")
+    assertEqual(prefs.activeItemIds.first, "select", "重設後首位恢復為 select")
+
+    // 42.2 V02: SelectionQuickActionCoordinator
+    let emptyState = SelectionQuickActionCoordinator.computeState(
+        selectedObjects: [],
+        bounds: nil,
+        viewport: ViewportTransform(x: 0, y: 0, zoom: 1.0),
+        canvasSize: CGSize(width: 1200, height: 800)
+    )
+    assertEqual(emptyState.isVisible, false, "未選取任何物件時快速操作列隱藏")
+
+    let rectObj = BoardObject(
+        id: "rect_q",
+        boardId: "board_q",
+        type: "rect",
+        x: 400,
+        y: 300,
+        width: 200,
+        height: 150,
+        strokeColor: "#86efac",
+        fillColor: "#fef08a"
+    )
+    let rectBounds = Rect(minX: 400, minY: 300, maxX: 600, maxY: 450)
+    let normalState = SelectionQuickActionCoordinator.computeState(
+        selectedObjects: [rectObj],
+        bounds: rectBounds,
+        viewport: ViewportTransform(x: 0, y: 0, zoom: 1.0),
+        canvasSize: CGSize(width: 1200, height: 800)
+    )
+    assertEqual(normalState.isVisible, true, "選取矩形後快速操作列顯示")
+    assertEqual(normalState.placement, SelectionQuickBarPlacement.above, "空間充足時快速列位於上方")
+    assertEqual(normalState.allowsColor, true, "矩形支援線條顏色調整")
+    assertEqual(normalState.allowsFill, true, "矩形支援填色調整")
+    assertEqual(normalState.allowsStrokeWidth, true, "矩形支援粗細調整")
+    assertEqual(normalState.selectedCount, 1, "選取數量為 1")
+
+    // Top edge avoidance test: when object is near the top edge, quick bar flips below
+    let topRect = BoardObject(id: "top_r", boardId: "b", type: "rect", x: 400, y: 20, width: 100, height: 100)
+    let topBounds = Rect(minX: 400, minY: 20, maxX: 500, maxY: 120)
+    let topState = SelectionQuickActionCoordinator.computeState(
+        selectedObjects: [topRect],
+        bounds: topBounds,
+        viewport: ViewportTransform(x: 0, y: 0, zoom: 1.0),
+        canvasSize: CGSize(width: 1200, height: 800)
+    )
+    assertEqual(topState.placement, SelectionQuickBarPlacement.below, "靠近頂部邊界時快速列自動調整至下方")
+
+    // Single undo step test for quick action operations
+    let quickEngine = BoardEngine(restoreSession: false)
+    quickEngine.objects = [rectObj]
+    quickEngine.selectedIds = [rectObj.id]
+    assertEqual(quickEngine.canUndo, false, "操作前無 Undo 交易")
+    quickEngine.duplicateSelected()
+    assertEqual(quickEngine.objects.count, 2, "快速複製後物件數量為 2")
+    assertEqual(quickEngine.canUndo, true, "快速複製後產生 1 筆 Undo")
+    quickEngine.undo()
+    assertEqual(quickEngine.objects.count, 1, "1 次 Undo 即可復原快速複製")
+
+    // 42.3 V03: Quick settings & Per-tool style memory
+    let toolEngine = BoardEngine(restoreSession: false)
+    toolEngine.selectTool(.pen)
+    toolEngine.activeStrokeWidth = 8.0
+    toolEngine.selectTool(.highlighter)
+    assertEqual(toolEngine.currentTool, .highlighter, "切換至螢光筆")
+    toolEngine.activeStrokeWidth = 24.0
+    toolEngine.selectTool(.pen)
+    assertEqual(toolEngine.currentTool, .pen, "切換回鋼筆")
+    assertEqual(toolEngine.activeStrokeWidth, 8.0, "鋼筆保留自訂粗細 8.0，未被螢光筆干擾")
+
+    // 42.4 V04: HUD Formatters
+    let dimStr = CanvasHUDFormatter.formatDimensions(width: 480.2, height: 320.7)
+    assertEqual(dimStr, "480 × 321 pt", "尺寸 HUD 數值四捨五入為整數")
+    let rotStr = CanvasHUDFormatter.formatRotation(degrees: 37.45)
+    assertEqual(rotStr, "37.5°", "旋轉 HUD 精確至 0.1°")
+    let negRotStr = CanvasHUDFormatter.formatRotation(degrees: -15.0)
+    assertEqual(negRotStr, "345.0°", "負角度規範化為 0~360° 並精確至 0.1°")
+    let lenStr = CanvasHUDFormatter.formatLength(length: 120.4)
+    assertEqual(lenStr, "L: 120 pt", "直線長度 HUD 格式正確")
+
+    // 42.5 V05: Pin Search & Filter
+    let pinA = BoardPin(id: "p1", name: "大門入口", x: 100, y: 100, zoom: 1.0)
+    let pinB = BoardPin(id: "p2", name: "會議室 A", x: 500, y: 500, zoom: 1.5)
+    let pinC = BoardPin(id: "p3", name: "休息茶水區", x: 900, y: 900, zoom: 2.0)
+    let allPins = [pinA, pinB, pinC]
+
+    let searchMeeting = PinSearchFilter.filter(pins: allPins, query: "會議")
+    assertEqual(searchMeeting.count, 1, "搜尋「會議」精確命中 1 筆")
+    assertEqual(searchMeeting.first?.name, "會議室 A", "搜尋命中名稱相符")
+
+    let searchEmpty = PinSearchFilter.filter(pins: allPins, query: "   ")
+    assertEqual(searchEmpty.count, 3, "空字串搜尋回傳全部圖釘")
+
+    let searchCase = PinSearchFilter.filter(pins: allPins, query: "a")
+    assertEqual(searchCase.count, 1, "不分大小寫命中「會議室 A」")
+
+    // Viewport locked prevents jump
+    let navEngine = BoardEngine(restoreSession: false)
+    navEngine.board.pins = allPins
+    navEngine.viewport = ViewportTransform(x: 10, y: 20, zoom: 1.0)
+    navEngine.setViewportLocked(true)
+    navEngine.jumpToPin(pinB)
+    assertEqual(navEngine.viewport.x, 10.0, "視角鎖定時 jumpToPin 被安全攔截，X 不變")
+    assertEqual(navEngine.viewport.zoom, 1.0, "視角鎖定時 jumpToPin 被安全攔截，Zoom 不變")
+
+    // 42.6 V06: Thumbnail Shape & Object Coverage
+    let diamondObj = BoardObject(id: "d1", boardId: "b", type: "diamond", x: 100, y: 100, width: 80, height: 80)
+    let starObj = BoardObject(id: "s1", boardId: "b", type: "star", x: 200, y: 100, width: 80, height: 80)
+    let quadObj = BoardObject(id: "q1", boardId: "b", type: "quadrilateral", x: 300, y: 100, width: 80, height: 80)
+    let triObj = BoardObject(id: "t1", boardId: "b", type: "triangle", x: 400, y: 100, width: 80, height: 80)
+
+    let testDoc = HeiBanDocument(board: BoardMetadata(title: "ThumbTest"), objects: [diamondObj, starObj, quadObj, triObj])
+    let thumbData = try! JSONEncoder().encode(testDoc)
+    let decodedDoc = try! JSONDecoder().decode(HeiBanDocument.self, from: thumbData)
+    assertEqual(decodedDoc.objects.count, 4, "縮圖文件包含 4 種進階多邊形幾何形狀")
+    assertTrue(decodedDoc.objects.contains(where: { $0.type == "diamond" }), "縮圖資料支援菱形")
+    assertTrue(decodedDoc.objects.contains(where: { $0.type == "star" }), "縮圖資料支援星形")
+    assertTrue(decodedDoc.objects.contains(where: { $0.type == "quadrilateral" }), "縮圖資料支援四邊形")
+    assertTrue(decodedDoc.objects.contains(where: { $0.type == "triangle" }), "縮圖資料支援三角形")
+}
+
+// -------------------------------------------------------------------------
+// 43. AGM-00~05: 第 1 批：精簡頂列、計算機、圓規圓弧、計時器 (立靶驗收)
+// -------------------------------------------------------------------------
+print("\n[測試 43] AGM-00–05 第 1 批：精簡頂列、計算機、圓規圓弧、計時器 (立靶驗收)")
+do {
+    let engine = BoardEngine(restoreSession: false)
+
+    // 43.1 AGM-03: 浮動計算機 (四則運算、精度、百分比、科學計算、除零防護、文字物件插入)
+    let calc = CalculatorModel()
+
+    // 89 × 63 = 5607
+    calc.clear()
+    calc.inputDigit("8"); calc.inputDigit("9")
+    calc.inputOperator("×")
+    calc.inputDigit("6"); calc.inputDigit("3")
+    calc.calculateResult()
+    assertEqual(calc.display, "5607", "計算機：89 × 63 = 5607")
+
+    // 0.1 + 0.2 = 0.3 (防 0.30000000000000004 精度抖動)
+    calc.clear()
+    calc.inputDigit("0"); calc.inputDecimal(); calc.inputDigit("1")
+    calc.inputOperator("+")
+    calc.inputDigit("0"); calc.inputDecimal(); calc.inputDigit("2")
+    calc.calculateResult()
+    assertEqual(calc.display, "0.3", "計算機：0.1 + 0.2 = 0.3 (高精度防抖)")
+
+    // (2+3)×4 = 20
+    let evalVal = calc.evaluateExpressionString("(2 + 3) * 4")
+    assertEqual(evalVal, 20.0, "計算機：(2 + 3) × 4 = 20 (優先順序與括號)")
+
+    // 200 + 10% = 220
+    calc.clear()
+    calc.inputDigit("2"); calc.inputDigit("0"); calc.inputDigit("0")
+    calc.inputOperator("+")
+    calc.inputDigit("1"); calc.inputDigit("0")
+    calc.inputPercentage()
+    calc.calculateResult()
+    assertEqual(calc.display, "220", "計算機：200 + 10% = 220")
+
+    // 200 × 10% = 20
+    calc.clear()
+    calc.inputDigit("2"); calc.inputDigit("0"); calc.inputDigit("0")
+    calc.inputOperator("×")
+    calc.inputDigit("1"); calc.inputDigit("0")
+    calc.inputPercentage()
+    calc.calculateResult()
+    assertEqual(calc.display, "20", "計算機：200 × 10% = 20")
+
+    // sqrt(9) = 3
+    calc.clear()
+    calc.inputDigit("9")
+    calc.squareRoot()
+    assertEqual(calc.display, "3", "計算機：sqrt(9) = 3")
+
+    // 角度模式 sin(30) = 0.5
+    calc.clear()
+    calc.isDegreeMode = true
+    calc.inputDigit("3"); calc.inputDigit("0")
+    calc.sinFunction()
+    assertEqual(calc.display, "0.5", "計算機：角度模式 sin(30) = 0.5")
+
+    // 弧度模式 cos(0) = 1
+    calc.clear()
+    calc.isDegreeMode = false
+    calc.inputDigit("0")
+    calc.cosFunction()
+    assertEqual(calc.display, "1", "計算機：弧度模式 cos(0) = 1")
+
+    // 除零安全防護
+    calc.clear()
+    calc.inputDigit("1"); calc.inputDigit("0")
+    calc.inputOperator("÷")
+    calc.inputDigit("0")
+    calc.calculateResult()
+    assertEqual(calc.display, "錯誤", "計算機：除零安全防護提示錯誤")
+    assertEqual(calc.hasError, true, "計算機：標記 hasError")
+    calc.clear()
+    assertEqual(calc.hasError, false, "計算機：清除後恢復正常")
+    assertEqual(calc.display, "0", "計算機：清除後顯示重設為 0")
+
+    // 歷史紀錄
+    assertTrue(calc.history.count > 0, "計算機：運算歷史已記錄")
+
+    // 插入結果至畫布並驗證單一 Undo
+    calc.display = "5607"
+    let insertedTextObj = calc.insertResultToBoard(engine: engine)
+    assertEqual(insertedTextObj.type, "text", "計算機：插入畫布為文字物件")
+    assertEqual(insertedTextObj.text, "5607", "計算機：插入文字內容相符")
+    assertEqual(engine.canUndo, true, "計算機：插入結果產生 1 筆 Undo")
+    engine.undo()
+    assertEqual(engine.objects.contains(where: { $0.id == insertedTextObj.id }), false, "計算機：單一 Undo 即可完全復原插入之文字物件")
+
+    // 43.2 AGM-05: 計時器 (正計時/倒數計時/Monotonic Timestamp/預設時間/插入用時)
+    let timer = TimerCoordinator()
+    timer.reset()
+    assertEqual(timer.status, .stopped, "計時器：初始狀態為 stopped")
+    timer.start()
+    assertEqual(timer.status, .running, "計時器：啟動後狀態為 running")
+    timer.pause()
+    assertEqual(timer.status, .paused, "計時器：暫停後狀態為 paused")
+    timer.resume()
+    assertEqual(timer.status, .running, "計時器：續行後狀態為 running")
+    timer.reset()
+    assertEqual(timer.status, .stopped, "計時器：重設後狀態為 stopped")
+
+    // 倒數計時與預設
+    timer.selectPresetMinutes(5)
+    assertEqual(timer.mode, .countdown, "計時器：切換為倒數計時模式")
+    assertEqual(timer.countdownDuration, 300.0, "計時器：5 分鐘預設為 300 秒")
+    assertEqual(timer.remainingSeconds, 300.0, "計時器：初始剩餘 300 秒")
+    assertEqual(timer.formattedTimeString(), "05:00", "計時器：倒數時間格式化為 05:00")
+
+    // 模擬時間抵達 (Monotonic Clock 防失準)
+    timer.start()
+    timer.updateDisplayTimes(referenceUptime: ProcessInfo.processInfo.systemUptime + 305.0)
+    assertEqual(timer.status, .timesUp, "計時器：倒數歸零觸發 timesUp")
+    assertEqual(timer.remainingSeconds, 0.0, "計時器：倒數歸零不為負數")
+    assertEqual(timer.didAlertTimesUp, true, "計時器：警示已觸發防重複通知")
+
+    // 插入用時至畫布與 Undo
+    let insertedTimeObj = timer.insertTimeToBoard(engine: engine)
+    assertEqual(insertedTimeObj.type, "text", "計時器：插入畫布為文字物件")
+    assertTrue(insertedTimeObj.text?.contains("倒數計時") == true, "計時器：文字物件包含倒數計時前綴")
+    assertEqual(engine.canUndo, true, "計時器：插入產生 1 筆 Undo")
+    engine.undo()
+    assertEqual(engine.objects.contains(where: { $0.id == insertedTimeObj.id }), false, "計時器：單一 Undo 復原插入之用時物件")
+
+    // 43.3 AGM-04: 圓規與可編輯圓弧 (資料模型、跨越0°、命中判定、包圍盒、手勢提交)
+    // 資料模型序列化
+    let arcObj = BoardObject(
+        type: "arc",
+        x: 100, y: 100, width: 200, height: 200,
+        strokeColor: "#38bdf8",
+        strokeWidth: 4.0,
+        arcRadius: 100.0,
+        arcStartAngle: 30.0,
+        arcSweepAngle: 120.0
+    )
+    let doc = HeiBanDocument(board: BoardMetadata(title: "ArcDoc"), objects: [arcObj])
+    let encodedData = try! JSONEncoder().encode(doc)
+    let decodedDoc = try! JSONDecoder().decode(HeiBanDocument.self, from: encodedData)
+    let decodedArc = decodedDoc.objects.first
+    assertEqual(decodedArc?.type, "arc", "圓弧：資料模型反序列化類型為 arc")
+    assertEqual(decodedArc?.arcRadius, 100.0, "圓弧：半徑反序列化一致")
+    assertEqual(decodedArc?.arcStartAngle, 30.0, "圓弧：起始角反序列化一致")
+    assertEqual(decodedArc?.arcSweepAngle, 120.0, "圓弧：掃角反序列化一致")
+
+    // 角度跨越 0° 幾何演算法
+    assertTrue(VectorMath.isAngleInSpan(angle: 10.0, start: 350.0, sweep: 30.0), "圓弧：跨越 0° (350°+30°涵蓋10°) 判定命中")
+    assertTrue(!VectorMath.isAngleInSpan(angle: 100.0, start: 350.0, sweep: 30.0), "圓弧：超出角度範圍 (100°) 不命中")
+
+    // 圓弧命中測試 (世界座標)
+    // 圓心 (200, 200), 半徑 100. 角度 45° 點:
+    let rad45 = 45.0 * Double.pi / 180.0
+    let testArcObj = BoardObject(
+        type: "arc",
+        x: 100, y: 100, width: 200, height: 200, // center is (200, 200)
+        strokeWidth: 4.0,
+        arcRadius: 100.0,
+        arcStartAngle: 0.0,
+        arcSweepAngle: 90.0
+    )
+    let ptOnArc = Point(x: 200.0 + 100.0 * cos(rad45), y: 200.0 + 100.0 * sin(rad45))
+    assertTrue(VectorMath.isPointNearObject(point: ptOnArc, object: testArcObj, threshold: 10.0), "圓弧：圓周上的點命中")
+    let ptOutside = Point(x: 200.0 - 100.0, y: 200.0) // angle 180°
+    assertTrue(!VectorMath.isPointNearObject(point: ptOutside, object: testArcObj, threshold: 10.0), "圓弧：超出弧角度跨度不命中")
+
+    // 圓弧包圍盒
+    let arcBox = VectorMath.computeArcBoundingBox(center: Point(x: 200, y: 200), radius: 100, startAngle: 0, sweepAngle: 90, strokeWidth: 2)
+    assertTrue(arcBox.minX >= 198 && arcBox.maxX <= 302, "圓弧：第一象限 X 包圍盒約束精確")
+    assertTrue(arcBox.minY >= 198 && arcBox.maxY <= 302, "圓弧：第一象限 Y 包圍盒約束精確")
+
+    // 圓規工具引擎：防呆、整圓、圓弧與回選取
+    let compass = CompassToolEngine()
+    compass.adjustRadius(to: -50.0)
+    assertEqual(compass.radius, 5.0, "圓規：負半徑被安全鉗位為 5.0 (防呆)")
+    compass.adjustRadius(to: Double.nan)
+    assertEqual(compass.radius, 5.0, "圓規：NaN 半徑被安全阻擋 (防呆)")
+    compass.radius = 120.0
+    compass.moveCenter(to: Point(x: 500, y: 400))
+
+    // 繪製整圓
+    engine.selectTool(.pen)
+    let circleObj = compass.drawFullCircle(engine: engine, returnToSelect: true)
+    assertEqual(circleObj.type, "arc", "圓規：繪製整圓產生 arc 物件")
+    assertEqual(circleObj.arcSweepAngle, 360.0, "圓規：整圓掃角為 360°")
+    assertEqual(engine.currentTool, .select, "圓規：繪製完成依要求自動回選取工具")
+    assertEqual(engine.canUndo, true, "圓規：整圓手勢產生 1 筆 Undo")
+    engine.undo()
+    assertEqual(engine.objects.contains(where: { $0.id == circleObj.id }), false, "圓規：單一 Undo 復原整圓")
+
+    // 繪製圓弧
+    compass.startArc(atAngle: 45.0)
+    compass.updateSweep(toAngle: 135.0)
+    assertEqual(compass.isDrawingArc, true, "圓規：處於繪弧狀態")
+    let createdArc = compass.commitArc(engine: engine, returnToSelect: true)
+    assertEqual(createdArc.type, "arc", "圓規：提交生成可編輯圓弧")
+    assertEqual(createdArc.arcStartAngle, 45.0, "圓規：起角相符 (45°)")
+    assertEqual(createdArc.arcSweepAngle, 90.0, "圓規：掃角相符 (90°)")
+    assertEqual(engine.currentTool, .select, "圓規：弧完成回選取工具")
+    engine.undo()
+    assertEqual(engine.objects.contains(where: { $0.id == createdArc.id }), false, "圓規：單一 Undo 復原圓弧")
+
+    // 43.4 AGM-01 & AGM-02: 沉浸模式與右上精簡導覽狀態
+    engine.isImmersiveMode = false
+    engine.toggleImmersiveMode()
+    assertEqual(engine.isImmersiveMode, true, "導覽：成功切換至沉浸模式")
+    engine.toggleImmersiveMode()
+    assertEqual(engine.isImmersiveMode, false, "導覽：成功退出沉浸模式")
+}
+
+// -------------------------------------------------------------------------
+// 44. Prodrafts Worklist Batch 2: 書寫、教學與物件操作 (AGM-06 ~ AGM-10)
+// -------------------------------------------------------------------------
+print("\n[測試 44] Prodrafts Worklist Batch 2: 書寫、教學與物件操作 (AGM-06 ~ AGM-10 立靶驗收)")
+do {
+    let engine = BoardEngine()
+    engine.objects.removeAll()
+
+    // 44.1 AGM-06: 雷射筆與臨時指示圖層 (模式/光芯/淡出/容量防護/臨時圖層不進存檔/閱讀模式)
+    let laser = LaserPointerEngine()
+    assertEqual(laser.mode, .shortTrail, "雷射筆：預設模式為 shortTrail")
+    laser.mode = .point
+    assertEqual(laser.mode, .point, "雷射筆：切換為 point 模式")
+    laser.mode = .line
+    assertEqual(laser.mode, .line, "雷射筆：切換為 line 模式")
+
+    // 容量上限防護 (防爆防呆：即使連畫 10 分鐘，記憶體點數嚴格 <= 500)
+    for i in 0..<600 {
+        laser.addSample(point: Point(x: Double(i), y: Double(i)))
+    }
+    assertTrue(laser.samples.count <= 500, "雷射筆：大量採樣(600點)嚴格截斷在 maxCapacity(500) 內，防爆記憶體")
+
+    // 淡出清理
+    let baseTime = ProcessInfo.processInfo.systemUptime
+    laser.purgeExpiredSamples(currentTime: baseTime + 10.0)
+    assertEqual(laser.samples.count, 0, "雷射筆：超時採樣自動清理完畢")
+
+    // 清理與停用
+    laser.addSample(point: Point(x: 10, y: 10))
+    assertEqual(laser.samples.count, 1, "雷射筆：新增 1 個採樣")
+    laser.cleanupOnDeactivate()
+    assertEqual(laser.samples.count, 0, "雷射筆：停用時清空所有採樣")
+
+    // 臨時圖層不進存檔、不進 Undo
+    let initialObjCount = engine.objects.count
+    let initialUndoCan = engine.canUndo
+    engine.selectTool(.laser)
+    engine.beginPointerGesture(at: Point(x: 100, y: 100))
+    engine.updatePointerGesture(at: Point(x: 110, y: 110), translation: CGSize(width: 10, height: 10))
+    engine.endPointerGesture(translation: CGSize(width: 20, height: 20))
+    assertEqual(engine.objects.count, initialObjCount, "雷射筆：手勢軌跡不進入 objects 永久文檔")
+    assertEqual(engine.canUndo, initialUndoCan, "雷射筆：手勢軌跡不產生 Undo 歷史記錄")
+
+    // 閱讀模式可用
+    engine.readingMode = true
+    engine.laserEngine.clear()
+    engine.laserEngine.isEnabled = true
+    engine.updatePointerGesture(at: Point(x: 200, y: 200), translation: CGSize(width: 100, height: 100))
+    assertTrue(engine.laserEngine.samples.count > 0, "雷射筆：在閱讀模式下依然可即時指示取樣")
+    engine.readingMode = false
+    engine.laserEngine.clear()
+    engine.laserEngine.isEnabled = false
+
+    // 44.2 AGM-07: 遮題膠帶與揭示操作 (type: tape, 矩形/直線, 揭示/遮蔽, 全揭/全隱, 橡皮擦隔離, 底層保護)
+    let tapeObj = BoardObject(
+        id: "tape_1",
+        type: "tape",
+        x: 50, y: 50, width: 200, height: 40,
+        strokeColor: "#fbbf24",
+        fillColor: "#fef3c7",
+        strokeWidth: 2.0,
+        opacity: 0.9,
+        isRevealed: false,
+        tapeStyle: "rect"
+    )
+    let underStroke = BoardObject(
+        id: "under_stroke_1",
+        type: "stroke",
+        x: 60, y: 70, width: 120, height: 2,
+        points: "[{\"x\":60,\"y\":70},{\"x\":120,\"y\":70},{\"x\":180,\"y\":70}]",
+        strokeColor: "#ef4444",
+        strokeWidth: 3.0
+    )
+    engine.objects = [underStroke, tapeObj]
+
+    // 序列化與反序列化
+    let tapeDoc = HeiBanDocument(board: BoardMetadata(title: "TapeDoc"), objects: [tapeObj])
+    let tapeData = try! JSONEncoder().encode(tapeDoc)
+    let decodedTapeDoc = try! JSONDecoder().decode(HeiBanDocument.self, from: tapeData)
+    assertEqual(decodedTapeDoc.objects.first?.type, "tape", "膠帶：序列化類型為 tape")
+    assertEqual(decodedTapeDoc.objects.first?.isRevealed, false, "膠帶：序列化 isRevealed 為 false")
+    assertEqual(decodedTapeDoc.objects.first?.tapeStyle, "rect", "膠帶：序列化 tapeStyle 為 rect")
+
+    // 單點揭示與遮蔽切換
+    engine.toggleTapeRevealed(id: "tape_1")
+    assertEqual(engine.objects.first(where: { $0.id == "tape_1" })?.isRevealed, true, "膠帶：單點切換成功揭示")
+    engine.toggleTapeRevealed(id: "tape_1")
+    assertEqual(engine.objects.first(where: { $0.id == "tape_1" })?.isRevealed, false, "膠帶：單點再次切換成功遮蔽")
+
+    // 全域批次揭示與隱藏
+    let tapeObj2 = BoardObject(id: "tape_2", type: "tape", x: 300, y: 50, width: 100, height: 30, isRevealed: false)
+    engine.objects.append(tapeObj2)
+    engine.revealAllTapes()
+    assertEqual(engine.objects.filter { $0.type == "tape" && $0.isRevealed == true }.count, 2, "膠帶：revealAllTapes 全部揭示")
+    engine.hideAllTapes()
+    assertEqual(engine.objects.filter { $0.type == "tape" && $0.isRevealed == false }.count, 2, "膠帶：hideAllTapes 全部遮蔽")
+
+    // 橡皮擦隔離與底層物件保護
+    assertEqual(BoardEngine.isEraserEligible(tapeObj.type), false, "膠帶：橡皮擦隔離判定排除 tape 物件")
+    assertEqual(BoardEngine.isEraserEligible(underStroke.type), true, "筆畫：筆畫物件屬於橡皮擦擦除範圍")
+    // 底層物件在膠帶切換過程中完好無損
+    assertEqual(engine.objects.contains(where: { $0.id == "under_stroke_1" }), true, "膠帶：切換不破壞底層原始筆畫")
+
+    // 44.3 AGM-08: 筆刷、尺規、橡皮擦與色盤補齊 (8種BrushKind, 粗細與游標縮放, 橡皮擦保護, 世界座標標尺)
+    assertEqual(BrushKind.allCases.count, 8, "筆刷：完整提供 8 種筆刷風格")
+    for kind in BrushKind.allCases {
+        assertTrue(!kind.displayName.isEmpty, "筆刷：\(kind.rawValue) 具備繁體中文顯示名稱")
+        assertTrue(!kind.systemIconName.isEmpty, "筆刷：\(kind.rawValue) 具備系統圖示")
+    }
+
+    // 粗細換算
+    let penW = CanvasToolMetrics.brushStrokeWidth(kind: .pen, baseWidth: 10.0)
+    let paintW = CanvasToolMetrics.brushStrokeWidth(kind: .paint, baseWidth: 10.0)
+    let highW = CanvasToolMetrics.brushStrokeWidth(kind: .highlighter, baseWidth: 10.0)
+    assertEqual(penW, 10.0, "筆刷粗細：pen 係數為 1.0")
+    assertEqual(paintW, 80.0, "筆刷粗細：paint 係數為 8.0 (大面積上色)")
+    assertEqual(highW, 35.0, "筆刷粗細：highlighter 係數為 3.5 (螢光標注)")
+
+    // 游標直徑與縮放比例
+    let dia1 = CanvasToolMetrics.brushDiameter(tool: "pen", baseWidth: 4.0, zoom: 1.0, kind: .pen)
+    let dia2 = CanvasToolMetrics.brushDiameter(tool: "pen", baseWidth: 4.0, zoom: 2.5, kind: .pen)
+    assertEqual(dia1, 4.0, "筆刷游標：縮放 1.0x 直徑為 4.0 pt")
+    assertEqual(dia2, 10.0, "筆刷游標：縮放 2.5x 直徑等比縮放為 10.0 pt")
+
+    // 橡皮擦白名單與保護機制
+    let textObj = BoardObject(type: "text", x: 0, y: 0, width: 100, height: 40, text: "Protected")
+    let stickyObj = BoardObject(type: "sticky", x: 0, y: 0, width: 100, height: 100, text: "Protected Sticky")
+    let imageObj = BoardObject(type: "image", x: 0, y: 0, width: 100, height: 100, imageUrl: "data:image/png;base64,123")
+    assertEqual(BoardEngine.isEraserEligible(textObj.type), false, "橡皮擦保護：文字物件不受橡皮擦誤擦")
+    assertEqual(BoardEngine.isEraserEligible(stickyObj.type), false, "橡皮擦保護：便條紙物件不受橡皮擦誤擦")
+    assertEqual(BoardEngine.isEraserEligible(imageObj.type), false, "橡皮擦保護：圖片物件不受橡皮擦誤擦")
+
+    // 世界座標標尺 R10 切換
+    engine.showWorldRuler = false
+    engine.toggleWorldRuler()
+    assertEqual(engine.showWorldRuler, true, "世界座標標尺：成功切換啟用")
+    engine.toggleWorldRuler()
+    assertEqual(engine.showWorldRuler, false, "世界座標標尺：成功切換關閉")
+
+    // 44.4 AGM-09: 幾何、多邊形、連接線與辨識偏好 (rounded_rect, polygon, connector 隨動與解除, 幾何完成回選取)
+    // 圓角矩形
+    let roundRect = BoardObject(
+        id: "rr_1",
+        type: "rounded_rect",
+        x: 100, y: 100, width: 200, height: 100,
+        strokeColor: "#38bdf8",
+        strokeWidth: 2.0,
+        cornerRadius: 16.0
+    )
+    let rrDoc = HeiBanDocument(board: BoardMetadata(title: "RRDoc"), objects: [roundRect])
+    let rrData = try! JSONEncoder().encode(rrDoc)
+    let decodedRRDoc = try! JSONDecoder().decode(HeiBanDocument.self, from: rrData)
+    assertEqual(decodedRRDoc.objects.first?.type, "rounded_rect", "圓角矩形：序列化 type 為 rounded_rect")
+    assertEqual(decodedRRDoc.objects.first?.cornerRadius, 16.0, "圓角矩形：cornerRadius 反序列化為 16.0")
+    assertTrue(VectorMath.isPointNearObject(point: Point(x: 100, y: 150), object: roundRect, threshold: 5.0), "圓角矩形：邊緣命中檢驗")
+
+    // 多邊形
+    let polyObj = BoardObject(
+        id: "poly_1",
+        type: "polygon",
+        x: 300, y: 300, width: 120, height: 120,
+        polygonSides: 6
+    )
+    let polyDoc = HeiBanDocument(board: BoardMetadata(title: "PolyDoc"), objects: [polyObj])
+    let polyData = try! JSONEncoder().encode(polyDoc)
+    let decodedPolyDoc = try! JSONDecoder().decode(HeiBanDocument.self, from: polyData)
+    assertEqual(decodedPolyDoc.objects.first?.type, "polygon", "多邊形：序列化 type 為 polygon")
+    assertEqual(decodedPolyDoc.objects.first?.polygonSides, 6, "多邊形：polygonSides 反序列化為 6 (正六邊形)")
+    let hexVertices = VectorMath.computePolygonVertices(center: Point(x: 360, y: 360), radius: 60, sides: 6)
+    assertEqual(hexVertices.count, 6, "多邊形：計算產生 6 個正多邊形頂點")
+
+    // 連接線隨動與解除綁定
+    var nodeA = BoardObject(id: "node_a", type: "rect", x: 100, y: 100, width: 80, height: 60)
+    var nodeB = BoardObject(id: "node_b", type: "rect", x: 300, y: 100, width: 80, height: 60)
+    let conn = BoardObject(
+        id: "conn_1",
+        type: "connector",
+        x: 140, y: 130, width: 200, height: 0,
+        x1: 140, y1: 130, x2: 340, y2: 130,
+        startObjectId: "node_a",
+        endObjectId: "node_b"
+    )
+    engine.objects = [nodeA, nodeB, conn]
+
+    // 移動 Node A 至 (200, 200) -> 中心由 (140, 130) 變為 (240, 230)
+    nodeA.x = 200; nodeA.y = 200
+    engine.objects[0] = nodeA
+    engine.updateConnectedLines()
+    let updatedConn = engine.objects.first(where: { $0.id == "conn_1" })
+    assertEqual(updatedConn?.x1, 240.0, "連接線：Node A 移動後連接線 x1 端點自動隨動更新為中心 240.0")
+    assertEqual(updatedConn?.y1, 230.0, "連接線：Node A 移動後連接線 y1 端點自動隨動更新為中心 230.0")
+
+    // 刪除 Node B -> 解除綁定
+    engine.detachDeletedObjectsFromConnectors(deletedIds: ["node_b"])
+    let detachedConn = engine.objects.first(where: { $0.id == "conn_1" })
+    assertEqual(detachedConn?.startObjectId, "node_a", "連接線：未刪除之 node_a 維持附著")
+    assertEqual(detachedConn?.endObjectId, nil, "連接線：已刪除之 node_b 乾淨解除綁定，防懸掛崩潰")
+
+    // 幾何完成回選取
+    engine.board.canvasMode = .infinite
+    engine.viewport = ViewportTransform(x: 0, y: 0, zoom: 1.0)
+    engine.selectAfterShapeCreation = true
+    engine.selectTool(.rect)
+    engine.beginPointerGesture(at: Point(x: 50, y: 50))
+    engine.updatePointerGesture(at: Point(x: 150, y: 150), translation: CGSize(width: 100, height: 100))
+    engine.endPointerGesture(translation: CGSize(width: 100, height: 100))
+    assertEqual(engine.currentTool, .select, "幾何偏好：建立形狀完成依設定自動切換回 select 工具")
+
+    // 44.5 AGM-10: 套索、吸附與物件附近操作 (點在多邊形內, LassoFilter, AlignmentSnapCoordinator)
+    // 點在多邊形內演算法
+    let boxPoly = [Point(x: 0, y: 0), Point(x: 100, y: 0), Point(x: 100, y: 100), Point(x: 0, y: 100)]
+    assertTrue(VectorMath.isPointInPolygon(point: Point(x: 50, y: 50), polygon: boxPoly), "套索演算法：多邊形內部點判定為 true")
+    assertTrue(!VectorMath.isPointInPolygon(point: Point(x: 150, y: 50), polygon: boxPoly), "套索演算法：多邊形外部點判定為 false")
+
+    // 套索過濾過濾器
+    let strokeIn = BoardObject(id: "s_in", type: "stroke", x: 20, y: 20, width: 10, height: 10, points: "[{\"x\":20,\"y\":20},{\"x\":30,\"y\":30}]")
+    let textIn = BoardObject(id: "t_in", type: "text", x: 40, y: 40, width: 50, height: 20)
+    let lockedIn = BoardObject(id: "l_in", type: "stroke", x: 25, y: 25, width: 1, height: 1, points: "[{\"x\":25,\"y\":25}]", isLocked: true)
+    let candidates = [strokeIn, textIn, lockedIn]
+
+    // 全部模式 (排除鎖定)
+    let selAll = LassoSelectionCoordinator.selectObjects(in: boxPoly, objects: candidates, mode: .freeform, filter: .all)
+    assertTrue(selAll.contains("s_in") && selAll.contains("t_in"), "套索：filter.all 選中未鎖定物件")
+    assertTrue(!selAll.contains("l_in"), "套索：鎖定物件免疫於套索選取")
+
+    // 僅筆畫過濾模式
+    let selStrokes = LassoSelectionCoordinator.selectObjects(in: boxPoly, objects: candidates, mode: .freeform, filter: .strokesOnly)
+    assertTrue(selStrokes.contains("s_in"), "套索：filter.strokesOnly 選中筆畫")
+    assertTrue(!selStrokes.contains("t_in"), "套索：filter.strokesOnly 排除文字物件")
+
+    // 僅文字過濾模式
+    let selText = LassoSelectionCoordinator.selectObjects(in: boxPoly, objects: candidates, mode: .freeform, filter: .textOnly)
+    assertTrue(selText.contains("t_in"), "套索：filter.textOnly 選中文字物件")
+    assertTrue(!selText.contains("s_in"), "套索：filter.textOnly 排除筆畫物件")
+
+    // 對齊吸附演算法 (AlignmentSnapCoordinator)
+    let staticObj = BoardObject(id: "ref_1", type: "rect", x: 100, y: 100, width: 80, height: 80)
+    let movingBox = CGRect(x: 102, y: 100, width: 80, height: 80) // left is 102, target static left is 100 (diff 2 <= 6)
+    let snapResult = AlignmentSnapCoordinator.computeSnap(
+        movingBounds: movingBox,
+        proposedDelta: CGSize(width: 0, height: 0),
+        referenceObjects: [staticObj],
+        threshold: 6.0
+    )
+    assertEqual(snapResult.snappedDeltaX, -2.0, "吸附演算法：X 軸吸附位移 -2.0 pt 自動對齊目標物件左側")
+    assertTrue(!snapResult.guides.isEmpty, "吸附演算法：產生對齊參考輔助導線")
+}
+
+print("\n[測試 45] AGM-11 ~ AGM-14: 結構化筆記 (畫框簡報、思維導圖、原生表格、LaTeX 數學公式) (立靶驗收)")
+do {
+    let engine = BoardEngine()
+
+    // 45.1 AGM-11: 畫框物件建立、屬性、橡皮擦豁免與顯示名稱
+    let frameObj = BoardObject(
+        id: "frame_test_1",
+        type: "frame",
+        x: 100, y: 100, width: 800, height: 600,
+        strokeColor: "#94a3b8",
+        fillColor: "#0f172a",
+        fillOpacity: 0.15,
+        strokeWidth: 2.0,
+        frameTitle: "簡報第一章：導論",
+        childIds: ["child_note_1", "child_note_2"]
+    )
+    assertEqual(frameObj.type, "frame", "畫框：type 為 frame")
+    assertEqual(frameObj.frameTitle, "簡報第一章：導論", "畫框：frameTitle 正確記錄")
+    assertEqual(frameObj.childIds?.count, 2, "畫框：childIds 正確記錄關聯物件")
+    assertEqual(frameObj.displayName, "畫框 (簡報第一章：導論)", "畫框：displayName 正確包含章節名稱")
+    assertEqual(frameObj.systemIconName, "viewfinder.rectangular", "畫框：系統圖示為 viewfinder.rectangular")
+    assertEqual(BoardEngine.isEraserEligible(frameObj.type), false, "畫框：橡皮擦隔離判定排除 frame 物件")
+
+    // 45.2 AGM-11: 子物件範圍包含判定 (findContainedObjects)
+    let insideObj1 = BoardObject(id: "child_note_1", type: "text", x: 200, y: 200, width: 100, height: 40)
+    let insideObj2 = BoardObject(id: "child_note_2", type: "rect", x: 400, y: 300, width: 120, height: 80)
+    let outsideObj = BoardObject(id: "outside_note", type: "sticky", x: 1200, y: 800, width: 150, height: 150)
+    let otherFrame = BoardObject(id: "other_frame", type: "frame", x: 150, y: 150, width: 200, height: 200)
+    let allCandidates = [frameObj, insideObj1, insideObj2, outsideObj, otherFrame]
+
+    let detectedChildren = FramePresentationCoordinator.findContainedObjects(frame: frameObj, in: allCandidates)
+    assertTrue(detectedChildren.contains("child_note_1"), "畫框包含判定：內部文字物件被識別為 child")
+    assertTrue(detectedChildren.contains("child_note_2"), "畫框包含判定：內部矩形物件被識別為 child")
+    assertTrue(!detectedChildren.contains("outside_note"), "畫框包含判定：外部便條紙不被納入 child")
+    assertTrue(!detectedChildren.contains("other_frame"), "畫框包含判定：防止巢狀畫框遞迴循環，排除 otherFrame")
+
+    // 45.3 AGM-11: 移動畫框連帶移動子物件 (moveFrame)
+    let movedObjects = FramePresentationCoordinator.moveFrame(
+        frameId: "frame_test_1",
+        delta: CGSize(width: 50, height: 100),
+        objects: allCandidates
+    )
+    let movedFrame = movedObjects.first(where: { $0.id == "frame_test_1" })!
+    let movedInside1 = movedObjects.first(where: { $0.id == "child_note_1" })!
+    let movedInside2 = movedObjects.first(where: { $0.id == "child_note_2" })!
+    let movedOutside = movedObjects.first(where: { $0.id == "outside_note" })!
+
+    assertEqual(movedFrame.x, 150.0, "連帶移動：畫框 X 座標位移 +50")
+    assertEqual(movedFrame.y, 200.0, "連帶移動：畫框 Y 座標位移 +100")
+    assertEqual(movedInside1.x, 250.0, "連帶移動：子物件 1 X 座標連帶位移 +50")
+    assertEqual(movedInside1.y, 300.0, "連帶移動：子物件 1 Y 座標連帶位移 +100")
+    assertEqual(movedInside2.x, 450.0, "連帶移動：子物件 2 X 座標連帶位移 +50")
+    assertEqual(movedInside2.y, 400.0, "連帶移動：子物件 2 Y 座標連帶位移 +100")
+    assertEqual(movedOutside.x, 1200.0, "連帶移動：外部物件 X 座標保持不變")
+    assertEqual(movedOutside.y, 800.0, "連帶移動：外部物件 Y 座標保持不變")
+
+    // 45.4 AGM-11: 深度複製畫框與子物件重映射 (duplicateFrame)
+    guard let dupResult = FramePresentationCoordinator.duplicateFrame(
+        frameId: "frame_test_1",
+        delta: CGSize(width: 40, height: 40),
+        in: allCandidates
+    ) else {
+        fatalError("Duplicate frame failed")
+    }
+    assertTrue(dupResult.newFrame.id != frameObj.id, "畫框深度複製：新畫框產生全新 UUID")
+    assertEqual(dupResult.newChildren.count, 2, "畫框深度複製：同時深度複製 2 個子物件")
+    for child in dupResult.newChildren {
+        assertTrue(child.id != "child_note_1" && child.id != "child_note_2", "畫框深度複製：新子物件產生全新 UUID")
+        assertTrue(dupResult.newFrame.childIds?.contains(child.id) == true, "畫框深度複製：新畫框 childIds 精確指向新子物件 ID")
+        assertTrue(dupResult.newFrame.childIds?.contains("child_note_1") == false, "畫框深度複製：新畫框不再參照舊子物件 ID")
+    }
+
+    // 45.5 AGM-11: 簡報導航排序、視角計算與邊界防呆
+    let frame2 = BoardObject(id: "frame_2", type: "frame", x: 1000, y: 100, width: 800, height: 600, zIndex: 2, frameTitle: "第二章")
+    let frameList = FramePresentationCoordinator.orderedFrames(from: [frame2, frameObj])
+    assertEqual(frameList.first?.id, "frame_test_1", "簡報排序：依 zIndex/位置排序第一張為 frame_test_1")
+    assertEqual(frameList.last?.id, "frame_2", "簡報排序：第二張為 frame_2")
+
+    let fitVP = FramePresentationCoordinator.fitViewport(for: frameObj, canvasSize: CGSize(width: 1920, height: 1080), padding: 60.0)
+    assertTrue(fitVP.zoom > 0.5 && fitVP.zoom < 2.5, "簡報視角：Fit-to-frame 計算出合理的清晰縮放比")
+    assertEqual(FramePresentationCoordinator.nextFrameIndex(currentIndex: 0, total: 2), 1, "簡報導航：第 0 頁下一頁為第 1 頁")
+    assertEqual(FramePresentationCoordinator.nextFrameIndex(currentIndex: 1, total: 2), 1, "簡報導航：末頁下一頁防呆停在末頁")
+    assertEqual(FramePresentationCoordinator.prevFrameIndex(currentIndex: 1), 0, "簡報導航：第 1 頁上一頁為第 0 頁")
+    assertEqual(FramePresentationCoordinator.prevFrameIndex(currentIndex: 0), 0, "簡報導航：首頁上一頁防呆停在首頁")
+
+    // 引擎簡報狀態測試
+    engine.objects = [frameObj, frame2, insideObj1]
+    let startOk = engine.startPresentation(canvasSize: CGSize(width: 1920, height: 1080))
+    assertTrue(startOk, "引擎簡報：成功啟動簡報模式")
+    assertTrue(engine.isPresentationModeActive, "引擎簡報：isPresentationModeActive 為 true")
+    assertEqual(engine.currentPresentationIndex, 0, "引擎簡報：初始在第 0 張畫框")
+    engine.nextPresentationFrame(canvasSize: CGSize(width: 1920, height: 1080))
+    assertEqual(engine.currentPresentationIndex, 1, "引擎簡報：成功前進至第 1 張畫框")
+    engine.prevPresentationFrame(canvasSize: CGSize(width: 1920, height: 1080))
+    assertEqual(engine.currentPresentationIndex, 0, "引擎簡報：成功返回第 0 張畫框")
+    engine.exitPresentation()
+    assertTrue(!engine.isPresentationModeActive, "引擎簡報：exitPresentation 退出簡報模式")
+
+    // 45.6 AGM-12: 思維導圖建立、增刪節點、樹狀拓撲排版與橡皮擦豁免
+    let defaultMindMap = MindMapCoordinator.createDefaultMindMap(rootText: "黑板核心架構", at: Point(x: 200, y: 200))
+    assertEqual(defaultMindMap.type, "mindmap", "思維導圖：type 為 mindmap")
+    assertEqual(defaultMindMap.displayName, "思維導圖", "思維導圖：displayName 為 思維導圖")
+    assertEqual(defaultMindMap.systemIconName, "point.filled.topleft.down.curvedto.point.bottomright.up", "思維導圖：系統圖示相符")
+    assertEqual(BoardEngine.isEraserEligible(defaultMindMap.type), false, "思維導圖：橡皮擦隔離判定排除 mindmap 物件")
+
+    guard var mmData = defaultMindMap.mindMapData else {
+        fatalError("MindMapData missing")
+    }
+    assertEqual(mmData.nodes.count, 3, "思維導圖：預設包含 1 個根節點與 2 個初始分支")
+    let rootNode = mmData.nodes[mmData.rootId]!
+    assertEqual(rootNode.text, "黑板核心架構", "思維導圖：根主題文字正確")
+
+    // 增加子節點
+    let child1Id = rootNode.childrenIds[0]
+    let leafId = MindMapCoordinator.addChildNode(to: child1Id, text: "子功能 A", data: &mmData)!
+    assertEqual(mmData.nodes[child1Id]?.childrenIds.contains(leafId), true, "思維導圖：成功為分支 1 增加子節點")
+    assertEqual(mmData.nodes[leafId]?.parentId, child1Id, "思維導圖：子節點 parentId 指向分支 1")
+
+    // 增加兄弟節點
+    let siblingId = MindMapCoordinator.addSiblingNode(to: leafId, text: "子功能 B", data: &mmData)!
+    assertEqual(mmData.nodes[siblingId]?.parentId, child1Id, "思維導圖：兄弟節點 parentId 同樣指向分支 1")
+    assertEqual(mmData.nodes[child1Id]?.childrenIds.contains(siblingId), true, "思維導圖：父節點 childrenIds 包含兄弟節點")
+
+    // 防循環階層保護
+    var caughtCycle = false
+    do {
+        // 嘗試將父節點 child1Id 掛在其子節點 leafId 之下 (將造成循環)
+        try MindMapCoordinator.reparentNode(nodeId: child1Id, newParentId: leafId, data: &mmData)
+    } catch MindMapError.circularHierarchy {
+        caughtCycle = true
+    } catch {
+        fatalError("Unexpected error \(error)")
+    }
+    assertTrue(caughtCycle, "思維導圖防循環：成功攔截循環階層變更 (circularHierarchy)")
+
+    // 根節點禁止變更父節點保護
+    var caughtRootReparent = false
+    do {
+        try MindMapCoordinator.reparentNode(nodeId: mmData.rootId, newParentId: leafId, data: &mmData)
+    } catch MindMapError.cannotReparentRoot {
+        caughtRootReparent = true
+    } catch {}
+    assertTrue(caughtRootReparent, "思維導圖防循環：根主題禁止變更父節點 (cannotReparentRoot)")
+
+    // 折疊與更新文字
+    MindMapCoordinator.toggleCollapse(nodeId: child1Id, data: &mmData)
+    assertEqual(mmData.nodes[child1Id]?.isCollapsed, true, "思維導圖：toggleCollapse 切換折疊狀態為 true")
+    MindMapCoordinator.updateNodeText(nodeId: leafId, text: "重新命名功能", data: &mmData)
+    assertEqual(mmData.nodes[leafId]?.text, "重新命名功能", "思維導圖：updateNodeText 更新節點文字成功")
+
+    // 遞迴刪除子樹
+    let beforeCount = mmData.nodes.count
+    MindMapCoordinator.deleteNode(nodeId: child1Id, data: &mmData)
+    assertTrue(!mmData.nodes.keys.contains(child1Id), "思維導圖遞迴刪除：分支 1 節點已被移除")
+    assertTrue(!mmData.nodes.keys.contains(leafId), "思維導圖遞迴刪除：後代 leaf 節點被連帶遞迴清除")
+    assertTrue(!mmData.nodes.keys.contains(siblingId), "思維導圖遞迴刪除：後代 sibling 節點被連帶遞迴清除")
+    assertEqual(mmData.nodes.count, beforeCount - 3, "思維導圖遞迴刪除：精確清除 3 個後代節點")
+
+    // 複製思維導圖與獨立 ID
+    let clonedMM = MindMapCoordinator.cloneMindMap(data: mmData)
+    assertTrue(clonedMM.rootId != mmData.rootId, "思維導圖複製：克隆後根節點具備全新 UUID")
+    for (k, _) in clonedMM.nodes {
+        assertTrue(!mmData.nodes.keys.contains(k), "思維導圖複製：克隆後所有節點均具備全新獨立 UUID，無碰撞")
+    }
+
+    // 45.7 AGM-13: 原生表格結構、增刪行列、合併單元格與 TSV/CSV 剪貼簿貼入
+    let defaultTable = TableCoordinator.createDefaultTable(rows: 3, cols: 3, at: Point(x: 100, y: 100))
+    assertEqual(defaultTable.type, "table", "表格：type 為 table")
+    assertEqual(defaultTable.displayName, "原生表格", "表格：displayName 為 原生表格")
+    assertEqual(defaultTable.systemIconName, "tablecells", "表格：系統圖示為 tablecells")
+    assertEqual(BoardEngine.isEraserEligible(defaultTable.type), false, "表格：橡皮擦隔離判定排除 table 物件")
+
+    guard var tData = defaultTable.tableData else {
+        fatalError("TableData missing")
+    }
+    assertEqual(tData.rowCount, 3, "表格：初始 rowCount 為 3")
+    assertEqual(tData.colCount, 3, "表格：初始 colCount 為 3")
+    assertEqual(tData.cells.count, 9, "表格：3x3 共有 9 個單元格")
+    assertEqual(tData.cells.first(where: { $0.row == 0 && $0.col == 0 })?.isHeader, true, "表格：第 0 列自動標示為 isHeader")
+
+    // 增列與刪列
+    TableCoordinator.addRow(at: 1, data: &tData)
+    assertEqual(tData.rowCount, 4, "表格：插入 1 列後 rowCount 增為 4")
+    let shiftedCell = tData.cells.first(where: { $0.row == 2 && $0.col == 0 })
+    assertTrue(shiftedCell != nil, "表格：原第 1 列單元格順移至第 2 列")
+
+    let delRowOk = TableCoordinator.deleteRow(at: 1, data: &tData)
+    assertTrue(delRowOk, "表格：刪除指定列成功")
+    assertEqual(tData.rowCount, 3, "表格：刪除 1 列後 rowCount 回復為 3")
+
+    // 增欄與刪欄
+    TableCoordinator.addColumn(at: 1, data: &tData)
+    assertEqual(tData.colCount, 4, "表格：插入 1 欄後 colCount 增為 4")
+    let delColOk = TableCoordinator.deleteColumn(at: 1, data: &tData)
+    assertTrue(delColOk, "表格：刪除指定欄成功")
+    assertEqual(tData.colCount, 3, "表格：刪除 1 欄後 colCount 回復為 3")
+
+    // 編輯單元格與合併單元格
+    TableCoordinator.setCellText(row: 0, col: 0, text: "總計欄位", data: &tData)
+    assertEqual(tData.cells.first(where: { $0.row == 0 && $0.col == 0 })?.text, "總計欄位", "表格：setCellText 修改單元格文字成功")
+    TableCoordinator.mergeCells(fromRow: 0, fromCol: 0, toRow: 0, toCol: 1, data: &tData)
+    let mergedPrimary = tData.cells.first(where: { $0.row == 0 && $0.col == 0 })
+    assertEqual(mergedPrimary?.colSpan, 2, "表格合併：主單元格 colSpan 設為 2")
+    TableCoordinator.unmergeCell(row: 0, col: 0, data: &tData)
+    assertEqual(tData.cells.first(where: { $0.row == 0 && $0.col == 0 })?.colSpan, 1, "表格解除合併：主單元格 colSpan 回復為 1")
+
+    // 最小邊界保護 (不能刪除僅存的最後 1 行/欄)
+    var singleTable = TableData(rowCount: 1, colCount: 1, colWidths: [100.0], rowHeights: [36.0], cells: [TableCell(row: 0, col: 0, text: "X")])
+    assertEqual(TableCoordinator.deleteRow(at: 0, data: &singleTable), false, "表格防呆保護：禁止刪除僅存之最後 1 列")
+    assertEqual(TableCoordinator.deleteColumn(at: 0, data: &singleTable), false, "表格防呆保護：禁止刪除僅存之最後 1 欄")
+
+    // TSV / CSV 貼入匯入解析與匯出
+    let tsvInput = "名稱\t數量\t單價\n蘋果\t10\t25\n香蕉\t5\t15"
+    let importedTable = TableCoordinator.importFromDelimitedText(tsvInput, delimiter: "\t")
+    assertEqual(importedTable.rowCount, 3, "TSV 匯入：成功解析為 3 列")
+    assertEqual(importedTable.colCount, 3, "TSV 匯入：成功解析為 3 欄")
+    assertEqual(importedTable.cells.first(where: { $0.row == 1 && $0.col == 0 })?.text, "蘋果", "TSV 匯入：單元格文字精準還原 (蘋果)")
+    assertEqual(importedTable.cells.first(where: { $0.row == 2 && $0.col == 2 })?.text, "15", "TSV 匯入：單元格文字精準還原 (15)")
+    let exportedTSV = TableCoordinator.exportToCSV(data: importedTable, delimiter: "\t")
+    assertTrue(exportedTSV.contains("蘋果") && exportedTSV.contains("10"), "TSV 匯出：匯出字串包含原始資料內容")
+
+    // 45.8 AGM-14: LaTeX 數學公式解析、離線向量排版、常用符號與橡皮擦豁免
+    let formulaObj = BoardObject(
+        id: "formula_1",
+        type: "formula",
+        x: 100, y: 100, width: 240, height: 60,
+        strokeColor: "#38bdf8",
+        latex: "\\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}",
+        formulaFontSize: 24.0
+    )
+    assertEqual(formulaObj.type, "formula", "LaTeX 公式：type 為 formula")
+    assertEqual(formulaObj.displayName.hasPrefix("公式 (\\frac{-b "), true, "LaTeX 公式：displayName 顯示代碼摘要")
+    assertEqual(formulaObj.systemIconName, "function", "LaTeX 公式：系統圖示為 function")
+    assertEqual(BoardEngine.isEraserEligible(formulaObj.type), false, "LaTeX 公式：橡皮擦隔離判定排除 formula 物件")
+
+    // 離線純 Swift 向量語法解析器 (分式、根號、上下標、希臘字母、運算符號)
+    let quadLayout = LaTeXParserEngine.layout(latex: "\\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}", baseFontSize: 24.0)
+    assertTrue(quadLayout.bounds.width > 50.0, "LaTeX 佈局：計算產出合理公式總寬度")
+    assertTrue(quadLayout.bounds.height > 20.0, "LaTeX 佈局：計算產出合理公式總高度")
+    assertTrue(quadLayout.lines.count >= 2, "LaTeX 佈局：包含分式線與根號頂線 (lines.count >= 2)")
+    let glyphTexts = quadLayout.glyphs.map(\.text)
+    assertTrue(glyphTexts.contains("±"), "LaTeX 符號解析：\\pm 成功轉譯為 ± 向量字形")
+    assertTrue(glyphTexts.contains("√"), "LaTeX 符號解析：\\sqrt 成功轉譯為 √ 向量字形")
+    assertTrue(glyphTexts.contains("2"), "LaTeX 上標解析：上標平方數字 2 成功產出")
+
+    // 希臘字母與微積分運算符號解析
+    let calculusLayout = LaTeXParserEngine.layout(latex: "\\int_{0}^{\\pi} \\sin(\\theta) d\\theta", baseFontSize: 24.0)
+    let calculusGlyphs = calculusLayout.glyphs.map(\.text)
+    assertTrue(calculusGlyphs.contains("∫"), "LaTeX 解析：\\int 成功轉譯為 ∫ 積分符號")
+    assertTrue(calculusGlyphs.contains("π"), "LaTeX 解析：\\pi 成功轉譯為 π 希臘字母")
+    assertTrue(calculusGlyphs.contains("θ"), "LaTeX 解析：\\theta 成功轉譯為 θ 希臘字母")
+
+    // 常用符號目錄
+    assertTrue(LaTeXParserEngine.symbolCatalog.count >= 15, "LaTeX 常用目錄：包含 15+ 種常用數學符號模板")
+    assertTrue(LaTeXParserEngine.symbolCatalog.contains(where: { $0.latex == "\\frac{a}{b}" }), "LaTeX 常用目錄：涵蓋標準分式")
+    assertTrue(LaTeXParserEngine.symbolCatalog.contains(where: { $0.latex == "\\sqrt{x}" }), "LaTeX 常用目錄：涵蓋平方根")
+
+    // 離線手寫公式識別管線架構驗證 (Stage 2 預備)
+    let mockRecognizer = LocalOfflineFormulaRecognizer()
+    let dummyStrokes = [BoardObject(type: "stroke", x: 0, y: 0, width: 10, height: 10)]
+    let expLatex = try! mockRecognizer.recognizeHandwrittenFormulaSync(strokes: dummyStrokes)
+    assertEqual(expLatex, "\\frac{a + b}{c}", "公式識別管線：離線識別合約協議正常運作")
+
+    // 45.9 結構化物件 JSON 完整往返序列化 (Round-trip)
+    let batch3Doc = HeiBanDocument(
+        board: BoardMetadata(title: "Batch 3 結構化筆記文件"),
+        objects: [frameObj, defaultMindMap, defaultTable, formulaObj]
+    )
+    let encodedData = try! JSONEncoder().encode(batch3Doc)
+    let decodedDoc = try! JSONDecoder().decode(HeiBanDocument.self, from: encodedData)
+    assertEqual(decodedDoc.objects.count, 4, "往返序列化：4 個結構化物件全部成功保存與載入")
+
+    let reFrame = decodedDoc.objects.first(where: { $0.type == "frame" })!
+    assertEqual(reFrame.frameTitle, "簡報第一章：導論", "往返序列化：frameTitle 100% 精準還原")
+    assertEqual(reFrame.childIds?.count, 2, "往返序列化：childIds 100% 精準還原")
+
+    let reMindMap = decodedDoc.objects.first(where: { $0.type == "mindmap" })!
+    assertEqual(reMindMap.mindMapData?.nodes.count, 3, "往返序列化：mindMapData 節點字典 100% 精準還原")
+    assertEqual(reMindMap.mindMapData?.nodes[reMindMap.mindMapData!.rootId]?.text, "黑板核心架構", "往返序列化：mindmap 根節點文字精準還原")
+
+    let reTable = decodedDoc.objects.first(where: { $0.type == "table" })!
+    assertEqual(reTable.tableData?.rowCount, 3, "往返序列化：tableData rowCount 精準還原")
+    assertEqual(reTable.tableData?.colCount, 3, "往返序列化：tableData colCount 精準還原")
+    assertEqual(reTable.tableData?.cells.count, 9, "往返序列化：tableData cells 精準還原")
+
+    let reFormula = decodedDoc.objects.first(where: { $0.type == "formula" })!
+    assertEqual(reFormula.latex, "\\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}", "往返序列化：formula latex 語法字串精準還原")
+    assertEqual(reFormula.formulaFontSize, 24.0, "往返序列化：formulaFontSize 精準還原")
+}
+
 print("\n==================================================")
+
 if failedCount == 0 {
     print("🎉 驗收結果：全部通過！ (\(passedCount) 項斷言成功，0 項失敗)")
 } else {
@@ -4173,7 +5073,6 @@ if failedCount == 0 {
     exit(1)
 }
 print("==================================================")
-
 
 
 

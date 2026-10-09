@@ -31,7 +31,8 @@ public struct FirebaseAppConfig: Codable, Equatable {
 
     public static func loadFromFile(url: URL) -> FirebaseAppConfig? {
         guard let data = try? Data(contentsOf: url),
-              let config = try? JSONDecoder().decode(FirebaseAppConfig.self, from: data) else {
+            let config = try? JSONDecoder().decode(FirebaseAppConfig.self, from: data)
+        else {
             return nil
         }
         return config
@@ -96,7 +97,6 @@ public final class GoogleAuthAdapter {
     public private(set) var currentUser: AuthUser?
 
     private var activeStateToken: String?
-    private var activeCodeVerifier: String?
 
     public init(config: FirebaseAppConfig = .default, keychain: KeychainStore = MacOSKeychainStore()) {
         self.config = config
@@ -106,7 +106,8 @@ public final class GoogleAuthAdapter {
 
     public func rehydrateSession() -> AuthUser? {
         guard let data = keychain.load(key: keychainAccountKey),
-              let user = try? JSONDecoder().decode(AuthUser.self, from: data) else {
+            let user = try? JSONDecoder().decode(AuthUser.self, from: data)
+        else {
             self.state = .idle
             self.currentUser = nil
             return nil
@@ -130,7 +131,7 @@ public final class GoogleAuthAdapter {
             URLQueryItem(name: "scope", value: "openid email profile"),
             URLQueryItem(name: "state", value: stateToken),
             URLQueryItem(name: "access_type", value: "offline"),
-            URLQueryItem(name: "prompt", value: "select_account")
+            URLQueryItem(name: "prompt", value: "select_account"),
         ]
         return components.url!
     }
@@ -157,7 +158,8 @@ public final class GoogleAuthAdapter {
         let code = queryItems.first(where: { $0.name == "code" })?.value
 
         // CSRF 驗證
-        guard let stateParam = stateParam, let activeToken = activeStateToken, stateParam == activeToken else {
+        guard let stateParam = stateParam, let activeToken = activeStateToken, stateParam == activeToken
+        else {
             let err = "OAuth State 驗證失敗 (CSRF 防護)"
             self.state = .error(err)
             throw NSError(domain: "HeiBanAuth", code: 2, userInfo: [NSLocalizedDescriptionKey: err])

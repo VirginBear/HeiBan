@@ -33,6 +33,7 @@ import {
   CanvasMode,
   CanvasPreset,
   BoardPage,
+  GridStyle,
 } from './types';
 import { Canvas } from './components/Canvas';
 import { Toolbar } from './components/Toolbar';
@@ -89,7 +90,7 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
 
   // Board state managed by decoupled session hook
-  const { board, setBoard, syncStatus: boardSyncStatus } = useBoardSession(DEFAULT_BOARD);
+  const { board, setBoard, syncStatus: boardSyncStatus, persistence: persistenceManager } = useBoardSession(DEFAULT_BOARD);
   const [allBoards, setAllBoards] = useState<BoardMetadata[]>([DEFAULT_BOARD]);
   const [isBoardModalOpen, setIsBoardModalOpen] = useState(false);
 
@@ -1224,6 +1225,7 @@ export default function App() {
             currentTool={currentTool}
             activeColor={activeColor}
             activeStrokeWidth={activeStrokeWidth}
+            zoom={viewport.zoom}
             activeLineStyle={activeLineStyle}
             activeOpacity={activeOpacity}
             onChangeColor={handleChangeActiveColor}

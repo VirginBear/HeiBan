@@ -138,10 +138,15 @@ public struct LayerPanelView: View {
                         ForEach(reversedObjects) { object in
                             let isSelected = engine.selectedIds.contains(object.id)
                             HStack(spacing: 8) {
-                                Image(systemName: object.systemIconName)
-                                    .font(.system(size: 11))
-                                    .foregroundColor(isSelected ? Color.accentColor : .secondary)
-                                    .frame(width: 16)
+                                Group {
+                                    if object.type == "pin" {
+                                        HeiBanPinIcon().frame(width: 16, height: 16)
+                                    } else {
+                                        Image(systemName: object.systemIconName).font(.system(size: 11))
+                                    }
+                                }
+                                .foregroundStyle(isSelected ? Color.accentColor : .secondary)
+                                .frame(width: 16)
 
                                 if engine.editingLayerId == object.id {
                                     TextField("名稱", text: $engine.editingLayerName, onCommit: {

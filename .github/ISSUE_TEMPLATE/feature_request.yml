@@ -1,0 +1,18 @@
+name: 功能建議
+description: 提議改善黑板的工具或操作
+title: "[Feature] "
+labels: [enhancement]
+body:
+  - type: dropdown
+    id: platform
+    attributes:
+      label: 平台
+      options: [macOS, Windows, 全平台, Web]
+    validations:
+      required: true
+  - type: textarea
+    id: need
+    attributes:
+      label: 使用情境、目前困難與建議
+    validations:
+      required: true

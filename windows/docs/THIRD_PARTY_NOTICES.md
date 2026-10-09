@@ -1,0 +1,5 @@
+# Windows third-party assets and packages
+
+- Inno Setup Traditional Chinese translation, vendored in `HeiBan.Windows/Packaging/ChineseTraditional.isl` with its original author credits retained. Source: https://raw.githubusercontent.com/jrsoftware/issrc/6ef32198ef1f7b7b375cd4b6b90896c2a58eb4c2/Files/Languages/ChineseTraditional.isl. Used as installer message data. Inno Setup licensing and redistribution terms: https://jrsoftware.org/files/is/license.txt . The compiler used for this development preview is Inno Setup 6.7.3; commercial release needs its applicable compiler license reviewed.
+- Microsoft Windows App SDK 2.5.1, Microsoft.Graphics.Win2D 1.4.0 and Microsoft.Windows.SDK.BuildTools 10.0.26100.8249 via NuGet. Their package notices remain in the self-contained publish; review the shipping dependency/license inventory before a formal release.
+- HeiBan wordmark and app icon are the user's chosen generated HeiBan branding, copied into the Windows Assets directory. Pin geometry is drawn in the Windows renderer.

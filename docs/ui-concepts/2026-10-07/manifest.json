@@ -1,0 +1,41 @@
+{
+  "generatedWith": "built-in image_gen",
+  "concepts": [
+    {
+      "number": "01",
+      "name": "Codex 工作區",
+      "source": "/Users/bear/.codex/generated_images/01a0f815-d81b-7670-965c-e5f26b389d50/exec-56ba4b96-5eef-4a4c-8a18-bbf94fe1c522.png",
+      "file": "01-codex-workspace.png"
+    },
+    {
+      "number": "02",
+      "name": "專注畫布",
+      "source": "/Users/bear/.codex/generated_images/01a0f815-d81b-7670-965c-e5f26b389d50/exec-4509a86d-e864-46e3-8595-fbeaaa962cc7.png",
+      "file": "02-focus-canvas.png"
+    },
+    {
+      "number": "03",
+      "name": "筆記本",
+      "source": "/Users/bear/.codex/generated_images/01a0f815-d81b-7670-965c-e5f26b389d50/exec-5b011f8c-80dc-4df7-9189-eb0d862dca2d.png",
+      "file": "03-notebook.png"
+    },
+    {
+      "number": "04",
+      "name": "圖形工作台",
+      "source": "/Users/bear/.codex/generated_images/01a0f815-d81b-7670-965c-e5f26b389d50/exec-047a0b1b-581e-47b0-8edb-c200112ddcd2.png",
+      "file": "04-shape-workbench.png"
+    },
+    {
+      "number": "05",
+      "name": "黑板導航",
+      "source": "/Users/bear/.codex/generated_images/01a0f815-d81b-7670-965c-e5f26b389d50/exec-5d6ce137-f03a-41dc-b86d-4f5b9518269d.png",
+      "file": "05-blackboard-navigation.png"
+    },
+    {
+      "number": "06",
+      "name": "首頁作品庫",
+      "source": "/Users/bear/.codex/generated_images/01a0f815-d81b-7670-965c-e5f26b389d50/exec-201ed80f-b3e1-4820-bc77-47608c095269.png",
+      "file": "06-home-library.png"
+    }
+  ]
+}

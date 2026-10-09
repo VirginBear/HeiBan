@@ -1,0 +1,28 @@
+{
+  "version": "0.1.0-preview.4",
+  "date": "2026-10-08",
+  "artifacts": [
+    {
+      "file": "HeiBan-Setup-0.1.0-preview.4-arm64.exe",
+      "bytes": 63736004,
+      "sha256": "d79b80634935ba3b55989093e79097f3a048730833583a902041025bb52ecbe3"
+    },
+    {
+      "file": "HeiBan-Setup-0.1.0-preview.4-x64.exe",
+      "bytes": 66384205,
+      "sha256": "977f8602d1398098e7a5942ec8e096e2fee851d1c5103ee1768d1f55da45f4ea"
+    },
+    {
+      "file": "HeiBan-Windows-Portable-0.1.0-preview.4-win-arm64.zip",
+      "bytes": 92354197,
+      "sha256": "8410ef9efdc17ac85697d8a9e7e11da1241b5697e4f0e0e3def29d03da6b4186",
+      "peMachine": "0xaa64"
+    },
+    {
+      "file": "HeiBan-Windows-Portable-0.1.0-preview.4-win-x64.zip",
+      "bytes": 95059461,
+      "sha256": "0b49acde5e8af20a6e8f5f320f0f61e7e36f30936810916792e33b813c22513e",
+      "peMachine": "0x8664"
+    }
+  ]
+}

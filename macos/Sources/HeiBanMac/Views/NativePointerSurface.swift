@@ -5,18 +5,23 @@ import HeiBanCore
 /// Deliver native mouse samples directly, without SwiftUI drag recognition/layout per sample.
 struct NativePointerSurface: NSViewRepresentable {
     let engine: BoardEngine
-    func makeNSView(context: Context) -> PointerView { PointerView(engine: engine) }
-    func updateNSView(_ view: PointerView, context: Context) { view.engine = engine }
+    var onInteraction: (() -> Void)? = nil
+    func makeNSView(context: Context) -> PointerView { PointerView(engine: engine, onInteraction: onInteraction) }
+    func updateNSView(_ view: PointerView, context: Context) { view.engine = engine; view.onInteraction = onInteraction }
     static func dismantleNSView(_ view: PointerView, coordinator: ()) { view.engine.holdTimer?.invalidate() }
 
-    final class PointerView: NSView {
+    // 螢幕註記覆寫空白區域／首點命中，仍共用同一套筆畫、選取與鍵盤路由。
+    class PointerView: NSView {
         var engine: BoardEngine
+        var onInteraction: (() -> Void)?
         private var start: CGPoint?
         private var middleStart: CGPoint?
         private var magnification = 1.0
+        private var windowObserver: NSObjectProtocol?
+        private var hoverMonitor: Any?
         override var isFlipped: Bool { true }
         override var acceptsFirstResponder: Bool { true }
-        init(engine: BoardEngine) { self.engine = engine; super.init(frame: .zero) }
+        init(engine: BoardEngine, onInteraction: (() -> Void)?) { self.engine = engine; self.onInteraction = onInteraction; super.init(frame: .zero) }
         required init?(coder: NSCoder) { fatalError("init(coder:) unavailable") }
         private func point(_ event: NSEvent) -> CGPoint { convert(event.locationInWindow, from: nil) }
         private func translation(_ point: CGPoint) -> CGSize {
@@ -30,23 +35,35 @@ struct NativePointerSurface: NSViewRepresentable {
         override func updateTrackingAreas() {
             super.updateTrackingAreas()
             trackingAreas.forEach(removeTrackingArea)
-            addTrackingArea(NSTrackingArea(rect: bounds, options: [.mouseMoved, .mouseEnteredAndExited, .activeInKeyWindow, .inVisibleRect, .cursorUpdate], owner: self, userInfo: nil))
+            addTrackingArea(NSTrackingArea(rect: bounds, options: [.mouseMoved, .mouseEnteredAndExited, .activeAlways, .inVisibleRect], owner: self, userInfo: nil))
         }
-        override func mouseEntered(with event: NSEvent) { updateEraserCursor(event); updatePolygonCursor(event); updateTransformCursor(event); updateHoverToolCursor(event) }
-        override func mouseMoved(with event: NSEvent) { updateEraserCursor(event); updatePolygonCursor(event); updateTransformCursor(event); updateHoverToolCursor(event) }
+        override func mouseEntered(with event: NSEvent) { onInteraction?(); updateEraserCursor(event); updatePolygonCursor(event); updateTransformCursor(event); updateHoverToolCursor(event) }
+        override func mouseMoved(with event: NSEvent) {
+            if engine.laserEngine.isEnabled && !engine.isHoldingSpace {
+                engine.laserEngine.addSample(point: VectorMath.screenToWorld(Point(point(event)), viewport: engine.viewport))
+            }
+            updateEraserCursor(event); updatePolygonCursor(event); updateTransformCursor(event); updateHoverToolCursor(event)
+        }
         override func mouseExited(with event: NSEvent) {
+            engine.laserEngine.beginTrail()
             engine.updateEraserCursor(at: nil)
             engine.updateHoverCursor(at: nil, diameter: nil)
             engine.updateHoveredHandle(at: nil)
             CursorHelper.setCursor(for: nil)
         }
-        override func cursorUpdate(with event: NSEvent) { updateTransformCursor(event) }
+        override func cursorUpdate(with event: NSEvent) {
+            updateTransformCursor(event)
+            updateEraserCursor(event)
+            updateHoverToolCursor(event)
+        }
         override func mouseDown(with event: NSEvent) {
+            onInteraction?()
             window?.makeFirstResponder(self)
             let location = point(event)
             start = location
             updateEraserCursor(event)
             updatePolygonCursor(event)
+            updateHoverToolCursor(event)
             let isShift = event.modifierFlags.contains(.shift)
             engine.beginPointerGesture(at: Point(location), isShift: isShift, clickCount: event.clickCount)
             updateTransformCursor(event)
@@ -57,6 +74,7 @@ struct NativePointerSurface: NSViewRepresentable {
             let location = point(event)
             updateEraserCursor(event)
             updatePolygonCursor(event)
+            updateHoverToolCursor(event)
             let isShift = event.modifierFlags.contains(.shift)
             engine.updatePointerGesture(at: Point(location), translation: translation(location), isShift: isShift)
             updateTransformCursor(event)
@@ -77,6 +95,7 @@ struct NativePointerSurface: NSViewRepresentable {
             start = nil
         }
         override func rightMouseDown(with event: NSEvent) {
+            guard !engine.readingMode else { return }
             let location = point(event)
             let world = VectorMath.screenToWorld(Point(location), viewport: engine.viewport)
             if let hit = engine.currentPageObjects.reversed().first(where: {
@@ -137,6 +156,11 @@ struct NativePointerSurface: NSViewRepresentable {
             engine.updatePolygonDraftCursor(at: Point(point(event)))
         }
         private func updateTransformCursor(_ event: NSEvent) {
+            if engine.laserEngine.isEnabled && !engine.isHoldingSpace {
+                NSCursor.crosshair.set()
+                return
+            }
+            if engine.readingMode || engine.isHoldingSpace { NSCursor.openHand.set(); return }
             let loc = point(event)
             let pt = Point(loc)
             engine.updateHoveredHandle(at: pt)
@@ -147,21 +171,15 @@ struct NativePointerSurface: NSViewRepresentable {
             }
         }
         private func updateHoverToolCursor(_ event: NSEvent) {
-            let loc = point(event)
-            let pt = Point(loc)
-            let zoom = engine.viewport.zoom
-            if engine.currentTool == .eraser {
-                let diameter = engine.eraserSize * zoom
-                engine.updateHoverCursor(at: pt, diameter: diameter)
-            } else if [.pen, .highlighter, .paint].contains(engine.currentTool) {
-                let multiplier = engine.currentTool == .highlighter ? 3.5 : (engine.currentTool == .paint ? 8.0 : 1.0)
-                let minWidth = engine.currentTool == .highlighter ? 12.0 : (engine.currentTool == .paint ? 24.0 : 4.0)
-                let width = max(minWidth, engine.activeStrokeWidth * multiplier)
-                let diameter = max(4, width * zoom)
-                engine.updateHoverCursor(at: pt, diameter: diameter)
-            } else {
+            if engine.laserEngine.isEnabled {
+                // Laser positions belong to its display-rate buffer, not BoardEngine's
+                // published cursor state (which would redraw the entire canvas).
                 engine.updateHoverCursor(at: nil, diameter: nil)
+                return
             }
+            // Keep the pointer independently of tool selection; the overlay derives
+            // its size live when the tool, slider or viewport changes.
+            engine.updateHoverCursor(at: Point(point(event)), diameter: engine.toolCursorDiameter)
         }
 
         @objc private func deleteFromContext(_ sender: Any?) { engine.deleteSelected() }
@@ -173,6 +191,7 @@ struct NativePointerSurface: NSViewRepresentable {
         @objc private func cutFromContext(_ sender: Any?) { engine.cutSelected() }
         @objc private func pasteFromContext(_ sender: Any?) { engine.pasteClipboard(offset: CGPoint(x: 24, y: 24)) }
         private func scheduleHold() {
+            guard !engine.readingMode && !engine.isHoldingSpace else { return }
             guard [ToolType.pen, .highlighter, .paint].contains(engine.currentTool) else { return }
             engine.holdTimer?.invalidate()
             engine.holdTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { [weak self] _ in
@@ -202,6 +221,12 @@ struct NativePointerSurface: NSViewRepresentable {
             guard let action = action else {
                 super.keyDown(with: event)
                 return
+            }
+            if engine.readingMode {
+                switch action {
+                case .spaceDown, .spaceUp, .escape, .switchTool, .openBoard, .save, .saveAs, .newBoard: break
+                default: return
+                }
             }
 
             switch action {
@@ -254,6 +279,7 @@ struct NativePointerSurface: NSViewRepresentable {
             else { super.keyUp(with: event) }
         }
         override func magnify(with event: NSEvent) {
+            guard !engine.inlineTextEditing && !engine.showTextEditor else { return }
             if event.phase == .began { magnification = 1 }
             magnification *= max(0.01, 1 + event.magnification)
             engine.updateMagnificationGesture(scale: magnification, around: Point(point(event)))
@@ -264,14 +290,48 @@ struct NativePointerSurface: NSViewRepresentable {
         }
         override func viewDidMoveToWindow() {
             super.viewDidMoveToWindow()
+            if let windowObserver { NotificationCenter.default.removeObserver(windowObserver) }
+            windowObserver = nil
+            if let hoverMonitor { NSEvent.removeMonitor(hoverMonitor) }
+            hoverMonitor = nil
             if let window = self.window {
-                NotificationCenter.default.addObserver(forName: NSWindow.didResignKeyNotification, object: window, queue: .main) { [weak self] _ in
+                window.acceptsMouseMovedEvents = true
+                hoverMonitor = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved, .scrollWheel, .keyDown, .keyUp]) { [weak self] event in
+                    guard let self, event.window === self.window else { return event }
+                    if event.type == .keyDown || event.type == .keyUp {
+                        guard event.keyCode == 49, !self.engine.inlineTextEditing, !self.engine.showTextEditor,
+                              !(self.window?.firstResponder is NSTextView) else { return event }
+                        self.engine.isHoldingSpace = event.type == .keyDown
+                        if event.type == .keyDown { NSCursor.openHand.set() } else { NSCursor.arrow.set() }
+                        return nil
+                    }
+                    let location = self.point(event)
+                    if self.bounds.contains(location) {
+                        self.updateEraserCursor(event)
+                        self.updateHoverToolCursor(event)
+                    } else {
+                        self.engine.updateEraserCursor(at: nil)
+                        self.engine.updateHoverCursor(at: nil, diameter: nil)
+                    }
+                    return event
+                }
+                windowObserver = NotificationCenter.default.addObserver(forName: NSWindow.didResignKeyNotification, object: window, queue: .main) { [weak self] _ in
                     self?.engine.handleWindowBlur()
+                    self?.engine.updateEraserCursor(at: nil)
+                    self?.engine.updateHoverCursor(at: nil, diameter: nil)
                 }
             }
         }
 
+        deinit {
+            if let hoverMonitor { NSEvent.removeMonitor(hoverMonitor) }
+            if let windowObserver { NotificationCenter.default.removeObserver(windowObserver) }
+        }
+
         override func scrollWheel(with event: NSEvent) {
+            // Text entry owns scrolling until it is committed or cancelled,
+            // including events at its scroll limits or outside the editor panel.
+            guard !engine.inlineTextEditing && !engine.showTextEditor else { return }
             let location = point(event)
             let isShift = event.modifierFlags.contains(.shift)
             let isCmd = event.modifierFlags.contains(.command)
@@ -279,7 +339,12 @@ struct NativePointerSurface: NSViewRepresentable {
             let deltaX = Double(event.scrollingDeltaX)
             let deltaY = Double(event.scrollingDeltaY)
 
-            if event.hasPreciseScrollingDeltas && !isCmd && !isOpt {
+            // Physical mouse wheel zooms around its cursor. Trackpad two-finger
+            // scrolling pans; Cmd/Option scrolling explicitly zooms on either device.
+            let trackpadScroll = event.hasPreciseScrollingDeltas &&
+                (!event.phase.isEmpty || !event.momentumPhase.isEmpty)
+            let zooms = !trackpadScroll || isCmd || isOpt
+            if !zooms || isShift {
                 if isShift {
                     let dx = abs(deltaX) > 0 ? deltaX : deltaY
                     engine.panViewport(delta: CGSize(width: dx, height: 0))
@@ -287,7 +352,10 @@ struct NativePointerSurface: NSViewRepresentable {
                     engine.panViewport(delta: CGSize(width: deltaX, height: deltaY))
                 }
             } else {
-                engine.handleScrollWheel(at: Point(location), deltaX: deltaX, deltaY: deltaY, shift: isShift)
+                // Discrete mouse wheels report their forward direction independently
+                // of the system's natural scrolling preference: up should zoom in.
+                let zoomDelta = !trackpadScroll && event.isDirectionInvertedFromDevice ? -deltaY : deltaY
+                engine.handleScrollWheel(at: Point(location), deltaX: 0, deltaY: zoomDelta, shift: false)
             }
         }
 

@@ -11,6 +11,32 @@ public struct RulerSnapResult: Equatable {
 }
 
 public enum RulerToolEngine {
+    /// Both typed angles and pointer rotation use 0.1° increments.
+    public static func quantizedAngle(_ degrees: Double) -> Double? {
+        guard degrees.isFinite else { return nil }
+        var result = (degrees.truncatingRemainder(dividingBy: 360) * 10).rounded() / 10
+        if result > 180 { result -= 360 }
+        if result < -180 { result += 360 }
+        return result == 0 ? 0 : result
+    }
+
+    /// Rotate around the chosen pivot, including when the angle is entered with the keyboard.
+    @discardableResult
+    public static func setAngle(_ degrees: Double, ruler: inout RulerState) -> Bool {
+        guard let angle = quantizedAngle(degrees) else { return false }
+        if ruler.angle == angle { return true }
+        let oldAngle = ruler.angle * .pi / 180
+        let newAngle = angle * .pi / 180
+        let x = (ruler.pivotRatio - 0.5) * ruler.width
+        let y = ruler.pivotEdge == "top" ? -ruler.height / 2 : (ruler.pivotEdge == "bottom" ? ruler.height / 2 : 0)
+        let pivotX = ruler.screenCenterX + x * cos(oldAngle) - y * sin(oldAngle)
+        let pivotY = ruler.screenCenterY + x * sin(oldAngle) + y * cos(oldAngle)
+        ruler.angle = angle
+        ruler.screenCenterX = pivotX - x * cos(newAngle) + y * sin(newAngle)
+        ruler.screenCenterY = pivotY - x * sin(newAngle) - y * cos(newAngle)
+        return true
+    }
+
     public static func snapPointToRuler(
         point: Point,
         ruler: RulerState,

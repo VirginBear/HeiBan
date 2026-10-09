@@ -7,6 +7,17 @@
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
             </ResourceDictionary.MergedDictionaries>
+            <Color x:Key="SystemAccentColor">#39735A</Color>
+            <SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="#39735A"/>
+            <SolidColorBrush x:Key="AccentFillColorSecondaryBrush" Color="#4C866B"/>
+            <SolidColorBrush x:Key="AccentFillColorTertiaryBrush" Color="#639B7F"/>
+            <SolidColorBrush x:Key="AccentTextFillColorPrimaryBrush" Color="#285541"/>
+            <Style x:Key="ToolButtonStyle" TargetType="Button">
+                <Setter Property="Width" Value="36"/><Setter Property="Height" Value="36"/>
+                <Setter Property="Padding" Value="6"/><Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Foreground" Value="#26372F"/><Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="CornerRadius" Value="8"/>
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

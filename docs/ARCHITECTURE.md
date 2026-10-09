@@ -1,5 +1,7 @@
 # HeiBan architecture
 
+Current macOS implementation (2026-10-09): [module ownership and data flow](../macos/docs/development/ARCHITECTURE.zh-TW.md), [current delivery status](../macos/docs/development/CURRENT_STATUS.zh-TW.md), and [development history](DEVELOPMENT_INDEX.zh-TW.md). The target boundaries below remain planning context; consult the platform documents for what is actually wired into the app.
+
 Planning update (2026-10-02): see the Traditional Chinese [development goals](DEVELOPMENT_PLAN.zh-TW.md), [acceptance criteria](ACCEPTANCE_CRITERIA.zh-TW.md), [work backlog](WORK_BACKLOG.zh-TW.md), and [Excalidraw Desktop source analysis](EXCALIDRAW_DESKTOP_ANALYSIS.zh-TW.md). These distinguish target architecture from the current implementation and preserve the user's confirmed PDF scope.
 
 ## Product direction

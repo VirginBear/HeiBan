@@ -1,0 +1,29 @@
+{
+  "version": "0.1.0-preview.2",
+  "artifacts": [
+    {
+      "name": "HeiBan-Setup-0.1.0-preview.2-arm64.exe",
+      "bytes": 63703480,
+      "sha256": "3e673287b4f3048e11a654ea0a391fd2492053ff13b754952c3fc08578f1f446"
+    },
+    {
+      "name": "HeiBan-Setup-0.1.0-preview.2-x64.exe",
+      "bytes": 66352249,
+      "sha256": "44ab46aa79e4150b2be53686ca098d4a0e72337f477f64523870871f4e42535d"
+    },
+    {
+      "name": "HeiBan-Windows-Portable-0.1.0-preview.2-win-arm64.zip",
+      "bytes": 92325487,
+      "sha256": "ea13e78b20c0b5970f06dffe3f064dbe71d7cacd2049a87e9c86004cf953e94e",
+      "priBytes": 2192408,
+      "machine": "0xaa64"
+    },
+    {
+      "name": "HeiBan-Windows-Portable-0.1.0-preview.2-win-x64.zip",
+      "bytes": 95030766,
+      "sha256": "728e271d04c8c8872be6434fe270a33ce0de4d98839aeb94a89ddc4d9153b6af",
+      "priBytes": 2192408,
+      "machine": "0x8664"
+    }
+  ]
+}

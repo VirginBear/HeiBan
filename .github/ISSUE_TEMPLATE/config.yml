@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 安裝與使用指南
+    url: https://github.com/VirginBear/HeiBan/blob/main/docs/INSTALL.zh-TW.md
+    about: 先查看架構選擇、更新、作品位置與安全提示
