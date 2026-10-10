@@ -101,7 +101,9 @@ public partial class MainWindow : Window
     {
         try { if(file is null)await RefreshLibrary();else await OpenAsync(await _storage.ImportAsync(file));
             var validation=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--validation-output=",StringComparison.Ordinal));
-            if(validation is not null)await RunNativeValidationAsync(validation[20..]);
+            var performance=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--performance-output=",StringComparison.Ordinal));
+            if(performance is not null)await RunPerformanceBatchAsync(performance[21..]);
+            else if(validation is not null)await RunNativeValidationAsync(validation[20..]);
             else {if(Environment.GetCommandLineArgs().Contains("--screen-canvas"))await StartScreenAnnotationAsync();_updates?.Start();} }
         catch(Exception e){await Error(e);}
     }

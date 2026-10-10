@@ -1,5 +1,13 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-10 — 順序快取與局部像素複製
+
+Core ObjectOrderCache保存整份文件的穩定升／降Z視圖。文檔／list參考、數量與逐項object參考／Z改變時重建；每次取得視圖先O(n)無配置掃描，避免Generation尚未提交就漏掉圖層修改。相同Z保持原list次序（降序不是reverse升序）；枚舉時即時過濾頁面與可見性，locked語意延續。這是UI thread資源，不寫入JSON；呼叫端在每次繪製／命中重新取得，不能跨永久修改保留舊view當索引。每頁空間索引仍未實作。
+
+Renderer只有明確Ascending的OrderedBoardObjects可略過排序，其他enumerable保留OrderBy fallback；單物件RenderPreview共用原culling／transform helper。快照匯出仍可用原稳定sort，不引用UI session view跨async操作。Hit對零rotation保持唯讀樣點參考；空心rect四邊短路及polygon局部生成去除全函式捕捉closure。
+
+Overlay committed／target皆同device／BGRA／96DPI，以CopyPixelsFromBitmap整數pixel region恢復舊新damage，再畫暫態與局部readback／Present；不經DrawImage取樣copy。沒有新GPU backend／緩衝重用／排程或schema遷移。診斷入口--performance-output在storage初始化前要求全新資料根，結果標明合成／GPU同步範圍，正常App不寫逐點效能log。
+
 ## 2026-10-10 — 發行管理紀錄的讀取入口
 
 Windows README／CURRENT_STATUS 連到獨立 PRIVATE HeiBan-private。私人庫的產品 JSON／交接狀態只供具權限開發者讀取，不是 runtime 相依、不參與公開 SDK 封裝、不是 submodule。MSIX 所需公開 manifest 仍在 Windows 源碼；跨電腦先 clone／讀私人管理紀錄再核最新平台文件。本機工具／產物／作品不藉此庫同步。

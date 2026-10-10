@@ -33,7 +33,7 @@ public partial class MainWindow
                 var board=_session.Document.Board;
                 _renderer.RenderBackground(drawing,board,_viewport,width,height);
                 var clip=board.CanvasMode=="infinite"?new Rect(0,0,width,height):new Rect(_viewport.X,_viewport.Y,(board.CanvasWidth??595)*_viewport.Zoom,(board.CanvasHeight??842)*_viewport.Zoom);
-                using(var layer=drawing.CreateLayer(1,clip))_renderer.RenderObjects(drawing,_session.VisibleObjects,_viewport,width,height);
+                using(var layer=drawing.CreateLayer(1,clip))_renderer.RenderObjects(drawing,_session.DrawingObjects,_viewport,width,height);
             }
             _sceneKey=key;_sceneDirty=false;_sceneBuilds++;
         }

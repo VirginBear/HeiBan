@@ -56,7 +56,7 @@ public partial class MainWindow
         var clip=board.CanvasMode=="infinite"?new Rect(0,0,w,h):new Rect(_viewport.X,_viewport.Y,(board.CanvasWidth??595)*_viewport.Zoom,(board.CanvasHeight??842)*_viewport.Zoom);
         using(var layer=ds.CreateLayer(1,clip))
         {
-            if(_preview is not null)_renderer.RenderObjects(ds,[_preview],_viewport,w,h);
+            if(_preview is not null)_renderer.RenderPreview(ds,_preview,_viewport,w,h);
             if(_ink.IsDrawing)_renderer.RenderLiveStroke(ds,_ink.ActiveStrokePoints,_viewport,_strokeColor,EffectiveWidth,_opacity,CurrentStyle.Dash);
             if(_polygon.Count>0)
             {

@@ -1,5 +1,11 @@
 # Windows 開發日誌
 
+## 2026-10-10 — GO：效能第一批
+
+從c39a099開始，保留使用者既有未追蹤.vscode/；先建日誌和合成CPU／native新基準，未沿用舊ARM VM數字。依證據實作ObjectOrderCache、单preview直接繪製、damage尾端索引與命中零rotation／closure配置改善；native基準抓到既有copy量化差異，保留兩次失敗後改GPU bitmap區域複製，沒有放寬像素檢查。新增重現腳本／raw samples／source hashes，資料根全新隔離、正常模式無診斷寫入。
+
+當批754 Core、70嚴格pixel comparisons与其他曲線／laser／idle契約通過，x64／ARM64 publish退出0（後者不等於實跑）；CPU10000 order p95 2.11462→0.15780ms、hit3.35256→0.33602ms，但nativeviewport成本仍高且有較差跑次。原bundle SHA一致，版本未增加、沒有Store／Release／WACK／真筆測試。修改檔案／命令／失敗／未驗收與同步結果集中在[第一批日誌](PERFORMANCE_BATCH1_2026-10-10.zh-TW.md)，原始資料在[performance證據](performance/2026-10-10-batch1/README.zh-TW.md)；Windows平台文件同步更新，私人庫另記跨電腦交接，其他平台未修改。
+
 ## 2026-10-10 — Antigravity Windows 流暢度交接清單
 
 使用者要求工作清單供自行交給 Antigravity。開工兩庫乾淨、私人 visibility PRIVATE，讀開發索引／平台狀態架構問題後先建立 [本批紀錄](PERFORMANCE_WORKLIST_LOG_2026-10-10.zh-TW.md)。核對目前 Rendering／Input／renderer／overlay／Core session 與既有 Performance／歷史效能文件，明確記既有快取與背景保存已完成；整理九項待辦与首批01／02／03，辨別程式事實和待量測假設，補齊相容／資料／套件保全與驗收界線。修正查找的不存在檔案及縮圖符號後，更新工作入口与目前狀態，私人只記交接入口。沒有程式／版號／套件／圖片變更或測試執行；沒有自動傳訊 Antigravity／Store／Release／排程。同步證據另記私人日誌。

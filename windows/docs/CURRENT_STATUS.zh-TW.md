@@ -1,5 +1,13 @@
 # Windows 目前開發狀態
 
+## 2026-10-10 — 流暢度第一批實作與同機證據
+
+使用者對九項清單指示 GO，完成首批的軟體基準、熱路徑配置改善及穩定 Z 順序快取。命中保留 locked／同 Z 次序，交易內直接 Z／list 修改、切頁、Cancel／Undo／Redo 均涵蓋；單物件 preview 不排序，筆跡 damage 索引掃描尾端四點不丟輸入。另修現有 overlay bitmap copy 色階差異，所有像素規則維持零容差。
+
+本次754 Core checks、70個嚴格像素比較及其他曲線／雷射／idle契約通過；x64與ARM64 Release publish退出0，ARM64僅編譯未實跑。10000物件CPU順序p95 2.11462→0.15780ms、命中3.35256→0.33602ms；配置量明顯下降。原生大量場景重建／平移／縮放p95未一致改善，不能宣稱整體FPS提升。PERF-01／02仍缺busy timer、保存期间操作與實體輸入／DPI驗收；04／05是下一批優先候選，06只做現有copy相容修復，07／08與09硬體矩陣仍待執行。
+
+[實作日誌](PERFORMANCE_BATCH1_2026-10-10.zh-TW.md)、[原始樣本／重現命令／限制](performance/2026-10-10-batch1/README.zh-TW.md)、[更新工作清單](ANTIGRAVITY_PERFORMANCE_WORKLIST_2026-10-10.zh-TW.md)。建置與資料全部在新隔離.build目錄；Store 1.0.12.0原bundle SHA前後一致，未更版／重封Store包／發GitHub Release／操作Partner Center。現有.vscode/保留且不提交；Mac／Web與私人產品素材未修改。
+
 ## 2026-10-10 — Antigravity 流暢度工作清單已編製
 
 使用者要求列出可交接的修改工作。已依當前來源整理 [九項工作清單](ANTIGRAVITY_PERFORMANCE_WORKLIST_2026-10-10.zh-TW.md)，含現況、優先順序、依賴、定位、修改策略及驗收條件；第一批為 PERF-01 基準、02 熱路徑與排程、03 排序快取。空間索引／分區快取／GPU 合成／獨立輸入／保存記憶體皆依量測與相容驗收展開，不預先承諾收益。尚未執行本輪實作／效能測試／建置／封裝或 Store 操作；送審 1.0.12.0 保留。[編製紀錄](PERFORMANCE_WORKLIST_LOG_2026-10-10.zh-TW.md)。

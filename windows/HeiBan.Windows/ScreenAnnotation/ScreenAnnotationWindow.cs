@@ -199,8 +199,11 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     {
         // The newest sample changes only the last two Catmull-Rom segments. Include
         // their control hull so fast movement and curve overshoot cannot leave stale pixels.
-        var tail=entire?_points.ToArray():_points.TakeLast(4).ToArray();if(tail.Length==0)return;
-        var left=tail.Min(p=>p.X);var top=tail.Min(p=>p.Y);var right=tail.Max(p=>p.X);var bottom=tail.Max(p=>p.Y);
+        if(_points.Count==0)return;
+        var start=entire?0:Math.Max(0,_points.Count-4);
+        var left=_points[start].X;var top=_points[start].Y;var right=left;var bottom=top;
+        for(var i=start+1;i<_points.Count;i++)
+        {var point=_points[i];left=Math.Min(left,point.X);top=Math.Min(top,point.Y);right=Math.Max(right,point.X);bottom=Math.Max(bottom,point.Y);}
         var pad=Math.Max(right-left,bottom-top)/3+_width*_dpiScale+4;
         left=Math.Max(0,Math.Floor(left-pad));top=Math.Max(0,Math.Floor(top-pad));right=Math.Min(_overlay.Width,Math.Ceiling(right+pad));bottom=Math.Min(_overlay.Height,Math.Ceiling(bottom+pad));
         if(_damage is { } old){left=Math.Min(left,old.Left);top=Math.Min(top,old.Top);right=Math.Max(right,old.Right);bottom=Math.Max(bottom,old.Bottom);}
@@ -230,14 +233,16 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         {
             _renderer.Prune(_session.Document.Objects);
             using var ds=_committed.CreateDrawingSession();ds.Clear(blank);
-            _renderer.RenderObjects(ds,_session.VisibleObjects,_viewport,_overlay.Width,_overlay.Height);_committedDirty=false;_committedBuilds++;
+            _renderer.RenderObjects(ds,_session.DrawingObjects,_viewport,_overlay.Width,_overlay.Height);_committedDirty=false;_committedBuilds++;
         }
+        // Both targets use the same device, BGRA format and 96 DPI; damage bounds are integral pixels.
+        // Copy bitmap pixels without a sampling/compositing pass that can round translucent edge colors.
+        if(!_benchmarkFullFrames)_target.CopyPixelsFromBitmap(_committed,(int)region.X,(int)region.Y,(int)region.X,(int)region.Y,(int)region.Width,(int)region.Height);
         using(var ds=_target.CreateDrawingSession())
         {
             if(_benchmarkFullFrames){ds.Clear(blank);_renderer.Prune(_session.Document.Objects);_renderer.RenderObjects(ds,_session.VisibleObjects,_viewport,_overlay.Width,_overlay.Height);}
-            else {ds.Blend=CanvasBlend.Copy;ds.DrawImage(_committed,new System.Numerics.Vector2((float)region.X,(float)region.Y),region);ds.Blend=CanvasBlend.SourceOver;}
             using var clip=ds.CreateLayer(1,region);
-            if(_preview is not null)_renderer.RenderObjects(ds,new[]{_preview},_viewport,_overlay.Width,_overlay.Height);
+            if(_preview is not null)_renderer.RenderPreview(ds,_preview,_viewport,_overlay.Width,_overlay.Height);
             if(_points.Count>0&&_tool is "pen" or "highlighter" or "paint")_renderer.RenderLiveStroke(ds,_points,_viewport,_color,_width*_dpiScale,_tool=="highlighter"?_opacity*.4:_opacity,_dash);
             if(_tool=="select")foreach(var selected in _session.SelectedObjects)_renderer.RenderSelection(ds,selected,_viewport,_session.SelectedIds.Count==1);
             _renderer.RenderLaser(ds,_laser,_viewport,Now,_dpiScale);
@@ -293,7 +298,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             _tool="pen";SetDrawing(true);OnPointer(new("down",120,300));OnPointer(new("move",200,330));OnPointer(new("up",300,300));Render();
             if(_session.Document.Objects.Count!=before+1)throw new InvalidOperationException("螢幕筆畫未提交。");
             using(var target=new CanvasRenderTarget(CanvasDevice.GetSharedDevice(),_overlay.Width,_overlay.Height,96))
-            {using(var ds=target.CreateDrawingSession()){ds.Clear(Color.FromArgb(0,0,0,0));_renderer.RenderObjects(ds,_session.VisibleObjects,_viewport,_overlay.Width,_overlay.Height);}await target.SaveAsync(Path.Combine(outputDirectory,"screen-annotations.png"),CanvasBitmapFileFormat.Png);}
+            {using(var ds=target.CreateDrawingSession()){ds.Clear(Color.FromArgb(0,0,0,0));_renderer.RenderObjects(ds,_session.DrawingObjects,_viewport,_overlay.Width,_overlay.Height);}await target.SaveAsync(Path.Combine(outputDirectory,"screen-annotations.png"),CanvasBitmapFileFormat.Png);}
             SetDrawing(false);Render();SetDrawing(true);Render();
             if(!_overlay.IsBelow(WinRT.Interop.WindowNative.GetWindowHandle(this)))throw new InvalidOperationException("模式切換後透明輸入層遮住控制列。");
             var interactions=await ValidateInteractionChangesAsync(outputDirectory);var previewPerformance=ValidatePreviewPerformance();var performance=ValidateStrokePerformance();var objectCommands=ValidateObjectCommands();var docking=ValidateChromeDocking();var text=ValidateScreenText();
@@ -322,7 +327,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             var file=await picker.PickSaveFileAsync();if(file is null)return;
             if(file.FileType==".png"){
                 using var target=new CanvasRenderTarget(CanvasDevice.GetSharedDevice(),_overlay.Width,_overlay.Height,96);
-                using(var ds=target.CreateDrawingSession()){ds.Clear(Color.FromArgb(0,0,0,0));_renderer.RenderObjects(ds,_session.VisibleObjects,_viewport,_overlay.Width,_overlay.Height);}
+                using(var ds=target.CreateDrawingSession()){ds.Clear(Color.FromArgb(0,0,0,0));_renderer.RenderObjects(ds,_session.DrawingObjects,_viewport,_overlay.Width,_overlay.Height);}
                 await target.SaveAsync(file.Path,CanvasBitmapFileFormat.Png);
             }else await DocumentSessionManager.WriteAtomicAsync(file.Path,DocumentCodec.Encode(_session.Document));
             _status.Text="註記已另存";

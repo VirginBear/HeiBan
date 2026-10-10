@@ -100,18 +100,28 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
     {
         var world=new VectorMath.RectBounds(-vp.X/vp.Zoom,-vp.Y/vp.Zoom,(width-vp.X)/vp.Zoom,(height-vp.Y)/vp.Zoom);
         var old=ds.Transform; var view=Matrix3x2.CreateScale((float)vp.Zoom)*Matrix3x2.CreateTranslation((float)vp.X,(float)vp.Y);
-        foreach(var o in objects.OrderBy(o=>o.ZIndex))
+        foreach(var o in objects is OrderedBoardObjects { IsAscending: true } ? objects : objects.OrderBy(o=>o.ZIndex))
         {
-            if(o.IsVisible==false)continue;
+            RenderViewportObject(ds,o,vp,world,view);
+        }
+        ds.Transform=old;
+    }
+    public void RenderPreview(CanvasDrawingSession ds,BoardObject item,ViewportTransform vp,float width,float height)
+    {
+        var world=new VectorMath.RectBounds(-vp.X/vp.Zoom,-vp.Y/vp.Zoom,(width-vp.X)/vp.Zoom,(height-vp.Y)/vp.Zoom);
+        var old=ds.Transform;var view=Matrix3x2.CreateScale((float)vp.Zoom)*Matrix3x2.CreateTranslation((float)vp.X,(float)vp.Y);
+        RenderViewportObject(ds,item,vp,world,view);ds.Transform=old;
+    }
+    private void RenderViewportObject(CanvasDrawingSession ds,BoardObject o,ViewportTransform vp,VectorMath.RectBounds world,Matrix3x2 view)
+    {
+            if(o.IsVisible==false)return;
             // Conservative radius handles rotation, stroke padding and sticky decorations.
             var radius=Math.Sqrt(o.Width*o.Width+o.Height*o.Height)/2+o.StrokeWidth+32;
             var cx=o.X+o.Width/2;var cy=o.Y+o.Height/2;
-            if(o.Extension is not ("start" or "end" or "both")&&!world.Intersects(new(cx-radius,cy-radius,cx+radius,cy+radius)))continue;
+            if(o.Extension is not ("start" or "end" or "both")&&!world.Intersects(new(cx-radius,cy-radius,cx+radius,cy+radius)))return;
             ds.Transform=Matrix3x2.CreateRotation((float)(o.Rotation*Math.PI/180),new((float)cx,(float)cy))*view;
             if(o.PreviewOffsetX!=0||o.PreviewOffsetY!=0)ds.Transform=Matrix3x2.CreateTranslation((float)o.PreviewOffsetX,(float)o.PreviewOffsetY)*ds.Transform;
             RenderObject(ds,o);
-        }
-        ds.Transform=old;
     }
     private void RenderObject(CanvasDrawingSession ds,BoardObject o)
     {

@@ -29,9 +29,11 @@ public sealed class EditorSession
     public bool CanRedo => _redo.Count > 0;
     public IEnumerable<BoardObject> PageObjects => Document.Objects.Where(o => Document.Board.CanvasMode != "notebook" || o.PageId is null || o.PageId == Document.Board.ActivePageId);
     public IEnumerable<BoardObject> VisibleObjects => PageObjects.Where(o=>o.IsVisible!=false);
+    private readonly ObjectOrderCache _order = new();
+    public OrderedBoardObjects DrawingObjects => _order.Ascending(Document);
     public void Open(HeiBanDocument doc)
     {
-        ClearPreviewMoves();DocumentEpoch++;Document = doc; SelectedId = null; _undo.Clear(); _redo.Clear(); _transaction = null;
+        ClearPreviewMoves();_order.Clear();DocumentEpoch++;Document = doc; SelectedId = null; _undo.Clear(); _redo.Clear(); _transaction = null;
         Generation = SavedGeneration = 0;
     }
     public void Begin() => _transaction ??= DocumentCodec.Clone(Document);
@@ -114,8 +116,12 @@ public sealed class EditorSession
         if(!double.IsFinite(dx)||!double.IsFinite(dy)||(dx==0&&dy==0))return;
         MoveBounds(o,dx,dy);TranslatePoints(o,dx,dy);o.UpdatedAt=DateTime.UtcNow.ToString("o");
     }
-    public BoardObject? Hit(InkPoint p, double tolerance) => VisibleObjects.OrderByDescending(o => o.ZIndex)
-        .FirstOrDefault(o => VectorMath.IsPointInObject(p, o, tolerance));
+    public BoardObject? Hit(InkPoint p, double tolerance)
+    {
+        foreach (var item in _order.Descending(Document))
+            if (VectorMath.IsPointInObject(p, item, tolerance)) return item;
+        return null;
+    }
     public void Erase(InkPoint center, double radius, bool wholeObject)
     {
         foreach (var o in VisibleObjects.Where(o => o.IsLocked != true && o.IsErasable).ToList())

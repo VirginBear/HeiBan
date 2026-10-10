@@ -56,6 +56,8 @@ MSIX 有 package identity 時交由 Microsoft Store 更新，不執行 GitHub �
 
 ## 本次流暢度改善
 
+2026-10-10下一版第一批已加入穩定物件順序快取、命中／preview／筆跡damage配置改善與overlay bitmap區域複製相容修正。當批結果与限制見[第一批開發日誌](docs/PERFORMANCE_BATCH1_2026-10-10.zh-TW.md)及[原始樣本／重現入口](docs/performance/2026-10-10-batch1/README.zh-TW.md)。這些是新source與隔離建置，尚未發新的安裝包；下方為較早批次的功能說明，不能把歷史數字當本輪結果。
+
 減少普通畫布重複重繪與中文字排版、修正選取物件的重複掃描；長筆跡拖動先預覽，收筆才寫回。保存／匯入移到背景，縮圖延後到操作空檔；偏好滑桿合併寫入。原生隔離300物件量測已減少重繪耗時；詳見性能稽核，這是同VM渲染量測，並非硬體輸入延遲。
 
 [性能稽核與驗證](docs/WINDOWS_PERFORMANCE_REVIEW_2026-10-10.zh-TW.md)

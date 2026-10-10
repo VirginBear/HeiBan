@@ -1,5 +1,11 @@
 # Windows 開發決策
 
+## 2026-10-10 — 第一批選擇保守順序快取
+
+保留public mutable List／ZIndex契約，用O(n)無配置scan捕捉交易內改動，再僅於order改變時穩定排序；不先把模型改成全面mutation通知，也不把全部文件掃描稱空間索引。RenderPreview不建立order；命中唯讀資料與永久手勢交易不變。源碼／原始結果見[本批紀錄](PERFORMANCE_BATCH1_2026-10-10.zh-TW.md)。CPU配置與耗時有收益，但native viewport重建未一致改善，下一批才按證據比較04／05；沒有先換小畫家式backend或丟輸入點。
+
+現有螢幕快取copy在此GPU出現最大1色階的strict mismatch；選同format／96DPI的GPU bitmap區域複製，保留零容差與layered-window傳輸，沒有以放寬檢查掩蓋失敗。此選擇尚需其他GPU／DPI／device lifecycle驗收；Store送審套件是原版快照，本批source不自動替換它。
+
 ## 2026-10-10 — 私人產品管理另用獨立 repo
 
 公開 HeiBan 的技術來源／必要套件 manifest 继续維護。產品管理與跨電腦交接使用獨立 PRIVATE HeiBan-private，不把公開庫分支或子目錄視作私人區域，也不把私人 repo 放成公開 submodule。公開平台入口只連到私人庫；有權限的開發者先取回／讀取紀錄，再核最新平台來源。身份／價格／進度變動兩庫依職責分别提交，不保存密碼／權杖／私鑰。前述公開產品身分屬安裝必要中繼資料，未改寫既有公開歷史。

@@ -1,6 +1,6 @@
 # Antigravity：HeiBan Windows 下一版流暢度工作清單
 
-日期：2026-10-10。狀態：**待執行**。本文件是原始碼檢視後的工作建議；沒有執行本輪效能測試或實作。檢視基準為公開 `main` 的 `c1c10ef14cc2f09d203393a424af44f80eddd783`；接手時先核對最新 HEAD 與未提交內容。
+日期：2026-10-10。狀態：**第一批已實作、仍有量測／硬體驗收待辦**。原編製時檢視基準為公開 `main` 的 `c1c10ef14cc2f09d203393a424af44f80eddd783`；使用者 GO 後從 `c39a099` 執行首批01／02／03，另修06既有copy相容問題。[實作日誌](PERFORMANCE_BATCH1_2026-10-10.zh-TW.md)、[當批原始資料／命令／限制](performance/2026-10-10-batch1/README.zh-TW.md)。接手先核最新HEAD與未提交內容，不能把本機測量當另一台電腦的結果。
 
 ## 接手規則
 
@@ -22,7 +22,7 @@
 
 ## 優先順序
 
-P0 為後續決策前置；P1 為優先調查／實作候選；P2 只有在量測顯示收益時展開。所有項目目前均未勾選完成。
+P0 為後續決策前置；P1 為優先調查／實作候選；P2 只有在量測顯示收益時展開。checkbox只勾已實作或有當批證據的子項，未勾項保持待辦。
 
 | ID | 優先 | 工作 | 依賴／執行判準 |
 | --- | --- | --- | --- |
@@ -36,13 +36,15 @@ P0 為後續決策前置；P1 為優先調查／實作候選；P2 只有在量�
 | PERF-08 | P2 | 保存、縮圖與 Undo 的記憶體壓力 | 01；確認與停頓相關時 |
 | PERF-09 | P1 | DPI、裝置生命週期與實機相容驗收 | 貫穿各批，發行前彙整 |
 
+目前：01已建立0／300／1000／10000與長筆跡／圖片／文字合成軟體基準及raw樣本；輸入／保存／busy分階段profile未完成。02完成有證據的排序、preview、尾點與命中配置熱點，排程未更動。03完成穩定order／相容回歸。04／05列下一批優先，06只修同device的bitmapcopy，沒有新backend；07／08與09硬體矩陣待執行。754Core、70strictpixel、x64／ARM64建置有當批結果；ARM64未實跑。
+
 ## PERF-01：基準與量測
 
-- [ ] 建立固定合成場景：空白、300／1,000／10,000 物件、長筆跡、多張圖片與文字混合；圖片尺寸／解碼後占用及筆點數要記錄，不只記物件數。
+- [x] 建立固定合成場景：空白、300／1,000／10,000 物件、長筆跡、多張圖片與文字混合；圖片尺寸／解碼後占用及筆點數要記錄，不只記物件數。混合場景本輪只有後測＋同binary参考，沒有偽稱全部都具批前基準。
 - [ ] 分別測主畫布與螢幕註記：落筆、連續畫線、長筆跡、物件拖曳、橡皮擦、平移、縮放，以及自動保存期間操作。
 - [ ] 記錄機型、CPU／GPU／驅動、RAM、OS、架構、DPI、螢幕數／更新率、Release／Debug、供電、資料根及 source commit。同機同場景比較修改前後，區分冷／暖狀態，保留樣本及 p50／p95／p99、樣本數、配置量／GC、記憶體、scene 重建次數／readback bytes。
 - [ ] 將事件收到、開始繪製、提交畫面分開計時。軟體提交時間不等於實體筆尖到可見畫面；沒有光學／外部量測時不得寫成端到端延遲。
-- [ ] 優先接續 `MainWindow.Performance.cs`、`ScreenAnnotation/ScreenAnnotationWindow.Performance.cs` 的隔離驗證入口；診斷記錄採限定模式及取樣，避免逐點同步寫檔反過來製造卡頓。
+- [x] 優先接續 `MainWindow.Performance.cs`、`ScreenAnnotation/ScreenAnnotationWindow.Performance.cs` 的隔離驗證入口；診斷記錄採限定模式及取樣，避免逐點同步寫檔反過來製造卡頓。新增--performance-output與Measure-Performance.ps1；正常模式不逐點寫log。
 
 **完成條件：** 原始資料／重現命令／環境可交接，指出耗時主因與候選順位。60 Hz 的 16.7 ms、120 Hz 的 8.3 ms 只作 frame budget 參考，未量測前不寫達標；預算亦須扣除輸入、合成及其他工作。
 
@@ -50,7 +52,7 @@ P0 為後續決策前置；P1 為優先調查／實作候選；P2 只有在量�
 
 **定位：** `MainWindow.Input.cs`、`MainWindow.Rendering.cs::InvalidateCanvas／RefreshLayersIfNeeded`、`Engine/Direct2DCanvasRenderer.cs::RenderLiveStroke`、`ScreenAnnotation/ScreenAnnotationWindow.cs::Render`。
 
-- [ ] 用 01 的資料查 LINQ／ToArray、幾何尾段、臨時陣列、狀態面板與樣式刷新成本；只調整有證據的熱點，重用 scratch buffer 時明確處理可變長度及生命週期。
+- [x] 用 01 的資料查 LINQ／ToArray、幾何尾段、臨時陣列、狀態面板與樣式刷新成本；只調整有證據的熱點，重用 scratch buffer 時明確處理可變長度及生命週期。改善order、單preview、damage尾點與命中closure；UI面板／live幾何沒有證據的改動保留原策略。
 - [ ] 檢查 CanvasSurface_PointerMoved 呼叫鏈，避免每個輸入點觸發永久 scene 重建、Inspector 列表重建、保存或全文件序列化；延續既有 sceneChanged／交易邊界。
 - [ ] 評估一幀合併多次顯示失效：保留全部有效輸入點，只合併畫面提交；控制排隊深度，不能用丟點來偽造流暢。
 - [ ] 螢幕 DispatcherTimer 的 16 ms 不是固定 60 FPS。量測 idle、連續作畫及 UI 忙碌時的實際間隔，再决定排程調整。
@@ -61,9 +63,9 @@ P0 為後續決策前置；P1 為優先調查／實作候選；P2 只有在量�
 
 **已確認：** `Direct2DCanvasRenderer.cs::RenderObjects` 會 `OrderBy(ZIndex)`；`Core/Engine/EditorSession.cs::Hit` 會反向排序。這發生在相應渲染／命中呼叫，不代表快取命中的每幀都重新排序。
 
-- [ ] 建立每頁的穩定有序視圖，在新增／刪除、圖層調整、頁面切換、Undo／Redo、文件切換時失效；相同 ZIndex 的次序須與現行 LINQ 穩定排序相容。
-- [ ] 主畫布、螢幕註記、匯出與命中共用正確的順序契約；不為暫態單物件预覽建立昂貴整頁索引。
-- [ ] 若物件可直接變更 ZIndex，明確加入失效通知或 revision，不能只看物件數或永久 Generation。
+- [x] 建立每頁可取得的穩定有序視圖，在新增／刪除、圖層調整、頁面切換、Undo／Redo、文件切換時保持正確；相同 ZIndex 次序與LINQ相容。實作採整份document穩定order＋live頁面過濾，尚非每頁空間索引。
+- [x] 主畫布、螢幕註記、匯出與命中共用正確的順序契約；不為暫態單物件預覽建立昂貴整頁索引。snapshot匯出保留stable-sort fallback，不跨async持有UI session view。
+- [x] 若物件可直接變更 ZIndex，明確處理失效，不能只看物件數或永久 Generation。無配置O(n)參考／Z掃描捕捉交易內修改與同數量替換／重排；沒有強制模型遷移。
 
 **完成條件：** 合成大場景排序成本下降；前後遮擋、同 ZIndex、隱藏／鎖定、置頂／置底與 Undo／Redo 的命中及輸出順序相同。
 

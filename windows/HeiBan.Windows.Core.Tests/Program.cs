@@ -799,6 +799,40 @@ foreach(var offset in new[]{new InkPoint(90,20),new InkPoint(-90,20),new InkPoin
  Near(constrained.Pressure,.8,"Constraint keeps sample pressure");Near(constrained.TiltX!.Value,12,"Constraint keeps tilt");
  Check(cursor.X==anchor.X+offset.X&&cursor.Y==anchor.Y+offset.Y,"Constraint does not mutate the mouse sample");
 }
+// Order views must observe direct edits before a transaction commits, without changing stable ties.
+var orderCache=new ObjectOrderCache();
+var orderDoc=new HeiBanDocument{Board=new BoardMetadata{CanvasMode="notebook",ActivePageId="p1"},Objects=Enumerable.Range(0,80).Select(i=>new BoardObject{Id="order-"+i,Type="rect",Width=40,Height=40,FillColor="#39735A",ZIndex=i%7,PageId=i%5==0?"p2":i%3==0?null:"p1",IsVisible=i%11==0?false:null,IsLocked=i%4==0}).ToList()};
+void CheckOrder(string reason)
+{
+ var visible=orderDoc.Objects.Where(o=>o.IsVisible!=false&&(orderDoc.Board.CanvasMode!="notebook"||o.PageId is null||o.PageId==orderDoc.Board.ActivePageId));
+ Check(orderCache.Ascending(orderDoc).SequenceEqual(visible.OrderBy(o=>o.ZIndex)),"Cached drawing matches stable LINQ: "+reason);
+ Check(orderCache.Descending(orderDoc).SequenceEqual(visible.OrderByDescending(o=>o.ZIndex)),"Cached hits match stable LINQ: "+reason);
+}
+CheckOrder("initial page");var orderBuilds=orderCache.Rebuilds;CheckOrder("warm reuse");Check(orderCache.Rebuilds==orderBuilds,"Unchanged order does not rebuild");
+orderDoc.Objects[1].ZIndex=999;CheckOrder("direct ZIndex before commit");
+orderDoc.Objects.Reverse();CheckOrder("same-size source reorder and ties");
+orderDoc.Objects[1]=DocumentCodec.Clone(orderDoc.Objects[1]);CheckOrder("same-size object replacement");
+orderDoc.Objects.Add(new BoardObject{Id="order-added",ZIndex=-10});CheckOrder("add");orderDoc.Objects.RemoveAt(2);CheckOrder("delete");
+orderBuilds=orderCache.Rebuilds;orderDoc.Board.ActivePageId="p2";orderDoc.Objects[0].IsVisible=true;orderDoc.Objects[1].PageId="p2";CheckOrder("live page and visibility edits");Check(orderCache.Rebuilds==orderBuilds,"Page and visibility filtering do not allocate a new sorted view");
+orderDoc.Board.CanvasMode="infinite";CheckOrder("mode switch");orderDoc.Objects=[..orderDoc.Objects];CheckOrder("list replacement");
+orderDoc=DocumentCodec.Clone(orderDoc);CheckOrder("document replacement");orderCache.Clear();CheckOrder("clear");
+var orderedSession=new EditorSession();orderedSession.Open(orderDoc);
+void CheckOrderedSession(string reason)
+{
+ Check(orderedSession.DrawingObjects.SequenceEqual(orderedSession.VisibleObjects.OrderBy(o=>o.ZIndex)),"Session drawing: "+reason);
+ Check(ReferenceEquals(orderedSession.Hit(new(10,10),8),orderedSession.VisibleObjects.OrderByDescending(o=>o.ZIndex).FirstOrDefault(o=>VectorMath.IsPointInObject(new(10,10),o))),"Session hit preserves locked objects and stable ties: "+reason);
+}
+CheckOrderedSession("open");orderedSession.Begin();orderedSession.Document.Objects[0].ZIndex=2000;CheckOrderedSession("transaction");orderedSession.Cancel();CheckOrderedSession("cancel");
+orderedSession.Begin();orderedSession.Document.Objects[0].ZIndex=2000;orderedSession.Commit();CheckOrderedSession("commit");orderedSession.Undo();CheckOrderedSession("undo");orderedSession.Redo();CheckOrderedSession("redo");orderedSession.Open(new());CheckOrderedSession("empty switch");
+var readonlySample=new InkPoint(10,10,.75){TiltX=12,TiltY=-3,ExtraFields=new(){["future"]=future}};
+Check(VectorMath.IsPointInObject(readonlySample,new BoardObject{Type="rect",Width=20,Height=20,FillColor="#39735A"}),"Unrotated filled hit");
+Check(readonlySample.X==10&&readonlySample.Y==10&&readonlySample.Pressure==.75&&readonlySample.TiltX==12&&readonlySample.ExtraFields!.ContainsKey("future"),"Hit does not mutate input or future sample fields");
+foreach(var rotation in new[]{-180d,-90d,0d,25d,90d,180d})
+{
+ var rotatedHit=new BoardObject{Type="rect",X=10,Y=30,Width=40,Height=20,FillColor="#39735A",Rotation=rotation};
+ Check(VectorMath.IsPointInObject(ObjectHandles.ToWorld(rotatedHit,new(30,40)),rotatedHit,0),"Rotated center hit "+rotation);
+ Check(!VectorMath.IsPointInObject(ObjectHandles.ToWorld(rotatedHit,new(200,200)),rotatedHit,0),"Rotated distant miss "+rotation);
+}
 if(args.Contains("--performance"))Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(InteractionBenchmark.Run(),new System.Text.Json.JsonSerializerOptions{WriteIndented=true}));
 
 if(args.Length==2&&args[0]=="--export-fixtures")

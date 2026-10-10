@@ -1,5 +1,9 @@
 # Windows 開發與驗收清單
 
+## 2026-10-10 — GO 第一批進度
+
+[本批實作與證據](PERFORMANCE_BATCH1_2026-10-10.zh-TW.md)：01初步軟體基準／重現入口、02配置熱點、03穩定order已實作；06現有pixel-copy相容修正。754Core／70strictpixel及x64／ARM64編譯有當批結果。busy／保存／物理輸入與09硬體矩陣仍未執行，04／05／07／08未實作；原生大量viewport未證明全面加速。詳見更新的九項清單，以下待執行文字屬編製批歷史。
+
 ## 2026-10-10 — 下一版 Windows 流暢度交接
 
 最新效能工作入口：[Antigravity 九項工作清單](ANTIGRAVITY_PERFORMANCE_WORKLIST_2026-10-10.zh-TW.md)。所有項目待執行，先建立同機新基準，接續既有快取／局部重繪／背景保存；依量測決定順序与方案。原 W01～W07 等內容是各批歷史，不能以未更新的舊 checkbox 取代 CURRENT_STATUS。本次只編製清單，沒有實作／測試／重新封裝。

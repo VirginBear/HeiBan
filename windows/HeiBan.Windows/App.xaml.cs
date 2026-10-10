@@ -17,6 +17,13 @@ public partial class App : Application
     {
         try
         {
+            if(Environment.GetCommandLineArgs().Any(arg=>arg.StartsWith("--performance-output=",StringComparison.Ordinal)))
+            {
+                var isolated=Environment.GetEnvironmentVariable("HEIBAN_WINDOWS_DATA_DIRECTORY");
+                // Check before storage/library initialization. Reusing an existing root could read or replace real recovery data.
+                if(string.IsNullOrWhiteSpace(isolated)||Directory.Exists(isolated)||File.Exists(isolated))
+                    throw new InvalidOperationException("效能診斷必須指定尚不存在的 HEIBAN_WINDOWS_DATA_DIRECTORY。");
+            }
             if (!Updating.GitHubUpdateService.IsPackaged && string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("HEIBAN_WINDOWS_DATA_DIRECTORY")))
                 _installationLease = new Updating.UpdateInstallation(AppContext.BaseDirectory);
             _window = new MainWindow();

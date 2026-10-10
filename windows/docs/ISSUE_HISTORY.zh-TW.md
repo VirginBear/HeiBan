@@ -1,5 +1,11 @@
 # Windows 問題與排解紀錄
 
+## 2026-10-10 — 流暢度基準的實際失敗與未解項
+
+初CPU fixture的空心rect中心不是hit，修成填色與可命中點後重測，錯誤樣本獨立保留。原生舊binary先後兩次在overlay rect收筆strict比對失敗：272 byte最大差1、首點(1504,898)的R channel1→0；主畫布階段先寫獨立JSON，不能因process exit0稱全驗證通過。改DrawImage copy為同device／BGRA／96DPI的CopyPixelsFromBitmap區域複製後嚴格形狀／筆／選取等通過，未放寬容差。[證據](performance/2026-10-10-batch1/README.zh-TW.md)。
+
+Core新增test漏傳Hit tolerance造成CS7036，補8後754項通過。熱路徑兩個capturing lambda即使候選早退也分配closure，改為局部for／四邊短路；零rotation命中避免新center與point。原生大量物件重建p95仍高且跨run波動，不能將所有症狀歸因排序；04／05待後續。真筆、混合DPI、device lost、ARM64原生與MSIX／WACK未驗收。讀錯來源路徑與PowerShell for直接pipe的錯誤／修正保存在本批日誌。
+
 ## 2026-10-10 — Partner Center 無法提交的階段已解除
 
 前次使用者概觀截圖中套件已 Validated，屬性／清單／提交選項顯示完成，價格與年齡分級未顯示完成；建議重新進入檢查儲存與產生分級。無法只凭截圖斷言所有具體欄位的錯誤原因。此次使用者貼出「Submission 1：認證中」，確認依使用者資料提交階段已往前進。尚未確認通過與上架，也未登入後台；認證若失敗，依後續報告另記原因，不預先猜測。
