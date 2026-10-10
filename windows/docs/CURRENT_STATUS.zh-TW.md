@@ -1,8 +1,10 @@
 # Windows 目前開發狀態
 
-## 2026-10-10 — 正式 Store 身分已取得，MSIX 封裝進行中
+## 2026-10-10 — 正式 MSIX／bundle 封裝完成，尚未送審
 
-使用者提供 HeiBan 黑板正式 Product identity，已接入 Windows 專用 Store manifest，SDK single-project MSIX 明確 build 模式，保留原 EXE／Portable 路線。首份套件版 1.0.12.0／產品 preview.6；x64 初包 SDK build 成功，雙架構／bundle 正在封裝。見 [本批紀錄](MSIX_PACKAGING_2026-10-10.zh-TW.md) 與 [商店草稿](STORE_LISTING_DRAFT.zh-TW.md)。商店安裝／資料遷移／更新／WACK、ARM64 執行、送審／上架未執行；下方「身分待提供」為前批歷史，不是目前狀態。
+使用者提供 HeiBan 黑板正式 Product identity，並確認第一版免費。Windows Store SDK single-project MSIX 明確 build 模式，原 EXE／Portable 路線分開。首份套件版 1.0.12.0／產品 preview.6；最後 x64／ARM64 建置各 0 warnings／0 errors，兩份 MSIX 及一份雙架構 bundle 產出。實際包身分、最低 OS 19041、PE Machine、25 份授權與手冊原 byte、不帶作品／helper／symbols、bundle 內 MSIX SHA 通過，135 個來源／3 產物 SHA 相符。[產物清單](STORE_ARTIFACTS_1.0.12.0_2026-10-10.json)。
+
+來源 `aa71e3584ff91b9f5832f9abec66980049d34aa4` 已 push，ls-remote HEAD／main 相同。見 [本批紀錄](MSIX_PACKAGING_2026-10-10.zh-TW.md)、[商店草稿](STORE_LISTING_DRAFT.zh-TW.md) 與 [隱私草稿](PRIVACY_POLICY_DRAFT.zh-TW.md)。未簽章包供 Store 送審，未購買 CA。商店安裝／資料遷移／更新／解除安裝／WACK、ARM64 執行、送審／上架未執行；本批未執行 App 測試。下方「身分待提供」與「尚未產生 MSIX」均為前批歷史，不是目前狀態。
 
 ## 2026-10-10 — Partner Center 已申辦，商店準備與來源同步
 

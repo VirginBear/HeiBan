@@ -2,7 +2,7 @@
 
 ## 2026-10-10 — 正式 Store MSIX 封裝
 
-正式產品身分已接 SDK MSIX build；初包 x64 成功、雙架構／bundle 最後封裝進行中。Windows App SDK 與 .NET 自包含，不带 GitHub helper／作品／Portable marker。套件版 1.0.12.0，未簽章供 Store 送審。來源隔離、SDK manifest validation、PRI／legal payload 與 hash 結果完成後記於 [本批日誌](MSIX_PACKAGING_2026-10-10.zh-TW.md)。App 安裝執行、移轉、WACK、ARM64 原生與 Store 送審未執行。
+最後來源 aa71e35 的 SDK x64／ARM64 build 分別 54.76／54.64 秒，均 0 warnings／0 errors，PackageSuccessfullyCreated。x64 MSIX 97,864,712 bytes、ARM64 MSIX 95,297,105 bytes、雙架構 bundle 193,163,812 bytes，未簽章、版本 1.0.12.0。SDK strict package／manifest validation 保持開啟，25 legal docs／當前手冊逐 byte、兩架構 PE／身分／19041、bundle 內 MSIX SHA 核對，135 source／3 artifact SHA 相符。[完整 manifest](STORE_ARTIFACTS_1.0.12.0_2026-10-10.json)、[當批日誌](MSIX_PACKAGING_2026-10-10.zh-TW.md)。App 安裝執行、移轉／解除安裝、WACK、ARM64 原生與 Store 送審未執行；不沿用上一批 App 測試數字。
 
 ## 2026-10-10 — 1.0.12-preview.6 自動更新（本機四包）
 

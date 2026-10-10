@@ -33,3 +33,15 @@
 - 包內 manifest 調查發現 SDK 用專案 TargetPlatformMinVersion=17763 覆寫了模板的 19041，與商店目標及 Win2D 最低版本不一致；Store build 分支明確設 19041（不改 Unpackaged 預設）及 zh-TW default resource language，封裝 guard 追加實際最低 OS 核對。先前包不是最終交付包，保持過程證據。
 - PRI resfile 過濾方案的兩架構建置均 0 warnings／0 errors，25 legal documents 與手冊全部原 byte 保留、bundle 成功；最低 OS 修正後需最後再封裝。舊包不交付為最終包。新增 bundle identity／雙架構／版本與其內 MSIX 逐 SHA 核對，官方 SDK strict validation 未關閉。
 - 已完成商店刊登、runFullTrust 審核說明及隱私說明草稿；第一版免費。公開支援入口、隱私正式政策／URL、市場、分級問卷及示範截圖尚需使用者確認／完成；不代填問卷、不自行送審。
+
+## 最終交付結果
+
+- 最後命令：`Package-Store.ps1 -DotnetPath windows/.build/tools/dotnet/dotnet.exe`，在 PATH 加入本機隔離 SDK；外層 Stop／try-catch，整批退出 0，log `.build/store-packaging-delivery.log`。
+- 最後編譯來源 `aa71e3584ff91b9f5832f9abec66980049d34aa4`。build x64 54.76 秒／ARM64 54.64 秒，兩者各 0 warnings／0 errors／PackageSuccessfullyCreated；strict manifest／package validation 保持 true。初包、失敗及警告並未刪除或冒稱最終狀態。
+- 實際產物：x64 MSIX 97,864,712 bytes，SHA `fe9f47b7f463062efd98b1014dbb8a7f47afebb8fe0d5bf05fd342a2e8611ec7`；ARM64 MSIX 95,297,105 bytes，SHA `a2f496cf6c2249ef32ab550c83b40b232f49257e5d3860c0c5cbd24eab5f593b`；bundle 193,163,812 bytes，SHA `d7a49b63d88fa880b1a97b0c307361ad2cfbc9b3d58786048887093d7204ea7b`。
+- x64 564／ARM64 560 entries，25 原授權及兩份手冊 byte／SHA 相符，必要 CLR／WinUI／Win2D／PRI／圖示存在；没有作品／Data／portable.dat／GitHub helper／PDB。包與 bundle 的 Name／Publisher／版本及雙架構相符，bundle 內每份 MSIX SHA 與輸入相同。
+- 讀最終包確認 x64／ARM64 HeiBan.exe PE Machine、最低 Windows 19041、没有 AppxSignature.p7x；此為未簽章 Store 送審包。135 個來源 snapshot、3 個 artifact SHA／size 再核對相符。完整 [manifest](STORE_ARTIFACTS_1.0.12.0_2026-10-10.json) 記來源 commit、公開 identity、payload checks、build log SHA 與未執行項，不上傳私人 raw build log。
+- PowerShell 顯示 sourceSnapshot 的 Properties.Count 曾輸出逐元素 1，不是實際 135 計數；以讀 JSON map 的長度確認135，没有拿錯誤顯示計數宣稱驗收數。
+- `git diff --cached --check` 於每個來源提交前退出 0；只修改 Windows。三次來源提交 8364e11／482584a／aa71e35，`git push origin main` 退出 0，從 e094dc7 前進至 aa71e35；`git ls-remote origin HEAD refs/heads/main` 兩值與本機一致。最後產物證據及更新平台文件另以文件提交保存，不改寫編譯來源 commit。
+- 新增／更新 csproj、Store manifest／identity／圖示、Store 封裝腳本與手冊，及 CURRENT_STATUS／ARCHITECTURE／DECISIONS／ISSUE_HISTORY／BUILD_STATUS／DEVELOPMENT_LOG／Windows README／刊登與隱私草稿。先前 EXE／Portable 產物及其歷史 manifest 保留，不用新 Store 来源去宣稱它們重新建置。
+- 未執行：App 執行測試、本機 MSIX 註冊／安裝／啟動、作品首次移轉／Store 升級／解除安裝保留、ARM64 原生執行、WACK、Partner Center 上傳／價格／市場／分級／送審／上架、GitHub Release 發布或排程。Store 包內部核對不等於上述通過。

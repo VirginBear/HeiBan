@@ -1,5 +1,7 @@
 # Microsoft Store 準備與 GitHub 來源同步
 
+後續更新：使用者已提供正式產品身分，並確認第一版免費；MSIX／bundle 已由後續批次封裝。最新結果以 [MSIX 日誌](MSIX_PACKAGING_2026-10-10.zh-TW.md) 為準，以下保留本批開工／Git 同步時的歷史狀態。
+
 ## 開工紀錄
 
 2026-10-10，使用者告知已申辦 Partner Center，要求說明下一步、注意事項、保留紀錄並更新 GitHub。本批只處理 Windows 與其文件。已讀開發索引、Windows CURRENT_STATUS／ARCHITECTURE／ISSUE_HISTORY；開工 `git status --short --branch` 顯示上一批 preview.6 的 Windows 未提交實作，沒有其他平台變更。保留這些內容，準備一起提交。
