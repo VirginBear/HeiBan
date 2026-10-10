@@ -42,3 +42,7 @@ git diff --check
 最終r2使用新`windows/.build/portable-trial-8aa5e9b45aaf4b83a0f4ac1ef684cbb2`重新publish／壓縮、退出0／log無warning/error；再做557 entry／93 source／空Data／PE／版本／手冊／README／sidecar靜態核對，全通過。公開artifact／inspection已更新為r2；初包及初次log／inventory留原ignored位置。93 hash与目前交付程式／腳本核對0不符，Store前後一致。補強逗號陣列guard沒有修改App功能，沒有執行新測試或啟動程式。
 
 本批沒有Core／native／smoke／更新器整合測試、安裝／啟動App或硬體驗收；前批結果僅歷史參考。另一台電腦要重新封裝／核對，不把本機dist當已經隨Git同步。
+
+## GitHub同步
+
+公開8份Windows封裝／紀錄提交`69647405e20cd661ce860e25587ffa0d1e68c8cf`，git diff --cached --check／commit／push退出0，ls-remote HEAD／main與本機一致，status只剩既有.vscode/。ZIP／解壓版為ignored dist，沒有上傳／發Release；私人交接另記來源與本機位置。本段保存同步證據作文件提交，沒有新增封裝或測試。
