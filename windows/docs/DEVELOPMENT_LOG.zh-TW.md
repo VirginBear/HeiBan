@@ -1,12 +1,16 @@
 # Windows 開發日誌
 
-## 2026-10-10 — Windows x64／ARM64 GitHub 更新（進行中）
+## 2026-10-10 — Windows x64／ARM64 GitHub 更新（完成）
 
 使用者明確授權更新VirginBear/HeiBan及清理過時Windows下載。已記錄git status、讀平台紀錄及舊公開發行規則。確認本機僅保留1.0.12-preview.5四包與SHA，x64 Portable／Setup皆存在；GitHub尚為0.1.0-preview.5七assets。只同步Windows來源與相關公開文件，保留同期Mac修改；先核SHA及相應來源、以draft上傳核對後發布，再移除過時Windows二進位，保留歷史Release說明／tag／雜湊文本。Mac公開版本另行管理，本輪不清Mac。
 
 公開ZIP首輪失敗：Windows Portable entry使用反斜線，新增手冊核對以斜線索引產生KeyError。原二進位／原包未改、尚未上傳；修公開腳本正規化ZIP名稱查詢與安全路徑檢查後重跑，不略過手冊byte比對。
 
 公開封裝重跑成功：四公開ZIP、Installer內EXE及Portable所有原entry逐byte相同；兩架構PE／手冊與內建版本／GPL例外及runtime條款／無Data／SHA通過。77建置來源未變；164個來源候選檔私有路徑／憑證模式／大檔防護通過（模式檢查非完整安全稽核）。更新README、安裝／快速開始／已知限制／建置／CHANGELOG的Windows部分，Mac下載與來源不變。準備提交Windows相應來源及建立draft發布；尚未刪遠端舊包。
+
+來源fddf85e已推main。首次建立draft回HTTP422 target_commitish invalid：CLI以短SHA傳release target，改完整40字SHA後重試；未創建錯誤版本，也尚未刪舊assets。
+
+GitHub公開完成：source fddf85e1b79c3cd5625cda1472b3c1de493fb3fb／tag相同，7assets size／digest／uploaded與本機相等，未登入7HEAD均200。draft tag endpoint首輪404，改release清單／ID驗證，publish後tag endpoint成功。舊Windows四ZIP＋HTML共317,440,540bytes已核ID／name／size／digest移除，保留舊Release／tag及兩manifest文本與原發布文字。GitHub only latest Windows binary，Mac release資產／body與之前完全相同；本機所有8個原／公開包均p5。README與Windows公開入口更新；Windows源127檔提交，77build-source blob逐SHA相等，31個Mac未提交路徑保留。最後補公開完成文件再推main，release tag保持sourcecommit不移動。沒有重跑程式測試，x64實機／安裝升級／完整硬體互動仍未驗收；所有使用者作品／Trash／Data／backup未上傳／未清除。
 
 ## 2026-10-10 — 螢幕右鍵恢復物件操作（完成本機交付）
 

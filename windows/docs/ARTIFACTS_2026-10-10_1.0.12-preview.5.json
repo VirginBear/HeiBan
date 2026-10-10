@@ -60,12 +60,15 @@
   "nativeEvidence": "docs/build-logs/right12p5-native",
   "interactionRecord": "docs/WINDOWS_RIGHT_CLICK_REVIEW_2026-10-10.zh-TW.md",
   "sourceShaFiles": 77,
-  "publication": "本機，未發布",
+  "publication": "GitHub public prerelease; public ZIP checksums recorded separately",
   "deployment": {
     "version": "1.0.12.5",
     "payloadShaVerifiedFiles": 549,
     "shortcut": "黑板 Windows 最新版",
     "dataBackup": "recovered-user-data/2026-10-10/vm/c7",
     "preservedDataFiles": 56
-  }
+  },
+  "publicRelease": "https://github.com/VirginBear/HeiBan/releases/tag/windows-v1.0.12-preview.5",
+  "sourceCommit": "fddf85e1b79c3cd5625cda1472b3c1de493fb3fb",
+  "publicArtifactManifest": "https://github.com/VirginBear/HeiBan/releases/download/windows-v1.0.12-preview.5/PUBLIC_ARTIFACTS.json"
 }

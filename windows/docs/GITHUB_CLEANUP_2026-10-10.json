@@ -1,0 +1,53 @@
+{
+  "success": true,
+  "replacementTag": "windows-v1.0.12-preview.5",
+  "removedAssets": [
+    {
+      "releaseId": 408019263,
+      "tag": "windows-v0.1.0-preview.5",
+      "assetId": 625278921,
+      "name": "HeiBan-User-Guide-Windows-0.1.0-preview.5.html",
+      "bytes": 19857,
+      "digest": "sha256:2331600a1ad330e225d38a90ea0e28ff90ec494e6809f43b843fe7d3d1d2b1a3"
+    },
+    {
+      "releaseId": 408019263,
+      "tag": "windows-v0.1.0-preview.5",
+      "assetId": 625278919,
+      "name": "HeiBan-Windows-Installer-0.1.0-preview.5-win-arm64.zip",
+      "bytes": 63446759,
+      "digest": "sha256:b4330340b04d6b78e4a1a43accb1a3f2666aed727acb219fc75628f19636b0c6"
+    },
+    {
+      "releaseId": 408019263,
+      "tag": "windows-v0.1.0-preview.5",
+      "assetId": 625278914,
+      "name": "HeiBan-Windows-Installer-0.1.0-preview.5-win-x64.zip",
+      "bytes": 66098479,
+      "digest": "sha256:fc60a1dc2e574634d3440a2987cb2166071b4296e3548560aa42f8db26ae0477"
+    },
+    {
+      "releaseId": 408019263,
+      "tag": "windows-v0.1.0-preview.5",
+      "assetId": 625278922,
+      "name": "HeiBan-Windows-Portable-0.1.0-preview.5-win-arm64.zip",
+      "bytes": 92585086,
+      "digest": "sha256:6e86649784dff1eda1f75a2560be4422858546ae9b0067fe3f5b965ce8c985b5"
+    },
+    {
+      "releaseId": 408019263,
+      "tag": "windows-v0.1.0-preview.5",
+      "assetId": 625278918,
+      "name": "HeiBan-Windows-Portable-0.1.0-preview.5-win-x64.zip",
+      "bytes": 95290359,
+      "digest": "sha256:10f19f33ccaca08435a0ec3bd91846ce133fa7813dae049b3ac9bd0c9f9a0fc1"
+    }
+  ],
+  "removedBytes": 317440540,
+  "preservedOldTagAndRelease": true,
+  "preservedOldTextAssets": [
+    "PUBLIC_ARTIFACTS.json",
+    "SHA256SUMS.txt"
+  ],
+  "scope": "Windows only; Mac release retained"
+}

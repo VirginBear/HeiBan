@@ -1,0 +1,57 @@
+{
+  "version": "1.0.12-preview.5",
+  "sourceCommit": "fddf85e1b79c3cd5625cda1472b3c1de493fb3fb",
+  "releaseId": 408808724,
+  "allRemoteDigestsVerified": true,
+  "assets": [
+    {
+      "id": 627437404,
+      "name": "HeiBan-User-Guide-Windows-1.0.12-preview.5.html",
+      "bytes": 24223,
+      "sha256": "35395ab64c8c73b81833d87eb1a0269c367fea602a9a3cebaf23d9a3c33f2f0d",
+      "url": "https://github.com/VirginBear/HeiBan/releases/download/untagged-c9465d2bd43d74c5d457/HeiBan-User-Guide-Windows-1.0.12-preview.5.html"
+    },
+    {
+      "id": 627435847,
+      "name": "HeiBan-Windows-Installer-1.0.12-preview.5-win-arm64.zip",
+      "bytes": 63641620,
+      "sha256": "9d195f6e30b009547d559f7643606017dee8e0e067b253cd73916d551f1f2759",
+      "url": "https://github.com/VirginBear/HeiBan/releases/download/untagged-c9465d2bd43d74c5d457/HeiBan-Windows-Installer-1.0.12-preview.5-win-arm64.zip"
+    },
+    {
+      "id": 627436817,
+      "name": "HeiBan-Windows-Installer-1.0.12-preview.5-win-x64.zip",
+      "bytes": 66256622,
+      "sha256": "76778aa3a2a757207bda63397259eba2ed5c08675b8dc69279c8e9f5f6384d0b",
+      "url": "https://github.com/VirginBear/HeiBan/releases/download/untagged-c9465d2bd43d74c5d457/HeiBan-Windows-Installer-1.0.12-preview.5-win-x64.zip"
+    },
+    {
+      "id": 627436261,
+      "name": "HeiBan-Windows-Portable-1.0.12-preview.5-win-arm64.zip",
+      "bytes": 92931750,
+      "sha256": "a32c13ebbc86f16fb78abd6a3441791c65a0c8bb6288fc291f7059fbcdcaa16b",
+      "url": "https://github.com/VirginBear/HeiBan/releases/download/untagged-c9465d2bd43d74c5d457/HeiBan-Windows-Portable-1.0.12-preview.5-win-arm64.zip"
+    },
+    {
+      "id": 627437038,
+      "name": "HeiBan-Windows-Portable-1.0.12-preview.5-win-x64.zip",
+      "bytes": 95637007,
+      "sha256": "d30050579b3a0cf66e0e09cdaebc320643145bdb110a34623842a322116db19d",
+      "url": "https://github.com/VirginBear/HeiBan/releases/download/untagged-c9465d2bd43d74c5d457/HeiBan-Windows-Portable-1.0.12-preview.5-win-x64.zip"
+    },
+    {
+      "id": 627437454,
+      "name": "PUBLIC_ARTIFACTS.json",
+      "bytes": 1519,
+      "sha256": "5fc0c9aaed60899ce301c1cdbff9b12f5adbc8caaf7b19cf64dd6b392a621539",
+      "url": "https://github.com/VirginBear/HeiBan/releases/download/untagged-c9465d2bd43d74c5d457/PUBLIC_ARTIFACTS.json"
+    },
+    {
+      "id": 627437494,
+      "name": "SHA256SUMS.txt",
+      "bytes": 684,
+      "sha256": "c5ee34639650f3f0a2809ca8074ea3cf08ef69941f0acdf776496ceef7b319f1",
+      "url": "https://github.com/VirginBear/HeiBan/releases/download/untagged-c9465d2bd43d74c5d457/SHA256SUMS.txt"
+    }
+  ]
+}

@@ -1,5 +1,12 @@
 # Windows 目前開發狀態
 
+## 2026-10-10 — GitHub Windows 1.0.12-preview.5（已公開）
+
+x64／ARM64各提供Installer ZIP及Portable ZIP，[新版下載](https://github.com/VirginBear/HeiBan/releases/tag/windows-v1.0.12-preview.5)。相應source fddf85e已推main且tag一致，77build-source blob保持相等；公開Portable原entry／Installer原EXE逐byte相同，7assets遠端size／digest與本機相符，7個未登入下載HEAD均200。
+
+GitHub舊Windows四ZIP及舊HTML已清除，保留歷史Release／tag、原說明及2個manifest文本；本機只留p5原4包及公開4ZIP。Mac來源／公開Release與所有作品／備份保留。沒有為本次上傳重跑程式測試，沿用已核SHA不變的700Core／ARM64原生／PDF成果，x64實機及完整Installer升級仍未驗收。下方「本機交付，未發布」為之前工作的歷史邊界。[公開紀錄](PUBLIC_RELEASE_2026-10-10.zh-TW.md)、[遠端雜湊](GITHUB_ASSETS_1.0.12-preview.5_2026-10-10.json)、[遠端清理](GITHUB_CLEANUP_2026-10-10.json)。
+
+
 ## 2026-10-10 — 1.0.12-preview.5 右鍵物件操作（完成本機交付）
 
 最新Windows為1.0.12-preview.5／FileVersion1.0.12.5。依最新指示取消螢幕右鍵自動穿透：右鍵物件開調整／複製／個別刪除選單，命中已多選物件保留整組；空白右鍵取消暫態但維持作畫，選取不新增Undo。穿透由模式按鈕或Ctrl+Alt+D切換。下方preview.4及更早條目保留歷史偏好，不代表最新操作。

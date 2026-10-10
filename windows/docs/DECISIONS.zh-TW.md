@@ -1,5 +1,10 @@
 # Windows 開發決策
 
+## 2026-10-10 — GitHub Windows下載只保留最新二進位
+
+使用者明確要求更新及清理GitHub舊版本。先推相應Windows來源，draft上傳並核SHA／size後公開，確認未登入下載可用再刪已替代的Windows二進位及舊HTML。保留歷史Release／tag與SHA／manifest文本，不改寫Git歷史。原本機包與公開授權ZIP分開，公開manifest指向精確source commit，source tag不移動；Mac由其平台另行更新。
+
+
 ## 2026-10-10 — preview.5：右鍵用於物件操作
 
 使用者最新要求取消右鍵切「操作」，取代preview.4的舊偏好。決定右鍵命中物件開編輯／複製／刪除，已選命中保留多選；空白取消手勢但維持作畫。穿透只由模式控制／Ctrl+Alt+D明確切換。移除物件選單的穿透項目，避免物件操作時意外把滑鼠交給下方App。保留歷史preview.4紀錄，最新行為由本條與手冊定義。

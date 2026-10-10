@@ -1,0 +1,37 @@
+{
+  "success": true,
+  "tag": "windows-v1.0.12-preview.5",
+  "sourceCommit": "fddf85e1b79c3cd5625cda1472b3c1de493fb3fb",
+  "sourceTagVerified": true,
+  "publicRelease": true,
+  "assets": [
+    {
+      "name": "HeiBan-User-Guide-Windows-1.0.12-preview.5.html",
+      "status": 200
+    },
+    {
+      "name": "HeiBan-Windows-Installer-1.0.12-preview.5-win-arm64.zip",
+      "status": 200
+    },
+    {
+      "name": "HeiBan-Windows-Installer-1.0.12-preview.5-win-x64.zip",
+      "status": 200
+    },
+    {
+      "name": "HeiBan-Windows-Portable-1.0.12-preview.5-win-arm64.zip",
+      "status": 200
+    },
+    {
+      "name": "HeiBan-Windows-Portable-1.0.12-preview.5-win-x64.zip",
+      "status": 200
+    },
+    {
+      "name": "PUBLIC_ARTIFACTS.json",
+      "status": 200
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "status": 200
+    }
+  ]
+}

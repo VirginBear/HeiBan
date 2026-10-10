@@ -1,5 +1,10 @@
 # Windows 問題與排解紀錄
 
+## 2026-10-10 — 公開封裝／GitHub發布
+
+首輪新手冊比對KeyError，ZIP使用Windows反斜線而查詢用斜線，已正規化entry索引及安全路徑；重跑保留原entry／EXE逐byte、PE／手冊／無Data檢查通過。draft target使用短SHA回422，改完整commit後成功；draft尚無公開tag endpoint回404，透過release清單／ID核對，publish後tag endpoint正常。新版7assets遠端digest／size及公開HTTP200後才刪舊5下載，源與舊歷史文本保留。
+
+
 ## 2026-10-10 — preview.5：右鍵阻斷物件選單
 
 症狀是螢幕右鍵直接變「操作」，無法就地調整／複製／刪除。確認Objects.ScreenRightClick直接SetDrawing(false)，源於preview.4當時要求，並非命中或剪貼簿失效。依最新指示改命中物件ShowChromeFlyout，空白不切模式；保留工具列與快捷模式入口。原生驗證走實際OnPointer(right)，確認可用複製／刪除、多選文字保持、選取不新增Undo；驗證結果另記本輪報告。
