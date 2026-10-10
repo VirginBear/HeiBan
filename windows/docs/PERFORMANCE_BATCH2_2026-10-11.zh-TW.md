@@ -65,3 +65,7 @@ git diff --check
 增量fields第三份probe不是另run，来自perf-batch2-after在native失敗前完成的cpu.json。最初manual Core退出0／2227，after Core2276但native失敗；final2276，acceptance2324。不要把失敗after整體算成功。
 
 第三次native用Start-Process（Hidden）啟動`windows/.build/perf-batch2-acceptance/native/publish/HeiBan.exe --performance-output="D:\Game\HaiBan x64\windows\.build\perf-batch2-repeat-results"`，HEIBAN_WINDOWS_DATA_DIRECTORY指定全新perf-batch2-repeat-data；GRID_FIRST未設、source label指向immutable acceptance。WaitForExit以60秒分段最多3次，實際退出0、success=true，finally恢復環境變數。Get-FileHash、Copy-Item與來源inventory核對成功；git diff --check退出0（只有CRLF提示）。Git同步完成後另記具體結果。
+
+## GitHub同步結果
+
+先fetch核公開／私人HEAD...origin/main均0／0，私人visibility PRIVATE且乾淨。公開34檔全部windows/，git diff --cached --check、commit、push退出0；實作commit `62468fac843f6395e1d9b07adfc0e349579496c8`，ls-remote HEAD／main與本機相同，status只剩原.vscode/。本段保存已完成同步證據，再作文件提交；私人CURRENT_STATUS／日誌另同步產品交接。沒有發Release／tag、修改後台或發外部訊息。
