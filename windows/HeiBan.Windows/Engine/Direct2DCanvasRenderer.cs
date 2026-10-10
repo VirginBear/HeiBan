@@ -14,6 +14,9 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
 {
     private readonly Dictionary<string, (string Key, CanvasGeometry Geometry)> _geometry = [];
     private readonly Dictionary<string, CanvasBitmap> _images = [];
+    private readonly ObjectViewportCache _viewportCandidates=new();
+    // Diagnostic/reference switch; production still falls back automatically for small/dense views.
+    internal bool BypassViewportCache { get; set; }
     private readonly List<CanvasGeometry> _liveBlocks=[];
     private long _imageEpoch;
     private InkPoint? _liveFirst;
@@ -54,7 +57,7 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
     }
     public void ClearCache()
     {
-        _imageEpoch++;ResetLive();ClearTextCache();
+        _imageEpoch++;ResetLive();ClearTextCache();_viewportCandidates.Clear();
         foreach(var value in _geometry.Values)value.Geometry.Dispose(); _geometry.Clear();
         foreach(var value in _images.Values)value.Dispose(); _images.Clear();
     }
@@ -100,7 +103,11 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
     {
         var world=new VectorMath.RectBounds(-vp.X/vp.Zoom,-vp.Y/vp.Zoom,(width-vp.X)/vp.Zoom,(height-vp.Y)/vp.Zoom);
         var old=ds.Transform; var view=Matrix3x2.CreateScale((float)vp.Zoom)*Matrix3x2.CreateTranslation((float)vp.X,(float)vp.Y);
-        foreach(var o in objects is OrderedBoardObjects { IsAscending: true } ? objects : objects.OrderBy(o=>o.ZIndex))
+        // Only a fresh session ordered view can share this UI-thread index. Snapshot/export enumerables
+        // retain the scan fallback; single previews bypass the index entirely.
+        IEnumerable<BoardObject> candidates=objects is OrderedBoardObjects { IsAscending: true } ordered ?
+            (BypassViewportCache?ordered:_viewportCandidates.Query(ordered,world)) : objects.OrderBy(o=>o.ZIndex);
+        foreach(var o in candidates)
         {
             RenderViewportObject(ds,o,vp,world,view);
         }

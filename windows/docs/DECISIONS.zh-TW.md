@@ -1,5 +1,11 @@
 # Windows 開發決策
 
+## 2026-10-11 — 第二批限定渲染候選索引
+
+選簡單網格，保留原ordered scan退路；不先承擔各型別精確hit／擦除／curve bounds或GPU tiles生命週期。低密度視野可以縮減要進renderer的集合，密集場景退回原路徑；沒有聲稱所有場景都更快。固定bounds線性掃描只作immutable synthetic下界，欠缺mutation契約；未選用四叉樹，尚無足夠證據證明其更新／記憶體成本值得增加複雜度。
+
+實測九欄record比對比直接掃描更慢，明確欄位比對收益有限；因此相關setter加非序列化counter以保持直接交易修改相容，O(n)掃counter而非多欄。單物件移動增量更新，Z/list／Undo替換重建；高頻筆點／永久文件交易不變。複雜型別保持global candidate＋既有renderer，不把既有culling相容測試稱全型別精確空間索引。實測／失敗／限制見[本批日誌](PERFORMANCE_BATCH2_2026-10-11.zh-TW.md)。
+
 ## 2026-10-10 — 第一批選擇保守順序快取
 
 保留public mutable List／ZIndex契約，用O(n)無配置scan捕捉交易內改動，再僅於order改變時穩定排序；不先把模型改成全面mutation通知，也不把全部文件掃描稱空間索引。RenderPreview不建立order；命中唯讀資料與永久手勢交易不變。源碼／原始結果見[本批紀錄](PERFORMANCE_BATCH1_2026-10-10.zh-TW.md)。CPU配置與耗時有收益，但native viewport重建未一致改善，下一批才按證據比較04／05；沒有先換小畫家式backend或丟輸入點。

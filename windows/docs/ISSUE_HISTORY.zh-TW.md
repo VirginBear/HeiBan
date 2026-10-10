@@ -1,5 +1,11 @@
 # Windows 問題與排解紀錄
 
+## 2026-10-11 — 候選有效性成本／編譯失敗
+
+初次grid九欄record比對10000 p95約0.51→1.28ms，候選77個並未保證收益；明確欄位／增量更新只小幅改善，改非序列化bounds counter後acceptance0.36124→0.07980ms。explore全保留；相等setter吞signed-zero由靜態檢視抓到，改保存value、只對不等值增counter。
+
+native foreach三元式的OrderedBoardObjects與IOrderedEnumerable無共同推斷型別，CS0173導致次生Xaml WMC9999；改顯式IEnumerable。失敗沒有native結果，後續x64／ARM64無warning/error及127 strict pixels通過。完整scene平移重跑有更慢結果，原因未確認；PERF05／busy profile待開發，不把波動歸因特定GPU／timer。
+
 ## 2026-10-10 — 流暢度基準的實際失敗與未解項
 
 初CPU fixture的空心rect中心不是hit，修成填色與可命中點後重測，錯誤樣本獨立保留。原生舊binary先後兩次在overlay rect收筆strict比對失敗：272 byte最大差1、首點(1504,898)的R channel1→0；主畫布階段先寫獨立JSON，不能因process exit0稱全驗證通過。改DrawImage copy為同device／BGRA／96DPI的CopyPixelsFromBitmap區域複製後嚴格形狀／筆／選取等通過，未放寬容差。[證據](performance/2026-10-10-batch1/README.zh-TW.md)。

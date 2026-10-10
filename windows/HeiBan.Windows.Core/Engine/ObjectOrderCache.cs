@@ -52,6 +52,8 @@ public sealed class OrderedBoardObjects : IEnumerable<BoardObject>
 {
     private readonly HeiBanDocument _document;
     private readonly BoardObject[] _objects;
+    internal HeiBanDocument Document => _document;
+    internal BoardObject[] Items => _objects;
     public bool IsAscending { get; }
     internal OrderedBoardObjects(HeiBanDocument document, BoardObject[] objects, bool isAscending) { _document = document; _objects = objects; IsAscending = isAscending; }
     public IEnumerator<BoardObject> GetEnumerator()

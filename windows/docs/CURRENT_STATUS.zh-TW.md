@@ -1,5 +1,13 @@
 # Windows 目前開發狀態
 
+## 2026-10-11 — 第二批渲染候選索引
+
+完成PERF04渲染分支：大而稀疏視野採網格，保留stable Z與live頁面／visibility，小／密集／超界回原scan、複雜型別保守global。非序列化bounds counter、交易內geometry增量更新、Z/list／Cancel／Undo替換重建。Hit／擦除／框選沒有接index，PERF04整項仍待辦；PERF05 GPU分區未實作。
+
+本批2324 Core、127幅零容差pixels、x64／ARM64 Release publish通過、無warning/error訊息（ARM64未實跑）。Sparse10000 CPU p95 scan0.36124→grid0.07980ms、單物件更新0.08176ms，cold／配置成本另記。完整scene pan兩組6.3884→4.2346、4.8220→5.4971ms，不一致，不能宣稱整體FPS／端到端延遲达標；dense pan仍約196ms。下一批PERF05優先但需新基準／GPU預算設計。
+
+[日誌](PERFORMANCE_BATCH2_2026-10-11.zh-TW.md)、[raw資料／限制](performance/2026-10-11-batch2/README.zh-TW.md)。版本／送審bundle SHA／私人三圖保留；無新Installer／MSIX／Release／Store操作／硬體矩陣驗收。既有.vscode/保留不讀／提交，其他平台未改。
+
 ## 2026-10-10 — 流暢度第一批實作與同機證據
 
 使用者對九項清單指示 GO，完成首批的軟體基準、熱路徑配置改善及穩定 Z 順序快取。命中保留 locked／同 Z 次序，交易內直接 Z／list 修改、切頁、Cancel／Undo／Redo 均涵蓋；單物件 preview 不排序，筆跡 damage 索引掃描尾端四點不丟輸入。另修現有 overlay bitmap copy 色階差異，所有像素規則維持零容差。

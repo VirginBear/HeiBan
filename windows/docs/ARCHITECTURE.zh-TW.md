@@ -1,5 +1,15 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-11 — 渲染視野候選網格
+
+ObjectViewportCache只接新取得的ascending OrderedBoardObjects，保留整份文件的穩定Z次序，回傳獨立候選陣列並即時過濾頁面／visibility。512以下、密集視野（query格數占已占用格35%以上或候選至少四分之一）、超過4096 query格或非有限範圍回原ordered scan；Snapshot／export enumerable與單preview沿用原路徑。診斷可BypassViewportCache比對，沒有新增產品設定。
+
+網格256世界單位，每物件最多16 memberships；更大、超界／非有限、curve／text／sticky／arc／arrow／line等複雜或未知型別列global。安全型別限rect／circle／image／tape，bounds包含原renderer保守半徑與preview偏移；renderer原有culling／geometry／clip再執行，沒有新增GPU tiles／bitmap或修改命中／擦除／套索邏輯。記憶體按文件物件數有界，不是固定MB上限；managed arrays O(n)、cells/memberships最多16n，query輸出有配置。
+
+BoardObject相關setter維護JsonIgnore RenderBoundsVersion，只反映候選邊界欄位，不是Generation／revision／保存狀態。每query先O(n)counter掃描，幾何改動只更新該物件舊新格，空格移除；source order view變更（Z/list/替換/新document/Undo）重建。Rotation在保守圓半徑內不用更新grid；其他未納入bounds欄位不影響global物件的候選資格。ClearCache／換文件／小文件清理持有參考，輸出不使用跨呼叫可覆寫scratch buffer。JSON／未知欄位／一手勢一Undo契約維持；signed zero仍保存。
+
+實際證據與失敗策略見[第二批紀錄](PERFORMANCE_BATCH2_2026-10-11.zh-TW.md)。複雜物件精確bounds、hit／erase index和GPU分區快取仍待另批。
+
 ## 2026-10-10 — 順序快取與局部像素複製
 
 Core ObjectOrderCache保存整份文件的穩定升／降Z視圖。文檔／list參考、數量與逐項object參考／Z改變時重建；每次取得視圖先O(n)無配置掃描，避免Generation尚未提交就漏掉圖層修改。相同Z保持原list次序（降序不是reverse升序）；枚舉時即時過濾頁面與可見性，locked語意延續。這是UI thread資源，不寫入JSON；呼叫端在每次繪製／命中重新取得，不能跨永久修改保留舊view當索引。每頁空間索引仍未實作。

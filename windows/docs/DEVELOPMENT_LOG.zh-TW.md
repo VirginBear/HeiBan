@@ -1,5 +1,11 @@
 # Windows 開發日誌
 
+## 2026-10-11 — 接續第二批視野候選網格
+
+從163e660開始、保留.vscode/，先建[日誌](PERFORMANCE_BATCH2_2026-10-11.zh-TW.md)与稀疏基準。九欄record比對反而慢／native CS0173與次生Xaml失敗保留；改setter非序列化counter与membership增量更新，原order/cull退路。靜態檢視抓到signed-zero相等setter問題，修正並加JSON/future-field檢查。
+
+最終2324 Core、127 strict pixels、x64／ARM64 publish通過（ARM64只編譯），10000稀疏CPUscan0.36124→grid0.07980ms；native平移仍有較差結果，raw保留、不作全面流暢保證。平台文件／工作清單更新，UI入口未變、手冊不改；版本／Store／dist／其他平台保留。命令、失敗、92 source SHA及Git同步見日誌，下一批有PERF05與硬體矩陣。
+
 ## 2026-10-10 — GO：效能第一批
 
 從c39a099開始，保留使用者既有未追蹤.vscode/；先建日誌和合成CPU／native新基準，未沿用舊ARM VM數字。依證據實作ObjectOrderCache、单preview直接繪製、damage尾端索引與命中零rotation／closure配置改善；native基準抓到既有copy量化差異，保留兩次失敗後改GPU bitmap區域複製，沒有放寬像素檢查。新增重現腳本／raw samples／source hashes，資料根全新隔離、正常模式無診斷寫入。

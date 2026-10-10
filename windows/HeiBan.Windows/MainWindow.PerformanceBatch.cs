@@ -45,6 +45,8 @@ public partial class MainWindow
             var existingMain = ValidateCanvasPerformance();
             // Preserve completed stages even when a later compatibility check fails.
             await File.WriteAllTextAsync(Path.Combine(outputDirectory, "main-performance.json"), JsonSerializer.Serialize(new { cases, existingMain }, new JsonSerializerOptions { WriteIndented = true }));
+            var spatial=MeasureSpatialScenes();
+            await File.WriteAllTextAsync(Path.Combine(outputDirectory,"spatial.json"),JsonSerializer.Serialize(spatial,new JsonSerializerOptions{WriteIndented=true}));
             var supplemental=await MeasureSupplementalScenesAsync();
             await File.WriteAllTextAsync(Path.Combine(outputDirectory,"supplemental.json"),JsonSerializer.Serialize(supplemental,new JsonSerializerOptions{WriteIndented=true}));
             EnsureScreenAnnotation();
@@ -55,7 +57,7 @@ public partial class MainWindow
                 architecture = RuntimeInformation.ProcessArchitecture.ToString(), runtime = RuntimeInformation.FrameworkDescription,
                 os = RuntimeInformation.OSDescription, capturedUtc = DateTime.UtcNow, dpi = CanvasSurface.Dpi, width, height,
                 scope = "Synthetic native Win2D actions with 1-pixel readback synchronization; screen overlay synthetic frames; not physical input-to-display latency",
-                workingSetBytes = Environment.WorkingSet, cases, existingMain, supplemental, screen
+                workingSetBytes = Environment.WorkingSet, cases, existingMain, spatial, supplemental, screen
             };
             await File.WriteAllTextAsync(Path.Combine(outputDirectory, "performance.json"), JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true }));
         }
@@ -63,6 +65,6 @@ public partial class MainWindow
         {
             await File.WriteAllTextAsync(Path.Combine(outputDirectory, "performance.json"), JsonSerializer.Serialize(new { success = false, error = e.ToString() }));
         }
-        finally { _closing = true; Close(); }
+        finally { _renderer.BypassViewportCache=false;_closing = true; Close(); }
     }
 }

@@ -1,5 +1,7 @@
 # Antigravity：HeiBan Windows 下一版流暢度工作清單
 
+2026-10-11 接續：第二批完成PERF04**渲染候選分支**（counter＋網格＋scan退路）；2324 Core／127 strict pixels／x64與ARM64編譯通過，ARM64未實跑。CPU10000候選p95 0.36124→0.07980ms，完整native pan／zoom有較差跑次，不保證FPS。Hit／擦除／框選索引、PERF05／06後續仍待辦。[第二批日誌](PERFORMANCE_BATCH2_2026-10-11.zh-TW.md)、[raw證據](performance/2026-10-11-batch2/README.zh-TW.md)。下方第一批數字保留其日期範圍。
+
 日期：2026-10-10。狀態：**第一批已實作、仍有量測／硬體驗收待辦**。原編製時檢視基準為公開 `main` 的 `c1c10ef14cc2f09d203393a424af44f80eddd783`；使用者 GO 後從 `c39a099` 執行首批01／02／03，另修06既有copy相容問題。[實作日誌](PERFORMANCE_BATCH1_2026-10-10.zh-TW.md)、[當批原始資料／命令／限制](performance/2026-10-10-batch1/README.zh-TW.md)。接手先核最新HEAD與未提交內容，不能把本機測量當另一台電腦的結果。
 
 ## 接手規則
@@ -73,9 +75,9 @@ P0 為後續決策前置；P1 為優先調查／實作候選；P2 只有在量�
 
 **已確認：** RenderObjects 排序後逐物件判斷是否落在可見範圍；EditorSession 的命中／擦除也有枚舉路徑。已存在的可見範圍排除保留。
 
-- [ ] 比較簡單網格、四叉樹等索引與直接掃描；依 01 的實際分布選擇。小文件可沿用掃描，避免固定索引成本。
-- [ ] 查詢候選後維持全域圖層次序。邊界涵蓋旋轉、線寬、曲線外凸、文字／便簽裝飾及延伸線；非有限範圍物件可留保守候選集合。
-- [ ] 索引跟隨移動／縮放／旋轉、暫態 PreviewOffset、取消、頁面／文件切換與 Undo／Redo；說明預覽與永久索引的資料邊界。
+- [x] 渲染分支比較256世界單位網格、原scan與frozen flat bounds下界；小／密集視野回scan。未實作四叉樹，沒有其收益證據。Cold配置與query配置／mutability成本公開記錄。
+- [x] 渲染候選維持全域stable Z；rect／circle／image／tape採原保守radius，複雜／超大／非有限／延伸物件保守global，保留renderer原cull與decorations，不宣稱其精確bounds索引已完成。
+- [x] 渲染索引跟隨direct geometry／preview／cancel／page／document／Undo／Redo；counter不序列化，order改變重建、geometry增量membership，其他預覽與永久交易不變。
 - [ ] 在同一合成資料上比對舊掃描結果，特別是框選、套索、橡皮擦與邊界點。
 
 **完成條件：** 大場景候選枚舉有可測改善，小場景成本可接受；沒有漏畫／漏選／錯誤擦除或跨頁污染。

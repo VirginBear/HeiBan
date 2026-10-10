@@ -1,0 +1,370 @@
+[
+  {
+    "path": "HeiBan.Update.Tests/HeiBan.Update.Tests.csproj",
+    "sha256": "c8f6505acfd8d5814d568b1a336cdf4630922b3bac2b7a20d307ca86a9db4429"
+  },
+  {
+    "path": "HeiBan.Update.Tests/Program.cs",
+    "sha256": "f18f9365014189951b5cddff71bbb58060ae844846158a4664debcd070f467b3"
+  },
+  {
+    "path": "HeiBan.Updater/HeiBan.Updater.csproj",
+    "sha256": "5087b09031eff8b2030b16ad16b3fe81a5e77b1c77b80889996971168229b1b0"
+  },
+  {
+    "path": "HeiBan.Updater/Program.cs",
+    "sha256": "ce52ab5f5f6dfe32c986f9dcfa85e172d594058a172ae0b4f5c9a5ab710117ed"
+  },
+  {
+    "path": "HeiBan.Windows.Core.Tests/HeiBan.Windows.Core.Tests.csproj",
+    "sha256": "63de0f41fb9a1eead3a59de5fa7e8d4e156dc255d5648a168e2fa78248516aea"
+  },
+  {
+    "path": "HeiBan.Windows.Core.Tests/Program.cs",
+    "sha256": "279e0a6b6038e7ccc9d38ecf4510f8514a4c310fe4ab6e02a68a102bdbac8806"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Diagnostics/PerformanceMeasurement.cs",
+    "sha256": "0076f4bb10828d5806ce206646eaf1eca1127e81c86821ddcb4ad177f09af708"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Engine/BoardExporter.cs",
+    "sha256": "b425326415d30f3fc99aaab263090d76bd790efaf89ba4040b05edb0089b16aa"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Engine/CalculatorModel.cs",
+    "sha256": "577bd166e02979098041599afe4c3a220894d1f7476b9410523a95bbb74a4c01"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Engine/CanvasHUDFormatter.cs",
+    "sha256": "b7f963ba7e522eb0dbf2e9b9a66b7c46ea134bd6a1933baba4803086a2c11f89"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Engine/CompassToolEngine.cs",
+    "sha256": "dfc8a7e403645e19a4a08de5621ce953192af77e021502192727836d76e3e696"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Engine/CurvePreview.cs",
+    "sha256": "db62c6122e3c37e37445cc6c1d9fbead0dcf29b6e381a95ae41480e98b8bef4a"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Engine/DocumentCodec.cs",
+    "sha256": "f7ab786962f0d6b5b75aeea8c7d326a137f88a5843ad9739c2ab46b3089eefa2"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Engine/DocumentSessionManager.cs",
+    "sha256": "1610a03480f96717246f641558bd9381d91ae96e62688739e7a3e77dc905b7d5"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Engine/DocumentSnapshot.cs",
+    "sha256": "7331f0659308df556cdc6f03853cd3c84166f899884159bd9cc8ec8d08dbd27f"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Engine/EditorSession.cs",
+    "sha256": "f8581afc022424122ddd552652f29290bc57dac27dae6d038bc2824f7eb45652"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Engine/ImagePlacementMath.cs",
+    "sha256": "c390e809161e8d2fc0a77a77783adfdca5ad5990a8b335550c6ee0b9ebcd3433"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Engine/InteractionBenchmark.cs",
+    "sha256": "8f179289a14ed00907d723eeeae36075b82cd0cf9b7aaaa2c524e12acc6d940d"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Engine/LaserPointerEngine.cs",
+    "sha256": "f51dfcea0537dbd5f796784c3b7f00f12fbd110fc8b3f0085508df5e5f27a453"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Engine/LassoSelection.cs",
+    "sha256": "92ec5cafd7005ccfe9dbc0d6fd7a1ba152022b5f05aeaf23bb51a99c9125672d"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Engine/LayerPresentation.cs",
+    "sha256": "1916bcb9fb2968c23971b06dd3bd303c553a5fcac30186e0aa0847c09a731c97"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Engine/ObjectHandles.cs",
+    "sha256": "b078bfaae52183cdcb0ccdc96187023cc7b0be7b6c413cb170054485ed23b025"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Engine/ObjectOrderCache.cs",
+    "sha256": "ffdf04a3cd6b81df613ee985a0d31b32eefd17ba8e28f162d20c42247df89581"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Engine/ObjectViewportCache.cs",
+    "sha256": "c51505b35d8b2658d271b3ce06e8e0a3972ced8d3d7401fdcb4c4b3ede53875d"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Engine/PdfDocumentAttachment.cs",
+    "sha256": "9af6f0b5f6352c9aaf9609353be282a65f57b9934b1bce8522fa9873de726406"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Engine/RulerGeometry.cs",
+    "sha256": "29616af4c994c300fabc274bc7a9c1eceb3ce00647e9c0743d89b4358deb12b1"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Engine/ScreenshotCaptureCoordinator.cs",
+    "sha256": "177f366125ac7ff68b5b4075e4e4935a84de0a381dcb6bf2b55ebc683a8998a2"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Engine/SelectionQuickActionCoordinator.cs",
+    "sha256": "7aca673e9276022fc3f8f8304a12c3ee008a0cdd8251d82b9484d7914553f7fb"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Engine/SelectionStyle.cs",
+    "sha256": "69e46649a11dabd7c7e40efef4d3df4ef095f271196b9fdf7204efe32794192d"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Engine/StrokeGeometry.cs",
+    "sha256": "598f5741c49044e97aea1b9c2b4bb897573094e60856c3bf0e753c9b4a6480ea"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Engine/TextStyleChange.cs",
+    "sha256": "9ab5e2eba829f11145b38d445ea140a46de2bb115d033a0f9e1b83f0facdfe51"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Engine/TimerCoordinator.cs",
+    "sha256": "b774fdfebb980450e122ab756cb9c3c88931013e75278b0b27dba4a498a031d4"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Engine/ToolbarPreferences.cs",
+    "sha256": "5baf29ca76bf7c8a75eddae93dee773af94a06433ce851fc32f9e26b124007d9"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Engine/VectorMath.cs",
+    "sha256": "b9e727c4ed2de236c23a196745dd3990d45ce1440e472b4ecaa520523067e1bb"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Engine/WindowSelection.cs",
+    "sha256": "b86540f2e9e929e846515908825b1686a5f4bbd694534bc751f01ff7eb2c73fb"
+  },
+  {
+    "path": "HeiBan.Windows.Core/HeiBan.Windows.Core.csproj",
+    "sha256": "4c58c19ff47e05ef94065d84d2b43909605752e0934396422ccab081b27bb0d4"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Models/BoardModels.cs",
+    "sha256": "286c914878f9587fa71a95f9efe85a478b98a853a00682cd495624bf60e2f323"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Updating/UpdateFiles.cs",
+    "sha256": "0920e154813124b66c3591965b83ce80f0b60c43a9ac0b015a98fb268f0c47c7"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Updating/UpdateInstallation.cs",
+    "sha256": "c10631b5d1132fa657def4c052c76a8a1b324a220312a48177346f2b04a2fb75"
+  },
+  {
+    "path": "HeiBan.Windows.Core/Updating/UpdatePolicy.cs",
+    "sha256": "1c1ffd93bc0886be526eaee9ee0e1ab479cbcc0f76cc99938964acafe75ec3c3"
+  },
+  {
+    "path": "HeiBan.Windows.Performance/HeiBan.Windows.Performance.csproj",
+    "sha256": "9edf551b5e782c0626f10802e13e6100e14242855887d18cafd6e2b43ad9bc0f"
+  },
+  {
+    "path": "HeiBan.Windows.Performance/Program.cs",
+    "sha256": "88ddc183c5ebdc4a30434eadaea29a16f18d4e021900074ac8a81b38e42c398c"
+  },
+  {
+    "path": "HeiBan.Windows/App.xaml.cs",
+    "sha256": "081caf208660bfb02fc6e1ce6c3e62b1438bd2e85049b48ad590c17c29ab6c15"
+  },
+  {
+    "path": "HeiBan.Windows/Engine/Direct2DCanvasRenderer.cs",
+    "sha256": "9341fad12d720ab0a6d43804318bf980d4baf2831608679f1b47d7c75a0a4a33"
+  },
+  {
+    "path": "HeiBan.Windows/Engine/Direct2DCanvasRenderer.TextCache.cs",
+    "sha256": "6fa955e9c1d75b32d3cedbe3205e4e7e5e8ee35a45c6025770718d49769cfae8"
+  },
+  {
+    "path": "HeiBan.Windows/Engine/RegionScreenshotService.cs",
+    "sha256": "e95e18c17002088afbab17715405e8f7ec9d3c9ffc26b6413c1ae0ba8e367b90"
+  },
+  {
+    "path": "HeiBan.Windows/Engine/WindowsInkCoordinator.cs",
+    "sha256": "f1f544f85ca56b9bdc06feb4efd6f745756d4995065c7233b46badb158e929b2"
+  },
+  {
+    "path": "HeiBan.Windows/HeiBan.Windows.csproj",
+    "sha256": "a11bc3fc8005b70171c55607740c96a4b6960acb0603d9111e8a4daac2f9fc9e"
+  },
+  {
+    "path": "HeiBan.Windows/MainWindow.Chrome.cs",
+    "sha256": "34d7fb71bf6fbff94a3d19bde08224d2a1599acb9e96a17fdb33bdeab8fd4dc5"
+  },
+  {
+    "path": "HeiBan.Windows/MainWindow.Export.cs",
+    "sha256": "4226c7bd66a2adb1b2b8597d6912b4f4932c13a44d3209fd0d11cee20de194e8"
+  },
+  {
+    "path": "HeiBan.Windows/MainWindow.FloatingTools.cs",
+    "sha256": "6dd720457ebbe7de9f0851672af424e8f2873603fffe71a5f9725af5fa6502dd"
+  },
+  {
+    "path": "HeiBan.Windows/MainWindow.Home.cs",
+    "sha256": "ca54bd0b405c8729ee7e0a59423870f55ff976f1ee1cd5a4a993324d2a02a50d"
+  },
+  {
+    "path": "HeiBan.Windows/MainWindow.Input.cs",
+    "sha256": "5a676ef90d5587b0b7c8d946e9e403852a5e56e4bb57ee698355d68e6f824d43"
+  },
+  {
+    "path": "HeiBan.Windows/MainWindow.Interaction.cs",
+    "sha256": "94cf968140459151633e471c4216ca2ec367b6cd07bc80f6a5449bc969ec966b"
+  },
+  {
+    "path": "HeiBan.Windows/MainWindow.Interaction.Validation.cs",
+    "sha256": "485a91a9cce94e128de7885e9d1e28e136c2235027c001dec1f8fac54d446325"
+  },
+  {
+    "path": "HeiBan.Windows/MainWindow.Library.cs",
+    "sha256": "9025eb914d13455fe7bd765e6829d0aabeccfe8d0bce30db3018b18b81fc742a"
+  },
+  {
+    "path": "HeiBan.Windows/MainWindow.Pages.cs",
+    "sha256": "8937dd6a0dce79b14c19d530a5086d6658230065e08936d316b536b675c9d20d"
+  },
+  {
+    "path": "HeiBan.Windows/MainWindow.Performance.cs",
+    "sha256": "6b05cedb6c0466e3093cfc010549ad438387e39af7116014799bcf0934bf12b1"
+  },
+  {
+    "path": "HeiBan.Windows/MainWindow.PerformanceBatch.cs",
+    "sha256": "7b3952adbe86dd2808fbe363aed36abb76cdb75b0d517aaf6c8e75c121bbbf77"
+  },
+  {
+    "path": "HeiBan.Windows/MainWindow.PerformanceScenes.cs",
+    "sha256": "5b5fbb3ac441274e93d58907ab7f35e08e225cf1399970e84ab14990761d3eb7"
+  },
+  {
+    "path": "HeiBan.Windows/MainWindow.PerformanceSpatial.cs",
+    "sha256": "1d47075a3ffe50b626602a34de51d88d70440c9621399460b2b80da5d984d52e"
+  },
+  {
+    "path": "HeiBan.Windows/MainWindow.Rendering.cs",
+    "sha256": "d25621629e65fe3eb34a0a151a025947a0c81bc9977ece2205d8a27413f7eac8"
+  },
+  {
+    "path": "HeiBan.Windows/MainWindow.RichText.cs",
+    "sha256": "f05f740cd5c76042a97cf814f1751dadfa79e7770c266c00062bfbd126819e45"
+  },
+  {
+    "path": "HeiBan.Windows/MainWindow.Ruler.cs",
+    "sha256": "b87d9bb5dce3a68efbf84fd8c03785b8c042fd252a4f4ca80dd9f046f2d03f94"
+  },
+  {
+    "path": "HeiBan.Windows/MainWindow.ScreenAnnotation.cs",
+    "sha256": "6978f18b2d9dff5a25f6ad08c8a3b9a7709d37e7ddbbea41d5dc88fc4fde845d"
+  },
+  {
+    "path": "HeiBan.Windows/MainWindow.Teaching.cs",
+    "sha256": "e7f0dcaeae4f86f5ce18140d0cf9261feebd56fac7d280e9d9a8e9b3d2449310"
+  },
+  {
+    "path": "HeiBan.Windows/MainWindow.TeachingPreferences.cs",
+    "sha256": "d6c7f9b5b21f6a0bbb3cfffc95f55649802335c387b0e2d766e20a80bf4c3dc5"
+  },
+  {
+    "path": "HeiBan.Windows/MainWindow.Updates.cs",
+    "sha256": "4d77fad761a0ae0863017cff080a2b8fe20cc1af0151c2ed9eedf29e1437ce24"
+  },
+  {
+    "path": "HeiBan.Windows/MainWindow.Validation.cs",
+    "sha256": "d676c6d25dca5c7cd55be187e559b012ddce3c3c4fe7c8957ec53a442cf8b10c"
+  },
+  {
+    "path": "HeiBan.Windows/MainWindow.xaml.cs",
+    "sha256": "b45eca1e4d7bd7a6044869196bc3cbd1d4d6bb1c4c13dc9190bd5c0e1248f685"
+  },
+  {
+    "path": "HeiBan.Windows/Packaging/Measure-Performance.ps1",
+    "sha256": "e075e38c524b50d440a391aebaae53983f5e09c0ac226bba8636c90a59eb9d07"
+  },
+  {
+    "path": "HeiBan.Windows/Packaging/Package-Installer.ps1",
+    "sha256": "d9d4623894f71162e5480b3434d7b9fb95c4ce68b502fda66c08a2cc74f0d894"
+  },
+  {
+    "path": "HeiBan.Windows/Packaging/Package-Portable.ps1",
+    "sha256": "ac1739b3bca3384ad26a81e4817bda231d2498f9cabcd9a7ddbf44f4ee40c5aa"
+  },
+  {
+    "path": "HeiBan.Windows/Packaging/Package-Store.ps1",
+    "sha256": "a1cb4546d0326c94cc76363832f59f2741edb19a0e9e14e7d043947ae8cb7a2f"
+  },
+  {
+    "path": "HeiBan.Windows/Packaging/Publish-Common.ps1",
+    "sha256": "c218e381f2f8304fcb630d5d462baa3bb3efaa56be7e315f01b8a7041eccdd72"
+  },
+  {
+    "path": "HeiBan.Windows/Packaging/Store/Generate-StoreAssets.ps1",
+    "sha256": "6adecb74ec9eda6c67cba1afe6bc357561163e0801e27f630a4cef177a126c10"
+  },
+  {
+    "path": "HeiBan.Windows/Packaging/Verify-PortableArtifact.ps1",
+    "sha256": "2b8555377975053aeab6e0e8a9f6e7cf9d138bb96c4e9fe1eeba8424f1a6f3c0"
+  },
+  {
+    "path": "HeiBan.Windows/Packaging/Verify-UpdateIntegration.ps1",
+    "sha256": "1042e1bdddbaf2c9f53823b54418eb4dc376dc877f387edf5006085e7c2d1e8a"
+  },
+  {
+    "path": "HeiBan.Windows/ScreenAnnotation/NativeOverlayWindow.cs",
+    "sha256": "3f48f5a42616177f88c0023607670f062db8fe9158ca5cb5931c6373ea1b1a60"
+  },
+  {
+    "path": "HeiBan.Windows/ScreenAnnotation/ScreenAnnotationWindow.Chrome.cs",
+    "sha256": "b13cbb35f8def45f6332e97e7f25cddea3ac9cadffc58615211b58188cbe42a3"
+  },
+  {
+    "path": "HeiBan.Windows/ScreenAnnotation/ScreenAnnotationWindow.cs",
+    "sha256": "ca2288f36b63538b41f25bff02e5066109d298b6e1382501c6b28162027ba68d"
+  },
+  {
+    "path": "HeiBan.Windows/ScreenAnnotation/ScreenAnnotationWindow.Docking.cs",
+    "sha256": "c5c1d255f2d7d293814bb4d76b0b3a0828532ead9266dc699723428941946084"
+  },
+  {
+    "path": "HeiBan.Windows/ScreenAnnotation/ScreenAnnotationWindow.Interaction.Validation.cs",
+    "sha256": "fa869f7471f9978e2c34f6abcd3b8b766f079c1e8dc28042634da85131d6dcf5"
+  },
+  {
+    "path": "HeiBan.Windows/ScreenAnnotation/ScreenAnnotationWindow.Objects.cs",
+    "sha256": "cb05037126f6692e65a7cb77d32674ccebd3b21562f3ee18e7612f26fba15e28"
+  },
+  {
+    "path": "HeiBan.Windows/ScreenAnnotation/ScreenAnnotationWindow.Performance.cs",
+    "sha256": "ea3f83fe866f1840e0cb3ef74c6fb4476e475122ae0b0c999e0249e19312e1eb"
+  },
+  {
+    "path": "HeiBan.Windows/ScreenAnnotation/ScreenAnnotationWindow.Style.cs",
+    "sha256": "1cfbc93549b547525a32d2a8da177a8ba2935511d72668e8df6d4e8bef794192"
+  },
+  {
+    "path": "HeiBan.Windows/ScreenAnnotation/ScreenAnnotationWindow.Text.cs",
+    "sha256": "70e825eb5a4ebe9a9f735418782672ad51b976435cb66782717ff031cb7584ae"
+  },
+  {
+    "path": "HeiBan.Windows/Updating/GitHubUpdateService.cs",
+    "sha256": "08e9701dd88545c61dceda9c5ca957bf233454ce7125ffc6839c045694608faa"
+  },
+  {
+    "path": "HeiBan.Windows/Views/PinIcon.cs",
+    "sha256": "7af32d4c7796a698cb27d6346bced958eb80a9d0427b0e48f5734d36e81e680e"
+  },
+  {
+    "path": "HeiBan.Windows/Views/TextDraftEditor.cs",
+    "sha256": "b8b355ac36b6426f2ed93e77b1bbda2b8cea5774c36a7dacd7da86a3438f67a0"
+  },
+  {
+    "path": "HeiBan.Windows/Views/TextStyleMenu.cs",
+    "sha256": "61294f1694a378a63994f4c92ee92bd56bba10fdbaa69e8d999b87c2cfc0cd40"
+  },
+  {
+    "path": "HeiBan.Windows/Views/ToolIcons.cs",
+    "sha256": "fab01fda388e6922ed81f5174636ebec165b2c1b73bfddcc13968eafdb2cc3c9"
+  }
+]
