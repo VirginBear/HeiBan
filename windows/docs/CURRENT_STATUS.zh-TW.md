@@ -1,5 +1,17 @@
 # Windows 目前開發狀態
 
+## 2026-10-10 — Partner Center 已申辦，商店準備與來源同步
+
+使用者告知已申辦帳戶，要求紀錄並更新 GitHub。已建立 [商店準備清單與當批日誌](STORE_PREPARATION_2026-10-10.zh-TW.md)，整理正式 MSIX 所需三項產品身分與保留名稱、免費商店簽章、送審素材及資料遷移驗收。尚未檢視私人後台或取得身分，MSIX／Store 送審未完成。本批同步上一批 Windows preview.6 來源；下方「未 commit／push」為上批結束時狀態，實際同步結果以本批日誌為準。GitHub 公開下載仍為 preview.5，未新增 Release。
+
+## 2026-10-10 — 1.0.12-preview.6 GitHub 自動更新（完成本機交付，未發布）
+
+Windows 來源升至 1.0.12-preview.6／FileVersion 1.0.12.6。首頁關於 → 更新設定、畫布更多 → 檢查更新與更新設定；GitHub 版啟動約十秒後及開啟期間每六小時背景檢查／下載，支援停用與預覽管道。按 Windows tag、語意版本、程序架構及 Installer／Portable 篩選，HTTPS 固定 repo／轉址白名單、size／GitHub SHA-256 驗證。
+
+保存成功後交給自包含 helper，等待父程序退出及同一安裝所有視窗關閉。Installer Inno 靜默升級；Portable 宣告檔案清單及 hash 預檢、備份／普通失敗 rollback，保留 Data／portable.dat／未知檔。新增關閉重入防護、交接鎖重試、待更新與已安裝 PE 架構核對、preview → stable 語意比較。Package identity 下不執行 GitHub 更新，由 Store 管理。
+
+本批最後來源 73 更新檢查及 700 Core／手冊檢查實際通過，隔離 x64 真 helper／真 Inno 流程（含鎖重試、preview→stable、其他視窗延後）通過；最終 x64 真 HeiBan 隔離啟動／正常關閉退出 0。兩架構 EXE／Portable 四包封裝退出 0、compiler warning／error 0，Portable x64 555／ARM64 551 個 inventory 檔逐 SHA、架構／手冊／README／空 Data／sidecar 通過。見 [最終產物與來源 SHA](ARTIFACTS_2026-10-10_1.0.12-preview.6.json)。ARM64 本機執行、真正 GitHub 新 Release 發布後更新、完整硬體操作／Store 封裝及送審未執行。MSI／MSIX 未產生，未 commit／push／發布，公開版本仍 preview.5；舊版需先手動裝含更新功能版本。SHA 驗證不是 Authenticode，未購買簽章憑證。見 [本批紀錄](AUTO_UPDATE_2026-10-10.zh-TW.md)。
+
 ## 2026-10-10 — GitHub Windows 1.0.12-preview.5（已公開）
 
 x64／ARM64各提供Installer ZIP及Portable ZIP，[新版下載](https://github.com/VirginBear/HeiBan/releases/tag/windows-v1.0.12-preview.5)。相應source fddf85e已推main且tag一致，77build-source blob保持相等；公開Portable原entry／Installer原EXE逐byte相同，7assets遠端size／digest與本機相符，7個未登入下載HEAD均200。

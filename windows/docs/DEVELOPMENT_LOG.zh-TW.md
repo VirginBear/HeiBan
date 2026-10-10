@@ -1,5 +1,19 @@
 # Windows 開發日誌
 
+## 2026-10-10 — 商店帳戶後續準備及 GitHub 同步
+
+使用者告知已申辦 Partner Center，授權記錄與更新 GitHub。開工保留上一批 Windows 自動更新未提交內容，核本地／遠端基準同為 3dca2ef，建立 [當批紀錄](STORE_PREPARATION_2026-10-10.zh-TW.md) 後調查。依 Microsoft 官方資料整理產品身分、免費 MSIX 簽章／送審條件，指出商店更新、獨立版更新、第一次資料遷移與 GPL 授權邊界。沒有修改 Mac／Web 或已封存程式／產物。Git 提交及 push 結果完成後追加；本批未重跑程式測試／建置，未製作 MSIX 或操作 Store 後台。
+
+## 2026-10-10 — GitHub 自動更新與商店路線（preview.6，本機交付完成）
+
+使用者授權直接實裝線上更新，並確認不購買外部簽章時的 MSIX 商店路線。開工工作樹乾淨，讀開發索引及 Windows 狀態／架構／問題，先建立 [當批日誌](AUTO_UPDATE_2026-10-10.zh-TW.md) 並持續記錄阻礙。只修改 Windows；没有發布或操作 Store 帳號。
+
+新增 Core 更新版本／來源／檔案契約、GitHub 背景下載服務、關於／更多設定入口、自包含 helper、程序租約、正常保存後交接、Inno 升級／Portable 明確清單與 rollback、封裝 inventory 和獨立更新檢查／隔離整合腳本。Store package identity 停用 GitHub 替換。原作品文件格式及資料根不變；新 update-files.json 是程式發行契約。
+
+本機缺 SDK／工具，隔離準備 .NET 10.0.401／Inno 6.7.3，首組工具命令拒絕、regex 換行錯判、測試例外分類、語言檔缺／過期 key、stable FileVersion 比較與交接 race 調查都保留在當批日誌。73 更新檢查、700 Core／手冊，以及隔離 x64 helper／Inno／作品標記保全已通過；最終修正後封裝和整合正在重跑。沒有沿用舊的 700 數字；實際命令及產物證據收尾追加。
+
+最後來源重跑 73／700 通過及 helper 整合成功；兩架構四包已完成、封裝退出 0，兩次 Inno Successful compile、最終 warning／error 0。Portable 555／551 檔逐 SHA、當前手冊／README、架構、空 Data 和 sidecar 通過，x64 真 App 隔離啟動／正常關閉退出 0。最後產物 [manifest](ARTIFACTS_2026-10-10_1.0.12-preview.6.json) 記大小／SHA、來源 snapshot、log hash 與未執行範圍。ARM64 執行／完整硬體／真新 Release／MSI／MSIX／Store／停電恢復未執行。只修改 Windows，未 commit／push／發布；留本機四包供使用者安裝，保留工具與隔離測試紀錄。
+
 ## 2026-10-10 — Windows x64／ARM64 GitHub 更新（完成）
 
 使用者明確授權更新VirginBear/HeiBan及清理過時Windows下載。已記錄git status、讀平台紀錄及舊公開發行規則。確認本機僅保留1.0.12-preview.5四包與SHA，x64 Portable／Setup皆存在；GitHub尚為0.1.0-preview.5七assets。只同步Windows來源與相關公開文件，保留同期Mac修改；先核SHA及相應來源、以draft上傳核對後發布，再移除過時Windows二進位，保留歷史Release說明／tag／雜湊文本。Mac公開版本另行管理，本輪不清Mac。

@@ -1,5 +1,13 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-10 — preview.6 更新邊界
+
+Core/Updating/UpdatePolicy 負責嚴格版本解析、Release repo／包名／架構／URL／digest 契約；UpdateFiles 負責 PE Machine、ZIP 路徑／ADS／連結／重複／大小上限、inventory hash 與 Portable 備份／rollback；UpdateInstallation 是每安裝 cache key、短期更新 mutex 與程序租約。均不讀寫作品模型。
+
+Windows/Updating/GitHubUpdateService 以 async HttpClient 背景查詢／下載，metadata 與 package 分開限制大小，下載驗證後原子寫 pending。UI 僅從 Changed 經 DispatcherQueue 更新獨立設定面板，手勢／繪圖永久狀態不受更新影響。Closing 保存完成後取消下載、核對最新偏好及 pending 架構，再複製自包含 helper 到 cache、寫 job 並啟動；重入 Closing 由 preparingClose 保護。
+
+HeiBan.Updater 等原程序與資料保存退出，取得安裝 gate 後檢查其他視窗／原二進位版本及架構、重新核下載 SHA。Inno 原安裝註冊、Portable 宣告程式檔替換，最後核版本／架構與 result；不 kill 使用者 App。GitHub 更新只信任指定 GitHub Release／TLS 及其 digest，不具獨立發行簽章。MSIX 分支停用，交商店處理。Packaging 同時發布 helper、生成 inventory，測試腳本使用獨立 fixture／AppId。
+
 ## 2026-10-10 — preview.5 右鍵契約
 
 ScreenRightClick取消暫態後Hit；空白直接返回，維持作畫及原選取。物件命中先damage舊選取，已包含ID保留多選，否則只選命中ID；切select後damage新把手，開MenuFlyout。只更新選取疊層，不改永久scene或模式。選單坐標由overlay實體桌面轉成chrome DIP，沿用ShowChromeFlyout焦點與style commit。自動右鍵及物件選單均不再切穿透；工具列模式及Ctrl+Alt+D為明確入口。

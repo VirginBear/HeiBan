@@ -1,6 +1,6 @@
 # 黑板 · Windows 原生版
 
-**最新本機試用版：1.0.12-preview.5（2026-10-10）**。以 Mac 1.0.12／20261010.4 的現行可操作功能為基準，Windows 使用 C#／.NET 10、WinUI 3 與 Win2D。主畫布為原生 Direct2D；PDF 匯出單獨使用 WebView2 列印。
+**最新本機試用版：1.0.12-preview.6（2026-10-10）**。本批加入 GitHub 背景更新；公開 GitHub 下載仍為 1.0.12-preview.5。以 Mac 1.0.12／20261010.4 的現行可操作功能為基準，Windows 使用 C#／.NET 10、WinUI 3 與 Win2D。主畫布為原生 Direct2D；PDF 匯出單獨使用 WebView2 列印。
 
 [目前狀態](docs/CURRENT_STATUS.zh-TW.md) · [功能對照與驗證](docs/MAC_1_0_12_PARITY_2026-10-10.zh-TW.md) · [建置紀錄](docs/BUILD_STATUS.zh-TW.md) · [離線手冊](HeiBan.Windows/Assets/HeiBanUserGuide.html) · [開發日誌](docs/DEVELOPMENT_LOG.zh-TW.md)
 
@@ -8,15 +8,27 @@
 
 | 類型 | 最新檔案 | 資料位置 |
 | --- | --- | --- |
-| ARM64 免安裝版 | `dist/HeiBan-Windows-Portable-1.0.12-preview.5-win-arm64.zip` | 解壓後程式旁的 `Data/` |
-| x64 免安裝版 | `dist/HeiBan-Windows-Portable-1.0.12-preview.5-win-x64.zip` | 解壓後程式旁的 `Data/` |
-| ARM64／x64 安裝版 | `dist/HeiBan-Setup-1.0.12-preview.5-arm64.exe`／`...-x64.exe` | `%LOCALAPPDATA%\HeiBan\Windows\` |
+| ARM64 免安裝版 | `dist/HeiBan-Windows-Portable-1.0.12-preview.6-win-arm64.zip` | 解壓後程式旁的 `Data/` |
+| x64 免安裝版 | `dist/HeiBan-Windows-Portable-1.0.12-preview.6-win-x64.zip` | 解壓後程式旁的 `Data/` |
+| ARM64／x64 安裝版 | `dist/HeiBan-Setup-1.0.12-preview.6-arm64.exe`／`...-x64.exe` | `%LOCALAPPDATA%\HeiBan\Windows\` |
 
 Parallels 的 Windows 11 ARM64 使用 ARM64 包。Portable 必須完整解壓到可寫入的位置，雙擊 HeiBan.exe，不要只複製 EXE。退出程式後才拔除隨身碟。升級前關閉舊程式，備份整個 Data，再複製到新版資料夾；作品、垃圾桶、縮圖與設定一起保留。
 
 .NET 與 Windows App SDK 自包含，普通畫布無需另裝 SDK。PDF 匯出需要 Edge WebView2 runtime；未安裝時會顯示錯誤，不影響其他匯出。安裝版每使用者安裝，不需管理員；可選桌面捷徑及 .heiban 開啟方式，解除安裝保留作品。
 
-本版僅在本機封裝，尚未發布至 GitHub。原 [preview.5 公開下載](https://github.com/VirginBear/HeiBan/releases/tag/windows-v0.1.0-preview.5) 為歷史版本；舊本機 Windows 包已依使用者要求清理，保留文字紀錄與作品備份。
+本版僅在本機封裝，尚未發布至 GitHub。現行 [1.0.12-preview.5 公開下載](https://github.com/VirginBear/HeiBan/releases/tag/windows-v1.0.12-preview.5) 保持原發行狀態。
+
+## 自動更新（preview.6 起）
+
+首頁「關於黑板 → 更新設定」或畫布「更多 → 檢查更新與更新設定」。GitHub 版預設在啟動約十秒後背景檢查，使用期間每六小時再檢查；可關閉背景更新／預覽版本，手動檢查。依 Windows tag、版本、x64／ARM64、Installer／Portable 篩選，下載後核對 GitHub asset digest 的 SHA-256 與大小。舊版需先手動安裝一次 preview.6 或更新的帶更新功能版本。
+
+正常關閉時先保存作品與螢幕註記，獨立 helper 等待程序退出；同一安裝尚有視窗時延後，不強制關閉、不自動重開。安裝版使用 Inno 靜默升級，Portable 只更新 `update-files.json` 宣告的程式檔，保留 Data／portable.dat／未知檔，普通失敗會還原已移動程式檔。關閉自動更新後不自動套用暫存包。下載中断／離線不阻止使用；更新結果與暫存在 `%LOCALAPPDATA%\HeiBan\Updates\` 的個別安裝目錄。更新期間請勿拔除儲存裝置；中斷電源或安裝失敗需使用官方包修復，備份暫存不自行刪除。
+
+MSIX 有 package identity 時交由 Microsoft Store 更新，不執行 GitHub 替換。商店 MSIX 免費簽章／託管；GitHub SHA 驗證不是 Authenticode，獨立 EXE 首次執行仍可能有系統提示。此批不產生 MSI 或 MSIX、不操作 Store 帳號或發布；商店準備需實際 Identity Name／Publisher 與封裝驗收。[本批紀錄](docs/AUTO_UPDATE_2026-10-10.zh-TW.md)。
+
+## 更新發行契約
+
+發布 tag `windows-v<版本>`，版本為 `major.minor.patch` 或 `major.minor.patch-preview.N`；Release 附正確架構的 `HeiBan-Setup-<版本>-<arch>.exe`（建議直接上傳）及／或原 Installer ZIP、Portable ZIP。GitHub 必須提供有效 `sha256:` asset digest；只 push 原始碼不會發送更新。Portable 保留完整 `update-files.json`，不要手動改動程式包內容後沿用舊清單。未經發布的 preview.6 不會讓既有用戶自動更新。
 
 ## 本次操作修正
 

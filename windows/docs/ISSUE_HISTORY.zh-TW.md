@@ -1,5 +1,19 @@
 # Windows 問題與排解紀錄
 
+## 2026-10-10 — Store 正式身分尚待提供
+
+使用者已申辦 Partner Center，但目前只有後台網址，未取得產品套件身分。網址不能確認驗證／名稱預留／產品存在；已請使用者從 Product identity 提供三個 manifest 欄位及保留名稱。等待期間完成官方規則調查、商店準備紀錄與上一批來源同步；不使用假的 CN 或把 package identity 偵測當作 MSIX 成品。資料遷移／解除安裝保留及 runFullTrust 送審尚需實際封裝驗收。搜尋曾包含不存在的 Services 目錄，記下 rg 路徑錯誤而未推測該目錄架構。
+
+## 2026-10-10 — 自動更新實作／驗證
+
+主機缺 .NET SDK，`dotnet --info` 僅 .NET 8 runtime；官方腳本隔離安裝 10.0.401 後 WinUI 建置可用。合併工具下載／啟動命令自動審查拒絕；分步下載、核官方 Authenticode 再以隔離位置安裝成功。Inno 官方繁體翻譯缺 23 新訊息、有 3 過期 key；初包使用英文 fallback 並 warning，保存補齊／清理後的翻譯隨 Packaging 發行。詳見本批日誌，不隱藏初次 warning。
+
+更新測試先抓到 regex `$` 接受結尾換行，改 `\A`／`\z`；第二次中斷來自測試以 IOException 代替實際 InvalidDataException，補正測試捕捉範圍。69 檢查通過後，追加 PE／待更新架構共 73 檢查通過。
+
+稽核確認 preview.6 FileVersion .6 大於 stable .0，僅數字判斷會跳過正式版；改看 ProductVersion 的語意版本，隔離實際 helper 的 preview → stable 通過。另稽核 helper 起動可能早於 App 釋放交接鎖，補短期重試；安裝架構遷移時 cache 可能仍有旧 pending，交接及 PE 再核架構。後兩項不是聲稱已有使用者遇到的實測故障；以隔離 fixture 補驗證。
+
+Portable ordinary failure rollback、父程序退出後更新、其他視窗存在延後、Data hash／未知檔保全、損壞包拒絕、獨立 Inno 安裝／升級／測試註冊移除通過。真 GitHub 新 Release、ARM64 執行、完整硬體／商店／停電恢復未驗收；不以 synthetic 或 x64 smoke 替代。
+
 ## 2026-10-10 — 公開封裝／GitHub發布
 
 首輪新手冊比對KeyError，ZIP使用Windows反斜線而查詢用斜線，已正規化entry索引及安全路徑；重跑保留原entry／EXE逐byte、PE／手冊／無Data檢查通過。draft target使用短SHA回422，改完整commit後成功；draft尚無公開tag endpoint回404，透過release清單／ID核對，publish後tag endpoint正常。新版7assets遠端digest／size及公開HTTP200後才刪舊5下載，源與舊歷史文本保留。

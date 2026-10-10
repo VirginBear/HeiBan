@@ -16,10 +16,14 @@ try {
         New-Item -ItemType Directory -Force (Join-Path $staging "Data\$name") | Out-Null
     }
     Copy-Item (Join-Path $root 'README.md') (Join-Path $staging 'README-Windows.md')
+    Write-HeiBanUpdateInventory $staging
     $zip = Join-Path $dist "HeiBan-Windows-Portable-$version-$Runtime.zip"
     Compress-Archive -Path (Join-Path $staging '*') -DestinationPath $zip -Force -CompressionLevel Optimal
     (Get-FileHash $zip -Algorithm SHA256).Hash + '  ' + [IO.Path]::GetFileName($zip) | Set-Content "$zip.sha256" -Encoding ascii
     Write-Host "免安裝版：$zip"
 } finally {
+    $staging = [IO.Path]::GetFullPath($staging)
+    $stagingRoot = [IO.Path]::GetFullPath((Join-Path $root '.staging')).TrimEnd('\') + '\'
+    if (-not $staging.StartsWith($stagingRoot,[StringComparison]::OrdinalIgnoreCase)) { throw '拒絕清理範圍外的封裝暫存。' }
     if(Test-Path $staging){Remove-Item $staging -Recurse -Force}
 }

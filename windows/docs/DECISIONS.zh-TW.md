@@ -1,5 +1,19 @@
 # Windows 開發決策
 
+## 2026-10-10 — 商店身分與第一版移轉前置
+
+正式 MSIX 必須使用 Partner Center 指派的 Identity Name／Publisher／PublisherDisplayName 及使用者保留名稱，不猜測。商店對 MSIX 重新簽章，因此不購買 CA 憑證作為商店前置。EXE FileVersion 與 Store 套件版本分開；取得身分後建立遞增的四段套件版本。首次從 Inno／Portable 遷移、資料重新導向及商店解除安裝生命週期需實際驗收，不能套用獨立版的作品保留結論。GitHub 來源同步不等於 Release 或 Store 更新。
+
+## 2026-10-10 — GitHub 與 MSIX 更新責任
+
+- 現有每使用者 Inno 安裝版及 Portable 使用 GitHub Releases（清單，不能用排除預覽版的 latest）；固定 VirginBear/HeiBan、windows-v 語意版本及程序架構／包類型。preview.6 預設接收預覽，可在更新設定停用背景更新或預覽。只在 App 開啟期間檢查，沒有系統排程／常駐服務。
+- 不另外購買 CA 憑證作為 GitHub 更新前置；驗證 GitHub HTTPS／asset SHA 與大小，只描述平台來源與完整性，不當作獨立簽章。Microsoft Store 的 EXE／MSI 路線仍需可信任簽章；MSIX 路線由商店免費簽章／託管／更新，後續需真實 Store Identity／Publisher。
+- 主視窗保存作品／教學設定／螢幕註記成功後才交接，helper 等父程序退出再套用；租約與短期互斥鎖阻止新舊同一安裝重疊替換，舊版沒有租約時補查程序。交接 work lock 重試，不強制終止使用者程序。別的視窗未關閉時保留 pending。
+- Portable `update-files.json` schema：`Version` 是產品語意版本、`Files` 是相對路徑 → SHA-256 映射；排除 Data／portable.dat／清單本身。封裝時記錄全部程式檔。更新前核對舊／新清單與來源 hash，遇到修改過的已知檔、未知檔名衝突、junction 或壞路徑時改手動處理。普通失敗還原已移動程式檔；停電／強殺不宣稱完成 crash recovery，備份保留供修復。
+- Installer 交原 Inno 靜默升級，不跳過其註冊／解除安裝資訊，不變作品根。helper 從安裝目錄外的個別安裝 cache 執行，pending／偏好／結果不放在作品 JSON。保留未知更新偏好欄位。更新不自動重啟，不阻止離線使用。
+- `major.minor.patch-preview.N` 以語意排序，stable 高於同版 preview；Windows FileVersion stable 的第四碼為 0，不能用純數字判斷是否已轉正式。待更新架構及 installed／payload 的 PE Machine 均核對。
+- 有 MSIX package identity 時不使用 GitHub 檔案替換；本批未製作商店包，不把 identity 偵測分支當作商店驗收。正常關閉／隔離 smoke 及 synthetic 更新檢查不等於實際發布後的網路／硬體驗收。
+
 ## 2026-10-10 — GitHub Windows下載只保留最新二進位
 
 使用者明確要求更新及清理GitHub舊版本。先推相應Windows來源，draft上傳並核SHA／size後公開，確認未登入下載可用再刪已替代的Windows二進位及舊HTML。保留歷史Release／tag與SHA／manifest文本，不改寫Git歷史。原本機包與公開授權ZIP分開，公開manifest指向精確source commit，source tag不移動；Mac由其平台另行更新。

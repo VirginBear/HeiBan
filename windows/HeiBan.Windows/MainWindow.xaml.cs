@@ -48,7 +48,7 @@ public partial class MainWindow : Window
     private List<LibraryCard> _library=[];
     private string _tool="select", _strokeColor="#24533d", _fillColor="#b8d4b2";
     private double _strokeWidth=4,_opacity=1;
-    private bool _workspaceOpen,_closing,_changingLayers,_readingMode;
+    private bool _workspaceOpen,_closing,_preparingClose,_changingLayers,_readingMode;
     private Views.TextDraftEditor? _editor;
     private BoardObject? _editingObject;
     private Vector2 _mouse;
@@ -74,20 +74,26 @@ public partial class MainWindow : Window
         AppWindow.Resize(new global::Windows.Graphics.SizeInt32(Math.Min((int)(1100*scale),display.Width-80),Math.Min((int)(760*scale),display.Height-80)));
         AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory,"Assets","AppIcon.ico"));
         PortableBadge.Visibility=_storage.IsPortableMode?Visibility.Visible:Visibility.Collapsed;
+        _updates=new Updating.GitHubUpdateService(_storage.IsPortableMode);
         _renderer.ResourcesChanged+=()=>InvalidateCanvas();
         _autosave.Tick+=async(_,_)=>{if(_workspaceOpen&&_session.IsDirty&&_editor is null&&!_gesture&&!_propertyEditing&&_saveGate.CurrentCount>0)await SaveAsync(deferThumbnail:true);};
         _autosave.Start();
         _screenshotWatchTimer.Tick+=async(_,_)=>await OnScreenshotWatchTickAsync();
         AppWindow.Closing+=async(_,e)=>
         {
-            if(_closing)return;e.Cancel=true;
-            CancelScreenshotCapture("視窗關閉");FinishText();CommitPropertyEdit();if(_gesture)CancelGesture();
-            await SaveTeachingSettingsAsync();
-            if(_screenAnnotation?.IsActive==true&&!await _screenAnnotation.StopAsync())return;
-            if(_workspaceOpen&&_session.IsDirty&&!await SaveAsync())return;
-            _closing=true;Close();
+            if(_closing)return;e.Cancel=true;if(_preparingClose)return;_preparingClose=true;
+            try
+            {
+                CancelScreenshotCapture("視窗關閉");FinishText();CommitPropertyEdit();if(_gesture)CancelGesture();
+                await SaveTeachingSettingsAsync();
+                if(_screenAnnotation?.IsActive==true&&!await _screenAnnotation.StopAsync())return;
+                if(_workspaceOpen&&_session.IsDirty&&!await SaveAsync())return;
+                if(_updates is not null)await _updates.PrepareExitAsync();
+                _closing=true;Close();
+            }
+            finally{_preparingClose=false;}
         };
-        Closed+=(_,_)=>{_autosave.Stop();_thumbnailTimer.Stop();_searchTimer.Stop();_teachingSaveTimer.Stop();CancelScreenshotCapture("視窗關閉");_timerTickTimer?.Stop();_laserTimer.Stop();_propertyCommitTimer.Stop();_headerHideTimer.Stop();ClearScene();CanvasSurface.RemoveFromVisualTree();_renderer.Dispose();_screenAnnotation?.Dispose();};
+        Closed+=(_,_)=>{_updates?.Dispose();_autosave.Stop();_thumbnailTimer.Stop();_searchTimer.Stop();_teachingSaveTimer.Stop();CancelScreenshotCapture("視窗關閉");_timerTickTimer?.Stop();_laserTimer.Stop();_propertyCommitTimer.Stop();_headerHideTimer.Stop();ClearScene();CanvasSurface.RemoveFromVisualTree();_renderer.Dispose();_screenAnnotation?.Dispose();};
         App.StartupStage="顯示首頁";
         try { EnsureScreenAnnotation(); } catch(Exception e) { StatusText.Text="螢幕畫布初始化失敗："+e.Message; }
     }
@@ -96,7 +102,7 @@ public partial class MainWindow : Window
         try { if(file is null)await RefreshLibrary();else await OpenAsync(await _storage.ImportAsync(file));
             var validation=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--validation-output=",StringComparison.Ordinal));
             if(validation is not null)await RunNativeValidationAsync(validation[20..]);
-            else if(Environment.GetCommandLineArgs().Contains("--screen-canvas"))await StartScreenAnnotationAsync(); }
+            else {if(Environment.GetCommandLineArgs().Contains("--screen-canvas"))await StartScreenAnnotationAsync();_updates?.Start();} }
         catch(Exception e){await Error(e);}
     }
     private async Task Error(Exception e)
@@ -239,7 +245,7 @@ public partial class MainWindow : Window
     {if(!_workspaceOpen||string.IsNullOrWhiteSpace(TitleBox.Text)||TitleBox.Text==_session.Document.Board.Title)return;_session.Begin();_session.Document.Board.Title=TitleBox.Text.Trim();_session.Commit();}
     private async void Export_Click(object sender,RoutedEventArgs e)=>await ExportDocumentAsync();
     private async void About_Click(object sender,RoutedEventArgs e)
-    {await new ContentDialog{Title="黑板 · Windows "+typeof(MainWindow).Assembly.GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute),false).Cast<System.Reflection.AssemblyInformationalVersionAttribute>().First().InformationalVersion.Split('+')[0],Content="C# / .NET 10 / WinUI 3 / Win2D\n本機作品資料：\n"+_storage.DataDirectory+"\n\n功能基準：Mac 1.0.12。Windows 預覽版；實體手寫裝置、多螢幕及完整跨 App 操作仍待驗收。",CloseButtonText="關閉",XamlRoot=Root.XamlRoot}.ShowAsync();}
+    {var result=await new ContentDialog{Title="黑板 · Windows "+Updating.GitHubUpdateService.CurrentVersion,Content="C# / .NET 10 / WinUI 3 / Win2D\n本機作品資料：\n"+_storage.DataDirectory+"\n\n功能基準：Mac 1.0.12。Windows 預覽版；實體手寫裝置、多螢幕及完整跨 App 操作仍待驗收。",PrimaryButtonText="更新設定",CloseButtonText="關閉",XamlRoot=Root.XamlRoot}.ShowAsync();if(result==ContentDialogResult.Primary)await ShowUpdatesAsync();}
     private void Tool_Click(object sender,RoutedEventArgs e)=>ActivateTool((string)((FrameworkElement)sender).Tag);
     private void Properties_Click(object sender,RoutedEventArgs e)
     {Inspector.Visibility=Inspector.Visibility==Visibility.Visible?Visibility.Collapsed:Visibility.Visible;if(Inspector.Visibility==Visibility.Visible){_changingLayers=true;try{RefreshLayersIfNeeded();}finally{_changingLayers=false;}}RefreshProperties();RefreshChrome();}

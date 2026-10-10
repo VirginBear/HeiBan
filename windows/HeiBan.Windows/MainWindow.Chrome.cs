@@ -219,6 +219,10 @@ public partial class MainWindow
         aboutItem.Click += (_, _) => About_Click(this, new RoutedEventArgs());
         menu.Items.Add(aboutItem);
 
+        var updatesItem = new MenuFlyoutItem { Text = "檢查更新與更新設定…" };
+        updatesItem.Click += async (_, _) => await ShowUpdatesAsync();
+        menu.Items.Add(updatesItem);
+
         ShowExclusiveFlyout(menu, MoreNavButton);
     }
 
