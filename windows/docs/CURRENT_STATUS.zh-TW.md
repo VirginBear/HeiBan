@@ -1,5 +1,9 @@
 # Windows 目前開發狀態
 
+## 2026-10-10 — 正式 Store 身分已取得，MSIX 封裝進行中
+
+使用者提供 HeiBan 黑板正式 Product identity，已接入 Windows 專用 Store manifest，SDK single-project MSIX 明確 build 模式，保留原 EXE／Portable 路線。首份套件版 1.0.12.0／產品 preview.6；x64 初包 SDK build 成功，雙架構／bundle 正在封裝。見 [本批紀錄](MSIX_PACKAGING_2026-10-10.zh-TW.md) 與 [商店草稿](STORE_LISTING_DRAFT.zh-TW.md)。商店安裝／資料遷移／更新／WACK、ARM64 執行、送審／上架未執行；下方「身分待提供」為前批歷史，不是目前狀態。
+
 ## 2026-10-10 — Partner Center 已申辦，商店準備與來源同步
 
 使用者告知已申辦帳戶，要求紀錄並更新 GitHub。已建立 [商店準備清單與當批日誌](STORE_PREPARATION_2026-10-10.zh-TW.md)，整理正式 MSIX 所需三項產品身分與保留名稱、免費商店簽章、送審素材及資料遷移驗收。尚未檢視私人後台或取得身分，MSIX／Store 送審未完成。本批同步上一批 Windows preview.6 來源；下方「未 commit／push」為上批結束時狀態，實際同步結果以本批日誌為準。GitHub 公開下載仍為 preview.5，未新增 Release。

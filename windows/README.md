@@ -24,7 +24,15 @@ Parallels 的 Windows 11 ARM64 使用 ARM64 包。Portable 必須完整解壓到
 
 正常關閉時先保存作品與螢幕註記，獨立 helper 等待程序退出；同一安裝尚有視窗時延後，不強制關閉、不自動重開。安裝版使用 Inno 靜默升級，Portable 只更新 `update-files.json` 宣告的程式檔，保留 Data／portable.dat／未知檔，普通失敗會還原已移動程式檔。關閉自動更新後不自動套用暫存包。下載中断／離線不阻止使用；更新結果與暫存在 `%LOCALAPPDATA%\HeiBan\Updates\` 的個別安裝目錄。更新期間請勿拔除儲存裝置；中斷電源或安裝失敗需使用官方包修復，備份暫存不自行刪除。
 
-MSIX 有 package identity 時交由 Microsoft Store 更新，不執行 GitHub 替換。商店 MSIX 免費簽章／託管；GitHub SHA 驗證不是 Authenticode，獨立 EXE 首次執行仍可能有系統提示。此批不產生 MSI 或 MSIX、不操作 Store 帳號或發布；商店準備需實際 Identity Name／Publisher 與封裝驗收。[本批紀錄](docs/AUTO_UPDATE_2026-10-10.zh-TW.md)。
+MSIX 有 package identity 時交由 Microsoft Store 更新，不執行 GitHub 替換。商店 MSIX 免費簽章／託管；GitHub SHA 驗證不是 Authenticode，獨立 EXE 首次執行仍可能有系統提示。自動更新批次未產生 MSI／MSIX；後續正式商店身分已取得，MSIX 由下方獨立管道產生。[自動更新紀錄](docs/AUTO_UPDATE_2026-10-10.zh-TW.md)。
+
+## Microsoft Store 封裝
+
+正式套件身分 `DD7EC7CF.HeiBan`，商店產品 `9NV8T7RKV4MZ`。`HeiBanStoreBuild=true` 啟用 SDK 的 MSIX 編譯／PRI／manifest 管道；預設 EXE／Portable 仍使用 None。Store package version 為 `1.0.12.0`，產品版仍是 `1.0.12-preview.6`；這兩個版本分開管理。
+
+在 Windows 使用 .NET 10 SDK：`powershell -File HeiBan.Windows/Packaging/Package-Store.ps1`。腳本依序產出 x64／ARM64 `.msix`，合成 `dist/store/HeiBan-Store-1.0.12.0-x64-arm64.msixbundle`，附 SHA 與 STORE_ARTIFACTS.json。使用獨立 `.build/store-*` 中間產物，保留原授權及手冊，不包含 GitHub helper／Portable marker／作品。未簽章包供商店送審，不能當一般用戶可直接側載的公開包。
+
+商店最低 OS 宣告為 Windows 10 19041；程式與 Windows App SDK 自包含，PDF 仍需 WebView2。首次由 EXE／Portable 改用 Store，先匯出／備份作品，不假設自動共用資料庫；移除／重設 App 前先備份。商店安裝／更新／資料遷移、ARM64 執行與 WACK 未驗收，尚未送審／上架。[商店手冊](HeiBan.Windows/Packaging/Store/README-Store.zh-TW.md)、[本批紀錄](docs/MSIX_PACKAGING_2026-10-10.zh-TW.md)、[刊登草稿](docs/STORE_LISTING_DRAFT.zh-TW.md)。
 
 ## 更新發行契約
 

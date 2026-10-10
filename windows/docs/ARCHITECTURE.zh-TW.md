@@ -1,5 +1,11 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-10 — 正式 MSIX 管道
+
+HeiBanStoreBuild 為顯式 MSBuild 分支，啟用 WindowsPackageType=MSIX／AppxPackage、Store manifest、PRI 與 self-contained SDK 封裝。既有 None 與手動 PRI publish target 保持各自條件。Store 編譯使用獨立 artifacts 路徑，App 啟動仍用官方 self-contained 初始化，禁止 bootstrap／DeploymentManager 額外下載安裝。SDK 自行處理 native activation；package identity 分支停用 GitHub updater，不帶外部 helper。
+
+Packaging/Store 是產品公開身分／套件版本／品牌縮放圖與商店手冊；Package-Store.ps1 負責雙架構 SDK build、必要 payload／授權／身分核對、MakeAppx bundle 與來源／產物 SHA。純授權文件排除 PRI qualifier indexing 後還原 payload，不改原檔名／內容。此層只宣告 runFullTrust，沒有 unvirtualizedResources；現有作品根在 MSIX 下的重新導向與解除安裝生命週期待實際驗收。
+
 ## 2026-10-10 — preview.6 更新邊界
 
 Core/Updating/UpdatePolicy 負責嚴格版本解析、Release repo／包名／架構／URL／digest 契約；UpdateFiles 負責 PE Machine、ZIP 路徑／ADS／連結／重複／大小上限、inventory hash 與 Portable 備份／rollback；UpdateInstallation 是每安裝 cache key、短期更新 mutex 與程序租約。均不讀寫作品模型。

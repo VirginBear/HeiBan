@@ -1,5 +1,9 @@
 # Windows 問題與排解紀錄
 
+## 2026-10-10 — MSIX 封裝調查
+
+正式 Store 身分已取得，前批待提供問題解除。初次 MSIX SDK build 成功，但授權檔版本點號被當 PRI qualifier（17 個含 README），另缺 mspdbcmf（1 個 symbol 警告）。不把該 build 稱為無警告。README 以純檔名連結、封裝 CLI 關閉除錯 symbols；第一次以原始路徑排除 PRI 沒命中 SDK layout，改按 PackagingOutputs TargetPath 暫時排除純文件再還原。Package-Store 字串 `$arch:` 語法錯誤修正 `${arch}`；外層純 PowerShell 不能依未設定 LASTEXITCODE 推定成功。調查／最後結果見當批日誌，保留初包與過程證據。
+
 ## 2026-10-10 — Store 正式身分尚待提供
 
 使用者已申辦 Partner Center，但目前只有後台網址，未取得產品套件身分。網址不能確認驗證／名稱預留／產品存在；已請使用者從 Product identity 提供三個 manifest 欄位及保留名稱。等待期間完成官方規則調查、商店準備紀錄與上一批來源同步；不使用假的 CN 或把 package identity 偵測當作 MSIX 成品。資料遷移／解除安裝保留及 runFullTrust 送審尚需實際封裝驗收。搜尋曾包含不存在的 Services 目錄，記下 rg 路徑錯誤而未推測該目錄架構。

@@ -1,5 +1,9 @@
 # Windows 開發日誌
 
+## 2026-10-10 — 正式商店身分與 MSIX 封裝
+
+使用者回覆 Product identity，延續 MSIX 與 GitHub 同步授權。工作樹開工乾淨；先讀索引／Windows 文件並建立 [即時日誌](MSIX_PACKAGING_2026-10-10.zh-TW.md)。新增 Store build 分支、正式 manifest／公開 identity、原圖示縮放資源、雙架構／bundle 腳本、商店手冊與刊登／審核草稿。版本獨立，資料生命週期不作未驗證保證。初次 x64 MSIX 退出 0／18 warnings；腳本 `$arch:` ParserError 及 PRI exclude 路徑失效都記錄並修正。最終產物／SHA／Git 同步結果收尾追加；本批未執行 App 測試／WACK／Store 操作。
+
 ## 2026-10-10 — 商店帳戶後續準備及 GitHub 同步
 
 使用者告知已申辦 Partner Center，授權記錄與更新 GitHub。開工保留上一批 Windows 自動更新未提交內容，核本地／遠端基準同為 3dca2ef，建立 [當批紀錄](STORE_PREPARATION_2026-10-10.zh-TW.md) 後調查。依 Microsoft 官方資料整理產品身分、免費 MSIX 簽章／送審條件，指出商店更新、獨立版更新、第一次資料遷移與 GPL 授權邊界。沒有修改 Mac／Web 或已封存程式／產物。Git 提交及 push 結果完成後追加；本批未重跑程式測試／建置，未製作 MSIX 或操作 Store 後台。

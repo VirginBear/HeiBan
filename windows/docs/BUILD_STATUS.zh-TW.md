@@ -1,5 +1,9 @@
 # Windows 建置與發行記錄
 
+## 2026-10-10 — 正式 Store MSIX 封裝
+
+正式產品身分已接 SDK MSIX build；初包 x64 成功、雙架構／bundle 最後封裝進行中。Windows App SDK 與 .NET 自包含，不带 GitHub helper／作品／Portable marker。套件版 1.0.12.0，未簽章供 Store 送審。來源隔離、SDK manifest validation、PRI／legal payload 與 hash 結果完成後記於 [本批日誌](MSIX_PACKAGING_2026-10-10.zh-TW.md)。App 安裝執行、移轉、WACK、ARM64 原生與 Store 送審未執行。
+
 ## 2026-10-10 — 1.0.12-preview.6 自動更新（本機四包）
 
 官方 .NET 10.0.401／Inno Setup 6.7.3 隔離工具建置。最後來源依序執行 Package-Installer.ps1／Package-Portable.ps1 的 win-x64／win-arm64，各退出 0，兩次 Successful compile；最終 log warning／error 0。新增獨立自包含 helper 與 update-files.json。產物是兩架構 EXE、兩架構 Portable ZIP，各附 SHA sidecar；未產生 MSI／MSIX，未發布。精確大小／SHA／來源 snapshot 見 [產物清單](ARTIFACTS_2026-10-10_1.0.12-preview.6.json)。
