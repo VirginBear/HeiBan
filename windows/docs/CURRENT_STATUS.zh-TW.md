@@ -1,5 +1,11 @@
 # Windows 目前開發狀態
 
+## 2026-10-11 — 第二批本機x64免安裝試用包可用
+
+使用者要求未發布版本仍可試用，已另製作`dist/trials/HeiBan-Windows-Portable-1.0.12-preview.6-perf2-2026-10-11-r2-win-x64.zip`與同名直接啟動資料夾。完整解壓、雙擊HeiBan.exe，作品存自己Data。Label区分同version歷史包，沒有覆寫原dist或Store1.0.12.0；ZIP只在本機，未發GitHub Release／Store。初包保留，最終r2補強封裝guard後重出。
+
+App／helper self-contained x64 publish与封裝退出0、無warning/error，557 payload逐SHA／空Data／PE／版本／sidecar／93來源SHA核對完成；本批未執行新App／Core／native／smoke測試，前批2324／127是歷史來源驗收。原bundle SHA相同，ARM64本批未封裝。來源／檔案／命令／限制见[本批紀錄](PORTABLE_TRIAL_2026-10-11.zh-TW.md)、[產物清單](PORTABLE_TRIAL_ARTIFACT_2026-10-11.json)。Git同步封裝入口與紀錄，不包含本機ZIP／作品。
+
 ## 2026-10-11 — 第二批渲染候選索引
 
 完成PERF04渲染分支：大而稀疏視野採網格，保留stable Z與live頁面／visibility，小／密集／超界回原scan、複雜型別保守global。非序列化bounds counter、交易內geometry增量更新、Z/list／Cancel／Undo替換重建。Hit／擦除／框選沒有接index，PERF04整項仍待辦；PERF05 GPU分區未實作。

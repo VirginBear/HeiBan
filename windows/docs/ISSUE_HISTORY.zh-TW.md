@@ -1,5 +1,9 @@
 # Windows 問題與排解紀錄
 
+## 2026-10-11 — Trial封裝sidecar防覆寫條件
+
+新wrapper第一包完成後，靜態檢視發現PowerShell`@($payload,$zip,$zip+'.sha256')`會拆出額外.sha256項，未正確守衛既存sidecar；payload／ZIP guard有效，未覆寫舊產物，也不影響App。改`($zip+'.sha256')`，新r2 Label重新publish／壓縮，兩包／log保留；最終557 entry SHA／93 source／空Data／PE／版本靜態核對通過。沒有因紀錄要求自行跑App測試，初包是歷史候選、最終交付r2。
+
 ## 2026-10-11 — 候選有效性成本／編譯失敗
 
 初次grid九欄record比對10000 p95約0.51→1.28ms，候選77個並未保證收益；明確欄位／增量更新只小幅改善，改非序列化bounds counter後acceptance0.36124→0.07980ms。explore全保留；相等setter吞signed-zero由靜態檢視抓到，改保存value、只對不等值增counter。

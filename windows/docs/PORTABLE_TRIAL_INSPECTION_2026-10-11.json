@@ -1,0 +1,23 @@
+{
+  "success": true,
+  "scope": "Static packaging inspection, no app execution",
+  "payloadFiles": 557,
+  "dataFiles": 0,
+  "sourceFiles": 93,
+  "sourceMismatch": 0,
+  "guideMatches": true,
+  "readmeMatches": true,
+  "productVersion": "1.0.12-preview.6+3fa30f989cacd7fab1a861b0ade2176619ee92e2",
+  "architectures": [
+    {
+      "machine": "0x8664",
+      "path": "HeiBan.exe"
+    },
+    {
+      "machine": "0x8664",
+      "path": "Updater/HeiBan.Updater.exe"
+    }
+  ],
+  "zipSha256": "3ac4685ba0bef4f2e74b89f90f32a8150e1cb60a17fe83e8e072aca1a38dc36d",
+  "bytes": 131511496
+}

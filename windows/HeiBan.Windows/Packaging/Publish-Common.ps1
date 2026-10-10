@@ -1,15 +1,16 @@
 ﻿function Publish-HeiBan {
-    param([string]$Configuration, [ValidateSet('win-x64','win-arm64')][string]$Runtime, [string]$Destination)
+    param([string]$Configuration, [ValidateSet('win-x64','win-arm64')][string]$Runtime, [string]$Destination, [string]$ArtifactsPath)
     if ($env:OS -ne 'Windows_NT') { throw 'WinUI XAML 必須在 Windows 上編譯。' }
     $project = Join-Path $PSScriptRoot '..\HeiBan.Windows.csproj'
     $platform = if ($Runtime -eq 'win-arm64') { 'ARM64' } else { 'x64' }
     $null = Get-Command dotnet -ErrorAction Stop
+    $artifactArguments = if ($ArtifactsPath) { @('--artifacts-path', $ArtifactsPath) } else { @() }
     & dotnet publish $project -c $Configuration -r $Runtime --self-contained true `
         -p:Platform=$platform -p:WindowsPackageType=None -p:WindowsAppSDKSelfContained=true `
-        -p:PublishAot=false -p:PublishSingleFile=false -o $Destination
+        -p:PublishAot=false -p:PublishSingleFile=false -o $Destination @artifactArguments
     if ($LASTEXITCODE -ne 0) { throw "dotnet publish 失敗，代碼 $LASTEXITCODE" }
     $updaterProject = Join-Path $PSScriptRoot '..\..\HeiBan.Updater\HeiBan.Updater.csproj'
-    & dotnet publish $updaterProject -c $Configuration -r $Runtime --self-contained true -p:PublishSingleFile=true -o (Join-Path $Destination 'Updater')
+    & dotnet publish $updaterProject -c $Configuration -r $Runtime --self-contained true -p:PublishSingleFile=true -o (Join-Path $Destination 'Updater') @artifactArguments
     if ($LASTEXITCODE -ne 0) { throw "更新程式 publish 失敗，代碼 $LASTEXITCODE" }
     Copy-Item (Join-Path $PSScriptRoot '..\..\Licenses') (Join-Path $Destination 'Licenses') -Recurse -Force
     # The app PRI holds the compiled XAML; runtime PRIs cannot replace it.

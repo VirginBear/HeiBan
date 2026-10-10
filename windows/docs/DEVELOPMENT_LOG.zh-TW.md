@@ -1,5 +1,11 @@
 # Windows 開發日誌
 
+## 2026-10-11 — 第二批本機免安裝試用包
+
+使用者詢問未發布版的免安裝試用，開工3fa30f9只原.vscode/未追蹤，先讀平台並建[日誌](PORTABLE_TRIAL_2026-10-11.zh-TW.md)。原Portable入口會覆寫同p6包，因此另加Label trial入口／存在拒絕覆寫，Common可選隔離ArtifactsPath；版本不改。重新publish App／helper、授權／README／空Data／inventory／ZIP／sidecar，557 entry SHA、93來源SHA、PE／版本／Data靜態核對完成；無新增Core／native／smoke或App啟動，不沿用前批成功數字當本批測試。
+
+靜態檢視發現guard逗號陣列加字串會拆錯sidecar項，修括號並用新Label重封r2，兩組原始log／產物保留。最終試用zip131,511,496 bytes、SHA與位置見[artifact](PORTABLE_TRIAL_ARTIFACT_2026-10-11.json)，557／93與Store保全重核通過。本機直接啟動資料夾已備好，原dist／Store SHA／作品与其他平台保留；新封裝未發Release或Store，ZIP不提交Git。平台與私人交接同步，命令／未驗收／具體Git結果另記日誌。
+
 ## 2026-10-11 — 接續第二批視野候選網格
 
 從163e660開始、保留.vscode/，先建[日誌](PERFORMANCE_BATCH2_2026-10-11.zh-TW.md)与稀疏基準。九欄record比對反而慢／native CS0173與次生Xaml失敗保留；改setter非序列化counter与membership增量更新，原order/cull退路。靜態檢視抓到signed-zero相等setter問題，修正並加JSON/future-field檢查。
