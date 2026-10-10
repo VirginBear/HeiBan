@@ -1,0 +1,147 @@
+{
+  "version": "1.0.12-preview.1",
+  "fileVersion": "1.0.12.1",
+  "macBaseline": {
+    "version": "1.0.12",
+    "build": "20261010.4"
+  },
+  "created": "2026-10-10",
+  "buildHost": "Windows 11 ARM64 / .NET SDK 10.0.401 / Inno 6.7.3",
+  "packages": [
+    {
+      "file": "HeiBan-Setup-1.0.12-preview.1-arm64.exe",
+      "bytes": 63927132,
+      "sha256": "2105243441f2de9b71732caec5cc104160caebca564945521458dc1463336119",
+      "sidecarVerified": true
+    },
+    {
+      "file": "HeiBan-Setup-1.0.12-preview.1-x64.exe",
+      "bytes": 66581610,
+      "sha256": "391c73dc65596e71eef519d1ca787f7875cb722283d5ed349a3883a8b82c5725",
+      "sidecarVerified": true
+    },
+    {
+      "file": "HeiBan-Windows-Portable-1.0.12-preview.1-win-arm64.zip",
+      "bytes": 92707697,
+      "sha256": "04af741d48d12d007e1dbe6ad7977bde61765af1a234d61476e492434112fc47",
+      "sidecarVerified": true,
+      "machine": "0xaa64",
+      "requiredFilesVerified": true,
+      "emptyData": true,
+      "licenseFiles": 25,
+      "manualVerified": true,
+      "entries": 554
+    },
+    {
+      "file": "HeiBan-Windows-Portable-1.0.12-preview.1-win-x64.zip",
+      "bytes": 95412968,
+      "sha256": "149264c3f3e9b07bca6121f30c7f56a6e021638c7bc8b799d8fc98196734af5e",
+      "sidecarVerified": true,
+      "machine": "0x8664",
+      "requiredFilesVerified": true,
+      "emptyData": true,
+      "licenseFiles": 25,
+      "manualVerified": true,
+      "entries": 558
+    }
+  ],
+  "validation": {
+    "coreChecks": 543,
+    "arm64NativeRendering": true,
+    "nativeScreenSession": true,
+    "vectorPdfStrictParsing": true,
+    "x64Runtime": "未執行",
+    "installerUpgrade": "未執行",
+    "hardwarePointerMultiMonitor": "未執行",
+    "sourceFilesShaVerified": 66,
+    "nativeMainText": {
+      "draftSeparate": true,
+      "chineseMultiline": true,
+      "wholeDraftStyle": true,
+      "cancelPreserves": true,
+      "rightClickKeepsMultiSelection": true,
+      "hardwareIme": "未執行"
+    },
+    "nativeLibrary": {
+      "favoritesFilter": true,
+      "preferencesPersist": true,
+      "multiSelection": true,
+      "sidebar": true,
+      "cardWidth": 190,
+      "viewportCapsule": true,
+      "trashRestoreUi": true,
+      "hardwareClicks": "未執行"
+    },
+    "nativeScreenDocking": {
+      "fourSides": true,
+      "verticalWidth": 128,
+      "verticalHeight": 1376,
+      "collapsedVerticalHeight": 528,
+      "iconOnly": true,
+      "fixedClearClose": true,
+      "singleHorizontalRow": true,
+      "valuesAndHandlersRetained": true,
+      "dragHardware": "未執行"
+    },
+    "nativeScreenText": {
+      "draftSeparate": true,
+      "chineseMultiline": true,
+      "doubleClickEdit": true,
+      "cancelPreserves": true,
+      "toolSwitchCommits": true,
+      "textContextMenu": true,
+      "shiftMultiSelection": true,
+      "rightClickKeepsMultiSelection": true,
+      "selectionAddsNoUndo": true,
+      "styleUndo": true,
+      "imeHardware": "未執行"
+    },
+    "nativeScreenObjectCommands": {
+      "rightClickKeepsDrawing": true,
+      "objectMenu": true,
+      "compatibleCopyPayload": true,
+      "duplicateDeleteUndo": true,
+      "oneClickClearUndo": true,
+      "clipboardRoundtrip": "未執行，不覆寫使用者剪貼簿"
+    },
+    "compilerWarningsErrors": 0,
+    "pdfStrict": {
+      "success": true,
+      "strictParsing": true,
+      "pages": 1,
+      "operators": {
+        "BT": 2,
+        "c": 382,
+        "l": 75
+      },
+      "metadataStreamEditableObjects": 4,
+      "standardAttachment": false
+    },
+    "hardwareIme": "未執行",
+    "visualInspectionCurrent12": "Mac鎖定，未執行"
+  },
+  "publication": "本機，未發布",
+  "deployment": {
+    "success": true,
+    "version": "1.0.12.1",
+    "processId": 6984,
+    "payloadShaVerifiedFiles": 549,
+    "shortcutCurrent": true
+  },
+  "dataPreservation": {
+    "version": "1.0.12.1",
+    "path": "C:\\HeiBanPreview\\Current",
+    "shortcut": "黑板 Windows 最新版",
+    "processId": 6984,
+    "preservedFiles": 34,
+    "backedUpFiles": 34,
+    "boardFiles": 4,
+    "backup": "\\\\Mac\\Home\\Desktop\\Code\\HeiBan\\windows\\recovered-user-data\\2026-10-10\\vm\\c12",
+    "zipShaVerified": true,
+    "previousPayloadRemovedBytes": 263789137
+  },
+  "cleanup": {
+    "removedBytes": 1964671701,
+    "record": "CLEANUP_1.0.12_2026-10-10.json"
+  }
+}

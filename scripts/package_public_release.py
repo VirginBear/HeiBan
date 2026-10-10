@@ -59,6 +59,10 @@ def common_files(platform: str) -> dict[str, bytes]:
     exception = ROOT / "windows/LICENSE-WINDOWS-EXCEPTION.txt"
     if not exception.is_file():
         raise ValueError("Windows SDK distribution requires the approved GPL section 7 exception")
+    files["INSTALL-README.txt"] = files["INSTALL-README.txt"].replace(
+        "Windows 透明螢幕畫布／雷射等仍未提供；包內舊手冊以最新線上文件為準。\n".encode(),
+        "Windows 已提供透明螢幕畫布與雷射；實機互動限制見平台文件。\n".encode(),
+    )
     files["INSTALL-README.txt"] += (
         "\nWindows 安裝／使用前請閱讀 WINDOWS-RUNTIME-TERMS.txt 與 third-party/。\n"
         "Windows 限定 SDK 例外見 LICENSE-WINDOWS-EXCEPTION.txt；HeiBan 本身仍須 GPL 開源。\n"
@@ -136,10 +140,13 @@ def package_mac() -> None:
 def package_windows() -> None:
     project = ET.parse(ROOT / "windows/HeiBan.Windows/HeiBan.Windows.csproj")
     version = project.findtext(".//Version")
-    original_manifest = json.loads((ROOT / "windows/docs/ARTIFACTS_2026-10-09_preview5.json").read_text())
+    manifests = sorted((ROOT / "windows/docs").glob(f"ARTIFACTS_*_{version}.json"))
+    if len(manifests) != 1:
+        raise ValueError("Exactly one verified artifact manifest is required for the current Windows version")
+    original_manifest = json.loads(manifests[0].read_text())
     if version != original_manifest["version"]:
         raise ValueError("The original artifact manifest must match the Windows source version")
-    originals = {a["filename"]: a for a in original_manifest["artifacts"]}
+    originals = {a["file"]: a for a in original_manifest["packages"]}
     folder = ROOT / "windows/dist/public"
     folder.mkdir(parents=True, exist_ok=True)
     files = []
@@ -158,11 +165,14 @@ def package_windows() -> None:
                 archive.writestr(name, data)
         portable = folder / portable_name
         with zipfile.ZipFile(ROOT / "windows/dist" / portable_name) as source:
-            executable = next(PurePosixPath(n) for n in source.namelist() if PurePosixPath(n).name == "HeiBan.exe")
+            names = {n.replace("\\", "/"): n for n in source.namelist()}
+            executable = next(PurePosixPath(n) for n in names if PurePosixPath(n).name == "HeiBan.exe")
             prefix = "" if str(executable.parent) == "." else str(executable.parent) + "/"
+            if source.read(names[prefix + "Assets/HeiBanUserGuide.html"]) != (ROOT / "windows/HeiBan.Windows/Assets/HeiBanUserGuide.html").read_bytes():
+                raise ValueError("Rebuild Windows: the bundled and published manuals must match")
             with zipfile.ZipFile(portable, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as archive:
                 for item in source.infolist():
-                    path = PurePosixPath(item.filename)
+                    path = PurePosixPath(item.filename.replace("\\", "/"))
                     if path.is_absolute() or ".." in path.parts:
                         raise ValueError("Unsafe ZIP member")
                     if "Data" in path.parts and not item.is_dir() and item.file_size:
@@ -171,8 +181,7 @@ def package_windows() -> None:
                 for name, data in common_files("windows").items():
                     archive.writestr(prefix + name, data)
         files.extend([installer, portable])
-    # Latest source guide remains a separate asset: the old compiled app's bundled
-    # guide is not silently replaced without rebuilding the Windows product.
+    # The separate download must match the guide already bundled in both Portable builds.
     guide = folder / f"HeiBan-User-Guide-Windows-{version}.html"
     shutil.copy2(ROOT / "windows/HeiBan.Windows/Assets/HeiBanUserGuide.html", guide)
     finish(folder, files + [guide], "windows-arm64-x64", version)

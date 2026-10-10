@@ -658,6 +658,154 @@ var emojiLayer=LayerPresentation.Build(new[]{new BoardObject{Type="text",Text=st
 Check(emojiLayer.Title=="文字："+string.Concat(Enumerable.Repeat("👩‍🏫",28))+"…","Snippet truncates at grapheme boundaries");
 Check(LayerPresentation.Build(new[]{new BoardObject{Type="unfamiliar",IsLocked=true}})[0].Description=="其他物件 · 已鎖定","Unknown types and lock state have readable descriptions");
 
+// Mac 1.0.8 teaching and shared document behavior.
+var multi=new EditorSession();multi.Open(new HeiBanDocument{Objects=[new BoardObject{Id="one",Type="rect",X=10,Y=20,Width=40,Height=50},new BoardObject{Id="two",Type="text",X=100,Y=20,Text="資料",IsLocked=true},new BoardObject{Id="three",Type="rect",X=200,Y=20,IsVisible=false}]});
+multi.SetSelection(new[]{"one","two","missing"});Check(multi.SelectedIds.Count==2,"Selection validates document identities");
+multi.Begin();multi.MoveSelection(10,15);multi.Commit();Check(multi.Document.Objects[0].X==20&&multi.Document.Objects[0].Y==35,"Multiple selection moves unlocked object");Check(multi.Document.Objects[1].X==100,"Multiple move protects locked objects");
+multi.Undo();Check(multi.Document.Objects[0].X==10,"Batch move uses one undo");multi.Redo();Check(multi.Document.Objects[0].X==20,"Batch move redo restores movement");
+multi.SetSelection(new[]{"one","two"});multi.DeleteSelected();Check(multi.Document.Objects.Count==2&&multi.Document.Objects.Any(o=>o.Id=="two"),"Batch delete protects locked objects");multi.Undo();Check(multi.Document.Objects.Count==3,"Batch deletion undo restores all objects");
+Check(multi.PageObjects.Count()==3&&multi.VisibleObjects.Count()==2,"Hidden objects remain in layer inventory");
+var primaryStyle=new BoardObject{Id="primary",Type="rect",X=13};var beforeStyle=DocumentCodec.Clone(primaryStyle);primaryStyle.StrokeColor="#EF4444";primaryStyle.FontSize=30;
+var otherStyle=new BoardObject{Id="other",Type="rect",X=90};var lockedStyle=new BoardObject{Id="locked",Type="text",IsLocked=true};var textStyle=new BoardObject{Id="label",Type="text"};
+SelectionStyle.ApplyChanged(beforeStyle,primaryStyle,new[]{otherStyle,lockedStyle,textStyle});Check(otherStyle.StrokeColor=="#EF4444"&&otherStyle.X==90&&otherStyle.Id=="other","Batch styles do not copy geometry or identity");Check(otherStyle.FontSize!=30&&textStyle.FontSize==30,"Text styles only target text types");Check(lockedStyle.StrokeColor!="#EF4444","Batch styles preserve locks");
+var lassoPolygon=new[]{new InkPoint(0,0),new InkPoint(100,0),new InkPoint(100,100),new InkPoint(0,100)};
+Check(LassoSelection.Contains(new InkPoint(50,50),lassoPolygon),"Lasso contains interior point");Check(!LassoSelection.Contains(new InkPoint(150,50),lassoPolygon),"Lasso excludes exterior point");Check(!LassoSelection.Contains(new InkPoint(50,50),lassoPolygon.Take(2).ToArray()),"Incomplete lasso selects nothing");
+Check(LassoSelection.Intersects(new BoardObject{Type="rect",X=90,Y=40,Width=30,Height=20},lassoPolygon),"Lasso supports partial boundary overlap");Check(!LassoSelection.Intersects(new BoardObject{Type="rect",X=10,Y=10,Width=20,Height=20,IsVisible=false},lassoPolygon),"Lasso ignores hidden objects");
+var laserTransient=new LaserPointerEngine{FadeDuration=.5};var lp=new InkPoint(1,2);laserTransient.Add(lp,0);lp.X=100;Check(laserTransient.Samples[0].Point.X==1,"Laser clones samples");laserTransient.Add(new InkPoint(2,3),.1);laserTransient.EndTrail();laserTransient.Add(new InkPoint(3,4),.2);Check(laserTransient.Samples[2].StartsTrail,"Laser separates gesture trails");laserTransient.Prune(.61);Check(laserTransient.Samples.Count==1,"Laser prunes faded samples");
+for(var i=0;i<1000;i++)laserTransient.Add(new InkPoint(i,i),1+i*.0001);Check(laserTransient.Samples.Count==500,"Laser bounds live sample memory");laserTransient.Clear();Check(laserTransient.Samples.Count==0,"Laser clear leaves no persistent object");
+var exportDoc=new HeiBanDocument{Board=new BoardMetadata{Title="<script>中文 & 標題</script>",CanvasMode="infinite",GridStyle="grid"},Objects=[new BoardObject{Id="e1",Name="主圖層",Type="arrow",X=10,Y=10,Width=100,Height=80,X1=110,Y1=10,X2=10,Y2=90,StrokeColor="#EF4444",Extension="end"},new BoardObject{Id="e2",Type="text",X=20,Y=120,Width=300,Height=50,Text="中文 <b>文字</b>",RichTextSpans=[new TextSpan{Text="中文 ",IsBold=true,Color="#16A34A"},new TextSpan{Text="<b>文字</b>",IsUnderline=true}]},new BoardObject{Id="e3",Type="tape",X=30,Y=200,Width=120,Height=40,IsRevealed=true,StrokeColor="#F59E0B"},new BoardObject{Id="e4",Type="circle",X=400,Y=30,Width=80,Height=60}]};
+var exportArea=BoardExporter.Bounds(exportDoc.Board,exportDoc.Objects);Check(exportArea.Width>450&&exportArea.Height>200,"Full export bounds include content outside viewport");
+var svg=BoardExporter.Svg(exportDoc,exportDoc.Objects,exportArea);var xml=System.Xml.Linq.XDocument.Parse(svg);Check(xml.Root?.Name.LocalName=="svg","SVG is well formed XML");Check(svg.Contains("&lt;script&gt;中文 &amp; 標題&lt;/script&gt;")&&!svg.Contains("<script>中文"),"Export titles escape markup");Check(svg.Contains("&lt;b&gt;文字&lt;/b&gt;"),"Rich text remains literal, not HTML injection");Check(svg.Contains("foreignObject")&&svg.Contains("font-weight:bold"),"SVG contains rich text formatting");Check(svg.Contains(".12")&&svg.Contains("5 4"),"Revealed tape exports faint fill and outline");
+var html=BoardExporter.Html(exportDoc,exportDoc.Objects,exportArea);Check(html.Contains("id=\"heiban-data\"")&&html.Contains("\\u003cscript\\u003e",StringComparison.OrdinalIgnoreCase),"HTML preserves editable JSON without closing script injection");Check(html.Contains("Content-Security-Policy")&&html.Contains("img-src data:"),"HTML uses embedded media and no remote resources");
+Check(BoardExporter.Bounds(new BoardMetadata{CanvasMode="fixed",CanvasWidth=595,CanvasHeight=842},exportDoc.Objects).Width==595,"Fixed canvas exports paper dimensions");
+var cropped=new BoardObject{Type="image",OriginalWidth=800,OriginalHeight=600,Width=100,Height=150,CropX=200,CropY=100,CropWidth=200,CropHeight=300,ImageUrl="data:image/png;base64,AA=="};var croppedSvg=BoardExporter.Svg(exportDoc,new[]{cropped},new(0,0,300,300));Check(croppedSvg.Contains("viewBox=\"200 100 200 300\""),"SVG uses original-pixel crop rectangle");
+var teachingDoc=new HeiBanDocument{Objects=[new BoardObject{Type="stroke",BrushKind="calligraphy",Name="鋼筆"},new BoardObject{Type="tape",IsRevealed=true,TapeStyle="striped"}]};var teachingRoundTrip=DocumentCodec.Decode(DocumentCodec.Encode(teachingDoc));Check(teachingRoundTrip.Objects[0].BrushKind=="calligraphy"&&teachingRoundTrip.Objects[1].IsRevealed==true,"Mac brush and tape fields round trip");
+var upgradedToolbar=new ToolbarPreferences{VisibleTools=["select","pen"],HiddenTools=[]};upgradedToolbar.Normalize();Check(new[]{"laser","tape","lasso","extension","clearAll","viewLock"}.All(upgradedToolbar.HiddenTools.Contains),"Existing toolbar preferences receive new tools in More");
+var customTimer=new TimerCoordinator();customTimer.SetCountdownDuration(73);customTimer.Mode=TimerMode.Countdown;customTimer.Start();customTimer.UpdateDisplayTimes(73);Check(customTimer.Status==TimerStatus.TimesUp,"Custom countdown reaches requested duration");
+var minimumPdf=System.Text.Encoding.ASCII.GetBytes("%PDF-1.7\n1 0 obj\n<< /Type /Catalog >>\nendobj\nxref\n0 2\n0000000000 65535 f \n0000000009 00000 n \ntrailer\n<< /Size 2 /Root 1 0 R >>\nstartxref\n50\n%%EOF\n");
+var attached=PdfDocumentAttachment.Append(minimumPdf,exportDoc);var attachmentText=System.Text.Encoding.ASCII.GetString(attached);
+Check(attached.Take(minimumPdf.Length).SequenceEqual(minimumPdf),"PDF attachment preserves original vector payload");
+Check(attachmentText.EndsWith("%%EOF\n",StringComparison.Ordinal)&&attachmentText.Contains("/Prev 50"),"PDF attachment finishes a valid incremental trailer");
+var marker=attachmentText.Split("%HeiBanDocumentJSON-START%\n")[1].Split("\n%HeiBanDocumentJSON-END%")[0];Check(DocumentCodec.Decode(System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(marker))).Objects.Count==4,"PDF attachment uses Mac editable payload contract");
+var lastXref=long.Parse(System.Text.RegularExpressions.Regex.Matches(attachmentText,@"startxref\s+(\d+)")[^1].Groups[1].Value);Check(attachmentText[(int)lastXref..].StartsWith("xref\n",StringComparison.Ordinal),"PDF incremental xref uses exact byte offsets");
+var ray=new BoardObject{Type="line",X1=0,Y1=0,X2=100,Y2=0,X=0,Y=0,Width=100,Height=0,Extension="end",StrokeWidth=2};Check(VectorMath.IsPointInObject(new InkPoint(300,0),ray,2)&&!VectorMath.IsPointInObject(new InkPoint(-300,0),ray,2),"Ray hit testing respects allowed extension direction");
+Check(LayerPresentation.Build(new[]{new BoardObject{Type="rect",IsVisible=false}})[0].Description.Contains("已隱藏"),"Hidden layers have a readable visibility indicator");
+// Mac 1.0.12 text-only batch commands must preserve mixed values and future-format data.
+var batchText=new EditorSession();var future=System.Text.Json.JsonSerializer.SerializeToElement(new{revision="future"});
+var textOne=new BoardObject{Id="t1",Type="text",Text="中文\n多行",FontSize=24,StrokeColor="#ef4444",Opacity=.4,IsItalic=true,PageId="p1",ExtraFields=new(){["futureText"]=future},RichTextSpans=[new TextSpan{Text="中文",Color="#22c55e",IsItalic=true,HighlightColor="#ff00ff",ExtraFields=new(){["futureSpan"]=future}}]};
+var textTwo=new BoardObject{Id="t2",Type="sticky",FontSize=48,StrokeColor="#3b82f6",Opacity=.8,PageId="p1"};
+var textLocked=new BoardObject{Id="tl",Type="text",IsLocked=true,PageId="p1"};var textShape=new BoardObject{Id="ts",Type="rect",PageId="p1"};var textOtherPage=new BoardObject{Id="tp",Type="text",PageId="p2"};
+batchText.Open(new HeiBanDocument{Board=new BoardMetadata{CanvasMode="notebook",ActivePageId="p1"},Objects=[textOne,textTwo,textLocked,textShape,textOtherPage]});batchText.SetSelection(new[]{"t1","t2","tl","ts","tp"});
+Check(TextStyles.ApplySelection(batchText,new(Bold:true)),"Text batch changes commit");
+Check(textOne.IsBold==true&&textTwo.IsBold==true,"Text and sticky receive batch bold");
+Check(textLocked.IsBold!=true&&textShape.IsBold!=true&&textOtherPage.IsBold!=true,"Text command protects locks, non-text and other pages");
+Check(textOne.FontSize==24&&textTwo.FontSize==48&&textOne.Opacity==.4&&textTwo.Opacity==.8,"Only requested fields change; mixed sizes and opacity survive");
+Check(textOne.RichTextSpans![0].IsBold==true&&textOne.RichTextSpans[0].IsItalic==true&&textOne.RichTextSpans[0].HighlightColor=="#ff00ff","Rich text formatting updates without losing unrelated attributes");
+Check(textOne.ExtraFields!["futureText"].GetProperty("revision").GetString()=="future"&&textOne.RichTextSpans[0].ExtraFields!["futureSpan"].GetProperty("revision").GetString()=="future","Text and span unknown fields survive");
+batchText.Undo();Check(batchText.Document.Objects.Where(o=>o.Id is "t1" or "t2").All(o=>o.IsBold!=true)&&!batchText.CanUndo,"Entire text batch is one undo");
+batchText.SetSelection(new[]{"t1","t2","tl","ts"});TextStyles.ApplySelection(batchText,new(Color:"#a855f7",Size:144,Align:"center"));
+var changedText=batchText.Document.Objects.First(o=>o.Id=="t1");Check(changedText.StrokeColor=="#a855f7"&&changedText.RichTextSpans![0].Color=="#a855f7","Base and rich text colors agree");
+Check(changedText.Height>=144*1.35*2&&changedText.Align=="center","Large multiline text expands conservatively");
+Check(batchText.Document.Objects.First(o=>o.Id=="ts").StrokeColor!="#a855f7","Mixed shape selection remains untouched by text colors");
+var generationBefore=batchText.Generation;TextStyles.ApplySelection(batchText,new());Check(batchText.Generation==generationBefore,"Empty delta adds no history");
+var invalidBefore=DocumentCodec.Encode(batchText.Document);TextStyles.ApplySelection(batchText,new(Size:double.NaN,Bold:true));Check(DocumentCodec.Encode(batchText.Document)==invalidBefore,"Invalid numeric style is rejected atomically");
+var scaledText=new BoardObject{Type="text",Text="Hi",FontSize=48};TextStyles.Apply(scaledText,new(Size:12),2);Near(scaledText.FontSize!.Value,24,"Screen text menu uses logical points at 200 percent DPI");
+TextStyles.Apply(scaledText,new(Size:500,Opacity:0));Check(scaledText.FontSize==144&&scaledText.Opacity==.05,"Text style values clamp to Mac limits");
+TextStyles.Apply(scaledText,new(Color:"invalid",Family:"",Align:"other"));Check(scaledText.StrokeColor!="invalid"&&scaledText.Align=="left","Malformed custom fields cannot corrupt styles");
+Check(TextStyles.ValidColor("#Aa03fF")&&!TextStyles.ValidColor("#123")&&!TextStyles.ValidColor("#1234567"),"Custom text color validates exact hexadecimal form");
+
+// Snapshot isolation and transient drags protect serialized artwork and undo while removing JSON from pointer updates.
+var fullSnapshot=new HeiBanDocument{ExtraFields=new(){["rootFuture"]=future},Board=new BoardMetadata{Pages=[new BoardPage{Title="one",ExtraFields=new(){["pageFuture"]=future}}],Pins=[new BoardPin{Name="pin",ExtraFields=new(){["pinFuture"]=future}}],CollaboratorIds=["owner"],MemberRoles=new(){["owner"]="editor"},ExtraFields=new(){["boardFuture"]=future}},Objects=[new BoardObject{Type="text",Text="中文",ImageUrl=new string('A',100000),RichTextSpans=[new TextSpan{Text="中文",IsBold=true,ExtraFields=new(){["spanFuture"]=future}}],ExtraFields=new(){["objectFuture"]=future}}]};
+var snapshotCopy=DocumentCodec.Clone(fullSnapshot);Check(DocumentCodec.Encode(fullSnapshot)==DocumentCodec.Encode(snapshotCopy)&&DocumentSnapshot.Same(fullSnapshot,snapshotCopy),"Fast snapshots preserve every serialized field");
+Check(ReferenceEquals(fullSnapshot.Objects[0].ImageUrl,snapshotCopy.Objects[0].ImageUrl),"Immutable image payload is shared without copying bytes");
+snapshotCopy.Board.Pages![0].Title="changed";snapshotCopy.Board.Pins![0].X=45;snapshotCopy.Board.CollaboratorIds![0]="other";snapshotCopy.Board.MemberRoles!["owner"]="viewer";snapshotCopy.Objects[0].RichTextSpans![0].IsBold=false;snapshotCopy.Objects[0].ExtraFields!.Remove("objectFuture");snapshotCopy.ExtraFields!.Clear();
+Check(fullSnapshot.Board.Pages![0].Title=="one"&&fullSnapshot.Board.Pins![0].X==0&&fullSnapshot.Board.CollaboratorIds![0]=="owner"&&fullSnapshot.Board.MemberRoles!["owner"]=="editor","Snapshot collections and child models cannot mutate the original board");
+Check(fullSnapshot.Objects[0].RichTextSpans![0].IsBold==true&&fullSnapshot.Objects[0].ExtraFields!.ContainsKey("objectFuture")&&fullSnapshot.ExtraFields!.Count==1,"Snapshot rich text and unknown dictionaries are isolated");
+Check(!DocumentSnapshot.Same(fullSnapshot,snapshotCopy),"Structural comparison sees nested mutations");
+var previewPoints=new[]{new InkPoint(0,0,.8){TiltX=12,TiltY=-3,ExtraFields=new(){["pointFuture"]=future}},new InkPoint(100,50,.9)};
+var previewStroke=new BoardObject{Id="drag-stroke",Type="stroke",X=0,Y=0,Width=100,Height=50,Rotation=37,Points=System.Text.Json.JsonSerializer.Serialize(previewPoints,DocumentCodec.Options),PageId="p1"};
+var lockedPreview=new BoardObject{Id="drag-locked",Type="rect",X=20,IsLocked=true,PageId="p1"};
+var outsidePreview=new BoardObject{Id="drag-other",Type="rect",X=30,PageId="p2"};
+var dragSession=new EditorSession();dragSession.Open(new(){Board=new BoardMetadata{CanvasMode="notebook",ActivePageId="p1",Revision=5},Objects=[previewStroke,lockedPreview,outsidePreview]});dragSession.SetSelection(new[]{"drag-stroke","drag-locked","drag-other"});var storedPoints=previewStroke.Points;var timestamp=previewStroke.UpdatedAt;
+for(var i=0;i<80;i++)dragSession.PreviewMoveSelection(1,.5);
+Check(ReferenceEquals(storedPoints,previewStroke.Points)&&previewStroke.UpdatedAt==timestamp,"Pointer drag does not rewrite points or timestamps");Near(previewStroke.X,80,"Drag bounds move immediately");Near(previewStroke.PreviewOffsetX,80,"Render uses the accumulated transient offset");
+Near(lockedPreview.X,20,"Preview protects locked objects");Near(outsidePreview.X,30,"Preview protects other pages");
+Check(VectorMath.IsPointInObject(ObjectHandles.ToWorld(previewStroke,new(80,40)),previewStroke,2),"Rotated stroke remains hittable during transient movement");
+Check(!DocumentCodec.Encode(dragSession.Document).Contains("previewOffset",StringComparison.Ordinal),"Transient offsets never enter the file schema");
+dragSession.Commit();Near(previewStroke.ParsedPoints[0].X,80,"Point coordinates commit only at pointer release");Near(previewStroke.ParsedPoints[0].Y,40,"Committed Y offset is exact");
+Check(previewStroke.PreviewOffsetX==0&&previewStroke.ParsedPoints[0].Pressure==.8&&previewStroke.ParsedPoints[0].TiltX==12&&previewStroke.ParsedPoints[0].ExtraFields!.ContainsKey("pointFuture"),"Committed points retain pressure, tilt and future fields");
+dragSession.Undo();Check(dragSession.Document.Objects[0].Points==storedPoints&&!dragSession.CanUndo,"An entire drag is one undo");dragSession.Redo();Near(dragSession.Document.Objects[0].ParsedPoints[0].X,80,"Redo restores committed absolute points");
+dragSession.SelectedId="drag-stroke";var originalDrag=DocumentCodec.Encode(dragSession.Document);dragSession.PreviewMoveSelection(40,20);dragSession.MarkSaved(dragSession.Generation,8);dragSession.Cancel();Check(dragSession.Document.Objects[0].X==80&&dragSession.Document.Objects[0].PreviewOffsetX==0&&dragSession.Document.Board.Revision==8,"Cancel restores geometry without discarding a completed save revision");
+var unchangedGeneration=dragSession.Generation;dragSession.Begin();dragSession.Commit();dragSession.PreviewMoveSelection(0,0);dragSession.PreviewMoveSelection(double.NaN,0);Check(dragSession.Generation==unchangedGeneration&&!dragSession.HasTransaction,"No-op and nonfinite movement add no transaction");
+var snapshotSession=new EditorSession();snapshotSession.Open(DocumentCodec.Clone(fullSnapshot));snapshotSession.Begin();snapshotSession.Document.Objects[0].RichTextSpans![0].IsBold=false;snapshotSession.Commit();snapshotSession.Undo();Check(snapshotSession.Document.Objects[0].RichTextSpans![0].IsBold==true&&snapshotSession.Document.ExtraFields!.ContainsKey("rootFuture"),"Snapshot undo restores rich text and future root fields");snapshotSession.Redo();Check(snapshotSession.Document.Objects[0].RichTextSpans![0].IsBold==false,"Snapshot redo is isolated from subsequent edits");
+var cappedHistory=new EditorSession();cappedHistory.Open(new());for(var i=0;i<70;i++){cappedHistory.Begin();cappedHistory.Document.Board.Title=i.ToString();cappedHistory.Commit();}var undoCount=0;while(cappedHistory.CanUndo){cappedHistory.Undo();undoCount++;}Check(undoCount==64,"Fast snapshot history retains the transaction-count cap");
+var epochBefore=cappedHistory.DocumentEpoch;cappedHistory.Open(new());Check(cappedHistory.DocumentEpoch>epochBefore,"Open invalidates pending saves and thumbnails by epoch");
+var saveRace=new EditorSession();saveRace.Open(new());saveRace.Begin();saveRace.MarkSaved(0,7);saveRace.Commit();Check(saveRace.Generation==0&&!saveRace.CanUndo,"Completed background save revision does not create a fake undo");
+var pointCacheOriginal=new BoardObject{Points=storedPoints};_ = pointCacheOriginal.ParsedPoints;var pointCacheCopy=DocumentCodec.Clone(pointCacheOriginal);pointCacheCopy.ParsedPoints[0].X=999;Check(pointCacheOriginal.ParsedPoints[0].X==0,"Snapshots do not share mutable parsed-point caches");
+// Cursor-anchored zoom is independent of the modifier keys and obeys zoom limits.
+foreach(var zoom in new[]{.05,.4,1d,7.9,8d})
+foreach(var delta in new[]{-240d,-120d,15d,120d,240d})
+{
+    var view=new ViewportTransform{X=-430,Y=123,Zoom=zoom};var cursor=new InkPoint(619,377);var anchor=view.ScreenToWorld(cursor.X,cursor.Y);
+    view.ZoomAt(cursor.X,cursor.Y,delta);Point(view.WorldToScreen(anchor.X,anchor.Y),cursor,"Wheel zoom keeps the world point under the cursor");Check(view.Zoom>=.05&&view.Zoom<=8,"Wheel respects zoom limits");
+}
+var enclosed=new BoardObject{Type="rect",X=2,Y=2,Width=6,Height=6,StrokeWidth=1};
+Check(WindowSelection.Matches(enclosed,new(0,0),new(10,10)),"Left-to-right window includes an enclosed object");
+Check(!WindowSelection.Matches(enclosed,new(0,0),new(5,10)),"Left-to-right window excludes a partial object");
+Check(WindowSelection.Matches(enclosed,new(5,0),new(0,10)),"Right-to-left crossing includes a touched object");
+Check(!WindowSelection.Matches(enclosed,new(20,0),new(15,10)),"Crossing excludes a distant object");
+var longLine=new BoardObject{Type="line",StrokeWidth=0};ObjectHandles.SetEndpoints(longLine,new(-100,5),new(100,5));
+Check(WindowSelection.Matches(longLine,new(10,0),new(0,10)),"Crossing finds a line whose endpoints are both outside");
+Check(!WindowSelection.Matches(longLine,new(0,0),new(10,10)),"Window excludes a line whose endpoints are outside");
+ObjectHandles.SetEndpoints(longLine,new(-100,10),new(100,10));Check(WindowSelection.Matches(longLine,new(10,0),new(0,10)),"Boundary tangency counts as touching");
+ObjectHandles.SetEndpoints(longLine,new(0,0),new(100,100));Check(!WindowSelection.Matches(longLine,new(100,0),new(80,20)),"Empty diagonal bounding-box area does not select a line");
+var shapeImage=new BoardObject{Type="image",X=0,Y=0,Width=100,Height=100,StrokeWidth=0};
+Check(WindowSelection.Matches(shapeImage,new(60,40),new(40,60)),"Crossing inside an image selects its surface");
+Check(!WindowSelection.Matches(shapeImage,new(40,40),new(60,60)),"Window inside an image does not select the larger image");
+var hollow=new BoardObject{Type="rect",X=0,Y=0,Width=100,Height=100,StrokeWidth=1,FillColor="none"};
+Check(!WindowSelection.Matches(hollow,new(60,40),new(40,60)),"Crossing entirely inside an unfilled rectangle misses the outline");
+hollow.FillColor="#FF0000";Check(WindowSelection.Matches(hollow,new(60,40),new(40,60)),"Filled rectangle selects its occupied surface");
+var circleSelection=new BoardObject{Type="circle",X=0,Y=0,Width=100,Height=100,StrokeWidth=0,FillColor="none"};
+Check(!WindowSelection.Matches(circleSelection,new(5,0),new(0,5)),"Ellipse bounding-box corner remains unselected");
+Check(WindowSelection.Matches(circleSelection,new(55,-1),new(45,1)),"Crossing detects the top of an ellipse");
+var selectionArrow=new BoardObject{Type="arrow",StrokeWidth=0,ArrowHeadLength=20,ArrowHeadWidth=30};ObjectHandles.SetEndpoints(selectionArrow,new(0,50),new(100,50));
+Check(WindowSelection.Matches(selectionArrow,new(86,62),new(78,68)),"Crossing includes arrow-head branches");
+Check(!WindowSelection.Matches(selectionArrow,new(-1,49),new(101,51)),"Window must include the arrow head as well as its shaft");
+var selectionRay=new BoardObject{Type="line",StrokeWidth=0,Extension="end"};ObjectHandles.SetEndpoints(selectionRay,new(0,5),new(10,5));
+Check(WindowSelection.Matches(selectionRay,new(200,0),new(100,10)),"Crossing reaches the visible extension beyond A/B");
+Check(!WindowSelection.Matches(selectionRay,new(-10,-10),new(300,300)),"An unbounded ray cannot be fully enclosed");
+var hiddenSelection=DocumentCodec.Clone(enclosed);hiddenSelection.IsVisible=false;Check(!WindowSelection.Matches(hiddenSelection,new(0,0),new(10,10)),"Hidden objects cannot be window-selected");
+var rotatedSelection=new BoardObject{Type="image",X=0,Y=0,Width=100,Height=10,Rotation=90};
+Check(WindowSelection.Matches(rotatedSelection,new(40,-46),new(60,56)),"Containment uses the rotated image footprint");
+Check(!WindowSelection.Matches(rotatedSelection,new(-1,-1),new(101,11)),"Unrotated bounds do not fully contain a rotated image");
+var anchors=new List<InkPoint>{new(0,0)};var possible=CurvePreview.Points(anchors,new(100,100));Check(possible.Count==2&&anchors.Count==1,"First click provides a separate cursor preview without committing an anchor");
+anchors.Add(new(100,100));possible=CurvePreview.Points(anchors,new(200,0));var flattened=CurvePreview.Flatten(possible);
+Check(flattened.Count>3&&flattened.Any(p=>p.Y>95),"Second-click preview exposes the same Catmull-Rom curve as the final path");Point(flattened[0],anchors[0],"Curve preview starts at the first anchor");Point(flattened[^1],new(200,0),"Curve preview ends at the cursor");
+var overshoot=CurvePreview.Flatten(new[]{new InkPoint(0,0),new InkPoint(100,0),new InkPoint(101,0)});Check(overshoot.Any(p=>p.X>101.1),"Collinear cubic overshoot is retained in selection geometry");
+var curveSelection=new BoardObject{Type="curve",StrokeWidth=0,Points=System.Text.Json.JsonSerializer.Serialize(possible,DocumentCodec.Options)};
+Check(WindowSelection.Matches(curveSelection,new(106,95),new(94,105)),"Crossing selects the actual cubic arc");
+Check(!WindowSelection.Matches(curveSelection,new(110,-5),new(90,5)),"Crossing does not select empty space in a curve bounding box");
+Check(!VectorMath.IsPointInObject(new(50,50),circleSelection,0),"Hollow ellipse center is blank space for starting a selection frame");
+Check(!VectorMath.IsPointInObject(new(1,1),circleSelection,0),"Hollow ellipse bounding-box corner does not intercept selection");
+Check(VectorMath.IsPointInObject(new(50,0),circleSelection,1),"Ellipse outline remains selectable");
+hollow.FillColor="none";Check(!VectorMath.IsPointInObject(new(50,50),hollow,0),"Hollow rectangle center is blank space for a frame");
+Check(VectorMath.IsPointInObject(new(0,50),hollow,0),"Hollow rectangle outline remains selectable");
+Check(VectorMath.IsPointInObject(new(100,100),curveSelection,2),"Smoothed curve is selectable on its actual path");
+Check(!VectorMath.IsPointInObject(new(100,50),curveSelection,0),"Curve control bounding box does not intercept empty-area selection");
+foreach(var offset in new[]{new InkPoint(90,20),new InkPoint(-90,20),new InkPoint(20,90),new InkPoint(20,-90),new InkPoint(40,40)})
+{
+ var anchor=new InkPoint(-30,70);var cursor=new InkPoint(anchor.X+offset.X,anchor.Y+offset.Y,.8){TiltX=12,TiltY=-3};var constrained=ObjectHandles.ConstrainOrthogonal(anchor,cursor);
+ Check(constrained.X==anchor.X||constrained.Y==anchor.Y,"Shift constrains the line to an orthogonal axis");
+ Near(constrained.Pressure,.8,"Constraint keeps sample pressure");Near(constrained.TiltX!.Value,12,"Constraint keeps tilt");
+ Check(cursor.X==anchor.X+offset.X&&cursor.Y==anchor.Y+offset.Y,"Constraint does not mutate the mouse sample");
+}
+if(args.Contains("--performance"))Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(InteractionBenchmark.Run(),new System.Text.Json.JsonSerializerOptions{WriteIndented=true}));
+
+if(args.Length==2&&args[0]=="--export-fixtures")
+{
+    Directory.CreateDirectory(args[1]);File.WriteAllText(Path.Combine(args[1],"parity-demo.heiban"),DocumentCodec.Encode(exportDoc));File.WriteAllText(Path.Combine(args[1],"parity-demo.svg"),svg);File.WriteAllText(Path.Combine(args[1],"parity-demo.html"),html);
+}
+
 Console.WriteLine($"PASS: {checks} Windows interaction geometry, screenshot coordinator, calculator, compass/arc, timer & offline guide checks");
 
 

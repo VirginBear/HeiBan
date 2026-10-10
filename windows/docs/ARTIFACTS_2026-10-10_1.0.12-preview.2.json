@@ -1,0 +1,72 @@
+{
+  "version": "1.0.12-preview.2",
+  "fileVersion": "1.0.12.2",
+  "macBaseline": {
+    "version": "1.0.12",
+    "build": "20261010.4"
+  },
+  "created": "2026-10-10",
+  "buildHost": "Windows 11 ARM64 / .NET SDK 10.0.401 / Inno 6.7.3",
+  "packages": [
+    {
+      "file": "HeiBan-Setup-1.0.12-preview.2-arm64.exe",
+      "bytes": 63959062,
+      "sha256": "4b5a1d96c0de3be015203eb52628efef61308d698f00e71926ab10016f23a0c2",
+      "sidecarVerified": true
+    },
+    {
+      "file": "HeiBan-Setup-1.0.12-preview.2-x64.exe",
+      "bytes": 66587941,
+      "sha256": "f889349d4cbdef76e78f3608da99d4ab2b8a853089241f5eed83dd7d5ddc1a4f",
+      "sidecarVerified": true
+    },
+    {
+      "file": "HeiBan-Windows-Portable-1.0.12-preview.2-win-arm64.zip",
+      "bytes": 92733451,
+      "sha256": "e5141d1118717b0e8262fab8dec14e13216a800772e9ae04bcf1f7dfd2388d93",
+      "sidecarVerified": true,
+      "machine": "0xaa64",
+      "requiredFilesVerified": true,
+      "emptyData": true,
+      "licenseFiles": 25,
+      "manualVerified": true,
+      "entries": 554
+    },
+    {
+      "file": "HeiBan-Windows-Portable-1.0.12-preview.2-win-x64.zip",
+      "bytes": 95438706,
+      "sha256": "87b4181017ea8da879bf9bcd0cb984c3170ca56e2108a6c2625a3e34db62a099",
+      "sidecarVerified": true,
+      "machine": "0x8664",
+      "requiredFilesVerified": true,
+      "emptyData": true,
+      "licenseFiles": 25,
+      "manualVerified": true,
+      "entries": 558
+    }
+  ],
+  "validation": {
+    "coreChecks": 568,
+    "arm64NativeRendering": true,
+    "nativeScreenSession": true,
+    "vectorPdfStrictParsing": true,
+    "x64Runtime": "未執行",
+    "installerUpgrade": "未執行",
+    "hardwarePointerMultiMonitor": "未完成，CUA已查看新版工具列及雷射；原生合成測試已通過",
+    "allLicenseFilesByteVerified": true,
+    "portableReadmeByteVerified": true,
+    "largeCurveOvershootPixelEquivalent": true
+  },
+  "nativeEvidence": "docs/build-logs/perf12p2-curve-native",
+  "performanceRecord": "docs/PERFORMANCE_1.0.12-preview.2_2026-10-10.json",
+  "sourceShaFiles": 71,
+  "publication": "本機，未發布",
+  "deployment": {
+    "fileVersion": "1.0.12.2",
+    "currentPayloadShaFiles": 549,
+    "shortcut": "黑板 Windows 最新版",
+    "preservedDataFiles": 37,
+    "backup": "recovered-user-data/2026-10-10/vm/c3",
+    "latestGuiViewed": true
+  }
+}

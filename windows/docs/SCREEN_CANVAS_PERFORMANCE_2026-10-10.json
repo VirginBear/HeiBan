@@ -1,0 +1,41 @@
+{
+  "version": "1.0.9-preview.1",
+  "date": "2026-10-10",
+  "environment": "Windows 11 ARM64 Parallels, 3024x1822, 200% DPI",
+  "method": "同程序對80個相同合成輸入同步渲染，比較舊全屏策略與最新局部快取策略；不是舊EXE與新EXE硬體端到端比較",
+  "performance": {
+    "samplesPerRun": 80,
+    "originalMedianMs": 66.376,
+    "originalP95Ms": 129.1576,
+    "optimizedMedianMs": 5.151,
+    "optimizedP95Ms": 17.1063,
+    "originalReadbackBytes": 1763112960,
+    "optimizedReadbackBytes": 1111704,
+    "pixelEquivalentFrames": 18,
+    "laserReadbackBytes": 32600,
+    "laserClearsWithoutGhosting": true,
+    "idleHoverDoesNotRender": true,
+    "scheduledIntervalMs": 16,
+    "scope": "同步原生幀測量，非實體滑鼠／手寫端到端延遲"
+  },
+  "objectCommands": {
+    "rightClickKeepsDrawing": true,
+    "objectMenu": true,
+    "compatibleCopyPayload": true,
+    "duplicateDeleteUndo": true,
+    "oneClickClearUndo": true,
+    "clipboardRoundtrip": "未執行，不覆寫使用者剪貼簿"
+  },
+  "docking": {
+    "fourSides": true,
+    "verticalWidth": 308,
+    "verticalHeight": 1480,
+    "collapsedVerticalHeight": 96,
+    "valuesAndHandlersRetained": true,
+    "dragHardware": "未執行"
+  },
+  "limits": [
+    "實體輸入與觸控筆、多螢幕、x64硬體未執行",
+    "VM負載影響耗時；讀回bytes與像素等價為確定性結果"
+  ]
+}

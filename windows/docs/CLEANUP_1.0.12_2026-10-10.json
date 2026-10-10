@@ -1,0 +1,86 @@
+{
+  "version": "1.0.12-preview.1",
+  "date": "2026-10-10",
+  "scope": "本批1.0.12替換與清理，不含此前歷史批次",
+  "removedBytes": 1964671701,
+  "hostOldPackages": [
+    {
+      "path": "dist/HeiBan-Setup-1.0.9-preview.1-arm64.exe",
+      "removedBytes": 63921676,
+      "sha256": "5e4b579313aa46c8b5d70f63a0121a4179515fd47f41a8a577f06f99862a2d8a"
+    },
+    {
+      "path": "dist/HeiBan-Setup-1.0.9-preview.1-arm64.exe.sha256",
+      "removedBytes": 106
+    },
+    {
+      "path": "dist/HeiBan-Setup-1.0.9-preview.1-x64.exe",
+      "removedBytes": 66555933,
+      "sha256": "afb58146b9b2a7a4fded38574797bf6ddec56afaf3323f1a81f772b47bd26ca3"
+    },
+    {
+      "path": "dist/HeiBan-Setup-1.0.9-preview.1-x64.exe.sha256",
+      "removedBytes": 104
+    },
+    {
+      "path": "dist/HeiBan-Windows-Portable-1.0.9-preview.1-win-arm64.zip",
+      "removedBytes": 92688118,
+      "sha256": "b699c8139ded9c6534bd8821607e99309fbf5b90047ed214413594abb691d7e8"
+    },
+    {
+      "path": "dist/HeiBan-Windows-Portable-1.0.9-preview.1-win-arm64.zip.sha256",
+      "removedBytes": 121
+    },
+    {
+      "path": "dist/HeiBan-Windows-Portable-1.0.9-preview.1-win-x64.zip",
+      "removedBytes": 95393390,
+      "sha256": "657152b0d1c2c708d443b4d72ecfb41b17f098a8a4c97284b361cef1416634eb"
+    },
+    {
+      "path": "dist/HeiBan-Windows-Portable-1.0.9-preview.1-win-x64.zip.sha256",
+      "removedBytes": 119
+    }
+  ],
+  "vmMirrors": [
+    {
+      "path": "C:\\HeiBanBuild\\current-source",
+      "removedBytes": 840633917,
+      "removed": true
+    },
+    {
+      "path": "C:\\HeiBanBuild\\visual-source",
+      "removedBytes": 270761879,
+      "removed": true
+    },
+    {
+      "path": "C:\\HeiBanBuild\\visual-publish-arm64",
+      "removedBytes": 270898229,
+      "removed": true
+    },
+    {
+      "path": "C:\\HeiBanBuild\\qa-parity12",
+      "removedBytes": 22184,
+      "removed": true
+    },
+    {
+      "path": "C:\\HeiBanBuild\\qa-parity12-final",
+      "removedBytes": 6788,
+      "removed": true
+    }
+  ],
+  "oldCurrentPayloadRemovedBytes": 263789137,
+  "preservedDataFiles": 34,
+  "verifiedBackup": "recovered-user-data/2026-10-10/vm/c12",
+  "qaBackups": [
+    "recovered-user-data/2026-10-10/vm/q12-qa-parity12",
+    "recovered-user-data/2026-10-10/vm/q12-qa-parity12-final"
+  ],
+  "kept": [
+    "Latest Current and 4 new packages",
+    "User works / original AppData / Documents",
+    "All recovered-user-data backups",
+    "Source / history / hashes / build logs",
+    "dotnet SDK / Inno Setup"
+  ],
+  "publicReleaseChanged": false
+}

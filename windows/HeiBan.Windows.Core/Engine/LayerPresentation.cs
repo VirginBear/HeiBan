@@ -4,9 +4,9 @@ using HeiBan.Windows.Models;
 
 namespace HeiBan.Windows.Engine;
 
-public sealed record LayerListEntry(string ObjectId, string Title, string TypeLabel, string IconKey, bool IsLocked)
+public sealed record LayerListEntry(string ObjectId, string Title, string TypeLabel, string IconKey, bool IsLocked, bool IsVisible=true)
 {
-    public string Description => TypeLabel + (IsLocked ? " · 已鎖定" : "");
+    public string Description => TypeLabel + (IsLocked ? " · 已鎖定" : "") + (IsVisible ? "" : " · 已隱藏");
 }
 
 /// <summary>Presentation never changes document IDs or writes generated names into the file.</summary>
@@ -24,7 +24,7 @@ public static class LayerPresentation
             var text = item.Type is "text" or "sticky" ? Compact(item.Text) : "";
             var title = name.Length > 0 ? name : text.Length > 0
                 ? $"{label}：{text}" : $"{label} {counts[label]}";
-            rows.Add((item, new(item.Id, title, label, icon, item.IsLocked == true)));
+            rows.Add((item, new(item.Id, title, label, icon, item.IsLocked == true, item.IsVisible!=false)));
         }
         // Assign numbers in document order so changing z-order does not rename objects.
         return rows.OrderByDescending(row => row.Object.ZIndex).Select(row => row.Entry).ToArray();

@@ -8,6 +8,7 @@
         -p:Platform=$platform -p:WindowsPackageType=None -p:WindowsAppSDKSelfContained=true `
         -p:PublishAot=false -p:PublishSingleFile=false -o $Destination
     if ($LASTEXITCODE -ne 0) { throw "dotnet publish 失敗，代碼 $LASTEXITCODE" }
+    Copy-Item (Join-Path $PSScriptRoot '..\..\Licenses') (Join-Path $Destination 'Licenses') -Recurse -Force
     # The app PRI holds the compiled XAML; runtime PRIs cannot replace it.
     foreach ($required in @('HeiBan.exe','HeiBan.pri','coreclr.dll','Microsoft.ui.xaml.dll',
         'Microsoft.UI.Xaml.Controls.pri','Microsoft.Graphics.Canvas.dll','Assets\AppIcon.ico','Assets\Wordmark.png')) {

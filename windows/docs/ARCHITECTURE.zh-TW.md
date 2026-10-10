@@ -1,5 +1,59 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-10 — preview.5 右鍵契約
+
+ScreenRightClick取消暫態後Hit；空白直接返回，維持作畫及原選取。物件命中先damage舊選取，已包含ID保留多選，否則只選命中ID；切select後damage新把手，開MenuFlyout。只更新選取疊層，不改永久scene或模式。選單坐標由overlay實體桌面轉成chrome DIP，沿用ShowChromeFlyout焦點與style commit。自動右鍵及物件選單均不再切穿透；工具列模式及Ctrl+Alt+D為明確入口。
+
+
+## 2026-10-10 — preview.4 螢幕樣式與區域更新
+
+ScreenAnnotationWindow.Style集中所選物件樣式／填滿與300ms交易，工具預設和選取對象依select分開。CommitScreenStyle在手勢／模式／保存之前完成，Undo／Redo保留仍存在ID並重新載入內嵌圖像。CapturedRegion傳實體桌面選區，screen轉成overlay local，捕捉以DocumentEpoch防過期。
+
+暫態DamagePreview合併舊新圖形範圍；select的down先加入舊選取框damage，避免清選取後殘影。沒有暫態／交易的Cancel不刷新，換工具只有改選取框可見性時局部更新；mode alpha仍全幅重建。MainLibrary Extended／Multiple框架選取，DoubleTapped開作品；批次操作在確認後移到可還原Trash。
+
+
+## 2026-10-10 — 1.0.12-preview.3 互動契約
+
+WindowSelection處理世界座標的方向框選，與LassoSelection分開；左往右包含全部占用輪廓，右往左碰觸。Main／Screen都在release才設定選取，不把矩形預覽加入文件。CurvePreview沿用renderer Catmull-Rom控制點，弱引用快取依不可變Points字串失效；命中／框選使用平滑路徑，預覽錨點獨立於文件。ViewportTransform.ZoomAt保存游標世界錨點。
+
+Pin的TextBox位於TextOverlay，按pin ID／DocumentEpoch核對後提交，一筆Undo；失焦／Enter保存、Esc取消。明確顏色／線條修改成為後續繪圖預設，工具特有粗細／透明度保留；物件樣式仍走既有交易及多選套用。快捷列以model引用判定handler重綁，顯示原地更新避免浮窗錨點被替換。
+
+Flyout的OverlayInputPassThroughElement僅指定工具列；Screen已作畫的換工具不重設native模式。無交易取消只失效overlay，保留永久scene快取；形狀／框選move只更新暫態preview，僅物件移動／擦除／提交失效永久scene。截圖先合成灰霧快照，WM_PAINT複製灰霧再揭示原選區，編碼只讀原圖；GDI資源與message loop在worker清理。
+
+## 2026-10-10 — 1.0.12-preview.2 流暢度
+
+DocumentSnapshot／各模型Snapshot以MemberwiseClone保留標量，明確深複製mutable lists／dicts；圖片／Points／文字字串與不可變JsonElement共享。Same只比較持久欄位、忽略JsonIgnore，交易中完成保存同步revision到before。EditorSession的DocumentEpoch只在Open增加，跨await保存核對epoch；Undo仍保留磁碟revision。preview point offset不持久化，收筆才翻譯點，renderer／命中／vertex把手共用位移契約。
+
+MainWindow.Rendering分離committed GPU bitmap與transient overlays，以文件／generation／page／viewport／size／DPI key及明確dirty失效。裝置重建與關閉釋放。TextCache逐欄核對layout／rich spans，圖片非同步用epoch防過期回寫。縮圖待idle、writer gate序列與revision防回寫舊縮圖；搜尋／偏好合併。Screen選取拖動合併前後旋轉物件範圍，依damaged區域傳輸，保存timer避開未完成交易。
+
+
+## 2026-10-10 — Mac 1.0.12 對齊
+
+Core `TextStyleChange` 以 nullable 欄位表達本次變更，保留混合值及富文字未知欄位；`TextStyles.ApplySelection` 限當頁未鎖定文字／便簽，一次交易。Views `TextStyleMenu` 共用普通畫布／螢幕／草稿右鍵UI，進階面板只提交實際改動欄位，延遲操作先核對文件與選取ID。`TextDraftEditor` 使用原生RichEditBox，草稿獨立於文件，完成才加入／替換；取消不寫入。螢幕座標／文字尺寸為實體像素，樣式與UI以DPI換算邏輯pt。
+
+螢幕工具列固定820×60／64×688 DIP，色圓開280 DIP面板、3×2色票；僅中段捲動，模式／清空／結束可達。WinUI設定最小寬度仍受無標題視窗追蹤限制，`NativeOverlayWindow.ResizeCompactWindow` 用SetWindowPos與SWP_NOSENDCHANGING保持WM_SIZE並避免被caption寬度撐開，原生200%DPI尺寸檢查驗證128px。文字使用獨立可取得鍵盤焦點的WinUI視窗，高於NOACTIVATE透明輸入層。
+
+## 1.0.9 介面架構（歷史）
+
+2026-10-10 UI以Mac 1.0.9／20261010.1為基準：MainWindow.Home.cs管理作品庫側欄／收藏／篩選／排序／多選／垃圾桶還原，library-ui.json獨立保存偏好且保留未知欄位；卡片190pt，支援160／250。主工具32pt、標題32pt，左下導覽膠囊集中倍率／視角鎖定／閱讀與頁碼；根視窗按DPI選初始大小，窄視窗自動收側欄。ScreenAnnotationWindow.Objects.cs共享物件格式與session交易；右鍵先命中物件再決定開選單或穿透。Docking.cs重排同一組controls、四邊停靠，左右154×740 DIP直排；清空／收合／結束固定底部，拖曳原生抓手移動完成後依最近螢幕邊停靠，screen-ui.json保存方向／位置比例／收合。
+
+
+螢幕註記採680×80 DIP兩排WinUI控制列，可收合680×48；Chrome.cs分離色票／滑桿／更多。小控制列的Flyout允許超出root。NativeOverlayWindow持久DIB＋UpdateLayeredWindowIndirect；ScreenAnnotationWindow快取committed CanvasRenderTarget，live曲線以最新控制點凸包及padding追蹤damage，收筆使用整段範圍，雷射合併前後範圍。只讀回damage像素並逐列寫DIB，繪圖／穿透切換、取消、復原、物件操作及尺寸變更保守整屏刷新。沒有落筆的正常hover不重繪；16ms排程不能等同達到固定fps。Performance.cs只在隔離資料根原生驗證模式執行，紀錄渲染耗時／傳輸量及逐byte像素等價，不擷取使用者硬體輸入。
+
+
+## 2026-10-10 — 教學工具與透明螢幕畫布
+
+Core 仍不引用 Windows UI：EditorSession 用 stable ID 集合管理多選，LayerPresentation 只產生展示文字；LassoSelection、SelectionStyle、LaserPointerEngine、BoardExporter 與 PdfDocumentAttachment 為獨立引擎。雷射樣本不進持久文件與 Undo。
+
+MainWindow.Teaching／TeachingPreferences／RichText／Pages／FloatingTools／Export 分開管理工具 UI、偏好、原生格式編輯器、頁面、浮動工具與輸出。普通文字保留原生 IME，富文字以 RichEditBox 編輯、CanvasTextLayout 渲染。
+
+ScreenAnnotation.NativeOverlayWindow 用 Win32 per-pixel WS_EX_LAYERED 覆蓋虛擬桌面，Win2D 畫入 premultiplied BGRA，UpdateLayeredWindow 提交；NOACTIVATE 保留下方焦點，TRANSPARENT 切滑鼠穿透。控制列是獨立 WinUI 視窗，寬／筆寬依 DPI 換算；註記使用虛擬桌面實體像素坐標與來源原點，獨立恢復檔及跨程序 FileShare.None lease。合成截圖回貼原 board/page，不改來源直到明確截圖。
+
+SVG／HTML 在 Core 輸出；PNG 共用 renderer；PDF 才使用隱藏 WebView2 與期限受控的列印工作，保留中文／向量，將 Mac 相同 marker/base64 原稿放在合法 incremental PDF stream。未知 JSON 欄位繼續保留，不新增破壞性 schema migration。
+
+## 先前紀錄（歷史）
+
+
 ## 決策
 
 **C#／.NET 10 LTS + WinUI 3（Windows App SDK 2.5.1）+ Win2D 1.4.0。** 套件以明確版本固定；原生 x64／ARM64 各自建置。UI、輸入、GPU 快取與文件核心各自負責一層。

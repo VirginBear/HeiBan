@@ -1,0 +1,100 @@
+[
+  {
+    "tag": "windows-v0.1.0-preview.5",
+    "id": 408019263,
+    "url": "https://github.com/VirginBear/HeiBan/releases/tag/windows-v0.1.0-preview.5",
+    "assets": [
+      {
+        "id": 625278921,
+        "name": "HeiBan-User-Guide-Windows-0.1.0-preview.5.html",
+        "bytes": 19857,
+        "digest": "sha256:2331600a1ad330e225d38a90ea0e28ff90ec494e6809f43b843fe7d3d1d2b1a3",
+        "url": "https://github.com/VirginBear/HeiBan/releases/download/windows-v0.1.0-preview.5/HeiBan-User-Guide-Windows-0.1.0-preview.5.html"
+      },
+      {
+        "id": 625278919,
+        "name": "HeiBan-Windows-Installer-0.1.0-preview.5-win-arm64.zip",
+        "bytes": 63446759,
+        "digest": "sha256:b4330340b04d6b78e4a1a43accb1a3f2666aed727acb219fc75628f19636b0c6",
+        "url": "https://github.com/VirginBear/HeiBan/releases/download/windows-v0.1.0-preview.5/HeiBan-Windows-Installer-0.1.0-preview.5-win-arm64.zip"
+      },
+      {
+        "id": 625278914,
+        "name": "HeiBan-Windows-Installer-0.1.0-preview.5-win-x64.zip",
+        "bytes": 66098479,
+        "digest": "sha256:fc60a1dc2e574634d3440a2987cb2166071b4296e3548560aa42f8db26ae0477",
+        "url": "https://github.com/VirginBear/HeiBan/releases/download/windows-v0.1.0-preview.5/HeiBan-Windows-Installer-0.1.0-preview.5-win-x64.zip"
+      },
+      {
+        "id": 625278922,
+        "name": "HeiBan-Windows-Portable-0.1.0-preview.5-win-arm64.zip",
+        "bytes": 92585086,
+        "digest": "sha256:6e86649784dff1eda1f75a2560be4422858546ae9b0067fe3f5b965ce8c985b5",
+        "url": "https://github.com/VirginBear/HeiBan/releases/download/windows-v0.1.0-preview.5/HeiBan-Windows-Portable-0.1.0-preview.5-win-arm64.zip"
+      },
+      {
+        "id": 625278918,
+        "name": "HeiBan-Windows-Portable-0.1.0-preview.5-win-x64.zip",
+        "bytes": 95290359,
+        "digest": "sha256:10f19f33ccaca08435a0ec3bd91846ce133fa7813dae049b3ac9bd0c9f9a0fc1",
+        "url": "https://github.com/VirginBear/HeiBan/releases/download/windows-v0.1.0-preview.5/HeiBan-Windows-Portable-0.1.0-preview.5-win-x64.zip"
+      },
+      {
+        "id": 625279018,
+        "name": "PUBLIC_ARTIFACTS.json",
+        "bytes": 1166,
+        "digest": "sha256:ea955d6fe9b8286a0b3d26061be5693039c88dd89678addec7eb99f0754b1296",
+        "url": "https://github.com/VirginBear/HeiBan/releases/download/windows-v0.1.0-preview.5/PUBLIC_ARTIFACTS.json"
+      },
+      {
+        "id": 625278970,
+        "name": "SHA256SUMS.txt",
+        "bytes": 591,
+        "digest": "sha256:1b542c7488bc328849d59976e30bb92aff6712279fea785c847e3eaef9d877de",
+        "url": "https://github.com/VirginBear/HeiBan/releases/download/windows-v0.1.0-preview.5/SHA256SUMS.txt"
+      }
+    ]
+  },
+  {
+    "tag": "macos-v1.0.8",
+    "id": 408013150,
+    "url": "https://github.com/VirginBear/HeiBan/releases/tag/macos-v1.0.8",
+    "assets": [
+      {
+        "id": 625261561,
+        "name": "HeiBan-macOS-1.0.8-arm64.dmg",
+        "bytes": 4911646,
+        "digest": "sha256:a0b8b01a93810e62f93f193c6aeee1aaa5bf4b2503099838375ff5e57d5c5248",
+        "url": "https://github.com/VirginBear/HeiBan/releases/download/macos-v1.0.8/HeiBan-macOS-1.0.8-arm64.dmg"
+      },
+      {
+        "id": 625261558,
+        "name": "HeiBan-macOS-1.0.8-arm64.zip",
+        "bytes": 4301289,
+        "digest": "sha256:e44d9bb5186a0b2e77cc88f10f851d3c57c14c7b63974d35e64dd1d5dab6e4a8",
+        "url": "https://github.com/VirginBear/HeiBan/releases/download/macos-v1.0.8/HeiBan-macOS-1.0.8-arm64.zip"
+      },
+      {
+        "id": 625261559,
+        "name": "HeiBan-User-Guide-macOS-1.0.8.html",
+        "bytes": 26848,
+        "digest": "sha256:ab46b6fba9316c290713133e78af8d6d77f317dc5fd4defba75309fc8360471a",
+        "url": "https://github.com/VirginBear/HeiBan/releases/download/macos-v1.0.8/HeiBan-User-Guide-macOS-1.0.8.html"
+      },
+      {
+        "id": 625261569,
+        "name": "PUBLIC_ARTIFACTS.json",
+        "bytes": 637,
+        "digest": "sha256:f00da5b0b58c8203806fca9e813cf44ce4e4e70a16eee27d1135ce41be95f7d9",
+        "url": "https://github.com/VirginBear/HeiBan/releases/download/macos-v1.0.8/PUBLIC_ARTIFACTS.json"
+      },
+      {
+        "id": 625261557,
+        "name": "SHA256SUMS.txt",
+        "bytes": 291,
+        "digest": "sha256:8d989b548a67471327eec51e932dfdc1358676648cdb7c485c9aa91af2603257",
+        "url": "https://github.com/VirginBear/HeiBan/releases/download/macos-v1.0.8/SHA256SUMS.txt"
+      }
+    ]
+  }
+]

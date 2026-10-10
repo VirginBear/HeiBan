@@ -48,6 +48,9 @@ internal static class ToolIcons
         ["close"]="M5,5 L19,19 M19,5 L5,19",
         ["dock"]="M3,3 L21,3 L21,21 L3,21 Z M3,8 L21,8 M9,8 L9,21",
         ["dash"]="M2,12 L6,12 M10,12 L14,12 M18,12 L22,12",
+        ["dash-solid"]="M2,12 L24,12",
+        ["dash-dotted"]="M2,12 L2.1,12 M7,12 L7.1,12 M12,12 L12.1,12 M17,12 L17.1,12 M22,12 L22.1,12",
+        ["dash-dot"]="M2,12 L8,12 M12,12 L12.1,12 M16,12 L22,12",
         ["background"]="M5,3 L17,15 L9,23 L1,15 Z M1,15 L17,15 M20,14 C15,20 25,20 20,14",
         ["more"]="M5,13 A1.5,1.5 0 1,1 5,10 A1.5,1.5 0 1,1 5,13 Z M13,13 A1.5,1.5 0 1,1 13,10 A1.5,1.5 0 1,1 13,13 Z M21,13 A1.5,1.5 0 1,1 21,10 A1.5,1.5 0 1,1 21,13 Z",
         ["calculator"]="M5,3 L19,3 L19,21 L5,21 Z M8,6 L16,6 L16,9 L8,9 Z M8,12 L10,12 M14,12 L16,12 M8,15 L10,15 M14,15 L16,15 M8,18 L16,18",
@@ -59,17 +62,34 @@ internal static class ToolIcons
         ["lock"]="M7,11 L7,7 C7,4 9,3 13,3 C17,3 19,4 19,7 L19,11 M5,11 L21,11 L21,22 L5,22 Z",
         ["unlock"]="M7,11 L7,7 C7,4 9,3 13,3 C17,3 19,4 19,7 M5,11 L21,11 L21,22 L5,22 Z",
         ["text-edit"]="M4,20 L8,20 L20,8 L16,4 L4,16 Z M14,6 L18,10",
-        ["pins"]="M12,3 L15,8 L20,9 L16,13 L17,19 L12,16 L7,19 L8,13 L4,9 L9,8 Z",
+        ["pins"]="M8,3 L19,3 L17,6 L17,12 L21,16 L6,16 L10,12 L10,6 Z M13,16 L13,23",
         ["reading"]="M4,4 L11,4 C12,4 12,5 12,6 L12,20 C12,19 11,18 10,18 L4,18 Z M13,6 C13,5 13,4 14,4 L21,4 L21,18 L15,18 C14,18 13,19 13,20 Z",
         ["plus"]="M12,4 L12,20 M4,12 L20,12",
         ["chevron-left"]="M15,4 L7,12 L15,20",
+        ["chevron-down"]="M4,8 L12,16 L20,8",
+        ["chevron-up"]="M4,16 L12,8 L20,16",
         ["info"]="M12,2 C17.5,2 22,6.5 22,12 C22,17.5 17.5,22 12,22 C6.5,22 2,17.5 2,12 C2,6.5 6.5,2 12,2 Z M12,7 L12,9 M12,11 L12,17",
     };
+
+    public static UIElement CreateDash(string? style)=>Create(DashKey(style));
+    public static IconElement CreateDashIcon(string? style)
+    {
+        // PathIcon fills geometry; open stroked paths would be invisible in menu rows.
+        var path=style switch
+        {
+            "dashed"=>"M2,11 L7,11 L7,13 L2,13 Z M10,11 L15,11 L15,13 L10,13 Z M18,11 L23,11 L23,13 L18,13 Z",
+            "dotted"=>"M2,11 L4,11 L4,13 L2,13 Z M7,11 L9,11 L9,13 L7,13 Z M12,11 L14,11 L14,13 L12,13 Z M17,11 L19,11 L19,13 L17,13 Z M22,11 L24,11 L24,13 L22,13 Z",
+            "dashdot"=>"M2,11 L8,11 L8,13 L2,13 Z M12,11 L14,11 L14,13 L12,13 Z M18,11 L24,11 L24,13 L18,13 Z",
+            _=>"M2,11 L24,11 L24,13 L2,13 Z"
+        };
+        return new PathIcon{Data=(Geometry)XamlReader.Load($"<Geometry xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'>{path}</Geometry>")};
+    }
+    private static string DashKey(string? style)=>style switch{"dashed"=>"dash","dotted"=>"dash-dotted","dashdot"=>"dash-dot",_=>"dash-solid"};
 
     public static UIElement Create(string name)
     {
         var path=Paths.GetValueOrDefault(name,Paths["settings"]);
-        return (UIElement)XamlReader.Load($"<Viewbox xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' Width='22' Height='22'><Canvas Width='26' Height='26'><Path Data='{path}' Stroke='#26372F' StrokeThickness='1.7' StrokeStartLineCap='Round' StrokeEndLineCap='Round' StrokeLineJoin='Round'/></Canvas></Viewbox>");
+        return (UIElement)XamlReader.Load($"<Viewbox xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' Width='18' Height='18'><Canvas Width='26' Height='26'><Path Data='{path}' Stroke='#26372F' StrokeThickness='1.7' StrokeStartLineCap='Round' StrokeEndLineCap='Round' StrokeLineJoin='Round'/></Canvas></Viewbox>");
     }
 
     public static IconElement CreateIcon(string name)

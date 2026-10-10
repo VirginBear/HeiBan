@@ -3,44 +3,71 @@
  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
  xmlns:canvas="using:Microsoft.Graphics.Canvas.UI.Xaml" xmlns:views="using:HeiBan.Windows.Views" Title="HeiBan 黑板 · Windows">
  <Grid x:Name="Root" Background="#F2F4EF" RequestedTheme="Light" KeyDown="Root_KeyDown">
-  <Grid.RowDefinitions><RowDefinition Height="48"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-  <Grid x:Name="AppTitleBar" Padding="16,0,140,0" Background="#F2F4EF">
+  <Grid.RowDefinitions><RowDefinition Height="32"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+  <Grid x:Name="AppTitleBar" Padding="12,0,140,0" Background="#F2F4EF">
    <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-    <Image Source="Assets/AppIcon.png" Width="28" Height="28"/>
+    <Image Source="Assets/AppIcon.png" Width="20" Height="20"/>
     <TextBlock Text="黑板" VerticalAlignment="Center" FontWeight="SemiBold"/>
-    <TextBlock x:Name="PortableBadge" Text="免安裝版" VerticalAlignment="Center" Foreground="#39735A" Visibility="Collapsed"/>
+    <TextBlock x:Name="PortableBadge" Text="免安裝版" FontSize="11" VerticalAlignment="Center" Foreground="#39735A" Visibility="Collapsed"/>
    </StackPanel>
   </Grid>
-  <Grid x:Name="HomePanel" Grid.Row="1" Padding="28" RowSpacing="20">
-   <Grid.RowDefinitions><RowDefinition Height="72"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-   <Grid>
-    <Image Source="Assets/Wordmark.png" Width="138" Height="72" HorizontalAlignment="Left" AutomationProperties.Name="黑板：手寫筆記 Logo"/>
-    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" VerticalAlignment="Center">
-     <Button Content="我的螢幕就是我的畫布" Click="ScreenCanvas_Click" ToolTipService.ToolTip="在真實桌面、簡報與影片上註記"/><Button Content="垃圾桶" Click="Trash_Click"/><Button Content="開啟文件" Click="Import_Click"/><Button Content="關於" Click="About_Click"/>
+  <Grid x:Name="HomePanel" Grid.Row="1" Background="#FAFBF9">
+   <Grid.ColumnDefinitions><ColumnDefinition x:Name="LibrarySidebarColumn" Width="188"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+   <Grid x:Name="LibrarySidebar" Background="#ECF0E9" Padding="16,24,16,16" BorderBrush="#D7DFD4" BorderThickness="0,0,1,0">
+    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+    <StackPanel Spacing="8">
+     <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,16"><Button x:Name="SidebarToggleButton" Style="{StaticResource ToolButtonStyle}" Click="SidebarToggle_Click" ToolTipService.ToolTip="收合／展開作品庫側欄"/><TextBlock x:Name="SidebarTitle" Text="作品庫" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel>
+     <Button x:Name="AllLibraryButton" Tag="all" Click="LibrarySection_Click" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" BorderThickness="0" Background="Transparent" Padding="8,10"><StackPanel Orientation="Horizontal" Spacing="10"><ContentControl x:Name="AllLibraryIcon"/><TextBlock x:Name="AllLibraryLabel" Text="所有作品"/></StackPanel></Button>
+     <Button x:Name="FavoriteLibraryButton" Tag="favorites" Click="LibrarySection_Click" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" BorderThickness="0" Background="Transparent" Padding="8,10"><StackPanel Orientation="Horizontal" Spacing="10"><ContentControl x:Name="FavoriteLibraryIcon"/><TextBlock x:Name="FavoriteLibraryLabel" Text="收藏"/></StackPanel></Button>
+     <Button x:Name="TrashLibraryButton" Tag="trash" Click="LibrarySection_Click" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" BorderThickness="0" Background="Transparent" Padding="8,10"><StackPanel Orientation="Horizontal" Spacing="10"><ContentControl x:Name="TrashLibraryIcon"/><TextBlock x:Name="TrashLibraryLabel" Text="垃圾桶"/></StackPanel></Button>
+    </StackPanel>
+    <StackPanel Grid.Row="2" Spacing="6">
+     <Button x:Name="HomeScreenButton" Click="ScreenCanvas_Click" BorderThickness="0" Background="Transparent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="8,10" ToolTipService.ToolTip="我的螢幕就是我的畫布"><StackPanel Orientation="Horizontal" Spacing="10"><ContentControl x:Name="HomeScreenIcon"/><TextBlock x:Name="HomeScreenLabel" Text="螢幕畫布"/></StackPanel></Button>
+     <Button x:Name="HomeGuideButton" Click="HomeGuide_Click" BorderThickness="0" Background="Transparent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="8,10"><StackPanel Orientation="Horizontal" Spacing="10"><ContentControl x:Name="HomeGuideIcon"/><TextBlock x:Name="HomeGuideLabel" Text="使用說明"/></StackPanel></Button>
+     <Button x:Name="HomeAboutButton" Click="About_Click" BorderThickness="0" Background="Transparent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="8,10"><StackPanel Orientation="Horizontal" Spacing="10"><ContentControl x:Name="HomeAboutIcon"/><TextBlock x:Name="HomeAboutLabel" Text="關於黑板"/></StackPanel></Button>
     </StackPanel>
    </Grid>
-   <Grid Grid.Row="1">
-    <TextBlock Text="我的作品" FontSize="24" FontWeight="SemiBold" VerticalAlignment="Center"/>
-    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="12">
-     <TextBox x:Name="SearchBox" PlaceholderText="搜尋作品" Width="220" TextChanged="Search_Changed"/>
-     <Button Content="＋ 新增" Click="New_Click" Style="{StaticResource AccentButtonStyle}"/>
+   <Grid Grid.Column="1" Padding="24" RowSpacing="18">
+    <Grid.RowDefinitions><RowDefinition Height="60"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+    <Grid>
+     <Image Source="Assets/Wordmark.png" Width="112" Height="60" HorizontalAlignment="Left" AutomationProperties.Name="黑板：手寫筆記 Logo"/>
+     <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" VerticalAlignment="Center">
+      <Button x:Name="LibraryMultiButton" Click="LibraryMulti_Click" ToolTipService.ToolTip="選取多份作品" Style="{StaticResource ToolButtonStyle}"/>
+      <Button Content="匯入" Click="Import_Click"/>
+      <Button x:Name="HomeNewButton" Content="＋" Click="New_Click" Style="{StaticResource AccentButtonStyle}" Background="#39735A" BorderBrush="#39735A" ToolTipService.ToolTip="新增筆記或黑板"/>
+      <TextBox x:Name="SearchBox" PlaceholderText="搜尋作品" Width="200" TextChanged="Search_Changed"/>
+     </StackPanel>
+    </Grid>
+    <Grid Grid.Row="1"><StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center"><TextBlock x:Name="LibraryHeading" Text="我的作品" FontSize="22" FontWeight="SemiBold"/><TextBlock x:Name="LibraryCount" FontSize="13" Foreground="#748075" VerticalAlignment="Center"/></StackPanel>
+     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+      <ComboBox x:Name="LibraryFormatBox" Width="132" SelectedIndex="0" SelectionChanged="LibraryFilter_Changed" ToolTipService.ToolTip="格式篩選"><ComboBoxItem Content="全部格式"/><ComboBoxItem Content="筆記本"/><ComboBoxItem Content="無邊界筆記"/><ComboBoxItem Content="有邊界黑板"/></ComboBox>
+      <ComboBox x:Name="LibrarySortBox" Width="112" SelectedIndex="0" SelectionChanged="LibraryFilter_Changed" ToolTipService.ToolTip="作品排序"><ComboBoxItem Content="最近修改"/><ComboBoxItem Content="建立日期"/><ComboBoxItem Content="名稱"/></ComboBox>
+      <Button x:Name="LibrarySizeButton" Style="{StaticResource ToolButtonStyle}" Click="LibrarySize_Click" ToolTipService.ToolTip="縮圖大小"/>
+     </StackPanel>
+    </Grid>
+    <StackPanel Grid.Row="2" Spacing="8"><TextBlock x:Name="LibraryTrashHint" Text="作品仍保留筆跡、圖片與頁面；點選作品可還原。" FontSize="12" Foreground="#748075" Visibility="Collapsed"/>
+     <Border x:Name="LibrarySelectionBar" Visibility="Collapsed" Padding="10" CornerRadius="10" Background="#1739735A"><StackPanel Orientation="Horizontal" Spacing="10"><TextBlock x:Name="LibrarySelectedCount" Text="已選 0 份" VerticalAlignment="Center"/><Button Content="全選目前結果" Click="LibrarySelectAll_Click"/><Button x:Name="LibraryTrashSelectedButton" Content="移到垃圾桶" Click="LibraryTrashSelected_Click" IsEnabled="False"/><Button Content="完成" Click="LibraryMulti_Click"/></StackPanel></Border>
     </StackPanel>
+    <Grid Grid.Row="3">
+     <ListView x:Name="LibraryList" SelectionMode="Extended" IsMultiSelectCheckBoxEnabled="True" SelectionChanged="LibrarySelection_Changed" IsItemClickEnabled="False" DoubleTapped="Library_DoubleTapped" ContextRequested="Library_ContextRequested" Padding="0">
+      <ListView.ItemsPanel><ItemsPanelTemplate><ItemsWrapGrid Orientation="Horizontal" MaximumRowsOrColumns="12"/></ItemsPanelTemplate></ListView.ItemsPanel>
+      <ListView.ItemTemplate><DataTemplate>
+       <StackPanel Width="{Binding CardWidth}" Margin="0,0,16,20" Spacing="8">
+        <Border CornerRadius="12" BorderThickness="1" BorderBrush="#D7DFD4"><Grid Height="{Binding ThumbnailHeight}" Background="{Binding Background}"><Image Source="{Binding Thumbnail}" Stretch="Uniform"/>
+         <Border HorizontalAlignment="Left" VerticalAlignment="Top" Background="#EAF3F6EA" CornerRadius="8" Padding="6,3" Margin="7"><StackPanel Orientation="Horizontal" Spacing="4"><ContentControl Content="{Binding FormatIcon}"/><TextBlock Text="{Binding Format}" FontSize="11" Foreground="#285541" VerticalAlignment="Center"/></StackPanel></Border>
+         <Button Content="{Binding FavoriteGlyph}" Tag="{Binding Board.Id}" Click="LibraryFavorite_Click" IsEnabled="{Binding CanFavorite}" Width="28" Height="28" MinWidth="0" MinHeight="0" Padding="0" CornerRadius="14" Background="#EAF3F6EA" BorderThickness="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="7" ToolTipService.ToolTip="加入／取消收藏"/>
+        </Grid></Border>
+        <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="28"/></Grid.ColumnDefinitions><TextBlock Text="{Binding Title}" FontSize="13" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/><Button Grid.Column="1" Content="⋯" Style="{StaticResource ToolButtonStyle}" Width="28" Height="24" Padding="0" Click="LibraryCardMenu_Click" ToolTipService.ToolTip="作品更多動作"/></Grid>
+        <TextBlock Text="{Binding Summary}" FontSize="11" Foreground="#748075" TextTrimming="CharacterEllipsis"/>
+       </StackPanel>
+      </DataTemplate></ListView.ItemTemplate>
+     </ListView>
+     <StackPanel x:Name="LibraryEmpty" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10"><TextBlock x:Name="LibraryEmptyTitle" Text="第一份作品，從這裡開始" FontSize="22" HorizontalAlignment="Center"/><TextBlock Text="使用搜尋或格式篩選，或按上方 ＋ 建立作品。" FontSize="13" Foreground="#748075"/></StackPanel>
+    </Grid>
    </Grid>
-   <ListView x:Name="LibraryList" Grid.Row="2" SelectionMode="Single" IsItemClickEnabled="True" ItemClick="Library_ItemClick" ContextRequested="Library_ContextRequested">
-    <ListView.ItemsPanel><ItemsPanelTemplate><ItemsWrapGrid Orientation="Horizontal" MaximumRowsOrColumns="4"/></ItemsPanelTemplate></ListView.ItemsPanel>
-    <ListView.ItemTemplate><DataTemplate>
-     <Border Width="264" Padding="12" Margin="0,0,8,12" CornerRadius="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
-      <StackPanel Spacing="10">
-       <Grid Height="140" Background="#f0f3ed"><Image Source="{Binding Thumbnail}" Stretch="Uniform"/><Border HorizontalAlignment="Left" VerticalAlignment="Top" Background="#eff4ed" CornerRadius="10" Padding="8,3"><StackPanel Orientation="Horizontal" Spacing="5"><ContentControl Content="{Binding FormatIcon}"/><TextBlock Text="{Binding Format}" Foreground="#285541" VerticalAlignment="Center"/></StackPanel></Border></Grid>
-       <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
-       <TextBlock Text="{Binding Summary}" FontSize="12" Opacity="0.65"/>
-      </StackPanel>
-     </Border>
-    </DataTemplate></ListView.ItemTemplate>
-   </ListView>
   </Grid>
   <Grid x:Name="Workspace" Grid.Row="1" Visibility="Collapsed">
-   <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="32"/></Grid.RowDefinitions>
+   <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="0"/></Grid.RowDefinitions>
    <Grid>
 
     <Grid x:Name="DrawingArea" SizeChanged="DrawingArea_SizeChanged" AllowDrop="True" DragOver="DrawingArea_DragOver" Drop="DrawingArea_Drop">
@@ -92,7 +119,7 @@
        <TextBlock Text="尺規" FontWeight="SemiBold"/><NumberBox x:Name="RulerAngleBox" Header="角度（0.1°）" Value="0" SmallChange="0.1" ValueChanged="RulerAngle_Changed" SpinButtonPlacementMode="Inline"/>
        <Button Content="角度、尺寸與配色…" Click="RulerSettings_Click"/>
        <TextBlock Text="圖層（上層在前）" FontWeight="SemiBold"/>
-       <ListView x:Name="LayerList" SelectionChanged="Layer_Changed" MaxHeight="220" SelectionMode="Single">
+       <ListView x:Name="LayerList" SelectionChanged="Layer_Changed" MaxHeight="220" SelectionMode="Extended">
         <ListView.ItemTemplate><DataTemplate>
          <Grid ColumnSpacing="8" Padding="0,4"><Grid.ColumnDefinitions><ColumnDefinition Width="24"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
           <ContentControl Content="{Binding Icon}" VerticalAlignment="Center"/>
@@ -101,7 +128,7 @@
         </DataTemplate></ListView.ItemTemplate>
        </ListView>
        <Button x:Name="RenameLayerButton" Content="重新命名圖層…" Click="RenameLayer_Click" IsEnabled="False"/>
-       <StackPanel Orientation="Horizontal" Spacing="4"><Button Content="上移" Click="Raise_Click"/><Button Content="下移" Click="Lower_Click"/><Button Content="鎖定" Click="Lock_Click"/></StackPanel>
+       <StackPanel Orientation="Horizontal" Spacing="4"><Button Content="上移" Click="Raise_Click"/><Button Content="下移" Click="Lower_Click"/><Button Content="鎖定" Click="Lock_Click"/></StackPanel><Button Content="顯示／隱藏" Click="Visibility_Click"/>
        <Button Content="刪除物件" Click="Delete_Click"/>
       </StackPanel>
      </ScrollViewer>
@@ -113,7 +140,7 @@
      <Border Width="1" Height="16" Background="#D4DBD1" Margin="2,0"/>
      <Button x:Name="ReadingModeButton" Click="ReadingMode_Click" ToolTipService.ToolTip="閱讀模式：拖曳移動畫布，不會畫線"/>
      <Button x:Name="ScreenCanvasButton" Click="ScreenCanvas_Click" ToolTipService.ToolTip="我的螢幕就是我的畫布（Ctrl+Alt+A）"/>
-     <Button x:Name="PinNavButton" Click="Pin_Click" ToolTipService.ToolTip="圖釘視角導航"/>
+     <Button x:Name="PinNavButton" Click="Pin_Click" ToolTipService.ToolTip="圖釘"/>
      <Button x:Name="InsertNavButton" Click="InsertNav_Click" ToolTipService.ToolTip="＋ 插入內容與輔助工具"/>
      <Button x:Name="MoreNavButton" Click="MoreNav_Click" ToolTipService.ToolTip="⋯ 更多：筆記資訊、背景、圖層、匯出"/>
      <Border Width="1" Height="16" Background="#D4DBD1" Margin="2,0"/>
@@ -132,13 +159,15 @@
     </StackPanel>
    </Border>
    <Button x:Name="HeaderReveal" Content="⌄" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,0,24,0" Height="20" Width="48" Padding="0" Background="#E9EEE6" CornerRadius="0,0,8,8" Click="HeaderReveal_Click" PointerEntered="WorkspaceHeader_Entered" PointerExited="WorkspaceHeader_Exited" ToolTipService.ToolTip="展開右上導覽膠囊"/>
-   <Grid Grid.Row="1" Padding="16,0" Background="#F2F4EF">
-    <TextBlock x:Name="StatusText" Text="本機已存" Width="240" TextTrimming="CharacterEllipsis" FontSize="12" Foreground="#68756C" VerticalAlignment="Center"/>
-    <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="8" x:Name="PagesBar" Visibility="Collapsed">
-     <Button Content="‹" Click="PreviousPage_Click"/><TextBlock x:Name="PageText" VerticalAlignment="Center"/><Button Content="›" Click="NextPage_Click"/><Button Content="＋頁" Click="AddPage_Click"/>
+   <Border Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="16" Padding="12,8" CornerRadius="24" Background="#EEFCFCFA" BorderBrush="#D4DBD1" BorderThickness="1">
+    <StackPanel Orientation="Horizontal" Spacing="6">
+     <Button Style="{StaticResource ToolButtonStyle}" Width="28" Height="28" Content="−" Click="ZoomOut_Click"/><Button Width="48" Height="28" MinHeight="0" Padding="0" BorderThickness="0" Background="Transparent" Click="ZoomMenu_Click"><TextBlock x:Name="ZoomText" Text="100%" FontSize="12" FontFamily="Consolas"/></Button><Button Style="{StaticResource ToolButtonStyle}" Width="28" Height="28" Content="＋" Click="ZoomIn_Click"/>
+     <Border Width="1" Height="18" Background="#D4DBD1" Margin="4,0"/>
+     <Button x:Name="NavigationLockButton" Style="{StaticResource ToolButtonStyle}" Width="28" Height="28" Click="NavigationLock_Click"/><Button x:Name="NavigationReadingButton" Style="{StaticResource ToolButtonStyle}" Width="28" Height="28" Click="ReadingMode_Click"/>
+     <StackPanel Orientation="Horizontal" Spacing="4" x:Name="PagesBar" Visibility="Collapsed"><Border Width="1" Height="18" Background="#D4DBD1" Margin="4,0"/><Button Style="{StaticResource ToolButtonStyle}" Width="28" Height="28" Content="‹" Click="PreviousPage_Click"/><Button Height="28" MinHeight="0" Background="Transparent" BorderThickness="0" Padding="4,0" Click="PagesMenu_Click"><TextBlock x:Name="PageText" FontSize="11"/></Button><Button Style="{StaticResource ToolButtonStyle}" Width="28" Height="28" Content="›" Click="NextPage_Click"/><Button Style="{StaticResource ToolButtonStyle}" Width="28" Height="28" Content="＋" Click="AddPage_Click"/></StackPanel>
     </StackPanel>
-    <TextBlock x:Name="ZoomText" Text="100%" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-   </Grid>
+   </Border>
+   <Border Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="16" Padding="8,4" CornerRadius="10" Background="#DDFCFCFA"><TextBlock x:Name="StatusText" Text="本機已存" MaxWidth="260" TextTrimming="CharacterEllipsis" FontSize="11" Foreground="#68756C"/></Border>
   </Grid>
  </Grid>
 </Window>

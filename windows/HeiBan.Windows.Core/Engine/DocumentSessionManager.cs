@@ -53,7 +53,7 @@ public sealed class DocumentSessionManager
         finally { _gate.Release(); }
     }
     public Task<HeiBanDocument> LoadAsync(string id) => ImportAsync(BoardPath(id));
-    public async Task<HeiBanDocument> ImportAsync(string path) => DocumentCodec.Decode(await File.ReadAllTextAsync(path));
+    public async Task<HeiBanDocument> ImportAsync(string path) { var json=await File.ReadAllTextAsync(path);return await Task.Run(()=>DocumentCodec.Decode(json)); }
     public async Task<IReadOnlyList<BoardMetadata>> ListAsync()
     {
         // Only read small metadata files on the normal home screen path.
@@ -89,13 +89,15 @@ public sealed class DocumentSessionManager
         finally { _gate.Release(); }
     }
     public IEnumerable<(string Path, string Title)> TrashedBoards()
+        =>TrashedBoardEntries().Select(entry=>(entry.Path,entry.Board.Title));
+    public IEnumerable<(string Path, BoardMetadata Board)> TrashedBoardEntries()
     {
         foreach (var file in Directory.EnumerateFiles(Path.Combine(DataDirectory,"Trash"),"*.blackboard.json",SearchOption.AllDirectories))
         {
             HeiBanDocument doc;
             try { doc=DocumentCodec.Decode(File.ReadAllText(file)); }
             catch (Exception e) when (e is JsonException or InvalidDataException or NotSupportedException) { continue; }
-            yield return (file,doc.Board.Title);
+            yield return (file,doc.Board);
         }
     }
     public async Task RestoreAsync(string trashPath)

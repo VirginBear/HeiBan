@@ -73,6 +73,9 @@ public static class VectorMath
         {
             var a=new Vector2((float)(obj.X1??obj.X),(float)(obj.Y1??obj.Y));
             var b=new Vector2((float)(obj.X2??obj.X+obj.Width),(float)(obj.Y2??obj.Y+obj.Height));
+            var ab=b-a;var lengthSquared=ab.LengthSquared();
+            if(lengthSquared>.0001f&&obj.Extension is "start" or "end" or "both")
+            {var t=Vector2.Dot(pt-a,ab)/lengthSquared;if((t>=0||obj.Extension is "start" or "both")&&(t<=1||obj.Extension is "end" or "both")&&Vector2.Distance(pt,a+ab*t)<=hitDist)return true;}
             if(DistanceToSegment(pt,a,b)<=hitDist)return true;
             if(obj.Type=="arrow"&&Vector2.Distance(a,b)>.01f)
             {
@@ -97,15 +100,15 @@ public static class VectorMath
             return IsAngleInSpan(ptAngleDeg, start, sweep);
         }
 
-        if (!box.Contains(p.X, p.Y)) return false;
-
         // 若為筆跡類物件，執行高精度分段線段距離判定
         if (obj.Type is "stroke" or "pen" or "highlighter" or "paint" or "curve" && !string.IsNullOrEmpty(obj.Points))
         {
             try
             {
-                var pts = obj.ParsedPoints;
+                pt-=new Vector2((float)obj.PreviewOffsetX,(float)obj.PreviewOffsetY);
+                var geometry=CurvePreview.ForObject(obj);var pts = geometry.Points;
                 if (pts.Count == 0) return false;
+                if(!new RectBounds(geometry.Bounds.MinX-hitDist,geometry.Bounds.MinY-hitDist,geometry.Bounds.MaxX+hitDist,geometry.Bounds.MaxY+hitDist).Contains(pt.X,pt.Y))return false;
 
                 if(pts.Count==1)return Vector2.Distance(pt,new((float)pts[0].X,(float)pts[0].Y))<=hitDist;
                 for (int i = 0; i < pts.Count - 1; i++)
@@ -120,6 +123,31 @@ public static class VectorMath
             {
                 return box.Contains(p.X, p.Y);
             }
+        }
+
+        if (!box.Contains(p.X, p.Y)) return false;
+        var filled=obj.FillColor is not (null or "none")&&(obj.FillOpacity??obj.Opacity)>0;
+        if(obj.Type=="circle")
+        {
+            var rx=Math.Max(.0001,obj.Width/2);var ry=Math.Max(.0001,obj.Height/2);
+            var nx=(p.X-obj.X-rx)/rx;var ny=(p.Y-obj.Y-ry)/ry;var radial=Math.Sqrt(nx*nx+ny*ny);
+            if(filled&&radial<=1)return true;
+            // Project to the ellipse; sufficient hit tolerance is applied in world units.
+            if(radial<1e-12)return Math.Min(rx,ry)<=hitDist;
+            return Math.Sqrt(Math.Pow(nx*rx-nx*rx/radial,2)+Math.Pow(ny*ry-ny*ry/radial,2))<=hitDist;
+        }
+        if(obj.Type is "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star")
+        {
+            var n=obj.Type=="triangle"?3:obj.Type=="pentagon"?5:obj.Type=="star"?10:4;
+            var points=obj.ParsedPoints.Count>0?obj.ParsedPoints:Enumerable.Range(0,n).Select(i=>{var angle=-Math.PI/2+i*Math.PI*2/n;var r=obj.Type=="star"&&i%2==1?.45:1;return new InkPoint(obj.X+obj.Width/2+Math.Cos(angle)*obj.Width/2*r,obj.Y+obj.Height/2+Math.Sin(angle)*obj.Height/2*r);}).ToArray();
+            if(filled&&LassoSelection.Contains(p,points))return true;
+            for(var i=0;i<points.Count;i++)if(DistanceToSegment(pt,new((float)points[i].X,(float)points[i].Y),new((float)points[(i+1)%points.Count].X,(float)points[(i+1)%points.Count].Y))<=hitDist)return true;
+            return false;
+        }
+        if(obj.Type=="rect"&&!filled)
+        {
+            return new[]{(obj.X,obj.Y,obj.X+obj.Width,obj.Y),(obj.X+obj.Width,obj.Y,obj.X+obj.Width,obj.Y+obj.Height),(obj.X+obj.Width,obj.Y+obj.Height,obj.X,obj.Y+obj.Height),(obj.X,obj.Y+obj.Height,obj.X,obj.Y)}
+                .Any(edge=>DistanceToSegment(pt,new((float)edge.Item1,(float)edge.Item2),new((float)edge.Item3,(float)edge.Item4))<=hitDist);
         }
 
         return true;

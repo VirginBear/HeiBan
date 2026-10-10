@@ -10,11 +10,12 @@ using global::Windows.UI;
 namespace HeiBan.Windows.Engine;
 
 /// <summary>Committed world-space geometry cache. Pointer previews never serialize points to JSON.</summary>
-public sealed class Direct2DCanvasRenderer : IDisposable
+public sealed partial class Direct2DCanvasRenderer : IDisposable
 {
     private readonly Dictionary<string, (string Key, CanvasGeometry Geometry)> _geometry = [];
     private readonly Dictionary<string, CanvasBitmap> _images = [];
     private readonly List<CanvasGeometry> _liveBlocks=[];
+    private long _imageEpoch;
     private InkPoint? _liveFirst;
     private int _liveEnd;
     public void ResetLive()
@@ -32,7 +33,8 @@ public sealed class Direct2DCanvasRenderer : IDisposable
     }
     public async Task LoadImagesAsync(ICanvasResourceCreator device, IEnumerable<BoardObject> objects)
     {
-        foreach(var source in objects.Where(o=>o.Type=="image").Select(o=>o.ImageUrl).Where(s=>s is not null).Distinct())
+        var epoch=_imageEpoch;var changed=false;
+        foreach(var source in objects.Where(o=>o.Type=="image").Select(o=>o.ImageUrl).Where(s=>s is not null).Distinct().ToArray())
         {
             if(_images.ContainsKey(source!))continue;
             // Local embedded images only. Opening a board never silently downloads remote images.
@@ -41,21 +43,27 @@ public sealed class Direct2DCanvasRenderer : IDisposable
             {
                 var bytes=Convert.FromBase64String(source[(source.IndexOf(',')+1)..]);
                 using var stream=new MemoryStream(bytes);
-                _images[source]=await CanvasBitmap.LoadAsync(device,stream.AsRandomAccessStream());
+                var bitmap=await CanvasBitmap.LoadAsync(device,stream.AsRandomAccessStream());
+                if(epoch!=_imageEpoch){bitmap.Dispose();continue;}
+                if(_images.TryGetValue(source,out var previous))previous.Dispose();
+                _images[source]=bitmap;changed=true;
             }
             catch (Exception e) when(e is FormatException or ArgumentException or System.Runtime.InteropServices.COMException) { }
         }
-        ResourcesChanged?.Invoke();
+        if(changed)ResourcesChanged?.Invoke();
     }
     public void ClearCache()
     {
-        ResetLive();
+        _imageEpoch++;ResetLive();ClearTextCache();
         foreach(var value in _geometry.Values)value.Geometry.Dispose(); _geometry.Clear();
         foreach(var value in _images.Values)value.Dispose(); _images.Clear();
     }
     public void Prune(IEnumerable<BoardObject> objects)
     {
-        var ids=objects.Select(o=>o.Id).ToHashSet();
+        var all=objects.ToArray();var ids=all.Select(o=>o.Id).ToHashSet();
+        var sources=all.Where(o=>o.Type=="image"&&o.ImageUrl is not null).Select(o=>o.ImageUrl!).ToHashSet();
+        foreach(var source in _images.Keys.Where(source=>!sources.Contains(source)).ToArray()){_images[source].Dispose();_images.Remove(source);}
+        PruneTextCache(ids);
         foreach(var id in _geometry.Keys.Where(id=>!ids.Contains(id)).ToArray()){_geometry[id].Geometry.Dispose();_geometry.Remove(id);}
     }
     public void Dispose()=>ClearCache();
@@ -98,8 +106,9 @@ public sealed class Direct2DCanvasRenderer : IDisposable
             // Conservative radius handles rotation, stroke padding and sticky decorations.
             var radius=Math.Sqrt(o.Width*o.Width+o.Height*o.Height)/2+o.StrokeWidth+32;
             var cx=o.X+o.Width/2;var cy=o.Y+o.Height/2;
-            if(!world.Intersects(new(cx-radius,cy-radius,cx+radius,cy+radius)))continue;
+            if(o.Extension is not ("start" or "end" or "both")&&!world.Intersects(new(cx-radius,cy-radius,cx+radius,cy+radius)))continue;
             ds.Transform=Matrix3x2.CreateRotation((float)(o.Rotation*Math.PI/180),new((float)cx,(float)cy))*view;
+            if(o.PreviewOffsetX!=0||o.PreviewOffsetY!=0)ds.Transform=Matrix3x2.CreateTranslation((float)o.PreviewOffsetX,(float)o.PreviewOffsetY)*ds.Transform;
             RenderObject(ds,o);
         }
         ds.Transform=old;
@@ -108,8 +117,8 @@ public sealed class Direct2DCanvasRenderer : IDisposable
     {
         var rect=new Rect(o.X,o.Y,Math.Max(.1,o.Width),Math.Max(.1,o.Height));
         var stroke=HexToColor(o.StrokeColor,(float)o.Opacity);
-        using var style=new CanvasStrokeStyle { StartCap=CanvasCapStyle.Round,EndCap=CanvasCapStyle.Round,LineJoin=CanvasLineJoin.Round,
-            DashStyle=o.LineStyle switch {"dashed"=>CanvasDashStyle.Dash,"dotted"=>CanvasDashStyle.Dot,"dashdot"=>CanvasDashStyle.DashDot,_=>CanvasDashStyle.Solid} };
+        var style=StrokeStyle(o.LineStyle);
+        if(o.Type=="text"){RenderText(ds,o,rect,stroke);return;}
         if(o.Type is "stroke" or "pen" or "highlighter" or "paint" or "curve")
         {
             if(o.ParsedPoints.Count==1){var p=o.ParsedPoints[0];ds.FillCircle((float)p.X,(float)p.Y,(float)(o.StrokeWidth/2),stroke);return;}
@@ -159,7 +168,8 @@ public sealed class Direct2DCanvasRenderer : IDisposable
                 break;
             case "line": case "arrow":
                 var a=new Vector2((float)(o.X1??o.X),(float)(o.Y1??o.Y));var b=new Vector2((float)(o.X2??o.X+o.Width),(float)(o.Y2??o.Y+o.Height));
-                ds.DrawLine(a,b,stroke,(float)o.StrokeWidth,style);
+                var ea=a;var eb=b;if(Vector2.Distance(a,b)>.01f){var direction=Vector2.Normalize(b-a);if(o.Extension is "start" or "both")ea-=direction*100000;if(o.Extension is "end" or "both")eb+=direction*100000;}
+                ds.DrawLine(ea,eb,stroke,(float)o.StrokeWidth,style);
                 if(o.Type=="arrow" && Vector2.Distance(a,b)>.01f)
                 {
                     var d=Vector2.Normalize(b-a);var n=new Vector2(-d.Y,d.X);var len=(float)(o.ArrowHeadLength??Math.Max(12,o.StrokeWidth*4));var w=(float)(o.ArrowHeadWidth??len*.5);
@@ -167,24 +177,27 @@ public sealed class Direct2DCanvasRenderer : IDisposable
                 }break;
             case "triangle":case "quadrilateral":case "diamond":case "pentagon":case "star":
                 using(var path=Path(ds,Polygon(o),true,false))if(path is not null){ds.FillGeometry(path,fill);ds.DrawGeometry(path,stroke,(float)o.StrokeWidth,style);}break;
+            case "tape":
+                var tape=HexToColor(o.StrokeColor=="none"?"#F59E0B":o.StrokeColor,(float)(o.Opacity*(o.IsRevealed==true?.12:.96)));
+                ds.FillRoundedRectangle(rect,5,5,tape);
+                if(o.IsRevealed==true){using var dashed=new CanvasStrokeStyle{DashStyle=CanvasDashStyle.Dash};ds.DrawRoundedRectangle(rect,5,5,stroke,1,dashed);}
+                else using(var clipped=ds.CreateLayer(1,rect)){for(var x=o.X-o.Height;x<o.X+o.Width;x+=16)ds.DrawLine((float)x,(float)(o.Y+o.Height),(float)(x+o.Height),(float)o.Y,HexToColor("#FFFFFF",.3f),4);}
+                break;
             case "text":RenderText(ds,o,rect,stroke);break;
             case "sticky":
-                ds.FillRoundedRectangle(rect,6,6,HexToColor(o.FillColor=="none"?"#fff0ab":o.FillColor,(float)o.Opacity));
+                if(o.StickyStyle=="soft")ds.FillRoundedRectangle(new Rect(o.X+4,o.Y+6,o.Width,o.Height),14,14,HexToColor("#000000",.12f*(float)o.Opacity));
+                ds.FillRoundedRectangle(rect,o.StickyStyle=="soft"?14:6,o.StickyStyle=="soft"?14:6,HexToColor(o.FillColor=="none"?"#fff0ab":o.FillColor,(float)o.Opacity));
                 ds.DrawRoundedRectangle(rect,6,6,HexToColor("#314d3f",.2f),1);
+                if(o.StickyStyle is "notebook" or "grid")
+                {for(var y=o.Y+28;y<o.Y+o.Height;y+=20)ds.DrawLine((float)o.X+8,(float)y,(float)(o.X+o.Width-8),(float)y,HexToColor("#516A72",.16f),1);if(o.StickyStyle=="grid")for(var x=o.X+28;x<o.X+o.Width;x+=20)ds.DrawLine((float)x,(float)o.Y+8,(float)x,(float)(o.Y+o.Height-8),HexToColor("#516A72",.16f),1);}
+                if(o.StickyStyle=="washi")ds.FillRectangle(new Rect(o.X+o.Width*.2,o.Y-6,o.Width*.6,18),HexToColor("#A8BDB0",.6f));
+                if(o.StickyStyle=="cat"){ds.FillEllipse((float)(o.X+12),(float)(o.Y+6),10,14,HexToColor(o.FillColor));ds.FillEllipse((float)(o.X+o.Width-12),(float)(o.Y+6),10,14,HexToColor(o.FillColor));}
                 RenderText(ds,o,new Rect(o.X+12,o.Y+12,Math.Max(1,o.Width-24),Math.Max(1,o.Height-24)),stroke);break;
             case "image":
-                if(o.ImageUrl is not null && _images.TryGetValue(o.ImageUrl,out var bitmap))ds.DrawImage(bitmap,rect,new Rect(0,0,bitmap.SizeInPixels.Width,bitmap.SizeInPixels.Height),(float)o.Opacity);
+                if(o.ImageUrl is not null && _images.TryGetValue(o.ImageUrl,out var bitmap))ds.DrawImage(bitmap,rect,new Rect(Math.Clamp(o.CropX??0,0,bitmap.SizeInPixels.Width-1),Math.Clamp(o.CropY??0,0,bitmap.SizeInPixels.Height-1),Math.Clamp(o.CropWidth??bitmap.SizeInPixels.Width,1,bitmap.SizeInPixels.Width-Math.Clamp(o.CropX??0,0,bitmap.SizeInPixels.Width-1)),Math.Clamp(o.CropHeight??bitmap.SizeInPixels.Height,1,bitmap.SizeInPixels.Height-Math.Clamp(o.CropY??0,0,bitmap.SizeInPixels.Height-1))),(float)o.Opacity);
                 else ds.DrawRectangle(rect,HexToColor("#7d9386"),1);break;
             case "pin":DrawPin(ds,new((float)(o.X+o.Width/2),(float)(o.Y+o.Height/2)),1);break;
         }
-    }
-    private static void RenderText(CanvasDrawingSession ds,BoardObject o,Rect rect,Color color)
-    {
-        using var format=new CanvasTextFormat { FontFamily=o.FontFamily?.Split(',')[0]??"Microsoft JhengHei",FontSize=(float)(o.FontSize??18),
-            FontWeight=new global::Windows.UI.Text.FontWeight {Weight=(ushort)(o.IsBold==true?700:400)},
-            FontStyle=o.IsItalic==true?global::Windows.UI.Text.FontStyle.Italic:global::Windows.UI.Text.FontStyle.Normal,
-            HorizontalAlignment=o.Align switch {"center"=>CanvasHorizontalAlignment.Center,"right"=>CanvasHorizontalAlignment.Right,_=>CanvasHorizontalAlignment.Left},WordWrapping=CanvasWordWrapping.Wrap };
-        ds.DrawText(o.Text??"",rect,color,format);
     }
     public static IReadOnlyList<InkPoint> Polygon(BoardObject o)
     {
@@ -206,7 +219,7 @@ public sealed class Direct2DCanvasRenderer : IDisposable
         }
         b.EndFigure(closed?CanvasFigureLoop.Closed:CanvasFigureLoop.Open);return CanvasGeometry.CreatePath(b);
     }
-    public void RenderLiveStroke(CanvasDrawingSession ds,IReadOnlyList<InkPoint> points,ViewportTransform vp,string color,double width,double opacity)
+    public void RenderLiveStroke(CanvasDrawingSession ds,IReadOnlyList<InkPoint> points,ViewportTransform vp,string color,double width,double opacity,string lineStyle="solid")
     {
         if(points.Count==0)return;
         if(!ReferenceEquals(_liveFirst,points[0]) || points.Count<=_liveEnd){ResetLive();_liveFirst=points[0];}
@@ -214,7 +227,7 @@ public sealed class Direct2DCanvasRenderer : IDisposable
         while(points.Count-2-_liveEnd>=64)
         {_liveBlocks.Add(SegmentPath(ds,points,_liveEnd+1,_liveEnd+64));_liveEnd+=64;}
         var old=ds.Transform;ds.Transform=Matrix3x2.CreateScale((float)vp.Zoom)*Matrix3x2.CreateTranslation((float)vp.X,(float)vp.Y);
-        using var style=new CanvasStrokeStyle{StartCap=CanvasCapStyle.Round,EndCap=CanvasCapStyle.Round,LineJoin=CanvasLineJoin.Round};
+        var style=StrokeStyle(lineStyle);
         var ink=HexToColor(color,(float)opacity);
         // One opacity layer prevents translucent highlighter blocks accumulating alpha at joins.
         using(var layer=ds.CreateLayer((float)opacity))
@@ -237,16 +250,17 @@ public sealed class Direct2DCanvasRenderer : IDisposable
         }
         path.EndFigure(CanvasFigureLoop.Open);return CanvasGeometry.CreatePath(path);
     }
-    public void RenderSelection(CanvasDrawingSession ds,BoardObject? o,ViewportTransform vp)
+    public void RenderSelection(CanvasDrawingSession ds,BoardObject? o,ViewportTransform vp,bool handles=true)
     {
         if(o is null)return;
         Vector2 Screen(InkPoint p){var s=vp.WorldToScreen(p.X,p.Y);return new((float)s.X,(float)s.Y);}
         var blue=HexToColor("#328dce");var white=HexToColor("#ffffff");
-        if(o.Type is not ("line" or "arrow"))
+        if(o.Type is not ("line" or "arrow")||!handles)
         {
             var outline=ObjectHandles.Outline(o).Select(Screen).ToArray();
             for(var i=0;i<4;i++)ds.DrawLine(outline[i],outline[(i+1)%4],blue,1.5f);
         }
+        if(!handles)return;
         using var label=new CanvasTextFormat{FontSize=11,FontFamily="Segoe UI"};
         foreach(var handle in ObjectHandles.Get(o,vp.Zoom))
         {
@@ -346,7 +360,7 @@ public sealed class Direct2DCanvasRenderer : IDisposable
         var r=(float)(diameter*vp.Zoom/2);ds.FillCircle(pointer,r,HexToColor(eraser?"#f46e87":"#396a53",.22f));
         ds.DrawCircle(pointer,r,HexToColor(eraser?"#cf4860":"#ffffff"),1.2f);ds.DrawCircle(pointer,r+1,HexToColor("#234b43"),.6f);
     }
-    public void RenderLaser(CanvasDrawingSession ds,LaserPointerEngine laser,ViewportTransform vp,double now)
+    public void RenderLaser(CanvasDrawingSession ds,LaserPointerEngine laser,ViewportTransform vp,double now,double density=1)
     {
         var samples=laser.Samples;
         if(samples.Count==0)return;
@@ -358,12 +372,12 @@ public sealed class Direct2DCanvasRenderer : IDisposable
             if(laser.Mode!="point"&&i>0&&!sample.StartsTrail)
             {
                 var previous=vp.WorldToScreen(samples[i-1].Point.X,samples[i-1].Point.Y);
-                ds.DrawLine(new((float)previous.X,(float)previous.Y),point,HexToColor(laser.Color,opacity),(float)laser.Width);
-                if(laser.WhiteCore)ds.DrawLine(new((float)previous.X,(float)previous.Y),point,HexToColor("#FFFFFF",opacity*.85f),(float)laser.Width*.25f);
+                ds.DrawLine(new((float)previous.X,(float)previous.Y),point,HexToColor(laser.Color,opacity),(float)(laser.Width*density));
+                if(laser.WhiteCore)ds.DrawLine(new((float)previous.X,(float)previous.Y),point,HexToColor("#FFFFFF",opacity*.85f),(float)(laser.Width*density)*.25f);
             }
             if(i==samples.Count-1)
             {
-                var radius=(float)laser.PointDiameter/2;
+                var radius=(float)(laser.PointDiameter*density)/2;
                 ds.FillCircle(point,radius*1.4f,HexToColor(laser.Color,opacity*.2f));
                 ds.FillCircle(point,radius,HexToColor(laser.Color,opacity));
                 if(laser.WhiteCore)ds.FillCircle(point,radius*.28f,HexToColor("#FFFFFF",opacity));

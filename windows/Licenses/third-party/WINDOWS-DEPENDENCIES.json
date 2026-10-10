@@ -1,0 +1,210 @@
+{
+  "version": "0.1.0-preview.5",
+  "source": "published HeiBan.deps.json; NuGet official registration metadata",
+  "dependencies": [
+    {
+      "package": "Microsoft.Graphics.Win2D",
+      "version": "1.4.0",
+      "registrationUrl": "https://api.nuget.org/v3/registration5-gz-semver2/microsoft.graphics.win2d/1.4.0.json",
+      "licenseUrl": "http://www.microsoft.com/web/webpi/eula/eula_win2d_10012014.htm",
+      "projectUrl": "http://go.microsoft.com/fwlink/?LinkID=519078",
+      "authors": "Microsoft",
+      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "packageContent": "https://api.nuget.org/v3-flatcontainer/microsoft.graphics.win2d/1.4.0/microsoft.graphics.win2d.1.4.0.nupkg",
+      "licenseFiles": []
+    },
+    {
+      "package": "Microsoft.Web.WebView2",
+      "version": "1.0.3719.77",
+      "registrationUrl": "https://api.nuget.org/v3/registration5-gz-semver2/microsoft.web.webview2/1.0.3719.77.json",
+      "licenseUrl": "https://aka.ms/deprecateLicenseUrl",
+      "projectUrl": "https://aka.ms/webview",
+      "authors": "Microsoft",
+      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "packageContent": "https://api.nuget.org/v3-flatcontainer/microsoft.web.webview2/1.0.3719.77/microsoft.web.webview2.1.0.3719.77.nupkg",
+      "nuspecLicense": {
+        "type": "file",
+        "value": "LICENSE.txt"
+      },
+      "licenseFiles": [
+        "Microsoft.Web.WebView2-1.0.3719.77-LICENSE.txt",
+        "Microsoft.Web.WebView2-1.0.3719.77-NOTICE.txt"
+      ]
+    },
+    {
+      "package": "Microsoft.Windows.AI.MachineLearning",
+      "version": "2.1.74",
+      "registrationUrl": "https://api.nuget.org/v3/registration5-gz-semver2/microsoft.windows.ai.machinelearning/2.1.74.json",
+      "licenseUrl": "https://aka.ms/deprecateLicenseUrl",
+      "projectUrl": "https://github.com/microsoft/windowsappsdk",
+      "authors": "Microsoft",
+      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "packageContent": "https://api.nuget.org/v3-flatcontainer/microsoft.windows.ai.machinelearning/2.1.74/microsoft.windows.ai.machinelearning.2.1.74.nupkg",
+      "nuspecLicense": {
+        "type": "file",
+        "value": "license.txt"
+      },
+      "licenseFiles": [
+        "Microsoft.Windows.AI.MachineLearning-2.1.74-ThirdPartyNotices.txt",
+        "Microsoft.Windows.AI.MachineLearning-2.1.74-license.txt"
+      ]
+    },
+    {
+      "package": "Microsoft.WindowsAppSDK",
+      "version": "2.5.1",
+      "registrationUrl": "https://api.nuget.org/v3/registration5-gz-semver2/microsoft.windowsappsdk/2.5.1.json",
+      "licenseUrl": "https://aka.ms/deprecateLicenseUrl",
+      "projectUrl": "https://github.com/microsoft/windowsappsdk",
+      "authors": "Microsoft",
+      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "packageContent": "https://api.nuget.org/v3-flatcontainer/microsoft.windowsappsdk/2.5.1/microsoft.windowsappsdk.2.5.1.nupkg",
+      "nuspecLicense": {
+        "type": "file",
+        "value": "license.txt"
+      },
+      "licenseFiles": [
+        "Microsoft.WindowsAppSDK-2.5.1-NOTICE.txt",
+        "Microsoft.WindowsAppSDK-2.5.1-license.txt"
+      ]
+    },
+    {
+      "package": "Microsoft.WindowsAppSDK.AI",
+      "version": "2.5.5",
+      "registrationUrl": "https://api.nuget.org/v3/registration5-gz-semver2/microsoft.windowsappsdk.ai/2.5.5.json",
+      "licenseUrl": "https://aka.ms/deprecateLicenseUrl",
+      "projectUrl": "https://github.com/microsoft/windowsappsdk",
+      "authors": "Microsoft",
+      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "packageContent": "https://api.nuget.org/v3-flatcontainer/microsoft.windowsappsdk.ai/2.5.5/microsoft.windowsappsdk.ai.2.5.5.nupkg",
+      "nuspecLicense": {
+        "type": "file",
+        "value": "license.txt"
+      },
+      "licenseFiles": [
+        "Microsoft.WindowsAppSDK.AI-2.5.5-license.txt"
+      ]
+    },
+    {
+      "package": "Microsoft.WindowsAppSDK.Foundation",
+      "version": "2.3.12",
+      "registrationUrl": "https://api.nuget.org/v3/registration5-gz-semver2/microsoft.windowsappsdk.foundation/2.3.12.json",
+      "licenseUrl": "https://aka.ms/deprecateLicenseUrl",
+      "projectUrl": "https://aka.ms/windowsappsdk",
+      "authors": "Microsoft",
+      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "packageContent": "https://api.nuget.org/v3-flatcontainer/microsoft.windowsappsdk.foundation/2.3.12/microsoft.windowsappsdk.foundation.2.3.12.nupkg",
+      "nuspecLicense": {
+        "type": "file",
+        "value": "license.txt"
+      },
+      "licenseFiles": [
+        "Microsoft.WindowsAppSDK.Foundation-2.3.12-license.txt"
+      ]
+    },
+    {
+      "package": "Microsoft.WindowsAppSDK.InteractiveExperiences",
+      "version": "2.1.9",
+      "registrationUrl": "https://api.nuget.org/v3/registration5-gz-semver2/microsoft.windowsappsdk.interactiveexperiences/2.1.9.json",
+      "licenseUrl": "https://aka.ms/deprecateLicenseUrl",
+      "projectUrl": "https://aka.ms/windowsappsdk",
+      "authors": "Microsoft",
+      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "packageContent": "https://api.nuget.org/v3-flatcontainer/microsoft.windowsappsdk.interactiveexperiences/2.1.9/microsoft.windowsappsdk.interactiveexperiences.2.1.9.nupkg",
+      "nuspecLicense": {
+        "type": "file",
+        "value": "license.txt"
+      },
+      "licenseFiles": [
+        "Microsoft.WindowsAppSDK.InteractiveExperiences-2.1.9-license.txt"
+      ]
+    },
+    {
+      "package": "Microsoft.WindowsAppSDK.ML",
+      "version": "2.1.94",
+      "registrationUrl": "https://api.nuget.org/v3/registration5-gz-semver2/microsoft.windowsappsdk.ml/2.1.94.json",
+      "licenseUrl": "https://aka.ms/deprecateLicenseUrl",
+      "projectUrl": "https://github.com/microsoft/windowsappsdk",
+      "authors": "Microsoft",
+      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "packageContent": "https://api.nuget.org/v3-flatcontainer/microsoft.windowsappsdk.ml/2.1.94/microsoft.windowsappsdk.ml.2.1.94.nupkg",
+      "nuspecLicense": {
+        "type": "file",
+        "value": "license.txt"
+      },
+      "licenseFiles": [
+        "Microsoft.WindowsAppSDK.ML-2.1.94-license.txt"
+      ]
+    },
+    {
+      "package": "Microsoft.WindowsAppSDK.Search",
+      "version": "2.5.5",
+      "registrationUrl": "https://api.nuget.org/v3/registration5-gz-semver2/microsoft.windowsappsdk.search/2.5.5.json",
+      "licenseUrl": "https://aka.ms/deprecateLicenseUrl",
+      "projectUrl": "https://github.com/microsoft/windowsappsdk",
+      "authors": "Microsoft",
+      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "packageContent": "https://api.nuget.org/v3-flatcontainer/microsoft.windowsappsdk.search/2.5.5/microsoft.windowsappsdk.search.2.5.5.nupkg",
+      "nuspecLicense": {
+        "type": "file",
+        "value": "license.txt"
+      },
+      "licenseFiles": [
+        "Microsoft.WindowsAppSDK.Search-2.5.5-license.txt"
+      ]
+    },
+    {
+      "package": "Microsoft.WindowsAppSDK.Widgets",
+      "version": "2.0.5",
+      "registrationUrl": "https://api.nuget.org/v3/registration5-gz-semver2/microsoft.windowsappsdk.widgets/2.0.5.json",
+      "licenseUrl": "https://aka.ms/deprecateLicenseUrl",
+      "projectUrl": "https://github.com/microsoft/windowsappsdk",
+      "authors": "Microsoft",
+      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "packageContent": "https://api.nuget.org/v3-flatcontainer/microsoft.windowsappsdk.widgets/2.0.5/microsoft.windowsappsdk.widgets.2.0.5.nupkg",
+      "nuspecLicense": {
+        "type": "file",
+        "value": "license.txt"
+      },
+      "licenseFiles": [
+        "Microsoft.WindowsAppSDK.Widgets-2.0.5-license.txt"
+      ]
+    },
+    {
+      "package": "Microsoft.WindowsAppSDK.WinUI",
+      "version": "2.3.9",
+      "registrationUrl": "https://api.nuget.org/v3/registration5-gz-semver2/microsoft.windowsappsdk.winui/2.3.9.json",
+      "licenseUrl": "https://aka.ms/deprecateLicenseUrl",
+      "projectUrl": "https://github.com/microsoft/windowsappsdk",
+      "authors": "Microsoft",
+      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "packageContent": "https://api.nuget.org/v3-flatcontainer/microsoft.windowsappsdk.winui/2.3.9/microsoft.windowsappsdk.winui.2.3.9.nupkg",
+      "nuspecLicense": {
+        "type": "file",
+        "value": "license.txt"
+      },
+      "licenseFiles": [
+        "Microsoft.WindowsAppSDK.WinUI-2.3.9-NOTICE.txt",
+        "Microsoft.WindowsAppSDK.WinUI-2.3.9-license.txt",
+        "Microsoft.WindowsAppSDK.WinUI-2.3.9-tools_NOTICE.txt"
+      ]
+    },
+    {
+      "package": "System.Numerics.Tensors",
+      "version": "9.0.0",
+      "registrationUrl": "https://api.nuget.org/v3/registration5-gz-semver2/system.numerics.tensors/9.0.0.json",
+      "licenseExpression": "MIT",
+      "licenseUrl": "https://licenses.nuget.org/MIT",
+      "projectUrl": "https://dot.net/",
+      "authors": "Microsoft",
+      "copyright": "© Microsoft Corporation. All rights reserved.",
+      "packageContent": "https://api.nuget.org/v3-flatcontainer/system.numerics.tensors/9.0.0/system.numerics.tensors.9.0.0.nupkg",
+      "nuspecLicense": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "licenseFiles": [
+        "System.Numerics.Tensors-9.0.0-LICENSE.TXT"
+      ]
+    }
+  ]
+}

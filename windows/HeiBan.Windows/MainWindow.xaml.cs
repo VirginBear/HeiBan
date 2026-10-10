@@ -18,7 +18,14 @@ public sealed record LibraryCard(BoardMetadata Board, string? Thumbnail)
     public string Title => Board.Title;
     public string Format => Board.CanvasMode switch {"notebook"=>"筆記本","fixed"=>"有邊界黑板",_=>"無邊界筆記"};
     public UIElement FormatIcon => Views.ToolIcons.Create(Board.CanvasMode switch{"notebook"=>"notebook","fixed"=>"rect",_=>"infinite"});
-    public string Summary => $"{Board.ItemCount??0} 個物件 · 本機儲存";
+    public double CardWidth {get;init;}=190;
+    public double ThumbnailHeight=>CardWidth*.85;
+    public string Background=>Board.BackgroundColor;
+    public bool IsFavorite {get;init;}
+    public string? TrashPath {get;init;}
+    public bool CanFavorite=>TrashPath is null;
+    public string FavoriteGlyph=>IsFavorite?"★":"☆";
+    public string Summary => DateTimeOffset.TryParse(Board.UpdatedAt,out var date)?date.ToLocalTime().ToString("yyyy/M/d HH:mm"):"本機儲存";
 }
 public sealed record LayerCard(LayerListEntry Entry)
 {
@@ -42,7 +49,7 @@ public partial class MainWindow : Window
     private string _tool="select", _strokeColor="#24533d", _fillColor="#b8d4b2";
     private double _strokeWidth=4,_opacity=1;
     private bool _workspaceOpen,_closing,_changingLayers,_readingMode;
-    private TextBox? _editor;
+    private Views.TextDraftEditor? _editor;
     private BoardObject? _editingObject;
     private Vector2 _mouse;
     private bool _hover;
@@ -55,37 +62,41 @@ public partial class MainWindow : Window
         _dock=_toolbarPrefs.DockSide;
         App.StartupStage="載入主視窗 XAML";
         InitializeComponent();
-        BuildChrome();
+        InitializeLibraryChrome();BuildChrome();InitializeTeachingTools();InitializeDeferredWork();
         App.StartupStage="設定主視窗";
         ExtendsContentIntoTitleBar=true;SetTitleBar(AppTitleBar);SystemBackdrop=new MicaBackdrop();
         AppWindow.TitleBar.ButtonForegroundColor=Direct2DCanvasRenderer.HexToColor("#26372F");
         AppWindow.TitleBar.ButtonBackgroundColor=global::Windows.UI.Color.FromArgb(0,0,0,0);
         AppWindow.TitleBar.ButtonHoverBackgroundColor=Direct2DCanvasRenderer.HexToColor("#DCEBDD");
         AppWindow.TitleBar.ButtonHoverForegroundColor=Direct2DCanvasRenderer.HexToColor("#26372F");
-        AppWindow.Resize(new global::Windows.Graphics.SizeInt32(1280,850));
+        var display=Microsoft.UI.Windowing.DisplayArea.GetFromWindowId(AppWindow.Id,Microsoft.UI.Windowing.DisplayAreaFallback.Primary).WorkArea;
+        var scale=ScreenAnnotation.NativeOverlayWindow.DpiScale(WinRT.Interop.WindowNative.GetWindowHandle(this));
+        AppWindow.Resize(new global::Windows.Graphics.SizeInt32(Math.Min((int)(1100*scale),display.Width-80),Math.Min((int)(760*scale),display.Height-80)));
         AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory,"Assets","AppIcon.ico"));
         PortableBadge.Visibility=_storage.IsPortableMode?Visibility.Visible:Visibility.Collapsed;
-        _renderer.ResourcesChanged+=()=>CanvasSurface.Invalidate();
-        _autosave.Tick+=async(_,_)=>{if(_workspaceOpen&&_session.IsDirty&&_editor is null&&!_gesture&&!_propertyEditing)await SaveAsync();};
+        _renderer.ResourcesChanged+=()=>InvalidateCanvas();
+        _autosave.Tick+=async(_,_)=>{if(_workspaceOpen&&_session.IsDirty&&_editor is null&&!_gesture&&!_propertyEditing&&_saveGate.CurrentCount>0)await SaveAsync(deferThumbnail:true);};
         _autosave.Start();
         _screenshotWatchTimer.Tick+=async(_,_)=>await OnScreenshotWatchTickAsync();
         AppWindow.Closing+=async(_,e)=>
         {
-            CancelScreenshotCapture("視窗關閉");
-            if(_screenAnnotation?.IsActive==true){e.Cancel=true;await _screenAnnotation.StopAsync();return;}
-            if(_closing)return;
-            FinishText();CommitPropertyEdit();
-            if(!_workspaceOpen||!_session.IsDirty)return;
-            e.Cancel=true;
-            if(await SaveAsync()){_closing=true;Close();}
+            if(_closing)return;e.Cancel=true;
+            CancelScreenshotCapture("視窗關閉");FinishText();CommitPropertyEdit();if(_gesture)CancelGesture();
+            await SaveTeachingSettingsAsync();
+            if(_screenAnnotation?.IsActive==true&&!await _screenAnnotation.StopAsync())return;
+            if(_workspaceOpen&&_session.IsDirty&&!await SaveAsync())return;
+            _closing=true;Close();
         };
-        Closed+=(_,_)=>{_autosave.Stop();CancelScreenshotCapture("視窗關閉");_timerTickTimer?.Stop();_propertyCommitTimer.Stop();_headerHideTimer.Stop();CanvasSurface.RemoveFromVisualTree();_renderer.Dispose();_screenAnnotation?.Dispose();};
+        Closed+=(_,_)=>{_autosave.Stop();_thumbnailTimer.Stop();_searchTimer.Stop();_teachingSaveTimer.Stop();CancelScreenshotCapture("視窗關閉");_timerTickTimer?.Stop();_laserTimer.Stop();_propertyCommitTimer.Stop();_headerHideTimer.Stop();ClearScene();CanvasSurface.RemoveFromVisualTree();_renderer.Dispose();_screenAnnotation?.Dispose();};
         App.StartupStage="顯示首頁";
         try { EnsureScreenAnnotation(); } catch(Exception e) { StatusText.Text="螢幕畫布初始化失敗："+e.Message; }
     }
     public async void InitializeAsync(string? file)
     {
-        try { if(file is null)await RefreshLibrary();else await OpenAsync(await _storage.ImportAsync(file)); }
+        try { if(file is null)await RefreshLibrary();else await OpenAsync(await _storage.ImportAsync(file));
+            var validation=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--validation-output=",StringComparison.Ordinal));
+            if(validation is not null)await RunNativeValidationAsync(validation[20..]);
+            else if(Environment.GetCommandLineArgs().Contains("--screen-canvas"))await StartScreenAnnotationAsync(); }
         catch(Exception e){await Error(e);}
     }
     private async Task Error(Exception e)
@@ -96,12 +107,18 @@ public partial class MainWindow : Window
     private async Task RefreshLibrary()
     {
         _library=(await _storage.ListAsync()).Select(b=>new LibraryCard(b,File.Exists(_storage.ThumbnailPath(b.Id))
-            ?new Uri(_storage.ThumbnailPath(b.Id)).AbsoluteUri:null)).ToList();FilterLibrary();
+            ?new Uri(_storage.ThumbnailPath(b.Id)).AbsoluteUri:null)).ToList();await RefreshTrashCardsAsync();FilterLibrary();
     }
-    private void FilterLibrary()=>LibraryList.ItemsSource=_library.Where(b=>b.Title.Contains(SearchBox.Text??"",StringComparison.OrdinalIgnoreCase)).ToList();
-    private void Search_Changed(object sender,TextChangedEventArgs e){if(LibraryList is not null)FilterLibrary();}
-    private async void Library_ItemClick(object sender,ItemClickEventArgs e)
-    {try{if(e.ClickedItem is LibraryCard card)await OpenAsync(await _storage.LoadAsync(card.Board.Id));}catch(Exception ex){await Error(ex);}}
+
+    private void Search_Changed(object sender,TextChangedEventArgs e){if(LibraryList is not null){_searchTimer.Stop();_searchTimer.Start();}}
+    private async void Library_DoubleTapped(object sender,DoubleTappedRoutedEventArgs e)
+    {
+        if(_libraryMulti)return;var element=e.OriginalSource as FrameworkElement;
+        while(element is not null&&element.DataContext is not LibraryCard)element=VisualTreeHelper.GetParent(element) as FrameworkElement;
+        if(element?.DataContext is not LibraryCard card)return;e.Handled=true;
+        try{if(card.TrashPath is { } trash){await _storage.RestoreAsync(trash);await RefreshLibrary();}else await OpenAsync(await _storage.LoadAsync(card.Board.Id));}catch(Exception ex){await Error(ex);}
+    }
+
     private async Task OpenAsync(HeiBanDocument doc)
     {
         CancelScreenshotCapture("切換作品");
@@ -120,49 +137,58 @@ public partial class MainWindow : Window
         _changingLayers=true;
         try
         {
-            LayerList.ItemsSource=LayerPresentation.Build(_session.VisibleObjects).Select(entry=>new LayerCard(entry)).ToList();
-            SyncLayerSelection();
+            RefreshLayersIfNeeded();
         }
         finally { _changingLayers=false; }
         PagesBar.Visibility=_session.Document.Board.CanvasMode=="notebook"?Visibility.Visible:Visibility.Collapsed;
         var pages=_session.Document.Board.Pages??[];var index=pages.FindIndex(p=>p.Id==_session.Document.Board.ActivePageId);
         PageText.Text=$"{index+1} / {pages.Count}";ZoomText.Text=$"{_viewport.Zoom:P0}";
-        RefreshProperties();RefreshChrome();RefreshSelectionBar();CanvasSurface.Invalidate();
+        RefreshProperties();RefreshChrome();RefreshNavigationChrome();InvalidateCanvas();
     }
-    private async Task<bool> SaveAsync()
+    private async Task<bool> SaveAsync(bool deferThumbnail=false)
     {
         CommitPropertyEdit();
         await _saveGate.WaitAsync();
         try
         {
-            var generation=_session.Generation;
+            var generation=_session.Generation;var epoch=_session.DocumentEpoch;
             var snapshot=DocumentCodec.Clone(_session.Document);StatusText.Text="儲存中…";
             await Task.Run(()=>_storage.SaveAsync(snapshot));
-            _session.MarkSaved(generation,snapshot.Board.Revision);
-            StatusText.Text=_session.IsDirty?"尚有變更":"已儲存";
-            await SaveThumbnail();return true;
+            if(epoch==_session.DocumentEpoch)
+            {
+                _session.MarkSaved(generation,snapshot.Board.Revision);
+                StatusText.Text=_session.IsDirty?"尚有變更":"已儲存";
+                if(deferThumbnail||_gesture||_editor is not null||_propertyEditing||generation!=_session.Generation)QueueThumbnail(snapshot,epoch);
+                else {_pendingThumbnail=null;_thumbnailTimer.Stop();await SaveThumbnail(snapshot);}
+            }
+            return true;
         }
         catch(Exception e){await Error(e);return false;}
         finally{_saveGate.Release();}
     }
-    private async Task SaveThumbnail()
+    private async Task SaveThumbnail(HeiBanDocument snapshot)
     {
+        await _thumbnailGate.WaitAsync();
         try
         {
+            // A queued autosave thumbnail must never overwrite a later manual save's image.
+            if(_thumbnailRevisions.TryGetValue(snapshot.Board.Id,out var revision)&&revision>snapshot.Board.Revision)return;
             using var target=new CanvasRenderTarget(CanvasSurface,480,300,96);
             var vp=new ViewportTransform{X=24,Y=20,Zoom=.3};
-            var board=_session.Document.Board;
-            if(board.CanvasMode=="infinite" && _session.VisibleObjects.Any())
+            var board=snapshot.Board;var visible=snapshot.Objects.Where(o=>o.IsVisible!=false&&(board.CanvasMode!="notebook"||o.PageId is null||o.PageId==board.ActivePageId)).ToArray();
+            if(board.CanvasMode=="infinite" && visible.Length>0)
             {
-                var objects=_session.VisibleObjects.ToList();var left=objects.Min(o=>o.X);var top=objects.Min(o=>o.Y);
+                var objects=visible;var left=objects.Min(o=>o.X);var top=objects.Min(o=>o.Y);
                 var width=Math.Max(1,objects.Max(o=>o.X+o.Width)-left);var height=Math.Max(1,objects.Max(o=>o.Y+o.Height)-top);
                 vp.Zoom=Math.Min(432/width,260/height);vp.X=24-left*vp.Zoom;vp.Y=20-top*vp.Zoom;
             }
             using(var ds=target.CreateDrawingSession())
-            {_renderer.RenderBackground(ds,board,vp,480,300);_renderer.RenderObjects(ds,_session.VisibleObjects,vp,480,300);}
+            {_renderer.RenderBackground(ds,board,vp,480,300);_renderer.RenderObjects(ds,visible,vp,480,300);}
             await target.SaveAsync(_storage.ThumbnailPath(board.Id),CanvasBitmapFileFormat.Png);
+            _thumbnailRevisions[board.Id]=board.Revision;
         }
         catch(Exception e){StatusText.Text="黑板已儲存，縮圖稍後更新："+e.Message;}
+        finally{_thumbnailGate.Release();}
     }
     private async void New_Click(object sender,RoutedEventArgs e)
     {
@@ -208,31 +234,15 @@ public partial class MainWindow : Window
             await _storage.SaveAsync(imported);await OpenAsync(imported);
         }catch(Exception ex){await Error(ex);}
     }
-    private async void Save_Click(object sender,RoutedEventArgs e){FinishText();await SaveAsync();}
+    private async void Save_Click(object sender,RoutedEventArgs e){FinishText();if(_gesture)CancelGesture();await SaveAsync();}
     private void Title_LostFocus(object sender,RoutedEventArgs e)
     {if(!_workspaceOpen||string.IsNullOrWhiteSpace(TitleBox.Text)||TitleBox.Text==_session.Document.Board.Title)return;_session.Begin();_session.Document.Board.Title=TitleBox.Text.Trim();_session.Commit();}
-    private async void Export_Click(object sender,RoutedEventArgs e)
-    {
-        FinishText();try
-        {
-            var picker=new FileSavePicker{SuggestedFileName=_session.Document.Board.Title};
-            WinRT.Interop.InitializeWithWindow.Initialize(picker,WinRT.Interop.WindowNative.GetWindowHandle(this));
-            picker.FileTypeChoices.Add("黑板可編輯文件",new List<string>{".heiban"});picker.FileTypeChoices.Add("跨平台 JSON",new List<string>{".json"});picker.FileTypeChoices.Add("PNG（目前視野）",new List<string>{".png"});
-            var file=await picker.PickSaveFileAsync();if(file is null)return;
-            if(file.FileType==".png")
-            {
-                using var target=new CanvasRenderTarget(CanvasSurface,(float)CanvasSurface.ActualWidth,(float)CanvasSurface.ActualHeight,96);
-                using(var ds=target.CreateDrawingSession()){_renderer.RenderBackground(ds,_session.Document.Board,_viewport,(float)target.Size.Width,(float)target.Size.Height);_renderer.RenderObjects(ds,_session.VisibleObjects,_viewport,(float)target.Size.Width,(float)target.Size.Height);}
-                await target.SaveAsync(file.Path,CanvasBitmapFileFormat.Png);
-            }else await DocumentSessionManager.WriteAtomicAsync(file.Path,DocumentCodec.Encode(_session.Document));
-            StatusText.Text="已匯出";
-        }catch(Exception ex){await Error(ex);}
-    }
+    private async void Export_Click(object sender,RoutedEventArgs e)=>await ExportDocumentAsync();
     private async void About_Click(object sender,RoutedEventArgs e)
-    {await new ContentDialog{Title="黑板 · Windows 開發預覽 0.1.0-preview.4",Content="C# / .NET 10 / WinUI 3 / Win2D\n本機作品資料：\n"+_storage.DataDirectory+"\n\n此版本尚未完成 Mac 全功能移植，請保留原始文件。",CloseButtonText="關閉",XamlRoot=Root.XamlRoot}.ShowAsync();}
+    {await new ContentDialog{Title="黑板 · Windows "+typeof(MainWindow).Assembly.GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute),false).Cast<System.Reflection.AssemblyInformationalVersionAttribute>().First().InformationalVersion.Split('+')[0],Content="C# / .NET 10 / WinUI 3 / Win2D\n本機作品資料：\n"+_storage.DataDirectory+"\n\n功能基準：Mac 1.0.12。Windows 預覽版；實體手寫裝置、多螢幕及完整跨 App 操作仍待驗收。",CloseButtonText="關閉",XamlRoot=Root.XamlRoot}.ShowAsync();}
     private void Tool_Click(object sender,RoutedEventArgs e)=>ActivateTool((string)((FrameworkElement)sender).Tag);
     private void Properties_Click(object sender,RoutedEventArgs e)
-    {Inspector.Visibility=Inspector.Visibility==Visibility.Visible?Visibility.Collapsed:Visibility.Visible;RefreshProperties();RefreshChrome();}
+    {Inspector.Visibility=Inspector.Visibility==Visibility.Visible?Visibility.Collapsed:Visibility.Visible;if(Inspector.Visibility==Visibility.Visible){_changingLayers=true;try{RefreshLayersIfNeeded();}finally{_changingLayers=false;}}RefreshProperties();RefreshChrome();}
     private void Layers_Click(object sender,RoutedEventArgs e){Inspector.Visibility=Visibility.Visible;RefreshEditor();}
     private async Task<string?> ChooseColor(string title,string current)
     {
@@ -244,15 +254,15 @@ public partial class MainWindow : Window
     private void StrokeColor_Click(object sender,RoutedEventArgs e)=>ShowColorWheel((FrameworkElement)sender,_session.Selected?.StrokeColor??CurrentStyle.Color,color=>ChangeProperty(()=>{if(_session.Selected is { } o)o.StrokeColor=color;else{CurrentStyle.Color=color;LoadActiveStyle();}}));
     private void FillColor_Click(object sender,RoutedEventArgs e)=>ShowColorWheel((FrameworkElement)sender,_session.Selected is { FillColor: not "none" } selected?selected.FillColor:CurrentStyle.Fill,color=>ChangeProperty(()=>SetFillColor(color)));
     private async void Background_Click(object sender,RoutedEventArgs e)
-    {var c=await ChooseColor("畫布背景",_session.Document.Board.BackgroundColor);if(c is null)return;_session.Begin();_session.Document.Board.BackgroundColor=c;_session.Commit();CanvasSurface.Invalidate();}
+    {var c=await ChooseColor("畫布背景",_session.Document.Board.BackgroundColor);if(c is null)return;_session.Begin();_session.Document.Board.BackgroundColor=c;_session.Commit();InvalidateCanvas();}
     private void Layer_Changed(object sender,SelectionChangedEventArgs e)
-    {if(_changingLayers||LayerList.SelectedItem is not LayerCard row)return;Select(_session.VisibleObjects.FirstOrDefault(o=>o.Id==row.ObjectId));}
+    {if(_changingLayers)return;CommitPropertyEdit();_session.SetSelection(LayerList.SelectedItems.OfType<LayerCard>().Select(row=>row.ObjectId));RefreshProperties();InvalidateCanvas(false);}
     private void SyncLayerSelection()
     {
         var changing=_changingLayers;_changingLayers=true;
         try
         {
-            LayerList.SelectedItem=LayerList.Items.OfType<LayerCard>().FirstOrDefault(row=>row.ObjectId==_session.SelectedId);
+            LayerList.SelectedItems.Clear();foreach(var row in LayerList.Items.OfType<LayerCard>().Where(row=>_session.SelectedIds.Contains(row.ObjectId)))LayerList.SelectedItems.Add(row);
             RenameLayerButton.IsEnabled=_session.Selected is not null;
         }
         finally { _changingLayers=changing; }
@@ -270,7 +280,7 @@ public partial class MainWindow : Window
         _session.Begin();selected.Name=name;_session.Commit();RefreshEditor();
     }
     private void Select(BoardObject? o)
-    {CommitPropertyEdit();_session.SelectedId=o?.Id;SyncLayerSelection();RefreshProperties();RefreshSelectionBar();CanvasSurface.Invalidate();}
+    {CommitPropertyEdit();_session.SelectedId=o?.Id;SyncLayerSelection();RefreshProperties();InvalidateCanvas(false);}
     private void Raise_Click(object sender,RoutedEventArgs e)=>OrderSelected(1);
     private void Lower_Click(object sender,RoutedEventArgs e)=>OrderSelected(-1);
     private void OrderSelected(int direction)
@@ -278,7 +288,7 @@ public partial class MainWindow : Window
         if(_session.Selected is not { } o)return;var order=_session.VisibleObjects.OrderBy(x=>x.ZIndex).ToList();var i=order.IndexOf(o);var next=i+direction;if(next<0||next>=order.Count)return;
         _session.Begin();(order[i],order[next])=(order[next],order[i]);for(var j=0;j<order.Count;j++)order[j].ZIndex=j;_session.Commit();RefreshEditor();
     }
-    private void Lock_Click(object sender,RoutedEventArgs e){if(_session.Selected is not { } o)return;_session.Begin();o.IsLocked=o.IsLocked!=true;_session.Commit();RefreshEditor();}
+    private void Lock_Click(object sender,RoutedEventArgs e){if(_session.Selected is not { } o)return;var locked=o.IsLocked!=true;_session.Begin();foreach(var item in _session.SelectedObjects)item.IsLocked=locked;_session.Commit();RefreshEditor();}
     private void Delete_Click(object sender,RoutedEventArgs e){CommitPropertyEdit();_session.DeleteSelected();RefreshEditor();}
     private void Undo_Click(object sender,RoutedEventArgs e){CommitPropertyEdit();FinishText();_session.Undo();RefreshEditor();}
     private void Redo_Click(object sender,RoutedEventArgs e){CommitPropertyEdit();FinishText();_session.Redo();RefreshEditor();}
@@ -312,16 +322,17 @@ public partial class MainWindow : Window
         foreach(var d in _toolDividers){d.Width=vertical?22:1;d.Height=vertical?1:22;}
     }
     private void AddPage_Click(object sender,RoutedEventArgs e)
-    {CancelScreenshotCapture("切換頁面");_session.Begin();var pages=_session.Document.Board.Pages??=[];var p=new BoardPage{Index=pages.Count,Title=$"第 {pages.Count+1} 頁"};pages.Add(p);_session.Document.Board.ActivePageId=p.Id;_session.Commit();RefreshEditor();}
+    {PreparePageChange();_session.Begin();var pages=_session.Document.Board.Pages??=[];var p=new BoardPage{Index=pages.Count,Title=$"第 {pages.Count+1} 頁"};pages.Add(p);_session.Document.Board.ActivePageId=p.Id;_session.Commit();RefreshEditor();}
     private void PreviousPage_Click(object sender,RoutedEventArgs e)=>SwitchPage(-1);
     private void NextPage_Click(object sender,RoutedEventArgs e)=>SwitchPage(1);
     private void SwitchPage(int direction)
-    {CancelScreenshotCapture("切換頁面");FinishText();var pages=_session.Document.Board.Pages??=[];var i=pages.FindIndex(p=>p.Id==_session.Document.Board.ActivePageId)+direction;if(i<0||i>=pages.Count)return;
+    {PreparePageChange();var pages=_session.Document.Board.Pages??=[];var i=pages.FindIndex(p=>p.Id==_session.Document.Board.ActivePageId)+direction;if(i<0||i>=pages.Count)return;
         _session.Begin();_session.Document.Board.ActivePageId=pages[i].Id;_session.SelectedId=null;_session.Commit();RefreshEditor();}
     private void Root_KeyDown(object sender,KeyRoutedEventArgs e)
     {
         if(e.OriginalSource is TextBox or NumberBox || _editor is not null)return;
         var ctrl=Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control).HasFlag(global::Windows.UI.Core.CoreVirtualKeyStates.Down);
+        if(_gesture&&(ctrl||e.Key==VirtualKey.Delete))CancelGesture();
         if(ctrl)
         {
             if(e.Key==VirtualKey.N){New_Click(sender,e);e.Handled=true;}

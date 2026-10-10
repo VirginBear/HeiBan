@@ -1,0 +1,31 @@
+HeiBan Windows SDK linking exception
+Additional permission under GNU GPL version 3 section 7
+
+Copyright (C) 2026 VirginBear and HeiBan contributors.
+
+If you modify this Program, or any covered work, by linking or combining it
+with the Windows App SDK, Microsoft Windows AI / Machine Learning runtime,
+Win2D, Microsoft Windows SDK runtime or interop components, or Microsoft
+WebView2 SDK (or modified versions of those libraries), containing parts
+covered by Microsoft software license terms, the licensors of this Program
+grant you additional permission to convey the resulting work.
+
+This permission is limited to these Windows platform components. It does
+not place Microsoft's components under the GPL or grant any rights to them
+beyond their own license terms. Their license texts and notices must be
+preserved, and their applicable redistribution conditions must be met.
+
+The HeiBan portions remain covered by GNU GPL version 3. The Corresponding
+Source required by the GPL for those portions, including build scripts,
+must still be provided. This permission does not permit proprietary HeiBan
+derivatives or linking to unrelated proprietary libraries.
+
+A recipient may remove this additional permission as allowed by GPL v3
+section 7. This exception applies only to HeiBan code for which its licensors
+have authority to grant it; separately licensed third-party code keeps its
+own license.
+
+中文說明（英文條款為授權正文）：
+此例外僅允許 HeiBan 連結上述 Windows 平台元件並散布成品；
+HeiBan 原創程式與其衍生程式仍受 GPL-3.0 約束，須提供相應原始碼。
+Microsoft 元件保留原授權與散布條件，不能被宣稱為 GPL 程式。

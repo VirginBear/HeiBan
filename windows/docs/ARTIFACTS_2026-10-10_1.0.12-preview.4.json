@@ -1,0 +1,61 @@
+{
+  "version": "1.0.12-preview.4",
+  "fileVersion": "1.0.12.4",
+  "macBaseline": {
+    "version": "1.0.12",
+    "build": "20261010.4"
+  },
+  "created": "2026-10-10",
+  "buildHost": "Windows 11 ARM64 / .NET SDK 10.0.401 / Inno 6.7.3",
+  "packages": [
+    {
+      "file": "HeiBan-Setup-1.0.12-preview.4-arm64.exe",
+      "bytes": 64006109,
+      "sha256": "0be6029d8457aba5703e645a99aaba3dfcd9bcde567fd2f5ef9437a6b2e2966e",
+      "sidecarVerified": true
+    },
+    {
+      "file": "HeiBan-Setup-1.0.12-preview.4-x64.exe",
+      "bytes": 66632321,
+      "sha256": "1532735200b6f6e7a6b0906a6312b4ea4ca8292f30cd97307d805aeda4ddedaa",
+      "sidecarVerified": true
+    },
+    {
+      "file": "HeiBan-Windows-Portable-1.0.12-preview.4-win-arm64.zip",
+      "bytes": 92766650,
+      "sha256": "110914c3e21ffeee26ecfa279062abd1fcd643a7ef09e10f0d36437e6abdf94f",
+      "sidecarVerified": true,
+      "machine": "0xaa64",
+      "requiredFilesVerified": true,
+      "emptyData": true,
+      "licenseFiles": 25,
+      "manualVerified": true,
+      "entries": 554
+    },
+    {
+      "file": "HeiBan-Windows-Portable-1.0.12-preview.4-win-x64.zip",
+      "bytes": 95471918,
+      "sha256": "e87f9ec72b0954721f569d5a909e709686b6e03f0fad5a5f9f8f3fc6616677ab",
+      "sidecarVerified": true,
+      "machine": "0x8664",
+      "requiredFilesVerified": true,
+      "emptyData": true,
+      "licenseFiles": 25,
+      "manualVerified": true,
+      "entries": 558
+    }
+  ],
+  "validation": {
+    "coreChecks": 700,
+    "arm64NativeRendering": true,
+    "nativeScreenSession": true,
+    "vectorPdfStrictParsing": true,
+    "x64Runtime": "未執行",
+    "installerUpgrade": "未執行",
+    "hardwarePointerMultiMonitor": "未執行"
+  },
+  "nativeEvidence": "docs/build-logs/edit12p4-r3-native",
+  "interactionRecord": "docs/WINDOWS_SCREEN_OBJECTS_REVIEW_2026-10-10.zh-TW.md",
+  "sourceShaFiles": 77,
+  "publication": "本機，未發布"
+}

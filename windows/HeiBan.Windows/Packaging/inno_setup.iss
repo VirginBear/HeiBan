@@ -1,11 +1,11 @@
-#ifndef SourceDir
+﻿#ifndef SourceDir
   #error SourceDir must be supplied by Package-Installer.ps1
 #endif
 #ifndef OutputDir
   #error OutputDir must be supplied
 #endif
 #ifndef AppVersion
-  #define AppVersion "0.1.0-preview.4"
+  #error AppVersion must be supplied by Package-Installer.ps1
 #endif
 #ifndef Arch
   #define Arch "x64"

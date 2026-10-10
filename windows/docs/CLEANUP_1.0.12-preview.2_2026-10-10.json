@@ -1,0 +1,42 @@
+{
+  "version": "1.0.12-preview.2",
+  "date": "2026-10-10",
+  "removedBytes": 3606237162,
+  "scope": "本次性能稽核初次交付＋曲線邊界補正重封；不含先前功能交付批次",
+  "initialCleanupBytes": 1963073041,
+  "finalCurveCleanupBytes": 1643164121,
+  "previousCurrentPayloadBytes": 263897852,
+  "vm": [
+    {
+      "path": "C:\\HeiBanBuild\\current-source",
+      "removedBytes": 841199857,
+      "removed": true
+    },
+    {
+      "path": "C:\\HeiBanBuild\\visual-source",
+      "removedBytes": 271036662,
+      "removed": true
+    },
+    {
+      "path": "C:\\HeiBanBuild\\visual-publish-arm64",
+      "removedBytes": 267022962,
+      "removed": true
+    },
+    {
+      "path": "C:\\HeiBanBuild\\qa-perf12p2-curve",
+      "removedBytes": 6788,
+      "removed": true
+    }
+  ],
+  "preservedDataFiles": 37,
+  "backup": "recovered-user-data/2026-10-10/vm/c3",
+  "earlierBackups": [
+    "c12",
+    "c2"
+  ],
+  "earlierSixWorksStillRepresented": true,
+  "qaDataBackedUpAndShaVerified": true,
+  "originalAppDataDocumentsPreserved": true,
+  "sdkInnoPreserved": true,
+  "currentPayloadShaFiles": 549
+}

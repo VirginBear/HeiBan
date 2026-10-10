@@ -1,0 +1,115 @@
+{
+  "version": "1.0.9-preview.1",
+  "fileVersion": "1.0.9.1",
+  "macBaseline": {
+    "version": "1.0.9",
+    "build": "20261010.1"
+  },
+  "created": "2026-10-10",
+  "buildHost": "Windows 11 ARM64 / .NET SDK 10.0.401 / Inno 6.7.3",
+  "packages": [
+    {
+      "file": "HeiBan-Setup-1.0.9-preview.1-arm64.exe",
+      "bytes": 63921676,
+      "sha256": "5e4b579313aa46c8b5d70f63a0121a4179515fd47f41a8a577f06f99862a2d8a",
+      "sidecarVerified": true
+    },
+    {
+      "file": "HeiBan-Setup-1.0.9-preview.1-x64.exe",
+      "bytes": 66555933,
+      "sha256": "afb58146b9b2a7a4fded38574797bf6ddec56afaf3323f1a81f772b47bd26ca3",
+      "sidecarVerified": true
+    },
+    {
+      "file": "HeiBan-Windows-Portable-1.0.9-preview.1-win-arm64.zip",
+      "bytes": 92688118,
+      "sha256": "b699c8139ded9c6534bd8821607e99309fbf5b90047ed214413594abb691d7e8",
+      "sidecarVerified": true,
+      "machine": "0xaa64",
+      "requiredFilesVerified": true,
+      "emptyData": true,
+      "licenseFiles": 25,
+      "manualVerified": true,
+      "entries": 554
+    },
+    {
+      "file": "HeiBan-Windows-Portable-1.0.9-preview.1-win-x64.zip",
+      "bytes": 95393390,
+      "sha256": "657152b0d1c2c708d443b4d72ecfb41b17f098a8a4c97284b361cef1416634eb",
+      "sidecarVerified": true,
+      "machine": "0x8664",
+      "requiredFilesVerified": true,
+      "emptyData": true,
+      "licenseFiles": 25,
+      "manualVerified": true,
+      "entries": 558
+    }
+  ],
+  "validation": {
+    "coreChecks": 527,
+    "arm64NativeRendering": true,
+    "nativeScreenSession": true,
+    "vectorPdfStrictParsing": true,
+    "x64Runtime": "未執行",
+    "installerUpgrade": "未執行",
+    "hardwarePointerMultiMonitor": "未執行",
+    "library": {
+      "favoritesFilter": true,
+      "preferencesPersist": true,
+      "multiSelection": true,
+      "sidebar": true,
+      "cardWidth": 190,
+      "viewportCapsule": true,
+      "trashRestoreUi": true,
+      "hardwareClicks": "未執行"
+    },
+    "screenObjectCommands": {
+      "rightClickKeepsDrawing": true,
+      "objectMenu": true,
+      "compatibleCopyPayload": true,
+      "duplicateDeleteUndo": true,
+      "oneClickClearUndo": true,
+      "clipboardRoundtrip": "未執行，不覆寫使用者剪貼簿"
+    },
+    "screenDocking": {
+      "fourSides": true,
+      "verticalWidth": 308,
+      "verticalHeight": 1480,
+      "collapsedVerticalHeight": 96,
+      "valuesAndHandlersRetained": true,
+      "dragHardware": "未執行"
+    },
+    "renderingPerformance": {
+      "samplesPerRun": 80,
+      "originalMedianMs": 66.376,
+      "originalP95Ms": 129.1576,
+      "optimizedMedianMs": 5.151,
+      "optimizedP95Ms": 17.1063,
+      "originalReadbackBytes": 1763112960,
+      "optimizedReadbackBytes": 1111704,
+      "pixelEquivalentFrames": 18,
+      "laserReadbackBytes": 32600,
+      "laserClearsWithoutGhosting": true,
+      "idleHoverDoesNotRender": true,
+      "scheduledIntervalMs": 16,
+      "scope": "同步原生幀測量，非實體滑鼠／手寫端到端延遲"
+    },
+    "sourceFilesShaVerified": 62,
+    "fullPointerEndToEnd": "未執行"
+  },
+  "publication": "本機，未發布",
+  "deployment": {
+    "path": "C:\\HeiBanPreview\\Current",
+    "shortcut": "黑板 Windows 最新版",
+    "fileVersion": "1.0.9.1",
+    "preservedFiles": 32,
+    "boardFiles": 4,
+    "payloadShaVerifiedFiles": 549,
+    "dataBackupVerified": true
+  },
+  "cleanup": {
+    "removedBytes": 7832766940,
+    "obsoleteLocalBinaryPackagesRemoved": true,
+    "recordsAndWorksPreserved": true
+  }
+}

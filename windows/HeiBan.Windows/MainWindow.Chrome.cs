@@ -17,9 +17,9 @@ namespace HeiBan.Windows;
 
 public partial class MainWindow
 {
-    private sealed class ToolStyle
+    public sealed class ToolStyle
     {
-        public string Color = "#24533D", Fill = "#B8D4B2", Dash = "solid";
+        public string Color = "#24533D", Fill = "#B8D4B2", Dash = "solid", BrushKind="pen", Extension="none";
         public double Width = 4, Opacity = 1, FontSize = 18;
         public double? FillOpacity;
         public string? FillGradientStart, FillGradientEnd;
@@ -42,6 +42,8 @@ public partial class MainWindow
     private DispatcherTimer? _timerTickTimer;
     private Action? _activeTimerDisplayUpdater;
     private string? _selectionBarSignature;
+    private BoardObject? _selectionBarObject;
+    private readonly List<Action<BoardObject>> _selectionBarUpdates=[];
     private static readonly string[] Palette = ["#86EFAC", "#FEF08A", "#93C5FD", "#FFFFFF", "#F472B6", "#FB923C", "#C084FC", "#24533D"];
     private static readonly string[] DashStyles = ["solid", "dashed", "dotted", "dashdot"];
     private string _styleTool = "pen";
@@ -92,7 +94,7 @@ public partial class MainWindow
     private void HeaderPin_Click(object sender, RoutedEventArgs e)
     {
         _headerPinned = !_headerPinned;
-        HeaderPinButton.Content = _headerPinned ? "已固定" : "固定";
+        HeaderPinButton.Content=ToolIcons.Create(_headerPinned?"lock":"unlock");
         if (_headerPinned) _headerHideTimer.Stop();
         else _headerHideTimer.Start();
     }
@@ -117,6 +119,7 @@ public partial class MainWindow
             ToolTipService.SetToolTip(ReadingModeButton, "閱讀模式：拖曳移動畫布，不會畫線");
             StatusText.Text = "編輯模式";
         }
+        RefreshNavigationChrome();
     }
 
     private void InsertNav_Click(object sender, RoutedEventArgs e)
@@ -158,9 +161,7 @@ public partial class MainWindow
         menu.Items.Add(rulerItem);
 
         var screenAnnotateItem = new MenuFlyoutItem { Text = "我的螢幕就是我的畫布", Icon = ToolIcons.CreateIcon("infinite") };
-        screenAnnotateItem.Click += (_, _) => {
-            StatusText.Text = "透明螢幕畫布：即將啟用桌面全域透明註記層";
-        };
+        screenAnnotateItem.Click += async (_, _) => await StartScreenAnnotationAsync();
         menu.Items.Add(screenAnnotateItem);
 
         ShowExclusiveFlyout(menu, InsertNavButton);
@@ -328,12 +329,14 @@ public partial class MainWindow
         }
         _activeFlyout = flyout;
         flyout.Closed += (_, _) => { if (_activeFlyout == flyout) _activeFlyout = null; };
+        flyout.OverlayInputPassThroughElement=ToolBorder;
         flyout.ShowAt(anchor);
     }
 
     private void BuildChrome()
     {
-        HomeButton.Content = ToolIcons.Create("home");
+        HomeButton.Content = ToolIcons.Create("chevron-left");
+        HeaderPinButton.Content=ToolIcons.Create(_headerPinned?"lock":"unlock");
         ScreenCanvasButton.Content=ToolIcons.Create("screen");
         ReadingModeButton.Content = ToolIcons.Create("reading");
         PinNavButton.Content = ToolIcons.Create("pins");
@@ -346,7 +349,7 @@ public partial class MainWindow
         InspectorBookmark.Content = ToolIcons.Create("settings");
         CloseInspectorButton.Content = ToolIcons.Create("close");
 
-        foreach (var b in new[] { HomeButton, ScreenCanvasButton, ReadingModeButton, PinNavButton, InsertNavButton, MoreNavButton, BackgroundButton, ExportButton, SaveButton, LayersButton, CloseInspectorButton })
+        foreach (var b in new[] { HomeButton, ScreenCanvasButton, ReadingModeButton, PinNavButton, InsertNavButton, MoreNavButton, HeaderPinButton, BackgroundButton, ExportButton, SaveButton, LayersButton, CloseInspectorButton })
             b.Style = (Style)Application.Current.Resources["ToolButtonStyle"];
 
         Tools.Children.Clear();
@@ -380,6 +383,11 @@ public partial class MainWindow
 
             switch (key)
             {
+                case "laser" or "tape" or "lasso":
+                    Tool(key,ToolbarPreferences.ToolNames[key],key);break;
+                case "extension" or "clearAll" or "viewLock":
+                    var extraKey=key;var extra=IconButton(key=="clearAll"?"delete":key=="viewLock"?"lock":"line",ToolbarPreferences.ToolNames[key],()=>InvokeToolByKey(extraKey),key);
+                    _toolButtons[key]=extra;Tools.Children.Add(extra);break;
                 case "select": Tool("select", "選取（V）", "select"); break;
                 case "pen": Tool("pen", "鋼筆／向量筆（P）", "pen"); break;
                 case "curve": Tool("curve", "可編輯曲線", "curve"); break;
@@ -425,7 +433,7 @@ public partial class MainWindow
                     _toolButtons["dash"] = (Button)Tools.Children[^1];
                     break;
                 case "pins":
-                    var pin = IconButton("pins", "圖釘導航", () => Pin_Click(this, new()), "pins");
+                    var pin = IconButton("pins", "圖釘", () => Pin_Click(this, new()), "pins");
                     _toolButtons["pins"] = pin;
                     Tools.Children.Add(pin);
                     break;
@@ -476,7 +484,7 @@ public partial class MainWindow
             DashBox.SelectionChanged += (_, _) => ChangeProperty(() => { var dash = DashStyles[Math.Clamp(DashBox.SelectedIndex, 0, 3)]; if (_session.Selected is { } o) o.LineStyle = dash; else CurrentStyle.Dash = dash; });
             RotationBox.ValueChanged += (_, e) => { if (double.IsFinite(e.NewValue)) ChangeProperty(() => { if (_session.Selected is { } o) o.Rotation = Math.Round(e.NewValue, 1); }); };
             FontSizeBox.ValueChanged += (_, e) => { if (double.IsFinite(e.NewValue)) ChangeProperty(() => { if (_session.Selected is { } o) o.FontSize = e.NewValue; else CurrentStyle.FontSize = e.NewValue; }); };
-            EraserSizeSlider.ValueChanged += (_, _) => CanvasSurface.Invalidate();
+            EraserSizeSlider.ValueChanged += (_, _) => InvalidateCanvas();
             RotationBox.NumberFormatter = RulerAngleBox.NumberFormatter = new DecimalFormatter { FractionDigits = 1 };
             _propertyCommitTimer.Tick += (_, _) => CommitPropertyEdit();
             _headerHideTimer.Tick += (_, _) =>
@@ -488,6 +496,8 @@ public partial class MainWindow
             _chromeEventsBound = true;
         }
 
+        foreach(var (dash,index) in DashStyles.Select((value,index)=>(value,index)))
+        {var sample=new StackPanel{Orientation=Orientation.Horizontal,Spacing=12};sample.Children.Add(ToolIcons.CreateDash(dash));sample.Children.Add(new TextBlock{Text=new[]{"實線","虛線","點線","點劃線"}[index]});((ComboBoxItem)DashBox.Items[index]).Content=sample;}
         _syncingProperties = false;
         LoadActiveStyle();
         RefreshChrome();
@@ -534,7 +544,7 @@ public partial class MainWindow
             StatusText.Text = "圓規已關閉";
         }
         RefreshChrome();
-        CanvasSurface.Invalidate();
+        InvalidateCanvas();
     }
 
     private void ShowMoreToolsMenu(FrameworkElement anchor)
@@ -575,9 +585,12 @@ public partial class MainWindow
     {
         switch (key)
         {
-            case "select" or "pen" or "curve" or "highlighter" or "paint" or "sticky" or "text" or "star":
+            case "laser" or "tape" or "lasso" or "select" or "pen" or "curve" or "highlighter" or "paint" or "sticky" or "text" or "star":
                 ActivateTool(key);
                 break;
+            case "extension": ShowExtensionSettings(GetToolAnchor(key));break;
+            case "viewLock": NavigationLock_Click(this,new RoutedEventArgs());break;
+            case "clearAll": ClearPage();break;
             case "calculator":
                 ShowCalculatorPanel(GetToolAnchor("calculator"));
                 break;
@@ -736,8 +749,10 @@ public partial class MainWindow
 
     private void ActivateTool(string tool)
     {
+        _activeFlyout?.Hide();
         CommitPropertyEdit();
         FinishText();
+        var color=CurrentStyle.Color;var dash=CurrentStyle.Dash;
         CancelGesture();
         _polygon.Clear();
         _session.SelectedId = null;
@@ -745,12 +760,13 @@ public partial class MainWindow
         if (tool is not ("select" or "eraser"))
         {
             _styleTool = tool;
+            CurrentStyle.Color=color;CurrentStyle.Dash=dash;
             LoadActiveStyle();
         }
         RefreshProperties();
         RefreshChrome();
         RefreshSelectionBar();
-        CanvasSurface.Invalidate();
+        InvalidateCanvas(false);
     }
 
     private void LoadActiveStyle()
@@ -785,6 +801,7 @@ public partial class MainWindow
         FontSizeBox.Value = o?.FontSize ?? style.FontSize;
         FillToggle.IsChecked = o is null ? style.Filled : o.FillColor != "none";
         DashBox.SelectedIndex = Math.Max(0, Array.IndexOf(DashStyles, o?.LineStyle ?? style.Dash));
+        if(_toolButtons.TryGetValue("dash",out var dashButton))dashButton.Content=ToolIcons.CreateDash(o?.LineStyle??style.Dash);
         StrokeColorButton.Content = "自訂色輪 · " + (o?.StrokeColor ?? style.Color);
         if (_brushSwatch is not null) _brushSwatch.Fill = Brush(o?.StrokeColor ?? style.Color);
         FillColorButton.Content = "自訂填色與透明度";
@@ -804,11 +821,20 @@ public partial class MainWindow
             _propertyCommitTimer.Stop();
             _propertyCommitTimer.Start();
         }
+        var oldColor=_session.Selected?.StrokeColor??CurrentStyle.Color;var oldDash=_session.Selected?.LineStyle??CurrentStyle.Dash;
+        var before=_session.Selected is { } primary && _session.SelectedIds.Count>1 ? DocumentCodec.Clone(primary):null;
         change();
+        var color=_session.Selected?.StrokeColor??CurrentStyle.Color;var dash=_session.Selected?.LineStyle??CurrentStyle.Dash;
+        if(color!=oldColor||dash!=oldDash)
+        {
+            foreach(var setting in _toolStyles.Values){if(color!=oldColor)setting.Color=color;if(dash!=oldDash)setting.Dash=dash;}
+            LoadActiveStyle();QueueTeachingSettingsSave();
+        }
+        else if(_session.Selected is null)QueueTeachingSettingsSave();
+        if(before is not null&&_session.Selected is { } changed)SelectionStyle.ApplyChanged(before,changed,_session.SelectedObjects);
         if (_preview is not null) Styled(_preview);
         RefreshProperties();
-        RefreshSelectionBar();
-        CanvasSurface.Invalidate();
+        InvalidateCanvas(_session.Selected is not null);
     }
 
     private readonly Dictionary<string, string> _objectFillColors = [];
@@ -893,7 +919,7 @@ public partial class MainWindow
         for (var i = 0; i < DashStyles.Length; i++)
         {
             var j = i;
-            var row = new MenuFlyoutItem { Text = new[] { "實線", "虛線", "點線", "點劃線" }[i] };
+            var row = new MenuFlyoutItem { Text = new[] { "實線", "虛線", "點線", "點劃線" }[i],Icon=ToolIcons.CreateDashIcon(DashStyles[i]) };
             row.Click += (_, _) => ChangeProperty(() => { if (_session.Selected is { } o) o.LineStyle = DashStyles[j]; else CurrentStyle.Dash = DashStyles[j]; });
             menu.Items.Add(row);
         }
@@ -915,8 +941,10 @@ public partial class MainWindow
     private void ShowBrushSettings(FrameworkElement anchor)
     {
         var selected = _session.Selected;
+        if(_tool=="laser"){ShowLaserSettings(anchor);return;}
         var panel = new StackPanel { Width = 286, Spacing = 12 };
         panel.Children.Add(new TextBlock { Text = selected is null ? $"繪圖設定（{_styleTool}）" : "已選取物件設定", FontSize = 16, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
+        AddExtendedObjectSettings(panel,selected);
         var palette = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 5 };
         AddPalette(palette, c => ChangeProperty(() => { if (_session.Selected is { } o) o.StrokeColor = c; else { CurrentStyle.Color = c; LoadActiveStyle(); } }));
         panel.Children.Add(palette);
@@ -982,7 +1010,7 @@ public partial class MainWindow
             preview.MinWidth = Math.Max(260, dot.Width + 24);
             preview.MinHeight = Math.Max(80, dot.Height + 24);
             label.Text = $"畫布直徑 {dot.Width:0.#} pt · 縮放 {_viewport.Zoom:P0} · 透明度 {dot.Opacity:P0}";
-            CanvasSurface.Invalidate();
+            InvalidateCanvas();
         }
 
         wheel.ColorChanged += (_, e) => { ChangeProperty(() => { if (_session.Selected is { } o) o.StrokeColor = ColorHex(e.NewColor); else { CurrentStyle.Color = ColorHex(e.NewColor); LoadActiveStyle(); } }); Sync(); };
@@ -1018,25 +1046,26 @@ public partial class MainWindow
         var selected = _session.Selected;
         if (selected is null || !_workspaceOpen)
         {
-            _selectionBarSignature = null;
+            _selectionBarSignature = null;_selectionBarObject=null;_selectionBarUpdates.Clear();
             SelectionBar.Visibility = Visibility.Collapsed;
             return;
         }
 
         var signature = $"{selected.Id}:{selected.IsLocked}:{selected.Type}";
-        if (_selectionBarSignature != signature)
+        if (_selectionBarSignature != signature||!ReferenceEquals(_selectionBarObject,selected))
         {
             RebuildSelectionBar(selected);
-            _selectionBarSignature = signature;
+            _selectionBarSignature = signature;_selectionBarObject=selected;
         }
 
+        foreach(var update in _selectionBarUpdates)update(selected);
         UpdateSelectionBarPosition();
     }
 
     private void RebuildSelectionBar(BoardObject selected)
     {
         SelectionBar.Visibility = Visibility.Visible;
-        SelectionBarTools.Children.Clear();
+        SelectionBarTools.Children.Clear();_selectionBarUpdates.Clear();
 
         Button QuickButton(string icon, string tip, Action<Button> action)
         {
@@ -1062,6 +1091,7 @@ public partial class MainWindow
                     var colorBtn = new Button { Style = (Style)Application.Current.Resources["ToolButtonStyle"], Content = colorDot, Width = 32, Height = 32, Padding = new Thickness(4) };
                     ToolTipService.SetToolTip(colorBtn, "線條色彩");
                     colorBtn.Click += (_, _) => ShowColorWheel(colorBtn, selected.StrokeColor, c => ChangeProperty(() => selected.StrokeColor = c));
+                    var shownColor=selected.StrokeColor;_selectionBarUpdates.Add(o=>{if(o.StrokeColor!=shownColor){shownColor=o.StrokeColor;colorDot.Fill=Brush(shownColor);}});
                     SelectionBarTools.Children.Add(colorBtn);
                     break;
 
@@ -1074,6 +1104,7 @@ public partial class MainWindow
                         s.ValueChanged += (_, e) => ChangeProperty(() => selected.StrokeWidth = e.NewValue);
                         ShowExclusiveFlyout(new Flyout { Content = new StackPanel { Spacing = 8, Children = { new TextBlock { Text = "粗細（pt）", FontSize = 12 }, s } } }, wBtn);
                     };
+                    _selectionBarUpdates.Add(o=>((TextBlock)wBtn.Content).Text=$"{o.StrokeWidth:0.#}");
                     SelectionBarTools.Children.Add(wBtn);
                     break;
 
@@ -1096,11 +1127,12 @@ public partial class MainWindow
                         p.Children.Add(alphaSlider);
                         ShowExclusiveFlyout(new Flyout { Content = p }, fillBtn);
                     };
+                    var shownFill=selected.FillColor;_selectionBarUpdates.Add(o=>{if(o.FillColor!=shownFill){shownFill=o.FillColor;fillDot.Fill=Brush(shownFill=="none"?"#FCFCFA":shownFill);}});
                     SelectionBarTools.Children.Add(fillBtn);
                     break;
 
                 case QuickActionItem.DashStyle:
-                    SelectionBarTools.Children.Add(QuickButton("dash", "線條樣式", b => ShowLineStyles(b)));
+                    var dashButton=QuickButton("dash", "線條樣式", b => ShowLineStyles(b));dashButton.Content=ToolIcons.CreateDash(selected.LineStyle);var shownDash=selected.LineStyle;_selectionBarUpdates.Add(o=>{if(o.LineStyle!=shownDash){shownDash=o.LineStyle;dashButton.Content=ToolIcons.CreateDash(shownDash);}});SelectionBarTools.Children.Add(dashButton);
                     break;
 
                 case QuickActionItem.FontSize:
@@ -1112,6 +1144,7 @@ public partial class MainWindow
                         nb.ValueChanged += (_, e) => { if (double.IsFinite(e.NewValue)) ChangeProperty(() => selected.FontSize = e.NewValue); };
                         ShowExclusiveFlyout(new Flyout { Content = nb }, fBtn);
                     };
+                    _selectionBarUpdates.Add(o=>((TextBlock)fBtn.Content).Text=$"{o.FontSize??18:0}pt");
                     SelectionBarTools.Children.Add(fBtn);
                     break;
 
@@ -1124,6 +1157,7 @@ public partial class MainWindow
                         s.ValueChanged += (_, e) => ChangeProperty(() => selected.Opacity = e.NewValue);
                         ShowExclusiveFlyout(new Flyout { Content = new StackPanel { Spacing = 8, Children = { new TextBlock { Text = "透明度", FontSize = 12 }, s } } }, oBtn);
                     };
+                    _selectionBarUpdates.Add(o=>((TextBlock)oBtn.Content).Text=$"{o.Opacity*100:0}%");
                     SelectionBarTools.Children.Add(oBtn);
                     break;
 
@@ -1346,7 +1380,7 @@ public partial class MainWindow
         actionsRow.Children.Add(historyBtn);
         panel.Children.Add(actionsRow);
 
-        ShowExclusiveFlyout(new Flyout { Content = panel }, anchor);
+        ShowFloatingTool("calculator","計算機",panel);
     }
 
     private void ShowTimerPanel(FrameworkElement anchor)
@@ -1383,6 +1417,9 @@ public partial class MainWindow
             countdownPresets.Children.Add(pBtn);
         }
         panel.Children.Add(countdownPresets);
+        var customDuration=new NumberBox{Header="自訂倒數（秒）",Minimum=1,Maximum=86400,Value=_timerCoordinator.CountdownDuration};
+        var applyDuration=new Button{Content="套用自訂倒數"};applyDuration.Click+=(_,_)=>{if(!double.IsFinite(customDuration.Value))return;_timerCoordinator.Mode=TimerMode.Countdown;_timerCoordinator.Reset();_timerCoordinator.SetCountdownDuration(customDuration.Value);timeDisplay.Text=_timerCoordinator.FormattedTimeString();};
+        panel.Children.Add(customDuration);panel.Children.Add(applyDuration);
 
         var controlsRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Center };
         var playBtn = new Button
@@ -1459,19 +1496,14 @@ public partial class MainWindow
         insertRow.Children.Add(insertBtn);
         panel.Children.Add(insertRow);
 
-        var flyout = new Flyout { Content = panel };
-        flyout.Closed += (_, _) =>
-        {
-            _activeTimerDisplayUpdater = null;
-        };
-        ShowExclusiveFlyout(flyout, anchor);
+        ShowFloatingTool("timer","計時器",panel,()=>_activeTimerDisplayUpdater=null);
     }
 
     private void ShowCompassPanel(FrameworkElement anchor)
     {
         _compass.IsEnabled = true;
         RefreshChrome();
-        CanvasSurface.Invalidate();
+        InvalidateCanvas();
 
         var panel = new StackPanel { Width = 280, Spacing = 10, Padding = new Thickness(4) };
         panel.Children.Add(new TextBlock { Text = "圓規與圓弧", FontSize = 15, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
@@ -1485,7 +1517,7 @@ public partial class MainWindow
             var center = _viewport.ScreenToWorld(CanvasSurface.ActualWidth / 2, CanvasSurface.ActualHeight / 2);
             _compass.MoveCenter(center);
             centerCoord.Text = $"圓心座標：({_compass.Center.X:0.#}, {_compass.Center.Y:0.#})";
-            CanvasSurface.Invalidate();
+            InvalidateCanvas();
         };
         panel.Children.Add(centerBtn);
 
@@ -1494,7 +1526,7 @@ public partial class MainWindow
         {
             _compass.AdjustRadius(e.NewValue);
             rSlider.Header = $"半徑（pt）：{_compass.Radius:0.#}";
-            CanvasSurface.Invalidate();
+            InvalidateCanvas();
         };
         panel.Children.Add(rSlider);
 

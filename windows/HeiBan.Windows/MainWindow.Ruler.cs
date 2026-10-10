@@ -48,7 +48,7 @@ public partial class MainWindow
         _rulerEnabled=!_rulerEnabled;
         if(_rulerEnabled&&(!_rulerPositioned||_rulerCenter.X<0||_rulerCenter.X>CanvasSurface.ActualWidth||_rulerCenter.Y<0||_rulerCenter.Y>CanvasSurface.ActualHeight))
         {_rulerCenter=new((float)CanvasSurface.ActualWidth/2,(float)CanvasSurface.ActualHeight*.58f);_rulerPositioned=true;}
-        RefreshChrome();CanvasSurface.Invalidate();
+        RefreshChrome();InvalidateCanvas();
     }
     private bool _rulerPositioned;
     private void RulerAngle_Changed(NumberBox sender,NumberBoxValueChangedEventArgs e){if(double.IsFinite(e.NewValue)&&e.NewValue!=_rulerAngle)SetRulerAngle(e.NewValue);}
@@ -61,13 +61,13 @@ public partial class MainWindow
         var reset=new Button{Content="水平 0.0°"};reset.Click+=(_,_)=>angle.Value=0;panel.Children.Add(reset);
         var length=new Slider{Header="尺長（pt；小視窗自動適應）",Minimum=400,Maximum=1800,Value=_rulerLength,StepFrequency=50};length.ValueChanged+=(_,e)=>{var pivot=RulerPivot();_rulerLength=e.NewValue;SetRulerAngle(_rulerAngle,pivot);};panel.Children.Add(length);
         var edge=new ComboBox{Header="旋轉支點所在邊",ItemsSource=new[]{"上方劃線邊","尺身中線","下方劃線邊"},SelectedIndex=_rulerPivotEdge=="top"?0:_rulerPivotEdge=="bottom"?2:1,HorizontalAlignment=HorizontalAlignment.Stretch};
-        edge.SelectionChanged+=(_,_)=>{_rulerPivotEdge=edge.SelectedIndex==0?"top":edge.SelectedIndex==2?"bottom":"center";CanvasSurface.Invalidate();};panel.Children.Add(edge);
+        edge.SelectionChanged+=(_,_)=>{_rulerPivotEdge=edge.SelectedIndex==0?"top":edge.SelectedIndex==2?"bottom":"center";InvalidateCanvas();};panel.Children.Add(edge);
         var pivotPosition=new Slider{Header="支點位置（0% 左端；100% 右端）",Minimum=0,Maximum=100,Value=_rulerPivotRatio*100,StepFrequency=1};
-        pivotPosition.ValueChanged+=(_,e)=>{_rulerPivotRatio=e.NewValue/100;CanvasSurface.Invalidate();};panel.Children.Add(pivotPosition);
-        var opacity=new Slider{Header="尺身透明度",Minimum=.12,Maximum=.75,Value=_rulerOpacity,StepFrequency=.01};opacity.ValueChanged+=(_,e)=>{_rulerOpacity=e.NewValue;CanvasSurface.Invalidate();};panel.Children.Add(opacity);
+        pivotPosition.ValueChanged+=(_,e)=>{_rulerPivotRatio=e.NewValue/100;InvalidateCanvas();};panel.Children.Add(pivotPosition);
+        var opacity=new Slider{Header="尺身透明度",Minimum=.12,Maximum=.75,Value=_rulerOpacity,StepFrequency=.01};opacity.ValueChanged+=(_,e)=>{_rulerOpacity=e.NewValue;InvalidateCanvas();};panel.Children.Add(opacity);
         var mode=new ComboBox{Header="刻度與文字配色",ItemsSource=new[]{"自適應（預設）","自訂顏色"},SelectedIndex=_rulerColor is null?0:1,HorizontalAlignment=HorizontalAlignment.Stretch};panel.Children.Add(mode);
         var picker=ColorWheel(_rulerColor??"#24533D");picker.Visibility=_rulerColor is null?Visibility.Collapsed:Visibility.Visible;panel.Children.Add(picker);
-        mode.SelectionChanged+=(_,_)=>{picker.Visibility=mode.SelectedIndex==0?Visibility.Collapsed:Visibility.Visible;_rulerColor=mode.SelectedIndex==0?null:ColorHex(picker.Color);CanvasSurface.Invalidate();};picker.ColorChanged+=(_,e)=>{if(mode.SelectedIndex==1){_rulerColor=ColorHex(e.NewColor);CanvasSurface.Invalidate();}};
+        mode.SelectionChanged+=(_,_)=>{picker.Visibility=mode.SelectedIndex==0?Visibility.Collapsed:Visibility.Visible;_rulerColor=mode.SelectedIndex==0?null:ColorHex(picker.Color);InvalidateCanvas();};picker.ColorChanged+=(_,e)=>{if(mode.SelectedIndex==1){_rulerColor=ColorHex(e.NewColor);InvalidateCanvas();}};
         panel.Children.Add(new TextBlock{Text="拖曳尺身移動；拖曳兩端圓形把手旋轉。金色支點可拖到上／下劃線邊及最兩端，旋轉時固定在原位。點尺上的角度可直接輸入，精度 0.1°。",TextWrapping=TextWrapping.Wrap,FontSize=12,Foreground=Brush("#68756C")});
         var flyout=new Flyout{Content=new ScrollViewer{Content=panel,MaxHeight=Math.Max(280,Root.ActualHeight-120),VerticalScrollBarVisibility=ScrollBarVisibility.Auto}};
         if(position is { } p)flyout.ShowAt(anchor,new FlyoutShowOptions{Position=p});else flyout.ShowAt(anchor);

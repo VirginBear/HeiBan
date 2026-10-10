@@ -13,7 +13,14 @@ public static class DocumentCodec
         WriteIndented = false
     };
     public static string Encode(HeiBanDocument document) => JsonSerializer.Serialize(document, Options);
-    public static T Clone<T>(T value) => JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(value, Options), Options)!;
+    public static T Clone<T>(T value) => value switch
+    {
+        HeiBanDocument doc => (T)(object)doc.Snapshot(), BoardMetadata board => (T)(object)board.Snapshot(),
+        BoardObject item => (T)(object)item.Snapshot(), BoardPin pin => (T)(object)pin.Snapshot(),
+        BoardPage page => (T)(object)page.Snapshot(), InkPoint point => (T)(object)point.Snapshot(),
+        TextSpan span => (T)(object)span.Snapshot(),
+        _ => JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(value, Options), Options)!
+    };
     public static HeiBanDocument Decode(string json)
     {
         using var root = JsonDocument.Parse(json);

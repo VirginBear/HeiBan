@@ -1,0 +1,12 @@
+{
+  "success": true,
+  "version": "1.0.12-preview.5",
+  "fourPublicZips": true,
+  "portableOriginalEntriesByteIdentical": true,
+  "installerOriginalExeByteIdentical": true,
+  "peArm64X64": true,
+  "manualMatchesBundled": true,
+  "licenseTermsIncluded": true,
+  "noUserData": true,
+  "sourceShaFiles": 77
+}

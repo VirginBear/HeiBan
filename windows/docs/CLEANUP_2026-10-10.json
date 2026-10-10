@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-10",
+  "version": "1.0.9-preview.1",
+  "removedBytes": 7832766940,
+  "breakdown": {
+    "initialHost": 1305818237,
+    "initialVm": 3334302594,
+    "finalHost": 638620935,
+    "finalVm": 2290354525,
+    "previousCurrentPayload": 263670649
+  },
+  "kept": [
+    "最新ARM64及x64的Portable／Installer四包與SHA",
+    "來源／授權／紀錄文本",
+    "已SHA驗證作品備份及Current Data",
+    "原AppData及Documents作品",
+    "VM SDK及Inno Setup"
+  ],
+  "dataPreservedFiles": 32,
+  "publication": "未commit／push／發布"
+}

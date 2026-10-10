@@ -5,3 +5,6 @@ dist/
 .staging/
 *.user
 *.pfx
+
+# User works recovered before removing obsolete Portable builds
+recovered-user-data/

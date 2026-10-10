@@ -4,15 +4,15 @@
 
 在電腦上寫、畫、整理想法。黑板提供筆記本、無邊界筆記和有邊界黑板；macOS 與 Windows 各自使用原生介面與繪圖技術。
 
-**目前是公開預覽版。** 各平台的功能與驗收進度不同，請先備份重要作品。[安裝與更新](docs/INSTALL.zh-TW.md) · [快速開始](docs/QUICK_START.zh-TW.md) · [下載全部版本](https://github.com/VirginBear/HeiBan/releases)
+**目前是公開預覽版。** 各平台的功能與驗收進度不同，請先備份重要作品。[安裝與更新](docs/INSTALL.zh-TW.md) · [快速開始](docs/QUICK_START.zh-TW.md) · [下載最新版](https://github.com/VirginBear/HeiBan/releases)
 
 ## 下載
 
 | 電腦 | 版本 | 下載 |
 | --- | --- | --- |
 | Apple Silicon Mac（M 系列），macOS 14+ | 1.0.8 | [DMG 安裝映像](https://github.com/VirginBear/HeiBan/releases/download/macos-v1.0.8/HeiBan-macOS-1.0.8-arm64.dmg) · [ZIP](https://github.com/VirginBear/HeiBan/releases/download/macos-v1.0.8/HeiBan-macOS-1.0.8-arm64.zip) |
-| Windows 11，Intel／AMD 64 位元 | 0.1.0-preview.5 | [安裝版](https://github.com/VirginBear/HeiBan/releases/download/windows-v0.1.0-preview.5/HeiBan-Windows-Installer-0.1.0-preview.5-win-x64.zip) · [免安裝版](https://github.com/VirginBear/HeiBan/releases/download/windows-v0.1.0-preview.5/HeiBan-Windows-Portable-0.1.0-preview.5-win-x64.zip) |
-| Windows 11，ARM／Apple Silicon 上的 ARM Windows | 0.1.0-preview.5 | [安裝版](https://github.com/VirginBear/HeiBan/releases/download/windows-v0.1.0-preview.5/HeiBan-Windows-Installer-0.1.0-preview.5-win-arm64.zip) · [免安裝版](https://github.com/VirginBear/HeiBan/releases/download/windows-v0.1.0-preview.5/HeiBan-Windows-Portable-0.1.0-preview.5-win-arm64.zip) |
+| Windows 11，Intel／AMD 64 位元 | 1.0.12-preview.5 | [安裝版](https://github.com/VirginBear/HeiBan/releases/download/windows-v1.0.12-preview.5/HeiBan-Windows-Installer-1.0.12-preview.5-win-x64.zip) · [免安裝版](https://github.com/VirginBear/HeiBan/releases/download/windows-v1.0.12-preview.5/HeiBan-Windows-Portable-1.0.12-preview.5-win-x64.zip) |
+| Windows 11，ARM／Apple Silicon 上的 ARM Windows | 1.0.12-preview.5 | [安裝版](https://github.com/VirginBear/HeiBan/releases/download/windows-v1.0.12-preview.5/HeiBan-Windows-Installer-1.0.12-preview.5-win-arm64.zip) · [免安裝版](https://github.com/VirginBear/HeiBan/releases/download/windows-v1.0.12-preview.5/HeiBan-Windows-Portable-1.0.12-preview.5-win-arm64.zip) |
 
 Windows 安裝版下載檔為 ZIP，內含 `HeiBan-Setup-….exe`、說明與授權；解壓後執行安裝檔。免安裝版必須完整解壓，不能只取出 EXE。每個 Release 都附 `SHA256SUMS.txt`。
 
@@ -24,10 +24,10 @@ Mac 目前只提供 ARM64 下載包；尚無 Intel／Universal 包。Mac 未完�
 - 手寫、螢光筆、幾何圖形、文字與便簽，置入圖片。
 - 修改顏色、粗細、填色、透明度、線型及物件順序，使用選取與復原／重做。
 - 使用可移動／旋轉的尺規、圓規、圖釘、計算機與計時器。
-- 本機保存與可編輯作品；Mac 提供 `.heiban` 原稿與 PNG／PDF／SVG／HTML 匯出，Windows 目前提供 JSON／`.heiban` 與 PNG。
-- Mac 提供透明螢幕畫布與雷射工具，用於講解；跨 App／全螢幕的完整操作仍待驗收。
+- 本機保存與可編輯作品；Mac 提供 `.heiban` 原稿與 PNG／PDF／SVG／HTML 匯出，Windows 提供 JSON／`.heiban` 及 PNG／PDF／SVG／HTML 匯出。
+- Mac 與 Windows 提供透明螢幕畫布與雷射工具，用於講解；Windows 右鍵物件可調整／複製／刪除，以模式按鈕或 Ctrl+Alt+D 切換穿透。跨 App／全螢幕的完整硬體操作仍待驗收。
 
-**尚未完成：** 原生 Google 登入／雲端同步、完整 PDF／SVG 編輯、跨平台全功能一致性。Windows 透明螢幕畫布、雷射等仍待移植；包內部分舊手冊文字不代表功能已可使用，請以最新線上文件為準。沒有正式公開的 Web 服務網址。
+**尚未完成：** 原生 Google 登入／雲端同步、完整 PDF／SVG 編輯、跨平台全功能一致性。Windows 最新版的操作以內建手冊及平台文件為準，x64 實機與安裝升級仍待驗收。沒有正式公開的 Web 服務網址。
 
 ## 操作說明
 

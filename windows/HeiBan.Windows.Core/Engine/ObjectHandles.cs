@@ -25,7 +25,7 @@ public static class ObjectHandles
         if(o.Type is "line" or "arrow")return [new("endpoint",Endpoint(o,0),0),new("endpoint",Endpoint(o,1),1)];
         var handles=new List<Handle>();
         if(o.Type is "triangle" or "quadrilateral" or "curve")
-            handles.AddRange(o.ParsedPoints.Select((p,i)=>new Handle("vertex",ToWorld(o,p),i)));
+            handles.AddRange(o.ParsedPoints.Select((p,i)=>new Handle("vertex",ToWorld(o,new(p.X+o.PreviewOffsetX,p.Y+o.PreviewOffsetY)),i)));
         else if(o.ParsedPoints.Count==0)
             handles.AddRange(ResizePositions.Select((p,i)=>new Handle("resize",ToWorld(o,new(o.X+p.X*o.Width,o.Y+p.Y*o.Height)),i)));
         if(o.Type=="arc")
@@ -46,6 +46,8 @@ public static class ObjectHandles
         handles.Add(new("rotate",ToWorld(o,new(o.X+o.Width/2,o.Y-28/zoom))));
         return handles;
     }
+    public static InkPoint ConstrainOrthogonal(InkPoint anchor,InkPoint cursor)
+    {var result=cursor.Snapshot();if(Math.Abs(cursor.X-anchor.X)>=Math.Abs(cursor.Y-anchor.Y))result.Y=anchor.Y;else result.X=anchor.X;return result;}
     public static void SetEndpoints(BoardObject o,InkPoint a,InkPoint b)
     {
         o.X1=a.X;o.Y1=a.Y;o.X2=b.X;o.Y2=b.Y;

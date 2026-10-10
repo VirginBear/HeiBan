@@ -1,0 +1,35 @@
+{
+  "version": "1.0.12-preview.4",
+  "nativeEvidence": "build-logs/edit12p4-r3-native",
+  "architecture": "ARM64",
+  "previewPerformance": {
+    "pixelEquivalentFrames": 36,
+    "previewFrames": 32,
+    "idleToolSwitchDoesNotRender": true,
+    "originalReadbackBytes": 705245184,
+    "regionalReadbackBytes": 6114048,
+    "regionalMedianMs": 1.824,
+    "fullMedianMs": 24.7323,
+    "scope": "同步原生圖形／框選幀，非硬體輸入延遲"
+  },
+  "strokePerformance": {
+    "samplesPerRun": 80,
+    "originalMedianMs": 27.45,
+    "originalP95Ms": 37.9342,
+    "optimizedMedianMs": 0.7112,
+    "optimizedP95Ms": 1.2283,
+    "originalReadbackBytes": 1763112960,
+    "optimizedReadbackBytes": 1111704,
+    "pixelEquivalentFrames": 18,
+    "selectionPixelEquivalentFrames": 3,
+    "selectionReadbackBytes": 4142128,
+    "selectionPreviewCommitUndo": true,
+    "largeCurveOvershootPixelEquivalent": true,
+    "laserReadbackBytes": 32600,
+    "laserClearsWithoutGhosting": true,
+    "idleHoverDoesNotRender": true,
+    "scheduledIntervalMs": 16,
+    "scope": "同步原生幀測量，非實體滑鼠／手寫端到端延遲"
+  },
+  "hardwareInputLatency": "未執行"
+}

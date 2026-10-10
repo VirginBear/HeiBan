@@ -1,0 +1,61 @@
+{
+  "version": "1.0.12-preview.1",
+  "macBaseline": "1.0.12/20261010.4",
+  "screenPhysicalPixels": [
+    3024,
+    1822
+  ],
+  "dpiScale": 2,
+  "performance": {
+    "samplesPerRun": 80,
+    "originalMedianMs": 28.4176,
+    "originalP95Ms": 44.799,
+    "optimizedMedianMs": 0.7467,
+    "optimizedP95Ms": 1.3027,
+    "originalReadbackBytes": 1763112960,
+    "optimizedReadbackBytes": 1111704,
+    "pixelEquivalentFrames": 18,
+    "laserReadbackBytes": 32600,
+    "laserClearsWithoutGhosting": true,
+    "idleHoverDoesNotRender": true,
+    "scheduledIntervalMs": 16,
+    "scope": "同步原生幀測量，非實體滑鼠／手寫端到端延遲"
+  },
+  "validation": {
+    "singleRow": true,
+    "brushPanel": true,
+    "dock": {
+      "fourSides": true,
+      "verticalWidth": 128,
+      "verticalHeight": 1376,
+      "collapsedVerticalHeight": 528,
+      "iconOnly": true,
+      "fixedClearClose": true,
+      "singleHorizontalRow": true,
+      "valuesAndHandlersRetained": true,
+      "dragHardware": "未執行"
+    },
+    "text": {
+      "draftSeparate": true,
+      "chineseMultiline": true,
+      "doubleClickEdit": true,
+      "cancelPreserves": true,
+      "toolSwitchCommits": true,
+      "textContextMenu": true,
+      "shiftMultiSelection": true,
+      "rightClickKeepsMultiSelection": true,
+      "selectionAddsNoUndo": true,
+      "styleUndo": true,
+      "imeHardware": "未執行"
+    },
+    "commands": {
+      "rightClickKeepsDrawing": true,
+      "objectMenu": true,
+      "compatibleCopyPayload": true,
+      "duplicateDeleteUndo": true,
+      "oneClickClearUndo": true,
+      "clipboardRoundtrip": "未執行，不覆寫使用者剪貼簿"
+    }
+  },
+  "limitations": "同步同VM原生渲染；未測實體滑鼠／觸控筆端到端延遲、跨App／多螢幕／混合DPI。"
+}

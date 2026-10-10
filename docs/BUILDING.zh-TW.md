@@ -45,7 +45,7 @@ pwsh -File HeiBan.Windows/Packaging/Package-Installer.ps1 -Runtime win-x64
 # 或提供 -IsccPath 'C:\Tools\InnoSetup\ISCC.exe'
 ```
 
-產品與暫存只在 `windows/dist/` 與 `windows/.staging/`。公開封裝：回根目錄執行 `python scripts/package_public_release.py --platform windows`；保留原已建置的 EXE／Portable，另在 `windows/dist/public/` 產生含說明與授權的公開 ZIP、手冊及 SHA-256。安裝程式用 ZIP 包裝，不更改原 EXE；Portable 加入 LICENSE／第三方聲明，原程式與資源不變。
+產品與暫存只在 `windows/dist/` 與 `windows/.staging/`。每次封裝先產生相應版本的 `windows/docs/ARTIFACTS_*_<Version>.json`，核對四包SHA；公開封裝腳本要求此manifest及內建手冊與來源一致。公開封裝：回根目錄執行 `python scripts/package_public_release.py --platform windows`；保留原已建置的 EXE／Portable，另在 `windows/dist/public/` 產生含說明與授權的公開 ZIP、手冊及 SHA-256。安裝程式用 ZIP 包裝，不更改原 EXE；Portable 加入 LICENSE／第三方聲明，原程式與資源不變。
 
 ## Web 原型
 

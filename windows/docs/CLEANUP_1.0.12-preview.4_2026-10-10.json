@@ -1,0 +1,133 @@
+{
+  "version": "1.0.12-preview.4",
+  "date": "2026-10-10",
+  "success": true,
+  "removedFileBytes": 1967680113,
+  "removedOldPackages": {
+    "removed": [
+      {
+        "path": "dist/HeiBan-Setup-1.0.12-preview.3-arm64.exe",
+        "bytes": 63964157,
+        "sha256": "56c850072a4637a7a5ac28ee03601d3dfbf8007593c87919920b372b6b1e4ad5"
+      },
+      {
+        "path": "dist/HeiBan-Setup-1.0.12-preview.3-arm64.exe.sha256",
+        "bytes": 107,
+        "sha256": "43cb0f5fdb4cabb85fb6538194f381fff47243c490aca5510c4e82b65e4db0b6"
+      },
+      {
+        "path": "dist/HeiBan-Setup-1.0.12-preview.3-x64.exe",
+        "bytes": 66610131,
+        "sha256": "bd90bb09c1f373d36508beef138a0d422e2c6961f9991dfc72ad7d6d5c97c654"
+      },
+      {
+        "path": "dist/HeiBan-Setup-1.0.12-preview.3-x64.exe.sha256",
+        "bytes": 105,
+        "sha256": "80068898c3b695f9c945dde0b28040b77d111f44f2af81de65f66aef778bd9a0"
+      },
+      {
+        "path": "dist/HeiBan-Windows-Portable-1.0.12-preview.3-win-arm64.zip",
+        "bytes": 92757466,
+        "sha256": "ec327929d5b6b173b19a096e2e2cb7365745a57b2b5df37111bc4672045d4c48"
+      },
+      {
+        "path": "dist/HeiBan-Windows-Portable-1.0.12-preview.3-win-arm64.zip.sha256",
+        "bytes": 122,
+        "sha256": "ecd2ad764d9e2a508ab13c58b550d0088998102803039cadc1eb6c611fda293c"
+      },
+      {
+        "path": "dist/HeiBan-Windows-Portable-1.0.12-preview.3-win-x64.zip",
+        "bytes": 95462729,
+        "sha256": "ecf286a36b7d2d63dca87b28df28b285b03f6f0833d874fd9c06c00a12ffa586"
+      },
+      {
+        "path": "dist/HeiBan-Windows-Portable-1.0.12-preview.3-win-x64.zip.sha256",
+        "bytes": 120,
+        "sha256": "b576fa9d8fad18933ebb0fbda789a203f7adcd7cb86207eac667ca13912ecd4c"
+      }
+    ],
+    "removedBytes": 318794937,
+    "previousHashesPreserved": true
+  },
+  "previousCurrentRemovedBytes": 265699760,
+  "mirrors": [
+    {
+      "path": "C:\\HeiBanBuild\\current-source",
+      "removedBytes": 842013943,
+      "removed": true
+    },
+    {
+      "path": "C:\\HeiBanBuild\\visual-source",
+      "removedBytes": 271416075,
+      "removed": true
+    },
+    {
+      "path": "C:\\HeiBanBuild\\visual-publish-arm64",
+      "removedBytes": 269736723,
+      "removed": true
+    },
+    {
+      "path": "C:\\HeiBanBuild\\qa-edit12p4-r1",
+      "removedBytes": 3314,
+      "removed": true
+    },
+    {
+      "path": "C:\\HeiBanBuild\\qa-edit12p4-r2",
+      "removedBytes": 4018,
+      "removed": true
+    },
+    {
+      "path": "C:\\HeiBanBuild\\qa-edit12p4-r3",
+      "removedBytes": 11343,
+      "removed": true
+    }
+  ],
+  "latestPackagesRetained": 4,
+  "latestCurrentRetained": true,
+  "dataBackup": "recovered-user-data/2026-10-10/vm/c6",
+  "qaDataBackups": [
+    "e4a",
+    "e4b",
+    "e4c"
+  ],
+  "dataPreservation": {
+    "success": true,
+    "preservedFiles": 56,
+    "uniqueWorks": 11,
+    "workFiles": 11,
+    "historicalCoverage": {
+      "c12": {
+        "uniqueWorks": 6,
+        "representedInC6": true
+      },
+      "c2": {
+        "uniqueWorks": 7,
+        "representedInC6": true
+      },
+      "c3": {
+        "uniqueWorks": 7,
+        "representedInC6": true
+      },
+      "c4": {
+        "uniqueWorks": 10,
+        "representedInC6": true
+      },
+      "c5": {
+        "uniqueWorks": 10,
+        "representedInC6": true
+      }
+    },
+    "dataBytes": 2575959,
+    "previousPayloadRemovedBytes": 265699760,
+    "knownPreviousPackageUncompressedBytes": 263123801,
+    "unaccountedPreviousBytes": 0
+  },
+  "preserved": [
+    "all user works and Trash",
+    "all recovery backups",
+    "source and text history",
+    "AppData and Documents",
+    "SDK and Inno Setup"
+  ],
+  "note": "Removed file sizes; does not claim physical VM disk compaction."
+}

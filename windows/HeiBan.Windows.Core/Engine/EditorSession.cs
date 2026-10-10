@@ -7,47 +7,96 @@ namespace HeiBan.Windows.Engine;
 public sealed class EditorSession
 {
     public HeiBanDocument Document { get; private set; } = new();
-    public string? SelectedId { get; set; }
-    public BoardObject? Selected => Document.Objects.FirstOrDefault(o => o.Id == SelectedId);
+    private readonly HashSet<string> _selectedIds=[];
+    public IReadOnlySet<string> SelectedIds => _selectedIds;
+    public string? SelectedId { get => Selected?.Id; set { _selectedIds.Clear();if(value is not null)_selectedIds.Add(value); } }
+    public IEnumerable<BoardObject> SelectedObjects => PageObjects.Where(o=>_selectedIds.Contains(o.Id));
+    public void SetSelection(IEnumerable<string> ids) { var valid=PageObjects.Select(o=>o.Id).ToHashSet();_selectedIds.Clear();_selectedIds.UnionWith(ids.Where(valid.Contains)); }
+    public void ToggleSelection(string id) { if(!_selectedIds.Remove(id)&&PageObjects.Any(o=>o.Id==id))_selectedIds.Add(id); }
+    public void MoveSelection(double dx,double dy) { foreach(var o in SelectedObjects.Where(o=>o.IsLocked!=true))Move(o,dx,dy); }
+    public BoardObject? Selected => SelectedObjects.OrderBy(o=>o.IsLocked==true).ThenByDescending(o=>o.ZIndex).FirstOrDefault();
     public bool IsDirty => Generation != SavedGeneration;
     public long Generation { get; private set; }
     public long SavedGeneration { get; private set; }
-    private readonly List<string> _undo = [];
-    private readonly List<string> _redo = [];
-    private string? _transaction;
+    private sealed record Snapshot(HeiBanDocument Document,long Bytes);
+    private readonly List<Snapshot> _undo = [];
+    private readonly List<Snapshot> _redo = [];
+    private HeiBanDocument? _transaction;
+    private readonly HashSet<BoardObject> _previewMoves=[];
+    public bool HasTransaction=>_transaction is not null;
+    public long DocumentEpoch {get;private set;}
     public bool CanUndo => _undo.Count > 0;
     public bool CanRedo => _redo.Count > 0;
-    public IEnumerable<BoardObject> VisibleObjects => Document.Objects.Where(o => o.IsVisible != false &&
-        (Document.Board.CanvasMode != "notebook" || o.PageId is null || o.PageId == Document.Board.ActivePageId));
+    public IEnumerable<BoardObject> PageObjects => Document.Objects.Where(o => Document.Board.CanvasMode != "notebook" || o.PageId is null || o.PageId == Document.Board.ActivePageId);
+    public IEnumerable<BoardObject> VisibleObjects => PageObjects.Where(o=>o.IsVisible!=false);
     public void Open(HeiBanDocument doc)
     {
-        Document = doc; SelectedId = null; _undo.Clear(); _redo.Clear(); _transaction = null;
+        ClearPreviewMoves();DocumentEpoch++;Document = doc; SelectedId = null; _undo.Clear(); _redo.Clear(); _transaction = null;
         Generation = SavedGeneration = 0;
     }
-    public void Begin() => _transaction ??= DocumentCodec.Encode(Document);
+    public void Begin() => _transaction ??= DocumentCodec.Clone(Document);
     public void Commit()
     {
+        FlushPreviewMoves();
         if (_transaction is null) return;
         var before = _transaction; _transaction = null;
-        if (before == DocumentCodec.Encode(Document)) return;
-        _undo.Add(before); _redo.Clear(); Generation++;
-        // Cap undo memory, in addition to the number of transactions.
-        while (_undo.Count > 64 || (_undo.Count > 1 && _undo.Sum(s => (long)s.Length * 2) > 32 * 1024 * 1024)) _undo.RemoveAt(0);
+        if (DocumentSnapshot.Same(before,Document)) return;
+        _undo.Add(new(before,DocumentSnapshot.EstimatedBytes(before))); _redo.Clear(); Generation++;
+        Trim(_undo);
     }
-    public void Cancel() { if (_transaction is not null) Document = DocumentCodec.Decode(_transaction); _transaction = null; }
+    private static void Trim(List<Snapshot> history)
+    {
+        var bytes=history.Sum(s=>s.Bytes);
+        while(history.Count>64||(history.Count>1&&bytes>32*1024*1024))
+        {bytes-=history[0].Bytes;history.RemoveAt(0);}
+    }
+    public void Cancel() { ClearPreviewMoves();if (_transaction is not null) { var revision=Document.Board.Revision;Document = _transaction;Document.Board.Revision=Math.Max(revision,Document.Board.Revision); } _transaction = null; }
     public void Undo() => Restore(_undo, _redo);
     public void Redo() => Restore(_redo, _undo);
-    private void Restore(List<string> from, List<string> to)
+    private void Restore(List<Snapshot> from, List<Snapshot> to)
     {
         if (from.Count == 0) return;
-        to.Add(DocumentCodec.Encode(Document));
+        Cancel();
+        var snapshot=DocumentCodec.Clone(Document);to.Add(new(snapshot,DocumentSnapshot.EstimatedBytes(snapshot)));Trim(to);
         var revision = Document.Board.Revision;
-        Document = DocumentCodec.Decode(from[^1]); from.RemoveAt(from.Count - 1);
+        Document = DocumentCodec.Clone(from[^1].Document); from.RemoveAt(from.Count - 1);
         Document.Board.Revision = revision; SelectedId = null; Generation++;
+    }
+    // During a drag only bounds/endpoints change. Absolute point JSON and its GPU path stay unchanged until commit.
+    public void PreviewMoveSelection(double dx,double dy)
+    {
+        if(!double.IsFinite(dx)||!double.IsFinite(dy)||(dx==0&&dy==0))return;
+        Begin();
+        foreach(var o in SelectedObjects.Where(o=>o.IsLocked!=true))
+        {
+            MoveBounds(o,dx,dy);_previewMoves.Add(o);
+            if(o.ParsedPoints.Count>0){o.PreviewOffsetX+=dx;o.PreviewOffsetY+=dy;}
+        }
+    }
+    private static void MoveBounds(BoardObject o,double dx,double dy)
+    {
+        o.X+=dx;o.Y+=dy;
+        if(o.X1.HasValue){o.X1+=dx;o.X2+=dx;o.Y1+=dy;o.Y2+=dy;}
+    }
+    private static void TranslatePoints(BoardObject o,double dx,double dy)
+    {
+        if(o.ParsedPoints.Count==0||(dx==0&&dy==0))return;
+        o.Points=JsonSerializer.Serialize(o.ParsedPoints.Select(p=>{var moved=DocumentCodec.Clone(p);moved.X+=dx;moved.Y+=dy;return moved;}),DocumentCodec.Options);
+    }
+    private void FlushPreviewMoves()
+    {
+        foreach(var o in _previewMoves){TranslatePoints(o,o.PreviewOffsetX,o.PreviewOffsetY);o.UpdatedAt=DateTime.UtcNow.ToString("o");}
+        ClearPreviewMoves();
+    }
+    private void ClearPreviewMoves()
+    {
+        foreach(var o in _previewMoves)o.PreviewOffsetX=o.PreviewOffsetY=0;
+        _previewMoves.Clear();
     }
     public void MarkSaved(long generation, int revision)
     {
         SavedGeneration = generation; Document.Board.Revision = revision;
+        if(_transaction is not null)_transaction.Board.Revision=revision;
     }
     public BoardObject Add(BoardObject o)
     {
@@ -57,16 +106,13 @@ public sealed class EditorSession
     }
     public void DeleteSelected()
     {
-        if (Selected is not { } o || o.IsLocked == true) return;
-        Begin(); Document.Objects.Remove(o); SelectedId = null; Commit();
+        var objects=SelectedObjects.Where(o=>o.IsLocked!=true).ToArray();if(objects.Length==0)return;
+        Begin();foreach(var o in objects)Document.Objects.Remove(o);SelectedId=null;Commit();
     }
     public void Move(BoardObject o, double dx, double dy)
     {
-        o.X += dx; o.Y += dy;
-        if (o.X1.HasValue) { o.X1 += dx; o.X2 += dx; o.Y1 += dy; o.Y2 += dy; }
-        if (o.ParsedPoints.Count > 0)
-            o.Points = JsonSerializer.Serialize(o.ParsedPoints.Select(p => { var moved = DocumentCodec.Clone(p); moved.X += dx; moved.Y += dy; return moved; }), DocumentCodec.Options);
-        o.UpdatedAt = DateTime.UtcNow.ToString("o");
+        if(!double.IsFinite(dx)||!double.IsFinite(dy)||(dx==0&&dy==0))return;
+        MoveBounds(o,dx,dy);TranslatePoints(o,dx,dy);o.UpdatedAt=DateTime.UtcNow.ToString("o");
     }
     public BoardObject? Hit(InkPoint p, double tolerance) => VisibleObjects.OrderByDescending(o => o.ZIndex)
         .FirstOrDefault(o => VectorMath.IsPointInObject(p, o, tolerance));

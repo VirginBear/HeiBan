@@ -21,7 +21,7 @@ public sealed class ToolbarPreferences
         "select", "pen", "curve", "highlighter", "paint", "eraser",
         "ruler", "shapes", "sticky", "text", "screenshot", "image",
         "brush", "dash", "pins", "calculator", "timer", "compass",
-        "undo", "redo", "dock"
+        "undo", "redo", "dock", "laser", "tape", "lasso", "extension", "clearAll", "viewLock"
     ];
 
     public static readonly Dictionary<string, string> ToolNames = new()
@@ -40,12 +40,13 @@ public sealed class ToolbarPreferences
         ["image"] = "匯入圖片",
         ["brush"] = "筆刷與物件設定",
         ["dash"] = "線條樣式",
-        ["pins"] = "圖釘導航",
+        ["pins"] = "圖釘",
         ["calculator"] = "計算機",
         ["timer"] = "計時器",
         ["compass"] = "圓規",
         ["undo"] = "復原",
         ["redo"] = "重做",
+        ["laser"]="雷射", ["tape"]="遮題膠帶", ["lasso"]="套索多選", ["extension"]="延伸直線", ["clearAll"]="清除本頁", ["viewLock"]="鎖定視角",
         ["dock"] = "停靠位置"
     };
 

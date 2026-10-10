@@ -9,6 +9,9 @@ namespace HeiBan.Windows.Models;
 /// </summary>
 public sealed class HeiBanDocument
 {
+    // Immutable payload strings are shared; mutable collections belong to this snapshot.
+    internal HeiBanDocument Snapshot() { var copy=(HeiBanDocument)MemberwiseClone();copy.Board=Board.Snapshot();copy.Objects=Objects.Select(o=>o.Snapshot()).ToList();copy.ExtraFields=Engine.DocumentSnapshot.CopyFields(ExtraFields);return copy; }
+
     [JsonPropertyName("schemaVersion")]
     public string SchemaVersion { get; set; } = "1.0.0";
 
@@ -36,6 +39,9 @@ public sealed class HeiBanDocument
 /// </summary>
 public sealed class BoardMetadata
 {
+    // Immutable payload strings are shared; mutable collections belong to this snapshot.
+    internal BoardMetadata Snapshot() { var copy=(BoardMetadata)MemberwiseClone();copy.Pins=Pins?.Select(p=>p.Snapshot()).ToList();copy.Pages=Pages?.Select(p=>p.Snapshot()).ToList();copy.CollaboratorIds=CollaboratorIds?.ToList();copy.MemberRoles=MemberRoles is null?null:new(MemberRoles);copy.ExtraFields=Engine.DocumentSnapshot.CopyFields(ExtraFields);return copy; }
+
     [JsonPropertyName("id")]
     public string Id { get; set; } = Guid.NewGuid().ToString();
 
@@ -113,6 +119,9 @@ public sealed class BoardMetadata
 /// </summary>
 public sealed class BoardObject
 {
+    // Immutable payload strings are shared; mutable collections belong to this snapshot.
+    internal BoardObject Snapshot() { var copy=(BoardObject)MemberwiseClone();copy._parsedPoints=null;copy.PreviewOffsetX=copy.PreviewOffsetY=0;copy.RichTextSpans=RichTextSpans?.Select(span=>span.Snapshot()).ToList();copy.ExtraFields=Engine.DocumentSnapshot.CopyFields(ExtraFields);return copy; }
+
     // Matches the existing Mac v1 optional name field; identifiers remain unchanged.
     [JsonPropertyName("name")]
     public string? Name { get; set; }
@@ -161,6 +170,8 @@ public sealed class BoardObject
     /// </summary>
     [JsonPropertyName("points")]
     public string? Points { get => _points; set { _points = value; _parsedPoints = null; } }
+    [JsonIgnore] public double PreviewOffsetX { get; internal set; }
+    [JsonIgnore] public double PreviewOffsetY { get; internal set; }
     private string? _points;
     private List<InkPoint>? _parsedPoints;
     [JsonIgnore]
@@ -299,6 +310,9 @@ public sealed class BoardObject
 /// </summary>
 public sealed class BoardPin
 {
+    // Immutable payload strings are shared; mutable collections belong to this snapshot.
+    internal BoardPin Snapshot() { var copy=(BoardPin)MemberwiseClone();copy.ExtraFields=Engine.DocumentSnapshot.CopyFields(ExtraFields);return copy; }
+
     [JsonPropertyName("isWorldSpace")] public bool? IsWorldSpace { get; set; } = true;
     [JsonExtensionData] public Dictionary<string, JsonElement>? ExtraFields { get; set; }
     [JsonPropertyName("id")]
@@ -328,6 +342,9 @@ public sealed class BoardPin
 /// </summary>
 public sealed class InkPoint
 {
+    // Immutable payload strings are shared; mutable collections belong to this snapshot.
+    internal InkPoint Snapshot() { var copy=(InkPoint)MemberwiseClone();copy.ExtraFields=Engine.DocumentSnapshot.CopyFields(ExtraFields);return copy; }
+
     [JsonExtensionData] public Dictionary<string, JsonElement>? ExtraFields { get; set; }
     [JsonPropertyName("x")]
     public double X { get; set; }
@@ -359,6 +376,9 @@ public sealed class InkPoint
 /// </summary>
 public sealed class TextSpan
 {
+    // Immutable payload strings are shared; mutable collections belong to this snapshot.
+    internal TextSpan Snapshot() { var copy=(TextSpan)MemberwiseClone();copy.ExtraFields=Engine.DocumentSnapshot.CopyFields(ExtraFields);return copy; }
+
     [JsonExtensionData] public Dictionary<string, JsonElement>? ExtraFields { get; set; }
     [JsonPropertyName("text")]
     public string Text { get; set; } = string.Empty;
@@ -396,10 +416,20 @@ public sealed class ViewportTransform
 
     public InkPoint WorldToScreen(double worldX, double worldY) =>
         new(worldX * Zoom + X, worldY * Zoom + Y);
+
+    public void ZoomAt(double screenX,double screenY,double wheelDelta)
+    {
+        var anchor=ScreenToWorld(screenX,screenY);
+        Zoom=Math.Clamp(Zoom*Math.Pow(1.1,wheelDelta/120),.05,8);
+        X=screenX-anchor.X*Zoom;Y=screenY-anchor.Y*Zoom;
+    }
 }
 
 public sealed class BoardPage
 {
+    // Immutable payload strings are shared; mutable collections belong to this snapshot.
+    internal BoardPage Snapshot() { var copy=(BoardPage)MemberwiseClone();copy.ExtraFields=Engine.DocumentSnapshot.CopyFields(ExtraFields);return copy; }
+
     [JsonPropertyName("id")] public string Id { get; set; } = Guid.NewGuid().ToString();
     [JsonPropertyName("title")] public string Title { get; set; } = "第 1 頁";
     [JsonPropertyName("index")] public int Index { get; set; }

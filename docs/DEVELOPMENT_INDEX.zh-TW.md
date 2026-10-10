@@ -15,7 +15,7 @@
 
 ## 其他平台與共用文件
 
-- [Windows 文件](../windows/README.md)、[Windows 架構](../windows/docs/ARCHITECTURE.zh-TW.md)：公開整理只補文件與附授權的下載包，不改 Windows 功能；功能狀態仍以平台文件為準。
+- [Windows 文件](../windows/README.md)、[Windows 架構](../windows/docs/ARCHITECTURE.zh-TW.md)：Windows獨立功能與封裝進度以[目前狀態](../windows/docs/CURRENT_STATUS.zh-TW.md)為準；GitHub下載與相應來源依平台版本更新。
 - [跨平台文件契約](DOCUMENT_SCHEMA_CONTRACT.md)、[平台決策](PLATFORM_DECISIONS.zh-TW.md)。
 - [早期整體稽核](PROJECT_AUDIT.zh-TW.md)、[原開發計畫](DEVELOPMENT_PLAN.zh-TW.md)、[原工作清單](WORK_BACKLOG.zh-TW.md)：保留歷史；當前 Mac 狀態以平台 CURRENT_STATUS 為準。
 

@@ -1,0 +1,71 @@
+{
+  "version": "1.0.12-preview.5",
+  "fileVersion": "1.0.12.5",
+  "macBaseline": {
+    "version": "1.0.12",
+    "build": "20261010.4"
+  },
+  "created": "2026-10-10",
+  "buildHost": "Windows 11 ARM64 / .NET SDK 10.0.401 / Inno 6.7.3",
+  "packages": [
+    {
+      "file": "HeiBan-Setup-1.0.12-preview.5-arm64.exe",
+      "bytes": 63980148,
+      "sha256": "c9af3415ca6959c26ba94f306a9460292a433f17c12b685d4d9b201626aca7b5",
+      "sidecarVerified": true
+    },
+    {
+      "file": "HeiBan-Setup-1.0.12-preview.5-x64.exe",
+      "bytes": 66593418,
+      "sha256": "2e607dd0bebe4dda9288c62b39684a9ae91cf89638c797d50d4f023d2f0be86f",
+      "sidecarVerified": true
+    },
+    {
+      "file": "HeiBan-Windows-Portable-1.0.12-preview.5-win-arm64.zip",
+      "bytes": 92767045,
+      "sha256": "5d06c889dc656c91e40bb2841019d24db9ba4c0db78c8b2e12bb29f7874723d0",
+      "sidecarVerified": true,
+      "machine": "0xaa64",
+      "requiredFilesVerified": true,
+      "emptyData": true,
+      "licenseFiles": 25,
+      "manualVerified": true,
+      "entries": 554
+    },
+    {
+      "file": "HeiBan-Windows-Portable-1.0.12-preview.5-win-x64.zip",
+      "bytes": 95472302,
+      "sha256": "48587f9ff889c63ea93620df7594686829ef3b1943b8b57d706387d4d09df1a6",
+      "sidecarVerified": true,
+      "machine": "0x8664",
+      "requiredFilesVerified": true,
+      "emptyData": true,
+      "licenseFiles": 25,
+      "manualVerified": true,
+      "entries": 558
+    }
+  ],
+  "validation": {
+    "coreChecks": 700,
+    "arm64NativeRendering": true,
+    "nativeScreenSession": true,
+    "vectorPdfStrictParsing": true,
+    "x64Runtime": "未執行",
+    "installerUpgrade": "未執行",
+    "hardwarePointerMultiMonitor": "未執行",
+    "rightClickObjectMenu": true,
+    "blankRightClickKeepsDrawing": true,
+    "rightClickKeepsMultiSelection": true
+  },
+  "nativeEvidence": "docs/build-logs/right12p5-native",
+  "interactionRecord": "docs/WINDOWS_RIGHT_CLICK_REVIEW_2026-10-10.zh-TW.md",
+  "sourceShaFiles": 77,
+  "publication": "本機，未發布",
+  "deployment": {
+    "version": "1.0.12.5",
+    "payloadShaVerifiedFiles": 549,
+    "shortcut": "黑板 Windows 最新版",
+    "dataBackup": "recovered-user-data/2026-10-10/vm/c7",
+    "preservedDataFiles": 56
+  }
+}

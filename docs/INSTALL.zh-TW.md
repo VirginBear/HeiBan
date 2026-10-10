@@ -1,6 +1,6 @@
 # 安裝、更新與移除
 
-更新：2026-10-09。下載來源：[VirginBear/HeiBan Releases](https://github.com/VirginBear/HeiBan/releases)。目前為公開預覽，請保留重要作品的 `.heiban` 原稿與備份。
+更新：2026-10-10。下載來源：[VirginBear/HeiBan Releases](https://github.com/VirginBear/HeiBan/releases)。目前為公開預覽，請保留重要作品的 `.heiban` 原稿與備份。
 
 ## 選對版本
 
@@ -44,9 +44,9 @@ Windows ARM64／x64 的安裝版與免安裝版由獨立 Release 提供；HeiBan
 
 ## Windows：安裝版
 
-1. 下載符合架構的 `HeiBan-Windows-Installer-0.1.0-preview.5-win-….zip`。
+1. 下載符合架構的 `HeiBan-Windows-Installer-1.0.12-preview.5-win-….zip`。
 2. 使用檔案總管「全部解壓縮」。
-3. 在解壓資料夾執行 `HeiBan-Setup-0.1.0-preview.5-….exe`。
+3. 在解壓資料夾執行 `HeiBan-Setup-1.0.12-preview.5-….exe`。
 4. 依畫面完成安裝，從開始功能表或捷徑開啟黑板。
 
 目前為每位使用者安裝；桌面捷徑與 `.heiban` 關聯可選。包內已包含所需 .NET／Windows App SDK，不需另外安裝 .NET SDK。預覽安裝程式未做 Authenticode 簽章，SmartScreen 或防毒可能提示未知發行者；先核對來源與 checksum，電腦政策限制時洽管理員，勿關閉系統保護。
@@ -55,7 +55,7 @@ Windows ARM64／x64 的安裝版與免安裝版由獨立 Release 提供；HeiBan
 
 ## Windows：免安裝版
 
-1. 下載 `HeiBan-Windows-Portable-0.1.0-preview.5-win-….zip`。
+1. 下載 `HeiBan-Windows-Portable-1.0.12-preview.5-win-….zip`。
 2. **全部解壓縮** 到自己可寫入的資料夾，例如使用者文件或隨身碟。
 3. 開啟資料夾中的 `HeiBan.exe`，不要在 ZIP 內執行。
 
@@ -76,7 +76,7 @@ shasum -a 256 HeiBan-macOS-1.0.8-arm64.dmg
 Windows PowerShell：
 
 ```powershell
-Get-FileHash .\HeiBan-Windows-Portable-0.1.0-preview.5-win-arm64.zip -Algorithm SHA256
+Get-FileHash .\HeiBan-Windows-Portable-1.0.12-preview.5-win-arm64.zip -Algorithm SHA256
 ```
 
 結果應與清單相同。Checksum 用於發現下載損壞，不能代替開發者簽章或病毒檢查。
@@ -86,5 +86,5 @@ Get-FileHash .\HeiBan-Windows-Portable-0.1.0-preview.5-win-arm64.zip -Algorithm 
 - **Windows XAML parsing failed**：舊 preview.1 漏了 `HeiBan.pri`。請下載目前版本並完整解壓；不要拿不同版本的 DLL／PRI 混合替換。
 - **無法建立作品資料夾**：免安裝版移到可寫入位置，保留完整資料夾。
 - **文字輸入時滾輪混亂**：先完成文字輸入；回報版本與操作步驟，勿直接刪除作品排錯。
-- **螢幕畫布不顯示／畫不上去**：Mac 按 `⌘⌥⇧D` 切作畫；回報是哪個 App、是否全螢幕。Windows 尚未提供此功能。
+- **螢幕畫布不顯示／畫不上去**：Mac 按 `⌘⌥⇧D` 切作畫；回報是哪個 App、是否全螢幕。Windows 使用 Ctrl+Alt+A 啟動、Ctrl+Alt+D 切作畫／穿透，右鍵物件開操作選單。
 - **找不到 Google 登入／PDF 編輯**：原生版尚未完整提供，見 [已知限制](KNOWN_ISSUES.zh-TW.md)。
