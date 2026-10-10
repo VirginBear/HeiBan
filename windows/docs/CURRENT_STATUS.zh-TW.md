@@ -1,5 +1,9 @@
 # Windows 目前開發狀態
 
+## 2026-10-10 — Store Submission 1 已送審，認證中（使用者提供）
+
+使用者貼出 Partner Center「產品提交：認證中」及「通過認證後立即開始發佈」，已自行完成首次提交；尚未確認通過或已上架，助手未登入後台查證。前次套件 Validated／提交按鈕問題與此次進度見 [本批紀錄](STORE_SUBMISSION_2026-10-10.zh-TW.md)。三張經使用者授權的 Store 示範截圖原 byte 保存於 PRIVATE HeiBan-private，不放入公開程式庫；可跨電腦 clone／pull 取回。當前等待認證結果，未啟用查詢排程。未重封包、執行 App／WACK 測試或修改其他平台；下方「尚未送審」為前批歷史狀態。
+
 ## 2026-10-10 — 跨電腦私人產品紀錄已建立
 
 使用者要求私人保存產品資訊，已建立 [HeiBan-private](https://github.com/VirginBear/HeiBan-private)，GitHub visibility 核對 PRIVATE。包含完整產品紀錄、Store 策略／待辦與多電腦交接；開發者需有權限，先讀私人庫 README／AGENTS／PRODUCT_INFORMATION／CURRENT_STATUS，再讀本平台文件。公開庫只保存技術必需識別與讀取入口，不複製私人管理欄位；沒有改程式／重封包／執行測試或 Store 操作。[本批紀錄](PRIVATE_RECORDS_2026-10-10.zh-TW.md)。

@@ -1,5 +1,9 @@
 # Windows 開發日誌
 
+## 2026-10-10 — 首次 Store 送審與私人截圖歸檔
+
+開工兩庫 git status 乾淨，已讀平台／私人開發規則並先建立 [本批日誌](STORE_SUBMISSION_2026-10-10.zh-TW.md)。使用者提供 Submission 1 認證中文字、立即發佈設定及三張已提交示範 PNG；只記使用者來源，不宣稱助手已登入後台、認證通過或上架。PRIVATE repo visibility 實查；截圖原 byte 複製，三組來源／目的 SHA-256 相同，尺寸／大小／雜湊寫私人 MANIFEST.json，Downloads 原檔保留。更新私人 JSON／狀態／素材入口，以及公開平台狀態、提交阻礙解除紀錄與草稿狀態。三圖為產品展示，沒有當作 MSIX／WACK 驗收。未執行測試、重建／封包、Store 操作／取消認證、Release／排程或其他平台修改；Git 同步實際結果追加本批日誌。
+
 ## 2026-10-10 — 私人產品記錄與多電腦交接
 
 使用者要求把產品資料放 GitHub 私人部分。開工主庫乾淨，先讀開發索引／Windows 文件並建立 [當批日誌](PRIVATE_RECORDS_2026-10-10.zh-TW.md)。gh 確認主庫 PUBLIC、沒有 HeiBan 私人紀錄庫；另建 HeiBan-private 並核 PRIVATE 後 push 六份管理／交接文件，初始 commit df6cb37。本地与 private remote main／HEAD 核對完成後記入私人日誌。公開 Windows README／CURRENT_STATUS 增加入口，架構決策記兩庫職責。未改程式／產物／Mac／Web，未執行測試／Store／Release 或排程。私密管理欄位不放本公開日誌。

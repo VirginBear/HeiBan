@@ -1,6 +1,6 @@
 # HeiBan 黑板商店資料草稿
 
-狀態：2026-10-10，供使用者審閱／填入 Partner Center；尚未提交或上架。Product ID：`9NV8T7RKV4MZ`。
+狀態：2026-10-10，供使用者審閱／填入 Partner Center；原封裝批次的草稿；使用者後續已回報 Submission 1 認證中，尚未確認上架。下列文案／待辦保留當時快照，不代表實際提交內容已逐欄核對。最新進度見 STORE_SUBMISSION_2026-10-10.zh-TW.md。Product ID：`9NV8T7RKV4MZ`。
 
 ## 繁體中文商店描述
 
