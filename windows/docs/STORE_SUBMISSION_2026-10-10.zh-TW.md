@@ -31,3 +31,7 @@ PRIVATE repo 內三張 PNG 已原 byte 複製並各核對來源／目的 SHA-256
 ## 私人同步證據
 
 私人庫提交 `195c36a7436cfbbf376061f41febbe48fe7fb997`（九檔含三 PNG）已 push，git ls-remote HEAD／main 與本地一致、git status 乾淨；提交前確認 origin 為 HeiBan-private、visibility PRIVATE，staged diff --check 退出 0。Git 顯示文字 LF 之後轉 CRLF 的提示，不是素材 bytes 修改或檢查失敗。
+
+## 公開同步證據
+
+公開 Windows 五份文件提交 `1ccacd321bd4501f0290e6a9753c097801a5dac9` 已 push；git ls-remote origin HEAD／main 與本機一致，status 乾淨，staged diff --check 退出 0。圖片僅存在私人庫，公開提交不含 PNG／私人產品管理 JSON。以上結果追加後保存為文件稽核提交。
