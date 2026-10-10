@@ -26,3 +26,7 @@
 - 新封裝脚本用 `--artifacts-path` 將 Store bin／obj 放在獨立 `.build/store-<batch>`，避免与既有 Unpackaged 中間產物混用；只排除純文件的 PRI index，仍保留完整授權內容。商店包不帶除錯 symbols，CLI `DebugType=none`／`DebugSymbols=false` 明確套用所有 project references。
 - 第一次 Package-Store 執行在 PowerShell 字串 `$arch:` 語法階段失敗，尚未開始封裝；修正 `${arch}`。外層以未設定 LASTEXITCODE 判斷而回 0，不能算成功；後續採用 Stop／try-catch 回傳實際封裝錯誤。
 - 隔離 SDK x64 build 成功，README qualifier／symbol warning 消失，但仍有 16 個授權 qualifier warning。第一次 PRI exclude 使用來源檔路徑，SDK 已改為 PackagingOutputs layout 路徑，因此沒有命中；修正為按 PackagingOutputs 的 TargetPath 選取，封裝前再還原。原授權 payload 不改名／不刪除。
+- 新增封裝必要 guard：實際 MSIX 身分／架構、runtime／PRI／圖示、25 份授權與兩份手冊逐 SHA、不含作品／GitHub helper／debug symbols；guard 不算 App 執行測試。SDK strict manifest／package validation 保持開啟。
+- 來源以 `8364e11` 提交後開始最後隔離封裝，以便包內產品資訊追蹤編譯基準；尚未推送，待封裝結果追加紀錄一起同步。文件批次來源 SHA 不取代 Git 換行正規化後的 blob SHA。
+- 使用者在封裝期間確認第一版「免費提供」，已更新刊登草稿；沒有操作 Partner Center 價格或發布市場。
+- 第二輪 PRI exclude 仍未排除 16 warnings。讀 SDK 的 filtered.layout.resfiles 確認索引仍含完整 Licenses 路徑，改為只在生成 PRI resfile 後過濾純文件行；Content packaging payload 不動。授權 guard 補成遞迴核對含 third-party 目錄的 25 份完整文件。SDK 產物本身合成 bundle 成功，仍需最後來源重新封裝。

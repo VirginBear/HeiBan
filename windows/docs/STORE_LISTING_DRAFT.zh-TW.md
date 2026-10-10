@@ -29,7 +29,7 @@ This is a native WinUI 3/.NET desktop drawing and note-taking application. The r
 | --- | --- |
 | 顯示名稱／發行者 | HeiBan 黑板／純潔的熊，已提供正式身分 |
 | 分類 | 建議 Productivity；由使用者確認 |
-| 價格／市場 | 使用者決定；未設定，未默認替使用者選收費方案 |
+| 價格／市場 | 使用者已確認第一版免費提供；市場尚未選擇，後台價格尚未操作 |
 | 支援入口 | 可用 https://github.com/VirginBear/HeiBan/issues ；是否採用由使用者確認 |
 | 年齡分級 | 使用者在 Partner Center 完成問卷；不自行虛填分級 |
 | 隱私說明 | 需正式公開 URL 及使用者確認；本批未發布網站 |

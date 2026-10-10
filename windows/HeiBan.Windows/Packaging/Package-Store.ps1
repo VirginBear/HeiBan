@@ -39,7 +39,8 @@ function Read-StorePackage([string]$path,[string]$architecture) {
         }
         # Match every shipped legal notice and the current guides byte for byte. This is a
         # packaging guard, and does not substitute for installing/running the Store app.
-        $sourceFiles=@(Get-ChildItem -LiteralPath (Join-Path $root 'Licenses') -File | ForEach-Object {@{source=$_.FullName;entry='Licenses/'+$_.Name}})
+        $licenseRoot=Join-Path $root 'Licenses'
+        $sourceFiles=@(Get-ChildItem -LiteralPath $licenseRoot -File -Recurse | ForEach-Object {@{source=$_.FullName;entry='Licenses/'+$_.FullName.Substring($licenseRoot.Length+1).Replace('\','/')}})
         $sourceFiles+=@{source=(Join-Path $PSScriptRoot '..\Assets\HeiBanUserGuide.html');entry='Assets/HeiBanUserGuide.html'}
         $sourceFiles+=@{source=(Join-Path $PSScriptRoot 'Store\README-Store.zh-TW.md');entry='README-Store.md'}
         foreach($file in $sourceFiles){

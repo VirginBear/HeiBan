@@ -60,20 +60,18 @@
     <Content Include="Packaging\Store\README-Store.zh-TW.md" Link="README-Store.md" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
-  <!-- License version numbers are filenames, not scale/language qualifiers. Keep the
-       original files in the package, but omit these plain documents from PRI indexing.
-       Restore the SDK's exclusion list before it assembles the actual package payload. -->
-  <Target Name="ExcludeHeiBanStoreDocumentsFromPri" BeforeTargets="_GenerateProjectPriConfigurationFiles"
-          Condition="'$(HeiBanStoreBuild)' == 'true'">
+  <!-- Legal notice version numbers are filenames, not resource qualifiers. Filter
+       only the SDK-generated PRI input list; the package Content payload stays intact. -->
+  <Target Name="ExcludeHeiBanStoreDocumentsFromPri" AfterTargets="_GenerateProjectPriConfigurationFiles"
+          Condition="'$(HeiBanStoreBuild)' == 'true' and Exists('$(_FilteredLayoutResfilesPath)')">
+    <ReadLinesFromFile File="$(_FilteredLayoutResfilesPath)">
+      <Output TaskParameter="Lines" ItemName="_HeiBanStorePriInput" />
+    </ReadLinesFromFile>
     <ItemGroup>
-      <_HeiBanStorePlainDocuments Include="@(PackagingOutputs)"
-        Condition="$([System.String]::Copy('%(PackagingOutputs.TargetPath)').Replace('/', '\').StartsWith('Licenses\')) or '%(PackagingOutputs.Filename)' == 'README-Store.zh-TW'" />
-      <_AppxLayoutAssetPackageFiles Include="@(_HeiBanStorePlainDocuments)" />
+      <_HeiBanStoreIndexedFiles Include="@(_HeiBanStorePriInput)"
+        Condition="!$([System.String]::Copy('%(Identity)').Replace('/', '\').StartsWith('Licenses\')) and '%(Identity)' != 'README-Store.md'" />
     </ItemGroup>
-  </Target>
-  <Target Name="RestoreHeiBanStoreDocumentPayload" AfterTargets="_GenerateProjectPriConfigurationFiles"
-          Condition="'$(HeiBanStoreBuild)' == 'true'">
-    <ItemGroup><_AppxLayoutAssetPackageFiles Remove="@(_HeiBanStorePlainDocuments)" /></ItemGroup>
+    <WriteLinesToFile File="$(_FilteredLayoutResfilesPath)" Lines="@(_HeiBanStoreIndexedFiles)" Overwrite="true" Encoding="UTF-8" />
   </Target>
 
   <ItemGroup>
