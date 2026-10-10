@@ -1,5 +1,9 @@
 # Windows 目前開發狀態
 
+## 2026-10-10 — 跨電腦私人產品紀錄已建立
+
+使用者要求私人保存產品資訊，已建立 [HeiBan-private](https://github.com/VirginBear/HeiBan-private)，GitHub visibility 核對 PRIVATE。包含完整產品紀錄、Store 策略／待辦與多電腦交接；開發者需有權限，先讀私人庫 README／AGENTS／PRODUCT_INFORMATION／CURRENT_STATUS，再讀本平台文件。公開庫只保存技術必需識別與讀取入口，不複製私人管理欄位；沒有改程式／重封包／執行測試或 Store 操作。[本批紀錄](PRIVATE_RECORDS_2026-10-10.zh-TW.md)。
+
 ## 2026-10-10 — 正式 MSIX／bundle 封裝完成，尚未送審
 
 使用者提供 HeiBan 黑板正式 Product identity，並確認第一版免費。Windows Store SDK single-project MSIX 明確 build 模式，原 EXE／Portable 路線分開。首份套件版 1.0.12.0／產品 preview.6；最後 x64／ARM64 建置各 0 warnings／0 errors，兩份 MSIX 及一份雙架構 bundle 產出。實際包身分、最低 OS 19041、PE Machine、25 份授權與手冊原 byte、不帶作品／helper／symbols、bundle 內 MSIX SHA 通過，135 個來源／3 產物 SHA 相符。[產物清單](STORE_ARTIFACTS_1.0.12.0_2026-10-10.json)。

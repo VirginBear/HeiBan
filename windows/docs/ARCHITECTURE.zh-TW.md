@@ -1,5 +1,9 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-10 — 發行管理紀錄的讀取入口
+
+Windows README／CURRENT_STATUS 連到獨立 PRIVATE HeiBan-private。私人庫的產品 JSON／交接狀態只供具權限開發者讀取，不是 runtime 相依、不參與公開 SDK 封裝、不是 submodule。MSIX 所需公開 manifest 仍在 Windows 源碼；跨電腦先 clone／讀私人管理紀錄再核最新平台文件。本機工具／產物／作品不藉此庫同步。
+
 ## 2026-10-10 — 正式 MSIX 管道
 
 HeiBanStoreBuild 為顯式 MSBuild 分支，啟用 WindowsPackageType=MSIX／AppxPackage、Store manifest、PRI 與 self-contained SDK 封裝。既有 None 與手動 PRI publish target 保持各自條件。Store 編譯使用獨立 artifacts 路徑，App 啟動仍用官方 self-contained 初始化，禁止 bootstrap／DeploymentManager 額外下載安裝。SDK 自行處理 native activation；package identity 分支停用 GitHub updater，不帶外部 helper。

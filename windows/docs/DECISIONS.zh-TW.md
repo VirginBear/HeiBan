@@ -1,5 +1,9 @@
 # Windows 開發決策
 
+## 2026-10-10 — 私人產品管理另用獨立 repo
+
+公開 HeiBan 的技術來源／必要套件 manifest 继续維護。產品管理與跨電腦交接使用獨立 PRIVATE HeiBan-private，不把公開庫分支或子目錄視作私人區域，也不把私人 repo 放成公開 submodule。公開平台入口只連到私人庫；有權限的開發者先取回／讀取紀錄，再核最新平台來源。身份／價格／進度變動兩庫依職責分别提交，不保存密碼／權杖／私鑰。前述公開產品身分屬安裝必要中繼資料，未改寫既有公開歷史。
+
 ## 2026-10-10 — 已取得正式 Store 身分，選 SDK single-project MSIX
 
 使用者提供 DD7EC7CF.HeiBan／正式 Publisher／純潔的熊／HeiBan 黑板及產品 9NV8T7RKV4MZ。保存必要公開套件身分，不保存其他帳戶 ID。使用原生 SDK MSIX 管道，不直接壓縮 Unpackaged ZIP；Store 與 EXE／Portable bin／obj 隔離。首份 package version 1.0.12.0，產品 preview.6 保留；後續重送更高版本須提高套件版本。MSIX／bundle 未購買 CA／未自行公開側載，交 Store 重新簽章。只使用 runFullTrust，不先增加 unvirtualizedResources 或承諾資料庫共用；首次移轉／解除安裝保留須驗收。

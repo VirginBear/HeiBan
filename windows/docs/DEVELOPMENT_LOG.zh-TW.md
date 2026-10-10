@@ -1,5 +1,9 @@
 # Windows 開發日誌
 
+## 2026-10-10 — 私人產品記錄與多電腦交接
+
+使用者要求把產品資料放 GitHub 私人部分。開工主庫乾淨，先讀開發索引／Windows 文件並建立 [當批日誌](PRIVATE_RECORDS_2026-10-10.zh-TW.md)。gh 確認主庫 PUBLIC、沒有 HeiBan 私人紀錄庫；另建 HeiBan-private 並核 PRIVATE 後 push 六份管理／交接文件，初始 commit df6cb37。本地与 private remote main／HEAD 核對完成後記入私人日誌。公開 Windows README／CURRENT_STATUS 增加入口，架構決策記兩庫職責。未改程式／產物／Mac／Web，未執行測試／Store／Release 或排程。私密管理欄位不放本公開日誌。
+
 ## 2026-10-10 — 正式商店身分與 MSIX 封裝
 
 使用者回覆 Product identity，延續 MSIX 與 GitHub 同步授權。工作樹開工乾淨；先讀索引／Windows 文件並建立 [即時日誌](MSIX_PACKAGING_2026-10-10.zh-TW.md)。新增 Store build 分支、正式 manifest／公開 identity、原圖示縮放資源、雙架構／bundle 腳本、商店手冊與刊登／審核草稿。版本獨立，資料生命週期不作未驗證保證。初次 x64 MSIX 退出 0／18 warnings；腳本 `$arch:` ParserError 及 PRI exclude 路徑失效都記錄並修正。最終產物／SHA／Git 同步結果收尾追加；本批未執行 App 測試／WACK／Store 操作。

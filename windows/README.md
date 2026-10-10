@@ -4,6 +4,10 @@
 
 [目前狀態](docs/CURRENT_STATUS.zh-TW.md) · [功能對照與驗證](docs/MAC_1_0_12_PARITY_2026-10-10.zh-TW.md) · [建置紀錄](docs/BUILD_STATUS.zh-TW.md) · [離線手冊](HeiBan.Windows/Assets/HeiBanUserGuide.html) · [開發日誌](docs/DEVELOPMENT_LOG.zh-TW.md)
 
+## 多電腦開發的私人產品紀錄
+
+產品管理與發行交接保存在獨立 PRIVATE 庫 [VirginBear/HeiBan-private](https://github.com/VirginBear/HeiBan-private)。有權限的開發者開工先讀該庫 README／AGENTS／PRODUCT_INFORMATION.json／CURRENT_STATUS，再讀本平台文件。另一台電腦將其 clone 到公開 HeiBan 旁的獨立目錄，兩個 repo 分別核狀態與 pull／push。這個公開入口不包含私人管理欄位；本機二進位／工具／作品沒有隨紀錄庫複製。[建立紀錄](docs/PRIVATE_RECORDS_2026-10-10.zh-TW.md)。
+
 ## 開啟與更新
 
 | 類型 | 最新檔案 | 資料位置 |

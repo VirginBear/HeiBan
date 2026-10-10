@@ -1,5 +1,9 @@
 # Windows 問題與排解紀錄
 
+## 2026-10-10 — 公開來源沒有對應私人管理庫
+
+使用者需要跨電腦讀取私人產品記錄；主庫 API 顯示 PUBLIC，現有私人清單無 HeiBan 相關庫，指定新庫查詢回 repository not found，這是建立前的正常確認。另建立 PRIVATE HeiBan-private；確認 visibility 後才 push管理文件，並以 ls-remote 核本地／遠端。沒有把公開資料夾當作私人位置，也沒有搬入作品或密鑰。後續讀取需要相同帳號／協作者權限，不能因登入公開庫就宣稱具有私人庫權限。
+
 ## 2026-10-10 — MSIX 封裝調查
 
 正式 Store 身分已取得，前批待提供問題解除。初次 MSIX SDK build 成功，但授權檔版本點號被當 PRI qualifier（17 個含 README），另缺 mspdbcmf（1 個 symbol 警告）。不把該 build 稱為無警告。README 以純檔名連結、封裝 CLI 關閉除錯 symbols；第一次以原始路徑排除 PRI 沒命中 SDK layout，改按 PackagingOutputs TargetPath 暫時排除純文件再還原。Package-Store 字串 `$arch:` 語法錯誤修正 `${arch}`；外層純 PowerShell 不能依未設定 LASTEXITCODE 推定成功。調查／最後結果見當批日誌，保留初包與過程證據。
