@@ -4,6 +4,8 @@
 
 使用者告知已申辦帳戶，要求紀錄並更新 GitHub。已建立 [商店準備清單與當批日誌](STORE_PREPARATION_2026-10-10.zh-TW.md)，整理正式 MSIX 所需三項產品身分與保留名稱、免費商店簽章、送審素材及資料遷移驗收。尚未檢視私人後台或取得身分，MSIX／Store 送審未完成。本批同步上一批 Windows preview.6 來源；下方「未 commit／push」為上批結束時狀態，實際同步結果以本批日誌為準。GitHub 公開下載仍為 preview.5，未新增 Release。
 
+Windows preview.6 自動更新來源與紀錄已 commit／push：`27c968dc80766d78eb1dac3d2305d32ee2f5c63e`。本機 HEAD 與遠端 main／HEAD 核對一致，push 後工作樹乾淨；本段結果另以文件提交保存。只同步來源不會讓既有安裝版收到新版本。
+
 ## 2026-10-10 — 1.0.12-preview.6 GitHub 自動更新（完成本機交付，未發布）
 
 Windows 來源升至 1.0.12-preview.6／FileVersion 1.0.12.6。首頁關於 → 更新設定、畫布更多 → 檢查更新與更新設定；GitHub 版啟動約十秒後及開啟期間每六小時背景檢查／下載，支援停用與預覽管道。按 Windows tag、語意版本、程序架構及 Installer／Portable 篩選，HTTPS 固定 repo／轉址白名單、size／GitHub SHA-256 驗證。

@@ -48,3 +48,11 @@
 - 未執行：Partner Center 私人帳戶驗證、名稱預留、正式身分取得、MSIX 封裝／安裝／移轉／WACK、Store 送審／發布、GitHub 新 Release 與實際線上版本更新。
 - Git 提交／push 的實際結果在完成後追加；不能以「準備同步」代替已完成。
 - `git add -- windows` 暫存 32 個 Windows 檔案，没有 bin／obj／dist／工具／作品；Git 提示部分 LF 將依設定轉 CRLF。`git diff --cached --check` 找到 vendored Inno 語言檔第 12／253 行註解原有尾端空白；保留與已封裝 SHA 一致的語言來源，不把這次檢查宣稱全無提示。上一批未暫存時的 diff check 沒包含當時 untracked 語言檔。
+
+## GitHub 同步完成
+
+- `git diff --cached --check -- . ':!windows/HeiBan.Windows/Packaging/Languages/ChineseTraditional.isl'` 退出 0；非 vendored 翻譯檔沒有空白錯誤。
+- `git commit -m "Implement Windows background updates and record Store preparation"` 成功，來源 commit `27c968dc80766d78eb1dac3d2305d32ee2f5c63e`，32 個 Windows 檔案，新增 1893／移除 34 行。
+- `git push origin main` 退出 0，遠端從 `3dca2ef` 前進到 `27c968d`。隨後 `git ls-remote origin HEAD refs/heads/main` 兩個結果都與本機完整 commit 一致，`git status --short --branch` 乾淨。
+- [GitHub 已同步來源](https://github.com/VirginBear/HeiBan/commit/27c968dc80766d78eb1dac3d2305d32ee2f5c63e)。本段同步證據再以文件提交保存；不改寫前述來源 commit 或已封存 artifact manifest。manifest 的 source_status／published 是封裝當時狀態，現在的來源同步由本紀錄補充。
+- 公開 Windows Release 仍 preview.5，本批只推來源／紀錄，没有上傳 preview.6 包；Store 身分待提供，MSIX 尚未產生。沒有改 Mac／Web、重跑測試、建立排程或刪除歷史資產。

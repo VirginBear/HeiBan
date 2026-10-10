@@ -4,6 +4,8 @@
 
 使用者告知已申辦 Partner Center，授權記錄與更新 GitHub。開工保留上一批 Windows 自動更新未提交內容，核本地／遠端基準同為 3dca2ef，建立 [當批紀錄](STORE_PREPARATION_2026-10-10.zh-TW.md) 後調查。依 Microsoft 官方資料整理產品身分、免費 MSIX 簽章／送審條件，指出商店更新、獨立版更新、第一次資料遷移與 GPL 授權邊界。沒有修改 Mac／Web 或已封存程式／產物。Git 提交及 push 結果完成後追加；本批未重跑程式測試／建置，未製作 MSIX 或操作 Store 後台。
 
+實際完成：32 個 Windows 檔案提交 `27c968dc80766d78eb1dac3d2305d32ee2f5c63e`，push 退出 0，ls-remote main／HEAD 與本機一致，工作樹乾淨。全量 staged diff check 指出第三方語言檔兩行原有註解尾空白，保留封裝來源；排除此檔的 check 退出 0。完整命令與邊界追加當批日誌；同步結果以後續文件提交保存。GitHub preview.6 Release、MSIX／Store 尚未發布。
+
 ## 2026-10-10 — GitHub 自動更新與商店路線（preview.6，本機交付完成）
 
 使用者授權直接實裝線上更新，並確認不購買外部簽章時的 MSIX 商店路線。開工工作樹乾淨，讀開發索引及 Windows 狀態／架構／問題，先建立 [當批日誌](AUTO_UPDATE_2026-10-10.zh-TW.md) 並持續記錄阻礙。只修改 Windows；没有發布或操作 Store 帳號。
