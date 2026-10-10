@@ -32,7 +32,7 @@ This is a native WinUI 3/.NET desktop drawing and note-taking application. The r
 | 價格／市場 | 使用者已確認第一版免費提供；市場尚未選擇，後台價格尚未操作 |
 | 支援入口 | 可用 https://github.com/VirginBear/HeiBan/issues ；是否採用由使用者確認 |
 | 年齡分級 | 使用者在 Partner Center 完成問卷；不自行虛填分級 |
-| 隱私說明 | 需正式公開 URL 及使用者確認；本批未發布網站 |
+| 隱私說明 | 已備 [草稿](PRIVACY_POLICY_DRAFT.zh-TW.md)，需發行者確認內容與正式公開 URL；本批未發布網站 |
 | 截圖 | 至少一張；建議主畫布、多頁管理、螢幕註記三張專用示範截圖，未拍攝 |
 | 套件驗收 | 本機安裝、首次資料移轉、更新／解除安裝備份、x64／ARM64、WACK 未執行 |
 

@@ -30,3 +30,6 @@
 - 來源以 `8364e11` 提交後開始最後隔離封裝，以便包內產品資訊追蹤編譯基準；尚未推送，待封裝結果追加紀錄一起同步。文件批次來源 SHA 不取代 Git 換行正規化後的 blob SHA。
 - 使用者在封裝期間確認第一版「免費提供」，已更新刊登草稿；沒有操作 Partner Center 價格或發布市場。
 - 第二輪 PRI exclude 仍未排除 16 warnings。讀 SDK 的 filtered.layout.resfiles 確認索引仍含完整 Licenses 路徑，改為只在生成 PRI resfile 後過濾純文件行；Content packaging payload 不動。授權 guard 補成遞迴核對含 third-party 目錄的 25 份完整文件。SDK 產物本身合成 bundle 成功，仍需最後來源重新封裝。
+- 包內 manifest 調查發現 SDK 用專案 TargetPlatformMinVersion=17763 覆寫了模板的 19041，與商店目標及 Win2D 最低版本不一致；Store build 分支明確設 19041（不改 Unpackaged 預設）及 zh-TW default resource language，封裝 guard 追加實際最低 OS 核對。先前包不是最終交付包，保持過程證據。
+- PRI resfile 過濾方案的兩架構建置均 0 warnings／0 errors，25 legal documents 與手冊全部原 byte 保留、bundle 成功；最低 OS 修正後需最後再封裝。舊包不交付為最終包。新增 bundle identity／雙架構／版本與其內 MSIX 逐 SHA 核對，官方 SDK strict validation 未關閉。
+- 已完成商店刊登、runFullTrust 審核說明及隱私說明草稿；第一版免費。公開支援入口、隱私正式政策／URL、市場、分級問卷及示範截圖尚需使用者確認／完成；不代填問卷、不自行送審。

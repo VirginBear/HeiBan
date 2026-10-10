@@ -39,6 +39,8 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(HeiBanStoreBuild)' == 'true'">
+    <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+    <DefaultResourceLanguage>zh-TW</DefaultResourceLanguage>
     <EnableMsixTooling>true</EnableMsixTooling>
     <WindowsPackageType>MSIX</WindowsPackageType>
     <AppxPackage>true</AppxPackage>

@@ -31,6 +31,7 @@ function Read-StorePackage([string]$path,[string]$architecture) {
             if($actual.Package.Identity.GetAttribute($pair[0]) -cne $identity.($pair[1])){throw "Built package identity mismatch: $($pair[0])"}
         }
         if($actual.Package.Identity.ProcessorArchitecture -cne $architecture){throw 'Built package architecture mismatch.'}
+        if($actual.Package.Dependencies.TargetDeviceFamily.MinVersion -cne '10.0.19041.0'){throw 'Built Store minimum OS version mismatch.'}
         if($actual.Package.Properties.PublisherDisplayName -cne $identity.publisherDisplayName){throw 'Built publisher display name mismatch.'}
         if(@($zip.Entries | Where-Object {$_.FullName -match '(^|/)(Data|Updater)(/|$)|portable\.dat$|update-files\.json$|\.pdb$'}).Count){throw 'Store package contains standalone updater/data/debug payload.'}
         foreach($required in @('HeiBan.exe','HeiBan.dll','HeiBan.Windows.Core.dll','resources.pri','coreclr.dll','Microsoft.ui.xaml.dll','Microsoft.Graphics.Canvas.dll','Assets/Store/StoreLogo.png','Assets/Store/Square44x44Logo.png','Assets/Store/Square150x150Logo.png')){
@@ -81,6 +82,22 @@ if($tools.Count -ne 1){throw 'Unable to resolve the pinned Windows SDK MakeAppx 
 $bundle=Join-Path $dist "HeiBan-Store-$($identity.packageVersion)-x64-arm64.msixbundle"
 & $tools[0] bundle /d $bundleInput /p $bundle /bv $identity.packageVersion /o *> (Join-Path $batch 'bundle.log')
 if($LASTEXITCODE -ne 0){Get-Content (Join-Path $batch 'bundle.log') -Tail 20;throw "Store bundle failed: $LASTEXITCODE"}
+$bundleZip=[IO.Compression.ZipFile]::OpenRead($bundle)
+try {
+    $reader=[IO.StreamReader]::new($bundleZip.GetEntry('AppxMetadata/AppxBundleManifest.xml').Open())
+    try {[xml]$bundleManifest=$reader.ReadToEnd()}finally{$reader.Dispose()}
+    if($bundleManifest.Bundle.Identity.Name -cne $identity.name -or $bundleManifest.Bundle.Identity.Publisher -cne $identity.publisher -or $bundleManifest.Bundle.Identity.Version -cne $identity.packageVersion){throw 'Bundle identity mismatch.'}
+    $bundlePackages=@($bundleManifest.Bundle.Packages.Package)
+    if($bundlePackages.Count -ne 2 -or @($bundlePackages | Where-Object {$_.Architecture -eq 'x64'}).Count -ne 1 -or @($bundlePackages | Where-Object {$_.Architecture -eq 'arm64'}).Count -ne 1){throw 'Bundle must contain exactly x64 and ARM64 application packages.'}
+    foreach($package in $bundlePackages){
+        if($package.Version -cne $identity.packageVersion -or $package.Type -ne 'application'){throw 'Bundle application version/type mismatch.'}
+        $entry=$bundleZip.GetEntry($package.FileName)
+        if(-not $entry){throw 'Bundle application payload is missing.'}
+        $stream=$entry.Open();$sha=[Security.Cryptography.SHA256]::Create()
+        try {$hash=[BitConverter]::ToString($sha.ComputeHash($stream)).Replace('-','')}finally{$stream.Dispose();$sha.Dispose()}
+        if($hash -ne (Get-FileHash -LiteralPath (Join-Path $bundleInput $package.FileName) -Algorithm SHA256).Hash){throw 'Bundle application bytes differ from the packaged MSIX.'}
+    }
+}finally{$bundleZip.Dispose()}
 $artifacts+=Get-Item -LiteralPath $bundle
 $sourceHashes=[ordered]@{}
 $sourcePaths=& git -c core.quotepath=false -C (Split-Path $root -Parent) ls-files --cached --others --exclude-standard -- windows
@@ -92,7 +109,7 @@ foreach($path in ($sourcePaths | Sort-Object -Unique)){
     }
 }
 $sourceHead=& git -C (Split-Path $root -Parent) rev-parse HEAD
-$report=[ordered]@{schema=1;identity=$identity;configuration=$Configuration;signed=$false;storeSubmitted=$false;sourceGitHead=$sourceHead;sourceSnapshot=$sourceHashes;payloadChecks=$payloadChecks;artifacts=@()}
+$report=[ordered]@{schema=1;identity=$identity;configuration=$Configuration;signed=$false;storeSubmitted=$false;sourceGitHead=$sourceHead;sourceSnapshot=$sourceHashes;payloadChecks=$payloadChecks;bundleIdentityAndArchitecturesMatched=$true;bundlePackageBytesMatched=$true;artifacts=@()}
 foreach($artifact in $artifacts){
     $hash=(Get-FileHash -LiteralPath $artifact.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
     "$hash  $($artifact.Name)" | Set-Content -LiteralPath ($artifact.FullName+'.sha256') -Encoding ASCII
