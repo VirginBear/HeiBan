@@ -1,5 +1,9 @@
 # Windows 開發日誌
 
+## 2026-10-10 — Antigravity Windows 流暢度交接清單
+
+使用者要求工作清單供自行交給 Antigravity。開工兩庫乾淨、私人 visibility PRIVATE，讀開發索引／平台狀態架構問題後先建立 [本批紀錄](PERFORMANCE_WORKLIST_LOG_2026-10-10.zh-TW.md)。核對目前 Rendering／Input／renderer／overlay／Core session 與既有 Performance／歷史效能文件，明確記既有快取與背景保存已完成；整理九項待辦与首批01／02／03，辨別程式事實和待量測假設，補齊相容／資料／套件保全與驗收界線。修正查找的不存在檔案及縮圖符號後，更新工作入口与目前狀態，私人只記交接入口。沒有程式／版號／套件／圖片變更或測試執行；沒有自動傳訊 Antigravity／Store／Release／排程。同步證據另記私人日誌。
+
 ## 2026-10-10 — 下一版開發與 GitHub 交接
 
 使用者確認可否續開發並要求 GitHub 同步；先讀平台文件、核兩庫 status／本機与遠端 main 一致，私人 visibility PRIVATE，建立 [本批日誌](NEXT_VERSION_HANDOFF_2026-10-10.zh-TW.md)。記錄認證中 1.0.12.0 與後續 source 開發各有版本證據，保留原套件／來源 aa71e35／私人截圖。下一版功能／版號未指定，不自訂功能；本批只更新公開／私人目前狀態及交接日誌。實際讀取與 Git 核對成功，無新增問題；未執行測試、版本變更、封裝／覆寫、後台／Release／排程或其他平台修改。Git 同步結果保存在私人交接日誌。

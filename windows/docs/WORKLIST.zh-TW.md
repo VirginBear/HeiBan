@@ -1,5 +1,9 @@
 # Windows 開發與驗收清單
 
+## 2026-10-10 — 下一版 Windows 流暢度交接
+
+最新效能工作入口：[Antigravity 九項工作清單](ANTIGRAVITY_PERFORMANCE_WORKLIST_2026-10-10.zh-TW.md)。所有項目待執行，先建立同機新基準，接續既有快取／局部重繪／背景保存；依量測決定順序与方案。原 W01～W07 等內容是各批歷史，不能以未更新的舊 checkbox 取代 CURRENT_STATUS。本次只編製清單，沒有實作／測試／重新封裝。
+
 2026-10-08。**實作、建置、操作驗收分開記錄。** `[x]` 只表示本輪程式已實作，不等於實機功能通過。效能數字是待量測目標。Windows 建置結果見 BUILD_STATUS，不以 Mac 版本狀態代替。
 
 **2026-10-09 最新接手入口**：[Windows 開發計劃](WINDOWS_DEVELOPMENT_PLAN_2026-10-09.zh-TW.md) 與 [CURRENT_STATUS](CURRENT_STATUS.zh-TW.md)。下方 W01～W07 保留原批次紀錄；目前新增來源的完成度以最新盤點為準。Mac 基準已到 1.0.8，後續正式範圍包含精確工具、透明螢幕畫布、結構化筆記及資產／管理；不再受早期 W-V 計劃的排除範圍限制。
