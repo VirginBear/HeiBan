@@ -55,3 +55,11 @@ Package-Store檢視manifest identity／1.0.13.0／OS19041、必要runtime、25�
 官方MSIX上傳／清單語言文件已查阅：至少一个完成清單，可移除未準備的介紹語言而不移除App支援；[新增功能與上傳步驟](STORE_RELEASE_NOTES_1.0.13.zh-TW.md)供使用者貼入。此前Core性能bench數字未重跑、不套用；本輪没有App／tests／WACK／Store安裝／母語／4K-DPI驗收、Store上傳／提交／發布／排程，也沒有新GitHub Release。
 
 圖譜cache兩個自動生成源碼目录已核workspace内並Move-Item封存至ignored `.build/toolbar-graph-2026-10-12/cache-side-effects/`，沒有刪除源码／作品／交付包。rg第一次查MainWindow.cs錯檔名，改MainWindow*.cs查到MainWindow.xaml.cs兩shared實例（L46／49），ScreenAnnotationWindow.cs L22／23；文字／圖層共用引用亦核實。
+
+## 階段5：交付與GitHub同步
+
+公開9b6c4e4來源與82e41939196fb4c4f4221062706922c4e4640de3產物紀錄已commit／push，退出0；`git ls-remote origin refs/heads/main`核82e4193同本機，status只原.vscode/。本段另外補實際同步證據；應以最後remote核對作最新main，MSIX source仍9b6c4e4，不因交付docs改包。
+
+PRIVATE已再核visibility、0/0與乾淨開工49d0e80，另保存next_update而不改原Submission1已上架歷史、候選SHA／來源／未提交狀態及對話K節；三張展示圖與帳戶管理資料保留，作品／二進位未上Git。私人產品與對話內容不複製公開。公開與私人各自commit／push核對，Store1.0.13.0還需要使用者上傳、檢視設定並提交認證。
+
+本批變更檔案：MainWindow.Chrome、ScreenAnnotationWindow.Chrome、Views/ToolbarUi、csproj、StoreIdentity／Package.appxmanifest、Package-Store、離線手冊；Windows README／CURRENT_STATUS／ARCHITECTURE／DECISIONS／ISSUE_HISTORY／DEVELOPMENT_LOG與本日誌、STORE_RELEASE_NOTES／ARTIFACTS／INSPECTION。Mac／Web及原.vscode未修改。
