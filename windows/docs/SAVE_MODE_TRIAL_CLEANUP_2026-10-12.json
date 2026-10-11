@@ -1,0 +1,44 @@
+{
+  "status": "completed",
+  "keepTrial": "HeiBan-Windows-Portable-1.0.14-save-mode-2026-10-12-win-x64",
+  "backupRelativePath": "dist/trial-data-backups/20261011-204528-391f7ae5",
+  "publishedAssetNames": [
+    "HeiBan-User-Guide-Windows-1.0.12-preview.5.html",
+    "HeiBan-Windows-Installer-1.0.12-preview.5-win-arm64.zip",
+    "HeiBan-Windows-Installer-1.0.12-preview.5-win-x64.zip",
+    "HeiBan-Windows-Portable-1.0.12-preview.5-win-arm64.zip",
+    "HeiBan-Windows-Portable-1.0.12-preview.5-win-x64.zip",
+    "PUBLIC_ARTIFACTS.json",
+    "SHA256SUMS.txt",
+    "PUBLIC_ARTIFACTS.json",
+    "SHA256SUMS.txt",
+    "HeiBan-macOS-1.0.8-arm64.dmg",
+    "HeiBan-macOS-1.0.8-arm64.zip",
+    "HeiBan-User-Guide-macOS-1.0.8.html",
+    "PUBLIC_ARTIFACTS.json",
+    "SHA256SUMS.txt"
+  ],
+  "entries": [
+    {
+      "trial": "HeiBan-Windows-Portable-1.0.12-preview.6-multilingual-2026-10-11-win-x64",
+      "payloadBytes": 321181510,
+      "payloadFiles": 568,
+      "preservedFiles": 9,
+      "preservedDataFiles": 9,
+      "preservedModifiedFiles": 0,
+      "preservedUnknownFiles": 0,
+      "preservedBytes": 150783,
+      "backupVerified": true,
+      "zipBytes": 131632111,
+      "zipSha256": "1a1dc766572215518ff51f480441fb7189060de10d752939bed4d7109d402f52",
+      "sidecarBytes": 144,
+      "deleted": true
+    }
+  ],
+  "removedBytes": 452662982,
+  "preservedBytes": 150783,
+  "scope": "Only obsolete unpublished trials; never Git history, release assets, Store or unrelated dist",
+  "storeBefore": "d7a49b63d88fa880b1a97b0c307361ad2cfbc9b3d58786048887093d7204ea7b",
+  "storeAfter": "d7a49b63d88fa880b1a97b0c307361ad2cfbc9b3d58786048887093d7204ea7b",
+  "storeUnchanged": true
+}

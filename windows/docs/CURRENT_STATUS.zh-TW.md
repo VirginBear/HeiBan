@@ -1,5 +1,12 @@
 # Windows 目前開發狀態
 
+## 2026-10-12 — 1.0.14自動存檔模式交付
+
+最新版本機商店候選 `dist/store/HeiBan-Store-1.0.14.0-x64-arm64.msixbundle` 已完成；包含1.0.13的十語／操作改善及本批存檔模式。x64／ARM64封裝編譯各0warning／0error，source c409a6e。免安裝 `dist/trials/HeiBan-Windows-Portable-1.0.14-save-mode-2026-10-12-win-x64.zip`亦完成，同名解壓資料夾HeiBan.exe可供使用者試用。首頁齒輪／作品更多「設定」自動存檔預設關閉；開啟沿用一般15秒與螢幕1秒debounce，手動及離開／正常退出仍保存；退出動畫與失敗保留視窗已實作但未實機驗收。
+
+舊未發布multilingual trial清除452,662,982bytes，9檔／150,783bytes先備份再接續新解壓版，9／9 SHA核同；ZIP仍空Data、原備份與Store12／13／14保留。靜態Store174／portable126source SHA、十語592key完整資源核同。未執行App／tests／WACK／硬體或Store提交。[完整日誌與性能待辦](SAVE_MODE_2026-10-12.zh-TW.md)／[商店上傳素材](STORE_RELEASE_NOTES_1.0.14.zh-TW.md)。下方舊版路徑為歷史，最新包以本段為準。
+
+
 ## 2026-10-12 — 自動存檔預設關閉、退出儲存動畫
 
 首頁「設定」／作品更多「設定」控制一般與螢幕畫布自動存檔，新偏好缺省false，已明確保存的選擇沿用。off不排定作品保存／縮圖timer；on維持主15秒與螢幕1秒debounce。主Ctrl+S／螢幕更多「儲存註記」、離開作品／螢幕與正常退出保留儲存；退出顯示ProgressRing、阻止新編輯、保存後才關閉，失败保留內容與視窗。Settings/saving.json原子保存未知欄位，與作品契約分離。

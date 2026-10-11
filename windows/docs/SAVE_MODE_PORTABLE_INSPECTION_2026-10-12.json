@@ -1,0 +1,75 @@
+{
+  "sourceCommit": "c409a6e8e27e4d1ee7e9187e86c8929109187bb6",
+  "label": "save-mode-2026-10-12",
+  "runtime": "win-x64",
+  "version": "1.0.14",
+  "zipRelativePath": "dist/trials/HeiBan-Windows-Portable-1.0.14-save-mode-2026-10-12-win-x64.zip",
+  "bytes": 131654789,
+  "sha256": "95df7209d73c72cf37a235fe7099c727ab2c7f1250f652ef6bb71068cf9140da",
+  "success": true,
+  "scope": "Static catalog, ZIP, source byte, inventory, license, PE and preservation inspection; no app execution or tests",
+  "inventoryFiles": 557,
+  "archiveFiles": 559,
+  "sourceFiles": 126,
+  "sourceMismatch": 0,
+  "dataFiles": 0,
+  "guideMatches": true,
+  "readmeMatches": true,
+  "architectures": [
+    {
+      "path": "HeiBan.exe",
+      "machine": "0x8664"
+    },
+    {
+      "path": "Updater/HeiBan.Updater.exe",
+      "machine": "0x8664"
+    }
+  ],
+  "catalogs": {
+    "ar": {
+      "entries": 592,
+      "completeByteResourceEmbedded": true
+    },
+    "de": {
+      "entries": 592,
+      "completeByteResourceEmbedded": true
+    },
+    "en": {
+      "entries": 592,
+      "completeByteResourceEmbedded": true
+    },
+    "es": {
+      "entries": 592,
+      "completeByteResourceEmbedded": true
+    },
+    "fr": {
+      "entries": 592,
+      "completeByteResourceEmbedded": true
+    },
+    "ja": {
+      "entries": 592,
+      "completeByteResourceEmbedded": true
+    },
+    "ko": {
+      "entries": 592,
+      "completeByteResourceEmbedded": true
+    },
+    "pt-BR": {
+      "entries": 592,
+      "completeByteResourceEmbedded": true
+    },
+    "zh-CN": {
+      "entries": 592,
+      "completeByteResourceEmbedded": true
+    },
+    "zh-TW": {
+      "entries": 592,
+      "completeByteResourceEmbedded": true
+    }
+  },
+  "publishDiagnostics": [],
+  "storeSha256": "d7a49b63d88fa880b1a97b0c307361ad2cfbc9b3d58786048887093d7204ea7b",
+  "storeUnchanged": true,
+  "evidenceRelativePath": ".build/portable-trial-cdcc951a4aba45ffb30a83762b11f631",
+  "failures": []
+}

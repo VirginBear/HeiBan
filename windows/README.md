@@ -4,7 +4,7 @@
 
 首頁側欄齒輪「設定」、作品更多「設定」可選自動存檔，新的偏好預設關閉；on沿用原定期保存，off只在手動、離開作品或正常退出保存。螢幕更多亦有開關與「儲存註記」。正常退出顯示儲存動畫，完成後關閉；失败保留作品，當機／斷電／強制終了仍可能丢未保存變更。
 
-產品1.0.14／Store候選1.0.14.0準備中，前一1.0.13.0包保留。新功能需使用最新版package，舊包不會因原始碼push而改變。[本批日誌／性能待辦](docs/SAVE_MODE_2026-10-12.zh-TW.md)。
+產品1.0.14／Store候選1.0.14.0已打包；最新上傳包`dist/store/HeiBan-Store-1.0.14.0-x64-arm64.msixbundle`，免安裝試用`dist/trials/HeiBan-Windows-Portable-1.0.14-save-mode-2026-10-12-win-x64.zip`。x64／ARM64編譯0warning／0error，靜態檢視通過，尚未實機驗收／提交新版商店。前一1.0.13.0包保留。新功能需使用最新版package，舊包不會因原始碼push而改變。[本批日誌／性能待辦](docs/SAVE_MODE_2026-10-12.zh-TW.md)。
 
 ## 2026-10-12 商店更新候選1.0.13.0
 
@@ -39,7 +39,7 @@
 
 本批會另製作 `dist/trials/*ux20-2026-10-11*-win-x64.zip`，完整解壓後執行 HeiBan.exe，保存在自身 Data。是未發布的本機試用，沒有改動 Store 送審套件；本批僅編譯與封裝檢視，實際滑鼠、4K／DPI 操作待試用。
 
-**最新本機試用版：1.0.12-preview.6（2026-10-10）**。本批加入 GitHub 背景更新；公開 GitHub 下載仍為 1.0.12-preview.5。以 Mac 1.0.12／20261010.4 的現行可操作功能為基準，Windows 使用 C#／.NET 10、WinUI 3 與 Win2D。主畫布為原生 Direct2D；PDF 匯出單獨使用 WebView2 列印。
+**以下為2026-10-10的本機試用歷史：1.0.12-preview.6**。本批加入 GitHub 背景更新；公開 GitHub 下載仍為 1.0.12-preview.5。以 Mac 1.0.12／20261010.4 的現行可操作功能為基準，Windows 使用 C#／.NET 10、WinUI 3 與 Win2D。主畫布為原生 Direct2D；PDF 匯出單獨使用 WebView2 列印。
 
 [目前狀態](docs/CURRENT_STATUS.zh-TW.md) · [功能對照與驗證](docs/MAC_1_0_12_PARITY_2026-10-10.zh-TW.md) · [建置紀錄](docs/BUILD_STATUS.zh-TW.md) · [離線手冊](HeiBan.Windows/Assets/HeiBanUserGuide.html) · [開發日誌](docs/DEVELOPMENT_LOG.zh-TW.md)
 

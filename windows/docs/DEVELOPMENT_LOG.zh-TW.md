@@ -1,5 +1,22 @@
 # Windows 開發日誌
 
+## 2026-10-12 — 自動存檔模式最終交付證據
+
+實作來源commit `c409a6e8e27e4d1ee7e9187e86c8929109187bb6`（33檔，386新增／26刪除）；其後只更新交付文件。r2 x64 `dotnet build`退出0／31.31秒／0warning／0error，當時尚未遞增metadata；正式封裝重新編譯產品1.0.14／File及Store1.0.14.0。
+
+- `Package-Store.ps1 -DotnetPath windows/.build/tools/dotnet/dotnet.exe`退出0；x64 51.87秒／ARM64 57.46秒，各0warning／0error。證據`.build/store-cc7d1d56f2a542d4a4984f23022517d8/`及`.build/store-update-1.0.14.0.log`。
+- Store bundle `dist/store/HeiBan-Store-1.0.14.0-x64-arm64.msixbundle`，193,478,823bytes，SHA256 `ca8c799cdb393134444989ca25a87d040736cff4b8730d7de7c199fab54c92a6`。原1.0.12.0及前候選1.0.13.0保留；新包尚未由助手提交／發布。
+- `Package-PortableTrial.ps1 -Runtime win-x64 -Label save-mode-2026-10-12`退出0；App／helper publish無warning／error。證據`.build/portable-trial-cdcc951a4aba45ffb30a83762b11f631/`及`.build/portable-save-mode.log`。ZIP `dist/trials/HeiBan-Windows-Portable-1.0.14-save-mode-2026-10-12-win-x64.zip`，131,654,789bytes，SHA256 `95df7209d73c72cf37a235fe7099c727ab2c7f1250f652ef6bb71068cf9140da`。
+- Python靜態Store／portable inspection各退出0：Store174source SHA、x64／ARM64 manifest與PE、十語各592key、25legal／guide／README、無Data／portable／Updater；portable126source SHA、557inventory／559archive、十語592完整資源、x64 App及helper、空Data與sidecar一致。不是執行測試或App驗收。
+- `Clear-ObsoleteTrials.ps1 -KeepTrial HeiBan-Windows-Portable-1.0.14-save-mode-2026-10-12-win-x64`退出0，先核GitHub已發布資產及沒有HeiBan程序，再保留Data等自有檔；移除舊multilingual trial程式／ZIP／sidecar，釋放452,662,982bytes，保留9檔／150,783bytes。備份`dist/trial-data-backups/20261011-204528-391f7ae5/`，前批備份保留。
+- `.build/handoff-save-mode.ps1`初次退出1：目標已含五個封裝建立的空目錄，嚴格「無任何entry」守護拒絕，未复制作品。PowerShell再核目標0檔，改「無檔案且無reparse point」守護；重跑退出0，9／9 SHA相符，複製到新解壓版Data，備份保留。ZIP保持空Data；Store12／13／14與新ZIP SHA再次核同。原始檢視的Data=0是接續前，現在解壓資料為9檔，不混用兩個時點。
+- 文檔查找兩個不存在的預期檔名失敗：Store更新文件實為STORE_RELEASE_NOTES_1.0.13.zh-TW.md，私人對話實為conversations/2026-10-11-development-summary.zh-TW.md；改讀正確索引。沒有資料刪除或恢復舊代碼。
+
+交付：[新版商店說明](STORE_RELEASE_NOTES_1.0.14.zh-TW.md)、[Store產物](STORE_ARTIFACTS_1.0.14.0_2026-10-12.json)、[Store靜態檢視](STORE_INSPECTION_1.0.14.0_2026-10-12.json)、[試用產物](SAVE_MODE_PORTABLE_ARTIFACT_2026-10-12.json)、[試用靜態檢視](SAVE_MODE_PORTABLE_INSPECTION_2026-10-12.json)、[清理](SAVE_MODE_TRIAL_CLEANUP_2026-10-12.json)、[Data接續](SAVE_MODE_DATA_HANDOFF_2026-10-12.json)。作品檔名／內容及二進位不提交GitHub。
+
+本輪App、tests、WACK、Store安裝／提交、動畫／正常退出／儲存失敗實機、4K／DPI／RTL／母語、FPS或輸入延遲量測：未執行。編譯及靜態核對不能替代这些驗收；不能保證小畫家同等流暢度。Mac／Web程式與已發布歷史未修改。
+
+
 ## 2026-10-12 — 自動存檔設定與退出儲存
 
 開工963f2d0仅原.vscode/，先讀索引／Windows文件並建[阶段日誌](SAVE_MODE_2026-10-12.zh-TW.md)。增加Settings/saving.json預設off、三設定入口、共用離開屏障与主／screen动画／输入凍結、縮圖flush、匯入保存舊作品；11來源十語592key。r1失败已排Grid/Control誤用，r2 x64退出0、0warning／0error、31.31秒。正式1.0.14／Store1.0.14.0另包，产物／同步另記，未跑App／tests／UI，Mac／Web未改。
