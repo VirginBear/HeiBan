@@ -1,5 +1,15 @@
 # Windows 開發日誌
 
+## 2026-10-12 — 十語 Store 清單文案
+
+- 使用者要求三欄：說明、此版本新增功能、最多20項的產品功能。依前批 Windows 候選、十語手冊與現況撰寫十語文案，保持品牌、語言預設與存檔政策一致。
+- 新增 `STORE_LISTING_COPY_10_LANGUAGES_2026-10-12.md` 與本批日誌，更新 CURRENT_STATUS、Store素材入口；每語言6項更新／16項功能，不修改實作或metadata。
+- 開工公開status只既存.vscode/、私人乾淨；兩庫fetch退出0，HEAD...origin/main皆0/0，兩origin正確且私人visibility=true。私人狀態文件誤用CURRENT_STATUS.md讀取失敗後，依AGENTS改讀正確zh-TW檔；未建立重複檔案。
+- PowerShell Regex解析本批文字檔：10語均具三欄，說明非空、更新6項、功能16項；git diff --check退出0。這是文案結構檢查，不是程式測試、語言品質或商店驗收。
+- 未執行：App、tests、編譯、封裝、母語校閱、效能量測、Partner Center填寫／提交／發布。沒有新架構或程式問題，ARCHITECTURE／DECISIONS／ISSUE_HISTORY無需變動。公開文案與私人精簡交接分庫同步，結果接續本批日誌。
+
+[目的、來源、範圍與交付紀錄](STORE_LISTINGS_2026-10-12.zh-TW.md)／[可複製文案](STORE_LISTING_COPY_10_LANGUAGES_2026-10-12.md)。
+
 ## 2026-10-12 — 十語手冊當次交付證據
 
 - source實作 `84583637706e172e0ed64c0e8431122311f17309`，35檔1113新增11刪除；Windows .gitattributes後續提交 `1ab7018b24e4fc06f354ac8d968207de8d0c7770`，固定Guides HTML／來源txt LF，避免另一台電腦autocrlf使每頁SHA manifest失效。兩次間App／HTML內容不變。

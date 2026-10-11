@@ -1,5 +1,9 @@
 # Windows 目前開發狀態
 
+## 2026-10-12 — 十語商店清單文案
+
+已提供正體中文、簡體中文、英文、日文、韓文、西班牙文、法文、德文、葡萄牙文（巴西）、阿拉伯文的[完整商店文案](STORE_LISTING_COPY_10_LANGUAGES_2026-10-12.md)：每語言有說明、6項本次新增功能、16項產品功能。文案以目前 Windows 候選功能為範圍，未加入未交付功能或效能保證；預設正體中文／自動存檔關閉與前批一致。這是可貼入後台的更新草稿，尚未母語校閱或填入 Partner Center；不變更程式、版本、產物、既有上架狀態或候選核准狀態。正式進版／提交仍依整批驗證與使用者決定。[本批日誌](STORE_LISTINGS_2026-10-12.zh-TW.md)。
+
 ## 2026-10-12 — 十語手冊候選已封裝，待實用確認
 
 版本沿用1.0.14，不新進版。最新免安裝`dist/trials/HeiBan-Windows-Portable-1.0.14-guides-2026-10-12-win-x64.zip`，131,753,592bytes／SHA256 `2022630e14aa2b1313ab0319659c266a9d9046e69617ced060dd761a1ef27e8b`；同名解壓版HeiBan.exe已接續20檔898,085bytes、20SHA核同，備份保留，ZIP空Data。舊未發布save-mode trial清理452,723,319bytes。App/helper publish退出0、无warning/error，靜態147source／568inventory／570archive、十語25章55段与12guide files核同。
