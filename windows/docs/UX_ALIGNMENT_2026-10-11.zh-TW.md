@@ -123,3 +123,14 @@
 - 實作 40 檔提交 `cd16ac0a10f23cd34809f4d38ef4f6f0a122d5a6` 已 push；ls-remote HEAD／main 相同，status 僅原 `.vscode/`。
 - 第一份 ux20 包已完成 App／helper publish，靜態排列檢查發現上下屬性面板及側邊圖層可能覆蓋同側工具列。補上依目前 toolbar dock 的留白、標題導覽／左下視角膠囊空間，圖層列表高度依可用區計算；改變工具列停靠也重算面板。
 - 第一份包與 log 保留作候選；最後交付會另以 `ux20-2026-10-11-r2` 標籤封裝，仍不覆寫 Store 或其他 trial。
+
+## 最終免安裝交付
+
+- 留白補強提交 `e60728d0d7b0e010820c6d6f30b236057981fa1f` 已 push，ls-remote HEAD／main 同值。
+- 最終命令：在 PATH 前置本機 `.build/tools/dotnet`，執行 `Package-PortableTrial.ps1 -Runtime win-x64 -Label ux20-2026-10-11-r2`，finally 恢復 PATH。退出 0；App／helper publish log 無 warning／error。初份 ux20 包、全部舊 trial 仍保留。
+- 最終 ZIP：`windows/dist/trials/HeiBan-Windows-Portable-1.0.12-preview.6-ux20-2026-10-11-r2-win-x64.zip`，**131,531,917 bytes**，SHA256 `c7c9cd4d23e300f8c3e68b5ecbac763432e4fbcde782aba8ded075cce0f252e3`。
+- 同名資料夾的 `HeiBan.exe` 可直接啟動；ZIP 完整解壓後啟動，作品存自身空白 Data。没有複製使用者作品。ProductVersion `1.0.12-preview.6+e60728d0d7b0e010820c6d6f30b236057981fa1f`，FileVersion `1.0.12.6`。
+- 原始封裝證據留 `.build/portable-trial-260567e9486445e68dfd433c3001154c/`，包括 publish.log、artifact.json、store-preservation.json；初包 `.build/portable-trial-58381325fed24c7392ef2d19cef4a4a0/`。
+- 封裝靜態核對：559 ZIP 檔案，其中 inventory 557 項逐 SHA，另含 portable.dat／inventory 本身；103 source hash 無不符，包含 XAML／HTML／manifest／README；Data 檔案 0；App／helper PE `0x8664`；guide／README 与來源一致，sidecar SHA 与ZIP一致。
+- Store hash 前後相同，未發布 GitHub Release／新 Store 套件。ZIP 為本機檔，GitHub 只保存來源與紀錄；其他電腦可用腳本重建。
+- [封裝紀錄](UX20_PORTABLE_ARTIFACT_2026-10-11.json)與[靜態檢視](UX20_PORTABLE_INSPECTION_2026-10-11.json)。本批沒有新增或執行 Core／native／UI 測試，沒有啟動 App，ARM64 封裝／執行未執行；實際滑鼠、4K、DPI、多螢幕、觸控筆仍待試用。

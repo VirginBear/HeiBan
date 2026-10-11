@@ -4,6 +4,8 @@
 
 已接上首頁開啟／一般選取／圓形多選、停筆一秒直線預覽、百分比尺長、依物件分類屬性、箭頭頭部獨立尺寸、個別圖釘配色、延伸入口移入屬性、紙張便條視覺、上下視角鎖定同步、独立圖層與拖曳排序、雷射再次點擊設定、存檔勾號／虛線圓、屬性四邊停靠；螢幕畫布增加橡皮擦預覽、內容量測工具列、圖層與調色盤。
 
+最終本機 x64 試用：`dist/trials/HeiBan-Windows-Portable-1.0.12-preview.6-ux20-2026-10-11-r2-win-x64.zip`，131,531,917 bytes，SHA `c7c9cd4d23e300f8c3e68b5ecbac763432e4fbcde782aba8ded075cce0f252e3`；同名資料夾直接啟動 HeiBan.exe。[產物](UX20_PORTABLE_ARTIFACT_2026-10-11.json)／[靜態檢視](UX20_PORTABLE_INSPECTION_2026-10-11.json)。來源 e60728d，App／helper publish 退出 0、log 無 warning／error，557 inventory／103 source SHA／空 Data／PE／手冊／sidecar 核對完成。補強四邊面板留白以避免蓋工具列；第一份候選與舊包均保留。
+
 第一輪／第二輪 x64 build 已退出 0，第二輪 0 warning／0 error。本批未執行 Core／native／實際 UI 操作測試；20 項實體滑鼠、4K DPI、多螢幕驗收仍待使用者試用。完整入口、類型矩陣、原因、命令與限制見[本批紀錄](UX_ALIGNMENT_2026-10-11.zh-TW.md)。本機免安裝另以 ux20 標籤製作，來源版號維持 preview.6；沒有發 Release 或改 Store 送審版。
 
 ## 2026-10-11 — 第二批本機x64免安裝試用包可用

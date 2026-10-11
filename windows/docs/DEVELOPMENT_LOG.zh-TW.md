@@ -8,6 +8,8 @@
 
 編輯腳本第一次 XAML 區段定位過早失敗；改用 WorkspaceHeader 完整邊界，保留當時已改內容並從剩餘段繼續。第一次 x64 build 0 error／2 同一未用尺長警告，移除已由百分比取代的私有欄位；第二次 x64 build 0 warning／0 error。未跑測試／App，不套用舊 2324／127 數字。可選圖釘 color/textColor 增補與 Mac 讀寫邊界見[契約](DOCUMENT_ADDITIONS_2026-10-11.zh-TW.md)。
 
+最終來源 build 0 warning／0 error，cd16ac0 實作提交後，靜態排列發現面板同側可能遮工具列，補 dock 留白及可用高度 e60728d 再 push。另出 ux20-r2 x64：131,531,917 bytes，SHA c7c9cd4d…；App／helper publish 退出 0／log 無warning/error，557 payload inventory hash／103 source hash／空Data／PE／guide／README／sidecar靜態檢視完成。原StoreSHA相同，原初包与旧dist保留，沒有Release／Store／App測試。日誌与artifact保存實際位置及重建入口；公開與私人交接分開同步。
+
 ## 2026-10-11 — 第二批本機免安裝試用包
 
 使用者詢問未發布版的免安裝試用，開工3fa30f9只原.vscode/未追蹤，先讀平台並建[日誌](PORTABLE_TRIAL_2026-10-11.zh-TW.md)。原Portable入口會覆寫同p6包，因此另加Label trial入口／存在拒絕覆寫，Common可選隔離ArtifactsPath；版本不改。重新publish App／helper、授權／README／空Data／inventory／ZIP／sidecar，557 entry SHA、93來源SHA、PE／版本／Data靜態核對完成；無新增Core／native／smoke或App啟動，不沿用前批成功數字當本批測試。

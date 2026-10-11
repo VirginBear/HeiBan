@@ -6,6 +6,8 @@
 
 排解：一般 Single／顯式 Multiple、依物件區塊顯示與獨立圖層、固定頭部預設且尺寸 slider、內容 Measure／DPI／工作區限制。腳本 XAML 第一段界線匹配到內層 Grid，尚未寫 XAML 即失敗；修精確外層邊界後續作。首次編譯未用舊尺長欄位警告，移除並重新 build。未執行實機 UI／DPI／拖曳測試，驗收缺口與逐項入口保存在[日誌](UX_ALIGNMENT_2026-10-11.zh-TW.md)。
 
+初份 ux20 封裝後靜態排列檢查確認同側面板可能遮工具列；追加 margin 留白／可用高度重算，按 r2 新Label重新publish，不覆寫初份。r2 log 無warning/error，557 inventory／103 source hash 靜態核對及Store保全完成。沒有將封裝完成宣稱實體 UI 已驗收。
+
 ## 2026-10-11 — Trial封裝sidecar防覆寫條件
 
 新wrapper第一包完成後，靜態檢視發現PowerShell`@($payload,$zip,$zip+'.sha256')`會拆出額外.sha256項，未正確守衛既存sidecar；payload／ZIP guard有效，未覆寫舊產物，也不影響App。改`($zip+'.sha256')`，新r2 Label重新publish／壓縮，兩包／log保留；最終557 entry SHA／93 source／空Data／PE／版本靜態核對通過。沒有因紀錄要求自行跑App測試，初包是歷史候選、最終交付r2。

@@ -1,0 +1,32 @@
+{
+  "success": true,
+  "scope": "Static archive and source inspection; no application execution or tests",
+  "sourceCommit": "e60728d0d7b0e010820c6d6f30b236057981fa1f",
+  "label": "ux20-2026-10-11-r2",
+  "runtime": "win-x64",
+  "version": "1.0.12-preview.6",
+  "productVersion": "1.0.12-preview.6+e60728d0d7b0e010820c6d6f30b236057981fa1f",
+  "fileVersion": "1.0.12.6",
+  "zipRelativePath": "dist/trials/HeiBan-Windows-Portable-1.0.12-preview.6-ux20-2026-10-11-r2-win-x64.zip",
+  "bytes": 131531917,
+  "sha256": "c7c9cd4d23e300f8c3e68b5ecbac763432e4fbcde782aba8ded075cce0f252e3",
+  "inventoryFiles": 557,
+  "archiveFiles": 559,
+  "dataFiles": 0,
+  "sourceFiles": 103,
+  "sourceMismatch": 0,
+  "guideMatches": true,
+  "readmeMatches": true,
+  "architectures": [
+    {
+      "path": "HeiBan.exe",
+      "machine": "0x8664"
+    },
+    {
+      "path": "Updater/HeiBan.Updater.exe",
+      "machine": "0x8664"
+    }
+  ],
+  "storeSha256": "d7a49b63d88fa880b1a97b0c307361ad2cfbc9b3d58786048887093d7204ea7b",
+  "storeUnchanged": true
+}
