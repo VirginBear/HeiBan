@@ -11,7 +11,7 @@ public partial class MainWindow
     private void InitializeTeachingTools()
     {
         LoadTeachingSettings();
-        _laserTimer.Tick+=(_,_)=>{if(_laser.Samples.Count==0)return;_laser.Prune(LaserNow);if(_workspaceOpen)InvalidateCanvas(false);};_laserTimer.Start();
+        _laserTimer.Tick+=(_,_)=>{if(_tool=="pen"&&_ink.TrySnapStraight(_viewport.Zoom)){_renderer.ResetLive();InvalidateCanvas(false);}if(_laser.Samples.Count==0)return;_laser.Prune(LaserNow);if(_workspaceOpen)InvalidateCanvas(false);};_laserTimer.Start();
     }
     private async void ClearPage()
     {
@@ -51,10 +51,17 @@ public partial class MainWindow
         }
         if(selected?.Type is "line" or "arrow")
         {var b=new Button{Content="延伸直線設定"};b.Click+=(_,_)=>ShowExtensionSettings(b);panel.Children.Add(b);}
+        if(selected?.Type=="arrow")
+        {
+            var length=new Slider{Header="箭頭頭部長度",Minimum=4,Maximum=128,Value=selected.ArrowHeadLength??16,StepFrequency=1};
+            length.ValueChanged+=(_,e)=>ChangeProperty(()=>selected.ArrowHeadLength=e.NewValue);panel.Children.Add(length);
+            var width=new Slider{Header="箭頭頭部寬度",Minimum=4,Maximum=96,Value=selected.ArrowHeadWidth??10,StepFrequency=1};
+            width.ValueChanged+=(_,e)=>ChangeProperty(()=>selected.ArrowHeadWidth=e.NewValue);panel.Children.Add(width);
+        }
         if(selected?.Type is "text" or "sticky")
         {
             var edit=new Button{Content="編輯局部文字格式"};edit.Click+=async(_,_)=>await EditRichTextAsync(selected);panel.Children.Add(edit);
-            var row=new StackPanel{Orientation=Orientation.Horizontal,Spacing=4};
+            var row=new StackPanel{Orientation=Orientation.Vertical,Spacing=4};
             foreach(var pair in new[]{("粗體","IsBold"),("斜體","IsItalic"),("底線","IsUnderline"),("刪除線","IsStrikethrough")})
             {var prop=typeof(BoardObject).GetProperty(pair.Item2)!;var cb=new CheckBox{Content=pair.Item1,IsChecked=(bool?)prop.GetValue(selected)==true};cb.Checked+=(_,_)=>ChangeProperty(()=>{prop.SetValue(selected,true);selected.RichTextSpans=null;});cb.Unchecked+=(_,_)=>ChangeProperty(()=>{prop.SetValue(selected,false);selected.RichTextSpans=null;});row.Children.Add(cb);}
             panel.Children.Add(row);

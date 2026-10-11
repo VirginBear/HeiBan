@@ -1,5 +1,11 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-11 — 操作狀態與面板
+
+MainWindow.Properties 管理型別屬性區塊、停靠／拖曳及圖釘配色。MainWindow.Home 的 _libraryMulti 決定批次 UI，LibraryCard 的通知只更新視覺勾選；永久作品資料不含選取狀態。LayerReorder 為共用交易，LayerDragTarget 以虛擬化列的實際座標決定上下插入。
+
+WindowsInkCoordinator 以單調時鐘保存停筆錨點、原始點與吸附旗標；RenderLiveStroke 讀兩端預覽，Finish 才產生 line。ScreenAnnotationWindow.Panels 提供图層／色輪及 hover 圓；dirty region 包含上一與本次橡皮擦 bounds，切回操作／工具列及彈出面板隱藏預覽。Chrome 改量測內容後以工作區限制視窗。
+
 ## 2026-10-11 — 渲染視野候選網格
 
 ObjectViewportCache只接新取得的ascending OrderedBoardObjects，保留整份文件的穩定Z次序，回傳獨立候選陣列並即時過濾頁面／visibility。512以下、密集視野（query格數占已占用格35%以上或候選至少四分之一）、超過4096 query格或非有限範圍回原ordered scan；Snapshot／export enumerable與單preview沿用原路徑。診斷可BypassViewportCache比對，沒有新增產品設定。

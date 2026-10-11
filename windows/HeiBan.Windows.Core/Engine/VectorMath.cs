@@ -82,7 +82,7 @@ public static class VectorMath
             if(obj.Type=="arrow"&&Vector2.Distance(a,b)>.01f)
             {
                 var d=Vector2.Normalize(b-a);var n=new Vector2(-d.Y,d.X);
-                var length=(float)(obj.ArrowHeadLength??Math.Max(12,obj.StrokeWidth*4));var width=(float)(obj.ArrowHeadWidth??length*.5);
+                var length=(float)(obj.ArrowHeadLength??16);var width=(float)(obj.ArrowHeadWidth??10);
                 return DistanceToSegment(pt,b,b-d*length+n*width/2)<=hitDist||DistanceToSegment(pt,b,b-d*length-n*width/2)<=hitDist;
             }
             return false;

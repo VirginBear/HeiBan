@@ -16,6 +16,7 @@ public partial class MainWindow
     private void InvalidateCanvas(bool sceneChanged=true)
     {
         if(sceneChanged)_sceneDirty=true;
+        UpdateSaveStatusLight(StatusText.Text);
         CanvasSurface.Invalidate();
     }
     private void ClearScene()
@@ -45,7 +46,7 @@ public partial class MainWindow
     private string? _layersPage;
     private void RefreshLayersIfNeeded()
     {
-        if(Inspector.Visibility!=Microsoft.UI.Xaml.Visibility.Visible)return;
+        if(LayersPanel.Visibility!=Microsoft.UI.Xaml.Visibility.Visible)return;
         if(!ReferenceEquals(_layersDocument,_session.Document)||_layersGeneration!=_session.Generation||_layersPage!=_session.Document.Board.ActivePageId)
         {
             LayerList.ItemsSource=LayerPresentation.Build(_session.PageObjects).Select(entry=>new LayerCard(entry)).ToList();

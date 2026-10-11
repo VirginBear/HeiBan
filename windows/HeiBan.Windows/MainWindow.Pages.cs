@@ -55,6 +55,7 @@ public partial class MainWindow
     private void RefreshNavigationChrome()
     {
         NavigationLockButton.Content=Views.ToolIcons.Create(_viewLocked?"lock":"unlock");NavigationReadingButton.Content=Views.ToolIcons.Create(_readingMode?"pen":"reading");
+        if(_toolButtons.TryGetValue("viewLock",out var upper)){upper.Content=Views.ToolIcons.Create(_viewLocked?"lock":"unlock");upper.Background=Brush(_viewLocked?"#DCEBDD":"transparent");ToolTipService.SetToolTip(upper,_viewLocked?"解除視角鎖定":"鎖定視角：避免平移與縮放");}
         NavigationLockButton.Background=_viewLocked?Brush("#DCEBDD"):Brush("transparent");
         ToolTipService.SetToolTip(NavigationLockButton,_viewLocked?"解除視角鎖定":"鎖定視角：避免平移與縮放");ToolTipService.SetToolTip(NavigationReadingButton,_readingMode?"回到編輯模式":"閱讀模式：拖曳移動畫布");
     }

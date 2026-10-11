@@ -70,9 +70,9 @@ public partial class MainWindow
         foreach(var pin in board.Pins??[])
         {
             var p=_viewport.WorldToScreen(pin.X,pin.Y);
-            Direct2DCanvasRenderer.DrawPin(ds,new((float)p.X,(float)p.Y),.9f);
+            Direct2DCanvasRenderer.DrawPin(ds,new((float)p.X,(float)p.Y),.9f,pin.Color);
             using var format=new Microsoft.Graphics.Canvas.Text.CanvasTextFormat{FontSize=14};
-            ds.DrawText(pin.Name,(float)p.X+16,(float)p.Y,Direct2DCanvasRenderer.HexToColor("#397056"),format);
+            ds.DrawText(pin.Name,(float)p.X+16,(float)p.Y,Direct2DCanvasRenderer.HexToColor(pin.TextColor??"#397056"),format);
         }
         if(_rulerEnabled)DrawRuler(ds);
         if(_compass.IsEnabled)_renderer.RenderCompass(ds,_compass,_viewport);
@@ -338,6 +338,7 @@ public partial class MainWindow
             {
                 _session.Begin();var box=VectorMath.ComputeBoundingBox(points,EffectiveWidth);
                 var o=Styled(new BoardObject{Type=_tool=="pen"?"stroke":_tool,X=box.MinX,Y=box.MinY,Width=box.Width,Height=box.Height,Points=JsonSerializer.Serialize(points,DocumentCodec.Options)});
+                if(_tool=="pen"&&_ink.IsStraight&&points.Count==2){o.Type="line";o.Points=null;ObjectHandles.SetEndpoints(o,points[0],points[1]);}
                 _session.Add(o);
             }
         }
@@ -614,7 +615,7 @@ public partial class MainWindow
         var pin=PinAt(screen);
         var hit=_session.Hit(_viewport.ScreenToWorld(screen.X,screen.Y),6/_viewport.Zoom);if(hit is null||!_session.SelectedIds.Contains(hit.Id))Select(hit);
         var menu=new MenuFlyout();void Add(string name,Action action){var item=new MenuFlyoutItem{Text=name};item.Click+=(_,_)=>action();menu.Items.Add(item);}
-        if(pin is not null){Add("重新命名圖釘",()=>StartPinRename(pin));Add("刪除圖釘",()=>{_session.Begin();_session.Document.Board.Pins!.Remove(pin);_session.Commit();RefreshEditor();});}
+        if(pin is not null){Add("重新命名圖釘",()=>StartPinRename(pin));Add("圖釘與文字配色…",()=>PinAppearance(pin));Add("刪除圖釘",()=>{_session.Begin();_session.Document.Board.Pins!.Remove(pin);_session.Commit();RefreshEditor();});}
         if(_session.Selected is not null){Add("複製",CopySelected);Add("製作副本",DuplicateSelected);Add("刪除",()=>Delete_Click(this,new RoutedEventArgs()));
             var selection=_session.SelectedIds.ToHashSet();var board=_session.Document.Board.Id;bool Current()=>board==_session.Document.Board.Id&&_session.SelectedIds.SetEquals(selection);
             TextStyleMenu.Append(menu,_session.SelectedObjects.ToArray(),change=>{CommitPropertyEdit();if(Current()){TextStyles.ApplySelection(_session,change);RefreshEditor();}},flyout=>{flyout.ShouldConstrainToRootBounds=false;flyout.ShowAt(CanvasSurface,new Microsoft.UI.Xaml.Controls.Primitives.FlyoutShowOptions{Position=new Point(screen.X,screen.Y)});},Current,()=>{if(_session.SelectedObjects.FirstOrDefault(o=>o.Type is "text" or "sticky"&&o.IsLocked!=true) is { } text)StartText(text);});}
@@ -689,9 +690,10 @@ public partial class MainWindow
                 row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 var navContent = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
-                navContent.Children.Add(new Views.PinIcon());
-                navContent.Children.Add(new TextBlock { Text = pin.Name, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis });
+                navContent.Children.Add(new Views.PinIcon(pin.Color));
+                navContent.Children.Add(new TextBlock { Text = pin.Name, Foreground=Brush(pin.TextColor??"#397056"), VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis });
                 var navBtn = new Button { Content = navContent, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Left };
                 navBtn.Click += (_, _) =>
                 {
@@ -709,6 +711,8 @@ public partial class MainWindow
                 Grid.SetColumn(renameBtn, 1);
                 row.Children.Add(renameBtn);
 
+                var colorBtn=new Button{Content="配色",Margin=new Thickness(4,0,0,0),Padding=new Thickness(8,4,8,4)};
+                colorBtn.Click+=(_,_)=>{dialog?.Hide();DispatcherQueue.TryEnqueue(()=>PinAppearance(pin));};Grid.SetColumn(colorBtn,2);row.Children.Add(colorBtn);
                 var deleteBtn = new Button { Content = "刪除", Margin = new Thickness(4, 0, 0, 0), Padding = new Thickness(8, 4, 8, 4) };
                 deleteBtn.Click += (_, _) =>
                 {
@@ -718,7 +722,7 @@ public partial class MainWindow
                     RefreshEditor();
                     RenderPins();
                 };
-                Grid.SetColumn(deleteBtn, 2);
+                Grid.SetColumn(deleteBtn, 3);
                 row.Children.Add(deleteBtn);
 
                 listContainer.Children.Add(row);

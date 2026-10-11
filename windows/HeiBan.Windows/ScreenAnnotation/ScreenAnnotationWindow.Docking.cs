@@ -46,7 +46,7 @@ internal sealed partial class ScreenAnnotationWindow
         _chromeEnd=new StackPanel{Orientation=orientation,Spacing=4,VerticalAlignment=VerticalAlignment.Center,HorizontalAlignment=HorizontalAlignment.Center};
         _chromeEnd.Children.Add(_brushButton);_chromeEnd.Children.Add(_dashButton);_chromeEnd.Children.Add(_fillButton);
         _chromeEnd.Children.Add(_clearButton);if(vertical||_collapsed)_chromeEnd.Children.Add(_moreButton);_chromeEnd.Children.Add(_closeButton);
-        _chromeToolScroll=new ScrollViewer{Content=_chromeTools,Visibility=_collapsed?Visibility.Collapsed:Visibility.Visible,HorizontalScrollMode=vertical?ScrollMode.Disabled:ScrollMode.Enabled,HorizontalScrollBarVisibility=ScrollBarVisibility.Hidden,VerticalScrollMode=vertical?ScrollMode.Enabled:ScrollMode.Disabled,VerticalScrollBarVisibility=ScrollBarVisibility.Hidden,Padding=new Thickness(0),MinWidth=0,MinHeight=0,HorizontalContentAlignment=HorizontalAlignment.Center,VerticalContentAlignment=VerticalAlignment.Top};
+        _chromeToolScroll=new ScrollViewer{Content=_chromeTools,Visibility=_collapsed?Visibility.Collapsed:Visibility.Visible,HorizontalScrollMode=vertical?ScrollMode.Disabled:ScrollMode.Enabled,HorizontalScrollBarVisibility=vertical?ScrollBarVisibility.Disabled:ScrollBarVisibility.Auto,VerticalScrollMode=vertical?ScrollMode.Enabled:ScrollMode.Disabled,VerticalScrollBarVisibility=vertical?ScrollBarVisibility.Auto:ScrollBarVisibility.Disabled,Padding=new Thickness(0),MinWidth=0,MinHeight=0,HorizontalContentAlignment=HorizontalAlignment.Center,VerticalContentAlignment=VerticalAlignment.Top};
         var root=new Grid{Padding=new Thickness(vertical?8:12),ColumnSpacing=6,RowSpacing=6,RequestedTheme=ElementTheme.Light};
         if(vertical){root.RowDefinitions.Add(new(){Height=GridLength.Auto});root.RowDefinitions.Add(new(){Height=new GridLength(1,GridUnitType.Star)});root.RowDefinitions.Add(new(){Height=GridLength.Auto});Grid.SetRow(_chromeToolScroll,1);Grid.SetRow(_chromeEnd,2);}
         else{root.ColumnDefinitions.Add(new(){Width=GridLength.Auto});root.ColumnDefinitions.Add(new(){Width=new GridLength(1,GridUnitType.Star)});root.ColumnDefinitions.Add(new(){Width=GridLength.Auto});Grid.SetColumn(_chromeToolScroll,1);Grid.SetColumn(_chromeEnd,2);}
@@ -56,7 +56,13 @@ internal sealed partial class ScreenAnnotationWindow
     {
         _dpiScale=NativeOverlayWindow.DpiScale(WinRT.Interop.WindowNative.GetWindowHandle(this));
         var available=DisplayArea.GetFromWindowId(AppWindow.Id,DisplayAreaFallback.Primary).WorkArea;
-        var width=(int)((VerticalChrome?VerticalWidth:ChromeWidth)*_dpiScale);var height=(int)((VerticalChrome?(_collapsed?CollapsedVerticalHeight:VerticalHeight):ExpandedHeight)*_dpiScale);
+        // Measure the controls after orientation changes. DPI converts DIP exactly once into window pixels.
+        var unbounded=new global::Windows.Foundation.Size(double.PositiveInfinity,double.PositiveInfinity);
+        _chromeStart.Measure(unbounded);_chromeTools.Measure(unbounded);_chromeEnd.Measure(unbounded);
+        var start=_chromeStart.DesiredSize;var tools=_collapsed?new global::Windows.Foundation.Size():_chromeTools.DesiredSize;var end=_chromeEnd.DesiredSize;
+        var desiredWidth=VerticalChrome?Math.Max(76,Math.Max(start.Width,Math.Max(tools.Width,end.Width))+32):start.Width+tools.Width+end.Width+38;
+        var desiredHeight=VerticalChrome?start.Height+tools.Height+end.Height+30:Math.Max(60,Math.Max(start.Height,Math.Max(tools.Height,end.Height))+26);
+        var width=(int)Math.Ceiling(desiredWidth*_dpiScale);var height=(int)Math.Ceiling(desiredHeight*_dpiScale);
         NativeOverlayWindow.ResizeCompactWindow(WinRT.Interop.WindowNative.GetWindowHandle(this),Math.Max(1,Math.Min(width,available.Width-(int)(24*_dpiScale))),Math.Max(1,Math.Min(height,available.Height-(int)(24*_dpiScale))));
     }
     private void PositionChrome()
@@ -80,7 +86,7 @@ internal sealed partial class ScreenAnnotationWindow
         var savedDock=_chromeDock;var savedCollapsed=_collapsed;var savedPosition=_chromePosition;SetChromeCollapsed(false);
         try
         {
-            DockChrome("left");var left=AppWindow.Size;if(Math.Abs(left.Width-64*_dpiScale)>2||left.Width>=left.Height||_chromeTools.Orientation!=Orientation.Vertical)throw new InvalidOperationException($"左側直排未生效：{left.Width}×{left.Height}，DPI={_dpiScale}。");
+            DockChrome("left");var left=AppWindow.Size;if(left.Width<60*_dpiScale||left.Width>=left.Height||_chromeTools.Orientation!=Orientation.Vertical)throw new InvalidOperationException($"左側直排未生效：{left.Width}×{left.Height}，DPI={_dpiScale}。");
             SetChromeCollapsed(true);var collapsed=AppWindow.Size;if(collapsed.Height>=left.Height)throw new InvalidOperationException("直排收合未生效。");
             SetChromeCollapsed(false);DockChrome("right");if(_chromeTools.Orientation!=Orientation.Vertical)throw new InvalidOperationException("右側直排未生效。");
             DockChrome("bottom");if(_chromeTools.Orientation!=Orientation.Horizontal)throw new InvalidOperationException("下方橫排未生效。");

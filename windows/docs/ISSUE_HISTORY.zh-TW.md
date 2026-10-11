@@ -1,5 +1,11 @@
 # Windows 問題與排解紀錄
 
+## 2026-10-11 — 首頁單擊、固定檢查器與工具列尺寸
+
+症狀與確認原因：首頁 Extended 加「selectedCount > 0」顯示批次列，讓單擊進入批次操作感；Inspector 固定 XAML 同時包含工具與圖層；箭頭 fallback 尺寸依 strokeWidth 放大；螢幕工具列固定尺寸塞不下新增控制項。
+
+排解：一般 Single／顯式 Multiple、依物件區塊顯示與獨立圖層、固定頭部預設且尺寸 slider、內容 Measure／DPI／工作區限制。腳本 XAML 第一段界線匹配到內層 Grid，尚未寫 XAML 即失敗；修精確外層邊界後續作。首次編譯未用舊尺長欄位警告，移除並重新 build。未執行實機 UI／DPI／拖曳測試，驗收缺口與逐項入口保存在[日誌](UX_ALIGNMENT_2026-10-11.zh-TW.md)。
+
 ## 2026-10-11 — Trial封裝sidecar防覆寫條件
 
 新wrapper第一包完成後，靜態檢視發現PowerShell`@($payload,$zip,$zip+'.sha256')`會拆出額外.sha256項，未正確守衛既存sidecar；payload／ZIP guard有效，未覆寫舊產物，也不影響App。改`($zip+'.sha256')`，新r2 Label重新publish／壓縮，兩包／log保留；最終557 entry SHA／93 source／空Data／PE／版本靜態核對通過。沒有因紀錄要求自行跑App測試，初包是歷史候選、最終交付r2。

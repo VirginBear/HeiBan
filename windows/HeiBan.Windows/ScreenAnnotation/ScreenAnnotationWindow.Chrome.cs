@@ -37,6 +37,8 @@ internal sealed partial class ScreenAnnotationWindow
         _chromeActions.Add(ActionButton("undo","復原這個螢幕的註記",async()=>await UndoScreenAsync(false)));
         _chromeActions.Add(ActionButton("redo","重做",async()=>await UndoScreenAsync(true)));
         _chromeActions.Add(ActionButton("screenshot","截圖加入螢幕畫布 · Ctrl+Alt+S",async()=>await CaptureAsync()));
+        _chromeActions.Add(ActionButton("layers","物件圖層：選取、排序與顯示",ShowScreenLayers));
+        _paletteButton=ActionButton("palette","調色盤：色票與自訂色輪",ShowScreenPalette);_chromeActions.Add(_paletteButton);
         _dashButton=ChromeButton("dash-solid","線條樣式");_dashButton.Click+=(_,_)=>ShowScreenLineStyles();
         _brushButton=ChromeButton("pen","顏色、粗細與透明度");_brushButton.Click+=(_,_)=>ShowBrushSettings();
         _fillButton=ChromeButton("paint","填滿");_fillButton.Click+=(_,_)=>ShowScreenFill();RefreshScreenStyleButtons();
@@ -67,7 +69,21 @@ internal sealed partial class ScreenAnnotationWindow
             AutomationProperties.SetName(button,"註記顏色 "+hex);button.Click+=(_,_)=>{SetScreenColor(hex);CommitScreenStyle();foreach(var swatch in swatches)swatch.Button.BorderThickness=new Thickness(swatch.Color==hex?2:0);};Grid.SetColumn(button,i%3);Grid.SetRow(button,i/3);palette.Children.Add(button);swatches.Add((button,hex));
         }
         panel.Children.Add(palette);
+        var type=selected?.Type??_tool;
+        if(type is not("text" or "sticky" or "image"))
+        {
         var widthValue=new TextBlock{Text=$"{currentWidth:0.0} pt",FontSize=12};panel.Children.Add(BrushCaption("粗細",widthValue));var width=ChromeSlider(1,32,currentWidth,"");width.ValueChanged+=(_,_)=>{if(StyleSelection is not null)EditScreenStyle(o=>o.StrokeWidth=width.Value*_dpiScale);else{_width=width.Value;_laser.Width=_width;}widthValue.Text=$"{width.Value:0.0} pt";};panel.Children.Add(width);
+        }
+        if(selected?.Type=="arrow")
+        {
+            var headLength=ChromeSlider(4,128,(selected.ArrowHeadLength??16)/_dpiScale,"箭頭頭部長度（pt）");headLength.ValueChanged+=(_,_)=>EditScreenStyle(o=>{if(o.Type=="arrow")o.ArrowHeadLength=headLength.Value*_dpiScale;});panel.Children.Add(headLength);
+            var headWidth=ChromeSlider(4,96,(selected.ArrowHeadWidth??10)/_dpiScale,"箭頭頭部寬度（pt）");headWidth.ValueChanged+=(_,_)=>EditScreenStyle(o=>{if(o.Type=="arrow")o.ArrowHeadWidth=headWidth.Value*_dpiScale;});panel.Children.Add(headWidth);
+        }
+        if(type is "line" or "arrow")
+        {
+            var options=new[]{"none","start","end","both"};var extension=new ComboBox{Header="直線延伸",ItemsSource=new[]{"線段","向 A 延伸","向 B 延伸","雙向延伸"},SelectedIndex=Math.Max(0,Array.IndexOf(options,selected?.Extension??_screenExtension))};
+            extension.SelectionChanged+=(_,_)=>{var value=options[Math.Max(0,extension.SelectedIndex)];if(StyleSelection is not null)EditScreenStyle(o=>{if(o.Type is "line" or "arrow")o.Extension=value;});else _screenExtension=value;};panel.Children.Add(extension);
+        }
         var alphaValue=new TextBlock{Text=$"{currentAlpha:P0}",FontSize=12};panel.Children.Add(BrushCaption("透明度",alphaValue));var alpha=ChromeSlider(.1,1,currentAlpha,"");alpha.StepFrequency=.05;alpha.ValueChanged+=(_,_)=>{if(StyleSelection is not null)EditScreenStyle(o=>o.Opacity=alpha.Value);else _opacity=alpha.Value;alphaValue.Text=$"{alpha.Value:P0}";};panel.Children.Add(alpha);
         panel.Children.Add(new TextBlock{Text=_status.Text,FontSize=10,TextWrapping=TextWrapping.Wrap});ShowChromeFlyout(new Flyout{Content=panel},_brushButton);
     }
@@ -106,6 +122,7 @@ internal sealed partial class ScreenAnnotationWindow
         if(StyleSelection is not null){Item("select","選取物件：樣式、複製、刪除…",()=>ShowChromeFlyout(CreateObjectMenu(),_moreButton));menu.Items.Add(new MenuFlyoutSeparator());}
         var dockMenu=new MenuFlyoutSubItem{Text="工具列位置"};
         foreach(var pair in new[]{("top","上方"),("bottom","下方"),("left","左側"),("right","右側")}){var side=pair.Item1;var item=new MenuFlyoutItem{Text=pair.Item2};item.Click+=(_,_)=>DockChrome(side);dockMenu.Items.Add(item);}menu.Items.Add(dockMenu);menu.Items.Add(new MenuFlyoutSeparator());
+        Item("layers","物件圖層",ShowScreenLayers);Item("palette","調色盤",ShowScreenPalette);
         Item("screenshot","截圖加入螢幕畫布 · Ctrl+Alt+S",async()=>await CaptureAsync());Item("export","儲存可編輯註記／透明 PNG…",async()=>await ExportAnnotationsAsync());Item("delete","一鍵清空畫布（可復原）",ClearScreenObjects);Item("reading","使用手冊",async()=>await global::Windows.System.Launcher.LaunchUriAsync(new Uri(Path.Combine(AppContext.BaseDirectory,"Assets","HeiBanUserGuide.html"))));
         Item("copy","貼上已複製物件",async()=>await PasteScreenSelectionAsync());Item("paint","油漆筆",()=>ChooseScreenTool("paint"));Item("select",_collapsed?"展開工具區":"收合工具區",()=>SetChromeCollapsed(!_collapsed));menu.Items.Add(new MenuFlyoutSeparator());menu.Items.Add(new MenuFlyoutItem{Text=_status.Text,IsEnabled=false});ShowChromeFlyout(menu,anchor);
     }

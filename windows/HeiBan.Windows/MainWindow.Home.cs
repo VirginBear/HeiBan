@@ -32,7 +32,7 @@ public partial class MainWindow
         _libraryUi.Favorites??=[];if(_libraryUi.CardWidth is not (160 or 190 or 250))_libraryUi.CardWidth=190;
         LibrarySortBox.SelectedIndex=Array.IndexOf(new[]{"updated","created","title"},_libraryUi.Sort);if(LibrarySortBox.SelectedIndex<0)LibrarySortBox.SelectedIndex=0;
         SidebarToggleButton.Content=ToolIcons.Create("dock");AllLibraryIcon.Content=ToolIcons.Create("shapes");FavoriteLibraryIcon.Content=ToolIcons.Create("star");TrashLibraryIcon.Content=ToolIcons.Create("delete");
-        HomeScreenIcon.Content=ToolIcons.Create("screen");HomeGuideIcon.Content=ToolIcons.Create("reading");HomeAboutIcon.Content=ToolIcons.Create("info");LibraryMultiButton.Content=ToolIcons.Create("select");LibrarySizeButton.Content=ToolIcons.Create("shapes");
+        HomeScreenIcon.Content=ToolIcons.Create("screen");HomeGuideIcon.Content=ToolIcons.Create("reading");HomeAboutIcon.Content=ToolIcons.Create("info");LibraryMultiButton.Content=SelectionCircle(false,true,24);LibrarySizeButton.Content=ToolIcons.Create("shapes");
         var green=Brush("#39735A");
         foreach(var key in new[]{"AccentButtonBackground","AccentButtonBackgroundPointerOver","AccentButtonBackgroundPressed","AccentFillColorDefaultBrush","AccentFillColorSecondaryBrush","AccentFillColorTertiaryBrush"})HomeNewButton.Resources[key]=green;
         foreach(var key in new[]{"SliderThumbBackground","SliderThumbBackgroundPointerOver","SliderThumbBackgroundPressed","SliderTrackValueFill","SliderTrackValueFillPointerOver","SliderTrackValueFillPressed","AccentFillColorDefaultBrush","SystemControlHighlightAccentBrush","ControlFocusVisualPrimaryBrush"})Root.Resources[key]=green;
@@ -76,8 +76,8 @@ public partial class MainWindow
         var format=LibraryFormatBox.SelectedIndex switch{1=>"notebook",2=>"infinite",3=>"fixed",_=>null};
         source=source.Where(c=>(format is null||c.Board.CanvasMode==format)&&c.Title.Contains(SearchBox.Text??"",StringComparison.OrdinalIgnoreCase));
         source=LibrarySortBox.SelectedIndex switch{1=>source.OrderByDescending(c=>c.Board.CreatedAt),2=>source.OrderBy(c=>c.Title,StringComparer.CurrentCultureIgnoreCase),_=>source.OrderByDescending(c=>c.Board.UpdatedAt)};
-        var cards=source.Select(c=>c with{CardWidth=_libraryUi.CardWidth,IsFavorite=_libraryUi.Favorites.Contains(c.Board.Id)}).ToList();LibraryList.ItemsSource=cards;
-        foreach(var card in cards.Where(c=>selected.Contains(c.Board.Id)))LibraryList.SelectedItems.Add(card);
+        var cards=source.Select(c=>c with{CardWidth=_libraryUi.CardWidth,IsFavorite=_libraryUi.Favorites.Contains(c.Board.Id),MultiMode=_libraryMulti}).ToList();LibraryList.ItemsSource=cards;
+        foreach(var card in cards.Where(c=>selected.Contains(c.Board.Id))) { if(_libraryMulti)LibraryList.SelectedItems.Add(card);else LibraryList.SelectedItem=card; }
         LibraryHeading.Text=_librarySection switch{"favorites"=>"收藏","trash"=>"垃圾桶",_=>"我的作品"};LibraryCount.Text=cards.Count.ToString();
         LibraryEmpty.Visibility=cards.Count==0?Visibility.Visible:Visibility.Collapsed;LibraryEmptyTitle.Text=_librarySection=="trash"?"垃圾桶是空的":_librarySection=="favorites"?"收藏常用的作品":_library.Count==0?"第一份作品，從這裡開始":"沒有符合的作品";
         LibraryTrashHint.Visibility=_librarySection=="trash"?Visibility.Visible:Visibility.Collapsed;LibraryMultiButton.IsEnabled=_librarySection!="trash";
@@ -96,11 +96,11 @@ public partial class MainWindow
     private async Task ToggleLibraryFavoriteAsync(string id)
     {if(!_libraryUi.Favorites.Add(id))_libraryUi.Favorites.Remove(id);FilterLibrary();await SaveLibraryUiAsync();}
     private void SetLibraryMulti(bool enabled)
-    {_libraryMulti=enabled;if(LibraryList.SelectionMode is ListViewSelectionMode.Multiple or ListViewSelectionMode.Extended)LibraryList.SelectedItems.Clear();LibraryList.SelectionMode=enabled?ListViewSelectionMode.Multiple:ListViewSelectionMode.Extended;LibrarySelectionBar.Visibility=enabled?Visibility.Visible:Visibility.Collapsed;LibraryMultiButton.Background=Brush(enabled?"#DCEBDD":"transparent");}
+    {_libraryMulti=enabled;LibraryList.SelectedItem=null;if(LibraryList.SelectionMode!=ListViewSelectionMode.Single)LibraryList.SelectedItems.Clear();LibraryList.SelectionMode=enabled?ListViewSelectionMode.Multiple:ListViewSelectionMode.Single;LibrarySelectionBar.Visibility=enabled?Visibility.Visible:Visibility.Collapsed;LibraryMultiButton.Content=SelectionCircle(enabled,true,24);LibraryMultiButton.Background=Brush(enabled?"#DCEBDD":"transparent");FilterLibrary();}
     private void LibraryMulti_Click(object sender,RoutedEventArgs e)=>SetLibraryMulti(!_libraryMulti);
     private void LibrarySelection_Changed(object sender,SelectionChangedEventArgs e)
-    {if(LibrarySelectedCount is null)return;LibrarySelectedCount.Text=$"已選 {LibraryList.SelectedItems.Count} 份";LibraryTrashSelectedButton.IsEnabled=LibraryList.SelectedItems.Count>0;LibrarySelectionBar.Visibility=_libraryMulti||LibraryList.SelectedItems.Count>0?Visibility.Visible:Visibility.Collapsed;}
-    private void LibrarySelectAll_Click(object sender,RoutedEventArgs e){foreach(var item in LibraryList.Items)if(!LibraryList.SelectedItems.Contains(item))LibraryList.SelectedItems.Add(item);}
+    {if(LibrarySelectedCount is null)return;LibrarySelectedCount.Text=$"已選 {LibraryList.SelectedItems.Count} 份";LibraryTrashSelectedButton.IsEnabled=LibraryList.SelectedItems.Count>0;LibrarySelectionBar.Visibility=_libraryMulti?Visibility.Visible:Visibility.Collapsed;foreach(var card in LibraryList.Items.OfType<LibraryCard>())card.Selected=LibraryList.SelectedItems.Contains(card);}
+    private void LibrarySelectAll_Click(object sender,RoutedEventArgs e){if(!_libraryMulti)return;foreach(var item in LibraryList.Items)if(!LibraryList.SelectedItems.Contains(item))LibraryList.SelectedItems.Add(item);}
     private async void LibraryTrashSelected_Click(object sender,RoutedEventArgs e)
     {try{var ids=LibraryList.SelectedItems.OfType<LibraryCard>().Select(c=>c.Board.Id).ToArray();if(await TrashLibraryBoardsAsync(ids)){SetLibraryMulti(false);await RefreshLibrary();}}catch(Exception ex){await Error(ex);}}
     private async Task<bool> TrashLibraryBoardsAsync(IReadOnlyList<string> ids)
@@ -126,9 +126,9 @@ public partial class MainWindow
         SetLibraryMulti(true);LibrarySelectAll_Click(this,new RoutedEventArgs());
         if(LibraryList.SelectedItems.Count!=LibraryList.Items.Count)throw new InvalidOperationException("作品庫全選未生效。");
         SetLibraryMulti(false);_librarySection="all";FilterLibrary();
-        if(LibraryList.IsItemClickEnabled||LibraryList.SelectionMode!=ListViewSelectionMode.Extended)throw new InvalidOperationException("作品庫不是單擊選取／雙擊開啟。");
+        if(LibraryList.IsItemClickEnabled||LibraryList.SelectionMode!=ListViewSelectionMode.Single)throw new InvalidOperationException("作品庫不是單擊選取／雙擊開啟。");
         var second=DocumentCodec.Clone(fixture);second.Board.Id=Guid.NewGuid().ToString();foreach(var o in second.Objects)o.BoardId=second.Board.Id;await _storage.SaveAsync(second);await RefreshLibrary();
-        var selectedCards=LibraryList.Items.OfType<LibraryCard>().Where(c=>c.Board.Id==id||c.Board.Id==second.Board.Id).ToArray();foreach(var card in selectedCards)LibraryList.SelectedItems.Add(card);
+        SetLibraryMulti(true);var selectedCards=LibraryList.Items.OfType<LibraryCard>().Where(c=>c.Board.Id==id||c.Board.Id==second.Board.Id).ToArray();foreach(var card in selectedCards)LibraryList.SelectedItems.Add(card);
         if(LibraryList.SelectedItems.Count!=2||LibrarySelectionBar.Visibility!=Visibility.Visible||!LibraryTrashSelectedButton.IsEnabled)throw new InvalidOperationException("兩作品選取／批次刪除入口失敗。");
         await MoveLibraryBoardsToTrashAsync(selectedCards.Select(c=>c.Board.Id).ToArray());await RefreshLibrary();var trashed=_trashCards.Where(c=>c.Board.Id==id||c.Board.Id==second.Board.Id).ToArray();
         if(trashed.Length!=2||_library.Any(c=>c.Board.Id==id||c.Board.Id==second.Board.Id))throw new InvalidOperationException("多畫布刪除失敗。");

@@ -13,8 +13,14 @@ using global::Windows.System;
 
 namespace HeiBan.Windows;
 
-public sealed record LibraryCard(BoardMetadata Board, string? Thumbnail)
+public sealed record LibraryCard(BoardMetadata Board, string? Thumbnail) : System.ComponentModel.INotifyPropertyChanged
 {
+    public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+    public bool MultiMode {get;init;}
+    public Visibility SelectionVisibility=>MultiMode?Visibility.Visible:Visibility.Collapsed;
+    private bool _selected;
+    public bool Selected {get=>_selected;set{_selected=value;PropertyChanged?.Invoke(this,new(nameof(SelectionMark)));}}
+    public UIElement SelectionMark=>MainWindow.SelectionCircle(Selected);
     public string Title => Board.Title;
     public string Format => Board.CanvasMode switch {"notebook"=>"筆記本","fixed"=>"有邊界黑板",_=>"無邊界筆記"};
     public UIElement FormatIcon => Views.ToolIcons.Create(Board.CanvasMode switch{"notebook"=>"notebook","fixed"=>"rect",_=>"infinite"});
@@ -49,6 +55,7 @@ public partial class MainWindow : Window
     private string _tool="select", _strokeColor="#24533d", _fillColor="#b8d4b2";
     private double _strokeWidth=4,_opacity=1;
     private bool _workspaceOpen,_closing,_preparingClose,_changingLayers,_readingMode;
+    private bool _saveFailed,_saving;
     private Views.TextDraftEditor? _editor;
     private BoardObject? _editingObject;
     private Vector2 _mouse;
@@ -131,7 +138,7 @@ public partial class MainWindow : Window
     {
         CancelScreenshotCapture("切換作品");
         CommitPropertyEdit();FinishText(); _renderer.ClearCache();_session.Open(doc);_workspaceOpen=true;
-        HomePanel.Visibility=Visibility.Collapsed;Workspace.Visibility=Visibility.Visible;
+        _saveFailed=false;HomePanel.Visibility=Visibility.Collapsed;Workspace.Visibility=Visibility.Visible;
         ShowWorkspaceHeader(_headerPinned);
         TitleBox.Text=doc.Board.Title;_viewport.Zoom=1;_viewport.X=doc.Board.CanvasMode=="infinite"?0:80;_viewport.Y=80;
         if(doc.Board.CanvasMode=="notebook" && (doc.Board.Pages?.Count??0)==0)
@@ -160,19 +167,19 @@ public partial class MainWindow : Window
         try
         {
             var generation=_session.Generation;var epoch=_session.DocumentEpoch;
-            var snapshot=DocumentCodec.Clone(_session.Document);StatusText.Text="儲存中…";
+            var snapshot=DocumentCodec.Clone(_session.Document);_saving=true;StatusText.Text="儲存中…";
             await Task.Run(()=>_storage.SaveAsync(snapshot));
             if(epoch==_session.DocumentEpoch)
             {
-                _session.MarkSaved(generation,snapshot.Board.Revision);
+                _session.MarkSaved(generation,snapshot.Board.Revision);_saveFailed=false;_saving=false;
                 StatusText.Text=_session.IsDirty?"尚有變更":"已儲存";
                 if(deferThumbnail||_gesture||_editor is not null||_propertyEditing||generation!=_session.Generation)QueueThumbnail(snapshot,epoch);
                 else {_pendingThumbnail=null;_thumbnailTimer.Stop();await SaveThumbnail(snapshot);}
             }
             return true;
         }
-        catch(Exception e){await Error(e);return false;}
-        finally{_saveGate.Release();}
+        catch(Exception e){_saveFailed=true;await Error(e);return false;}
+        finally{_saving=false;_saveGate.Release();UpdateSaveStatusLight(StatusText.Text);}
     }
     private async Task SaveThumbnail(HeiBanDocument snapshot)
     {
@@ -251,7 +258,7 @@ public partial class MainWindow : Window
     private void Tool_Click(object sender,RoutedEventArgs e)=>ActivateTool((string)((FrameworkElement)sender).Tag);
     private void Properties_Click(object sender,RoutedEventArgs e)
     {Inspector.Visibility=Inspector.Visibility==Visibility.Visible?Visibility.Collapsed:Visibility.Visible;if(Inspector.Visibility==Visibility.Visible){_changingLayers=true;try{RefreshLayersIfNeeded();}finally{_changingLayers=false;}}RefreshProperties();RefreshChrome();}
-    private void Layers_Click(object sender,RoutedEventArgs e){Inspector.Visibility=Visibility.Visible;RefreshEditor();}
+    private void Layers_Click(object sender,RoutedEventArgs e){LayersPanel.Visibility=LayersPanel.Visibility==Visibility.Visible?Visibility.Collapsed:Visibility.Visible;RefreshEditor();}
     private async Task<string?> ChooseColor(string title,string current)
     {
         var picker=ColorWheel(current);
@@ -312,6 +319,7 @@ public partial class MainWindow : Window
         var floating=_toolbarTranslation.X!=0||_toolbarTranslation.Y!=0;
         var offset=new Point(_toolbarTranslation.X,_toolbarTranslation.Y);
         SetDock(_dock);
+        SetInspectorDock(_inspectorDock);LayerList.MaxHeight=Math.Max(100,Root.ActualHeight-240);
         if(floating){_toolbarTranslation.X=offset.X;_toolbarTranslation.Y=offset.Y;DispatcherQueue.TryEnqueue(ClampToolbar);}
     }
     private void SetDock(string side)

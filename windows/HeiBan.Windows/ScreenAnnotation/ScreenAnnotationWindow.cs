@@ -40,6 +40,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     private ObjectHandles.Handle? _handle;
     private readonly List<InkPoint> _points=[];
     private InkPoint? _start,_last;
+    private string _screenExtension="none";
     private string _tool="pen",_color="#EF4444",_dash="solid",_fill="none";
     private readonly List<InkPoint> _curveAnchors=[];
     private double _width=4,_opacity=1,_eraserSize=24;
@@ -69,7 +70,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         var failed=0;
         foreach(var key in new[]{(1,0x41u),(2,0x44u),(3,0x53u),(4,0x51u),(5,0x4Bu)})if(!_overlay.RegisterShortcut(key.Item1,0x0002|0x0001,key.Item2))failed++;
         if(failed>0)_status.Text="部分快捷鍵被其他程式占用，請使用控制列按鈕。";
-        _renderTimer.Tick+=(_,_)=>{if(!IsActive)return;RememberExternalFocus();try{if(_dirty||_laser.Samples.Count>0)Render();}catch(Exception e){_renderTimer.Stop();_overlay.Hide();_status.Text="螢幕繪圖已停止："+e.Message;}};
+        _renderTimer.Tick+=(_,_)=>{if(!IsActive)return;RememberExternalFocus();try{UpdateScreenEraser();if(_dirty||_laser.Samples.Count>0)Render();}catch(Exception e){_renderTimer.Stop();_overlay.Hide();_status.Text="螢幕繪圖已停止："+e.Message;}};
         _saveTimer.Tick+=async(_,_)=>{_saveTimer.Stop();if(_start is not null||_textDraft is not null||_session.HasTransaction){_saveTimer.Start();return;}await SaveAsync();};
         AppWindow.Hide();
     }
@@ -100,7 +101,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     }
     private void SetDrawing(bool value)
     {
-        FinishScreenText();CancelGesture();_drawing=value;_overlay.SetDrawing(value);RefreshMode();
+        FinishScreenText();CancelGesture();_drawing=value;_overlay.SetDrawing(value);UpdateScreenEraser();RefreshMode();
         _status.Text=value?"作畫中 · 右鍵物件可編輯":"操作中 · Ctrl+Alt+D 繼續作畫";
         _laser.Clear();_dirty=_fullDamage=_committedDirty=true;if(!value)NativeOverlayWindow.RestoreFocus(_lastExternal);
     }
@@ -112,6 +113,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     {
         if(!IsActive||_captureCancellation is not null)return;
         var p=new InkPoint(input.X,input.Y,1);
+        if(input.Kind=="move"&&_start is null&&_tool=="eraser"){UpdateScreenEraser();return;}
         if(input.Kind=="right"){FinishScreenText();ScreenRightClick(p);return;}
         if(input.Kind=="double"){FinishScreenText();if(_tool=="select"&&_session.Hit(p,6) is {IsLocked:not true,Type:"text" or "sticky"} text)BeginScreenText(p,text);return;}
         if(input.Kind=="down"){FinishScreenText();if(_tool=="text"){BeginScreenText(p);return;}}
@@ -193,7 +195,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         _dirty=true;
     }
     private BoardObject Styled(BoardObject item)
-    {item.StrokeColor=_color;item.StrokeWidth=_width*_dpiScale;item.Opacity=_tool=="highlighter"?_opacity*.4:_opacity;item.LineStyle=_dash;if(item.Type is "rect" or "circle")item.FillColor=_fill;return item;}
+    {item.StrokeColor=_color;if(item.Type is "line" or "arrow")item.Extension=_screenExtension;item.StrokeWidth=_width*_dpiScale;item.Opacity=_tool=="highlighter"?_opacity*.4:_opacity;item.LineStyle=_dash;if(item.Type is "rect" or "circle")item.FillColor=_fill;return item;}
     private static double Now=>Stopwatch.GetTimestamp()/(double)Stopwatch.Frequency;
     private void DamageStrokeTail(bool entire=false)
     {
@@ -221,7 +223,15 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             var right=Math.Min(_overlay.Width,Math.Ceiling(points.Max(p=>p.X)+pad));var bottom=Math.Min(_overlay.Height,Math.Ceiling(points.Max(p=>p.Y)+pad));
             if(right>left&&bottom>top)laserDamage=new(left,top,right-left,bottom-top);
         }
-        foreach(var bounds in new[]{_lastLaserDamage,laserDamage})if(bounds is { } rect)
+        global::Windows.Foundation.Rect? eraserDamage=null;
+        if(_screenEraserPointer is { } cursor)
+        {
+            var radius=_eraserSize*_dpiScale/2+4;
+            var left=Math.Max(0,Math.Floor(cursor.X-radius));var top=Math.Max(0,Math.Floor(cursor.Y-radius));
+            var right=Math.Min(_overlay.Width,Math.Ceiling(cursor.X+radius));var bottom=Math.Min(_overlay.Height,Math.Ceiling(cursor.Y+radius));
+            if(right>left&&bottom>top)eraserDamage=new(left,top,right-left,bottom-top);
+        }
+        foreach(var bounds in new[]{_lastLaserDamage,laserDamage,_lastEraserDamage,eraserDamage})if(bounds is { } rect)
         {
             if(_damage is { } old){var left=Math.Min(old.Left,rect.Left);var top=Math.Min(old.Top,rect.Top);_damage=new(left,top,Math.Max(old.Right,rect.Right)-left,Math.Max(old.Bottom,rect.Bottom)-top);}
             else _damage=rect;
@@ -246,12 +256,13 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             if(_points.Count>0&&_tool is "pen" or "highlighter" or "paint")_renderer.RenderLiveStroke(ds,_points,_viewport,_color,_width*_dpiScale,_tool=="highlighter"?_opacity*.4:_opacity,_dash);
             if(_tool=="select")foreach(var selected in _session.SelectedObjects)_renderer.RenderSelection(ds,selected,_viewport,_session.SelectedIds.Count==1);
             _renderer.RenderLaser(ds,_laser,_viewport,Now,_dpiScale);
+            if(_screenEraserPointer is { } eraser)_renderer.RenderHover(ds,eraser,true,_eraserSize*_dpiScale,_viewport);
         }
         var x=(int)region.X;var y=(int)region.Y;var width=(int)region.Width;var height=(int)region.Height;
         var pixels=_target.GetPixelBytes(x,y,width,height);_overlay.Present(pixels,x,y,width,height);_presentedBytes+=pixels.Length;_renderedFrames++;
-        _dirty=false;_fullDamage=false;_damage=null;_lastLaserDamage=laserDamage;
+        _dirty=false;_fullDamage=false;_damage=null;_lastLaserDamage=laserDamage;_lastEraserDamage=eraserDamage;
     }
-    private void Changed(){_dirty=_fullDamage=_committedDirty=true;if(_session.IsDirty){_saveTimer.Stop();_saveTimer.Start();}}
+    private void Changed(){_dirty=_fullDamage=_committedDirty=true;RefreshScreenLayers();if(_session.IsDirty){_saveTimer.Stop();_saveTimer.Start();}}
     private void CancelGesture()
     {
         CommitScreenStyle();var committedChanged=_session.HasTransaction;var previewVisible=_preview is not null||_points.Count>0;

@@ -189,8 +189,9 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
                 ds.DrawLine(ea,eb,stroke,(float)o.StrokeWidth,style);
                 if(o.Type=="arrow" && Vector2.Distance(a,b)>.01f)
                 {
-                    var d=Vector2.Normalize(b-a);var n=new Vector2(-d.Y,d.X);var len=(float)(o.ArrowHeadLength??Math.Max(12,o.StrokeWidth*4));var w=(float)(o.ArrowHeadWidth??len*.5);
-                    ds.DrawLine(b,b-d*len+n*w/2,stroke,(float)o.StrokeWidth,style);ds.DrawLine(b,b-d*len-n*w/2,stroke,(float)o.StrokeWidth,style);
+                    var d=Vector2.Normalize(b-a);var n=new Vector2(-d.Y,d.X);var len=(float)(o.ArrowHeadLength??16);var w=(float)(o.ArrowHeadWidth??10);
+                    // Head geometry and its continuous outline are independent of the shaft width/dashes.
+                    ds.DrawLine(b,b-d*len+n*w/2,stroke,2);ds.DrawLine(b,b-d*len-n*w/2,stroke,2);
                 }break;
             case "triangle":case "quadrilateral":case "diamond":case "pentagon":case "star":
                 using(var path=Path(ds,Polygon(o),true,false))if(path is not null){ds.FillGeometry(path,fill);ds.DrawGeometry(path,stroke,(float)o.StrokeWidth,style);}break;
@@ -202,13 +203,7 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
                 break;
             case "text":RenderText(ds,o,rect,stroke);break;
             case "sticky":
-                if(o.StickyStyle=="soft")ds.FillRoundedRectangle(new Rect(o.X+4,o.Y+6,o.Width,o.Height),14,14,HexToColor("#000000",.12f*(float)o.Opacity));
-                ds.FillRoundedRectangle(rect,o.StickyStyle=="soft"?14:6,o.StickyStyle=="soft"?14:6,HexToColor(o.FillColor=="none"?"#fff0ab":o.FillColor,(float)o.Opacity));
-                ds.DrawRoundedRectangle(rect,6,6,HexToColor("#314d3f",.2f),1);
-                if(o.StickyStyle is "notebook" or "grid")
-                {for(var y=o.Y+28;y<o.Y+o.Height;y+=20)ds.DrawLine((float)o.X+8,(float)y,(float)(o.X+o.Width-8),(float)y,HexToColor("#516A72",.16f),1);if(o.StickyStyle=="grid")for(var x=o.X+28;x<o.X+o.Width;x+=20)ds.DrawLine((float)x,(float)o.Y+8,(float)x,(float)(o.Y+o.Height-8),HexToColor("#516A72",.16f),1);}
-                if(o.StickyStyle=="washi")ds.FillRectangle(new Rect(o.X+o.Width*.2,o.Y-6,o.Width*.6,18),HexToColor("#A8BDB0",.6f));
-                if(o.StickyStyle=="cat"){ds.FillEllipse((float)(o.X+12),(float)(o.Y+6),10,14,HexToColor(o.FillColor));ds.FillEllipse((float)(o.X+o.Width-12),(float)(o.Y+6),10,14,HexToColor(o.FillColor));}
+                RenderStickyPaper(ds,o,rect);
                 RenderText(ds,o,new Rect(o.X+12,o.Y+12,Math.Max(1,o.Width-24),Math.Max(1,o.Height-24)),stroke);break;
             case "image":
                 if(o.ImageUrl is not null && _images.TryGetValue(o.ImageUrl,out var bitmap))ds.DrawImage(bitmap,rect,new Rect(Math.Clamp(o.CropX??0,0,bitmap.SizeInPixels.Width-1),Math.Clamp(o.CropY??0,0,bitmap.SizeInPixels.Height-1),Math.Clamp(o.CropWidth??bitmap.SizeInPixels.Width,1,bitmap.SizeInPixels.Width-Math.Clamp(o.CropX??0,0,bitmap.SizeInPixels.Width-1)),Math.Clamp(o.CropHeight??bitmap.SizeInPixels.Height,1,bitmap.SizeInPixels.Height-Math.Clamp(o.CropY??0,0,bitmap.SizeInPixels.Height-1))),(float)o.Opacity);
@@ -365,10 +360,10 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
             ds.DrawText(pillText,(float)pillRect.X+6,(float)pillRect.Y+3,pillFg,pillFormat);
         }
     }
-    public static void DrawPin(CanvasDrawingSession ds,Vector2 center,float scale)
+    public static void DrawPin(CanvasDrawingSession ds,Vector2 center,float scale,string? color=null)
     {
         var old=ds.Transform;ds.Transform=Matrix3x2.CreateRotation(MathF.PI*35/180)*Matrix3x2.CreateScale(scale)*Matrix3x2.CreateTranslation(center)*old;
-        var blue=HexToColor("#39b9dc");var green=HexToColor("#234b43");
+        var blue=HexToColor(color??"#39b9dc");var green=HexToColor("#234b43");
         ds.DrawLine(0,8,0,19,HexToColor("#dce8e3"),3);ds.FillEllipse(0,7,10,3,blue);ds.DrawEllipse(0,7,10,3,green,1.2f);
         ds.FillRectangle(-5,-6,10,13,blue);ds.DrawRectangle(-5,-6,10,13,green,1.2f);ds.FillEllipse(0,-6,7,3,blue);ds.DrawEllipse(0,-6,7,3,green,1.2f);ds.Transform=old;
     }

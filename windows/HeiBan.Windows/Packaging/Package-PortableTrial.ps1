@@ -19,7 +19,7 @@ $recordRoot=Join-Path $windowsRoot ('.build\portable-trial-'+[guid]::NewGuid().T
 New-Item -ItemType Directory -Path $recordRoot | Out-Null
 $source=(& git -C $windowsRoot rev-parse HEAD).Trim()
 if($LASTEXITCODE -ne 0){throw '無法記錄來源commit。'}
-$sourcePaths=@(& git -C $windowsRoot ls-files --cached --others --exclude-standard -- '*.cs' '*.csproj' '*.ps1')
+$sourcePaths=@(& git -C $windowsRoot ls-files --cached --others --exclude-standard -- '*.cs' '*.csproj' '*.ps1' '*.xaml' '*.html' '*.manifest' 'README.md')
 if($LASTEXITCODE -ne 0){throw '無法記錄來源檔案。'}
 $sourceFiles=@($sourcePaths | Sort-Object -Unique | ForEach-Object {
     @{path=$_;sha256=(Get-FileHash -LiteralPath (Join-Path $windowsRoot $_) -Algorithm SHA256).Hash.ToLowerInvariant()}
@@ -40,7 +40,7 @@ try {
 試用標記：$Label / $Runtime。程式版本：$version。
 完整解壓到可寫入的資料夾，雙擊 HeiBan.exe 即可使用，不需安裝。
 作品保存在本資料夾的 Data；目前是空白試用資料庫，請保留整個資料夾。
-這份包包含Windows效能第二批原始碼；原有README的dist列表為之前交付包。
+這份包包含封裝當時的Windows開發原始碼；批次標籤為 $Label，操作變更請參閱Windows開發紀錄。原有README的dist列表可能包含之前交付包。
 本機試用包尚未發布至GitHub Release或Microsoft Store。
 來源commit：$source，加封裝時的Windows工作樹；實際byte來源記在TRIAL-SOURCE.json。
 關閉程式後才搬動資料夾；不要覆蓋舊版的Data或直接從ZIP內啟動。

@@ -1,5 +1,13 @@
 # Windows 開發日誌
 
+## 2026-10-11 — Windows 首頁、屬性與螢幕畫布 20 項
+
+使用者逐項提出操作問題；開工 da573915，保留既有 .vscode/，先讀索引及平台文件並建立[日誌](UX_ALIGNMENT_2026-10-11.zh-TW.md)。只讀 Mac HomeView、Inspector、LayerPanel、BoardEngine+Drawing、BoardPin 模型作對照。
+
+拆開一般選取與批次模式；固定 Inspector 改成依型別顯示區塊、圖層獨立；拖曳僅放開後交易；筆的停筆判斷與預覽保留在 collector，放開後提交 line。尺長百分比、箭頭頭部與線寬分離、圖釘兩色、便條紙材質、鎖定圖示、真實保存狀態、四邊屬性停靠及螢幕畫布入口／尺寸／擦除圓圈均接上。
+
+編輯腳本第一次 XAML 區段定位過早失敗；改用 WorkspaceHeader 完整邊界，保留當時已改內容並從剩餘段繼續。第一次 x64 build 0 error／2 同一未用尺長警告，移除已由百分比取代的私有欄位；第二次 x64 build 0 warning／0 error。未跑測試／App，不套用舊 2324／127 數字。可選圖釘 color/textColor 增補與 Mac 讀寫邊界見[契約](DOCUMENT_ADDITIONS_2026-10-11.zh-TW.md)。
+
 ## 2026-10-11 — 第二批本機免安裝試用包
 
 使用者詢問未發布版的免安裝試用，開工3fa30f9只原.vscode/未追蹤，先讀平台並建[日誌](PORTABLE_TRIAL_2026-10-11.zh-TW.md)。原Portable入口會覆寫同p6包，因此另加Label trial入口／存在拒絕覆寫，Common可選隔離ArtifactsPath；版本不改。重新publish App／helper、授權／README／空Data／inventory／ZIP／sidecar，557 entry SHA、93來源SHA、PE／版本／Data靜態核對完成；無新增Core／native／smoke或App啟動，不沿用前批成功數字當本批測試。

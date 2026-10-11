@@ -296,21 +296,11 @@ public partial class MainWindow
     private void UpdateSaveStatusLight(string status)
     {
         if (SaveStatusDot == null) return;
-        if (status.Contains("失敗") || status.Contains("無法"))
-        {
-            SaveStatusDot.Fill = new SolidColorBrush(Microsoft.UI.Colors.Red);
-            ToolTipService.SetToolTip(SaveStatusDot, $"儲存失敗：{status}");
-        }
-        else if (status.Contains("儲存中"))
-        {
-            SaveStatusDot.Fill = new SolidColorBrush(Microsoft.UI.Colors.Orange);
-            ToolTipService.SetToolTip(SaveStatusDot, "儲存中…");
-        }
-        else
-        {
-            SaveStatusDot.Fill = new SolidColorBrush(Direct2DCanvasRenderer.HexToColor("#39735A"));
-            ToolTipService.SetToolTip(SaveStatusDot, "本機已存：所有變更已安全寫入");
-        }
+        var failed=_saveFailed;
+        var pending=_session.IsDirty||_propertyEditing||_editor is not null||_pinNameEditor is not null||_ink.IsDrawing||_preview is not null||_session.HasTransaction||_saving;
+        SaveStatusDot.Content=pending||failed?SelectionCircle(false,true):new TextBlock{Text="✓",FontSize=18,Foreground=Brush("#39735A"),HorizontalAlignment=HorizontalAlignment.Center,VerticalAlignment=VerticalAlignment.Center};
+        SaveStatusDot.Foreground=Brush(failed?"#CF4860":pending?"#A87929":"#39735A");
+        ToolTipService.SetToolTip(SaveStatusDot,failed?$"儲存未完成：{status}":pending?"尚未儲存完成":"本機已存");
     }
 
     private SolidColorBrush Brush(string hex) => new(Direct2DCanvasRenderer.HexToColor(hex));
@@ -362,7 +352,7 @@ public partial class MainWindow
 
         void Tool(string icon, string tip, string key)
         {
-            var b = IconButton(icon, tip, () => ActivateTool(key), key);
+            var b = IconButton(icon, tip, () => {if(key=="laser"&&_tool=="laser")ShowLaserSettings(GetToolAnchor(key));else ActivateTool(key);}, key);
             _toolButtons[key] = b;
             Tools.Children.Add(b);
         }
@@ -388,8 +378,9 @@ public partial class MainWindow
             switch (key)
             {
                 case "laser" or "tape" or "lasso":
-                    Tool(key,ToolbarPreferences.ToolNames[key],key);break;
-                case "extension" or "clearAll" or "viewLock":
+                    Tool(key,key=="laser"?"雷射：再次點擊開啟設定":ToolbarPreferences.ToolNames[key],key);break;
+                case "extension": break; // 延伸屬性改由線段設定提供；保留舊偏好欄位。
+                case "clearAll" or "viewLock":
                     var extraKey=key;var extra=IconButton(key=="clearAll"?"delete":key=="viewLock"?"lock":"line",ToolbarPreferences.ToolNames[key],()=>InvokeToolByKey(extraKey),key);
                     _toolButtons[key]=extra;Tools.Children.Add(extra);break;
                 case "select": Tool("select", "選取（V）", "select"); break;
@@ -560,7 +551,7 @@ public partial class MainWindow
         // 隱藏工具清單
         if (_toolbarPrefs.HiddenTools.Count > 0)
         {
-            foreach (var key in _toolbarPrefs.HiddenTools)
+            foreach (var key in _toolbarPrefs.HiddenTools.Where(key=>key!="extension"))
             {
                 var toolKey = key;
                 var item = new MenuFlyoutItem
@@ -589,10 +580,11 @@ public partial class MainWindow
     {
         switch (key)
         {
-            case "laser" or "tape" or "lasso" or "select" or "pen" or "curve" or "highlighter" or "paint" or "sticky" or "text" or "star":
+            case "laser": if(_tool=="laser")ShowLaserSettings(GetToolAnchor(key));else ActivateTool(key);break;
+            case "tape" or "lasso" or "select" or "pen" or "curve" or "highlighter" or "paint" or "sticky" or "text" or "star":
                 ActivateTool(key);
                 break;
-            case "extension": ShowExtensionSettings(GetToolAnchor(key));break;
+            case "extension": Inspector.Visibility=Visibility.Visible;RefreshProperties();RefreshChrome();break;
             case "viewLock": NavigationLock_Click(this,new RoutedEventArgs());break;
             case "clearAll": ClearPage();break;
             case "calculator":
@@ -646,7 +638,7 @@ public partial class MainWindow
         var allKeys = _toolbarPrefs.VisibleTools
             .Concat(_toolbarPrefs.HiddenTools)
             .Concat(ToolbarPreferences.AllDefaultTools)
-            .Distinct()
+            .Distinct().Where(key=>key!="extension")
             .ToList();
 
         var visibleSet = new HashSet<string>(_toolbarPrefs.VisibleTools);
@@ -790,6 +782,7 @@ public partial class MainWindow
             b.Background = Brush(active ? "#DCEBDD" : "#FCFCFA");
         }
         CanvasFormatText.Text = _session.Document.Board.CanvasMode switch { "notebook" => "筆記本", "fixed" => "有邊界黑板", _ => "無邊界筆記" };
+        RefreshNavigationChrome();UpdateSaveStatusLight(StatusText.Text);
         InspectorBookmark.Visibility = Inspector.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
     }
 
@@ -804,6 +797,7 @@ public partial class MainWindow
         RotationBox.Value = o?.Rotation ?? 0;
         FontSizeBox.Value = o?.FontSize ?? style.FontSize;
         FillToggle.IsChecked = o is null ? style.Filled : o.FillColor != "none";
+        FillOpacitySlider.Value=o?.FillOpacity??style.FillOpacity??1;
         DashBox.SelectedIndex = Math.Max(0, Array.IndexOf(DashStyles, o?.LineStyle ?? style.Dash));
         if(_toolButtons.TryGetValue("dash",out var dashButton))dashButton.Content=ToolIcons.CreateDash(o?.LineStyle??style.Dash);
         StrokeColorButton.Content = "自訂色輪 · " + (o?.StrokeColor ?? style.Color);
@@ -811,6 +805,7 @@ public partial class MainWindow
         FillColorButton.Content = "自訂填色與透明度";
         WidthValueText.Text = $"{WidthSlider.Value:0.#} pt · 畫布直徑 {WidthSlider.Value * _viewport.Zoom:0.#} pt";
         SelectionSummary.Text = o is null ? "目前畫筆 · 設定即時生效" : o.IsLocked == true ? "物件已鎖定" : "已選取物件 · 設定即時生效";
+        ApplyInspectorContext(o);
         _syncingProperties = false;
         RefreshSelectionBar();
     }
@@ -945,6 +940,7 @@ public partial class MainWindow
     private void ShowBrushSettings(FrameworkElement anchor)
     {
         var selected = _session.Selected;
+        if(selected is not null){Inspector.Visibility=Visibility.Visible;RefreshProperties();RefreshChrome();return;}
         if(_tool=="laser"){ShowLaserSettings(anchor);return;}
         var panel = new StackPanel { Width = 286, Spacing = 12 };
         panel.Children.Add(new TextBlock { Text = selected is null ? $"繪圖設定（{_styleTool}）" : "已選取物件設定", FontSize = 16, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });

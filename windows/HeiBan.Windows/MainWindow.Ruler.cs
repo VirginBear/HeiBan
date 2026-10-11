@@ -11,12 +11,12 @@ using global::Windows.Globalization.NumberFormatting;
 namespace HeiBan.Windows;
 public partial class MainWindow
 {
-    private double _rulerLength=1200,_rulerOpacity=.38,_rulerPivotRatio=.5,_rulerRotationStart,_rulerPointerStart;
+    private double _rulerLengthPercent=90,_rulerOpacity=.38,_rulerPivotRatio=.5,_rulerRotationStart,_rulerPointerStart;
     private Vector2 _rulerFixedPivot;
     private string _rulerPivotEdge="center";
     private bool _rulerPivotMoving;
     private const float RulerHeight=64;
-    private float RulerLength=>(float)Math.Min(_rulerLength,Math.Max(320,CanvasSurface.ActualWidth-64));
+    private float RulerLength=>(float)Math.Max(200,CanvasSurface.ActualWidth*_rulerLengthPercent/100);
     private Vector2 RulerDirection()=>new((float)Math.Cos(_rulerAngle*Math.PI/180),(float)Math.Sin(_rulerAngle*Math.PI/180));
     private Vector2 RulerLocal(Vector2 point){var d=RulerDirection();var p=point-_rulerCenter;return new(Vector2.Dot(p,d),Vector2.Dot(p,new(-d.Y,d.X)));}
     private Vector2 RulerPoint(float x,float y=0){var d=RulerDirection();return _rulerCenter+d*x+new Vector2(-d.Y,d.X)*y;}
@@ -59,7 +59,7 @@ public partial class MainWindow
         var angle=new NumberBox{Header="角度（°）",Value=_rulerAngle,SmallChange=.1,LargeChange=15,SpinButtonPlacementMode=NumberBoxSpinButtonPlacementMode.Inline,NumberFormatter=new DecimalFormatter{FractionDigits=1}};
         angle.ValueChanged+=(_,e)=>SetRulerAngle(e.NewValue);panel.Children.Add(angle);
         var reset=new Button{Content="水平 0.0°"};reset.Click+=(_,_)=>angle.Value=0;panel.Children.Add(reset);
-        var length=new Slider{Header="尺長（pt；小視窗自動適應）",Minimum=400,Maximum=1800,Value=_rulerLength,StepFrequency=50};length.ValueChanged+=(_,e)=>{var pivot=RulerPivot();_rulerLength=e.NewValue;SetRulerAngle(_rulerAngle,pivot);};panel.Children.Add(length);
+        var length=new Slider{Header="尺長（畫布寬度 %）",Minimum=20,Maximum=150,Value=_rulerLengthPercent,StepFrequency=5};length.ValueChanged+=(_,e)=>{var pivot=RulerPivot();_rulerLengthPercent=e.NewValue;QueueTeachingSettingsSave();SetRulerAngle(_rulerAngle,pivot);};panel.Children.Add(length);
         var edge=new ComboBox{Header="旋轉支點所在邊",ItemsSource=new[]{"上方劃線邊","尺身中線","下方劃線邊"},SelectedIndex=_rulerPivotEdge=="top"?0:_rulerPivotEdge=="bottom"?2:1,HorizontalAlignment=HorizontalAlignment.Stretch};
         edge.SelectionChanged+=(_,_)=>{_rulerPivotEdge=edge.SelectedIndex==0?"top":edge.SelectedIndex==2?"bottom":"center";InvalidateCanvas();};panel.Children.Add(edge);
         var pivotPosition=new Slider{Header="支點位置（0% 左端；100% 右端）",Minimum=0,Maximum=100,Value=_rulerPivotRatio*100,StepFrequency=1};

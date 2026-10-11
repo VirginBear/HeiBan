@@ -54,7 +54,7 @@ public static class WindowSelection
                 yield return new[]{o.Extension is "start" or "both"?new(a.X-ux*1e9,a.Y-uy*1e9):a,o.Extension is "end" or "both"?new(b.X+ux*1e9,b.Y+uy*1e9):b};
                 if(o.Type=="arrow")
                 {
-                    var head=o.ArrowHeadLength??Math.Max(12,o.StrokeWidth*4);var half=(o.ArrowHeadWidth??head*.5)/2;
+                    var head=o.ArrowHeadLength??16;var half=(o.ArrowHeadWidth??10)/2;
                     yield return new[]{new InkPoint(b.X-ux*head-uy*half,b.Y-uy*head+ux*half),b,new InkPoint(b.X-ux*head+uy*half,b.Y-uy*head-ux*half)};
                 }
             }

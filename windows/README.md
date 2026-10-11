@@ -1,5 +1,11 @@
 # 黑板 · Windows 原生版
 
+## 2026-10-11 操作調整試用
+
+20 項首頁／屬性／螢幕畫布調整見[本批紀錄](docs/UX_ALIGNMENT_2026-10-11.zh-TW.md)。一般單擊只反白，雙擊或右鍵「開啟作品」進入；虛線圓按鈕開啟批次多選。物件屬性按類型顯示、可四邊停靠，圖層為另一個面板。筆近直線停一秒吸附，尺長可按畫布百分比設定；螢幕畫布加入圖層／調色盤與橡皮擦範圍。
+
+本批會另製作 `dist/trials/*ux20-2026-10-11*-win-x64.zip`，完整解壓後執行 HeiBan.exe，保存在自身 Data。是未發布的本機試用，沒有改動 Store 送審套件；本批僅編譯與封裝檢視，實際滑鼠、4K／DPI 操作待試用。
+
 **最新本機試用版：1.0.12-preview.6（2026-10-10）**。本批加入 GitHub 背景更新；公開 GitHub 下載仍為 1.0.12-preview.5。以 Mac 1.0.12／20261010.4 的現行可操作功能為基準，Windows 使用 C#／.NET 10、WinUI 3 與 Win2D。主畫布為原生 Direct2D；PDF 匯出單獨使用 WebView2 列印。
 
 [目前狀態](docs/CURRENT_STATUS.zh-TW.md) · [功能對照與驗證](docs/MAC_1_0_12_PARITY_2026-10-10.zh-TW.md) · [建置紀錄](docs/BUILD_STATUS.zh-TW.md) · [離線手冊](HeiBan.Windows/Assets/HeiBanUserGuide.html) · [開發日誌](docs/DEVELOPMENT_LOG.zh-TW.md)

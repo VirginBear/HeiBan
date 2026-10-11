@@ -319,6 +319,8 @@ public sealed class BoardObject
 /// </summary>
 public sealed class BoardPin
 {
+    [JsonPropertyName("color")] public string? Color {get;set;}
+    [JsonPropertyName("textColor")] public string? TextColor {get;set;}
     // Immutable payload strings are shared; mutable collections belong to this snapshot.
     internal BoardPin Snapshot() { var copy=(BoardPin)MemberwiseClone();copy.ExtraFields=Engine.DocumentSnapshot.CopyFields(ExtraFields);return copy; }
 

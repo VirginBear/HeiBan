@@ -23,6 +23,7 @@ public partial class MainWindow
         void Add(string title,Func<Task> action)
         {var item=new MenuFlyoutItem{Text=title};item.Click+=async(_,_)=>{try{await action();await RefreshLibrary();}catch(Exception ex){await Error(ex);}};menu.Items.Add(item);}
         if(chosen.TrashPath is { } trash){Add("還原",()=>_storage.RestoreAsync(trash));ShowExclusiveFlyout(menu,anchor);return;}
+        Add("開啟作品",async()=>await OpenAsync(await _storage.LoadAsync(chosen.Board.Id)));
         Add(_libraryUi.Favorites.Contains(chosen.Board.Id)?"取消收藏":"加入收藏",()=>ToggleLibraryFavoriteAsync(chosen.Board.Id));
         Add("重新命名",async()=>
         {

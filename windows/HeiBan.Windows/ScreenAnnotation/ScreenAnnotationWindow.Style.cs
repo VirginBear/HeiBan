@@ -43,11 +43,14 @@ internal sealed partial class ScreenAnnotationWindow
     private void RefreshScreenStyleButtons()
     {
         var selected=StyleSelection;
+        _brushButton.IsEnabled=selected?.IsLocked!=true;
         _brushButton.Content=new Ellipse{Width=22,Height=22,Fill=new SolidColorBrush(Direct2DCanvasRenderer.HexToColor(selected?.StrokeColor??_color)),Stroke=ChromeBrush(100,85,100,92),StrokeThickness=1};
         _dashButton.Content=ToolIcons.CreateDash(selected?.LineStyle??_dash);
         if(_fillButton is null)return;
         var fill=selected?.FillColor??_fill;
         _fillButton.Content=new Ellipse{Width=18,Height=18,Fill=fill is "none" or "transparent"?ChromeBrush(0,0,0,0):new SolidColorBrush(Direct2DCanvasRenderer.HexToColor(fill)),Stroke=ChromeBrush(255,65,98,81),StrokeThickness=2};
+        _fillButton.IsEnabled=selected?.IsLocked!=true&&(selected?.Type??_tool) is "rect" or "circle" or "triangle" or "quadrilateral" or "sticky" or "arc";
+        _dashButton.IsEnabled=selected?.IsLocked!=true&&(selected?.Type??_tool) is not("text" or "image" or "sticky" or "eraser" or "laser");
         ToolTipService.SetToolTip(_fillButton,fill=="none"?"填滿：無填滿":"填滿："+fill);
     }
     private void ShowScreenFill()
