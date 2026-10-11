@@ -23,3 +23,7 @@
 更新Windows CURRENT_STATUS、DECISIONS、ISSUE_HISTORY、README與兩份候選Store說明頂部警示；建立windows/AGENTS.md讓後續開發直接取得進版規則。私人產品next_update／候選歷史增加未核准狀態與release_policy，新增對話M，保留原上架提交與產品身分。
 
 讀檔／rg／git status已執行；本批未改App程式、版本metadata、使用手冊操作入口或任何套件。編譯、封裝、tests、App實機、性能量測、Store操作：未執行。Git同步命令與結果接續記錄。
+
+## Git同步結果
+
+兩庫`git fetch origin`退出0且HEAD/origin為0/0；私人`gh repo view --json visibility,isPrivate`核PRIVATE。公開9檔規則／狀態文件提交873015f2733ddd30f6ab6702b55d7d761c96fbd7，`git push origin main`退出0，`git ls-remote`核相同，status僅原.vscode/。私人四檔更正紀錄獨立提交／push退出0、ls-remote核同HEAD，status乾淨。此結果補記亦分库提交同步，不改程式、metadata或任何產物。
