@@ -185,6 +185,19 @@ extension BoardEngine {
         scheduleAutosave()
     }
 
+    public func updatePinColor(id: String, color: String?, textColor: String?) {
+        guard let index = board.pins?.firstIndex(where: { $0.id == id }) else { return }
+        let current = board.pins![index]
+        if current.color == color && current.textColor == textColor {
+            return
+        }
+        let prevPins = board.pins
+        board.pins?[index].color = color
+        board.pins?[index].textColor = textColor
+        transactionManager.push(.updatePins(before: prevPins, after: board.pins))
+        scheduleAutosave()
+    }
+
     public func updatePinDrag(id: String, at screenPoint: Point) {
         guard let index = board.pins?.firstIndex(where: { $0.id == id }) else { return }
         if pinDragBefore == nil { pinDragBefore = board.pins?[index] }

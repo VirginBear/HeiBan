@@ -84,14 +84,23 @@ public struct ChangelogEntry: Codable, Equatable, Identifiable {
 
 public struct AboutInfo: Equatable {
     public static let appName = "HeiBan 黑板"
-    public static let appVersion = "1.0.5"
-    public static let buildNumber = "20261009.4"
+    public static var appVersion: String {
+        (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "1.0.12"
+    }
+    public static var buildNumber: String {
+        (Bundle.main.infoDictionary?["CFBundleVersion"] as? String) ?? "20261010.4"
+    }
     public static let engineVersion = "HeiBan Blackboard Vector Engine 1.0"
     public static let copyright = "© 2026 HeiBan Team. All rights reserved."
-    public static let feedbackUrl = "https://github.com/heiban/heiban/issues"
+    public static let feedbackUrl = "https://github.com/VirginBear/HeiBan/issues"
     public static let supportEmail = "support@heiban.app"
 
     public static let changelog: [ChangelogEntry] = [
+        ChangelogEntry(version: "1.0.12", releaseDate: "2026-10-10", highlights: [
+            "「我的螢幕就是我的畫布」新增原生文字框 (T) 輸入、換行與 ⌘Enter 提交",
+            "文字框原地右鍵支援快捷文字大小、自訂顏色與「更多文字設定」面板",
+            "支援 Shift/框選多個文字框批次調整格式，混合欄位獨立套用且單次 Undo 復原"
+        ]),
         ChangelogEntry(version: "1.0.5", releaseDate: "2026-10-09", highlights: [
             "截圖改用原生 ScreenCaptureKit，支援系統選取授權與區域框選",
             "截圖失敗顯示原因，取消不再誤貼剪貼簿，封裝時簽署完整 App"

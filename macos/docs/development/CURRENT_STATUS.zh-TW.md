@@ -1,6 +1,15 @@
 # Mac 目前開發狀態
 
-更新：2026-10-10。平台：macOS；最新本機開發版 1.0.12 / 20261010.4。
+更新：2026-10-11。平台：macOS；最新本機開發版 1.0.12 / 20261010.4。
+
+## 2026-10-11 — Windows 最新來源同步與 Mac 改善實作 (第一批完成)
+
+兩庫 main 已與遠端一致，Git 追蹤檔無缺漏。已建立 [完整核對、進度與 12 項工作清單](WINDOWS_SYNC_REVIEW_2026-10-11.zh-TW.md)／[核對 JSON](SYNC_AUDIT_2026-10-11.json)。
+第一批（P0）相容性與版本可信度已實作並經「先靶後箭」客觀驗收：
+1. **MAC-SYNC-01 圖釘資料往返保全**：`BoardPin` 新增 Windows `color`、`textColor`、`boardId` 與 `extraFields: [String: AnyCodableValue]?`，落實 100% 往返無損還原；畫布、左側導覽、頂部導覽及右鍵選單均採用一致配色；`updatePinColor` 支援單次 Undo/Redo 且取消不污染堆疊。
+2. **MAC-SYNC-02 版本、變更紀錄與回報入口統一**：`AboutInfo` 正式對齊 `1.0.12` / `20261010.4`（支援 Bundle 動態識別與預設回退）、`feedbackUrl` 修正為 `https://github.com/VirginBear/HeiBan/issues`、補齊 1.0.12 變更紀錄；測試套件於 [測試 26] 與新立 [測試 46] 雙重客觀驗收通過。
+3. **修復 LaTeX 解析前綴遮蔽**：`LaTeXParserEngine` 符號長度降冪排序，解決 `\in` 遮蔽 `\int` 積分符號問題。
+4. **驗收與建置結果**：`swift run HeiBanTestRunner` 全數通過（1,540 / 1,540 斷言成功，0 失敗）；`build_app.sh` 封裝成功，`codesign --verify --deep --strict` 簽章有效。
 
 ## 本次使用者確認（2026-10-10）
 
@@ -73,7 +82,7 @@ Mac product Debug與Release編譯成功，App封裝／ad-hoc簽章檢查成功�
 
 ## 接手注意
 
-- 工作區有大量先前未提交變更；不能用 git reset／checkout 清除。當次變更清單在日誌。
+- 2026-10-11 開工工作樹乾淨，先前來源已由使用者整合至99c08c5；每次開工仍須核status，不能用git reset／checkout清除新變更。當次紀錄在日誌。
 - 前批螢幕畫布修正沒有修改 Windows／Web；公開整理會同步現有來源與文件，實際提交／推送以公開稽核的結果為準。
 - 普通作品與螢幕註記恢復檔屬使用者資料，不能因整理刪除。
 - 手冊來源是 `generate_user_guide.py`；Release.json 為 App／手冊版本共同來源。

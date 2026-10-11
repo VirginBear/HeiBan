@@ -417,7 +417,7 @@ struct PinManagerPopover: View {
                                     if !engine.viewportLocked { isPresented = false }
                                 } label: {
                                     HeiBanPinIcon().frame(width: 20, height: 20)
-                                        .foregroundStyle(Color.accentColor)
+                                        .foregroundStyle(Color(hex: pin.effectiveColor))
                                 }
                                 .buttonStyle(.plain)
                                 .disabled(engine.viewportLocked)
@@ -430,6 +430,7 @@ struct PinManagerPopover: View {
                                 ))
                                 .textFieldStyle(.plain)
                                 .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(Color(hex: pin.effectiveTextColor))
 
                                 Text("\(Int(pin.zoom * 100))%")
                                     .font(.system(size: 10, design: .monospaced))
@@ -447,6 +448,26 @@ struct PinManagerPopover: View {
                             .padding(.horizontal, 8)
                             .padding(.vertical, 6)
                             .background(Color.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 6))
+                            .contextMenu {
+                                Menu("圖釘主體顏色") {
+                                    Button("藍綠色（預設）") { engine.updatePinColor(id: pin.id, color: "#39B9DC", textColor: pin.textColor) }
+                                    Button("珊瑚粉") { engine.updatePinColor(id: pin.id, color: "#fb7185", textColor: pin.textColor) }
+                                    Button("琥珀黃") { engine.updatePinColor(id: pin.id, color: "#f59e0b", textColor: pin.textColor) }
+                                    Button("翡翠綠") { engine.updatePinColor(id: pin.id, color: "#10b981", textColor: pin.textColor) }
+                                    Button("靛藍紫") { engine.updatePinColor(id: pin.id, color: "#6366f1", textColor: pin.textColor) }
+                                    Button("深石墨") { engine.updatePinColor(id: pin.id, color: "#475569", textColor: pin.textColor) }
+                                }
+                                Menu("圖釘文字顏色") {
+                                    Button("森林深綠（預設）") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#397056") }
+                                    Button("純白") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#ffffff") }
+                                    Button("深灰黑") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#1e293b") }
+                                    Button("珊瑚紅") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#e11d48") }
+                                    Button("琥珀棕") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#b45309") }
+                                    Button("靛青") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#1e40af") }
+                                }
+                                Divider()
+                                Button("刪除圖釘", role: .destructive) { engine.removePin(id: pin.id) }
+                            }
                         }
                     }
                 }

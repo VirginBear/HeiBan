@@ -123,6 +123,12 @@ public final class LaTeXParserEngine {
         "\\cup": "∪", "\\cap": "∩", "\\to": "→", "\\leftarrow": "←",
         "\\Rightarrow": "⇒", "\\forall": "∀", "\\exists": "∃"
     ]
+
+    private static let combinedSymbols: [(cmd: String, sym: String)] = {
+        greekMap.merging(symbolMap, uniquingKeysWith: { a, _ in a })
+            .map { (cmd: $0.key, sym: $0.value) }
+            .sorted { $0.cmd.count > $1.cmd.count }
+    }()
     
     /// Parses LaTeX string into offline vector glyphs and lines.
     public static func layout(latex: String, baseFontSize: Double = 24.0) -> LaTeXLayoutResult {
@@ -214,7 +220,7 @@ public final class LaTeXParserEngine {
                 
                 // 3. Greek letters & symbols
                 var matched = false
-                for (cmd, sym) in greekMap.merging(symbolMap, uniquingKeysWith: { a, _ in a }) {
+                for (cmd, sym) in combinedSymbols {
                     if rest.hasPrefix(cmd) {
                         glyphs.append(LaTeXGlyph(text: sym, x: curX, y: baselineY, fontSize: baseFontSize, isItalic: false))
                         curX += baseFontSize * 0.7

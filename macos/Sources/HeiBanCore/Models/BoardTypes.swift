@@ -352,6 +352,22 @@ public struct BoardPin: Codable, Identifiable, Equatable, Hashable {
     public var zoom: Double
     public var createdAt: String
     public var isWorldSpace: Bool?
+    public var boardId: String?
+    public var color: String?
+    public var textColor: String?
+    public var extraFields: [String: AnyCodableValue]?
+
+    public var effectiveColor: String {
+        color ?? "#39B9DC"
+    }
+
+    public var effectiveTextColor: String {
+        textColor ?? "#397056"
+    }
+
+    enum CodingKeys: String, CodingKey, CaseIterable {
+        case id, name, x, y, zoom, createdAt, isWorldSpace, boardId, color, textColor
+    }
 
     public init(
         id: String = UUID().uuidString,
@@ -360,7 +376,11 @@ public struct BoardPin: Codable, Identifiable, Equatable, Hashable {
         y: Double,
         zoom: Double = 1.0,
         createdAt: String = ISO8601DateFormatter().string(from: Date()),
-        isWorldSpace: Bool? = true
+        isWorldSpace: Bool? = true,
+        boardId: String? = nil,
+        color: String? = nil,
+        textColor: String? = nil,
+        extraFields: [String: AnyCodableValue]? = nil
     ) {
         self.id = id
         self.name = name
@@ -369,6 +389,67 @@ public struct BoardPin: Codable, Identifiable, Equatable, Hashable {
         self.zoom = zoom
         self.createdAt = createdAt
         self.isWorldSpace = isWorldSpace
+        self.boardId = boardId
+        self.color = color
+        self.textColor = textColor
+        self.extraFields = extraFields
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decodeIfPresent(String.self, forKey: .id) ?? UUID().uuidString
+        self.name = try container.decodeIfPresent(String.self, forKey: .name) ?? "重要圖釘"
+        self.x = try container.decodeIfPresent(Double.self, forKey: .x) ?? 0.0
+        self.y = try container.decodeIfPresent(Double.self, forKey: .y) ?? 0.0
+        self.zoom = try container.decodeIfPresent(Double.self, forKey: .zoom) ?? 1.0
+        self.createdAt = try container.decodeIfPresent(String.self, forKey: .createdAt) ?? ISO8601DateFormatter().string(from: Date())
+        self.isWorldSpace = try container.decodeIfPresent(Bool.self, forKey: .isWorldSpace) ?? true
+        self.boardId = try container.decodeIfPresent(String.self, forKey: .boardId)
+        self.color = try container.decodeIfPresent(String.self, forKey: .color)
+        self.textColor = try container.decodeIfPresent(String.self, forKey: .textColor)
+
+        let dynamicContainer = try decoder.container(keyedBy: AnyCodingKey.self)
+        let knownKeys = Set(CodingKeys.allCases.map { $0.stringValue })
+        var extra: [String: AnyCodableValue] = [:]
+        for key in dynamicContainer.allKeys {
+            if !knownKeys.contains(key.stringValue) {
+                if let val = try? dynamicContainer.decode(AnyCodableValue.self, forKey: key) {
+                    extra[key.stringValue] = val
+                }
+            }
+        }
+        self.extraFields = extra.isEmpty ? nil : extra
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encode(x, forKey: .x)
+        try container.encode(y, forKey: .y)
+        try container.encode(zoom, forKey: .zoom)
+        try container.encode(createdAt, forKey: .createdAt)
+        if let isWorldSpace = isWorldSpace {
+            try container.encode(isWorldSpace, forKey: .isWorldSpace)
+        }
+        if let boardId = boardId {
+            try container.encode(boardId, forKey: .boardId)
+        }
+        if let color = color {
+            try container.encode(color, forKey: .color)
+        }
+        if let textColor = textColor {
+            try container.encode(textColor, forKey: .textColor)
+        }
+
+        if let extraFields = extraFields {
+            var dynamicContainer = encoder.container(keyedBy: AnyCodingKey.self)
+            for (key, val) in extraFields {
+                if let codingKey = AnyCodingKey(stringValue: key) {
+                    try dynamicContainer.encode(val, forKey: codingKey)
+                }
+            }
+        }
     }
 
     public func resolveWorldPosition(canvasSize: CGSize) -> Point {

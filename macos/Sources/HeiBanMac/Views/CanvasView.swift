@@ -183,16 +183,19 @@ private struct PinMarkerOverlayView: View {
         ForEach(engine.board.pins ?? []) { pin in
             let pinWorld = pin.resolveWorldPosition(canvasSize: engine.canvasSize)
             let point = VectorMath.worldToScreen(pinWorld, viewport: engine.viewport)
+            let pinColor = Color(hex: pin.effectiveColor)
+            let textColor = Color(hex: pin.effectiveTextColor)
             VStack(spacing: 2) {
                 HeiBanPinIcon()
                     .frame(width: 32, height: 32)
-                    .foregroundStyle(Color.accentColor)
+                    .foregroundStyle(pinColor)
                     .padding(4)
                     .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 10))
                     .overlay(RoundedRectangle(cornerRadius: 10).stroke(.white.opacity(0.75), lineWidth: 1))
                     .shadow(color: .black.opacity(0.15), radius: 3, y: 2)
                 Text(pin.name)
                     .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(textColor)
                     .lineLimit(1)
                     .padding(.horizontal, 5)
                     .padding(.vertical, 2)
@@ -205,6 +208,32 @@ private struct PinMarkerOverlayView: View {
                     .onChanged { if !engine.readingMode { engine.updatePinDrag(id: pin.id, at: Point($0.location)) } }
                     .onEnded { _ in engine.endPinDrag(id: pin.id) }
             )
+            .contextMenu {
+                Button("前往此圖釘視角") {
+                    engine.jumpToPin(pin)
+                }
+                Divider()
+                Menu("圖釘主體顏色") {
+                    Button("藍綠色（預設）") { engine.updatePinColor(id: pin.id, color: "#39B9DC", textColor: pin.textColor) }
+                    Button("珊瑚粉") { engine.updatePinColor(id: pin.id, color: "#fb7185", textColor: pin.textColor) }
+                    Button("琥珀黃") { engine.updatePinColor(id: pin.id, color: "#f59e0b", textColor: pin.textColor) }
+                    Button("翡翠綠") { engine.updatePinColor(id: pin.id, color: "#10b981", textColor: pin.textColor) }
+                    Button("靛藍紫") { engine.updatePinColor(id: pin.id, color: "#6366f1", textColor: pin.textColor) }
+                    Button("深石墨") { engine.updatePinColor(id: pin.id, color: "#475569", textColor: pin.textColor) }
+                }
+                Menu("圖釘文字顏色") {
+                    Button("森林深綠（預設）") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#397056") }
+                    Button("純白") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#ffffff") }
+                    Button("深灰黑") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#1e293b") }
+                    Button("珊瑚紅") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#e11d48") }
+                    Button("琥珀棕") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#b45309") }
+                    Button("靛青") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#1e40af") }
+                }
+                Divider()
+                Button("刪除圖釘", role: .destructive) {
+                    engine.removePin(id: pin.id)
+                }
+            }
             .position(x: point.x, y: point.y)
             .zIndex(15)
             .help("圖釘：\(pin.name)；點擊返回此視角")

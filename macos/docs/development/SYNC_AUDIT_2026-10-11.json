@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-11",
+  "scope": "Static Git, files, source snapshots, JSON and local Mac signature review; no app execution, build or tests",
+  "publicHead": "99c08c5021d2e76029cea18f9b3bf039b7193170",
+  "publicRemoteMatches": true,
+  "privateRemoteMatches": true,
+  "privateVisibility": "PRIVATE",
+  "initialWorkingTreesClean": true,
+  "publicTracked": 638,
+  "privateTracked": 12,
+  "missingTracked": 0,
+  "fsckExitCodes": [
+    0,
+    0
+  ],
+  "unreferencedBlobsInPublic": 2,
+  "submodules": 0,
+  "lfsPointers": 0,
+  "jsonParsed": {
+    "public": 113,
+    "private": 2
+  },
+  "windowsLatestSourceSnapshot": {
+    "commit": "14bb28990e511e9b29659f1d5cca36132ca5a38d",
+    "files": 124,
+    "exactByteMatches": 28,
+    "matchesAfterLFToCRLF": 96,
+    "missing": 0,
+    "contentMismatches": 0,
+    "latestTrialZipPresentOnMac": false
+  },
+  "windowsLocalization": {
+    "catalogs": 10,
+    "keysPerCatalog": 581,
+    "keySetsMatchSource": true,
+    "emptyValues": 0
+  },
+  "privateStoreScreenshots": {
+    "files": 3,
+    "sizeAndSHA256Matches": 3
+  },
+  "macLocalApp": {
+    "version": "1.0.12",
+    "build": "20261010.4",
+    "matchesReleaseJson": true,
+    "strictDeepSignatureValid": true
+  },
+  "publicReleases": {
+    "mac": "macos-v1.0.8",
+    "windows": "windows-v1.0.12-preview.5"
+  },
+  "storeStatus": "Last user-provided status was certification in progress on 2026-10-10; not independently checked in this review",
+  "limitations": [
+    "Windows SDK, trial/Store binaries and user data are not Git checkout payload",
+    "LF normalization is not byte-identical to original Windows source snapshot",
+    "Historical Windows performance results do not validate Mac performance",
+    "No publication or changes to Windows/private files"
+  ]
+}

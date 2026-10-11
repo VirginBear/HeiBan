@@ -112,8 +112,39 @@ struct ReadingNavigationView: View {
                                             engine.jumpToPin(pin)
                                             if !engine.viewportLocked { showPins = false }
                                         } label: {
-                                            HStack { HeiBanPinIcon().frame(width: 20, height: 20); Text(pin.name).lineLimit(1); Spacer(); Text("\(Int(pin.zoom * 100))%").font(.caption.monospacedDigit()).foregroundStyle(.secondary) }
-                                        }.buttonStyle(.plain).disabled(engine.viewportLocked)
+                                            HStack {
+                                                HeiBanPinIcon()
+                                                    .frame(width: 20, height: 20)
+                                                    .foregroundStyle(Color(hex: pin.effectiveColor))
+                                                Text(pin.name)
+                                                    .foregroundStyle(Color(hex: pin.effectiveTextColor))
+                                                    .lineLimit(1)
+                                                Spacer()
+                                                Text("\(Int(pin.zoom * 100))%").font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+                                            }
+                                        }
+                                        .buttonStyle(.plain)
+                                        .disabled(engine.viewportLocked)
+                                        .contextMenu {
+                                            Menu("圖釘主體顏色") {
+                                                Button("藍綠色（預設）") { engine.updatePinColor(id: pin.id, color: "#39B9DC", textColor: pin.textColor) }
+                                                Button("珊瑚粉") { engine.updatePinColor(id: pin.id, color: "#fb7185", textColor: pin.textColor) }
+                                                Button("琥珀黃") { engine.updatePinColor(id: pin.id, color: "#f59e0b", textColor: pin.textColor) }
+                                                Button("翡翠綠") { engine.updatePinColor(id: pin.id, color: "#10b981", textColor: pin.textColor) }
+                                                Button("靛藍紫") { engine.updatePinColor(id: pin.id, color: "#6366f1", textColor: pin.textColor) }
+                                                Button("深石墨") { engine.updatePinColor(id: pin.id, color: "#475569", textColor: pin.textColor) }
+                                            }
+                                            Menu("圖釘文字顏色") {
+                                                Button("森林深綠（預設）") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#397056") }
+                                                Button("純白") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#ffffff") }
+                                                Button("深灰黑") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#1e293b") }
+                                                Button("珊瑚紅") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#e11d48") }
+                                                Button("琥珀棕") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#b45309") }
+                                                Button("靛青") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#1e40af") }
+                                            }
+                                            Divider()
+                                            Button("刪除圖釘", role: .destructive) { engine.removePin(id: pin.id) }
+                                        }
                                     }
                                 }
                             }.frame(maxHeight: 220)

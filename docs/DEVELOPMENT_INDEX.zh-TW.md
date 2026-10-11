@@ -1,6 +1,6 @@
 # HeiBan 開發紀錄入口
 
-更新：2026-10-09。歷史計畫、實作與驗收是三種不同狀態。
+更新：2026-10-11。歷史計畫、實作與驗收是三種不同狀態。
 
 ## 目前工作平台：macOS
 
@@ -10,6 +10,7 @@
 - [開發日誌](../macos/docs/development/DEVELOPMENT_LOG.zh-TW.md)
 - [困難、錯誤與排解紀錄](../macos/docs/development/ISSUE_HISTORY.zh-TW.md)
 - [架構決策](../macos/docs/development/DECISIONS.zh-TW.md)
+- [兩庫同步完整性、Windows進度與Mac改善清單](../macos/docs/development/WINDOWS_SYNC_REVIEW_2026-10-11.zh-TW.md)
 - [本次程式整理稽核](../macos/docs/development/CODE_REVIEW_2026-10-09.zh-TW.md)
 - [使用手冊](../macos/docs/USER_GUIDE.zh-TW.html)
 

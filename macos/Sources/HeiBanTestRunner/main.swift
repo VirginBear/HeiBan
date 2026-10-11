@@ -2809,15 +2809,15 @@ do {
     assertEqual(manager2.current.loggedInUserEmail, nil, "登出後帳號 email 清空")
     assertEqual(manager2.syncState, .localOnly(reason: "本機單機模式：所有黑板保存在此 Mac，離線安全"), "登出後平順回歸本機安全儲存")
 
-    // 26.5 關於資訊與更新日誌真實性 (A22)
+    // 26.5 關於資訊與更新日誌真實性 (A22 & MAC-SYNC-02)
     assertEqual(AboutInfo.appName, "HeiBan 黑板", "App 名稱相符")
-    assertEqual(AboutInfo.appVersion, "1.0.5", "真版本號為 1.0.5 (非假數據)")
-    assertEqual(AboutInfo.buildNumber.isEmpty, false, "組建編號存在且不為空")
+    assertEqual(AboutInfo.appVersion, "1.0.12", "真版本號為 1.0.12 (對齊 Release.json 與 App plist)")
+    assertEqual(AboutInfo.buildNumber, "20261010.4", "組建編號存在且為 20261010.4")
     assertEqual(AboutInfo.engineVersion.contains("HeiBan Blackboard Vector Engine"), true, "引擎核心資訊明確")
-    assertEqual(AboutInfo.feedbackUrl, "https://github.com/heiban/heiban/issues", "意見回覆入口有效且為真實 URL")
+    assertEqual(AboutInfo.feedbackUrl, "https://github.com/VirginBear/HeiBan/issues", "意見回覆入口指向真實倉庫 VirginBear/HeiBan/issues")
     assertEqual(AboutInfo.changelog.count >= 2, true, "更新日誌至少涵蓋 2 個版本紀錄")
-    assertEqual(AboutInfo.changelog[0].version, "1.0.5", "最新更新日誌對應 1.0.5 正式版")
-    assertEqual(AboutInfo.changelog[0].highlights.count >= 2, true, "1.0.5 重點更新項目豐富詳盡")
+    assertEqual(AboutInfo.changelog[0].version, "1.0.12", "最新更新日誌對應 1.0.12 正式版")
+    assertEqual(AboutInfo.changelog[0].highlights.count >= 3, true, "1.0.12 重點更新項目豐富詳盡")
 }
 
 // ==============================================================================
@@ -5066,6 +5066,104 @@ do {
     let reFormula = decodedDoc.objects.first(where: { $0.type == "formula" })!
     assertEqual(reFormula.latex, "\\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}", "往返序列化：formula latex 語法字串精準還原")
     assertEqual(reFormula.formulaFontSize, 24.0, "往返序列化：formulaFontSize 精準還原")
+}
+
+// ==============================================================================
+// 測試 46: MAC-SYNC-01 & MAC-SYNC-02: 圖釘跨平台往返保全與版本回報對齊 (立靶驗收)
+// ==============================================================================
+print("\n[測試 46] MAC-SYNC-01 & MAC-SYNC-02: 圖釘跨平台往返保全與版本回報對齊 (立靶驗收)")
+do {
+    // 46.1 MAC-SYNC-01: Windows 格式圖釘解碼 (含自訂 color, textColor, extraFields)
+    let winPinJson = """
+    {
+        "id": "win_pin_101",
+        "boardId": "board_abc",
+        "name": "Windows 重要講台",
+        "x": 350.5,
+        "y": 720.0,
+        "zoom": 1.25,
+        "color": "#39B9DC",
+        "textColor": "#397056",
+        "createdAt": "2026-10-11T12:00:00Z",
+        "isWorldSpace": true,
+        "customWindowsVendorFlag": "SurfacePro11",
+        "nestedConfig": {
+            "priorityLevel": 5,
+            "badgeType": "star"
+        }
+    }
+    """
+    let decodedPin = try! JSONDecoder().decode(BoardPin.self, from: winPinJson.data(using: .utf8)!)
+    assertEqual(decodedPin.id, "win_pin_101", "圖釘解碼：ID 正確")
+    assertEqual(decodedPin.boardId, "board_abc", "圖釘解碼：boardId 正確")
+    assertEqual(decodedPin.name, "Windows 重要講台", "圖釘解碼：名稱正確")
+    assertEqual(decodedPin.color, "#39B9DC", "圖釘解碼：Windows color 正確提取")
+    assertEqual(decodedPin.textColor, "#397056", "圖釘解碼：Windows textColor 正確提取")
+    assertEqual(decodedPin.effectiveColor, "#39B9DC", "圖釘屬性：effectiveColor 相符")
+    assertEqual(decodedPin.effectiveTextColor, "#397056", "圖釘屬性：effectiveTextColor 相符")
+    assertEqual(decodedPin.extraFields?["customWindowsVendorFlag"], .string("SurfacePro11"), "圖釘擴展：頂層未知欄位保留")
+    assertEqual(decodedPin.extraFields?["nestedConfig"], .object(["priorityLevel": .int(5), "badgeType": .string("star")]), "圖釘擴展：巢狀未知字典結構完整保留")
+
+    // 46.2 跨平台往返編碼 (Mac 編碼後再解碼，確保 100% 無損傳遞回 Windows)
+    let reEncodedData = try! JSONEncoder().encode(decodedPin)
+    let roundtripPin = try! JSONDecoder().decode(BoardPin.self, from: reEncodedData)
+    assertEqual(roundtripPin.id, decodedPin.id, "往返驗證：ID 保留")
+    assertEqual(roundtripPin.boardId, decodedPin.boardId, "往返驗證：boardId 保留")
+    assertEqual(roundtripPin.color, "#39B9DC", "往返驗證：color 保留")
+    assertEqual(roundtripPin.textColor, "#397056", "往返驗證：textColor 保留")
+    assertEqual(roundtripPin.extraFields?["customWindowsVendorFlag"], .string("SurfacePro11"), "往返驗證：未宣告欄位零遺失")
+    assertEqual(roundtripPin.extraFields?["nestedConfig"], .object(["priorityLevel": .int(5), "badgeType": .string("star")]), "往返驗證：巢狀擴展欄位零遺失")
+
+    // 46.3 舊版無色圖釘相容性與預設值
+    let legacyPinJson = """
+    {
+        "id": "legacy_pin_99",
+        "name": "歷史舊圖釘",
+        "x": 100.0,
+        "y": 100.0,
+        "zoom": 1.0,
+        "createdAt": "2026-09-01T00:00:00Z"
+    }
+    """
+    let legacyPin = try! JSONDecoder().decode(BoardPin.self, from: legacyPinJson.data(using: .utf8)!)
+    assertEqual(legacyPin.color, nil, "舊圖釘：color 為 nil")
+    assertEqual(legacyPin.textColor, nil, "舊圖釘：textColor 為 nil")
+    assertEqual(legacyPin.effectiveColor, "#39B9DC", "舊圖釘：effectiveColor 使用跨平台一致預設藍綠色")
+    assertEqual(legacyPin.effectiveTextColor, "#397056", "舊圖釘：effectiveTextColor 使用跨平台一致預設深綠色")
+
+    // 46.4 BoardEngine 圖釘配色修改與單一交易 Undo/Redo
+    let engine = BoardEngine()
+    engine.board.pins = [decodedPin]
+    assertEqual(engine.board.pins?[0].color, "#39B9DC", "引擎圖釘：初始顏色為原色")
+
+    // 取消不改：若傳入相同色彩不產生無效 Undo
+    engine.updatePinColor(id: decodedPin.id, color: "#39B9DC", textColor: "#397056")
+    assertEqual(engine.canUndo, false, "圖釘配色：未變更時取消不污染 Undo 堆疊")
+
+    // 變更配色
+    engine.updatePinColor(id: decodedPin.id, color: "#fb7185", textColor: "#ffffff")
+    assertEqual(engine.board.pins?[0].color, "#fb7185", "圖釘配色：主體成功修改為珊瑚粉")
+    assertEqual(engine.board.pins?[0].textColor, "#ffffff", "圖釘配色：文字成功修改為純白")
+    assertEqual(engine.canUndo, true, "圖釘配色：一筆修改產生 1 次 Undo")
+
+    // 單次 Undo 完整復原
+    engine.undo()
+    assertEqual(engine.board.pins?[0].color, "#39B9DC", "圖釘配色：Undo 成功復原原主體色")
+    assertEqual(engine.board.pins?[0].textColor, "#397056", "圖釘配色：Undo 成功復原原文色")
+
+    // Redo 重新套用
+    engine.redo()
+    assertEqual(engine.board.pins?[0].color, "#fb7185", "圖釘配色：Redo 重新套用珊瑚粉")
+    assertEqual(engine.board.pins?[0].textColor, "#ffffff", "圖釘配色：Redo 重新套用純白")
+
+    // 46.5 MAC-SYNC-02: 版本對齊、真實 Build、問題回報入口與更新日誌
+    assertEqual(AboutInfo.appName, "HeiBan 黑板", "版本資訊：App 名稱相符")
+    assertEqual(AboutInfo.appVersion, "1.0.12", "版本對齊：核心版本號真實對齊 1.0.12")
+    assertEqual(AboutInfo.buildNumber, "20261010.4", "版本對齊：組建編號真實對齊 20261010.4")
+    assertEqual(AboutInfo.feedbackUrl, "https://github.com/VirginBear/HeiBan/issues", "回報入口：指向 VirginBear/HeiBan/issues")
+    assertEqual(AboutInfo.changelog[0].version, "1.0.12", "更新日誌：最新紀錄為 1.0.12 正式版")
+    assertEqual(AboutInfo.changelog[0].releaseDate, "2026-10-10", "更新日誌：發布日期為 2026-10-10")
+    assertTrue(AboutInfo.changelog[0].highlights.count >= 3, "更新日誌：1.0.12 涵蓋螢幕文字、右鍵設定與批次格式等重點項目")
 }
 
 print("\n==================================================")

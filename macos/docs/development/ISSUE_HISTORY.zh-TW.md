@@ -183,3 +183,16 @@ LocalBoardLibrary 的主要原稿失敗會 throw，但部分備份、縮圖／�
 排解：T → 點螢幕 → 輸入 → 完成或 ⌘Enter；Enter 換行，Esc 取消。回覆到達前的未封裝快照 bridge／高度／邊界改動已逐項撤回，不把推論寫成已重現故障，也不把未驗收修正交付。保留既有 1.0.12 內容與開發紀錄，沒有新 build／App／測試；Windows 未動。
 
 證據僅為本次使用者基本操作成功，不代表所有 IME／多螢幕／右鍵批次流程均通過。後續若仍有「完成後不見」，應先確認提交階段、選取框與點位，再定位實際輸入或渲染原因。
+
+
+## M19 — Windows 新圖釘配色／未知欄位在 Mac 往返缺乏保全
+
+日期：2026-10-11。狀態：已排解（實作、[測試 46] 客觀斷言 100% 通過與發行封裝驗證）。
+
+Windows BoardPin 已有 color／textColor 及 JsonExtensionData。已在 Mac `BoardPin` 增加 `color`、`textColor`、`boardId` 與 `extraFields: [String: AnyCodableValue]?`，實作自訂 Codable 保全未知欄位；提供 `effectiveColor` / `effectiveTextColor`；畫布、左側導覽、頂導覽與右鍵支援色彩設定與單次 Undo。經 [測試 46] 35 項斷言驗證跨平台往返無損。
+
+## M20 — Mac 設定中的版本／回報網址與發行來源不同
+
+日期：2026-10-11。狀態：已排解（實作、[測試 26] & [測試 46] 客觀斷言 100% 通過與發行封裝驗證）。
+
+`AboutInfo` 已對齊 `1.0.12` / `20261010.4`（支援 Bundle 動態識別與預設回退）、`feedbackUrl` 修正為 `https://github.com/VirginBear/HeiBan/issues`、補齊 1.0.12 變更紀錄；測試套件已同步對齊真版本與更新日誌，`build_app.sh` 封裝與深層簽署成功。
