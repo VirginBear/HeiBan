@@ -1,5 +1,9 @@
 # 黑板 · Windows 原生版
 
+## 2026-10-12 Microsoft Store已上架
+
+依使用者提供的Partner Center後台截圖，首次審核／上架已完成，按Availability設定提供：[HeiBan商店頁面](https://apps.microsoft.com/detail/9NV8T7RKV4MZ)。[來源與查證限制](docs/STORE_AVAILABLE_2026-10-12.zh-TW.md)。下方舊「尚未上架」是當時紀錄；後續十語／操作改善仍需另外提高MSIX版號提交更新。
+
 ## 2026-10-11 十種介面語言
 
 首頁左下「語言」可選正體中文（預設）、簡體中文、英文、日文、韓文、西班牙文、法文、德文、葡萄牙文（巴西）、阿拉伯文；側欄收起時點文/A圖示。選擇成功立即套用，存於本機Data/Settings/language.json（安裝版採自己的資料根）；下次開啟沿用。回首頁再改語言，作品內容保持原文。

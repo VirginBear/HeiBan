@@ -1,5 +1,11 @@
 # Windows 目前開發狀態
 
+## 2026-10-12 — Store首次審核完成並上架（使用者後台截圖）
+
+使用者提供Partner Center overview：Submission 1、Store目前狀態綠勾、明確顯示產品目前可在Microsoft Store取得，依Availability可發現性設定提供，並有「開始更新」。可依後台截圖確認審核及上架完成；不是助手登入查證。精確通過／发布時刻、所有市場可搜尋及實際下載／安裝未驗證。公開web工具無法讀商品頁，搜尋未收錄不推翻後台證據。
+
+[上架確認紀錄](STORE_AVAILABLE_2026-10-12.zh-TW.md)；[商店入口](https://apps.microsoft.com/detail/9NV8T7RKV4MZ)。之前「認證中／尚未上架」段落保留歷史，以本段為最新狀態。十語與後續Windows改善是本機開發版，尚未由此紀錄提交新Store更新；既有送審包／正式發布保留。當前精確套件版本未從這份截圖重新查證。
+
 最終r2 x64 Release build：退出0、0警告／0錯誤、28.23秒；十份完整資源嵌入DLL、literal來源鍵無缺項為靜態檢視，非App／測試驗收。最後文字屬性展示补強由新Portable publish重新編譯，封裝證據另記。
 
 ## 2026-10-11 — Windows 十語介面
