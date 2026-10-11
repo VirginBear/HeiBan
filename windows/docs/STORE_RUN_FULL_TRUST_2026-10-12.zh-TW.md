@@ -6,7 +6,13 @@
 
 公開開工git status只既存.vscode/；私人乾淨且origin／gh isPrivate=true核同。先讀開發索引及Windows目前狀態、架構、問題與平台規則。私人僅保存精簡需求及公開索引，不公開帳戶或新增產品身分。
 
-## 可直接貼入的英文說明
+## 短版英文說明（325字元，優先使用）
+
+使用者回報前版文字在欄位中截斷，改提供下列325個ASCII字元的單段版本（含空格與標點、不含外側換行）。這是針對使用者實際回報縮短，未取得後台maxlength，不把500字元當作已查證的官方限制。
+
+HeiBan is a WinUI 3 desktop whiteboard app packaged as MSIX. runFullTrust is required to run HeiBan.exe at mediumIL, manage local work files, and support a transparent desktop annotation overlay, global hotkeys and user-initiated screenshots. It runs with normal user permissions and does not require administrator elevation.
+
+## 原長版說明（保留為背景資料）
 
 HeiBan is a Windows desktop whiteboard and note-taking application built with WinUI 3 / Windows App SDK and packaged as MSIX. The package contains HeiBan.exe, declared as Windows.FullTrustApplication with packagedClassicApp runtime behavior and mediumIL trust level. The runFullTrust capability is required to launch and run this desktop application in its intended execution model.
 
@@ -27,3 +33,7 @@ Get-Content／rg檢視manifest、架構與既有MSIX文件；未執行App或測�
 初稿曾把原生manifest描述為asInvoker；讀取實際檔案發現沒有該欄位，在提交前更正為未宣告requestedExecutionLevel，依Store mediumIL說明正常使用者權限，未改manifest。
 
 本批新增本文件，並更新Windows CURRENT_STATUS／DEVELOPMENT_LOG與私人精簡交接。無新架構或程式問題，DECISIONS／ISSUE_HISTORY不變。未執行App、tests、build、封裝、安裝、Partner Center填寫／提交／發布；沒有新核准證據。公開与私人文件各自提交／push，遠端核對結果以當次工具輸出為準。
+
+## 短版補充工作紀錄
+
+開始：公開status只原.vscode/，私人乾淨、visibility=true。使用者回報文字太長並提供IARC通知；本批縮短表單文案，信件原件及分級交接保存在獨立私人庫。已讀開發索引及Windows狀態／架構／問題紀錄。PowerShell字串Length確認短文325字元；舊長文不刪，標為背景資料以保留歷史。不改程式、版本、套件或商店狀態，未執行App／tests／build／後台填寫／提交；私人信件不能當作本次更新的認證證據。實際保存／Git同步結果於本次工具輸出及私人日誌記錄。

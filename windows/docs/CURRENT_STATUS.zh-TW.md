@@ -2,7 +2,7 @@
 
 ## 2026-10-12 — runFullTrust 送審欄位說明
 
-已核對Store manifest為FullTrustApplication／packagedClassicApp／mediumIL，需保留runFullTrust；提供[可貼入英文說明與證據](STORE_RUN_FULL_TRUST_2026-10-12.zh-TW.md)，涵蓋桌面執行、本機檔案、螢幕註記、快捷鍵及主動截圖。未變更權限、版本、產物或後台，核准仍依本次Microsoft審查。
+已核對Store manifest為FullTrustApplication／packagedClassicApp／mediumIL，需保留runFullTrust；提供[325字元短版英文說明與證據](STORE_RUN_FULL_TRUST_2026-10-12.zh-TW.md)，涵蓋桌面執行、本機檔案、螢幕註記、快捷鍵及主動截圖。短文依使用者回報截斷縮短，未宣稱官方欄位上限。未變更權限、版本、產物或後台，核准仍依本次Microsoft審查。
 
 ## 2026-10-12 — 十語商店清單文案
 

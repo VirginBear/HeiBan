@@ -1,5 +1,9 @@
 # Windows 開發日誌
 
+## 2026-10-12 — runFullTrust 文案縮短
+
+使用者回報長文在欄位截斷，改325字元單段英文；PowerShell Length確認含空白標點325，未檢視後台maxlength，不推定官方500字元上限。舊長版保留為背景資料，更新CURRENT_STATUS與原說明日誌。附信只讀為資料，原件／年齡分級紀錄保存在私人庫，不把它當成本次更新認證完成。公開開工只既存.vscode/、私人乾淨且PRIVATE；本批未改程式／版本／套件，未執行App／tests／build或後台填寫／提交。
+
 ## 2026-10-12 — runFullTrust 欄位核對
 
 使用者要求受限功能理由；核對manifest與Microsoft官方能力文件，新增英文送審文案及[本批日誌](STORE_RUN_FULL_TRUST_2026-10-12.zh-TW.md)，更新CURRENT_STATUS，私人僅存精簡交接。rg萬用字元路徑失敗改實際目錄；舊官方網址工具錯誤改共享官方文件，實際查閱過程保留。沒有程式／權限／版本／產物變更；未執行App／tests／build／封裝／後台操作，沒有新核准證據。各repo文件提交／push與遠端核對以本次工具輸出為準。
