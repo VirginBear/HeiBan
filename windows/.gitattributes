@@ -1,0 +1,4 @@
+# Keep generated guide bytes stable across Windows/macOS checkouts so the
+# per-page SHA manifest remains valid on another development computer.
+HeiBan.Windows/Assets/Guides/*.html text eol=lf
+HeiBan.Windows/Documentation/Guides/*.txt text eol=lf
