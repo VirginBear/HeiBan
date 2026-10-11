@@ -1,5 +1,11 @@
 # Windows 目前開發狀態
 
+## 2026-10-12 — 十語手冊候選已封裝，待實用確認
+
+版本沿用1.0.14，不新進版。最新免安裝`dist/trials/HeiBan-Windows-Portable-1.0.14-guides-2026-10-12-win-x64.zip`，131,753,592bytes／SHA256 `2022630e14aa2b1313ab0319659c266a9d9046e69617ced060dd761a1ef27e8b`；同名解壓版HeiBan.exe已接續20檔898,085bytes、20SHA核同，備份保留，ZIP空Data。舊未發布save-mode trial清理452,723,319bytes。App/helper publish退出0、无warning/error，靜態147source／568inventory／570archive、十語25章55段与12guide files核同。
+
+Store最新同版候選`dist/store/candidates/guides-2026-10-12/HeiBan-Store-1.0.14.0-x64-arm64.msixbundle`，193,675,520bytes／SHA256 `8dc919c47c69585a114cc9c8d1ddf20c1126e08b5524ca73009c8e85b396d666`。x64 51.93秒／ARM64 52.96秒各0warning/error，兩MSIX各12guide byte matched、198source核同；原Store12／13／14不变。舊root1.0.14.0不含本批手冊，不混用。來源portable8458363、Store1ab7018（只追加LF屬性），未提交／正式進版未核准。App／browser／tests／母語／硬體未驗收。[完整日誌](MULTILINGUAL_GUIDE_2026-10-12.zh-TW.md)／[試用項目](GUIDES_TRIAL_REVIEW_2026-10-12.zh-TW.md)／[提交素材](STORE_UPDATE_GUIDES_2026-10-12.zh-TW.md)。
+
 ## 2026-10-12 — 十語使用說明（開發候選）
 
 手冊十語來源／生成資源已完成：各25章55段，離線搜尋、章節導覽與頁內切語，ar RTL；首頁／作品入口共用並隨介面語言開啟。內容同步新版自動存檔與圖層／screen操作，缺檔回正體中文，手冊選語不回寫App偏好。版本仍1.0.14，候選採guides-2026-10-12標籤；同版Store新包使用独立candidates路徑。編譯／封裝與檢視結果接續[本批日誌](MULTILINGUAL_GUIDE_2026-10-12.zh-TW.md)。母語／App實機／RTL／整批驗收未完成，正式進版及提交由使用者決定。

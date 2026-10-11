@@ -1,0 +1,27 @@
+{
+  "success": true,
+  "scope": "Static ZIP, inventory, source and guide byte comparison; no app/tests",
+  "sourceCommit": "84583637706e172e0ed64c0e8431122311f17309",
+  "version": "1.0.14",
+  "zipRelativePath": "dist/trials/HeiBan-Windows-Portable-1.0.14-guides-2026-10-12-win-x64.zip",
+  "bytes": 131753592,
+  "sha256": "2022630e14aa2b1313ab0319659c266a9d9046e69617ced060dd761a1ef27e8b",
+  "sourceFiles": 147,
+  "inventoryFiles": 568,
+  "archiveFiles": 570,
+  "guideDocuments": 12,
+  "dataFiles": 0,
+  "languages": [
+    "zh-TW",
+    "zh-CN",
+    "en",
+    "ja",
+    "ko",
+    "es",
+    "fr",
+    "de",
+    "pt-BR",
+    "ar"
+  ],
+  "sectionsPerGuide": 25
+}

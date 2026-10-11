@@ -2,7 +2,7 @@
 
 ## 2026-10-12 十語離線使用說明
 
-首頁／作品內使用說明跟隨目前介面語言，十語均有完整25章55段，手冊本頁亦可切語，離線搜尋／導覽可用、阿拉伯文RTL。新來源與生成器在Documentation/Guides及scripts/Build-UserGuides.py；版本仍1.0.14，用guides-2026-10-12標記開發候選。[階段日誌](docs/MULTILINGUAL_GUIDE_2026-10-12.zh-TW.md)。新包準備中，母語及App實機待確認；正式進版規則沿用下段。
+首頁／作品內使用說明跟隨目前介面語言，十語均有完整25章55段，手冊本頁亦可切語，離線搜尋／導覽可用、阿拉伯文RTL。新來源與生成器在Documentation/Guides及scripts/Build-UserGuides.py；版本仍1.0.14，用guides-2026-10-12標記開發候選。[階段日誌](docs/MULTILINGUAL_GUIDE_2026-10-12.zh-TW.md)。新試用包已完成：`dist/trials/HeiBan-Windows-Portable-1.0.14-guides-2026-10-12-win-x64.zip`；新同版Store候選在`dist/store/candidates/guides-2026-10-12/`，原包保留。x64／ARM64編譯0warning/error且手冊包體靜態核同，母語及App實機待確認；正式進版規則沿用下段。
 
 ## 2026-10-12 — 進版節奏更正（最高優先）
 

@@ -1,0 +1,46 @@
+{
+  "success": true,
+  "scope": "Static source, two MSIX and guide byte comparison; no app/tests/Store install",
+  "sourceCommit": "1ab7018b24e4fc06f354ac8d968207de8d0c7770",
+  "version": "1.0.14.0",
+  "formalVersionApproved": false,
+  "storeSubmitted": false,
+  "candidateRelativePath": "dist/store/candidates/guides-2026-10-12",
+  "sourceFiles": 198,
+  "guideDocumentsPerArchitecture": 12,
+  "languages": [
+    "zh-TW",
+    "zh-CN",
+    "en",
+    "ja",
+    "ko",
+    "es",
+    "fr",
+    "de",
+    "pt-BR",
+    "ar"
+  ],
+  "sectionsPerGuide": 25,
+  "originalStoreVersionsPreserved": [
+    "1.0.12.0",
+    "1.0.13.0",
+    "1.0.14.0"
+  ],
+  "artifacts": [
+    {
+      "sha256": "0d0f883d2109e06d8ec6f556cfb056ff3e44cccfd4bbd845ffc98efa8c8532fe",
+      "file": "HeiBan-Store-1.0.14.0-x64.msix",
+      "bytes": 98120539
+    },
+    {
+      "sha256": "a437e10c11dcfeb32de1f557378be9b68a50e9cf2a7ad3526f58bc990899a856",
+      "file": "HeiBan-Store-1.0.14.0-arm64.msix",
+      "bytes": 95552946
+    },
+    {
+      "sha256": "8dc919c47c69585a114cc9c8d1ddf20c1126e08b5524ca73009c8e85b396d666",
+      "file": "HeiBan-Store-1.0.14.0-x64-arm64.msixbundle",
+      "bytes": 193675520
+    }
+  ]
+}

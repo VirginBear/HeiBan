@@ -19,3 +19,16 @@
 Package-PortableTrial將authoring txt／生成器／manifest加入source SHA。Package-Store新增DevelopmentLabel隔離dist/store/candidates/<label>，不覆寫原同版套件／原根latest report、也不為防覆寫而加版本；report標formalVersionApproved=false與label。Read-StorePackage逐byte匹配十HTML及manifest，另保留25legal與guide／README核對。兩平台座標、作品JSON、renderer、Undo與版本metadata未改。
 
 本批修改C#兩入口、XAML一label、兩packaging script、生成器、9份來源與來源README、11個Guides assets及舊相容HTML，並更新平台狀態／架構／決策／問題／日誌。HTML字串均escape，不把來源當可執行markup；manual只描述目前候選，不冒称正式驗收完成。翻譯未母語校閱，檢查及封裝接續。
+
+## 階段3：當次編譯、靜態檢視、資料接續
+
+- source實作 `84583637706e172e0ed64c0e8431122311f17309`，35檔1113新增11刪除；Windows .gitattributes後續提交 `1ab7018b24e4fc06f354ac8d968207de8d0c7770`，固定Guides HTML／來源txt LF，避免另一台電腦autocrlf使每頁SHA manifest失效。兩次間App／HTML內容不變。
+- `Package-PortableTrial.ps1 -Runtime win-x64 -Label guides-2026-10-12`退出0，App/helper publish無warning/error；證據`.build/portable-trial-ede12fb563574818a430e822f7005f24/`與`.build/portable-guides-2026-10-12.log`。ZIP `dist/trials/HeiBan-Windows-Portable-1.0.14-guides-2026-10-12-win-x64.zip`，131,753,592bytes，SHA256 `2022630e14aa2b1313ab0319659c266a9d9046e69617ced060dd761a1ef27e8b`。
+- `Package-Store.ps1 -DotnetPath windows/.build/tools/dotnet/dotnet.exe -DevelopmentLabel guides-2026-10-12`退出0；x64 51.93秒／ARM64 52.96秒，各0warning／0error。證據`.build/store-2aeb6eb481cc4e9a943ca3e44987f020/`與`.build/store-guides-2026-10-12.log`。bundle `dist/store/candidates/guides-2026-10-12/HeiBan-Store-1.0.14.0-x64-arm64.msixbundle`，193,675,520bytes，SHA256 `8dc919c47c69585a114cc9c8d1ddf20c1126e08b5524ca73009c8e85b396d666`。版本仍1.0.14.0，formalVersionApproved=false、storeSubmitted=false；原root三個Storebundle及reports不覆寫。
+- `.build/inspect-guides.py`及`--packages`各退出0：10語×25章×55段、完整anchor／切語相對路徑、ar dir=rtl、無外部資源、manifest每頁SHA一致；portable147source／568inventory／570archive、12guide documents（10語＋manifest＋相容頁）、空Data、逐payload SHA；Store198source／兩MSIX各12guide逐byte、無Data／Updater／pdb、bundle套件byte／identity／兩架構已由packaging核對。原Store12／13／14SHA核同。這是靜態產物檢視，不是App／browser tests。來源SHA一致是檢視當時，後續README／docs是交付紀錄。
+- `Clear-ObsoleteTrials.ps1 -KeepTrial HeiBan-Windows-Portable-1.0.14-guides-2026-10-12-win-x64`退出0；先確認無HeiBan程序並核GitHub已發布assets，清除舊save-mode未發布runtime／ZIP／sidecar452,723,319bytes。這次舊Data已有20檔898,085bytes（不是上一批的9檔），全保留至`dist/trial-data-backups/20261011-212517-bd8345c8/`；不讀／記作品名稱內容，前備份保留。
+- `.build/handoff-guides.ps1`退出0；從核同備份複製到新解壓版空Data（允許空子目錄但拒絕已有檔／reparse point），20／20 SHA相符，備份保留。ZIP仍空Data；root Store12／13／14及新ZIPSHA再次核同。原始portable inspection的dataFiles=0是接續前，而現在解壓版20檔；不同時点分開記。
+
+交付：[十語內容檢視](GUIDES_CONTENT_INSPECTION_2026-10-12.json)、[試用產物](GUIDES_PORTABLE_ARTIFACT_2026-10-12.json)、[試用檢視](GUIDES_PORTABLE_INSPECTION_2026-10-12.json)、[商店產物](GUIDES_STORE_ARTIFACT_2026-10-12.json)、[商店檢視](GUIDES_STORE_INSPECTION_2026-10-12.json)、[清理](GUIDES_TRIAL_CLEANUP_2026-10-12.json)、[資料接續](GUIDES_DATA_HANDOFF_2026-10-12.json)、[使用者试用清單](GUIDES_TRIAL_REVIEW_2026-10-12.zh-TW.md)、[商店候選素材](STORE_UPDATE_GUIDES_2026-10-12.zh-TW.md)。本批已完成手冊與封裝準備，正式版本決策仍待使用者依整批驗證作出。
+
+未執行：App、browser互動、tests、WACK、Store安裝／提交／發布、母語校閱、4K／DPI／RTL实機、畫布／保存／Undo回歸、效能量測。手冊行為／操作一致性與語文品質需試用確認；不因包完成將正式進版核准改true。Mac／Web、資料格式與原發行歷史未改。

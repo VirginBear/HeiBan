@@ -1,0 +1,104 @@
+{
+  "success": true,
+  "scope": "Static HTML structure, anchors, language paths, paragraph count, SHA and preservation only; no browser/app execution or tests",
+  "pages": [
+    {
+      "language": "zh-TW",
+      "sections": 25,
+      "paragraphs": 55,
+      "sha256Matches": true,
+      "languageLinksResolve": true,
+      "direction": "ltr",
+      "externalResources": 0
+    },
+    {
+      "language": "zh-CN",
+      "sections": 25,
+      "paragraphs": 55,
+      "sha256Matches": true,
+      "languageLinksResolve": true,
+      "direction": "ltr",
+      "externalResources": 0
+    },
+    {
+      "language": "en",
+      "sections": 25,
+      "paragraphs": 55,
+      "sha256Matches": true,
+      "languageLinksResolve": true,
+      "direction": "ltr",
+      "externalResources": 0
+    },
+    {
+      "language": "ja",
+      "sections": 25,
+      "paragraphs": 55,
+      "sha256Matches": true,
+      "languageLinksResolve": true,
+      "direction": "ltr",
+      "externalResources": 0
+    },
+    {
+      "language": "ko",
+      "sections": 25,
+      "paragraphs": 55,
+      "sha256Matches": true,
+      "languageLinksResolve": true,
+      "direction": "ltr",
+      "externalResources": 0
+    },
+    {
+      "language": "es",
+      "sections": 25,
+      "paragraphs": 55,
+      "sha256Matches": true,
+      "languageLinksResolve": true,
+      "direction": "ltr",
+      "externalResources": 0
+    },
+    {
+      "language": "fr",
+      "sections": 25,
+      "paragraphs": 55,
+      "sha256Matches": true,
+      "languageLinksResolve": true,
+      "direction": "ltr",
+      "externalResources": 0
+    },
+    {
+      "language": "de",
+      "sections": 25,
+      "paragraphs": 55,
+      "sha256Matches": true,
+      "languageLinksResolve": true,
+      "direction": "ltr",
+      "externalResources": 0
+    },
+    {
+      "language": "pt-BR",
+      "sections": 25,
+      "paragraphs": 55,
+      "sha256Matches": true,
+      "languageLinksResolve": true,
+      "direction": "ltr",
+      "externalResources": 0
+    },
+    {
+      "language": "ar",
+      "sections": 25,
+      "paragraphs": 55,
+      "sha256Matches": true,
+      "languageLinksResolve": true,
+      "direction": "rtl",
+      "externalResources": 0
+    }
+  ],
+  "legacyLanguageLinksResolve": true,
+  "storeVersionsPreserved": {
+    "1.0.12.0": "d7a49b63d88fa880b1a97b0c307361ad2cfbc9b3d58786048887093d7204ea7b",
+    "1.0.13.0": "c8fc90e49c2cb1517e4d7a84f9c03a106083dc2053bd05a3cd533c07893320ad",
+    "1.0.14.0": "ca8c799cdb393134444989ca25a87d040736cff4b8730d7de7c199fab54c92a6"
+  },
+  "nativeLanguageReview": false,
+  "browserInteractionsChecked": false
+}
