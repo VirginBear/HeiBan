@@ -176,11 +176,27 @@ public class BoardEngine: ObservableObject {
     }
 
     public func toggleViewportLock() {
-        viewportLocked.toggle()
+        setViewportLocked(!viewportLocked)
+    }
+
+    public var hasUnsavedDraftOrChanges: Bool {
+        if inlineTextEditing && !textDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return true
+        }
+        return false
     }
 
     public var saveFeedbackState: BoardSaveFeedbackState {
-        BoardSaveFeedbackState.resolve(status: autosaveStatus)
+        if autosaveStatus.contains("失敗") || autosaveStatus.contains("無法") {
+            return .failed(detail: autosaveStatus)
+        }
+        if autosaveStatus == "儲存中…" || autosaveStatus == "儲存中" {
+            return .saving
+        }
+        if hasUnsavedDraftOrChanges {
+            return .unsaved
+        }
+        return BoardSaveFeedbackState.resolve(status: autosaveStatus)
     }
 
     public func toggleLaser() {

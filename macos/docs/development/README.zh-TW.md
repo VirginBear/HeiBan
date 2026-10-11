@@ -15,6 +15,8 @@
 
 下一批工具列優先依 [Antigravity Mac 工具列追齊清單](../ANTIGRAVITY_MAC_TOOLBAR_WORKLIST_2026-10-11.zh-TW.md)；涵蓋一般／螢幕列，尚未實作。
 
+最新工具列交付見 [獨立複核與M23–25修正目標](MAC_TOOLBAR_REVIEW_2026-10-11.zh-TW.md)：核心套件通過但實際偏好／草稿／鎖定流程仍有缺口。
+
 ## 工作順序
 
 1. 檢查目前 Git 變更與平台範圍。

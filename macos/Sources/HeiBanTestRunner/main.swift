@@ -5349,6 +5349,50 @@ do {
     assertEqual(BoardSaveFeedbackState.resolve(status: "無法取得自動儲存位置"), .failed(detail: "無法取得自動儲存位置"), "儲存回饋：無法寫入對應 .failed (紅色驚嘆號)")
     // 嚴防非錯誤文字被當作已存
     assertEqual(BoardSaveFeedbackState.resolve(status: "草稿中"), .unsaved, "儲存回饋：未知或草稿狀態絕對不可誤報為 saved (消除假綠點)")
+
+    // 47.5 M23: 隱藏偏好經 setItemHidden 儲存、重開與 normalize 後不失效 (筆刷/圖層/教學工具)
+    for toolToHide in ["pen", "layers", "timer"] {
+        var p = ToolbarPreferences.createDefault()
+        if !p.activeItemIds.contains(toolToHide) {
+            p.setItemHidden(id: toolToHide, hidden: false) // 先顯示
+        }
+        p.setItemHidden(id: toolToHide, hidden: true)
+        assertFalse(p.visibleItemIds.contains(toolToHide), "M23 隱藏前：\(toolToHide) 不在 visibleItemIds")
+
+        let encodedData = try! JSONEncoder().encode(p)
+        var reloadedPrefs = try! JSONDecoder().decode(ToolbarPreferences.self, from: encodedData)
+        reloadedPrefs.normalize()
+        assertFalse(reloadedPrefs.visibleItemIds.contains(toolToHide), "M23 序列化重開與 normalize 後：\(toolToHide) 維持隱藏，不復活！")
+        assertTrue(reloadedPrefs.hiddenItemIds.contains(toolToHide), "M23 遮罩維持：\(toolToHide) 保留在 hiddenItemIds")
+
+        // 重新顯示時，順序可預期恢復
+        reloadedPrefs.setItemHidden(id: toolToHide, hidden: false)
+        assertTrue(reloadedPrefs.visibleItemIds.contains(toolToHide), "M23 重新顯示：\(toolToHide) 正確重返可見列")
+    }
+
+    // 47.6 M24: 真實文字草稿在上次已存下精準回報 .unsaved (防假綠點)
+    let draftEngine = BoardEngine(restoreSession: false)
+    draftEngine.autosaveStatus = "本機已儲存 21:30"
+    draftEngine.beginInlineTextEntry(at: Point(x: 100, y: 100), kind: .text)
+    draftEngine.textDraft = "new unsaved text"
+    assertEqual(draftEngine.saveFeedbackState, .unsaved, "M24: 有非空文字草稿時必須精準回報 .unsaved (絕非 saved 假綠點)")
+
+    // 提交草稿後關閉編輯
+    draftEngine.commitInlineTextEntry()
+    assertEqual(draftEngine.inlineTextEditing, false, "M24: 提交草稿後關閉文字編輯")
+
+    // 47.7 M25: 工具列視角鎖定與 setViewportLocked 行為完全一致 (提交文字草稿與取消暫態)
+    let lockEngine = BoardEngine(restoreSession: false)
+    lockEngine.beginInlineTextEntry(at: Point(x: 150, y: 150), kind: .text)
+    lockEngine.textDraft = "locked draft text"
+    assertEqual(lockEngine.inlineTextEditing, true, "M25: 處於文字編輯中")
+    assertEqual(lockEngine.viewportLocked, false, "M25: 初始視角未鎖定")
+    lockEngine.toggleViewportLock()
+    assertEqual(lockEngine.viewportLocked, true, "M25: toggleViewportLock 後鎖定")
+    assertEqual(lockEngine.inlineTextEditing, false, "M25: toggleViewportLock 同步提交文字草稿，不殘留 editing")
+    assertTrue(lockEngine.objects.contains(where: { $0.text == "locked draft text" }), "M25: 鎖定前文字草稿被成功提交為畫布物件")
+    lockEngine.toggleViewportLock()
+    assertEqual(lockEngine.viewportLocked, false, "M25: 再次調用解鎖視角")
 }
 
 print("\n==================================================")

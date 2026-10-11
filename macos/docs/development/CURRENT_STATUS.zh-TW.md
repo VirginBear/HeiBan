@@ -2,6 +2,19 @@
 
 更新：2026-10-11。平台：macOS；最新本機開發版 1.0.12 / 20261010.4。
 
+## 2026-10-11 — 工具列第一批複核缺陷排解完成 (M23、M24、M25 全通)
+
+依據 [Mac 工具列獨立複核報告](MAC_TOOLBAR_REVIEW_2026-10-11.zh-TW.md) 指出的 3 個核心缺口，已徹底完成修復並經雙重嚴格驗證（核心 Runner 1,642 斷言 100% 通過，獨立 Release Probe 7/7 全數 PASS，0 失敗）：
+1. **M23（隱藏偏好重開失效）**：修正 `ToolbarPreferences.normalize()`，分開 `activeSeen` 與 `hiddenSeen` 獨立去重，`hiddenItemIds` 不再被 `activeItemIds` 的 `seen` 誤刪，使用者隱藏之工具（如 `pen`, `layers`, `timer`）經序列化／反序列化／重開後完美保持隱藏，取消隱藏時順序可預期恢復。
+2. **M24（非空文字草稿誤報已存假綠點）**：`BoardEngine.saveFeedbackState` 結合 `hasUnsavedDraftOrChanges`，即時識別未提交之非空文字草稿，在草稿期間精準回報 `.unsaved`（琥珀色虛線圓），提交寫入後才恢復為 `.saved`。
+3. **M25（工具列視角鎖定繞過既有提交）**：`BoardEngine.toggleViewportLock()` 統一致電 `setViewportLocked(!viewportLocked)`，確保鎖定視角時同步提交文字草稿為畫布物件並結束編輯、取消縮放平移暫態，與導航命令完全一致。
+4. **驗證與封裝**：
+   - 核心測試：`[測試 47]` 追加 M23/M24/M25 斷言，`swift run HeiBanTestRunner` 達成 **1,642 / 1,642 斷言成功（0 失敗）**。
+   - 獨立 Release Probe：`heiban_toolbar_edge_probe.swift` 連結最新 Release `HeiBanCore.o`，達成 **7 PASS / 0 FAIL**（Edge probe failures: 0）。
+   - Release App：`build_app.sh` 重新編譯封裝成功，`codesign --verify --deep --strict` 簽章有效。詳見 [日誌 08](logs/2026-10-11/08.zh-TW.md)。
+
+## 2026-10-11 — 工具列第一批獨立複核：已實作，仍有驗收缺口（歷史）
+
 ## 2026-10-11 — Mac 工具列第一批追齊實作完成 (MAC-TB-01 ~ MAC-TB-03)
 
 依據 [Mac 工具列追齊工作清單](../ANTIGRAVITY_MAC_TOOLBAR_WORKLIST_2026-10-11.zh-TW.md)，嚴格遵循「先靶後箭」工程規範，第一批優先項目已全數交付並通過客觀斷言驗收：

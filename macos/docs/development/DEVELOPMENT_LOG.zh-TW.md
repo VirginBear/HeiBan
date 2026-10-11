@@ -4,6 +4,7 @@
 此索引由 `macos/scripts/new_dev_entry.py` 生成；實際內容由開發者填寫。
 歷史變更摘要及曾遇問題另見 [ISSUE_HISTORY](ISSUE_HISTORY.zh-TW.md)。
 
+- [2026-10-11 · Mac 工具列第一批獨立複核問題排解 (M23 ~ M25 修正交付)](logs/2026-10-11/08.zh-TW.md)
 - [2026-10-11 · Mac 工具列第一批追齊實作完成 (MAC-TB-01 ~ MAC-TB-03)](logs/2026-10-11/07.zh-TW.md)
 - [2026-10-11 · 逐項核對 Windows 工具列細節與 Mac 追齊清單](logs/2026-10-11/06.zh-TW.md)
 - [2026-10-11 · 複核 M21 修正與 Mac 最新 App 試用條件](logs/2026-10-11/05.zh-TW.md)

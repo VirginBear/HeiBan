@@ -216,3 +216,16 @@ M21 獨立複核補充（2026-10-11）：f960c78 下完整 runner 1559/1559、Re
 使用者實際回報Windows工具列細節較完整。原MAC-SYNC-03／04偏重螢幕列，沒有完整主列預設／catalog／偏好遷移／選取樣式／收合。Windows後續UX_FEEDBACK覆寫原捲動決策，Mac仍固定螢幕尺寸與中段ScrollView；若沿用舊紀錄會做錯方向。已分兩種工具列整理TB01–10及驗收條件，保留Mac窄欄／T／文字右鍵／色圈設定等既有要求。
 
 另靜態確認TopNavView saveLabel有「尚未儲存」值，但statusIndicatorView非失敗／儲存中分支仍畫綠點並提示所有變更已安全寫入；需真實dirty／草稿／交易／寫入狀態，已列TB03。沒有操作UI重現，也尚未修功能。本次未編譯、執行測試或封裝；不得使用上一輪1559數字代表工具列驗收。詳見 [完整工作清單](../ANTIGRAVITY_MAC_TOOLBAR_WORKLIST_2026-10-11.zh-TW.md)。
+
+
+## M23 — 工具列隱藏偏好重新載入時被normalize移除
+
+2026-10-11，來源764c8e6。狀態：Release probe已重現，待修。setItemHidden保留active但新增hidden，normalize共用seen將hidden同ID移除，pen／layers重開恢復顯示。測試47的互斥fixture未覆蓋真實hide命令產生的重疊格式。需保留順序＋遮罩契約，補hide→保存→重開／重複normalize測試。見工具列複核報告。
+
+## M24 — 儲存指示只解析舊字串，未讀取真實文字草稿
+
+2026-10-11，來源764c8e6。狀態：Release probe已重現，待修。上次saved→beginInlineTextEntry→非空textDraft仍saved，因回饋只讀autosaveStatus、文字未提交不排程保存；直接測「草稿中」字串不代表實際UI生命週期。需真實草稿／交易與寫入回報，補取消／提交／成功／失敗完整流程。見工具列複核報告。
+
+## M25 — 新toggleViewportLock只改布林，與導航入口行為不同
+
+2026-10-11，來源764c8e6。狀態：Release probe已重現，待修。工具列toggle後文字仍editing，既有setViewportLocked則先提交、清理暫態與縮放。需統一走既有命令，補各入口與文字／手勢中的切換。見工具列複核報告。

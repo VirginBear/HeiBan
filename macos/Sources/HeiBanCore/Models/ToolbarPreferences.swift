@@ -80,21 +80,22 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
 
     public mutating func normalize() {
         let allKnown = Set(Self.allDefinitions.map(\.id))
-        var seen = Set<String>()
+        var activeSeen = Set<String>()
+        var hiddenSeen = Set<String>()
 
         // One-time discovery: 舊偏好若兩份清單皆缺 layers，補入可見列。使用者明確隱藏時維持隱藏。
         if !activeItemIds.contains("layers") && !hiddenItemIds.contains("layers") {
             activeItemIds.append("layers")
         }
 
-        activeItemIds = activeItemIds.filter { allKnown.contains($0) && seen.insert($0).inserted }
-        hiddenItemIds = hiddenItemIds.filter { allKnown.contains($0) && seen.insert($0).inserted }
+        activeItemIds = activeItemIds.filter { allKnown.contains($0) && activeSeen.insert($0).inserted }
+        hiddenItemIds = hiddenItemIds.filter { allKnown.contains($0) && hiddenSeen.insert($0).inserted }
 
         // 其餘新增工具收納進 hiddenItemIds (更多)，避免破壞使用者既有配置
         for def in Self.allDefinitions {
-            if !seen.contains(def.id) {
+            if !activeSeen.contains(def.id) && !hiddenSeen.contains(def.id) {
                 hiddenItemIds.append(def.id)
-                seen.insert(def.id)
+                hiddenSeen.insert(def.id)
             }
         }
     }
