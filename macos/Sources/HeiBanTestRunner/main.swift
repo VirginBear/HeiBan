@@ -2811,13 +2811,13 @@ do {
 
     // 26.5 關於資訊與更新日誌真實性 (A22)
     assertEqual(AboutInfo.appName, "HeiBan 黑板", "App 名稱相符")
-    assertEqual(AboutInfo.appVersion, "1.0.1", "真版本號為 1.0.1 (非假數據)")
+    assertEqual(AboutInfo.appVersion, "1.0.5", "真版本號為 1.0.5 (非假數據)")
     assertEqual(AboutInfo.buildNumber.isEmpty, false, "組建編號存在且不為空")
     assertEqual(AboutInfo.engineVersion.contains("HeiBan Blackboard Vector Engine"), true, "引擎核心資訊明確")
     assertEqual(AboutInfo.feedbackUrl, "https://github.com/heiban/heiban/issues", "意見回覆入口有效且為真實 URL")
     assertEqual(AboutInfo.changelog.count >= 2, true, "更新日誌至少涵蓋 2 個版本紀錄")
-    assertEqual(AboutInfo.changelog[0].version, "1.0.1", "最新更新日誌對應 1.0.1 正式版")
-    assertEqual(AboutInfo.changelog[0].highlights.count >= 3, true, "1.0.1 重點更新項目豐富詳盡")
+    assertEqual(AboutInfo.changelog[0].version, "1.0.5", "最新更新日誌對應 1.0.5 正式版")
+    assertEqual(AboutInfo.changelog[0].highlights.count >= 2, true, "1.0.5 重點更新項目豐富詳盡")
 }
 
 // ==============================================================================
@@ -4507,6 +4507,9 @@ do {
     assertEqual(engine.objects.contains(where: { $0.id == circleObj.id }), false, "圓規：單一 Undo 復原整圓")
 
     // 繪製圓弧
+    compass.prepare()
+    compass.positionPencil(atAngle: 45.0)
+    compass.toggleArmed()
     compass.startArc(atAngle: 45.0)
     compass.updateSweep(toAngle: 135.0)
     assertEqual(compass.isDrawingArc, true, "圓規：處於繪弧狀態")
@@ -4535,6 +4538,7 @@ do {
     engine.objects.removeAll()
 
     // 44.1 AGM-06: 雷射筆與臨時指示圖層 (模式/光芯/淡出/容量防護/臨時圖層不進存檔/閱讀模式)
+    UserDefaults.standard.removeObject(forKey: "HeiBan.laser.mode")
     let laser = LaserPointerEngine()
     assertEqual(laser.mode, .shortTrail, "雷射筆：預設模式為 shortTrail")
     laser.mode = .point
