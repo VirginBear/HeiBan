@@ -7,6 +7,9 @@
 [階段紀錄／Mac 比對](UX_FEEDBACK_2026-10-11.zh-TW.md)保存原因、修改檔案、命令、清理與驗收界線。對話的精簡交接摘要保存私人庫。本批 x64 build 初次 0 warning／0 error；整合補強後最終 x64 build 0 warning／0 error、25.80 秒，封裝結果接續記錄。測試、App、4K／DPI／滑鼠實機均未執行。已交付 ZIP、Store bundle、SDK、Data、歷史保留；僅清理八個一次性腳本，見[清單](UX_FEEDBACK_CLEANUP_2026-10-11.json)。
 
 
+本輪新 x64 免安裝包 `dist/trials/HeiBan-Windows-Portable-1.0.12-preview.6-ux-feedback-2026-10-11-win-x64.zip`，131,541,143 bytes，SHA256 `e77d2dd28526fc70b0f9049cf96d68d22c1156373bf6044c5e79d6ac719c1aa7`；來源 77a563d，App/helper publish 退出0／無warning/error。557 inventory／106 source SHA／空 Data／PE／guide／README／sidecar 靜態一致，Store原SHA相同。[artifact](UX_FEEDBACK_PORTABLE_ARTIFACT_2026-10-11.json)／[靜態檢視](UX_FEEDBACK_PORTABLE_INSPECTION_2026-10-11.json)。未執行測試／App／實機操作，未發布 Release／Store。
+
+
 ## 2026-10-11 — Windows 20 項操作調整
 
 已接上首頁開啟／一般選取／圓形多選、停筆一秒直線預覽、百分比尺長、依物件分類屬性、箭頭頭部獨立尺寸、個別圖釘配色、延伸入口移入屬性、紙張便條視覺、上下視角鎖定同步、独立圖層與拖曳排序、雷射再次點擊設定、存檔勾號／虛線圓、屬性四邊停靠；螢幕畫布增加橡皮擦預覽、內容量測工具列、圖層與調色盤。

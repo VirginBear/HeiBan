@@ -58,3 +58,19 @@
 ### 清理結果
 
 UX_FEEDBACK_CLEANUP_2026-10-11.json 已確認八檔不存在，原檔合計 38,193 bytes；無用五個尺寸常數同時移除。PowerShell 初次用 Select-Object 顯示 ordered dictionary 為空欄，並非刪除失敗；改讀 JSON 與逐檔 Path.exists 核對、重新算總量，沒有刪除其他檔案。失敗方案／建置 log 与旧交付產物保留。
+
+## 階段 6：最終試用包與 GitHub 同步
+
+實作來源 `77a563d13c663f91ca6e6d09544828d73aef94dc` 已 commit／push，ls-remote main 與本機相同，status 僅原 .vscode/。27 個 Windows 程式與文件變更；沒有碰 Mac／Web。
+
+`Package-PortableTrial.ps1 -Runtime win-x64 -Label ux-feedback-2026-10-11` 退出 0，App／helper publish log 無 warning／error；實際證據 `windows/.build/portable-trial-b9e9f57a86b541acb3595326c5570164/`（publish.log／artifact.json／store-preservation.json）。
+
+- ZIP：`windows/dist/trials/HeiBan-Windows-Portable-1.0.12-preview.6-ux-feedback-2026-10-11-win-x64.zip`，131,541,143 bytes。
+- SHA256：`e77d2dd28526fc70b0f9049cf96d68d22c1156373bf6044c5e79d6ac719c1aa7`。
+- 解壓資料夾內 HeiBan.exe 與同目錄依賴均齊備，portable.dat 與空 Data；來源 TRIAL-SOURCE.json 106 個 byte SHA 全符。
+- ProductVersion `1.0.12-preview.6+77a563d13c663f91ca6e6d09544828d73aef94dc`，FileVersion 1.0.12.6。
+- Python zipfile／hashlib／struct 做靜態檢視：559 archive files、557 inventory SHA、sourceMismatch 0、DataFiles 0、guide／README byte 符合、sidecar SHA 符合、App/helper PE 0x8664。
+- Store 前後 SHA 同 `d7a49b63d88fa880b1a97b0c307361ad2cfbc9b3d58786048887093d7204ea7b`，舊交付包保留。
+- 完整 [artifact](UX_FEEDBACK_PORTABLE_ARTIFACT_2026-10-11.json)／[inspection](UX_FEEDBACK_PORTABLE_INSPECTION_2026-10-11.json) 另保存。ZIP 未上傳 Release／Store／私人紀錄庫；新電腦需重新封裝。
+
+本批未新增或執行測試、App、原生滑鼠／4K／DPI／多螢幕／觸控筆驗收；以上是編譯與封裝靜態證據，不保證實機游標／拖曳／換行已驗收。私人對話摘要合併重複問題，保留 20 項＋5項覆寫、Mac 比對與授權界線，不声稱逐字完整聊天匯出；在 PRIVATE 庫獨立提交同步。產品 JSON、三張送審圖保留。

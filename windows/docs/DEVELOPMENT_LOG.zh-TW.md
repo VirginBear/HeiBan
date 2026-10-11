@@ -7,6 +7,9 @@
 首次 x64 build 0 warning／0 error，後續整合 WM_SETCURSOR／取消清理，最終 x64 build 0 warning／0 error、25.80 秒，封裝結果另追加。更新離線手冊與架構／狀態／決策／問題，對話摘要僅私人庫。未修改 Mac／Web；本批沒有執行測試、App、4K／多螢幕／觸控筆、Store 或 Release 發布。
 
 
+本輪新 x64 免安裝包 `dist/trials/HeiBan-Windows-Portable-1.0.12-preview.6-ux-feedback-2026-10-11-win-x64.zip`，131,541,143 bytes，SHA256 `e77d2dd28526fc70b0f9049cf96d68d22c1156373bf6044c5e79d6ac719c1aa7`；來源 77a563d，App/helper publish 退出0／無warning/error。557 inventory／106 source SHA／空 Data／PE／guide／README／sidecar 靜態一致，Store原SHA相同。[artifact](UX_FEEDBACK_PORTABLE_ARTIFACT_2026-10-11.json)／[靜態檢視](UX_FEEDBACK_PORTABLE_INSPECTION_2026-10-11.json)。未執行測試／App／實機操作，未發布 Release／Store。
+
+
 ## 2026-10-11 — Windows 首頁、屬性與螢幕畫布 20 項
 
 使用者逐項提出操作問題；開工 da573915，保留既有 .vscode/，先讀索引及平台文件並建立[日誌](UX_ALIGNMENT_2026-10-11.zh-TW.md)。只讀 Mac HomeView、Inspector、LayerPanel、BoardEngine+Drawing、BoardPin 模型作對照。
