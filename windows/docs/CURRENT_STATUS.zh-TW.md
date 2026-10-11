@@ -1,5 +1,9 @@
 # Windows 目前開發狀態
 
+## 2026-10-12 — runFullTrust 送審欄位說明
+
+已核對Store manifest為FullTrustApplication／packagedClassicApp／mediumIL，需保留runFullTrust；提供[可貼入英文說明與證據](STORE_RUN_FULL_TRUST_2026-10-12.zh-TW.md)，涵蓋桌面執行、本機檔案、螢幕註記、快捷鍵及主動截圖。未變更權限、版本、產物或後台，核准仍依本次Microsoft審查。
+
 ## 2026-10-12 — 十語商店清單文案
 
 已提供正體中文、簡體中文、英文、日文、韓文、西班牙文、法文、德文、葡萄牙文（巴西）、阿拉伯文的[完整商店文案](STORE_LISTING_COPY_10_LANGUAGES_2026-10-12.md)：每語言有說明、6項本次新增功能、16項產品功能。文案以目前 Windows 候選功能為範圍，未加入未交付功能或效能保證；預設正體中文／自動存檔關閉與前批一致。這是可貼入後台的更新草稿，尚未母語校閱或填入 Partner Center；不變更程式、版本、產物、既有上架狀態或候選核准狀態。正式進版／提交仍依整批驗證與使用者決定。[本批日誌](STORE_LISTINGS_2026-10-12.zh-TW.md)。
