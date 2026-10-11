@@ -1,0 +1,33 @@
+{
+  "success": true,
+  "scope": "Static ZIP, source byte, inventory, license, PE and preservation inspection; no app execution or tests",
+  "sourceCommit": "c53462a4efbeafddef6fe0468047948d60ca06f9",
+  "label": "canvas-setup-2026-10-11",
+  "runtime": "win-x64",
+  "version": "1.0.12-preview.6",
+  "zipRelativePath": "dist/trials/HeiBan-Windows-Portable-1.0.12-preview.6-canvas-setup-2026-10-11-win-x64.zip",
+  "bytes": 131543340,
+  "sha256": "0066ccfa530af13a21fd016f9a49fa5dc41f13fb7a9cd7600034bd4d2fae0759",
+  "inventoryFiles": 557,
+  "archiveFiles": 559,
+  "sourceFiles": 108,
+  "sourceMismatch": 0,
+  "dataFiles": 0,
+  "guideMatches": true,
+  "readmeMatches": true,
+  "architectures": [
+    {
+      "path": "HeiBan.exe",
+      "machine": "0x8664"
+    },
+    {
+      "path": "Updater/HeiBan.Updater.exe",
+      "machine": "0x8664"
+    }
+  ],
+  "storeSha256": "d7a49b63d88fa880b1a97b0c307361ad2cfbc9b3d58786048887093d7204ea7b",
+  "storeUnchanged": true,
+  "evidenceRelativePath": ".build/portable-trial-9b79a00b5387409cb6a933f5488f910f",
+  "productVersion": "1.0.12-preview.6+c53462a4efbeafddef6fe0468047948d60ca06f9",
+  "fileVersion": "1.0.12.6"
+}

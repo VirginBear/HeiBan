@@ -7,6 +7,11 @@
 已讀取GitHub正式Release名單，保留windows-v1.0.12-preview.5與其他已發布；git ls-files沒有runtime zip/msix/exe/dll/pdb，trials ignored。本次只清理明確授權舊未發布trials，3份含Data先保留；完整SHA／bytes與結果写日誌／清理manifest。私人對話摘要補實測更正及最新需求。未改Mac／Web，未跑測試／App／商店／發布。
 
 
+本輪最終試用：`dist/trials/HeiBan-Windows-Portable-1.0.12-preview.6-canvas-setup-2026-10-11-win-x64.zip`，131,543,340 bytes，SHA256 `0066ccfa530af13a21fd016f9a49fa5dc41f13fb7a9cd7600034bd4d2fae0759`，source c53462a；[artifact](CANVAS_SETUP_PORTABLE_ARTIFACT_2026-10-11.json)／[静態檢視](CANVAS_SETUP_PORTABLE_INSPECTION_2026-10-11.json)。publish退出0／無warning/error，108 source／557 inventory／空Data／PE／授權／手冊一致；未執行App／tests／實機。
+
+已刪舊5份trials解壓runtime／ZIP／sidecar，釋放2,260,814,479 bytes（約2.106GiB）；52個Data檔共73,389 bytes先移至 `dist/trial-data-backups/20261011-032945-612f03c3/`並核SHA。trials只剩最新版3項，Store原SHA與正式Release保留。[清理结果](CANVAS_SETUP_TRIAL_CLEANUP_2026-10-11.json)。下方舊試用路徑為歷史交付紀錄，其二進位已於本輪清理，歷史source／hash／logs仍留。
+
+
 ## 2026-10-11 — 五項操作回饋與紀錄壓縮
 
 開工 HEAD 605eed4，git status 僅原 .vscode/，建立[阶段日誌](UX_FEEDBACK_2026-10-11.zh-TW.md)再實作。完成無捲軸換行工具列、拖曳預覽／插入線、形狀方向／旋轉游標、頭部線寬同步與主工具列圖層。八個一次性腳本逐檔 resolved path／非 reparse／SHA 核對後刪除；所有交付包／Data／歷史／SDK／建置證據保留。[清理清單](UX_FEEDBACK_CLEANUP_2026-10-11.json)。

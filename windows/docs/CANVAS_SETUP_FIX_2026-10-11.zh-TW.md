@@ -51,3 +51,21 @@
 清理入口（必須先完成新包）：`Clear-ObsoleteTrials.ps1 -KeepTrial HeiBan-Windows-Portable-1.0.12-preview.6-canvas-setup-2026-10-11-win-x64`。備份位於 `windows/dist/trial-data-backups/<本次ID>/<原試用名>/Data/`。新ZIP保持空Data；作品可從這些本機備份恢復。清理結果／完整ZIP SHA／釋放bytes完成後追加。
 
 GitHub CLI查核已有Release名稱／資產，git ls-files無zip/msix/exe/dll/pdb runtime、git check-ignore trials成功；沒有新試用ZIP占用GitHub，不能為這次清理重寫Git歷史或刪正式Release。git count-objects：pack30.52MiB／loose2.09MiB，屬程式與既有Git資料。
+
+## 階段 5：封裝與實際清理完成
+
+來源 `c53462a4efbeafddef6fe0468047948d60ca06f9` 已commit／push／ls-remote main同本機，status保留原.vscode/。新包 `Package-PortableTrial.ps1 -Runtime win-x64 -Label canvas-setup-2026-10-11`退出0，App/helper publish log無warning/error。
+
+- 新 ZIP `windows/dist/trials/HeiBan-Windows-Portable-1.0.12-preview.6-canvas-setup-2026-10-11-win-x64.zip`，131,543,340 bytes，SHA256 `0066ccfa530af13a21fd016f9a49fa5dc41f13fb7a9cd7600034bd4d2fae0759`。
+- 同名解壓資料夾 HeiBan.exe；ProductVersion p6+c53462a、FileVersion1.0.12.6，空Data。559 archive／557 inventory／108 source SHA皆符合，guide／README／licenses／sidecar／App及helper PE0x8664静態核對通過。
+- 封裝log／來源／保全位於 `windows/.build/portable-trial-9b79a00b5387409cb6a933f5488f910f/`；[artifact](CANVAS_SETUP_PORTABLE_ARTIFACT_2026-10-11.json)／[inspection](CANVAS_SETUP_PORTABLE_INSPECTION_2026-10-11.json)。沒有App／實機／tests執行，包未上傳Release／Store。
+
+實際執行 `Clear-ObsoleteTrials.ps1 -KeepTrial HeiBan-Windows-Portable-1.0.12-preview.6-canvas-setup-2026-10-11-win-x64`退出0，清理5份舊trial runtime＋ZIP＋sidecar。釋放 **2,260,814,479 bytes（約2.106GiB）**，3份Data共 **52檔／73,389 bytes**搬移逐SHA核對後保留；沒有unknown／modified程式檔，舊Data內容未讀或公開。
+
+- 作品備份根：`windows/dist/trial-data-backups/20261011-032945-612f03c3/`，各原試用名下Data；根目錄新增README恢復说明，不上GitHub，不混入新ZIP。
+- 原始清理證據：`windows/.build/trial-cleanup-20261011-032945-612f03c3/cleanup.json`；公開[清理結果](CANVAS_SETUP_TRIAL_CLEANUP_2026-10-11.json)只記計數／bytes／根路徑與程式包SHA，不記作品檔名或內容。
+- 靜態再核舊5資料夹／ZIP／sidecar均不存在，備份檔数與bytes符合；trials只剩新試用資料夹、ZIP、sidecar三項，新ZIP SHA不變。
+- Store前後SHA同 `d7a49b63d88fa880b1a97b0c307361ad2cfbc9b3d58786048887093d7204ea7b`；其他dist、SDK、build log／來源／原歷史文件保留，已發布GitHub資產沒有刪除。
+- 舊UX20／performance／ux-feedback歷史文件保留；其中本機trials路徑描述為當時交付位置，本輪已清掉二進位，不能再認定檔案仍存在。
+
+本輪沒有實機App驗收，不把使用者指出的上一版一般游標失敗藏在成功摘要內；新XAML方式需實機試用。Mac比對依据／完整需求更正／最新留存規則已合併到私人壓縮摘要，本機作品資料不放PRIVATE Git repo。

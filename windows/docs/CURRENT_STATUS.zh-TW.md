@@ -7,6 +7,11 @@
 [阶段日誌／Mac對照](CANVAS_SETUP_FIX_2026-10-11.zh-TW.md)。首次 x64 build 0 warning／0 error、39.18秒；後續預設記憶／取消保留補強，最終x64 build 0warning／0error、25.98秒；封裝接續記錄。本批未執行測試／App／實機UI。使用者明確授權刪除舊未發布trials以減少空間，先保留作品Data，保護最新版與已發布／Store包；不刪Git歷史。聊天摘要仍放PRIVATE。
 
 
+本輪最終試用：`dist/trials/HeiBan-Windows-Portable-1.0.12-preview.6-canvas-setup-2026-10-11-win-x64.zip`，131,543,340 bytes，SHA256 `0066ccfa530af13a21fd016f9a49fa5dc41f13fb7a9cd7600034bd4d2fae0759`，source c53462a；[artifact](CANVAS_SETUP_PORTABLE_ARTIFACT_2026-10-11.json)／[静態檢視](CANVAS_SETUP_PORTABLE_INSPECTION_2026-10-11.json)。publish退出0／無warning/error，108 source／557 inventory／空Data／PE／授權／手冊一致；未執行App／tests／實機。
+
+已刪舊5份trials解壓runtime／ZIP／sidecar，釋放2,260,814,479 bytes（約2.106GiB）；52個Data檔共73,389 bytes先移至 `dist/trial-data-backups/20261011-032945-612f03c3/`並核SHA。trials只剩最新版3項，Store原SHA與正式Release保留。[清理结果](CANVAS_SETUP_TRIAL_CLEANUP_2026-10-11.json)。下方舊試用路徑為歷史交付紀錄，其二進位已於本輪清理，歷史source／hash／logs仍留。
+
+
 ## 2026-10-11 — 操作回饋追加五項
 
 螢幕工具列移除 ScrollViewer，工作區不足改換行／換列；主／螢幕圖層拖曳加入原列淡化、圖示名稱預覽與插入線；形狀八方向縮放及圓弧旋轉游標；箭頭頭部輪廓跟隨 StrokeWidth（覆寫上一階段固定 2 的策略，幾何長寬仍独立）；主工具列 layers 入口及保留隱藏偏好的遷移。
