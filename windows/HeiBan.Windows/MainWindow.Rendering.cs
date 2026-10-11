@@ -67,6 +67,7 @@ public partial class MainWindow
             _thumbnailTimer.Stop();
             if(_pendingThumbnail is not { } pending)return;
             if(pending.Epoch!=_session.DocumentEpoch){_pendingThumbnail=null;return;}
+            if(!AutoSaveEnabled||_preparingClose||_saveBoundaryBusy)return;
             if(_gesture||_editor is not null||_propertyEditing){_thumbnailTimer.Start();return;}
             _pendingThumbnail=null;await SaveThumbnail(pending.Document);
         };
@@ -74,6 +75,6 @@ public partial class MainWindow
         _teachingSaveTimer.Tick+=async(_,_)=>await SaveTeachingSettingsAsync();
     }
     private void QueueThumbnail(HeiBanDocument snapshot,long epoch)
-    {_pendingThumbnail=(snapshot,epoch);_thumbnailTimer.Stop();_thumbnailTimer.Start();}
+    {_pendingThumbnail=(snapshot,epoch);_thumbnailTimer.Stop();if(AutoSaveEnabled&&!_preparingClose&&!_saveBoundaryBusy)_thumbnailTimer.Start();}
 
 }

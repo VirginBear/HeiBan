@@ -1,5 +1,13 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-12 — 保存政策、輸入凍結與退出屏障
+
+MainWindow.Saving只管理使用者保存偏好与保存邊界。SavingPreferences.AutoSaveEnabled=false，Settings/saving.json与語言偏好分離，JsonExtensionData保留未知欄位，gate＋WriteAtomic保存成功才Apply。owner提供AutoSaveEnabled與SetAutoSaveEnabledAsync給ScreenAnnotation，兩timers各保留原節奏，off同時停止thumbnail但保留pending供flush。
+
+HomeInputGuard／WorkspaceInputGuard用ContentControl.IsEnabled繼承停用子輸入，SavingOverlay位於Root最上層；Root快捷鍵／晚到圖片置入守護boundary。Main closing仍Cancel，再完成文字／style與原子文件保存、FlushPendingThumbnail、PrepareExit再Close；失敗恢復，重入拒絕。SaveBeforeLeaving供回首頁／新作品／匯入／螢幕切換，共用輸入凍結與flush。
+
+Screen Stop冻结native pointer／hotkey／bounds，暫停三timer與Flyout，將toolbar Content換ProgressRing並暫调尺寸320×72 DIP；成功保存後才释放renderer／lease及恢復owner；失敗恢復Content／尺寸並顯示錯誤Flyout。原screen session與主作品保持獨立。DocumentCodec.Clone仍在UI上取一致snapshot；文件編碼／IO已有Task.Run，不在線程安全契約不清楚時搬動live Document到worker。
+
 ## 2026-10-12 — 共同工具列政策、分離宿主
 
 Views/ToolbarUi僅產生獨立Button／MenuFlyout與閱讀方向政策；MainWindow套ToolButtonStyle，ScreenAnnotation套32 DIP透明chrome。Flyout互斥、OverlayInputPassThroughElement／anchor、normal ChangeProperty／screen CommitScreenStyle均留在各宿主；不得跨視窗重用UIElement。ScreenTools描述供建立與RefreshLanguage同源，差異工具仍由各宿主Profile管理。保存圖示以saved／pending／failed state與最後tooltip快取，避免pointer preview每次配置XAML，提示含語言／失敗文字獨立比對。

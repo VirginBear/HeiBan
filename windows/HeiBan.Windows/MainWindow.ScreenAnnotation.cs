@@ -17,7 +17,8 @@ public partial class MainWindow
         {
             if(_screenAnnotation?.IsActive==true){await _screenAnnotation.StartAsync();return;}
             FinishText();CommitPropertyEdit();CancelGesture();CancelScreenshotCapture("開始螢幕畫布");
-            if(_workspaceOpen&&_session.IsDirty&&!await SaveAsync())return;
+            if(_preparingClose||_saveBoundaryBusy)return;
+            if(_workspaceOpen&&!await SaveBeforeLeavingAsync())return;
             EnsureScreenAnnotation();await _screenAnnotation!.StartAsync();
         }
         catch(Exception e){await Error(e);}

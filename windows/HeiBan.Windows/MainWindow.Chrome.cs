@@ -220,6 +220,9 @@ public partial class MainWindow
         aboutItem.Click += (_, _) => About_Click(this, new RoutedEventArgs());
         menu.Items.Add(aboutItem);
 
+        var savingItem = new MenuFlyoutItem { Text = T("設定"), Icon = ToolIcons.CreateIcon("settings") };
+        savingItem.Click += async (_, _) => await ShowSavingSettingsAsync();menu.Items.Add(savingItem);
+
         var updatesItem = new MenuFlyoutItem { Text = T("檢查更新與更新設定…") };
         updatesItem.Click += async (_, _) => await ShowUpdatesAsync();
         menu.Items.Add(updatesItem);

@@ -67,6 +67,7 @@ public partial class MainWindow : Window
         App.StartupStage="建立作品資料夾";
         _storage=new();
         Localization.Strings.Initialize(_storage.DataDirectory);
+        LoadSavingPreferences();
         _toolbarPrefs=ToolbarPreferencesStore.Load(_storage.DataDirectory);
         _dock=_toolbarPrefs.DockSide;
         App.StartupStage="載入主視窗 XAML";
@@ -86,22 +87,27 @@ public partial class MainWindow : Window
         PortableBadge.Visibility=_storage.IsPortableMode?Visibility.Visible:Visibility.Collapsed;
         _updates=new Updating.GitHubUpdateService(_storage.IsPortableMode);
         _renderer.ResourcesChanged+=()=>InvalidateCanvas();
-        _autosave.Tick+=async(_,_)=>{if(_workspaceOpen&&_session.IsDirty&&_editor is null&&!_gesture&&!_propertyEditing&&_saveGate.CurrentCount>0)await SaveAsync(deferThumbnail:true);};
-        _autosave.Start();
+        _autosave.Tick+=async(_,_)=>{if(AutoSaveEnabled&&!_preparingClose&&!_saveBoundaryBusy&&_workspaceOpen&&_session.IsDirty&&_editor is null&&!_gesture&&!_propertyEditing&&_saveGate.CurrentCount>0)await SaveAsync(deferThumbnail:true);};
+        ApplySavingPreferences();
         _screenshotWatchTimer.Tick+=async(_,_)=>await OnScreenshotWatchTickAsync();
         AppWindow.Closing+=async(_,e)=>
         {
-            if(_closing)return;e.Cancel=true;if(_preparingClose)return;_preparingClose=true;
+            if(_closing)return;e.Cancel=true;if(_preparingClose||_saveBoundaryBusy)return;_preparingClose=true;
             try
             {
+                _autosave.Stop();_thumbnailTimer.Stop();_activeFlyout?.Hide();ShowSavingOverlay(true);
+                await Task.Delay(32);
                 CancelScreenshotCapture("視窗關閉");FinishText();CommitPropertyEdit();if(_gesture)CancelGesture();
                 await SaveTeachingSettingsAsync();
                 if(_screenAnnotation?.IsActive==true&&!await _screenAnnotation.StopAsync())return;
                 if(_workspaceOpen&&_session.IsDirty&&!await SaveAsync())return;
+                await FlushPendingThumbnailAsync();
+                if(_workspaceOpen&&_session.IsDirty)return;
                 if(_updates is not null)await _updates.PrepareExitAsync();
                 _closing=true;Close();
             }
-            finally{_preparingClose=false;}
+            catch(Exception error){await Error(error);}
+            finally{if(!_closing){ShowSavingOverlay(false);_preparingClose=false;ApplySavingPreferences();}}
         };
         Closed+=(_,_)=>{_layerPreview?.End();CanvasCursorHost.ReleaseCursor();_shapeCursor.Dispose();_updates?.Dispose();_autosave.Stop();_thumbnailTimer.Stop();_searchTimer.Stop();_teachingSaveTimer.Stop();CancelScreenshotCapture("視窗關閉");_timerTickTimer?.Stop();_laserTimer.Stop();_propertyCommitTimer.Stop();_headerHideTimer.Stop();ClearScene();CanvasSurface.RemoveFromVisualTree();_renderer.Dispose();_screenAnnotation?.Dispose();};
         App.StartupStage="顯示首頁";
@@ -139,6 +145,7 @@ public partial class MainWindow : Window
 
     private async Task OpenAsync(HeiBanDocument doc)
     {
+        if(_preparingClose||_saveBoundaryBusy)return;
         CancelScreenshotCapture("切換作品");
         CommitPropertyEdit();FinishText(); _renderer.ClearCache();_session.Open(doc);_workspaceOpen=true;
         _saveFailed=false;HomePanel.Visibility=Visibility.Collapsed;Workspace.Visibility=Visibility.Visible;
@@ -236,7 +243,7 @@ public partial class MainWindow : Window
             var content=new StackPanel{Spacing=14};foreach(var control in new UIElement[]{name,mode,size,background,pattern})content.Children.Add(control);
             var dialog=new ContentDialog{FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,Title=T("新增筆記或黑板"),Content=new ScrollViewer{Content=content,MaxHeight=Math.Max(160,Root.ActualHeight-180)},PrimaryButtonText=T("建立"),CloseButtonText=T("取消"),DefaultButton=ContentDialogButton.Primary,XamlRoot=Root.XamlRoot};
             if(await dialog.ShowAsync()!=ContentDialogResult.Primary)return;
-            if(_workspaceOpen&&_session.IsDirty&&!await SaveAsync())return;
+            if(_workspaceOpen&&!await SaveBeforeLeavingAsync())return;
             var dimensions=new[]{(595d,842d),(842d,595d),(1920d,1080d),(1080d,1080d)}[size.SelectedIndex];
             var board=new BoardMetadata{Title=string.IsNullOrWhiteSpace(name.Text)?T("新筆記"):name.Text.Trim(),CanvasMode=new[]{"notebook","infinite","fixed"}[mode.SelectedIndex],
                 CanvasWidth=mode.SelectedIndex==1?null:dimensions.Item1,CanvasHeight=mode.SelectedIndex==1?null:dimensions.Item2,
@@ -249,7 +256,7 @@ public partial class MainWindow : Window
     private async void Home_Click(object sender,RoutedEventArgs e)
     {
         CancelScreenshotCapture("回到首頁");
-        CommitPropertyEdit();FinishText();if(_gesture)CancelGesture();if(_session.IsDirty&&!await SaveAsync())return;
+        if(!await SaveBeforeLeavingAsync())return;
         _workspaceOpen=false;Workspace.Visibility=Visibility.Collapsed;HomePanel.Visibility=Visibility.Visible;
         try{await RefreshLibrary();}catch(Exception ex){await Error(ex);}
     }
@@ -261,13 +268,15 @@ public partial class MainWindow : Window
             var picker=new FileOpenPicker();WinRT.Interop.InitializeWithWindow.Initialize(picker,WinRT.Interop.WindowNative.GetWindowHandle(this));
             picker.FileTypeFilter.Add(".json");picker.FileTypeFilter.Add(".heiban");var file=await picker.PickSingleFileAsync();if(file is null)return;
             var imported=await _storage.ImportAsync(file.Path);
+            if(_preparingClose||_saveBoundaryBusy)return;
+            if(_workspaceOpen&&!await SaveBeforeLeavingAsync())return;
             // Import a new local identity; do not overwrite an existing board with an imported snapshot.
             imported.Board.Id=Guid.NewGuid().ToString();imported.Board.Revision=0;
             foreach(var o in imported.Objects)o.BoardId=imported.Board.Id;
             await _storage.SaveAsync(imported);await OpenAsync(imported);
         }catch(Exception ex){await Error(ex);}
     }
-    private async void Save_Click(object sender,RoutedEventArgs e){FinishText();if(_gesture)CancelGesture();await SaveAsync();}
+    private async void Save_Click(object sender,RoutedEventArgs e){if(!_workspaceOpen||_preparingClose||_saveBoundaryBusy)return;FinishText();if(_gesture)CancelGesture();await SaveAsync();}
     private void Title_LostFocus(object sender,RoutedEventArgs e)
     {if(!_workspaceOpen||string.IsNullOrWhiteSpace(TitleBox.Text)||TitleBox.Text==_session.Document.Board.Title)return;_session.Begin();_session.Document.Board.Title=TitleBox.Text.Trim();_session.Commit();}
     private async void Export_Click(object sender,RoutedEventArgs e)=>await ExportDocumentAsync();
@@ -386,6 +395,7 @@ public partial class MainWindow : Window
         _session.Begin();_session.Document.Board.ActivePageId=pages[i].Id;_session.SelectedId=null;_session.Commit();RefreshEditor();}
     private void Root_KeyDown(object sender,KeyRoutedEventArgs e)
     {
+        if(_preparingClose||_saveBoundaryBusy){e.Handled=true;return;}
         if(e.OriginalSource is TextBox or NumberBox || _editor is not null)return;
         var ctrl=Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control).HasFlag(global::Windows.UI.Core.CoreVirtualKeyStates.Down);
         if(_gesture&&(ctrl||e.Key==VirtualKey.Delete))CancelGesture();

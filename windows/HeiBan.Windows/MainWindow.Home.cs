@@ -33,7 +33,7 @@ public partial class MainWindow
         _libraryUi.Favorites??=[];if(_libraryUi.CardWidth is not (160 or 190 or 250))_libraryUi.CardWidth=190;
         LibrarySortBox.SelectedIndex=Array.IndexOf(new[]{"updated","created","title"},_libraryUi.Sort);if(LibrarySortBox.SelectedIndex<0)LibrarySortBox.SelectedIndex=0;
         SidebarToggleButton.Content=ToolIcons.Create("dock");AllLibraryIcon.Content=ToolIcons.Create("shapes");FavoriteLibraryIcon.Content=ToolIcons.Create("star");TrashLibraryIcon.Content=ToolIcons.Create("delete");
-        HomeScreenIcon.Content=ToolIcons.Create("screen");HomeGuideIcon.Content=ToolIcons.Create("reading");HomeAboutIcon.Content=ToolIcons.Create("info");LibraryMultiButton.Content=SelectionCircle(false,true,24);LibrarySizeButton.Content=ToolIcons.Create("shapes");
+        HomeSettingsIcon.Content=ToolIcons.Create("settings");HomeScreenIcon.Content=ToolIcons.Create("screen");HomeGuideIcon.Content=ToolIcons.Create("reading");HomeAboutIcon.Content=ToolIcons.Create("info");LibraryMultiButton.Content=SelectionCircle(false,true,24);LibrarySizeButton.Content=ToolIcons.Create("shapes");
         var green=Brush("#39735A");
         foreach(var key in new[]{"AccentButtonBackground","AccentButtonBackgroundPointerOver","AccentButtonBackgroundPressed","AccentFillColorDefaultBrush","AccentFillColorSecondaryBrush","AccentFillColorTertiaryBrush"})HomeNewButton.Resources[key]=green;
         foreach(var key in new[]{"SliderThumbBackground","SliderThumbBackgroundPointerOver","SliderThumbBackgroundPressed","SliderTrackValueFill","SliderTrackValueFillPointerOver","SliderTrackValueFillPressed","AccentFillColorDefaultBrush","SystemControlHighlightAccentBrush","ControlFocusVisualPrimaryBrush"})Root.Resources[key]=green;
@@ -45,8 +45,8 @@ public partial class MainWindow
         LibrarySidebarColumn.Width=new GridLength(expanded?188:64);
         SearchBox.Width=Root.ActualWidth<800?140:200;LibraryFormatBox.Width=Root.ActualWidth<800?100:132;LibrarySortBox.Width=Root.ActualWidth<800?100:112;
         LibrarySidebar.Padding=expanded?new Thickness(16,24,16,16):new Thickness(8,24,8,16);
-        foreach(var label in new FrameworkElement[]{SidebarTitle,AllLibraryLabel,FavoriteLibraryLabel,TrashLibraryLabel,HomeScreenLabel,HomeGuideLabel,HomeAboutLabel,HomeLanguageLabel}){label.Visibility=expanded?Visibility.Visible:Visibility.Collapsed;if(label is TextBlock text){text.MaxWidth=112;text.TextTrimming=TextTrimming.CharacterEllipsis;}}
-        foreach(var button in new[]{AllLibraryButton,FavoriteLibraryButton,TrashLibraryButton,HomeScreenButton,HomeGuideButton,HomeAboutButton,HomeLanguageButton})button.Padding=expanded?new Thickness(8,10,8,10):new Thickness(4,10,4,10);
+        foreach(var label in new FrameworkElement[]{SidebarTitle,AllLibraryLabel,FavoriteLibraryLabel,TrashLibraryLabel,HomeScreenLabel,HomeGuideLabel,HomeAboutLabel,HomeLanguageLabel,HomeSettingsLabel}){label.Visibility=expanded?Visibility.Visible:Visibility.Collapsed;if(label is TextBlock text){text.MaxWidth=112;text.TextTrimming=TextTrimming.CharacterEllipsis;}}
+        foreach(var button in new[]{AllLibraryButton,FavoriteLibraryButton,TrashLibraryButton,HomeScreenButton,HomeGuideButton,HomeAboutButton,HomeLanguageButton,HomeSettingsButton})button.Padding=expanded?new Thickness(8,10,8,10):new Thickness(4,10,4,10);
     }
     private async Task SaveLibraryUiAsync()
     {

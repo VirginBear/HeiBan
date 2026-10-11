@@ -1,5 +1,11 @@
 # Windows 問題與排解紀錄
 
+## 2026-10-12 — 保存模式與退出回饋
+
+主每15秒／screen修改停止1秒後保存沒有用戶開關；snapshot與縮圖有同步UI負荷，存檔本身與IO在worker，但不能因此保證無卡頓。新增auto-save=false政策及各timer守護，關閉途中不取消已開始的原子保存。新增關閉ProgressRing及失败保留，补匯入前保存舊作品。Frame動畫仍需實機查看，文件Clone一致snapshot仍在UI線程。
+
+r1 x64退出1、26.73秒、1warning／93errors；兩Grid.IsEnabled CS1061是根因，其餘大量Ui.Text／Ui.Tooltip是assembly未產生的連鎖XAML錯誤。改ContentControl輸入容器，r2退出0、31.31秒、0warning／0error。apply_patch半行匹配失败、遷移substring count2拒絕、Python stdout cp950乱碼與調查錯檔名皆記阶段日誌；不是App或測試失敗。尚無動畫／強制關閉／磁碟失敗／混合DPI驗收。
+
 ## 2026-10-12 — 重複chrome與高頻儲存圖示配置
 
 工具列介面建立分兩宿主，同一畫圖Core／renderer類別共用，另NativeOverlay為螢幕穿透需求。重複button label／line menu／RTL政策改共同factory；生命周期仍保留，防止不同資料／座標混用。InvalidateCanvas每次重建SaveStatusDot控制項的原因由源碼可確認，已用state／tooltip比對抑制；實際FPS改善未量測。

@@ -60,10 +60,11 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         if(AppWindow.Presenter is OverlappedPresenter presenter){presenter.PreferredMinimumWidth=1;presenter.PreferredMinimumHeight=1;presenter.IsAlwaysOnTop=true;presenter.IsResizable=false;presenter.SetBorderAndTitleBar(false,false);}
         _dpiScale=NativeOverlayWindow.DpiScale(WinRT.Interop.WindowNative.GetWindowHandle(this));ResizeChrome();
         AppWindow.Closing+=async(_,e)=>{if(_disposed)return;e.Cancel=true;await StopAsync();};
-        _overlay.Pointer+=OnPointer;_overlay.BoundsChanged+=()=>{if(IsActive){CancelGesture();CreateTarget();Changed();ResizeChrome();PositionChrome();}};
+        _overlay.Pointer+=OnPointer;_overlay.BoundsChanged+=()=>{if(IsActive&&!_stopping){CancelGesture();CreateTarget();Changed();ResizeChrome();PositionChrome();}};
         _overlay.Failed+=e=>{SetDrawing(false);_status.Text=T("繪圖未完成：")+e.Message;};
         _overlay.Hotkey+=async id=>
         {
+            if(_stopping)return;
             if(id==1){await _requestStart();return;}
             if(!IsActive||_captureCancellation is not null)return;
             if(id==2)SetDrawing(!_drawing);else if(id==3)await CaptureAsync();else if(id==4)await StopAsync();else if(id==5)ClearScreenObjects();
@@ -72,7 +73,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         foreach(var key in new[]{(1,0x41u),(2,0x44u),(3,0x53u),(4,0x51u),(5,0x4Bu)})if(!_overlay.RegisterShortcut(key.Item1,0x0002|0x0001,key.Item2))failed++;
         _hotkeyRegistrationFailed=failed>0;if(failed>0)_status.Text=T("部分快捷鍵被其他程式占用，請使用控制列按鈕。");
         _renderTimer.Tick+=(_,_)=>{if(!IsActive)return;RememberExternalFocus();try{UpdateScreenEraser();if(_dirty||_laser.Samples.Count>0)Render();}catch(Exception e){_renderTimer.Stop();_overlay.Hide();_status.Text=T("螢幕繪圖已停止：")+e.Message;}};
-        _saveTimer.Tick+=async(_,_)=>{_saveTimer.Stop();if(_start is not null||_textDraft is not null||_session.HasTransaction){_saveTimer.Start();return;}await SaveAsync();};
+        _saveTimer.Tick+=async(_,_)=>{_saveTimer.Stop();if(!_owner.AutoSaveEnabled||_stopping||!IsActive)return;if(_start is not null||_textDraft is not null||_session.HasTransaction){_saveTimer.Start();return;}await SaveAsync();};
         AppWindow.Hide();
     }
     public async Task StartAsync()
@@ -114,7 +115,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     {foreach(var pair in _buttons)pair.Value.Background=new SolidColorBrush(pair.Key==_tool?Color.FromArgb(70,116,156,141):Color.FromArgb(0,0,0,0));RefreshScreenStyleButtons();}
     private void OnPointer(NativeOverlayWindow.PointerEvent input)
     {
-        if(!IsActive||_captureCancellation is not null)return;
+        if(!IsActive||_stopping||_captureCancellation is not null)return;
         var p=new InkPoint(input.X,input.Y,1);
         UpdateScreenShapeCursor(p);
         if(input.Kind=="move"&&_start is null&&_tool=="eraser"){UpdateScreenEraser();return;}
@@ -276,7 +277,8 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         var pixels=_target.GetPixelBytes(x,y,width,height);_overlay.Present(pixels,x,y,width,height);_presentedBytes+=pixels.Length;_renderedFrames++;
         _dirty=false;_fullDamage=false;_damage=null;_lastLaserDamage=laserDamage;_lastEraserDamage=eraserDamage;
     }
-    private void Changed(){_dirty=_fullDamage=_committedDirty=true;RefreshScreenLayers();if(_session.IsDirty){_saveTimer.Stop();_saveTimer.Start();}}
+    public void ApplySavingPreferences(){_saveTimer.Stop();if(_owner.AutoSaveEnabled&&IsActive&&!_stopping&&_session.IsDirty)_saveTimer.Start();}
+    private void Changed(){_dirty=_fullDamage=_committedDirty=true;RefreshScreenLayers();ApplySavingPreferences();}
     private void CancelGesture()
     {
         CommitScreenStyle();var committedChanged=_session.HasTransaction;var previewVisible=_preview is not null||_points.Count>0;
@@ -361,14 +363,22 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     public async Task<bool> StopAsync()
     {
         if(!IsActive)return true;if(_stopping)return false;_stopping=true;
+        var originalContent=Content;var originalSize=AppWindow.Size;
+        var ring=new ProgressRing{IsActive=true,Width=30,Height=30};
         try
         {
+            _saveTimer.Stop();_renderTimer.Stop();_dockTimer.Stop();_chromeFlyout?.Hide();
             _captureCancellation?.Cancel();FinishScreenText();CancelGesture();
+            // Replace only the chrome while the native annotation session is frozen.
+            Content=new Border{Background=ChromeBrush(255,247,250,246),Padding=new Thickness(12),CornerRadius=new CornerRadius(16),Child=new StackPanel{FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,Orientation=Orientation.Horizontal,Spacing=12,Children={ring,new TextBlock{Text=T("正在儲存…"),VerticalAlignment=VerticalAlignment.Center}}}};
+            AppWindow.Resize(new SizeInt32((int)(320*_dpiScale),(int)(72*_dpiScale)));AppWindow.Show();Activate();await Task.Delay(32);
             if(!await SaveAsync())return false;
+            if(_session.IsDirty){_status.Text=T("尚有變更");return false;}
             IsActive=false;_renderTimer.Stop();_saveTimer.Stop();_dockTimer.Stop();await SaveChromePreferencesAsync();_overlay.Hide();AppWindow.Hide();_laser.Clear();_target?.Dispose();_target=null;_committed?.Dispose();_committed=null;_renderer.ClearCache();_sessionLease?.Dispose();_sessionLease=null;
             _owner.AppWindow.Show();_owner.Activate();return true;
         }
-        finally{_stopping=false;}
+        catch(Exception error){_status.Text=T("註記保存失敗，內容仍保留：")+error.Message;return false;}
+        finally{ring.IsActive=false;Content=originalContent;AppWindow.Resize(originalSize);_stopping=false;if(IsActive){_renderTimer.Start();ApplySavingPreferences();RefreshMode();ShowChromeFlyout(new Flyout{Content=new TextBlock{Text=_status.Text,TextWrapping=TextWrapping.Wrap,MaxWidth=300}},_closeButton);}}
     }
     public void Dispose()
     {

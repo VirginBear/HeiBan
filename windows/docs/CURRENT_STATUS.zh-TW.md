@@ -1,5 +1,11 @@
 # Windows 目前開發狀態
 
+## 2026-10-12 — 自動存檔預設關閉、退出儲存動畫
+
+首頁「設定」／作品更多「設定」控制一般與螢幕畫布自動存檔，新偏好缺省false，已明確保存的選擇沿用。off不排定作品保存／縮圖timer；on維持主15秒與螢幕1秒debounce。主Ctrl+S／螢幕更多「儲存註記」、離開作品／螢幕與正常退出保留儲存；退出顯示ProgressRing、阻止新編輯、保存後才關閉，失败保留內容與視窗。Settings/saving.json原子保存未知欄位，與作品契約分離。
+
+新增11UI來源，592key×10離線資源，未母語驗收；r2 x64編譯退出0、0warning／0error、31.31秒（增版前程式）。產品1.0.14／Store1.0.14.0另製，1.0.13.0保留，不改已上架状态。新包結果接續[阶段日誌／Mac比對](SAVE_MODE_2026-10-12.zh-TW.md)。App／tests／存檔失敗／動畫／DPI／硬體未實跑，不能宣稱小畫家流暢度。
+
 ## 2026-10-12 — 商店1.0.13.0更新準備與工具列共用
 
 更新包已完成：`dist/store/HeiBan-Store-1.0.13.0-x64-arm64.msixbundle`，193,452,627bytes／SHA256 `c8fc90e49c2cb1517e4d7a84f9c03a106083dc2053bd05a3cd533c07893320ad`，來源9b6c4e4。x6452.35秒／ARM6453.95秒各0warning／0error，封裝退出0；十語manifest＋各581key內嵌、173來源SHA及原包保全靜態核對通过。未提交／發布新版、未執行App／tests。[上傳素材](STORE_RELEASE_NOTES_1.0.13.zh-TW.md)／[artifact](STORE_ARTIFACTS_1.0.13.0_2026-10-12.json)／[inspection](STORE_INSPECTION_1.0.13.0_2026-10-12.json)。

@@ -550,7 +550,7 @@ public partial class MainWindow
 
     private async Task<bool> ApplyImageInsertionAsync(double naturalW, double naturalH, string dataUri, InkPoint location, bool isCenter, string? expectedRequestId = null, string? expectedBoardId = null, string? expectedPageId = null)
     {
-        if (naturalW <= 0 || naturalH <= 0 || !_workspaceOpen) return false;
+        if (naturalW <= 0 || naturalH <= 0 || !_workspaceOpen || _preparingClose || _saveBoundaryBusy) return false;
         var board = _session.Document.Board;
         if(expectedBoardId is not null && (board.Id!=expectedBoardId||board.ActivePageId!=expectedPageId))return false;
 

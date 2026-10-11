@@ -11,7 +11,8 @@
     <TextBlock x:Name="PortableBadge" loc:Ui.Text="免安裝版" FontSize="11" VerticalAlignment="Center" Foreground="#39735A" Visibility="Collapsed"/>
    </StackPanel>
   </Grid>
-  <Grid x:Name="HomePanel" Grid.Row="1" Background="#FAFBF9">
+  <ContentControl x:Name="HomeInputGuard" Grid.Row="1" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+  <Grid x:Name="HomePanel" Background="#FAFBF9">
    <Grid.ColumnDefinitions><ColumnDefinition x:Name="LibrarySidebarColumn" Width="188"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
    <Grid x:Name="LibrarySidebar" Background="#ECF0E9" Padding="16,24,16,16" BorderBrush="#D7DFD4" BorderThickness="0,0,1,0">
     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
@@ -22,6 +23,7 @@
      <Button x:Name="TrashLibraryButton" Tag="trash" Click="LibrarySection_Click" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" BorderThickness="0" Background="Transparent" Padding="8,10"><StackPanel Orientation="Horizontal" Spacing="10"><ContentControl x:Name="TrashLibraryIcon"/><TextBlock x:Name="TrashLibraryLabel" loc:Ui.Text="垃圾桶"/></StackPanel></Button>
     </StackPanel>
     <StackPanel Grid.Row="2" Spacing="6">
+     <Button x:Name="HomeSettingsButton" Click="HomeSettings_Click" BorderThickness="0" Background="Transparent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="8,10" loc:Ui.ToolTip="設定"><StackPanel Orientation="Horizontal" Spacing="10"><ContentControl x:Name="HomeSettingsIcon"/><TextBlock x:Name="HomeSettingsLabel" loc:Ui.Text="設定"/></StackPanel></Button>
      <Button x:Name="HomeLanguageButton" Click="HomeLanguage_Click" BorderThickness="0" Background="Transparent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="8,10"><StackPanel Orientation="Horizontal" Spacing="10"><ContentControl x:Name="HomeLanguageIcon"/><TextBlock TextTrimming="CharacterEllipsis" MaxWidth="112" x:Name="HomeLanguageLabel" loc:Ui.Text="語言"/></StackPanel></Button>
      <Button x:Name="HomeScreenButton" Click="ScreenCanvas_Click" BorderThickness="0" Background="Transparent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="8,10" loc:Ui.ToolTip="我的螢幕就是我的畫布"><StackPanel Orientation="Horizontal" Spacing="10"><ContentControl x:Name="HomeScreenIcon"/><TextBlock x:Name="HomeScreenLabel" loc:Ui.Text="螢幕畫布"/></StackPanel></Button>
      <Button x:Name="HomeGuideButton" Click="HomeGuide_Click" BorderThickness="0" Background="Transparent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="8,10"><StackPanel Orientation="Horizontal" Spacing="10"><ContentControl x:Name="HomeGuideIcon"/><TextBlock x:Name="HomeGuideLabel" loc:Ui.Text="使用說明（正體中文）"/></StackPanel></Button>
@@ -67,7 +69,9 @@
     </Grid>
    </Grid>
   </Grid>
-  <Grid x:Name="Workspace" Grid.Row="1" Visibility="Collapsed">
+  </ContentControl>
+  <ContentControl x:Name="WorkspaceInputGuard" Grid.Row="1" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+  <Grid x:Name="Workspace" Visibility="Collapsed">
    <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="0"/></Grid.RowDefinitions>
    <Grid>
 
@@ -175,6 +179,12 @@
     </StackPanel>
    </Border>
    <Border Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="16" Padding="8,4" CornerRadius="10" Background="#DDFCFCFA"><TextBlock x:Name="StatusText" loc:Ui.Text="本機已存" MaxWidth="260" TextTrimming="CharacterEllipsis" FontSize="11" Foreground="#68756C"/></Border>
+  </Grid>
+  </ContentControl>
+  <Grid x:Name="SavingOverlay" Grid.RowSpan="2" Visibility="Collapsed" Background="#CFF2F4EF">
+   <Border HorizontalAlignment="Center" VerticalAlignment="Center" Background="#FCFCFA" BorderBrush="#D4DBD1" BorderThickness="1" CornerRadius="18" Padding="28">
+    <StackPanel Spacing="14" MaxWidth="360"><ProgressRing x:Name="SavingRing" IsActive="False" Width="40" Height="40"/><TextBlock loc:Ui.Text="正在儲存…" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center"/><TextBlock loc:Ui.Text="儲存完成後繼續，請稍候。" TextWrapping="Wrap" HorizontalAlignment="Center"/></StackPanel>
+   </Border>
   </Grid>
  </Grid>
 </Window>

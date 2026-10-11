@@ -1,5 +1,9 @@
 # Windows 開發日誌
 
+## 2026-10-12 — 自動存檔設定與退出儲存
+
+開工963f2d0仅原.vscode/，先讀索引／Windows文件並建[阶段日誌](SAVE_MODE_2026-10-12.zh-TW.md)。增加Settings/saving.json預設off、三設定入口、共用離開屏障与主／screen动画／输入凍結、縮圖flush、匯入保存舊作品；11來源十語592key。r1失败已排Grid/Control誤用，r2 x64退出0、0warning／0error、31.31秒。正式1.0.14／Store1.0.14.0另包，产物／同步另記，未跑App／tests／UI，Mac／Web未改。
+
 ## 2026-10-12 — 商店更新、工具列共用與性能清單
 
 源9b6c4e4，Package-Store退出0，x6452.35秒／ARM6453.95秒均0warning／0error。新1.0.13.0 bundle193,452,627bytes／SHA c8fc90e4…，173source與兩架構十語各581資源／PE／原Store保全檢視通过；原local/public report額外欄位造成初次byte比對失敗，改原欄位精確比對記於阶段4。未跑App／tests／提交Store，新增功能與上傳素材已備妥。

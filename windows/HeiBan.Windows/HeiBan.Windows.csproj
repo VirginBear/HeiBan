@@ -21,9 +21,9 @@
     <AssemblyName>HeiBan</AssemblyName>
     <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
     <Product>HeiBan 黑板</Product>
-    <Version>1.0.13</Version>
-    <FileVersion>1.0.13.0</FileVersion>
-    <AssemblyVersion>1.0.13.0</AssemblyVersion>
+    <Version>1.0.14</Version>
+    <FileVersion>1.0.14.0</FileVersion>
+    <AssemblyVersion>1.0.14.0</AssemblyVersion>
     <Company>HeiBan Team</Company>
     <Copyright>© 2026 HeiBan Team. All rights reserved.</Copyright>
     <Description>HeiBan 黑板 — Windows 原生開發預覽：向量手寫板與多頁筆記系統</Description>
