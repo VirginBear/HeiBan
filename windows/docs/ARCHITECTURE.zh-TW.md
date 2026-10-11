@@ -1,5 +1,11 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-12 — 十語離線手冊與同版開發候選隔離
+
+Documentation/Guides各語txt使用7meta＋25穩定section ID契約；Build-UserGuides.py產生Assets/Guides十HTML與SHA manifest、舊zh-TW HTML相容入口。單一模板內嵌CSS／JS，所有文本escape，無外部資源；zh-CN由Windows NLS生成、ar RTL與bdi隔離。MainWindow首頁及作品共用OpenUserGuideAsync，開啟時用Strings.Language；缺檔fallback，手冊內切語不改App偏好。普通.NET build只複製已生成Assets，不執行Python。生成／原稿／封裝byte核對不等於實機或母語驗收。
+
+Package-Store的DevelopmentLabel提供同版獨立dist/store/candidates/<label>，報告與根Store報告分離，原同版拒覆寫保持；不得自行提高正式版本避限制。Store與portable都保存新手冊來源與產物SHA。
+
 ## 2026-10-12 — 保存政策、輸入凍結與退出屏障
 
 MainWindow.Saving只管理使用者保存偏好与保存邊界。SavingPreferences.AutoSaveEnabled=false，Settings/saving.json与語言偏好分離，JsonExtensionData保留未知欄位，gate＋WriteAtomic保存成功才Apply。owner提供AutoSaveEnabled與SetAutoSaveEnabledAsync給ScreenAnnotation，兩timers各保留原節奏，off同時停止thumbnail但保留pending供flush。

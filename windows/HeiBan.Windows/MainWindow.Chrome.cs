@@ -212,7 +212,7 @@ public partial class MainWindow
 
         menu.Items.Add(new MenuFlyoutSeparator());
 
-        var guideItem = new MenuFlyoutItem { Text = T("黑板使用手冊與快捷鍵…（正體中文）") };
+        var guideItem = new MenuFlyoutItem { Text = T("使用說明") };
         guideItem.Click += async (_, _) => await OpenUserGuideAsync();
         menu.Items.Add(guideItem);
 
@@ -280,7 +280,11 @@ public partial class MainWindow
     {
         try
         {
-            var guidePath = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "HeiBanUserGuide.html");
+            // Resolve at opening time so a language change also applies to the next guide.
+            // Files are bundled offline; older/incomplete deployments retain the zh-TW fallback.
+            var guidePath = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "Guides", Localization.Strings.Language + ".html");
+            if (!System.IO.File.Exists(guidePath))
+                guidePath = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "HeiBanUserGuide.html");
             if (System.IO.File.Exists(guidePath))
             {
                 var guide = await global::Windows.Storage.StorageFile.GetFileFromPathAsync(guidePath);

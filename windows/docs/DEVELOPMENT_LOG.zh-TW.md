@@ -1,5 +1,9 @@
 # Windows 開發日誌
 
+## 2026-10-12 — 十語使用說明實作
+
+開工87c6ae2只有原.vscode/，讀開發索引與平台規則／狀態／架構／問題，先建MULTILINGUAL_GUIDE日誌。25章55段十語離線手冊，同源模板與穩定章節契約，兩入口依目前UI語開；翻譯與背景／screen／auto-save內容更新，ar RTL与bdi。Build-UserGuides.py退出0，無網路翻譯；旧graphify query退出0僅導航，精確源碼另查。Package-Store新DevelopmentLabel保存同版候選、不自动增版。原稿／生成／C#／packaging變更與失败詳日誌；本輪tests與App未執行，編譯／封裝另記當次結果。
+
 ## 2026-10-12 — 使用者更正進版節奏
 
 開工9cf2f12，status只原.vscode/；私人0fb26f4乾淨，兩庫fetch退出0、HEAD/origin0/0，gh PRIVATE核同。先讀開發索引、Windows status／架構／issues／decisions與私人規則／入口／状态／日誌，建立RELEASE_POLICY日誌再修改。使用者指出應完整系列開發／測試／驗證後才決定進版；助手承認判斷過早，更新平台AGENTS、CURRENT_STATUS、DECISIONS、ISSUE_HISTORY、README及候選release notes提示，私人候選JSON與對話M保存相同規則。沒有App程式／版本metadata／產物變更；build／tests／App／封裝／Store：未執行。具體原因與同步結果見RELEASE_POLICY_2026-10-12.zh-TW.md。

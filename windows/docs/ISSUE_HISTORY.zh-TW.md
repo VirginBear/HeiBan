@@ -1,5 +1,9 @@
 # Windows 問題與排解紀錄
 
+## 2026-10-12 — 手冊單語／過時內容／兩個開啟入口
+
+首頁LaunchUri與作品LaunchFile各硬編碼正體中文HTML；十語介面仍開中文且label標正體中文。舊開始章一律auto-save與screen固定尺寸／scroll說明已過時。改共用LaunchFile、current language路徑及fallback，重新編排十語操作契約，修正相關說明。原HTML單行使初讀輸出截斷；Python -c嵌套引號SyntaxError未改文件，改存HTMLParser脚本讀段落退出0。沒有App／母語／RTL操作驗收；詳MULTILINGUAL_GUIDE日誌。Store同版防覆寫阻礙開發包，新增label隔離，不改版本規則。
+
 ## 2026-10-12 — 正式版號增加過早
 
 症狀：未完成整系列開發及實機／回歸驗證，就先後建立1.0.13、1.0.14。可確認原因：助手將「希望盡快更新」及封裝成功解讀為進版授權，混淆開發候選與正式發行時點。使用者更正後採批次標籤／commit追蹤，正式进版由使用者在整批驗證後決定；候選包撤回立即上傳建議但保留原檔／SHA與歷史。未靠回寫artifact或刪檔掩蓋錯誤，沒有Store發布動作。規則已加入平台AGENTS／DECISIONS／私人交接；本批沒有新測試結果。

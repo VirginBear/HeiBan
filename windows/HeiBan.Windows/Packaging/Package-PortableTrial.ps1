@@ -19,7 +19,7 @@ $recordRoot=Join-Path $windowsRoot ('.build\portable-trial-'+[guid]::NewGuid().T
 New-Item -ItemType Directory -Path $recordRoot | Out-Null
 $source=(& git -C $windowsRoot rev-parse HEAD).Trim()
 if($LASTEXITCODE -ne 0){throw '無法記錄來源commit。'}
-$sourcePaths=@(& git -C $windowsRoot ls-files --cached --others --exclude-standard -- '*.cs' '*.csproj' '*.ps1' '*.xaml' '*.html' '*.manifest' 'README.md' 'HeiBan.Windows/Localization/*.json' 'HeiBan.Windows/Localization/*.txt' 'HeiBan.Windows/Localization/Catalogs/*.json' 'scripts/Build-LocalizationCatalogs.py')
+$sourcePaths=@(& git -C $windowsRoot ls-files --cached --others --exclude-standard -- '*.cs' '*.csproj' '*.ps1' '*.xaml' '*.html' '*.manifest' 'README.md' 'HeiBan.Windows/Localization/*.json' 'HeiBan.Windows/Localization/*.txt' 'HeiBan.Windows/Localization/Catalogs/*.json' 'HeiBan.Windows/Documentation/Guides/*.txt' 'HeiBan.Windows/Assets/Guides/manifest.json' 'scripts/Build-LocalizationCatalogs.py' 'scripts/Build-UserGuides.py')
 if($LASTEXITCODE -ne 0){throw '無法記錄來源檔案。'}
 $sourceFiles=@($sourcePaths | Sort-Object -Unique | ForEach-Object {
     @{path=$_;sha256=(Get-FileHash -LiteralPath (Join-Path $windowsRoot $_) -Algorithm SHA256).Hash.ToLowerInvariant()}

@@ -113,7 +113,7 @@ public partial class MainWindow
     }
     private async Task MoveLibraryBoardsToTrashAsync(IReadOnlyList<string> ids)
     {foreach(var id in ids.Distinct())await _storage.TrashAsync(id);}
-    private async void HomeGuide_Click(object sender,RoutedEventArgs e)=>await global::Windows.System.Launcher.LaunchUriAsync(new Uri(Path.Combine(AppContext.BaseDirectory,"Assets","HeiBanUserGuide.html")));
+    private async void HomeGuide_Click(object sender,RoutedEventArgs e)=>await OpenUserGuideAsync();
     private void LibraryCardMenu_Click(object sender,RoutedEventArgs e){if(sender is FrameworkElement{DataContext:LibraryCard card} anchor)ShowLibraryCardMenu(card,anchor);}
     private async Task<object> ValidateLibraryChromeAsync()
     {

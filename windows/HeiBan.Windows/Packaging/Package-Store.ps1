@@ -1,4 +1,5 @@
-param([ValidateSet('Debug','Release')][string]$Configuration='Release',[string]$DotnetPath='dotnet')
+param([ValidateSet('Debug','Release')][string]$Configuration='Release',[string]$DotnetPath='dotnet',
+      [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$')][string]$DevelopmentLabel)
 $ErrorActionPreference='Stop'
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
@@ -17,12 +18,14 @@ $dotnet=(Get-Command $DotnetPath -ErrorAction Stop).Source
 $batch=Join-Path $root ('.build\store-'+[guid]::NewGuid().ToString('N'))
 $bundleInput=Join-Path $batch 'bundle-input'
 $dist=Join-Path $root 'dist\store'
+if($DevelopmentLabel){$dist=Join-Path $dist ('candidates\'+$DevelopmentLabel)}
 New-Item -ItemType Directory -Force $batch,$bundleInput,$dist | Out-Null
-# A version may already have been submitted. Require a new version instead of replacing its bytes.
+# A submitted package's bytes must survive. Development labels isolate same-version
+# candidates; formal version changes remain a user decision after validation.
 $versionReport=Join-Path $dist "STORE_ARTIFACTS_$($identity.packageVersion).json"
 foreach($name in @("HeiBan-Store-$($identity.packageVersion)-x64.msix","HeiBan-Store-$($identity.packageVersion)-arm64.msix","HeiBan-Store-$($identity.packageVersion)-x64-arm64.msixbundle","STORE_ARTIFACTS_$($identity.packageVersion).json")){
     $target=Join-Path $dist $name
-    if((Test-Path -LiteralPath $target) -or (Test-Path -LiteralPath ($target+'.sha256'))){throw "Store version already has artifacts; increment the version: $target"}
+    if((Test-Path -LiteralPath $target) -or (Test-Path -LiteralPath ($target+'.sha256'))){throw "Store artifacts already exist; preserve them and use a new DevelopmentLabel for an unapproved candidate: $target"}
 }
 $latestReport=Join-Path $dist 'STORE_ARTIFACTS.json'
 if(Test-Path -LiteralPath $latestReport){
@@ -59,6 +62,9 @@ function Read-StorePackage([string]$path,[string]$architecture) {
         $sourceFiles=@(Get-ChildItem -LiteralPath $licenseRoot -File -Recurse | ForEach-Object {@{source=$_.FullName;entry='Licenses/'+$_.FullName.Substring($licenseRoot.Length+1).Replace('\','/')}})
         $sourceFiles+=@{source=(Join-Path $PSScriptRoot '..\Assets\HeiBanUserGuide.html');entry='Assets/HeiBanUserGuide.html'}
         $sourceFiles+=@{source=(Join-Path $PSScriptRoot 'Store\README-Store.zh-TW.md');entry='README-Store.md'}
+        $guideRoot=Join-Path $PSScriptRoot '..\Assets\Guides'
+        $guideFiles=@(Get-ChildItem -LiteralPath $guideRoot -File)
+        foreach($guideFile in $guideFiles){$sourceFiles+=@{source=$guideFile.FullName;entry='Assets/Guides/'+$guideFile.Name}}
         foreach($file in $sourceFiles){
             $entry=$zip.GetEntry($file.entry)
             if(-not $entry){throw "Missing original document: $($file.entry)"}
@@ -66,7 +72,7 @@ function Read-StorePackage([string]$path,[string]$architecture) {
             try {$hash=[BitConverter]::ToString($sha.ComputeHash($stream)).Replace('-','')}finally{$stream.Dispose();$sha.Dispose()}
             if($hash -ne (Get-FileHash -LiteralPath $file.source -Algorithm SHA256).Hash){throw "Changed original document: $($file.entry)"}
         }
-        return @{architecture=$architecture;entries=$zip.Entries.Count;legalDocuments=$sourceFiles.Count-2;identityMatched=$true;requiredPayloadPresent=$true;originalDocumentsMatched=$true;noUserDataOrStandaloneUpdater=$true;appExecutionChecked=$false}
+        return @{architecture=$architecture;entries=$zip.Entries.Count;legalDocuments=$sourceFiles.Count-2-$guideFiles.Count;guideDocuments=$guideFiles.Count;identityMatched=$true;requiredPayloadPresent=$true;originalDocumentsMatched=$true;noUserDataOrStandaloneUpdater=$true;appExecutionChecked=$false}
     }finally{$zip.Dispose()}
 }
 foreach($arch in @('x64','arm64')) {
@@ -124,7 +130,7 @@ foreach($path in ($sourcePaths | Sort-Object -Unique)){
     }
 }
 $sourceHead=& git -C (Split-Path $root -Parent) rev-parse HEAD
-$report=[ordered]@{schema=1;identity=$identity;configuration=$Configuration;signed=$false;storeSubmitted=$false;sourceGitHead=$sourceHead;sourceSnapshot=$sourceHashes;payloadChecks=$payloadChecks;bundleIdentityAndArchitecturesMatched=$true;bundlePackageBytesMatched=$true;artifacts=@()}
+$report=[ordered]@{schema=1;identity=$identity;configuration=$Configuration;developmentLabel=$DevelopmentLabel;formalVersionApproved=$false;signed=$false;storeSubmitted=$false;sourceGitHead=$sourceHead;sourceSnapshot=$sourceHashes;payloadChecks=$payloadChecks;bundleIdentityAndArchitecturesMatched=$true;bundlePackageBytesMatched=$true;artifacts=@()}
 foreach($artifact in $artifacts){
     $hash=(Get-FileHash -LiteralPath $artifact.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
     "$hash  $($artifact.Name)" | Set-Content -LiteralPath ($artifact.FullName+'.sha256') -Encoding ASCII

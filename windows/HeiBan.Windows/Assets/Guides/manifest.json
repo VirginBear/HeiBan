@@ -1,0 +1,126 @@
+{
+  "schema": 1,
+  "defaultLanguage": "zh-TW",
+  "sections": [
+    "language",
+    "start",
+    "library",
+    "paper",
+    "navigate",
+    "workspace",
+    "brush",
+    "shapes",
+    "selection",
+    "properties",
+    "text",
+    "eraser",
+    "ruler",
+    "compass",
+    "laser",
+    "utilities",
+    "images",
+    "pins",
+    "screen",
+    "files",
+    "shortcuts",
+    "updates",
+    "status",
+    "canvas-setup",
+    "ux20"
+  ],
+  "languageCodes": [
+    "zh-TW",
+    "zh-CN",
+    "en",
+    "ja",
+    "ko",
+    "es",
+    "fr",
+    "de",
+    "pt-BR",
+    "ar"
+  ],
+  "scope": "Bundled offline help, not app execution or native-language review",
+  "pages": [
+    {
+      "language": "zh-TW",
+      "file": "zh-TW.html",
+      "sections": 25,
+      "paragraphs": 55,
+      "bytes": 22434,
+      "sha256": "7942b1dc4fa79cdf49649027cbc2ffb3dff25871fea2cc0810ce3e08b5a1de1f"
+    },
+    {
+      "language": "zh-CN",
+      "file": "zh-CN.html",
+      "sections": 25,
+      "paragraphs": 55,
+      "bytes": 22434,
+      "sha256": "d6b56378b4a0dcad69b2493ae453aea666c4dc8dc4907757284cf8b2e0328635"
+    },
+    {
+      "language": "en",
+      "file": "en.html",
+      "sections": 25,
+      "paragraphs": 55,
+      "bytes": 26660,
+      "sha256": "6614f1cdd0a1415d7a2daa2dfc125fd559d7c5d32d5c5133165a5e8429a458b2"
+    },
+    {
+      "language": "ja",
+      "file": "ja.html",
+      "sections": 25,
+      "paragraphs": 55,
+      "bytes": 28383,
+      "sha256": "01b3cc8b15b87145eeec0fc9e2e7f7bc97061fd343fe307e0b5a390acbd87279"
+    },
+    {
+      "language": "ko",
+      "file": "ko.html",
+      "sections": 25,
+      "paragraphs": 55,
+      "bytes": 26730,
+      "sha256": "ee53592b8cab78baf270d88fbdd1ea1b1dd35451e962c62b0d7af518e665089c"
+    },
+    {
+      "language": "es",
+      "file": "es.html",
+      "sections": 25,
+      "paragraphs": 55,
+      "bytes": 25025,
+      "sha256": "5fe5e2fd957fda6553a175934ab3c372d7415aeaadeb5a092a31dd5b891c58f3"
+    },
+    {
+      "language": "fr",
+      "file": "fr.html",
+      "sections": 25,
+      "paragraphs": 55,
+      "bytes": 25135,
+      "sha256": "082f9e28c249a27b91ca9a21e8f85c2b78718499e67f633b4f341b83de44040b"
+    },
+    {
+      "language": "de",
+      "file": "de.html",
+      "sections": 25,
+      "paragraphs": 55,
+      "bytes": 24013,
+      "sha256": "7729ce3094eb1e2f88844917023f793970895e9cbaf91cd72324c8a9d1157b0d"
+    },
+    {
+      "language": "pt-BR",
+      "file": "pt-BR.html",
+      "sections": 25,
+      "paragraphs": 55,
+      "bytes": 22974,
+      "sha256": "e58376f0ef45ea355906420a6a1285946465840776a6110898a5f26ba6737b60"
+    },
+    {
+      "language": "ar",
+      "file": "ar.html",
+      "sections": 25,
+      "paragraphs": 55,
+      "bytes": 30544,
+      "sha256": "e30863f98fc7fc834297c60cd123bd21e73aa670140bc4e21f437d277c89dc90"
+    }
+  ]
+}
