@@ -18,6 +18,21 @@ $batch=Join-Path $root ('.build\store-'+[guid]::NewGuid().ToString('N'))
 $bundleInput=Join-Path $batch 'bundle-input'
 $dist=Join-Path $root 'dist\store'
 New-Item -ItemType Directory -Force $batch,$bundleInput,$dist | Out-Null
+# A version may already have been submitted. Require a new version instead of replacing its bytes.
+$versionReport=Join-Path $dist "STORE_ARTIFACTS_$($identity.packageVersion).json"
+foreach($name in @("HeiBan-Store-$($identity.packageVersion)-x64.msix","HeiBan-Store-$($identity.packageVersion)-arm64.msix","HeiBan-Store-$($identity.packageVersion)-x64-arm64.msixbundle","STORE_ARTIFACTS_$($identity.packageVersion).json")){
+    $target=Join-Path $dist $name
+    if((Test-Path -LiteralPath $target) -or (Test-Path -LiteralPath ($target+'.sha256'))){throw "Store version already has artifacts; increment the version: $target"}
+}
+$latestReport=Join-Path $dist 'STORE_ARTIFACTS.json'
+if(Test-Path -LiteralPath $latestReport){
+    $previous=Get-Content -LiteralPath $latestReport -Raw -Encoding UTF8 | ConvertFrom-Json
+    $previousVersion=[Version]::Parse($previous.identity.packageVersion)
+    $previousReport=Join-Path $dist "STORE_ARTIFACTS_$previousVersion.json"
+    if(Test-Path -LiteralPath $previousReport){
+        if((Get-FileHash -LiteralPath $previousReport).Hash -ne (Get-FileHash -LiteralPath $latestReport).Hash){throw 'Previous version report differs; preserve/reconcile before packaging.'}
+    }else{Copy-Item -LiteralPath $latestReport -Destination $previousReport}
+}
 $artifacts=@()
 $payloadChecks=@()
 function Read-StorePackage([string]$path,[string]$architecture) {
@@ -67,7 +82,7 @@ foreach($arch in @('x64','arm64')) {
     if($packages.Count -ne 1){throw "Expected exactly one $arch MSIX, got $($packages.Count)."}
     $payloadChecks+=Read-StorePackage $packages[0].FullName $arch
     $destination=Join-Path $dist "HeiBan-Store-$($identity.packageVersion)-$arch.msix"
-    Copy-Item -LiteralPath $packages[0].FullName -Destination $destination -Force
+    Copy-Item -LiteralPath $packages[0].FullName -Destination $destination
     Copy-Item -LiteralPath $destination -Destination $bundleInput
     $artifacts+=Get-Item -LiteralPath $destination
     Write-Host "Store ${arch}: $destination"
@@ -115,7 +130,8 @@ foreach($artifact in $artifacts){
     "$hash  $($artifact.Name)" | Set-Content -LiteralPath ($artifact.FullName+'.sha256') -Encoding ASCII
     $report.artifacts+=@{file=$artifact.Name;bytes=$artifact.Length;sha256=$hash}
 }
-$report | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $dist 'STORE_ARTIFACTS.json') -Encoding UTF8
+$report | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $versionReport -Encoding UTF8
+Copy-Item -LiteralPath $versionReport -Destination $latestReport -Force
 Write-Host "Store bundle: $bundle"
 Write-Host "Build logs: $batch"
 # Keep build evidence; no recursive cleanup or changes to existing release artifacts/user data.

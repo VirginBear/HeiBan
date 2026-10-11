@@ -1,5 +1,9 @@
 # 黑板 · Windows 原生版
 
+## 2026-10-12 商店更新候選1.0.13.0
+
+新來源產品版本1.0.13，包含十語及前批首頁／畫布操作改善，共用兩畫布工具列建立政策並減少儲存圖示重建。本批新版MSIX待封裝結果，路徑`dist/store/HeiBan-Store-1.0.13.0-x64-arm64.msixbundle`，僅為更新候選，未提交／發布。原上架1.0.12.0及已發行版本保留。[本批紀錄與性能待辦](docs/STORE_UPDATE_TOOLBAR_2026-10-12.zh-TW.md)。下方試用與發布狀態均為有日期的歷史，不表示1.0.13已安裝驗收。
+
 ## 2026-10-12 Microsoft Store已上架
 
 依使用者提供的Partner Center後台截圖，首次審核／上架已完成，按Availability設定提供：[HeiBan商店頁面](https://apps.microsoft.com/detail/9NV8T7RKV4MZ)。[來源與查證限制](docs/STORE_AVAILABLE_2026-10-12.zh-TW.md)。下方舊「尚未上架」是當時紀錄；後續十語／操作改善仍需另外提高MSIX版號提交更新。

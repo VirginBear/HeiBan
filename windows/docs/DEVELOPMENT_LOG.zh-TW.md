@@ -1,5 +1,9 @@
 # Windows 開發日誌
 
+## 2026-10-12 — 商店更新、工具列共用與性能清單
+
+開工75aa821、僅原.vscode/；只Windows。先建立[本批日誌](STORE_UPDATE_TOOLBAR_2026-10-12.zh-TW.md)，記結構／圖譜失敗及重試，再抽ToolbarUi、缓存SaveStatusDot、正式產品1.0.13／Store1.0.13.0與防覆寫報告。後續實際x64／ARM64編譯、套件／原包雜湊及兩庫同步結果追加原日誌，不套用舊測試數字。
+
 ## 2026-10-12 — Store首次審核完成並上架（使用者後台截圖）
 
 使用者提供Partner Center overview：Submission 1、Store目前狀態綠勾、明確顯示產品目前可在Microsoft Store取得，依Availability可發現性設定提供，並有「開始更新」。可依後台截圖確認審核及上架完成；不是助手登入查證。精確通過／发布時刻、所有市場可搜尋及實際下載／安裝未驗證。公開web工具無法讀商品頁，搜尋未收錄不推翻後台證據。

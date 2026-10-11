@@ -1,5 +1,11 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-12 — 共同工具列政策、分離宿主
+
+Views/ToolbarUi僅產生獨立Button／MenuFlyout與閱讀方向政策；MainWindow套ToolButtonStyle，ScreenAnnotation套32 DIP透明chrome。Flyout互斥、OverlayInputPassThroughElement／anchor、normal ChangeProperty／screen CommitScreenStyle均留在各宿主；不得跨視窗重用UIElement。ScreenTools描述供建立與RefreshLanguage同源，差異工具仍由各宿主Profile管理。保存圖示以saved／pending／failed state與最後tooltip快取，避免pointer preview每次配置XAML，提示含語言／失敗文字獨立比對。
+
+Package-Store以更高版本另建，已存在同版產物拒絕覆寫，版本報告保留，STORE_ARTIFACTS.json只是最新報告副本。文件契約／Undo／世界或desktop座標未變。
+
 ## 2026-10-11 — UI 語言與資料邊界
 
 Localization/Strings管理十份嵌入JSON、BCP47偏好與T／F；Ui附加属性保存資源鍵，弱引用更新靜態XAML。動態C#在建立控制項／顯示時取T，插值F保留索引及格式，GitHubUpdateService狀態改延遲求值。MainWindow.Localization首頁入口在保存成功後刷新首頁／chrome／已存在螢幕工具列；沒有per-pointer翻譯或線上服務。

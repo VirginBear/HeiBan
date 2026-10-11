@@ -294,14 +294,23 @@ public partial class MainWindow
         }
     }
 
+    private int _saveIndicatorState = -1;
+    private string? _saveIndicatorTooltip;
     private void UpdateSaveStatusLight(string status)
     {
         if (SaveStatusDot == null) return;
         var failed=_saveFailed;
         var pending=_session.IsDirty||_propertyEditing||_editor is not null||_pinNameEditor is not null||_ink.IsDrawing||_preview is not null||_session.HasTransaction||_saving;
-        SaveStatusDot.Content=pending||failed?SelectionCircle(false,true):new TextBlock{Text="✓",FontSize=18,Foreground=Brush("#39735A"),HorizontalAlignment=HorizontalAlignment.Center,VerticalAlignment=VerticalAlignment.Center};
-        SaveStatusDot.Foreground=Brush(failed?"#CF4860":pending?"#A87929":"#39735A");
-        ToolTipService.SetToolTip(SaveStatusDot,failed?F($"儲存未完成：{status}"):pending?T("尚未儲存完成"):T("本機已存"));
+        var state=failed?2:pending?1:0;
+        // Pointer preview invalidations also reach here. Rebuild XAML only on a state transition.
+        if(state!=_saveIndicatorState)
+        {
+            SaveStatusDot.Content=pending||failed?SelectionCircle(false,true):new TextBlock{Text="✓",FontSize=18,Foreground=Brush("#39735A"),HorizontalAlignment=HorizontalAlignment.Center,VerticalAlignment=VerticalAlignment.Center};
+            SaveStatusDot.Foreground=Brush(failed?"#CF4860":pending?"#A87929":"#39735A");
+            _saveIndicatorState=state;
+        }
+        var tooltip=failed?F($"儲存未完成：{status}"):pending?T("尚未儲存完成"):T("本機已存");
+        if(tooltip!=_saveIndicatorTooltip){ToolTipService.SetToolTip(SaveStatusDot,tooltip);_saveIndicatorTooltip=tooltip;}
     }
 
     private SolidColorBrush Brush(string hex) => new(Direct2DCanvasRenderer.HexToColor(hex));
@@ -309,17 +318,14 @@ public partial class MainWindow
 
     private Button IconButton(string icon, string tooltip, Action action, string? key = null)
     {
-        var button = new Button { Style = (Style)Application.Current.Resources["ToolButtonStyle"], Content = ToolIcons.Create(icon), Tag = key };
-        ToolTipService.SetToolTip(button, tooltip);
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(button, tooltip);
-        button.Click += (_, _) => action();
+        var button = ToolbarUi.CreateButton(icon, tooltip, action, key);
+        button.Style = (Style)Application.Current.Resources["ToolButtonStyle"];
         return button;
     }
 
     private void ShowExclusiveFlyout(FlyoutBase flyout, FrameworkElement anchor)
     {
-        if(flyout is Flyout{Content:FrameworkElement body})body.FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight;
-        if(flyout is MenuFlyout menu)menu.MenuFlyoutPresenterStyle=new Style{TargetType=typeof(MenuFlyoutPresenter),Setters={new Setter(FrameworkElement.FlowDirectionProperty,Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight)}};
+        ToolbarUi.ApplyReadingDirection(flyout);
         if (_activeFlyout != null && _activeFlyout != flyout)
         {
             _activeFlyout.Hide();
@@ -921,14 +927,7 @@ public partial class MainWindow
 
     private void ShowLineStyles(FrameworkElement anchor)
     {
-        var menu = new MenuFlyout();
-        for (var i = 0; i < DashStyles.Length; i++)
-        {
-            var j = i;
-            var row = new MenuFlyoutItem { Text = new[] { T("實線"), T("虛線"), T("點線"), T("點劃線") }[i],Icon=ToolIcons.CreateDashIcon(DashStyles[i]) };
-            row.Click += (_, _) => ChangeProperty(() => { if (_session.Selected is { } o) o.LineStyle = DashStyles[j]; else CurrentStyle.Dash = DashStyles[j]; });
-            menu.Items.Add(row);
-        }
+        var menu = ToolbarUi.LineStyles(value => ChangeProperty(() => { if (_session.Selected is { } o) o.LineStyle = value; else CurrentStyle.Dash = value; }));
         ShowExclusiveFlyout(menu, anchor);
     }
 

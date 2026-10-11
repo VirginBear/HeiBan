@@ -1,5 +1,11 @@
 # Windows 問題與排解紀錄
 
+## 2026-10-12 — 重複chrome與高頻儲存圖示配置
+
+工具列介面建立分兩宿主，同一畫圖Core／renderer類別共用，另NativeOverlay為螢幕穿透需求。重複button label／line menu／RTL政策改共同factory；生命周期仍保留，防止不同資料／座標混用。InvalidateCanvas每次重建SaveStatusDot控制項的原因由源碼可確認，已用state／tooltip比對抑制；實際FPS改善未量測。
+
+graphify hidden .build corpus偵測0檔、root無graph的query --help報錯、StoreIdentity調查路徑寫錯皆已修正調查方式。graphify自動在源碼目录產生cache，確認是本批產生、無資源註冊引用後移入ignored .build；原碼及歴史不刪。詳細命令／編譯與封裝結果见階段日誌。
+
 最終r2 x64 Release build：退出0、0警告／0錯誤、28.23秒；十份完整資源嵌入DLL、literal來源鍵無缺項為靜態檢視，非App／測試驗收。最後文字屬性展示补強由新Portable publish重新編譯，封裝證據另記。
 
 ## 2026-10-11 — 多語言建置與尚未驗收

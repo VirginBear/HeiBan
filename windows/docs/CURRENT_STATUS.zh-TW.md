@@ -1,5 +1,11 @@
 # Windows 目前開發狀態
 
+## 2026-10-12 — 商店1.0.13.0更新準備與工具列共用
+
+Windows產品1.0.13／File與Assembly1.0.13.0／Store1.0.13.0。原1.0.12.0上架狀態保持歷史；新包仍未提交。共用ToolbarUi按鈕／提示／無障礙名稱／Flyout閱讀方向／四種線條樣式，螢幕工具描述集中；兩宿主維持各自布局、座標、穿透與保存生命周期。繪圖核心原本就共用Direct2DCanvasRenderer／EditorSession等類別，沒有另一套畫圖引擎。
+
+存檔圖示改只在狀態轉換時重建，語言／失敗提示仍即時刷新，減少高頻InvalidateCanvas的XAML配置。編譯／包體靜態檢視接續記在[本批階段日誌與後續效能清單](STORE_UPDATE_TOOLBAR_2026-10-12.zh-TW.md)；沒有本輪FPS／UI／硬體驗收。包體大部分為.NET／WinAppSDK，共用UI不保證大幅縮小MSIX。
+
 ## 2026-10-12 — Store首次審核完成並上架（使用者後台截圖）
 
 使用者提供Partner Center overview：Submission 1、Store目前狀態綠勾、明確顯示產品目前可在Microsoft Store取得，依Availability可發現性設定提供，並有「開始更新」。可依後台截圖確認審核及上架完成；不是助手登入查證。精確通過／发布時刻、所有市場可搜尋及實際下載／安裝未驗證。公開web工具無法讀商品頁，搜尋未收錄不推翻後台證據。
