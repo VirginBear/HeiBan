@@ -1,5 +1,9 @@
 # Windows 開發日誌
 
+## 2026-10-12 — 使用者更正進版節奏
+
+開工9cf2f12，status只原.vscode/；私人0fb26f4乾淨，兩庫fetch退出0、HEAD/origin0/0，gh PRIVATE核同。先讀開發索引、Windows status／架構／issues／decisions與私人規則／入口／状态／日誌，建立RELEASE_POLICY日誌再修改。使用者指出應完整系列開發／測試／驗證後才決定進版；助手承認判斷過早，更新平台AGENTS、CURRENT_STATUS、DECISIONS、ISSUE_HISTORY、README及候選release notes提示，私人候選JSON與對話M保存相同規則。沒有App程式／版本metadata／產物變更；build／tests／App／封裝／Store：未執行。具體原因與同步結果見RELEASE_POLICY_2026-10-12.zh-TW.md。
+
 ## 2026-10-12 — 自動存檔模式最終交付證據
 
 實作來源commit `c409a6e8e27e4d1ee7e9187e86c8929109187bb6`（33檔，386新增／26刪除）；其後只更新交付文件。r2 x64 `dotnet build`退出0／31.31秒／0warning／0error，當時尚未遞增metadata；正式封裝重新編譯產品1.0.14／File及Store1.0.14.0。
