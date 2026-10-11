@@ -52,12 +52,14 @@
 
 ### 第一批：相容性與版本可信度（P0）
 
-- [ ] **MAC-SYNC-01 圖釘資料往返保全**：Mac BoardPin 增加 Windows color／textColor 與巢狀未知欄位的保留；畫布／導覽清單／右鍵採一致配色。來源：`HeiBanCore/Models/BoardTypes.swift:347` 對照 Windows BoardPin 的 JsonExtensionData。目前 Mac 自動 Codable 會忽略未宣告欄位，重存不能保證保留 Windows 新配色。（2026-10-11 第一批已實作配色／未知欄位與單次 Undo；測試 46 通過。但獨立複核發現缺失／null isWorldSpace 的舊座標被誤讀，M21 待修，暫撤回完整完成標記；[複核與修正驗收目標](ANTIGRAVITY_REVIEW_2026-10-11.zh-TW.md)）。
+- [ ] **MAC-SYNC-01 圖釘資料往返保全**：BoardPin已擴展color／textColor／boardId／extraFields，新配色與Undo已接上。M21缺失／null座標標記回歸已在f960c78排解；獨立runner1559／Release probe4/4通過，詳見[日誌05](logs/2026-10-11/05.zh-TW.md)。保留未勾選是因實際Windows→Mac→Windows開檔與三处UI操作仍待驗收，不再表示M21待修。
   - 驗收目標：Windows 建 pin／自訂色 → Mac 載入／修改無關物件／另存 → Windows 再開，ID、名稱、座標、兩色及未知欄位都保留；舊無色 pin 使用一致預設；取消不改、一筆配色一次 undo。
 - [x] **MAC-SYNC-02 版本、變更紀錄與回報入口統一**：Release.json 是1.0.12，但 Core AboutInfo 固定1.0.5／20261009.4，SettingsView about 顯示它；feedbackUrl 指向舊 heiban/heiban。系統 App plist 正確不代表設定面板正確。最新99c08c5把測試固定成1.0.5，仍未對齊實際Release。（2026-10-11 已完成：AboutInfo 對齊 1.0.12 / 20261010.4、feedbackUrl 指向 VirginBear/HeiBan/issues、補齊 1.0.12 變更紀錄；測試套件已對齊真版本並於 [測試 26] 與 [測試 46] 雙重驗證通過）。
   - 驗收目標：App／設定／手冊／產物使用同版號與 build，最新變更紀錄相符；問題入口為VirginBear/HeiBan/issues；測試 fixture 與 App 版本來源分清，不以改成過期常數取得通過。
 
 ### 第二批：畫布操作與工具列（P1）
+
+使用者本次要求優先追齊工具列，具體細節、主列與螢幕列差異改依 [10項Antigravity工具列工作清單](../ANTIGRAVITY_MAC_TOOLBAR_WORKLIST_2026-10-11.zh-TW.md)。以下保留原工作ID；03／04／06由新清單細化，05為圖層排序依賴，不重複當兩份完成數。
 
 - [ ] **MAC-SYNC-03 螢幕工具列內容量測與換行**：目前 preferred 820×60／64×688，加 ScrollView；Windows 已依工作區量測並換行／換列。改 Mac 原生工作區約束及 SwiftUI 內容量測，拖動只移 NSPanel，放開才重排。正常尺寸維持上下橫排、左右純圖示窄排，不能因新增工具撐成寬側欄。
   - 驗收目標：四邊／短螢幕／不同縮放／跨顯示器完整可達，色圓、作畫模式、清空、結束一直可見；無抖動／面板裁切；空間不足才換行，仍保留鍵盤可達性。
@@ -84,7 +86,7 @@
   - 驗收目標：10語首頁／工具／Inspector／螢幕列／提示覆蓋，長文自適應；阿拉伯語閱讀RTL、画布座標LTR；作品名稱／文字／文件碼／快捷鍵不重譯；翻譯母語校閱與原生面板語言界線明列。
 - [ ] **MAC-SYNC-12 發行來源與產物證據**：借鑑 Windows snapshot／source SHA／獨立trial標籤／資料保全，但Mac保留「只留最新 App」政策。將 source commit、Release、guide、架構、簽章／公證與公開asset狀態分開記；開發版1.0.12不冒稱已在1.0.8公開下載。
 
-目前 MAC-SYNC-02 本版來源／核心檢查通過，MAC-SYNC-01 已部分實作但舊座標回歸待修；MAC-SYNC-03–12 尚未完成。先修 M21 與補相容性驗收，再改善操作；語言覆蓋可在基準測量之後接入。
+目前MAC-SYNC-01／02來源與核心檢查通過，M21已修復；01跨平台與介面實機驗收仍待完成。MAC-SYNC-03–12尚未完成；依使用者本次回饋，下一批優先工具列細節追齊，語言覆蓋與效能工作另按原依賴安排。
 
 ## 4. 已有功能與相容性界線
 

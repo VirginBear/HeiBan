@@ -18,6 +18,10 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
     public var activeItemIds: [String]
     public var hiddenItemIds: [String]
 
+    public static let streamlinedItemIds: [String] = [
+        "select", "pen", "highlighter", "eraser", "ruler", "shapes", "layers", "undoRedo"
+    ]
+
     public static let allDefinitions: [ToolbarItemDefinition] = [
         ToolbarItemDefinition(id: "select", displayName: "選取 / 導航", icon: "cursorarrow", isEssential: true),
         ToolbarItemDefinition(id: "pen", displayName: "鋼筆 / 向量筆", icon: "pencil"),
@@ -36,17 +40,34 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
         ToolbarItemDefinition(id: "image", displayName: "圖片匯入", icon: "photo.badge.plus"),
         ToolbarItemDefinition(id: "color", displayName: "筆刷設定", icon: "circle.fill"),
         ToolbarItemDefinition(id: "lineStyle", displayName: "實線 / 虛線", icon: "minus"),
-        ToolbarItemDefinition(id: "lineExtension", displayName: "射線延伸", icon: "arrow.left.and.right"),
+        ToolbarItemDefinition(id: "layers", displayName: "物件圖層", icon: "square.3.layers.3d"),
+        ToolbarItemDefinition(id: "pins", displayName: "圖釘", icon: "pin.fill"),
+        ToolbarItemDefinition(id: "compass", displayName: "圓規", icon: "circle.circle"),
+        ToolbarItemDefinition(id: "calculator", displayName: "計算機", icon: "plus.forwardslash.minus"),
+        ToolbarItemDefinition(id: "timer", displayName: "計時器", icon: "timer"),
         ToolbarItemDefinition(id: "undoRedo", displayName: "復原 / 重做", icon: "arrow.uturn.backward"),
         ToolbarItemDefinition(id: "dock", displayName: "停靠位置", icon: "rectangle.3.group"),
+        ToolbarItemDefinition(id: "viewLock", displayName: "鎖定視角", icon: "lock.fill"),
         ToolbarItemDefinition(id: "clearAll", displayName: "清空黑板", icon: "trash")
     ]
 
-    public static let defaultActiveItemIds: [String] = allDefinitions.map(\.id)
+    public static let defaultActiveItemIds: [String] = streamlinedItemIds
+
+    public static func createDefault() -> ToolbarPreferences {
+        ToolbarPreferences(
+            activeItemIds: streamlinedItemIds,
+            hiddenItemIds: allDefinitions.map(\.id).filter { !streamlinedItemIds.contains($0) }
+        )
+    }
 
     public init(activeItemIds: [String]? = nil, hiddenItemIds: [String]? = nil) {
-        self.activeItemIds = activeItemIds ?? Self.defaultActiveItemIds
-        self.hiddenItemIds = hiddenItemIds ?? []
+        if let activeItemIds = activeItemIds {
+            self.activeItemIds = activeItemIds
+            self.hiddenItemIds = hiddenItemIds ?? []
+        } else {
+            self.activeItemIds = Self.streamlinedItemIds
+            self.hiddenItemIds = hiddenItemIds ?? Self.allDefinitions.map(\.id).filter { !Self.streamlinedItemIds.contains($0) }
+        }
     }
 
     public var visibleItemIds: [String] {
@@ -57,9 +78,30 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
         hiddenItemIds.compactMap { id in Self.allDefinitions.first { $0.id == id } }
     }
 
+    public mutating func normalize() {
+        let allKnown = Set(Self.allDefinitions.map(\.id))
+        var seen = Set<String>()
+
+        // One-time discovery: 舊偏好若兩份清單皆缺 layers，補入可見列。使用者明確隱藏時維持隱藏。
+        if !activeItemIds.contains("layers") && !hiddenItemIds.contains("layers") {
+            activeItemIds.append("layers")
+        }
+
+        activeItemIds = activeItemIds.filter { allKnown.contains($0) && seen.insert($0).inserted }
+        hiddenItemIds = hiddenItemIds.filter { allKnown.contains($0) && seen.insert($0).inserted }
+
+        // 其餘新增工具收納進 hiddenItemIds (更多)，避免破壞使用者既有配置
+        for def in Self.allDefinitions {
+            if !seen.contains(def.id) {
+                hiddenItemIds.append(def.id)
+                seen.insert(def.id)
+            }
+        }
+    }
+
     public mutating func resetToDefaults() {
-        activeItemIds = Self.defaultActiveItemIds
-        hiddenItemIds = []
+        activeItemIds = Self.streamlinedItemIds
+        hiddenItemIds = Self.allDefinitions.map(\.id).filter { !Self.streamlinedItemIds.contains($0) }
     }
 
     public mutating func setItemHidden(id: String, hidden: Bool) {

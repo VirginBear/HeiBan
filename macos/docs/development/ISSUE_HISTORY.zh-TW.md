@@ -204,3 +204,15 @@ Windows BoardPin 已有 color／textColor 及 JsonExtensionData。已在 Mac `Bo
 
 來源 31576eb 的 `BoardTypes.swift:406` 對缺失／null `isWorldSpace` 補 `?? true`，導致舊版 viewport offset 標記提前被視為世界座標，跳過座標轉換與遷移。已修正為保留原生 `decodeIfPresent` 之 `nil` 語意。
 在 `HeiBanTestRunner` 新增 46.6 與 46.7 斷言，涵蓋 missing／null／false／true 完整解碼、座標計算、單次遷移防呆與往返重開；獨立編譯 probe 達成 4 passed 0 failed；完整 runner 1,559 項斷言 100% 通過；`build_app.sh` 重新編譯封裝成功。
+
+
+M21 獨立複核補充（2026-10-11）：f960c78 下完整 runner 1559/1559、Release Core 四案例4/4均通過；本機App簽章與Release建置碼段一致，可開始實機試用。未重新操作UI或Windows重開檔；詳見日誌05。
+
+
+## M22 — 工具列追齊清單範圍不足與儲存回饋誤報風險
+
+日期：2026-10-11。狀態：已完成來源審視與交接清單，實作待做。
+
+使用者實際回報Windows工具列細節較完整。原MAC-SYNC-03／04偏重螢幕列，沒有完整主列預設／catalog／偏好遷移／選取樣式／收合。Windows後續UX_FEEDBACK覆寫原捲動決策，Mac仍固定螢幕尺寸與中段ScrollView；若沿用舊紀錄會做錯方向。已分兩種工具列整理TB01–10及驗收條件，保留Mac窄欄／T／文字右鍵／色圈設定等既有要求。
+
+另靜態確認TopNavView saveLabel有「尚未儲存」值，但statusIndicatorView非失敗／儲存中分支仍畫綠點並提示所有變更已安全寫入；需真實dirty／草稿／交易／寫入狀態，已列TB03。沒有操作UI重現，也尚未修功能。本次未編譯、執行測試或封裝；不得使用上一輪1559數字代表工具列驗收。詳見 [完整工作清單](../ANTIGRAVITY_MAC_TOOLBAR_WORKLIST_2026-10-11.zh-TW.md)。

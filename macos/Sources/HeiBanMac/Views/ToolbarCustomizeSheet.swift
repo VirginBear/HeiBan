@@ -5,6 +5,27 @@ struct ToolbarCustomizeSheet: View {
     @ObservedObject var engine: BoardEngine
     @Binding var isPresented: Bool
 
+    private var allOrderedKeys: [String] {
+        var result: [String] = []
+        var seen = Set<String>()
+        for id in engine.toolbarPreferences.activeItemIds {
+            if seen.insert(id).inserted && ToolbarPreferences.allDefinitions.contains(where: { $0.id == id }) {
+                result.append(id)
+            }
+        }
+        for id in engine.toolbarPreferences.hiddenItemIds {
+            if seen.insert(id).inserted && ToolbarPreferences.allDefinitions.contains(where: { $0.id == id }) {
+                result.append(id)
+            }
+        }
+        for def in ToolbarPreferences.allDefinitions {
+            if seen.insert(def.id).inserted {
+                result.append(def.id)
+            }
+        }
+        return result
+    }
+
     var body: some View {
         VStack(spacing: 16) {
             HStack {
@@ -24,12 +45,15 @@ struct ToolbarCustomizeSheet: View {
 
             ScrollView {
                 VStack(spacing: 6) {
-                    ForEach(Array(engine.toolbarPreferences.activeItemIds.enumerated()), id: \.element) { index, id in
+                    ForEach(Array(allOrderedKeys.enumerated()), id: \.element) { index, id in
                         if let def = ToolbarPreferences.allDefinitions.first(where: { $0.id == id }) {
+                            let isVisible = !engine.toolbarPreferences.hiddenItemIds.contains(id) && engine.toolbarPreferences.activeItemIds.contains(id)
                             HStack(spacing: 10) {
                                 Toggle("", isOn: Binding(
-                                    get: { !engine.toolbarPreferences.hiddenItemIds.contains(id) },
-                                    set: { engine.setToolbarItemHidden(id: id, hidden: !$0) }
+                                    get: { isVisible },
+                                    set: { show in
+                                        engine.setToolbarItemHidden(id: id, hidden: !show)
+                                    }
                                 ))
                                 .labelsHidden()
 
@@ -43,24 +67,25 @@ struct ToolbarCustomizeSheet: View {
                                 Spacer()
 
                                 Button {
-                                    if index > 0 {
-                                        engine.moveToolbarItem(id: id, to: index - 1)
+                                    if let currentIdx = engine.toolbarPreferences.activeItemIds.firstIndex(of: id), currentIdx > 0 {
+                                        engine.moveToolbarItem(id: id, to: currentIdx - 1)
                                     }
                                 } label: {
                                     Image(systemName: "chevron.up")
                                 }
                                 .buttonStyle(.borderless)
-                                .disabled(index == 0)
+                                .disabled(!isVisible || (engine.toolbarPreferences.activeItemIds.firstIndex(of: id) ?? 0) == 0)
 
                                 Button {
-                                    if index < engine.toolbarPreferences.activeItemIds.count - 1 {
-                                        engine.moveToolbarItem(id: id, to: index + 1)
+                                    if let currentIdx = engine.toolbarPreferences.activeItemIds.firstIndex(of: id),
+                                       currentIdx < engine.toolbarPreferences.activeItemIds.count - 1 {
+                                        engine.moveToolbarItem(id: id, to: currentIdx + 1)
                                     }
                                 } label: {
                                     Image(systemName: "chevron.down")
                                 }
                                 .buttonStyle(.borderless)
-                                .disabled(index == engine.toolbarPreferences.activeItemIds.count - 1)
+                                .disabled(!isVisible || (engine.toolbarPreferences.activeItemIds.firstIndex(of: id) ?? 0) >= engine.toolbarPreferences.activeItemIds.count - 1)
                             }
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)

@@ -20,6 +20,10 @@ func assertTrue(_ condition: Bool, _ message: String, file: String = #file, line
     }
 }
 
+func assertFalse(_ condition: Bool, _ message: String, file: String = #file, line: Int = #line) {
+    assertTrue(!condition, message, file: file, line: line)
+}
+
 func assertEqual<T: Equatable>(_ actual: T, _ expected: T, _ message: String, file: String = #file, line: Int = #line) {
     if actual == expected {
         passedCount += 1
@@ -4172,17 +4176,17 @@ do {
 
 print("\n[測試 42] ProDrafts 錄影檢討：V01–V06 工具列自訂、選取快速列、HUD 回饋、圖釘搜尋與縮圖增強 (立靶驗收)")
 do {
-    // 42.1 V01: ToolbarPreferences Customization
+    // 42.1 V01: ToolbarPreferences Customization (對齊 MAC-TB-01 精簡預設)
     var prefs = ToolbarPreferences()
-    assertEqual(prefs.activeItemIds.count, 21, "預設工具列包含 21 個項目")
-    assertEqual(prefs.hiddenItemIds.count, 0, "預設隱藏工具清單為空")
-    assertEqual(prefs.visibleItemIds.count, 21, "預設可見工具數量為 21")
+    assertEqual(prefs.activeItemIds.count, 8, "預設精簡工具列包含 8 個項目")
+    assertEqual(prefs.hiddenItemIds.count, ToolbarPreferences.allDefinitions.count - 8, "預設其餘 18 項收納至隱藏清單 (更多)")
+    assertEqual(prefs.visibleItemIds.count, 8, "預設可見工具數量為 8")
 
     prefs.setItemHidden(id: "ruler", hidden: true)
     assertTrue(prefs.hiddenItemIds.contains("ruler"), "隱藏螢幕尺後進入 hiddenItemIds")
-    assertEqual(prefs.visibleItemIds.count, 20, "隱藏 1 個工具後可見項目為 20")
+    assertEqual(prefs.visibleItemIds.count, 7, "隱藏 1 個工具後可見項目為 7")
     assertTrue(!prefs.visibleItemIds.contains("ruler"), "visibleItemIds 不含已隱藏之 ruler")
-    assertEqual(prefs.hiddenItems.first?.id, "ruler", "hiddenItems 正確解析為尺規定義")
+    assertTrue(prefs.hiddenItems.contains(where: { $0.id == "ruler" }), "hiddenItems 正確包含尺規定義")
 
     prefs.moveItem(id: "eraser", to: 0)
     assertEqual(prefs.activeItemIds.first, "eraser", "移動橡皮擦至第 0 位成功")
@@ -4193,8 +4197,8 @@ do {
     assertTrue(decoded.hiddenItemIds.contains("ruler"), "反序列化保留隱藏項目")
 
     prefs.resetToDefaults()
-    assertEqual(prefs.activeItemIds.count, 21, "重設後恢復 21 個工具 (含雷射筆、遮題膠帶與套索)")
-    assertEqual(prefs.hiddenItemIds.count, 0, "重設後隱藏清單清空")
+    assertEqual(prefs.activeItemIds.count, 8, "重設後恢復 8 個精簡工具")
+    assertEqual(prefs.hiddenItemIds.count, ToolbarPreferences.allDefinitions.count - 8, "重設後隱藏清單收納其餘 18 項")
     assertEqual(prefs.activeItemIds.first, "select", "重設後首位恢復為 select")
 
     // 42.2 V02: SelectionQuickActionCoordinator
@@ -5212,6 +5216,139 @@ do {
     assertEqual(reloadedPin.y, 125.0, "重開：y 為 125.0")
     assertEqual(reloadedPin.color, "#39B9DC", "重開：color 保留")
     assertEqual(reloadedPin.extraFields?["customNote"], .string("legacy_tag"), "重開：未知欄位保留")
+}
+
+// -------------------------------------------------------------------------
+// 47. MAC-TB-01 ~ MAC-TB-03: 精簡主工具列、偏好遷移、教學工具 catalog 與真實儲存狀態機 (立靶驗收)
+// -------------------------------------------------------------------------
+print("\n[測試 47] MAC-TB-01 ~ MAC-TB-03: 精簡主工具列、偏好遷移、教學工具 catalog 與真實儲存狀態機 (立靶驗收)")
+do {
+    // 47.1 MAC-TB-01: 精簡工具列項目常數與全新預設 (8項核心工具)
+    let streamlined = ToolbarPreferences.streamlinedItemIds
+    assertEqual(streamlined, ["select", "pen", "highlighter", "eraser", "ruler", "shapes", "layers", "undoRedo"], "精簡列：精確包含 8 項常用工具")
+
+    let defaultPrefs = ToolbarPreferences.createDefault()
+    assertEqual(defaultPrefs.visibleItemIds, streamlined, "全新預設：visibleItemIds 預設為 8 個精簡工具")
+    assertEqual(defaultPrefs.activeItemIds, streamlined, "全新預設：activeItemIds 預設為 8 個精簡工具")
+    assertEqual(defaultPrefs.hiddenItemIds.count, ToolbarPreferences.allDefinitions.count - 8, "全新預設：其餘 18 項工具收納於 hiddenItemIds (更多)")
+    assertTrue(Set(defaultPrefs.activeItemIds).isDisjoint(with: Set(defaultPrefs.hiddenItemIds)), "全新預設：active 與 hidden 彼此互斥無重複")
+    assertEqual(Set(defaultPrefs.activeItemIds).union(Set(defaultPrefs.hiddenItemIds)), Set(ToolbarPreferences.allDefinitions.map(\.id)), "全新預設：聯集完整覆蓋全 catalog 26 項工具")
+
+    // 47.2 MAC-TB-01: 偏好遷移 (Normalize)
+    // 情境 A：舊版 21 項全開配置（缺少 layers、缺少 pins/compass/calculator/timer/viewLock、包含舊 lineExtension）
+    var legacyPrefs = ToolbarPreferences(
+        activeItemIds: [
+            "select", "pen", "curve", "highlighter", "paint", "eraser",
+            "ruler", "shapes", "sticky", "text", "laser", "tape",
+            "lasso", "screenshot", "image", "color", "lineStyle",
+            "lineExtension", "undoRedo", "dock", "clearAll"
+        ],
+        hiddenItemIds: []
+    )
+    legacyPrefs.normalize()
+    // 驗證：舊有 20 項順序被 100% 保留（不被強制截斷為 8 項精簡列）
+    assertTrue(legacyPrefs.activeItemIds.contains("curve"), "舊偏好遷移：curve 依然留在可見列")
+    assertTrue(legacyPrefs.activeItemIds.contains("paint"), "舊偏好遷移：paint 依然留在可見列")
+    assertTrue(legacyPrefs.activeItemIds.contains("text"), "舊偏好遷移：text 依然留在可見列")
+    assertFalse(legacyPrefs.activeItemIds.contains("lineExtension"), "舊偏好遷移：舊 lineExtension 被安全濾除")
+    assertFalse(legacyPrefs.hiddenItemIds.contains("lineExtension"), "舊偏好遷移：舊 lineExtension 不殘留於 hidden")
+    // 驗證：缺少 layers 時，自動補入可見列（One-time discovery）
+    assertTrue(legacyPrefs.activeItemIds.contains("layers"), "舊偏好遷移：兩表皆缺 layers 時自動補入可見列")
+    assertFalse(legacyPrefs.hiddenItemIds.contains("layers"), "舊偏好遷移：layers 不在 hidden")
+    // 驗證：新增教學工具（pins/compass/calculator/timer/viewLock）兩表皆缺時自動收納於 hiddenItemIds（更多）
+    for toolId in ["pins", "compass", "calculator", "timer", "viewLock"] {
+        assertTrue(legacyPrefs.hiddenItemIds.contains(toolId), "舊偏好遷移：新教學工具 \(toolId) 自動收折進 hidden (更多)")
+        assertFalse(legacyPrefs.activeItemIds.contains(toolId), "舊偏好遷移：新教學工具 \(toolId) 不破壞既有可見工具列")
+    }
+
+    // 情境 B：使用者先前已明確隱藏 layers
+    var explicitHiddenLayers = ToolbarPreferences(
+        activeItemIds: ["select", "pen", "eraser"],
+        hiddenItemIds: ["layers"]
+    )
+    explicitHiddenLayers.normalize()
+    assertFalse(explicitHiddenLayers.activeItemIds.contains("layers"), "隱藏尊重：使用者明確隱藏 layers 時不強制移至可見列")
+    assertTrue(explicitHiddenLayers.hiddenItemIds.contains("layers"), "隱藏尊重：layers 維持在 hiddenItemIds")
+
+    // 情境 C：去重與未知工具防呆
+    var dirtyPrefs = ToolbarPreferences(
+        activeItemIds: ["select", "bogusToolX", "pen", "select", "pen"],
+        hiddenItemIds: ["eraser", "bogusToolY", "eraser"]
+    )
+    dirtyPrefs.normalize()
+    assertEqual(dirtyPrefs.activeItemIds.filter { $0 == "select" }.count, 1, "去重防呆：select 去除重複項")
+    assertEqual(dirtyPrefs.activeItemIds.filter { $0 == "pen" }.count, 1, "去重防呆：pen 去除重複項")
+    assertFalse(dirtyPrefs.activeItemIds.contains("bogusToolX"), "過濾未知：無效 ID bogusToolX 被過濾")
+    assertFalse(dirtyPrefs.hiddenItemIds.contains("bogusToolY"), "過濾未知：無效 ID bogusToolY 被過濾")
+
+    // 情境 D：重設回預設
+    var modifiedPrefs = ToolbarPreferences(activeItemIds: ["eraser"], hiddenItemIds: ["select"])
+    modifiedPrefs.resetToDefaults()
+    assertEqual(modifiedPrefs.visibleItemIds, streamlined, "重設預設：恢復為 8 項精簡列")
+    assertEqual(modifiedPrefs.hiddenItemIds.count, ToolbarPreferences.allDefinitions.count - 8, "重設預設：其餘項目收納進 hidden")
+
+    // 47.3 MAC-TB-02: 圖層及教學工具 catalog 與 BoardEngine 統一命令
+    let catalogIds = ToolbarPreferences.allDefinitions.map(\.id)
+    assertEqual(catalogIds.contains("layers"), true, "Catalog: 包含 layers")
+    assertEqual(catalogIds.contains("pins"), true, "Catalog: 包含 pins")
+    assertEqual(catalogIds.contains("compass"), true, "Catalog: 包含 compass")
+    assertEqual(catalogIds.contains("calculator"), true, "Catalog: 包含 calculator")
+    assertEqual(catalogIds.contains("timer"), true, "Catalog: 包含 timer")
+    assertEqual(catalogIds.contains("viewLock"), true, "Catalog: 包含 viewLock")
+    assertEqual(catalogIds.contains("lineExtension"), false, "Catalog: lineExtension 已移出工具列 catalog")
+
+    let engine = BoardEngine()
+    // layers 統一命令
+    assertEqual(engine.showLayerPanel, false, "layers 初始狀態：未開啟")
+    engine.toggleLayerPanel()
+    assertEqual(engine.showLayerPanel, true, "layers 命令：切換開啟")
+    engine.toggleLayerPanel()
+    assertEqual(engine.showLayerPanel, false, "layers 命令：再次點擊回收")
+
+    // pins 統一命令
+    assertEqual(engine.showPinManager, false, "pins 初始狀態：未開啟")
+    engine.togglePinManager()
+    assertEqual(engine.showPinManager, true, "pins 命令：切換開啟")
+    engine.togglePinManager()
+    assertEqual(engine.showPinManager, false, "pins 命令：再次點擊回收")
+
+    // compass 統一命令
+    assertEqual(engine.compassEngine.isEnabled, false, "compass 初始狀態：未開啟")
+    engine.toggleCompass()
+    assertEqual(engine.compassEngine.isEnabled, true, "compass 命令：切換開啟")
+    engine.toggleCompass()
+    assertEqual(engine.compassEngine.isEnabled, false, "compass 命令：再次點擊回收")
+
+    // calculator 統一命令
+    assertEqual(engine.calculator.isVisible, false, "calculator 初始狀態：未開啟")
+    engine.toggleCalculator()
+    assertEqual(engine.calculator.isVisible, true, "calculator 命令：切換開啟")
+    engine.toggleCalculator()
+    assertEqual(engine.calculator.isVisible, false, "calculator 命令：再次點擊回收")
+
+    // timer 統一命令
+    assertEqual(engine.timerCoordinator.isVisible, false, "timer 初始狀態：未開啟")
+    engine.toggleTimer()
+    assertEqual(engine.timerCoordinator.isVisible, true, "timer 命令：切換開啟")
+    engine.toggleTimer()
+    assertEqual(engine.timerCoordinator.isVisible, false, "timer 命令：再次點擊回收")
+
+    // viewLock 統一命令
+    assertEqual(engine.viewportLocked, false, "viewLock 初始狀態：未鎖定")
+    engine.toggleViewportLock()
+    assertEqual(engine.viewportLocked, true, "viewLock 命令：切換鎖定")
+    engine.toggleViewportLock()
+    assertEqual(engine.viewportLocked, false, "viewLock 命令：再次切換解鎖")
+
+    // 47.4 MAC-TB-03: 真實儲存回饋狀態機與防假綠點
+    assertEqual(BoardSaveFeedbackState.resolve(status: "尚未儲存"), .unsaved, "儲存回饋：尚未儲存對應 .unsaved (虛線圓)")
+    assertEqual(BoardSaveFeedbackState.resolve(status: "儲存中…"), .saving, "儲存回饋：儲存中對應 .saving (進度指示)")
+    assertEqual(BoardSaveFeedbackState.resolve(status: "本機已儲存 21:30"), .saved(detail: "本機已儲存 21:30"), "儲存回饋：真實存檔對應 .saved (勾號)")
+    assertEqual(BoardSaveFeedbackState.resolve(status: "已還原上次工作"), .saved(detail: "已還原上次工作"), "儲存回饋：還原記錄對應 .saved (勾號)")
+    assertEqual(BoardSaveFeedbackState.resolve(status: "自動儲存失敗：磁碟空間不足"), .failed(detail: "自動儲存失敗：磁碟空間不足"), "儲存回饋：失敗對應 .failed (紅色驚嘆號)")
+    assertEqual(BoardSaveFeedbackState.resolve(status: "無法取得自動儲存位置"), .failed(detail: "無法取得自動儲存位置"), "儲存回饋：無法寫入對應 .failed (紅色驚嘆號)")
+    // 嚴防非錯誤文字被當作已存
+    assertEqual(BoardSaveFeedbackState.resolve(status: "草稿中"), .unsaved, "儲存回饋：未知或草稿狀態絕對不可誤報為 saved (消除假綠點)")
 }
 
 print("\n==================================================")

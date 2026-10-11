@@ -11,6 +11,7 @@
 - [困難、錯誤與排解紀錄](../macos/docs/development/ISSUE_HISTORY.zh-TW.md)
 - [架構決策](../macos/docs/development/DECISIONS.zh-TW.md)
 - [兩庫同步完整性、Windows進度與Mac改善清單](../macos/docs/development/WINDOWS_SYNC_REVIEW_2026-10-11.zh-TW.md)
+- [Mac工具列追齊Windows：Antigravity工作與驗收清單](../macos/docs/ANTIGRAVITY_MAC_TOOLBAR_WORKLIST_2026-10-11.zh-TW.md)
 - [本次程式整理稽核](../macos/docs/development/CODE_REVIEW_2026-10-09.zh-TW.md)
 - [使用手冊](../macos/docs/USER_GUIDE.zh-TW.html)
 

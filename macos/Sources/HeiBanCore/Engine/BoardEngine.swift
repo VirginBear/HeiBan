@@ -27,11 +27,12 @@ public class BoardEngine: ObservableObject {
     @Published public var toolbarDock = UserDefaults.standard.string(forKey: "HeiBan.toolbarDock") ?? "bottom"
     @Published public var toolbarPreferences: ToolbarPreferences = {
         if let data = UserDefaults.standard.data(forKey: "HeiBan.toolbarPreferences"),
-            let decoded = try? JSONDecoder().decode(ToolbarPreferences.self, from: data)
+            var decoded = try? JSONDecoder().decode(ToolbarPreferences.self, from: data)
         {
+            decoded.normalize()
             return decoded
         }
-        return ToolbarPreferences()
+        return ToolbarPreferences.createDefault()
     }()
     @Published public var board: BoardMetadata
     @Published public var objects: [BoardObject] = []
@@ -147,15 +148,39 @@ public class BoardEngine: ObservableObject {
     @Published public var presentationFrames: [BoardObject] = []
 
     public func toggleCalculator() {
-        calculator.isCollapsed = false
-        if calculator.isVisible { calculator.panelOffset = CGSize(width: 80, height: 80) }
-        calculator.isVisible = true
+        if calculator.isVisible {
+            calculator.isVisible = false
+        } else {
+            calculator.isCollapsed = false
+            calculator.panelOffset = CGSize(width: 80, height: 80)
+            calculator.isVisible = true
+        }
     }
 
     public func toggleTimer() {
-        timerCoordinator.isCollapsed = false
-        if timerCoordinator.isVisible { timerCoordinator.panelOffset = CGSize(width: 80, height: 160) }
-        timerCoordinator.isVisible = true
+        if timerCoordinator.isVisible {
+            timerCoordinator.isVisible = false
+        } else {
+            timerCoordinator.isCollapsed = false
+            timerCoordinator.panelOffset = CGSize(width: 80, height: 160)
+            timerCoordinator.isVisible = true
+        }
+    }
+
+    public func toggleLayerPanel() {
+        showLayerPanel.toggle()
+    }
+
+    public func togglePinManager() {
+        showPinManager.toggle()
+    }
+
+    public func toggleViewportLock() {
+        viewportLocked.toggle()
+    }
+
+    public var saveFeedbackState: BoardSaveFeedbackState {
+        BoardSaveFeedbackState.resolve(status: autosaveStatus)
     }
 
     public func toggleLaser() {

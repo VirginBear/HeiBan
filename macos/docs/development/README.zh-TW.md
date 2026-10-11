@@ -13,6 +13,8 @@
 
 最新交付核對見 [Antigravity 第一批獨立複核](ANTIGRAVITY_REVIEW_2026-10-11.zh-TW.md)：既有測試通過，舊圖釘座標相容性仍有阻擋。
 
+下一批工具列優先依 [Antigravity Mac 工具列追齊清單](../ANTIGRAVITY_MAC_TOOLBAR_WORKLIST_2026-10-11.zh-TW.md)；涵蓋一般／螢幕列，尚未實作。
+
 ## 工作順序
 
 1. 檢查目前 Git 變更與平台範圍。

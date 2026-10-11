@@ -552,30 +552,61 @@ private struct ToolbarToolsView: View {
             }
             .buttonStyle(.plain)
             .help(engine.activeLineStyle == "dashed" ? "虛線模式" : "實線模式")
-        case "lineExtension":
-            Menu {
-                ForEach(LineExtension.allCases, id: \.self) { extensionMode in
-                    Button {
-                        engine.setSelectedLineExtension(extensionMode)
-                        engine.activeLineExtension = extensionMode
-                    } label: {
-                        if engine.activeLineExtension == extensionMode {
-                            Label(extensionMode.displayName, systemImage: "checkmark")
-                        } else {
-                            Text(extensionMode.displayName)
-                        }
-                    }
-                }
-            } label: {
-                MenuDisclosureLabel("直線端點延伸方式") {
-                    Image(systemName: "arrow.left.and.right").font(.system(size: 16))
-                        .frame(width: 18, height: 24)
-                }
+        case "layers":
+            ToolButton(
+                icon: "square.3.layers.3d",
+                tooltip: "物件圖層 (M)",
+                isSelected: engine.showLayerPanel
+            ) {
+                engine.toggleLayerPanel()
             }
-            .menuStyle(.borderlessButton)
-            .menuIndicator(.hidden)
-            .fixedSize(horizontal: true, vertical: true)
-            .help("設定直線端點延伸方式")
+        case "pins":
+            Button {
+                engine.togglePinManager()
+            } label: {
+                HeiBanPinIcon()
+                    .frame(width: 18, height: 18)
+                    .foregroundStyle(engine.showPinManager ? Color.accentColor : Color.primary)
+                    .frame(width: 32, height: 32)
+                    .background(engine.showPinManager ? Color.accentColor.opacity(0.22) : Color.clear, in: RoundedRectangle(cornerRadius: 6))
+            }
+            .buttonStyle(.plain)
+            .help("圖釘視角導航")
+            .accessibilityLabel("圖釘視角導航")
+            .accessibilityValue(engine.showPinManager ? "已啟用" : "未啟用")
+            .accessibilityAddTraits(engine.showPinManager ? [.isSelected, .isButton] : [.isButton])
+        case "compass":
+            ToolButton(
+                icon: "circle.circle",
+                tooltip: "圓規（再次點擊關閉）",
+                isSelected: engine.compassEngine.isEnabled
+            ) {
+                engine.toggleCompass()
+            }
+        case "calculator":
+            ToolButton(
+                icon: "plus.forwardslash.minus",
+                tooltip: "計算機（再次點擊關閉）",
+                isSelected: engine.calculator.isVisible
+            ) {
+                engine.toggleCalculator()
+            }
+        case "timer":
+            ToolButton(
+                icon: "timer",
+                tooltip: "計時器（再次點擊關閉）",
+                isSelected: engine.timerCoordinator.isVisible
+            ) {
+                engine.toggleTimer()
+            }
+        case "viewLock":
+            ToolButton(
+                icon: engine.viewportLocked ? "lock.fill" : "lock.open",
+                tooltip: engine.viewportLocked ? "鎖定視角：已鎖定畫布縮放與平移" : "鎖定視角：點擊鎖定畫布",
+                isSelected: engine.viewportLocked
+            ) {
+                engine.toggleViewportLock()
+            }
         case "undoRedo":
             HStack(spacing: 4) {
                 Button {
@@ -654,6 +685,12 @@ private struct ToolbarToolsView: View {
         case "image": engine.importImageFromFilePrompt()
         case "color": engine.showColorPopover = true
         case "lineStyle": engine.activeLineStyle = (engine.activeLineStyle == "solid") ? "dashed" : "solid"
+        case "layers": engine.toggleLayerPanel()
+        case "pins": engine.togglePinManager()
+        case "compass": engine.toggleCompass()
+        case "calculator": engine.toggleCalculator()
+        case "timer": engine.toggleTimer()
+        case "viewLock": engine.toggleViewportLock()
         case "clearAll": engine.clearAll()
         default: break
         }

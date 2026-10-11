@@ -51,15 +51,15 @@ public struct TopNavView: View {
 
             // 3. Oblique Pin Navigation
             Button {
-                engine.showPinPopover.toggle()
+                engine.togglePinManager()
             } label: {
                 HeiBanPinIcon()
                     .frame(width: 20, height: 20)
                     .foregroundStyle(Color.accentColor)
             }
             .help("圖釘視角導航")
-            .popover(isPresented: $engine.showPinPopover) {
-                PinManagerPopover(engine: engine, isPresented: $engine.showPinPopover)
+            .popover(isPresented: $engine.showPinManager) {
+                PinManagerPopover(engine: engine, isPresented: $engine.showPinManager)
             }
 
             // 4. "+" Insert Menu (Categorized)
@@ -188,7 +188,7 @@ public struct TopNavView: View {
 
             Section("圖層與屬性") {
                 Button {
-                    engine.showLayerPanel.toggle()
+                    engine.toggleLayerPanel()
                 } label: {
                     Label("物件圖層", systemImage: "square.3.layers.3d")
                 }
@@ -233,31 +233,34 @@ public struct TopNavView: View {
         .help("筆記資訊、背景、圖層、匯出與偏好")
     }
 
-    // MARK: - Status Indicator
+    // MARK: - Status Indicator (MAC-TB-03)
     private var statusIndicatorView: some View {
-        Group {
-            if saveLabel == "儲存失敗" {
-                HStack(spacing: 4) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.red)
-                        .font(.system(size: 11))
-                    Text("儲存失敗")
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundStyle(.red)
-                }
-                .help(engine.autosaveStatus)
-            } else if saveLabel == "儲存中" {
+        ZStack {
+            switch engine.saveFeedbackState {
+            case .failed(let detail):
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(Color(hex: "#CF4860"))
+                    .help("儲存失敗：\(detail)")
+            case .saving:
                 ProgressView()
                     .controlSize(.mini)
                     .frame(width: 14, height: 14)
                     .help("儲存中…")
-            } else {
-                Circle()
-                    .fill(Color.green.opacity(0.85))
-                    .frame(width: 8, height: 8)
-                    .help("本機已儲存：所有變更已安全寫入")
+            case .unsaved:
+                Image(systemName: "circle.dashed")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(Color(hex: "#A87929"))
+                    .help("尚未儲存完成：存在尚未寫入本機磁碟的變更")
+            case .saved(let detail):
+                Image(systemName: "checkmark")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(Color(hex: "#39735A"))
+                    .help(detail)
             }
         }
+        .frame(width: 22, height: 22, alignment: .center)
+        .contentShape(Rectangle())
     }
 
     // MARK: - Note Info Popover

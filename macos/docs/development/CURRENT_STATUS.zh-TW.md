@@ -2,6 +2,33 @@
 
 更新：2026-10-11。平台：macOS；最新本機開發版 1.0.12 / 20261010.4。
 
+## 2026-10-11 — Mac 工具列第一批追齊實作完成 (MAC-TB-01 ~ MAC-TB-03)
+
+依據 [Mac 工具列追齊工作清單](../ANTIGRAVITY_MAC_TOOLBAR_WORKLIST_2026-10-11.zh-TW.md)，嚴格遵循「先靶後箭」工程規範，第一批優先項目已全數交付並通過客觀斷言驗收：
+1. **MAC-TB-01 精簡主工具列與偏好遷移**：
+   - 預設模式改為 8 項常用精簡工具（`select`, `pen`, `highlighter`, `eraser`, `ruler`, `shapes`, `layers`, `undoRedo`），其餘 18 項自動收納至「更多」（`hiddenItemIds`）。
+   - 實作無損遷移邏輯（`normalize()`）：舊版 21 項全開使用者原有順序 100% 保留不被強制截斷；舊版兩表皆缺 `layers` 時自動補入可見列（One-time discovery）；使用者若明確隱藏 `layers` 嚴格尊重隱藏；過濾舊 `lineExtension` 不殘留；新教學工具自動歸入 hidden；無效未知 ID 安全過濾去重。
+   - 自訂彈窗（`ToolbarCustomizeSheet`）支援全 catalog 26 項工具排序與勾選顯示。
+2. **MAC-TB-02 圖層及教學工具 Catalog 與統一命令**：
+   - Catalog 擴充至完整 26 項，包含 `layers`、`pins`、`compass`、`calculator`、`timer`、`viewLock`；`lineExtension` 移出工具列 catalog（由屬性列提供）。
+   - `BoardEngine` 實作標準統一切換命令（`toggleLayerPanel()`, `togglePinManager()`, `toggleCompass()`, `toggleCalculator()`, `toggleTimer()`, `toggleViewportLock()`），主工具列、更多選單與頂部導覽共用相同狀態與命令，支援再次點擊回收。
+3. **MAC-TB-03 儲存回饋真實且固定大小**：
+   - 建立核心狀態機 `BoardSaveFeedbackState`（`.saved`, `.saving`, `.unsaved`, `.failed`），消滅尚未儲存卻誤報綠點的邏輯缺口；草稿／dirty 顯示琥珀色虛線圓，成功寫入顯示深綠勾號，儲存中顯示微型進度指示，失敗顯示紅色警告驚嘆號。
+   - `TopNavView` 的指示器槽位設定固定大小（`22x22 pt`），連續編輯與狀態切換時工具列零抖動、零橫向擠動。
+4. **客觀驗收與封裝**：
+   - 先立標靶：於 `HeiBanTestRunner` 新增 `[測試 47]`，共 63 項全新斷言；全套測試 **1,622 項斷言 100% 通過（0 失敗）**。
+   - 重新封裝：`build_app.sh` 產出最新 `HeiBan.app`，`codesign --verify --deep --strict` 簽署有效。詳見 [日誌 07](logs/2026-10-11/07.zh-TW.md)。
+
+## 2026-10-11 — 使用者回報工具列未跟上，下一批優先追齊
+
+Mac與Windows來源逐項比對後，原MAC-SYNC-03／04只記大方向，漏掉主列精簡預設、可自訂圖層／教學入口、偏好遷移、選取樣式修改及螢幕列收合。已建立 [給Antigravity的10項工具列工作與驗收清單](../ANTIGRAVITY_MAC_TOOLBAR_WORKLIST_2026-10-11.zh-TW.md)，分普通／螢幕列，逐項列現況、入口、依賴與驗收。
+
+下一批先做主列配置／入口／可信存檔狀態，再做螢幕列內容量測與無捲軸換行、收合、完整色輪／線型／填色／圖層與曲線。保留左右窄欄無字、四邊色圈設定、T與右鍵文字、雷射再點設定、清空不退出等既有要求。本次只改文件，**這些工具列追齊尚未實作，App仍是1.0.12 / 20261010.4**。Windows只讀；M21修復與核心測試通過不表示操作細節追齊。詳見M22／日誌06。
+
+## 2026-10-11 — 最新 Mac App 獨立確認，可開始實機試用
+
+來源 f960c78。獨立重跑1559斷言全數通過，Release Core舊座標probe4/4通過；App深層嚴格簽章有效，與Release執行檔UUID／文字碼段一致。最新本機成品仍為macos/dist/HeiBan.app，1.0.12 / 20261010.4，可交使用者實際操作驗收。M21已排解；尚未重新操作UI或Windows往返實機，不宣稱第一批所有實機驗收或03–12工作已完成。詳見 [獨立確認日誌05](logs/2026-10-11/05.zh-TW.md)。
+
 ## 2026-10-11 — Antigravity 第一批獨立複核與相容性修復 (M21 排解)
 
 來源 31576eb 複核中發現的舊圖釘座標 probe 問題（缺失／null isWorldSpace 被補 true，導致舊視窗位移跳過遷移），已於 `BoardTypes.swift:406` 徹底修復（移除 `?? true` 保留 nil 語意）。

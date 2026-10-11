@@ -25,3 +25,24 @@ final class BoardPersistenceState {
 
     deinit { workItem?.cancel() }
 }
+
+public enum BoardSaveFeedbackState: Equatable, Sendable {
+    case saved(detail: String)
+    case saving
+    case unsaved
+    case failed(detail: String)
+
+    public static func resolve(status: String) -> BoardSaveFeedbackState {
+        if status.contains("失敗") || status.contains("無法") {
+            return .failed(detail: status)
+        }
+        if status == "儲存中…" || status == "儲存中" {
+            return .saving
+        }
+        if status.contains("本機已儲存") || status.contains("已還原上次工作") {
+            return .saved(detail: status)
+        }
+        return .unsaved
+    }
+}
+
