@@ -71,3 +71,9 @@
 - 為讓原機試用接續既有作品／設定，確認新試用未執行且Data為空後，從此次備份**複製**9檔到新解壓版Data，逐SHA相同；原備份保持完整並附恢復README。沒有搬資料進ZIP，也沒有寫安裝版／MSIX的資料根。[資料接續結果](LOCALIZATION_DATA_HANDOFF_2026-10-11.json)只記數量及路由，未記用戶檔名／內容；新解壓版因此有9檔，下載ZIP仍空Data。
 - 封裝前靜態檢視的解壓Data0是當時狀態；之後本機沿用9檔的狀態在inspection另列，不把作品當payload進inventory。ZIP未變，舊Data及已發布／Store1.0.12.0原件／其它dist／SDK／歷史均保留；trial本來ignored、不占GitHub二進位空間。
 - 清理log `.build/trial-cleanup-20261011-041854-3b00a2aa/cleanup.json`／localization-cleanup-2026-10-11.log 保留。Storebundle SHA仍 `d7a49b63d88fa880b1a97b0c307361ad2cfbc9b3d58786048887093d7204ea7b`。
+
+## 階段 6：清理後檢視排解
+
+- 清理後核ZIP／124 source／Store皆相符，原備份保留。Python普通Path.rglob卻只列5檔／1937bytes，使localDataCopyHashMatched=false；前段PowerShell實際9檔SHA相符。
+- 原因確認Windows長路徑：本機Python普通Win32路徑遞迴略過超260字元的4份資料，並非檔案遺失。用extended absolute path前綴後列出9檔／150783bytes、全部SHA相符；PowerShell Get-ChildItem -Force及Get-FileHash獨立核9／9。過程只看數量與SHA，不記用戶檔名／內容。
+- 第一個postCleanup靜態檢視assert退出1，但多命令PowerShell未檢查Python exit code便繼續提交文件dfca7ba；因此保留false結果的歷史並另提交修正證據，不改寫歷史。不存在App／test失敗或作品遺失。後續命令逐項檢查退出碼。

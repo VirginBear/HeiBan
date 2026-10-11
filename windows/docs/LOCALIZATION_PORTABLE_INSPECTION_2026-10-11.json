@@ -80,10 +80,12 @@
   "postCleanup": {
     "zipHashUnchanged": true,
     "all124SourceBytesUnchanged": true,
-    "localDataCopyHashMatched": false,
+    "localDataCopyHashMatched": true,
     "oldTrialRemoved": true,
     "storeUnchanged": true,
     "remainingTrialEntries": 3,
-    "priorBackupRetained": true
+    "priorBackupRetained": true,
+    "dataInspectionUsesExtendedWindowsPaths": true,
+    "dataFiles": 9
   }
 }
