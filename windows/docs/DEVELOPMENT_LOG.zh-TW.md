@@ -1,5 +1,12 @@
 # Windows 開發日誌
 
+## 2026-10-11 — 五項操作回饋與紀錄壓縮
+
+開工 HEAD 605eed4，git status 僅原 .vscode/，建立[阶段日誌](UX_FEEDBACK_2026-10-11.zh-TW.md)再實作。完成無捲軸換行工具列、拖曳預覽／插入線、形狀方向／旋轉游標、頭部線寬同步與主工具列圖層。八個一次性腳本逐檔 resolved path／非 reparse／SHA 核對後刪除；所有交付包／Data／歷史／SDK／建置證據保留。[清理清單](UX_FEEDBACK_CLEANUP_2026-10-11.json)。
+
+首次 x64 build 0 warning／0 error，後續整合 WM_SETCURSOR／取消清理，最終 x64 build 0 warning／0 error、25.80 秒，封裝結果另追加。更新離線手冊與架構／狀態／決策／問題，對話摘要僅私人庫。未修改 Mac／Web；本批沒有執行測試、App、4K／多螢幕／觸控筆、Store 或 Release 發布。
+
+
 ## 2026-10-11 — Windows 首頁、屬性與螢幕畫布 20 項
 
 使用者逐項提出操作問題；開工 da573915，保留既有 .vscode/，先讀索引及平台文件並建立[日誌](UX_ALIGNMENT_2026-10-11.zh-TW.md)。只讀 Mac HomeView、Inspector、LayerPanel、BoardEngine+Drawing、BoardPin 模型作對照。

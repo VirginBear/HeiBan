@@ -13,13 +13,13 @@ namespace HeiBan.Windows.ScreenAnnotation;
 internal sealed partial class ScreenAnnotationWindow
 {
     private FlyoutBase? _chromeFlyout;
-    private StackPanel _chromeTools=null!,_chromeStart=null!,_chromeEnd=null!;
+    private ToolbarFlowPanel _chromeTools=null!;
+    private StackPanel _chromeStart=null!,_chromeEnd=null!;
     private Grid _chromeGrip=null!;
-    private ScrollViewer _chromeToolScroll=null!;
+    private Border _chromeToolHost=null!;
     private Button _dashButton=null!,_brushButton=null!,_clearButton=null!,_closeButton=null!,_moreButton=null!,_fillButton=null!;
     private readonly List<Button> _chromeActions=[];
     private bool _collapsed;
-    private const double ChromeWidth=820,ExpandedHeight=60,VerticalWidth=64,VerticalHeight=688,CollapsedVerticalHeight=300;
     private static SolidColorBrush ChromeBrush(byte alpha,byte r,byte g,byte b)=>new(Color.FromArgb(alpha,r,g,b));
     private static Button ChromeButton(string icon,string label)
     {

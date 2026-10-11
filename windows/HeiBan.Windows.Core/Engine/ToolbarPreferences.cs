@@ -13,7 +13,7 @@ public sealed class ToolbarPreferences
 
     public static readonly string[] StreamlinedTools =
     [
-        "select", "pen", "highlighter", "eraser", "ruler", "shapes", "undo", "redo"
+        "select", "pen", "highlighter", "eraser", "ruler", "shapes", "layers", "undo", "redo"
     ];
 
     public static readonly string[] AllDefaultTools =
@@ -21,7 +21,7 @@ public sealed class ToolbarPreferences
         "select", "pen", "curve", "highlighter", "paint", "eraser",
         "ruler", "shapes", "sticky", "text", "screenshot", "image",
         "brush", "dash", "pins", "calculator", "timer", "compass",
-        "undo", "redo", "dock", "laser", "tape", "lasso", "extension", "clearAll", "viewLock"
+        "undo", "redo", "dock", "laser", "tape", "lasso", "extension", "clearAll", "viewLock", "layers"
     ];
 
     public static readonly Dictionary<string, string> ToolNames = new()
@@ -47,6 +47,7 @@ public sealed class ToolbarPreferences
         ["undo"] = "復原",
         ["redo"] = "重做",
         ["laser"]="雷射", ["tape"]="遮題膠帶", ["lasso"]="套索多選", ["extension"]="延伸直線", ["clearAll"]="清除本頁", ["viewLock"]="鎖定視角",
+        ["layers"] = "物件圖層",
         ["dock"] = "停靠位置"
     };
 
@@ -68,6 +69,8 @@ public sealed class ToolbarPreferences
         VisibleTools ??= [];
         HiddenTools ??= [];
 
+        // One-time discovery: old preferences lack layers in both lists. A later explicit hide remains respected.
+        if(!VisibleTools.Contains("layers")&&!HiddenTools.Contains("layers"))VisibleTools.Add("layers");
         var seen = new HashSet<string>();
         VisibleTools = VisibleTools.Where(t => allKnown.Contains(t) && seen.Add(t)).ToList();
         HiddenTools = HiddenTools.Where(t => allKnown.Contains(t) && seen.Add(t)).ToList();

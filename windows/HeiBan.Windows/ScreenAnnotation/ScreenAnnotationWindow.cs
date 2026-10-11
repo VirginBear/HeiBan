@@ -59,7 +59,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         if(AppWindow.Presenter is OverlappedPresenter presenter){presenter.PreferredMinimumWidth=1;presenter.PreferredMinimumHeight=1;presenter.IsAlwaysOnTop=true;presenter.IsResizable=false;presenter.SetBorderAndTitleBar(false,false);}
         _dpiScale=NativeOverlayWindow.DpiScale(WinRT.Interop.WindowNative.GetWindowHandle(this));ResizeChrome();
         AppWindow.Closing+=async(_,e)=>{if(_disposed)return;e.Cancel=true;await StopAsync();};
-        _overlay.Pointer+=OnPointer;_overlay.BoundsChanged+=()=>{if(IsActive){CancelGesture();CreateTarget();Changed();}};
+        _overlay.Pointer+=OnPointer;_overlay.BoundsChanged+=()=>{if(IsActive){CancelGesture();CreateTarget();Changed();ResizeChrome();PositionChrome();}};
         _overlay.Failed+=e=>{SetDrawing(false);_status.Text="繪圖未完成："+e.Message;};
         _overlay.Hotkey+=async id=>
         {
@@ -101,7 +101,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     }
     private void SetDrawing(bool value)
     {
-        FinishScreenText();CancelGesture();_drawing=value;_overlay.SetDrawing(value);UpdateScreenEraser();RefreshMode();
+        FinishScreenText();CancelGesture();_drawing=value;_overlay.SetDrawing(value);_overlay.SetManipulationCursor(null,null);UpdateScreenEraser();RefreshMode();
         _status.Text=value?"作畫中 · 右鍵物件可編輯":"操作中 · Ctrl+Alt+D 繼續作畫";
         _laser.Clear();_dirty=_fullDamage=_committedDirty=true;if(!value)NativeOverlayWindow.RestoreFocus(_lastExternal);
     }
@@ -113,6 +113,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     {
         if(!IsActive||_captureCancellation is not null)return;
         var p=new InkPoint(input.X,input.Y,1);
+        UpdateScreenShapeCursor(p);
         if(input.Kind=="move"&&_start is null&&_tool=="eraser"){UpdateScreenEraser();return;}
         if(input.Kind=="right"){FinishScreenText();ScreenRightClick(p);return;}
         if(input.Kind=="double"){FinishScreenText();if(_tool=="select"&&_session.Hit(p,6) is {IsLocked:not true,Type:"text" or "sticky"} text)BeginScreenText(p,text);return;}
@@ -193,6 +194,16 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         if(_tool is "pen" or "highlighter" or "paint"){if(input.Kind!="up")DamageStrokeTail();}
         else {DamagePreview();if(!regionalSelection&&_preview is null&&input.Kind!="up")_fullDamage=true;if(regionalSelection||_tool=="eraser")_committedDirty=true;}
         _dirty=true;
+    }
+    private void UpdateScreenShapeCursor(InkPoint pointer)
+    {
+        BoardObject? selected=null;ObjectHandles.Handle? handle=null;
+        if(_drawing&&_tool=="select"&&_session.SelectedIds.Count==1&&_session.Selected is {IsLocked:not true} o)
+        {
+            selected=_start is not null?_manipulation??o:o;
+            handle=_start is not null?_handle:ObjectHandles.Get(o,1).Where(h=>Math.Sqrt(Math.Pow(h.Point.X-pointer.X,2)+Math.Pow(h.Point.Y-pointer.Y,2))<14).Select(h=>(ObjectHandles.Handle?)h).FirstOrDefault();
+        }
+        _overlay.SetManipulationCursor(selected,handle);
     }
     private BoardObject Styled(BoardObject item)
     {item.StrokeColor=_color;if(item.Type is "line" or "arrow")item.Extension=_screenExtension;item.StrokeWidth=_width*_dpiScale;item.Opacity=_tool=="highlighter"?_opacity*.4:_opacity;item.LineStyle=_dash;if(item.Type is "rect" or "circle")item.FillColor=_fill;return item;}

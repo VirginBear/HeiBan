@@ -1,0 +1,58 @@
+{
+  "date": "2026-10-11",
+  "scope": "Windows ignored temporary authoring scripts",
+  "referenceSearch": "rg across windows/docs, Windows source/core and docs: no matches (exit 1)",
+  "preserved": "Delivered ZIP/MSIX, payload folders, build logs/artifact manifests, SDK, user Data, history docs, .vscode",
+  "files": [
+    {
+      "path": "windows/.build/edit-ux.py",
+      "bytes": 14502,
+      "sha256": "ff6c4849eb7a4c2bc4067d06d36f4431c9f38a390ea1c22ae7481d7b51263454",
+      "reason": "一次性 UX20 編輯／紀錄腳本，正式入口無引用；失敗原因與產物證據已留歷史日誌。"
+    },
+    {
+      "path": "windows/.build/edit-ux-rest.py",
+      "bytes": 187,
+      "sha256": "c9eaa2759b285f7dae0b37e202b5e0603b206b60ff35807957229091625f2240",
+      "reason": "一次性 UX20 編輯／紀錄腳本，正式入口無引用；失敗原因與產物證據已留歷史日誌。"
+    },
+    {
+      "path": "windows/.build/finish-ux.py",
+      "bytes": 1939,
+      "sha256": "0fd09fa54217c41d488fa487d0a0ffbff2ede532e2bd763b032ab207c43666da",
+      "reason": "一次性 UX20 編輯／紀錄腳本，正式入口無引用；失敗原因與產物證據已留歷史日誌。"
+    },
+    {
+      "path": "windows/.build/refine-ux.py",
+      "bytes": 3689,
+      "sha256": "36201690e183de7bd71c1839a5057f8de2bef2e72e3155fd73d9bf2a95a702d4",
+      "reason": "一次性 UX20 編輯／紀錄腳本，正式入口無引用；失敗原因與產物證據已留歷史日誌。"
+    },
+    {
+      "path": "windows/.build/document-ux.py",
+      "bytes": 8195,
+      "sha256": "620748aae2bc0693cac8eeb9bcecc454ec934f6163daf5e10536bb2995b5e235",
+      "reason": "一次性 UX20 編輯／紀錄腳本，正式入口無引用；失敗原因與產物證據已留歷史日誌。"
+    },
+    {
+      "path": "windows/.build/finalize-ux-source.py",
+      "bytes": 2494,
+      "sha256": "56968bc1d595e1fde48db7e71a321ffe8290360a5a4fcfd4d7897ac39ba69376",
+      "reason": "一次性 UX20 編輯／紀錄腳本，正式入口無引用；失敗原因與產物證據已留歷史日誌。"
+    },
+    {
+      "path": "windows/.build/inspect-ux-package.py",
+      "bytes": 3262,
+      "sha256": "aa780485d11d15e559e074d2faa5413e5c28d1423f0c805113b2a50250493009",
+      "reason": "一次性 UX20 編輯／紀錄腳本，正式入口無引用；失敗原因與產物證據已留歷史日誌。"
+    },
+    {
+      "path": "windows/.build/private-ux-handoff.py",
+      "bytes": 3925,
+      "sha256": "f8be064910e9150e34b1b22dd0c6e2a6be4a3d69c5ed48e7a817dbc2ae931481",
+      "reason": "一次性 UX20 編輯／紀錄腳本，正式入口無引用；失敗原因與產物證據已留歷史日誌。"
+    }
+  ],
+  "totalBytes": 38193,
+  "status": "completed; all eight literal paths confirmed absent"
+}

@@ -120,6 +120,7 @@
     <Border x:Name="LayersPanel" Visibility="Collapsed" Width="304" Margin="12" HorizontalAlignment="Left" VerticalAlignment="Center" CornerRadius="16" BorderBrush="#D4DBD1" BorderThickness="1" Background="#FCFCFA">
      <StackPanel Padding="14" Spacing="10"><Button Content="收起物件圖層" Click="Layers_Click"/>
        <TextBlock Text="圖層（上層在前）" FontWeight="SemiBold"/>
+       <Grid>
        <ListView x:Name="LayerList" SelectionChanged="Layer_Changed" MaxHeight="420" SelectionMode="Extended">
         <ListView.ItemTemplate><DataTemplate>
          <Grid ColumnSpacing="8" Padding="0,4"><Grid.ColumnDefinitions><ColumnDefinition Width="24"/><ColumnDefinition Width="24"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
@@ -128,6 +129,8 @@
          </Grid>
         </DataTemplate></ListView.ItemTemplate>
        </ListView>
+       <Canvas x:Name="LayerDragOverlay" IsHitTestVisible="False"/>
+       </Grid>
        <Button x:Name="RenameLayerButton" Content="重新命名圖層…" Click="RenameLayer_Click" IsEnabled="False"/>
        <StackPanel Orientation="Horizontal" Spacing="4"><Button Content="上移" Click="Raise_Click"/><Button Content="下移" Click="Lower_Click"/><Button Content="鎖定" Click="Lock_Click"/></StackPanel><Button Content="顯示／隱藏" Click="Visibility_Click"/>
        <Button Content="刪除物件" Click="Delete_Click"/>

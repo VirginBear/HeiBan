@@ -14,6 +14,8 @@ internal sealed class NativeOverlayWindow : IDisposable
     private readonly string _className="HeiBan.Screen."+Guid.NewGuid().ToString("N");
     private nint _window,_dc,_bitmap,_oldBitmap,_pixels;
     private readonly nint _instance=GetModuleHandle(null);
+    private readonly HeiBan.Windows.Views.ShapeCursor _shapeCursor=new();
+    internal void SetManipulationCursor(HeiBan.Windows.Models.BoardObject? selected,HeiBan.Windows.Engine.ObjectHandles.Handle? handle)=>_shapeCursor.Update(selected,handle,(uint)Math.Round(DpiScale(_window)*96),32515);
     private bool _drawing,_disposed;
     public int Left { get; private set; }
     public int Top { get; private set; }
@@ -90,6 +92,7 @@ internal sealed class NativeOverlayWindow : IDisposable
     {
         try
         {
+            if(message==0x0020&&_drawing&&_shapeCursor.Current!=0){_shapeCursor.Apply();return 1;}
             if(message==0x0312){Hotkey?.Invoke((int)wParam);return 0;}
             if(message==0x007E){ResizeDesktop();BoundsChanged?.Invoke();return 0;}
             if(message==0x0021)return new nint(3); // Never take the underlying app's keyboard focus.
@@ -116,7 +119,7 @@ internal sealed class NativeOverlayWindow : IDisposable
     }
     public void Dispose()
     {
-        if(_disposed)return;_disposed=true;
+        if(_disposed)return;_disposed=true;_shapeCursor.Dispose();
         for(var id=1;id<=5;id++)UnregisterHotKey(_window,id);
         if(_window!=0){DestroyWindow(_window);_window=0;}ReleasePixels();UnregisterClass(_className,_instance);GC.KeepAlive(_procedure);
     }

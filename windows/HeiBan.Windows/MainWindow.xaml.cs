@@ -69,6 +69,7 @@ public partial class MainWindow : Window
         _dock=_toolbarPrefs.DockSide;
         App.StartupStage="載入主視窗 XAML";
         InitializeComponent();
+        Root.Loaded+=(_,_)=>_shapeCursor.Attach(WinRT.Interop.WindowNative.GetWindowHandle(this),()=>_hover&&_tool=="select"&&_editor is null&&!_readingMode);
         InitializeLibraryChrome();BuildChrome();InitializeTeachingTools();InitializeDeferredWork();
         App.StartupStage="設定主視窗";
         ExtendsContentIntoTitleBar=true;SetTitleBar(AppTitleBar);SystemBackdrop=new MicaBackdrop();
@@ -100,7 +101,7 @@ public partial class MainWindow : Window
             }
             finally{_preparingClose=false;}
         };
-        Closed+=(_,_)=>{_updates?.Dispose();_autosave.Stop();_thumbnailTimer.Stop();_searchTimer.Stop();_teachingSaveTimer.Stop();CancelScreenshotCapture("視窗關閉");_timerTickTimer?.Stop();_laserTimer.Stop();_propertyCommitTimer.Stop();_headerHideTimer.Stop();ClearScene();CanvasSurface.RemoveFromVisualTree();_renderer.Dispose();_screenAnnotation?.Dispose();};
+        Closed+=(_,_)=>{_layerPreview?.End();_shapeCursor.Dispose();_updates?.Dispose();_autosave.Stop();_thumbnailTimer.Stop();_searchTimer.Stop();_teachingSaveTimer.Stop();CancelScreenshotCapture("視窗關閉");_timerTickTimer?.Stop();_laserTimer.Stop();_propertyCommitTimer.Stop();_headerHideTimer.Stop();ClearScene();CanvasSurface.RemoveFromVisualTree();_renderer.Dispose();_screenAnnotation?.Dispose();};
         App.StartupStage="顯示首頁";
         try { EnsureScreenAnnotation(); } catch(Exception e) { StatusText.Text="螢幕畫布初始化失敗："+e.Message; }
     }
@@ -158,7 +159,7 @@ public partial class MainWindow : Window
         PagesBar.Visibility=_session.Document.Board.CanvasMode=="notebook"?Visibility.Visible:Visibility.Collapsed;
         var pages=_session.Document.Board.Pages??[];var index=pages.FindIndex(p=>p.Id==_session.Document.Board.ActivePageId);
         PageText.Text=$"{index+1} / {pages.Count}";ZoomText.Text=$"{_viewport.Zoom:P0}";
-        RefreshProperties();RefreshChrome();RefreshNavigationChrome();InvalidateCanvas();
+        RefreshProperties();RefreshChrome();RefreshNavigationChrome();InvalidateCanvas();if(_hover)UpdateShapeCursor();
     }
     private async Task<bool> SaveAsync(bool deferThumbnail=false)
     {
@@ -258,7 +259,7 @@ public partial class MainWindow : Window
     private void Tool_Click(object sender,RoutedEventArgs e)=>ActivateTool((string)((FrameworkElement)sender).Tag);
     private void Properties_Click(object sender,RoutedEventArgs e)
     {Inspector.Visibility=Inspector.Visibility==Visibility.Visible?Visibility.Collapsed:Visibility.Visible;if(Inspector.Visibility==Visibility.Visible){_changingLayers=true;try{RefreshLayersIfNeeded();}finally{_changingLayers=false;}}RefreshProperties();RefreshChrome();}
-    private void Layers_Click(object sender,RoutedEventArgs e){LayersPanel.Visibility=LayersPanel.Visibility==Visibility.Visible?Visibility.Collapsed:Visibility.Visible;RefreshEditor();}
+    private void Layers_Click(object sender,RoutedEventArgs e){_layerPreview?.End();_layerDragId=_layerDropId=null;LayersPanel.Visibility=LayersPanel.Visibility==Visibility.Visible?Visibility.Collapsed:Visibility.Visible;RefreshEditor();}
     private async Task<string?> ChooseColor(string title,string current)
     {
         var picker=ColorWheel(current);

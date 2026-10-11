@@ -11,6 +11,7 @@ namespace HeiBan.Windows.ScreenAnnotation;
 
 internal sealed partial class ScreenAnnotationWindow
 {
+    private LayerDragPreview? _screenLayerPreview;
     private ListView? _screenLayers;
     private TextBlock? _screenLayerHint;
     private bool _refreshingScreenLayers;
@@ -20,6 +21,7 @@ internal sealed partial class ScreenAnnotationWindow
     private Button _paletteButton=null!;
     private void ShowScreenLayers()
     {
+        _screenLayerPreview?.End();_screenDragId=_screenDropId=null;
         _chromeFlyout?.Hide();FinishScreenText();CommitScreenStyle();
         _screenLayers=new ListView{SelectionMode=ListViewSelectionMode.Multiple,IsMultiSelectCheckBoxEnabled=false,MaxHeight=400};
         var template="""
@@ -52,7 +54,9 @@ internal sealed partial class ScreenAnnotationWindow
             _tool="select";if(!_drawing)SetDrawing(true);RefreshButtons();_dirty=_fullDamage=true;
         };
         _screenLayerHint=new TextBlock{Text="上層在前；拖曳灰色雙槓調整順序",FontSize=12,TextWrapping=TextWrapping.Wrap};
-        var panel=new StackPanel{Width=300,Spacing=8,Children={new TextBlock{Text="物件圖層",FontSize=16},_screenLayerHint,_screenLayers}};
+        var overlay=new Canvas{IsHitTestVisible=false};var layerHost=new Grid();layerHost.Children.Add(_screenLayers);layerHost.Children.Add(overlay);
+        _screenLayerPreview=new LayerDragPreview(_screenLayers,overlay);
+        var panel=new StackPanel{Width=300,Spacing=8,Children={new TextBlock{Text="物件圖層",FontSize=16},_screenLayerHint,layerHost}};
         var controls=new StackPanel{Orientation=Orientation.Horizontal,Spacing=4};
         void Command(string label,Action action){var button=new Button{Content=label,Padding=new Thickness(8,4,8,4)};button.Click+=(_,_)=>{action();RefreshScreenLayers();};controls.Children.Add(button);}
         Command("上移",()=>ShiftScreenLayer(false));Command("下移",()=>ShiftScreenLayer(true));
@@ -67,7 +71,7 @@ internal sealed partial class ScreenAnnotationWindow
             _session.Begin();o.Name=string.IsNullOrWhiteSpace(box.Text)?null:box.Text.Trim();_session.Commit();Changed();
         };panel.Children.Add(rename);RefreshScreenLayers();
         var flyout=new Flyout{Content=new ScrollViewer{Content=panel,MaxHeight=520}};
-        var list=_screenLayers;flyout.Closed+=(_,_)=>{if(ReferenceEquals(_screenLayers,list)){_screenLayers=null;_screenLayerHint=null;}};ShowChromeFlyout(flyout,_moreButton);
+        var list=_screenLayers;flyout.Closed+=(_,_)=>{if(ReferenceEquals(_screenLayers,list)){_screenLayerPreview?.End();_screenLayerPreview=null;_screenDragId=_screenDropId=null;_screenLayers=null;_screenLayerHint=null;}};ShowChromeFlyout(flyout,_moreButton);
     }
     private static Border? FindGrip(DependencyObject parent)
     {
@@ -76,7 +80,7 @@ internal sealed partial class ScreenAnnotationWindow
     }
     private void RefreshScreenLayers()
     {
-        if(_screenLayers is null)return;_refreshingScreenLayers=true;
+        if(_screenLayers is null)return;_screenLayerPreview?.End();_screenDragId=_screenDropId=null;_refreshingScreenLayers=true;
         try{_screenLayers.ItemsSource=LayerPresentation.Build(_session.Document.Objects).Select(entry=>new LayerCard(entry)).ToList();foreach(var row in _screenLayers.Items.OfType<LayerCard>().Where(row=>_session.SelectedIds.Contains(row.ObjectId)))_screenLayers.SelectedItems.Add(row);}
         finally{_refreshingScreenLayers=false;}
     }
@@ -88,19 +92,19 @@ internal sealed partial class ScreenAnnotationWindow
     private void ScreenLayerGrip_Pressed(object sender,PointerRoutedEventArgs e)
     {
         if(sender is not FrameworkElement{DataContext:LayerCard row} handle||!e.GetCurrentPoint(handle).Properties.IsLeftButtonPressed)return;
-        CommitScreenStyle();_screenDragId=row.ObjectId;_screenDragEpoch=_session.DocumentEpoch;_screenDropId=null;handle.CapturePointer(e.Pointer);e.Handled=true;
+        CommitScreenStyle();_screenDragId=row.ObjectId;_screenDragEpoch=_session.DocumentEpoch;_screenDropId=null;_screenLayerPreview?.Begin(row,e.GetCurrentPoint(_screenLayers).Position);handle.CapturePointer(e.Pointer);e.Handled=true;
     }
     private void ScreenLayerGrip_Moved(object sender,PointerRoutedEventArgs e)
     {
-        if(_screenDragId is null||_screenLayers is null)return;var hit=LayerDragTarget.Find(_screenLayers,e.GetCurrentPoint(_screenLayers).Position);
+        if(_screenDragId is null||_screenLayers is null)return;var position=e.GetCurrentPoint(_screenLayers).Position;_screenLayerPreview?.Move(position);var hit=LayerDragTarget.Find(_screenLayers,position);
         _screenDropId=(hit.Item as LayerCard)?.ObjectId;_screenDropAfter=hit.After;if(_screenLayerHint is not null)_screenLayerHint.Text=hit.Item is LayerCard row?$"放開移到「{row.Title}」{(hit.After?"下方":"上方")}":"拖到目標圖層";e.Handled=true;
     }
     private void ScreenLayerGrip_Released(object sender,PointerRoutedEventArgs e)
     {
-        var id=_screenDragId;var target=_screenDropId;_screenDragId=_screenDropId=null;((UIElement)sender).ReleasePointerCaptures();
-        if(_screenDragEpoch==_session.DocumentEpoch&&id is not null&&target is not null&&LayerReorder.Move(_session,id,target,_screenDropAfter)){Changed();RefreshScreenLayers();}e.Handled=true;
+        var id=_screenDragId;var target=_screenDropId;var after=_screenDropAfter;_screenDragId=_screenDropId=null;_screenLayerPreview?.End();if(_screenLayerHint is not null)_screenLayerHint.Text="上層在前；拖曳灰色雙槓調整順序";((UIElement)sender).ReleasePointerCaptures();
+        if(_screenDragEpoch==_session.DocumentEpoch&&id is not null&&target is not null&&LayerReorder.Move(_session,id,target,after))Changed();e.Handled=true;
     }
-    private void ScreenLayerGrip_Canceled(object sender,PointerRoutedEventArgs e)=>_screenDragId=_screenDropId=null;
+    private void ScreenLayerGrip_Canceled(object sender,PointerRoutedEventArgs e){_screenDragId=_screenDropId=null;_screenLayerPreview?.End();if(_screenLayerHint is not null)_screenLayerHint.Text="上層在前；拖曳灰色雙槓調整順序";}
 
     private void ShowScreenPalette()
     {

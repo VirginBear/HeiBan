@@ -190,8 +190,8 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
                 if(o.Type=="arrow" && Vector2.Distance(a,b)>.01f)
                 {
                     var d=Vector2.Normalize(b-a);var n=new Vector2(-d.Y,d.X);var len=(float)(o.ArrowHeadLength??16);var w=(float)(o.ArrowHeadWidth??10);
-                    // Head geometry and its continuous outline are independent of the shaft width/dashes.
-                    ds.DrawLine(b,b-d*len+n*w/2,stroke,2);ds.DrawLine(b,b-d*len-n*w/2,stroke,2);
+                    // Head length/width stay independent; its continuous outline matches the shaft thickness.
+                    ds.DrawLine(b,b-d*len+n*w/2,stroke,(float)o.StrokeWidth);ds.DrawLine(b,b-d*len-n*w/2,stroke,(float)o.StrokeWidth);
                 }break;
             case "triangle":case "quadrilateral":case "diamond":case "pentagon":case "star":
                 using(var path=Path(ds,Polygon(o),true,false))if(path is not null){ds.FillGeometry(path,fill);ds.DrawGeometry(path,stroke,(float)o.StrokeWidth,style);}break;

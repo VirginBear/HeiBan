@@ -100,6 +100,7 @@ public partial class MainWindow
     {var side=_inspectorDragSide;_inspectorDragSide=null;((UIElement)sender).ReleasePointerCaptures();if(side is not null)SetInspectorDock(side,true);e.Handled=true;}
     private void InspectorGrip_Canceled(object sender,PointerRoutedEventArgs e)=>_inspectorDragSide=null;
 
+    private Views.LayerDragPreview? _layerPreview;
     private string? _layerDragId,_layerDropId;
     private long _layerDragEpoch;
     private bool _layerDropAfter;
@@ -107,21 +108,23 @@ public partial class MainWindow
     {
         if(sender is not FrameworkElement{DataContext:LayerCard row} handle||!e.GetCurrentPoint(handle).Properties.IsLeftButtonPressed)return;
         CommitPropertyEdit();_layerDragId=row.ObjectId;_layerDragEpoch=_session.DocumentEpoch;_layerDropId=null;
+        (_layerPreview??=new Views.LayerDragPreview(LayerList,LayerDragOverlay)).Begin(row,e.GetCurrentPoint(LayerList).Position);
         handle.CapturePointer(e.Pointer);e.Handled=true;
     }
     private void LayerGrip_Moved(object sender,PointerRoutedEventArgs e)
     {
         if(_layerDragId is null)return;
-        var hit=Views.LayerDragTarget.Find(LayerList,e.GetCurrentPoint(LayerList).Position);
+        var position=e.GetCurrentPoint(LayerList).Position;_layerPreview?.Move(position);
+        var hit=Views.LayerDragTarget.Find(LayerList,position);
         _layerDropId=(hit.Item as LayerCard)?.ObjectId;_layerDropAfter=hit.After;
         LayerDragHint.Text=hit.Item is LayerCard row?$"放開移到「{row.Title}」{(hit.After?"下方":"上方")}":"拖到目標圖層上方或下方";e.Handled=true;
     }
     private void LayerGrip_Released(object sender,PointerRoutedEventArgs e)
     {
-        var id=_layerDragId;var target=_layerDropId;var after=_layerDropAfter;_layerDragId=_layerDropId=null;LayerDragHint.Text="";((UIElement)sender).ReleasePointerCaptures();
+        var id=_layerDragId;var target=_layerDropId;var after=_layerDropAfter;_layerDragId=_layerDropId=null;LayerDragHint.Text="";_layerPreview?.End();((UIElement)sender).ReleasePointerCaptures();
         if(_layerDragEpoch==_session.DocumentEpoch&&id is not null&&target is not null&&LayerReorder.Move(_session,id,target,after))RefreshEditor();e.Handled=true;
     }
-    private void LayerGrip_Canceled(object sender,PointerRoutedEventArgs e){_layerDragId=_layerDropId=null;LayerDragHint.Text="";}
+    private void LayerGrip_Canceled(object sender,PointerRoutedEventArgs e){_layerDragId=_layerDropId=null;LayerDragHint.Text="";_layerPreview?.End();}
 
     private async void PinAppearance(BoardPin pin)
     {

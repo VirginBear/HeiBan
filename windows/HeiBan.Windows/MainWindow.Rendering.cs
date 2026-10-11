@@ -49,6 +49,7 @@ public partial class MainWindow
         if(LayersPanel.Visibility!=Microsoft.UI.Xaml.Visibility.Visible)return;
         if(!ReferenceEquals(_layersDocument,_session.Document)||_layersGeneration!=_session.Generation||_layersPage!=_session.Document.Board.ActivePageId)
         {
+            _layerPreview?.End();_layerDragId=_layerDropId=null;
             LayerList.ItemsSource=LayerPresentation.Build(_session.PageObjects).Select(entry=>new LayerCard(entry)).ToList();
             _layersDocument=_session.Document;_layersGeneration=_session.Generation;_layersPage=_session.Document.Board.ActivePageId;
         }

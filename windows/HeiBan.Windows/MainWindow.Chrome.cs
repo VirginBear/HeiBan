@@ -380,6 +380,9 @@ public partial class MainWindow
                 case "laser" or "tape" or "lasso":
                     Tool(key,key=="laser"?"雷射：再次點擊開啟設定":ToolbarPreferences.ToolNames[key],key);break;
                 case "extension": break; // 延伸屬性改由線段設定提供；保留舊偏好欄位。
+                case "layers":
+                    var layers=IconButton("layers","物件圖層",()=>Layers_Click(this,new RoutedEventArgs()),"layers");
+                    _toolButtons[key]=layers;Tools.Children.Add(layers);break;
                 case "clearAll" or "viewLock":
                     var extraKey=key;var extra=IconButton(key=="clearAll"?"delete":key=="viewLock"?"lock":"line",ToolbarPreferences.ToolNames[key],()=>InvokeToolByKey(extraKey),key);
                     _toolButtons[key]=extra;Tools.Children.Add(extra);break;
@@ -585,6 +588,7 @@ public partial class MainWindow
                 ActivateTool(key);
                 break;
             case "extension": Inspector.Visibility=Visibility.Visible;RefreshProperties();RefreshChrome();break;
+            case "layers": Layers_Click(this,new RoutedEventArgs());break;
             case "viewLock": NavigationLock_Click(this,new RoutedEventArgs());break;
             case "clearAll": ClearPage();break;
             case "calculator":
@@ -778,7 +782,7 @@ public partial class MainWindow
     {
         foreach (var (key, b) in _toolButtons)
         {
-            var active = key == _tool || (key == "ruler" && _rulerEnabled) || (key == "compass" && _compass.IsEnabled) || (key == "shapes" && _tool is "line" or "arrow" or "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star");
+            var active = (key=="layers"&&LayersPanel.Visibility==Visibility.Visible) || key == _tool || (key == "ruler" && _rulerEnabled) || (key == "compass" && _compass.IsEnabled) || (key == "shapes" && _tool is "line" or "arrow" or "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star");
             b.Background = Brush(active ? "#DCEBDD" : "#FCFCFA");
         }
         CanvasFormatText.Text = _session.Document.Board.CanvasMode switch { "notebook" => "筆記本", "fixed" => "有邊界黑板", _ => "無邊界筆記" };

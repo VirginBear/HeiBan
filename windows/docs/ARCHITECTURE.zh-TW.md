@@ -1,5 +1,12 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-11 — 工具列換行與非永久拖曳回饋
+
+ToolbarFlowPanel 用 DIP 量測各工具，依 WorkArea 可用軸長換行／換列，ResizeChrome 只在最後乘 DPI。固定控制段保留，工具區不含 ScrollViewer。LayerDragPreview 是 ListView 上方不攔截輸入的 Canvas，原列暫時淡化、重建獨立 ToolIcons／標題，不重用原 UIElement；目標線使用已捲動列 TransformToVisual 的真實邊界。清单更新／取消／關閉清理；LayerReorder 仍僅放開提交一筆交易。
+
+ShapeCursor 共用世界控制點的 Kind／Index，八方向加 Rotation 映射系統游標；自製旋轉游標用 DPI 尺寸 AND/XOR mask。主畫布攔截自身 WinUI 內容橋 WM_SETCURSOR，僅滑鼠在畫布控制點時回應；螢幕原生 overlay 自行回應。子類化解除、共享游標不銷毀、自製游標關閉釋放。游標變動不影響 scene／作品 JSON。
+
+
 ## 2026-10-11 — 操作狀態與面板
 
 MainWindow.Properties 管理型別屬性區塊、停靠／拖曳及圖釘配色。MainWindow.Home 的 _libraryMulti 決定批次 UI，LibraryCard 的通知只更新視覺勾選；永久作品資料不含選取狀態。LayerReorder 為共用交易，LayerDragTarget 以虛擬化列的實際座標決定上下插入。
