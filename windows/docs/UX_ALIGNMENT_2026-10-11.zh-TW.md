@@ -117,3 +117,9 @@
 - Store 1.0.12.0 bundle SHA256 重讀為 `d7a49b63d88fa880b1a97b0c307361ad2cfbc9b3d58786048887093d7204ea7b`，與本批前記錄相同。
 - `git diff --check`：退出 0；Package-PortableTrial 提示 Git 將 LF 正規化為 CRLF，沒有 whitespace error。
 - `git fetch origin main` 成功；提交前比對 HEAD 與 origin/main，僅提交本批 Windows 來源／文件。
+
+### 工具列與停靠面板留白補強
+
+- 實作 40 檔提交 `cd16ac0a10f23cd34809f4d38ef4f6f0a122d5a6` 已 push；ls-remote HEAD／main 相同，status 僅原 `.vscode/`。
+- 第一份 ux20 包已完成 App／helper publish，靜態排列檢查發現上下屬性面板及側邊圖層可能覆蓋同側工具列。補上依目前 toolbar dock 的留白、標題導覽／左下視角膠囊空間，圖層列表高度依可用區計算；改變工具列停靠也重算面板。
+- 第一份包與 log 保留作候選；最後交付會另以 `ux20-2026-10-11-r2` 標籤封裝，仍不覆寫 Store 或其他 trial。

@@ -319,7 +319,7 @@ public partial class MainWindow : Window
         var floating=_toolbarTranslation.X!=0||_toolbarTranslation.Y!=0;
         var offset=new Point(_toolbarTranslation.X,_toolbarTranslation.Y);
         SetDock(_dock);
-        SetInspectorDock(_inspectorDock);LayerList.MaxHeight=Math.Max(100,Root.ActualHeight-240);
+        SetInspectorDock(_inspectorDock);
         if(floating){_toolbarTranslation.X=offset.X;_toolbarTranslation.Y=offset.Y;DispatcherQueue.TryEnqueue(ClampToolbar);}
     }
     private void SetDock(string side)
@@ -336,6 +336,7 @@ public partial class MainWindow : Window
         ToolScroll.VerticalScrollBarVisibility=vertical?ScrollBarVisibility.Auto:ScrollBarVisibility.Disabled;
         ToolScroll.HorizontalScrollMode=vertical?ScrollMode.Disabled:ScrollMode.Enabled;ToolScroll.VerticalScrollMode=vertical?ScrollMode.Enabled:ScrollMode.Disabled;
         foreach(var d in _toolDividers){d.Width=vertical?22:1;d.Height=vertical?1:22;}
+        SetInspectorDock(_inspectorDock);
     }
     private void AddPage_Click(object sender,RoutedEventArgs e)
     {PreparePageChange();_session.Begin();var pages=_session.Document.Board.Pages??=[];var p=new BoardPage{Index=pages.Count,Title=$"第 {pages.Count+1} 頁"};pages.Add(p);_session.Document.Board.ActivePageId=p.Id;_session.Commit();RefreshEditor();}

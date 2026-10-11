@@ -62,8 +62,13 @@ public partial class MainWindow
     {
         _inspectorDock=side is "top" or "bottom" or "left" or "right"?side:"right";
         var horizontal=_inspectorDock is "top" or "bottom";
+        // Reserve the docked toolbar, header and viewport capsule so panels do not cover their controls.
+        var left=_dock=="左側"?80:12;var right=_dock=="右側"?80:12;
+        var top=_dock=="上方"?80:64;var bottom=_dock=="下方"?80:64;
+        var availableHeight=Math.Max(180,(Workspace.ActualHeight>0?Workspace.ActualHeight:Root.ActualHeight-32)-top-bottom);
+        Inspector.Margin=new Thickness(left,top,right,bottom);
         Inspector.Width=horizontal?double.NaN:304;Inspector.Height=horizontal?270:double.NaN;
-        Inspector.MaxHeight=Math.Max(180,Root.ActualHeight-70);
+        Inspector.MaxHeight=availableHeight;
         Inspector.HorizontalAlignment=horizontal?HorizontalAlignment.Stretch:_inspectorDock=="left"?HorizontalAlignment.Left:HorizontalAlignment.Right;
         Inspector.VerticalAlignment=horizontal?(_inspectorDock=="top"?VerticalAlignment.Top:VerticalAlignment.Bottom):VerticalAlignment.Top;
         InspectorSections.Orientation=horizontal?Orientation.Horizontal:Orientation.Vertical;
@@ -74,6 +79,8 @@ public partial class MainWindow
         foreach(var section in InspectorSections.Children.OfType<FrameworkElement>())section.Width=horizontal?248:double.NaN;
         InspectorBookmark.HorizontalAlignment=_inspectorDock=="left"?HorizontalAlignment.Left:HorizontalAlignment.Right;
         LayersPanel.HorizontalAlignment=_inspectorDock=="left"?HorizontalAlignment.Right:HorizontalAlignment.Left;
+        LayersPanel.Margin=new Thickness(left,top,right,bottom);LayersPanel.MaxHeight=availableHeight;
+        LayerList.MaxHeight=Math.Max(80,Math.Min(420,availableHeight-180));
         if(save)QueueTeachingSettingsSave();
     }
     private void InspectorDock_Click(object sender,RoutedEventArgs e)

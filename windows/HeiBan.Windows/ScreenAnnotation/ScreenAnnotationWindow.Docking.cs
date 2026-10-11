@@ -38,7 +38,7 @@ internal sealed partial class ScreenAnnotationWindow
         var vertical=VerticalChrome;var orientation=vertical?Orientation.Vertical:Orientation.Horizontal;
         _chromeStart=new StackPanel{Orientation=orientation,Spacing=4,VerticalAlignment=VerticalAlignment.Center,HorizontalAlignment=HorizontalAlignment.Center};
         _chromeStart.Children.Add(_chromeGrip);_chromeStart.Children.Add(_mode);RefreshMode();
-        _chromeTools=new StackPanel{Orientation=orientation,Spacing=4,VerticalAlignment=vertical?VerticalAlignment.Top:VerticalAlignment.Center,HorizontalAlignment=HorizontalAlignment.Center};
+        _chromeTools=new StackPanel{Orientation=orientation,Spacing=4,VerticalAlignment=vertical?VerticalAlignment.Top:VerticalAlignment.Center,HorizontalAlignment=vertical?HorizontalAlignment.Center:HorizontalAlignment.Left};
         foreach(var button in _buttons.Values)_chromeTools.Children.Add(button);
         
         foreach(var button in _chromeActions)_chromeTools.Children.Add(button);
