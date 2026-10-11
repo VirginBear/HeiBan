@@ -32,3 +32,7 @@ Package-PortableTrial將authoring txt／生成器／manifest加入source SHA。P
 交付：[十語內容檢視](GUIDES_CONTENT_INSPECTION_2026-10-12.json)、[試用產物](GUIDES_PORTABLE_ARTIFACT_2026-10-12.json)、[試用檢視](GUIDES_PORTABLE_INSPECTION_2026-10-12.json)、[商店產物](GUIDES_STORE_ARTIFACT_2026-10-12.json)、[商店檢視](GUIDES_STORE_INSPECTION_2026-10-12.json)、[清理](GUIDES_TRIAL_CLEANUP_2026-10-12.json)、[資料接續](GUIDES_DATA_HANDOFF_2026-10-12.json)、[使用者试用清單](GUIDES_TRIAL_REVIEW_2026-10-12.zh-TW.md)、[商店候選素材](STORE_UPDATE_GUIDES_2026-10-12.zh-TW.md)。本批已完成手冊與封裝準備，正式版本決策仍待使用者依整批驗證作出。
 
 未執行：App、browser互動、tests、WACK、Store安裝／提交／發布、母語校閱、4K／DPI／RTL实機、畫布／保存／Undo回歸、效能量測。手冊行為／操作一致性與語文品質需試用確認；不因包完成將正式進版核准改true。Mac／Web、資料格式與原發行歷史未改。
+
+## 階段4：兩庫同步
+
+兩庫fetch退出0，公開HEAD／origin為2／0（8458363與1ab7018本批來源）、私人0／0，PRIVATE核同。公開35檔實作8458363、LF規則1ab7018與13檔產物紀錄da30db5b7c3a794a8b67355d439c0c036dfe1fe7已commit／push退出0，ls-remote核同da30db5，status只原.vscode/。私人四檔123新增24刪除獨立commit／push退出0、ls-remote核同HEAD且status乾淨，更新同版候選、guide snapshot、20檔Data交接與精簡對話N，原身份／上架提交／歷史保留。此同步補記另分庫提交，不改source、metadata或產物SHA。
