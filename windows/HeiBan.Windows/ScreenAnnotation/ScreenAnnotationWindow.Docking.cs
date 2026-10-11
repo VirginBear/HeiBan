@@ -1,3 +1,4 @@
+using static HeiBan.Windows.Localization.Strings;
 using System.Text.Json;
 using HeiBan.Windows.Engine;
 using HeiBan.Windows.Views;
@@ -25,7 +26,7 @@ internal sealed partial class ScreenAnnotationWindow
         {
             if(File.Exists(ChromePreferencesPath)&&JsonSerializer.Deserialize<ChromePreferences>(File.ReadAllText(ChromePreferencesPath),DocumentCodec.Options) is { } prefs)
             {_chromeDock=prefs.Dock is "top" or "bottom" or "left" or "right"?prefs.Dock:"top";_chromePosition=double.IsFinite(prefs.Position)?Math.Clamp(prefs.Position,0,1):.5;_collapsed=prefs.Collapsed;}
-        }catch(Exception e) when(e is IOException or JsonException){_status.Text="停靠偏好讀取未完成，註記仍保留";}
+        }catch(Exception e) when(e is IOException or JsonException){_status.Text=T("停靠偏好讀取未完成，註記仍保留");}
         RebuildChromeLayout();
         AppWindow.Changed+=(_,args)=>{if(!IsActive||!args.DidPositionChange)return;var p=AppWindow.Position;if(_requestedChromePosition is { } expected&&p.X==expected.X&&p.Y==expected.Y)return;_dockTimer.Stop();_dockTimer.Start();};
         _dockTimer.Tick+=(_,_)=>{if(!IsActive){_dockTimer.Stop();return;}if(NativeOverlayWindow.MouseButtonDown)return;_dockTimer.Stop();FinishChromeDrag();};
@@ -83,7 +84,7 @@ internal sealed partial class ScreenAnnotationWindow
         _chromeDock=nearest;_chromePosition=VerticalChrome?Math.Clamp((pointer.Y-area.Y)/(double)area.Height,0,1):Math.Clamp((pointer.X-area.X)/(double)area.Width,0,1);DockChrome(nearest);
     }
     private async Task SaveChromePreferencesAsync()
-    {try{await DocumentSessionManager.WriteAtomicAsync(ChromePreferencesPath,JsonSerializer.Serialize(new ChromePreferences{Dock=_chromeDock,Position=_chromePosition,Collapsed=_collapsed},DocumentCodec.Options));}catch(Exception e){_status.Text="停靠偏好未保存："+e.Message;}}
+    {try{await DocumentSessionManager.WriteAtomicAsync(ChromePreferencesPath,JsonSerializer.Serialize(new ChromePreferences{Dock=_chromeDock,Position=_chromePosition,Collapsed=_collapsed},DocumentCodec.Options));}catch(Exception e){_status.Text=T("停靠偏好未保存：")+e.Message;}}
     private object ValidateChromeDocking()
     {
         var savedDock=_chromeDock;var savedCollapsed=_collapsed;var savedPosition=_chromePosition;SetChromeCollapsed(false);

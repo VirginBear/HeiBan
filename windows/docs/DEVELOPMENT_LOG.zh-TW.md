@@ -1,5 +1,13 @@
 # Windows 開發日誌
 
+最終r2 x64 Release build：退出0、0警告／0錯誤、28.23秒；十份完整資源嵌入DLL、literal來源鍵無缺項為靜態檢視，非App／測試驗收。最後文字屬性展示补強由新Portable publish重新編譯，封裝證據另記。
+
+## 2026-10-11 — 首頁語言與十語WindowsUI
+
+開工8c5fcc3，僅原.vscode/未追蹤，保留。先建立[日誌](LOCALIZATION_2026-10-11.zh-TW.md)，使用者回覆採用十語；讀平台規則／目前狀態／架構／問題。加入偏好、離線581項資源與XAML／動態UI展示；交叉比對内部停靠、圖層資料、文字草稿、共享色票、螢幕既存工具列與更新狀態，不改Mac／Web或文件幾何。
+
+首次x64 build53.04秒0warning／0error；RTL补強時因MenuFlyout無FlowDirection而失敗17.61秒1warning／89errors，改PresenterStyle，最終结果接續記。實際命令／排解／生成器／打包入口SHA邊界與Mac對照在階段日誌；本輪未新增／執行tests／App，未發布商店／Release。
+
 ## 2026-10-11 — 一般畫布游標修正與試用空間清理
 
 開工 cfd3191，status 僅原.vscode/，先建立[日誌](CANVAS_SETUP_FIX_2026-10-11.zh-TW.md)。依使用者實機更正主畫布游標，改XAML ProtectedCursor＋SDK interop；補infinite不顯示尺寸、fixed預設16:9、background五種UI。首次 x64 build 0warning／0error、39.18秒；後續預設與原色保存補強、最終x64 build 0warning／0error、25.98秒，新包結果另記。

@@ -1,3 +1,4 @@
+using static HeiBan.Windows.Localization.Strings;
 using System.Diagnostics;
 using System.Net;
 using System.Reflection;
@@ -28,7 +29,8 @@ public sealed class GitHubUpdateService : IDisposable
     private readonly HttpClient _http = new(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromMinutes(15) };
     private Task? _background;
     public UpdateSettings Settings { get; private set; } = new();
-    public string Status { get; private set; }
+    private Func<string> _status = () => "";
+    public string Status => _status();
     public event Action? Changed;
     public bool Available { get; }
     public bool Busy { get; private set; }
@@ -42,16 +44,16 @@ public sealed class GitHubUpdateService : IDisposable
         _portable = portable; _cache = UpdateInstallation.Cache(_installation);
         Available = isolatedTest || (!IsPackaged && string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("HEIBAN_WINDOWS_DATA_DIRECTORY")) &&
             !Environment.GetCommandLineArgs().Any(a => a.StartsWith("--validation-output=", StringComparison.Ordinal)));
-        Status = IsPackaged ? "此版本由 Microsoft Store 管理更新。" : !Available ? "隔離驗證模式不連線更新。" : "啟用背景更新；下載完成後於正常關閉時安裝。";
+        _status = () => IsPackaged ? T("此版本由 Microsoft Store 管理更新。") : !Available ? T("隔離驗證模式不連線更新。") : T("啟用背景更新；下載完成後於正常關閉時安裝。");
         _http.DefaultRequestHeaders.UserAgent.ParseAdd("HeiBan-Windows/" + CurrentVersion);
         _http.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
         if (!Available) return;
         Directory.CreateDirectory(_cache);
         try { Settings = JsonSerializer.Deserialize<UpdateSettings>(File.ReadAllText(Path.Combine(_cache, "settings.json"))) ?? new(); } catch { }
-        try { var result = JsonSerializer.Deserialize<UpdateResult>(File.ReadAllText(Path.Combine(_cache, "result.json"))); if (result is not null) Status = result.Message; } catch { }
-        if (!Settings.Enabled) Status = "自動更新已關閉。";
+        try { var result = JsonSerializer.Deserialize<UpdateResult>(File.ReadAllText(Path.Combine(_cache, "result.json"))); if (result is not null) _status = () => T(result.Message); } catch { }
+        if (!Settings.Enabled) _status = () => T("自動更新已關閉。");
     }
-    private void Report(string value) { Status = value; Changed?.Invoke(); }
+    private void Report(Func<string> value) { _status = value; Changed?.Invoke(); }
     public void Start()
     {
         if (!Available || _background is not null) return;
@@ -71,7 +73,7 @@ public sealed class GitHubUpdateService : IDisposable
         if (!Available) return;
         Settings.Enabled = enabled; Settings.IncludePreview = includePreview;
         await DocumentSessionManager.WriteAtomicAsync(Path.Combine(_cache, "settings.json"), JsonSerializer.Serialize(Settings));
-        Report(enabled ? "已啟用背景更新。" : "自動更新已關閉；暫存更新不會自動安裝。");
+        Report(() => enabled ? T("已啟用背景更新。") : T("自動更新已關閉；暫存更新不會自動安裝。"));
     }
     public async Task CheckAsync()
     {
@@ -80,7 +82,7 @@ public sealed class GitHubUpdateService : IDisposable
         try
         {
             using var workLock = new FileStream(Path.Combine(_cache, "update.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
-            Report("正在檢查 GitHub 更新…");
+            Report(() => T("正在檢查 GitHub 更新…"));
             UpdatePackage? candidate = null;
             using var timeout = CancellationTokenSource.CreateLinkedTokenSource(_stop.Token); timeout.CancelAfter(TimeSpan.FromSeconds(45));
             var arch = RuntimeInformation.ProcessArchitecture switch { Architecture.Arm64 => "arm64", Architecture.X64 => "x64", _ => throw new InvalidDataException("不支援此處理器架構。") };
@@ -93,13 +95,13 @@ public sealed class GitHubUpdateService : IDisposable
                 if (found is not null && (candidate is null || ReleaseVersion.Parse(found.Version)!.CompareTo(ReleaseVersion.Parse(candidate.Version)) > 0)) candidate = found;
                 if (document.RootElement.GetArrayLength() < 100) break;
             }
-            if (candidate is null) { Report("目前已是所選更新管道的最新版本。"); return; }
+            if (candidate is null) { Report(() => T("目前已是所選更新管道的最新版本。")); return; }
             var target = UpdateFiles.Under(_cache, candidate.Name);
             var downloaded = false;
             if (File.Exists(target)) try { await UpdateFiles.VerifyAsync(target, candidate.Size, candidate.Sha256, _stop.Token); downloaded = true; } catch (InvalidDataException) { }
             if (!downloaded)
             {
-                Report($"正在背景下載 {candidate.Version}，可繼續使用黑板…");
+                Report(() => F($"正在背景下載 {candidate.Version}，可繼續使用黑板…"));
                 var temporary = target + ".partial";
                 using var downloadTimeout = CancellationTokenSource.CreateLinkedTokenSource(_stop.Token); downloadTimeout.CancelAfter(TimeSpan.FromMinutes(15));
                 try
@@ -119,12 +121,12 @@ public sealed class GitHubUpdateService : IDisposable
                 finally { if (File.Exists(temporary)) File.Delete(temporary); }
             }
             await DocumentSessionManager.WriteAtomicAsync(Path.Combine(_cache, "pending.json"), JsonSerializer.Serialize(candidate), _stop.Token);
-            Report($"{candidate.Version} 已準備完成，正常關閉後更新，下次啟動使用新版。" + (Settings.Enabled ? "" : "請啟用自動更新以套用。"));
+            Report(() => F($"{candidate.Version} 已準備完成，正常關閉後更新，下次啟動使用新版。") + (Settings.Enabled ? "" : T("請啟用自動更新以套用。")));
         }
-        catch (OperationCanceledException) { if (!_stop.IsCancellationRequested) Report("更新連線逾時，下次再試；可繼續使用目前版本。"); }
-        catch (HttpRequestException) { Report("目前無法連線到 GitHub，下次再試；可繼續使用目前版本。"); }
+        catch (OperationCanceledException) { if (!_stop.IsCancellationRequested) Report(() => T("更新連線逾時，下次再試；可繼續使用目前版本。")); }
+        catch (HttpRequestException) { Report(() => T("目前無法連線到 GitHub，下次再試；可繼續使用目前版本。")); }
         catch (Exception ex)
-        { Report("這次更新未準備完成：" + ex.Message); }
+        { Report(() => T("這次更新未準備完成：") + ex.Message); }
         finally { Busy = false; _gate.Release(); Changed?.Invoke(); }
     }
     private async Task<HttpResponseMessage> DownloadResponseAsync(Uri uri, CancellationToken token)
@@ -171,7 +173,7 @@ public sealed class GitHubUpdateService : IDisposable
             using var launched = Process.Start(start) ?? throw new IOException("無法啟動更新程式。");
         }
         catch (Exception ex)
-        { Report("更新保留到下次重試：" + ex.Message); }
+        { Report(() => T("更新保留到下次重試：") + ex.Message); }
         finally { _gate.Release(); }
     }
     public void Dispose() => _stop.Cancel();

@@ -1,3 +1,4 @@
+using static HeiBan.Windows.Localization.Strings;
 using System.IO;
 using System.Numerics;
 using System.Text.Json;
@@ -216,7 +217,7 @@ public partial class MainWindow
         {
             var dist=Math.Sqrt(Math.Pow(world.X-_compass.Center.X,2)+Math.Pow(world.Y-_compass.Center.Y,2));
             _compass.AdjustRadius(dist/.65);
-            ShowHUD($"半徑: {(int)Math.Round(_compass.Radius)} pt",_mouse.X,_mouse.Y);
+            ShowHUD(F($"半徑: {(int)Math.Round(_compass.Radius)} pt"),_mouse.X,_mouse.Y);
         }
         else if(_compassPencilMoving)
         {
@@ -225,13 +226,13 @@ public partial class MainWindow
             if(!_compass.IsArmed)
             {
                 _compass.PositionPencil(angleDeg);
-                ShowHUD($"預備角: {angleDeg:0.#}°",_mouse.X,_mouse.Y);
+                ShowHUD(F($"預備角: {angleDeg:0.#}°"),_mouse.X,_mouse.Y);
             }
             else
             {
                 if(!_compass.IsDrawingArc)_compass.StartArc(angleDeg);
                 else _compass.UpdateSweep(angleDeg);
-                ShowHUD($"半徑: {(int)Math.Round(_compass.Radius)} pt  掃角: {_compass.SweepAngle:0.#}°",_mouse.X,_mouse.Y);
+                ShowHUD(F($"半徑: {(int)Math.Round(_compass.Radius)} pt  掃角: {_compass.SweepAngle:0.#}°"),_mouse.X,_mouse.Y);
             }
         }
         else if(_movingPin is not null&&_lastWorld is not null){_movingPin.X+=world.X-_lastWorld.X;_movingPin.Y+=world.Y-_lastWorld.Y;}
@@ -249,7 +250,7 @@ public partial class MainWindow
             else if(_objectHandle is { Kind:"arc_start" or "arc_end" } arcHandle)
             {
                 ObjectHandles.MoveArcEndpoint(selected,arcHandle.Index,world);
-                ShowHUD($"起角: {selected.ArcStartAngle:0.#}°  掃角: {selected.ArcSweepAngle:0.#}°",_mouse.X,_mouse.Y);
+                ShowHUD(F($"起角: {selected.ArcStartAngle:0.#}°  掃角: {selected.ArcSweepAngle:0.#}°"),_mouse.X,_mouse.Y);
             }
             else if(_objectHandle is { Kind:"vertex" } vertex)
             {
@@ -298,7 +299,7 @@ public partial class MainWindow
             if(!_compassCenterMoved)
             {
                 _compass.ToggleArmed();
-                StatusText.Text=_compass.IsArmed?"圓心已鎖定：請拖曳筆尖畫弧":"準備階段：可移動圓心與調整半徑";
+                StatusText.Text=_compass.IsArmed?T("圓心已鎖定：請拖曳筆尖畫弧"):T("準備階段：可移動圓心與調整半徑");
             }
         }
         else if(_compassPencilMoving)
@@ -325,7 +326,7 @@ public partial class MainWindow
                     _compass.IsEnabled=false;
                     _tool="select";
                     RefreshEditor();
-                    StatusText.Text=$"已生成圓弧（半徑 {_compass.Radius:0.#}pt，掃角 {_compass.SweepAngle:0.#}°）";
+                    StatusText.Text=F($"已生成圓弧（半徑 {_compass.Radius:0.#}pt，掃角 {_compass.SweepAngle:0.#}°）");
                 }
                 else
                 {
@@ -437,7 +438,7 @@ public partial class MainWindow
         {
             _regionCaptureCancellation?.Cancel();
             _screenshotWatchTimer.Stop();
-            StatusText.Text = "截圖已逾時（超過 60 秒）";
+            StatusText.Text = T("截圖已逾時（超過 60 秒）");
         }
         else if (!_screenshotCoordinator.HasActiveSession)
         {
@@ -459,7 +460,7 @@ public partial class MainWindow
         var cancellation = new CancellationTokenSource();
         _regionCaptureCancellation = cancellation;
         _screenshotWatchTimer.Start();
-        StatusText.Text = "拖曳框選截圖，Esc 或右鍵取消";
+        StatusText.Text = T("拖曳框選截圖，Esc 或右鍵取消");
         try
         {
             // Let the insertion menu close before taking the desktop snapshot.
@@ -468,7 +469,7 @@ public partial class MainWindow
             if (bytes is null)
             {
                 if (_screenshotCoordinator.CancelIfMatching(request.RequestId))
-                    StatusText.Text = "已取消截圖";
+                    StatusText.Text = T("已取消截圖");
                 return;
             }
             if (!_screenshotCoordinator.BeginProcessing(request.RequestId)) return;
@@ -483,16 +484,16 @@ public partial class MainWindow
             stream.Seek(0);
             var inserted = await InsertImageStreamAsync(stream, request.TargetCenter, true,
                 request.RequestId, request.BoardId, request.PageId);
-            if (inserted) StatusText.Text = "截圖已加入畫布";
+            if (inserted) StatusText.Text = T("截圖已加入畫布");
         }
         catch (OperationCanceledException)
         {
-            if (_screenshotCoordinator.CancelIfMatching(request.RequestId)) StatusText.Text = "已取消截圖";
+            if (_screenshotCoordinator.CancelIfMatching(request.RequestId)) StatusText.Text = T("已取消截圖");
         }
         catch (Exception ex)
         {
             if (_screenshotCoordinator.CancelIfMatching(request.RequestId))
-                StatusText.Text = "截圖未完成：" + ex.Message;
+                StatusText.Text = T("截圖未完成：") + ex.Message;
         }
         finally
         {
@@ -635,11 +636,11 @@ public partial class MainWindow
         var pin=PinAt(screen);
         var hit=_session.Hit(_viewport.ScreenToWorld(screen.X,screen.Y),6/_viewport.Zoom);if(hit is null||!_session.SelectedIds.Contains(hit.Id))Select(hit);
         var menu=new MenuFlyout();void Add(string name,Action action){var item=new MenuFlyoutItem{Text=name};item.Click+=(_,_)=>action();menu.Items.Add(item);}
-        if(pin is not null){Add("重新命名圖釘",()=>StartPinRename(pin));Add("圖釘與文字配色…",()=>PinAppearance(pin));Add("刪除圖釘",()=>{_session.Begin();_session.Document.Board.Pins!.Remove(pin);_session.Commit();RefreshEditor();});}
-        if(_session.Selected is not null){Add("複製",CopySelected);Add("製作副本",DuplicateSelected);Add("刪除",()=>Delete_Click(this,new RoutedEventArgs()));
+        if(pin is not null){Add(T("重新命名圖釘"),()=>StartPinRename(pin));Add(T("圖釘與文字配色…"),()=>PinAppearance(pin));Add(T("刪除圖釘"),()=>{_session.Begin();_session.Document.Board.Pins!.Remove(pin);_session.Commit();RefreshEditor();});}
+        if(_session.Selected is not null){Add(T("複製"),CopySelected);Add(T("製作副本"),DuplicateSelected);Add(T("刪除"),()=>Delete_Click(this,new RoutedEventArgs()));
             var selection=_session.SelectedIds.ToHashSet();var board=_session.Document.Board.Id;bool Current()=>board==_session.Document.Board.Id&&_session.SelectedIds.SetEquals(selection);
             TextStyleMenu.Append(menu,_session.SelectedObjects.ToArray(),change=>{CommitPropertyEdit();if(Current()){TextStyles.ApplySelection(_session,change);RefreshEditor();}},flyout=>{flyout.ShouldConstrainToRootBounds=false;flyout.ShowAt(CanvasSurface,new Microsoft.UI.Xaml.Controls.Primitives.FlyoutShowOptions{Position=new Point(screen.X,screen.Y)});},Current,()=>{if(_session.SelectedObjects.FirstOrDefault(o=>o.Type is "text" or "sticky"&&o.IsLocked!=true) is { } text)StartText(text);});}
-        Add("貼上",PasteObject);menu.OverlayInputPassThroughElement=ToolBorder;menu.ShowAt(CanvasSurface,new Microsoft.UI.Xaml.Controls.Primitives.FlyoutShowOptions{Position=new Point(screen.X,screen.Y)});
+        Add(T("貼上"),PasteObject);menu.OverlayInputPassThroughElement=ToolBorder;menu.ShowAt(CanvasSurface,new Microsoft.UI.Xaml.Controls.Primitives.FlyoutShowOptions{Position=new Point(screen.X,screen.Y)});
     }
     private void CopySelected()
     {if(_session.Selected is not { } o)return;var package=new DataPackage();package.SetText("HEIBAN_OBJECTS:"+JsonSerializer.Serialize(_session.SelectedObjects.ToArray(),DocumentCodec.Options));Clipboard.SetContent(package);}
@@ -678,8 +679,8 @@ public partial class MainWindow
     {var originals=_session.SelectedObjects.ToArray();if(originals.Length==0)return;_session.Begin();var ids=new List<string>();foreach(var selected in originals){var o=DocumentCodec.Clone(selected);o.Id=Guid.NewGuid().ToString();_session.Move(o,20,20);_session.Add(o);ids.Add(o.Id);}_session.SetSelection(ids);_session.Commit();RefreshEditor();}
     private async void Pin_Click(object sender, RoutedEventArgs e)
     {
-        var searchBox = new TextBox { PlaceholderText = "搜尋圖釘名稱…", HorizontalAlignment = HorizontalAlignment.Stretch };
-        var newPinBox = new TextBox { PlaceholderText = "新圖釘名稱（預設：重要位置）", HorizontalAlignment = HorizontalAlignment.Stretch };
+        var searchBox = new TextBox { PlaceholderText = T("搜尋圖釘名稱…"), HorizontalAlignment = HorizontalAlignment.Stretch };
+        var newPinBox = new TextBox { PlaceholderText = T("新圖釘名稱（預設：重要位置）"), HorizontalAlignment = HorizontalAlignment.Stretch };
         var listContainer = new StackPanel { Spacing = 8 };
         var scroll = new ScrollViewer { Content = listContainer, MaxHeight = 300, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
         ContentDialog? dialog = null;
@@ -695,7 +696,7 @@ public partial class MainWindow
             {
                 listContainer.Children.Add(new TextBlock
                 {
-                    Text = string.IsNullOrEmpty(query) ? "尚無圖釘標記" : "無相符的圖釘",
+                    Text = string.IsNullOrEmpty(query) ? T("尚無圖釘標記") : T("無相符的圖釘"),
                     Foreground = Brush("#68756C"),
                     Margin = new Thickness(8),
                     HorizontalAlignment = HorizontalAlignment.Center
@@ -726,14 +727,14 @@ public partial class MainWindow
                 Grid.SetColumn(navBtn, 0);
                 row.Children.Add(navBtn);
 
-                var renameBtn = new Button { Content = "改名", Margin = new Thickness(4, 0, 0, 0), Padding = new Thickness(8, 4, 8, 4) };
+                var renameBtn = new Button { Content = T("改名"), Margin = new Thickness(4, 0, 0, 0), Padding = new Thickness(8, 4, 8, 4) };
                 renameBtn.Click += (_, _) => { dialog?.Hide(); StartPinRename(pin); };
                 Grid.SetColumn(renameBtn, 1);
                 row.Children.Add(renameBtn);
 
-                var colorBtn=new Button{Content="配色",Margin=new Thickness(4,0,0,0),Padding=new Thickness(8,4,8,4)};
+                var colorBtn=new Button{Content=T("配色"),Margin=new Thickness(4,0,0,0),Padding=new Thickness(8,4,8,4)};
                 colorBtn.Click+=(_,_)=>{dialog?.Hide();DispatcherQueue.TryEnqueue(()=>PinAppearance(pin));};Grid.SetColumn(colorBtn,2);row.Children.Add(colorBtn);
-                var deleteBtn = new Button { Content = "刪除", Margin = new Thickness(4, 0, 0, 0), Padding = new Thickness(8, 4, 8, 4) };
+                var deleteBtn = new Button { Content = T("刪除"), Margin = new Thickness(4, 0, 0, 0), Padding = new Thickness(8, 4, 8, 4) };
                 deleteBtn.Click += (_, _) =>
                 {
                     _session.Begin();
@@ -753,19 +754,19 @@ public partial class MainWindow
         RenderPins();
 
         var contentPanel = new StackPanel { Spacing = 12, Width = 380 };
-        contentPanel.Children.Add(new TextBlock { Text = "搜尋或跳轉至圖釘視野", FontSize = 12, Foreground = Brush("#68756C") });
+        contentPanel.Children.Add(new TextBlock { Text = T("搜尋或跳轉至圖釘視野"), FontSize = 12, Foreground = Brush("#68756C") });
         contentPanel.Children.Add(searchBox);
         contentPanel.Children.Add(scroll);
         contentPanel.Children.Add(new Border { Height = 1, Background = Brush("#D4DBD1"), Margin = new Thickness(0, 4, 0, 4) });
-        contentPanel.Children.Add(new TextBlock { Text = "在目前視野新增圖釘：", FontSize = 12, Foreground = Brush("#68756C") });
+        contentPanel.Children.Add(new TextBlock { Text = T("在目前視野新增圖釘："), FontSize = 12, Foreground = Brush("#68756C") });
         contentPanel.Children.Add(newPinBox);
 
         dialog = new ContentDialog
-        {
-            Title = "圖釘",
+        {FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,
+            Title = T("圖釘"),
             Content = contentPanel,
-            PrimaryButtonText = "新增圖釘",
-            CloseButtonText = "關閉",
+            PrimaryButtonText = T("新增圖釘"),
+            CloseButtonText = T("關閉"),
             XamlRoot = Root.XamlRoot
         };
 
@@ -775,7 +776,7 @@ public partial class MainWindow
         _session.Begin();
         (_session.Document.Board.Pins ??= []).Add(new BoardPin
         {
-            Name = string.IsNullOrWhiteSpace(newPinBox.Text) ? "重要位置" : newPinBox.Text.Trim(),
+            Name = string.IsNullOrWhiteSpace(newPinBox.Text) ? T("重要位置") : newPinBox.Text.Trim(),
             X = world.X,
             Y = world.Y,
             Zoom = _viewport.Zoom

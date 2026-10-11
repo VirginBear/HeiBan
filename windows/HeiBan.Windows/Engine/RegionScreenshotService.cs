@@ -58,10 +58,15 @@ public static class RegionScreenshotService
                             if(dragging){var selected=Selection();BitBlt(dc,selected.Left,selected.Top,selected.Right-selected.Left,selected.Bottom-selected.Top,snapshotDc,selected.Left,selected.Top,0x00CC0020);}
                             SetBkMode(dc, 1);
                             SetTextColor(dc, 0x00FFFFFF);
-                            var banner = new Rect { Left = 16, Top = 16, Right = 500, Bottom = 52 };
-                            FillRect(dc, ref banner, GetStockObject(4)); // black brush
-                            const string help = "拖曳框選截圖 · Esc 或右鍵取消";
-                            TextOut(dc, 28, 26, help, help.Length);
+                            var help = Localization.Strings.T("拖曳框選截圖 · Esc 或右鍵取消");
+                            // Measure translated guidance and wrap within the desktop; selection coordinates stay unchanged.
+                            var flags = 0x10u | (Localization.Strings.RightToLeft ? 0x20000u : 0u); // DT_WORDBREAK / DT_RTLREADING
+                            var textRect = new Rect { Left = 28, Top = 26, Right = Math.Max(29, width - 28), Bottom = height - 26 };
+                            DrawText(dc, help, help.Length, ref textRect, flags | 0x400); // DT_CALCRECT
+                            textRect.Right = Math.Min(textRect.Right, Math.Max(29, width - 28));
+                            var banner = new Rect { Left = 16, Top = 16, Right = textRect.Right + 12, Bottom = textRect.Bottom + 10 };
+                            FillRect(dc, ref banner, GetStockObject(4));
+                            DrawText(dc, help, help.Length, ref textRect, flags);
                             if (dragging)
                             {
                                 var rect = Selection();
@@ -298,6 +303,6 @@ public static class RegionScreenshotService
     [DllImport("gdi32.dll")] private static extern bool Rectangle(nint dc, int left, int top, int right, int bottom);
     [DllImport("gdi32.dll")] private static extern int SetBkMode(nint dc, int mode);
     [DllImport("gdi32.dll")] private static extern uint SetTextColor(nint dc, uint color);
-    [DllImport("gdi32.dll", CharSet = CharSet.Unicode)] private static extern bool TextOut(nint dc, int x, int y, string text, int count);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern int DrawText(nint dc, string text, int count, ref Rect rect, uint format);
     [DllImport("gdi32.dll", SetLastError = true)] private static extern int GetDIBits(nint dc, nint bitmap, uint start, uint lines, [Out] byte[] pixels, ref BitmapInfo info, uint usage);
 }

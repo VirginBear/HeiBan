@@ -1,5 +1,13 @@
 # Windows 問題與排解紀錄
 
+最終r2 x64 Release build：退出0、0警告／0錯誤、28.23秒；十份完整資源嵌入DLL、literal來源鍵無缺項為靜態檢視，非App／測試驗收。最後文字屬性展示补強由新Portable publish重新編譯，封裝證據另記。
+
+## 2026-10-11 — 多語言建置與尚未驗收
+
+第二輪build 17.61秒退出1、1warning／89errors：兩個MenuFlyout.FlowDirection CS1061阻斷生成assembly，連鎖XAML pass2 WMC1509／Ui附加屬性unknown及WMC9999。改MenuFlyoutPresenterStyle Setter（實際有FlowDirection的是Presenter／FrameworkElement）；不刪Ui服務來掩蓋症狀。首次53.04秒0warning／0error是修RTL前來源，後續結果另記[日誌](LOCALIZATION_2026-10-11.zh-TW.md)。
+
+資源stdout cp950遇⋯編碼錯，生成器改UTF-8輸出；PowerShell字面萬用路徑rg及錯Common檔名調查失敗改目錄-g／Publish-Common。原生框架可能快取語言，系统檔案挑選器和低層例外保留來源語言；尚缺App實機切換／重啟／窄視窗／RTL及母語校閱，本輪不跑測試。
+
 ## 2026-10-11 — 一般畫布游標未生效、尺寸與背景選項缺漏
 
 使用者實測一般畫布游標未生效而螢幕有效；前一輪native SetCursor／WM_SETCURSOR不能當已驗收主畫布方式。調查官方WinUI ProtectedCursor與SDK HCURSOR interop，改Canvas父容器XAML游標。原因為不同游標擁有層的推論，未做本輪runtime追蹤；硬體操作待驗收。

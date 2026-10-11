@@ -1,3 +1,4 @@
+using static HeiBan.Windows.Localization.Strings;
 using System.Numerics;
 using HeiBan.Windows.Engine;
 using HeiBan.Windows.Models;
@@ -110,14 +111,14 @@ public partial class MainWindow
         if (_readingMode)
         {
             ReadingModeButton.Content = ToolIcons.Create("pen");
-            ToolTipService.SetToolTip(ReadingModeButton, "回到編輯模式（目前為閱讀模式：拖曳移動畫布，不會畫線）");
-            StatusText.Text = "閱讀模式：拖曳移動畫布，不會畫線";
+            ToolTipService.SetToolTip(ReadingModeButton, T("回到編輯模式（目前為閱讀模式：拖曳移動畫布，不會畫線）"));
+            StatusText.Text = T("閱讀模式：拖曳移動畫布，不會畫線");
         }
         else
         {
             ReadingModeButton.Content = ToolIcons.Create("reading");
-            ToolTipService.SetToolTip(ReadingModeButton, "閱讀模式：拖曳移動畫布，不會畫線");
-            StatusText.Text = "編輯模式";
+            ToolTipService.SetToolTip(ReadingModeButton, T("閱讀模式：拖曳移動畫布，不會畫線"));
+            StatusText.Text = T("編輯模式");
         }
         RefreshNavigationChrome();
     }
@@ -126,41 +127,41 @@ public partial class MainWindow
     {
         var menu = new MenuFlyout();
 
-        var textItem = new MenuFlyoutItem { Text = "文字（T）", Icon = ToolIcons.CreateIcon("text") };
+        var textItem = new MenuFlyoutItem { Text = T("文字（T）"), Icon = ToolIcons.CreateIcon("text") };
         textItem.Click += (_, _) => ActivateTool("text");
         menu.Items.Add(textItem);
 
-        var stickyItem = new MenuFlyoutItem { Text = "便條紙", Icon = ToolIcons.CreateIcon("sticky") };
+        var stickyItem = new MenuFlyoutItem { Text = T("便條紙"), Icon = ToolIcons.CreateIcon("sticky") };
         stickyItem.Click += (_, _) => ActivateTool("sticky");
         menu.Items.Add(stickyItem);
 
-        var shotItem = new MenuFlyoutItem { Text = "截圖置入…（Win+Shift+S）", Icon = ToolIcons.CreateIcon("screenshot") };
+        var shotItem = new MenuFlyoutItem { Text = T("截圖置入…（Win+Shift+S）"), Icon = ToolIcons.CreateIcon("screenshot") };
         shotItem.Click += (_, _) => Screenshot_Click(this, new RoutedEventArgs());
         menu.Items.Add(shotItem);
 
-        var imgItem = new MenuFlyoutItem { Text = "圖片匯入…", Icon = ToolIcons.CreateIcon("image") };
+        var imgItem = new MenuFlyoutItem { Text = T("圖片匯入…"), Icon = ToolIcons.CreateIcon("image") };
         imgItem.Click += (_, _) => Image_Click(this, new RoutedEventArgs());
         menu.Items.Add(imgItem);
 
         menu.Items.Add(new MenuFlyoutSeparator());
 
-        var compassItem = new MenuFlyoutItem { Text = "圓規（兩階段畫弧）", Icon = ToolIcons.CreateIcon("compass") };
+        var compassItem = new MenuFlyoutItem { Text = T("圓規（兩階段畫弧）"), Icon = ToolIcons.CreateIcon("compass") };
         compassItem.Click += (_, _) => Compass_Click(this, new RoutedEventArgs());
         menu.Items.Add(compassItem);
 
-        var calcItem = new MenuFlyoutItem { Text = "計算機（科學與括號）", Icon = ToolIcons.CreateIcon("calculator") };
+        var calcItem = new MenuFlyoutItem { Text = T("計算機（科學與括號）"), Icon = ToolIcons.CreateIcon("calculator") };
         calcItem.Click += (_, _) => ShowCalculatorPanel(InsertNavButton);
         menu.Items.Add(calcItem);
 
-        var timerItem = new MenuFlyoutItem { Text = "計時器（常駐倒數與碼表）", Icon = ToolIcons.CreateIcon("timer") };
+        var timerItem = new MenuFlyoutItem { Text = T("計時器（常駐倒數與碼表）"), Icon = ToolIcons.CreateIcon("timer") };
         timerItem.Click += (_, _) => ShowTimerPanel(InsertNavButton);
         menu.Items.Add(timerItem);
 
-        var rulerItem = new MenuFlyoutItem { Text = "螢幕尺", Icon = ToolIcons.CreateIcon("ruler") };
+        var rulerItem = new MenuFlyoutItem { Text = T("螢幕尺"), Icon = ToolIcons.CreateIcon("ruler") };
         rulerItem.Click += (_, _) => Ruler_Click(this, new RoutedEventArgs());
         menu.Items.Add(rulerItem);
 
-        var screenAnnotateItem = new MenuFlyoutItem { Text = "我的螢幕就是我的畫布", Icon = ToolIcons.CreateIcon("infinite") };
+        var screenAnnotateItem = new MenuFlyoutItem { Text = T("我的螢幕就是我的畫布"), Icon = ToolIcons.CreateIcon("infinite") };
         screenAnnotateItem.Click += async (_, _) => await StartScreenAnnotationAsync();
         menu.Items.Add(screenAnnotateItem);
 
@@ -171,55 +172,55 @@ public partial class MainWindow
     {
         var menu = new MenuFlyout();
 
-        var noteInfoItem = new MenuFlyoutItem { Text = "筆記資訊與改名…", Icon = ToolIcons.CreateIcon("info") };
+        var noteInfoItem = new MenuFlyoutItem { Text = T("筆記資訊與改名…"), Icon = ToolIcons.CreateIcon("info") };
         noteInfoItem.Click += (_, _) => ShowNoteInfoDialog(MoreNavButton);
         menu.Items.Add(noteInfoItem);
 
         menu.Items.Add(new MenuFlyoutSeparator());
 
-        var bgItem = new MenuFlyoutItem { Text = "畫布背景…", Icon = ToolIcons.CreateIcon("background") };
+        var bgItem = new MenuFlyoutItem { Text = T("畫布背景…"), Icon = ToolIcons.CreateIcon("background") };
         bgItem.Click += (_, _) => Background_Click(this, new RoutedEventArgs());
         menu.Items.Add(bgItem);
 
-        var layerItem = new MenuFlyoutItem { Text = "物件圖層…", Icon = ToolIcons.CreateIcon("layers") };
+        var layerItem = new MenuFlyoutItem { Text = T("物件圖層…"), Icon = ToolIcons.CreateIcon("layers") };
         layerItem.Click += (_, _) => Layers_Click(this, new RoutedEventArgs());
         menu.Items.Add(layerItem);
 
-        var propItem = new MenuFlyoutItem { Text = "屬性檢查器", Icon = ToolIcons.CreateIcon("settings") };
+        var propItem = new MenuFlyoutItem { Text = T("屬性檢查器"), Icon = ToolIcons.CreateIcon("settings") };
         propItem.Click += (_, _) => Properties_Click(this, new RoutedEventArgs());
         menu.Items.Add(propItem);
 
         menu.Items.Add(new MenuFlyoutSeparator());
 
-        var saveItem = new MenuFlyoutItem { Text = "儲存作品（Ctrl+S）", Icon = ToolIcons.CreateIcon("save") };
+        var saveItem = new MenuFlyoutItem { Text = T("儲存作品（Ctrl+S）"), Icon = ToolIcons.CreateIcon("save") };
         saveItem.Click += (_, _) => Save_Click(this, new RoutedEventArgs());
         menu.Items.Add(saveItem);
 
-        var exportItem = new MenuFlyoutItem { Text = "匯出文件或圖片…", Icon = ToolIcons.CreateIcon("export") };
+        var exportItem = new MenuFlyoutItem { Text = T("匯出文件或圖片…"), Icon = ToolIcons.CreateIcon("export") };
         exportItem.Click += (_, _) => Export_Click(this, new RoutedEventArgs());
         menu.Items.Add(exportItem);
 
         menu.Items.Add(new MenuFlyoutSeparator());
 
-        var customizeItem = new MenuFlyoutItem { Text = "自訂工具列…" };
+        var customizeItem = new MenuFlyoutItem { Text = T("自訂工具列…") };
         customizeItem.Click += async (_, _) => await ShowCustomizeToolbarDialog();
         menu.Items.Add(customizeItem);
 
-        var resetItem = new MenuFlyoutItem { Text = "恢復預設工具列" };
+        var resetItem = new MenuFlyoutItem { Text = T("恢復預設工具列") };
         resetItem.Click += (_, _) => ResetToolbarToDefault();
         menu.Items.Add(resetItem);
 
         menu.Items.Add(new MenuFlyoutSeparator());
 
-        var guideItem = new MenuFlyoutItem { Text = "黑板使用手冊與快捷鍵…" };
+        var guideItem = new MenuFlyoutItem { Text = T("黑板使用手冊與快捷鍵…（正體中文）") };
         guideItem.Click += async (_, _) => await OpenUserGuideAsync();
         menu.Items.Add(guideItem);
 
-        var aboutItem = new MenuFlyoutItem { Text = "關於黑板…" };
+        var aboutItem = new MenuFlyoutItem { Text = T("關於黑板…") };
         aboutItem.Click += (_, _) => About_Click(this, new RoutedEventArgs());
         menu.Items.Add(aboutItem);
 
-        var updatesItem = new MenuFlyoutItem { Text = "檢查更新與更新設定…" };
+        var updatesItem = new MenuFlyoutItem { Text = T("檢查更新與更新設定…") };
         updatesItem.Click += async (_, _) => await ShowUpdatesAsync();
         menu.Items.Add(updatesItem);
 
@@ -233,10 +234,10 @@ public partial class MainWindow
 
         var header = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
         header.Children.Add(ToolIcons.Create("info"));
-        header.Children.Add(new TextBlock { Text = "筆記資訊與改名", FontWeight = Microsoft.UI.Text.FontWeights.Bold, FontSize = 14, VerticalAlignment = VerticalAlignment.Center });
+        header.Children.Add(new TextBlock { Text = T("筆記資訊與改名"), FontWeight = Microsoft.UI.Text.FontWeights.Bold, FontSize = 14, VerticalAlignment = VerticalAlignment.Center });
         panel.Children.Add(header);
 
-        var nameLabel = new TextBlock { Text = "筆記名稱", FontSize = 12, Foreground = Brush("#68756C") };
+        var nameLabel = new TextBlock { Text = T("筆記名稱"), FontSize = 12, Foreground = Brush("#68756C") };
         var editBox = new TextBox { Text = board.Title, HorizontalAlignment = HorizontalAlignment.Stretch };
         panel.Children.Add(nameLabel);
         panel.Children.Add(editBox);
@@ -244,13 +245,13 @@ public partial class MainWindow
         var sep = new Border { Height = 1, Background = Brush("#E2E7DF"), Margin = new Thickness(0, 4, 0, 4) };
         panel.Children.Add(sep);
 
-        var format = board.CanvasMode switch { "notebook" => "筆記本（多頁）", "fixed" => "有邊界黑板", _ => "無邊界筆記" };
-        panel.Children.Add(new TextBlock { Text = $"畫布格式：{format}", FontSize = 12, Foreground = Brush("#4D5B4F") });
-        panel.Children.Add(new TextBlock { Text = $"物件數量：{_session.VisibleObjects.Count()} 個物件", FontSize = 12, Foreground = Brush("#4D5B4F") });
-        panel.Children.Add(new TextBlock { Text = $"儲存狀態：{StatusText.Text}", FontSize = 12, Foreground = Brush("#4D5B4F") });
+        var format = board.CanvasMode switch { "notebook" => T("筆記本（多頁）"), "fixed" => T("有邊界黑板"), _ => T("無邊界筆記") };
+        panel.Children.Add(new TextBlock { Text = F($"畫布格式：{format}"), FontSize = 12, Foreground = Brush("#4D5B4F") });
+        panel.Children.Add(new TextBlock { Text = F($"物件數量：{_session.VisibleObjects.Count()} 個物件"), FontSize = 12, Foreground = Brush("#4D5B4F") });
+        panel.Children.Add(new TextBlock { Text = F($"儲存狀態：{StatusText.Text}"), FontSize = 12, Foreground = Brush("#4D5B4F") });
 
         var buttonPanel = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Spacing = 8, Margin = new Thickness(0, 8, 0, 0) };
-        var okButton = new Button { Content = "完成", Style = (Style)Application.Current.Resources["AccentButtonStyle"] };
+        var okButton = new Button { Content = T("完成"), Style = (Style)Application.Current.Resources["AccentButtonStyle"] };
 
         Flyout? infoFlyout = null;
         okButton.Click += (_, _) =>
@@ -284,7 +285,7 @@ public partial class MainWindow
             }
             else
             {
-                StatusText.Text = "手冊路徑未找到";
+                StatusText.Text = T("手冊路徑未找到");
             }
         }
         catch (Exception ex)
@@ -300,7 +301,7 @@ public partial class MainWindow
         var pending=_session.IsDirty||_propertyEditing||_editor is not null||_pinNameEditor is not null||_ink.IsDrawing||_preview is not null||_session.HasTransaction||_saving;
         SaveStatusDot.Content=pending||failed?SelectionCircle(false,true):new TextBlock{Text="✓",FontSize=18,Foreground=Brush("#39735A"),HorizontalAlignment=HorizontalAlignment.Center,VerticalAlignment=VerticalAlignment.Center};
         SaveStatusDot.Foreground=Brush(failed?"#CF4860":pending?"#A87929":"#39735A");
-        ToolTipService.SetToolTip(SaveStatusDot,failed?$"儲存未完成：{status}":pending?"尚未儲存完成":"本機已存");
+        ToolTipService.SetToolTip(SaveStatusDot,failed?F($"儲存未完成：{status}"):pending?T("尚未儲存完成"):T("本機已存"));
     }
 
     private SolidColorBrush Brush(string hex) => new(Direct2DCanvasRenderer.HexToColor(hex));
@@ -317,6 +318,8 @@ public partial class MainWindow
 
     private void ShowExclusiveFlyout(FlyoutBase flyout, FrameworkElement anchor)
     {
+        if(flyout is Flyout{Content:FrameworkElement body})body.FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight;
+        if(flyout is MenuFlyout menu)menu.MenuFlyoutPresenterStyle=new Style{TargetType=typeof(MenuFlyoutPresenter),Setters={new Setter(FrameworkElement.FlowDirectionProperty,Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight)}};
         if (_activeFlyout != null && _activeFlyout != flyout)
         {
             _activeFlyout.Hide();
@@ -378,94 +381,94 @@ public partial class MainWindow
             switch (key)
             {
                 case "laser" or "tape" or "lasso":
-                    Tool(key,key=="laser"?"雷射：再次點擊開啟設定":ToolbarPreferences.ToolNames[key],key);break;
+                    Tool(key,key=="laser"?T("雷射：再次點擊開啟設定"):T(ToolbarPreferences.ToolNames[key]),key);break;
                 case "extension": break; // 延伸屬性改由線段設定提供；保留舊偏好欄位。
                 case "layers":
-                    var layers=IconButton("layers","物件圖層",()=>Layers_Click(this,new RoutedEventArgs()),"layers");
+                    var layers=IconButton("layers",T("物件圖層"),()=>Layers_Click(this,new RoutedEventArgs()),"layers");
                     _toolButtons[key]=layers;Tools.Children.Add(layers);break;
                 case "clearAll" or "viewLock":
-                    var extraKey=key;var extra=IconButton(key=="clearAll"?"delete":key=="viewLock"?"lock":"line",ToolbarPreferences.ToolNames[key],()=>InvokeToolByKey(extraKey),key);
+                    var extraKey=key;var extra=IconButton(key=="clearAll"?"delete":key=="viewLock"?"lock":"line",T(ToolbarPreferences.ToolNames[key]),()=>InvokeToolByKey(extraKey),key);
                     _toolButtons[key]=extra;Tools.Children.Add(extra);break;
-                case "select": Tool("select", "選取（V）", "select"); break;
-                case "pen": Tool("pen", "鋼筆／向量筆（P）", "pen"); break;
-                case "curve": Tool("curve", "可編輯曲線", "curve"); break;
-                case "highlighter": Tool("highlighter", "螢光筆", "highlighter"); break;
-                case "paint": Tool("paint", "油漆筆刷", "paint"); break;
+                case "select": Tool("select", T("選取（V）"), "select"); break;
+                case "pen": Tool("pen", T("鋼筆／向量筆（P）"), "pen"); break;
+                case "curve": Tool("curve", T("可編輯曲線"), "curve"); break;
+                case "highlighter": Tool("highlighter", T("螢光筆"), "highlighter"); break;
+                case "paint": Tool("paint", T("油漆筆刷"), "paint"); break;
                 case "eraser":
-                    var eraser = IconButton("eraser", "橡皮擦：模式與大小（E）", () => { ActivateTool("eraser"); ShowEraserSettings(_toolButtons["eraser"]); }, "eraser");
+                    var eraser = IconButton("eraser", T("橡皮擦：模式與大小（E）"), () => { ActivateTool("eraser"); ShowEraserSettings(_toolButtons["eraser"]); }, "eraser");
                     _toolButtons["eraser"] = eraser;
                     Tools.Children.Add(eraser);
                     break;
                 case "ruler":
-                    var ruler = IconButton("ruler", "螢幕尺；右鍵設定角度與配色", () => Ruler_Click(this, new()), "ruler");
+                    var ruler = IconButton("ruler", T("螢幕尺；右鍵設定角度與配色"), () => Ruler_Click(this, new()), "ruler");
                     ruler.RightTapped += (_, e) => { ShowRulerSettings(ruler); e.Handled = true; };
                     _toolButtons["ruler"] = ruler;
                     Tools.Children.Add(ruler);
                     break;
                 case "shapes":
-                    var shapes = IconButton("shapes", "圖形：直線、箭頭、矩形、圓與多邊形", () => ShowShapes(_toolButtons["shapes"]), "shapes");
+                    var shapes = IconButton("shapes", T("圖形：直線、箭頭、矩形、圓與多邊形"), () => ShowShapes(_toolButtons["shapes"]), "shapes");
                     _toolButtons["shapes"] = shapes;
                     Tools.Children.Add(shapes);
                     break;
-                case "sticky": Tool("sticky", "便條紙", "sticky"); break;
-                case "text": Tool("text", "文字（T）", "text"); break;
+                case "sticky": Tool("sticky", T("便條紙"), "sticky"); break;
+                case "text": Tool("text", T("文字（T）"), "text"); break;
                 case "screenshot":
-                    Tools.Children.Add(IconButton("screenshot", "截圖：拖曳框選後直接置入畫布", () => Screenshot_Click(this, new()), "screenshot"));
+                    Tools.Children.Add(IconButton("screenshot", T("截圖：拖曳框選後直接置入畫布"), () => Screenshot_Click(this, new()), "screenshot"));
                     _toolButtons["screenshot"] = (Button)Tools.Children[^1];
                     break;
                 case "image":
-                    Tools.Children.Add(IconButton("image", "匯入圖片；也可拖入桌面截圖", () => Image_Click(this, new()), "image"));
+                    Tools.Children.Add(IconButton("image", T("匯入圖片；也可拖入桌面截圖"), () => Image_Click(this, new()), "image"));
                     _toolButtons["image"] = (Button)Tools.Children[^1];
                     break;
                 case "brush":
                     _brushSwatch = new Ellipse { Width = 24, Height = 24, Fill = Brush(_strokeColor), Stroke = Brush("#879487"), StrokeThickness = 1 };
                     _brushButton = new Button { Style = (Style)Application.Current.Resources["ToolButtonStyle"], Content = _brushSwatch, Tag = "brush" };
-                    ToolTipService.SetToolTip(_brushButton, "顏色、粗細與透明度；選取物件時直接修改物件");
-                    Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(_brushButton, "繪圖與物件設定");
+                    ToolTipService.SetToolTip(_brushButton, T("顏色、粗細與透明度；選取物件時直接修改物件"));
+                    Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(_brushButton, T("繪圖與物件設定"));
                     _brushButton.Click += (_, _) => ShowBrushSettings(_brushButton);
                     _toolButtons["brush"] = _brushButton;
                     Tools.Children.Add(_brushButton);
                     break;
                 case "dash":
-                    Tools.Children.Add(IconButton("dash", "線條樣式", () => ShowLineStyles(_toolButtons["dash"]), "dash"));
+                    Tools.Children.Add(IconButton("dash", T("線條樣式"), () => ShowLineStyles(_toolButtons["dash"]), "dash"));
                     _toolButtons["dash"] = (Button)Tools.Children[^1];
                     break;
                 case "pins":
-                    var pin = IconButton("pins", "圖釘", () => Pin_Click(this, new()), "pins");
+                    var pin = IconButton("pins", T("圖釘"), () => Pin_Click(this, new()), "pins");
                     _toolButtons["pins"] = pin;
                     Tools.Children.Add(pin);
                     break;
                 case "undo":
-                    Tools.Children.Add(IconButton("undo", "復原（Ctrl+Z）", () => Undo_Click(this, new()), "undo"));
+                    Tools.Children.Add(IconButton("undo", T("復原（Ctrl+Z）"), () => Undo_Click(this, new()), "undo"));
                     _toolButtons["undo"] = (Button)Tools.Children[^1];
                     break;
                 case "redo":
-                    Tools.Children.Add(IconButton("redo", "重做（Ctrl+Y）", () => Redo_Click(this, new()), "redo"));
+                    Tools.Children.Add(IconButton("redo", T("重做（Ctrl+Y）"), () => Redo_Click(this, new()), "redo"));
                     _toolButtons["redo"] = (Button)Tools.Children[^1];
                     break;
                 case "calculator":
-                    Tools.Children.Add(IconButton("calculator", "計算機：基本與科學計算、插入算式", () => ShowCalculatorPanel(GetToolAnchor("calculator")), "calculator"));
+                    Tools.Children.Add(IconButton("calculator", T("計算機：基本與科學計算、插入算式"), () => ShowCalculatorPanel(GetToolAnchor("calculator")), "calculator"));
                     _toolButtons["calculator"] = (Button)Tools.Children[^1];
                     break;
                 case "timer":
-                    Tools.Children.Add(IconButton("timer", "計時器：碼表與倒數計時", () => ShowTimerPanel(GetToolAnchor("timer")), "timer"));
+                    Tools.Children.Add(IconButton("timer", T("計時器：碼表與倒數計時"), () => ShowTimerPanel(GetToolAnchor("timer")), "timer"));
                     _toolButtons["timer"] = (Button)Tools.Children[^1];
                     break;
                 case "compass":
-                    var compassBtn = IconButton("compass", "圓規：畫布兩階段繪製精確圓弧；右鍵開啟參數面板", () => Compass_Click(this, new()), "compass");
+                    var compassBtn = IconButton("compass", T("圓規：畫布兩階段繪製精確圓弧；右鍵開啟參數面板"), () => Compass_Click(this, new()), "compass");
                     compassBtn.RightTapped += (_, e) => { ShowCompassPanel(compassBtn); e.Handled = true; };
                     _toolButtons["compass"] = compassBtn;
                     Tools.Children.Add(compassBtn);
                     break;
                 case "dock":
-                    Tools.Children.Add(IconButton("dock", "工具列停靠位置", () => Dock_Click(Tools.Children[^1], new()), "dock"));
+                    Tools.Children.Add(IconButton("dock", T("工具列停靠位置"), () => Dock_Click(Tools.Children[^1], new()), "dock"));
                     _toolButtons["dock"] = (Button)Tools.Children[^1];
                     break;
             }
         }
 
         // 加入「更多」按鈕：到達所有隱藏工具、自訂工具列與恢復預設
-        var moreButton = IconButton("more", "更多工具與設定", () => ShowMoreToolsMenu(GetToolAnchor("more")), "more");
+        var moreButton = IconButton("more", T("更多工具與設定"), () => ShowMoreToolsMenu(GetToolAnchor("more")), "more");
         _toolButtons["more"] = moreButton;
         Tools.Children.Add(moreButton);
 
@@ -495,7 +498,7 @@ public partial class MainWindow
         }
 
         foreach(var (dash,index) in DashStyles.Select((value,index)=>(value,index)))
-        {var sample=new StackPanel{Orientation=Orientation.Horizontal,Spacing=12};sample.Children.Add(ToolIcons.CreateDash(dash));sample.Children.Add(new TextBlock{Text=new[]{"實線","虛線","點線","點劃線"}[index]});((ComboBoxItem)DashBox.Items[index]).Content=sample;}
+        {var sample=new StackPanel{Orientation=Orientation.Horizontal,Spacing=12};sample.Children.Add(ToolIcons.CreateDash(dash));sample.Children.Add(new TextBlock{Text=new[]{T("實線"),T("虛線"),T("點線"),T("點劃線")}[index]});((ComboBoxItem)DashBox.Items[index]).Content=sample;}
         _syncingProperties = false;
         LoadActiveStyle();
         RefreshChrome();
@@ -516,7 +519,7 @@ public partial class MainWindow
                     _activeTimerDisplayUpdater?.Invoke();
                     if (_timerCoordinator.DidAlertTimesUp)
                     {
-                        StatusText.Text = "倒數計時時間到！";
+                        StatusText.Text = T("倒數計時時間到！");
                     }
                 }
             };
@@ -535,11 +538,11 @@ public partial class MainWindow
             _compass.LineStyle = CurrentStyle.Dash;
             var centerScreen = new InkPoint(CanvasSurface.ActualWidth / 2, CanvasSurface.ActualHeight / 2);
             _compass.Center = _viewport.ScreenToWorld(centerScreen.X, centerScreen.Y);
-            StatusText.Text = "圓規已啟用：拖曳圓心或半徑把手，點擊圓心鎖定後拖曳筆尖畫弧";
+            StatusText.Text = T("圓規已啟用：拖曳圓心或半徑把手，點擊圓心鎖定後拖曳筆尖畫弧");
         }
         else
         {
-            StatusText.Text = "圓規已關閉";
+            StatusText.Text = T("圓規已關閉");
         }
         RefreshChrome();
         InvalidateCanvas();
@@ -548,7 +551,7 @@ public partial class MainWindow
     private void ShowMoreToolsMenu(FrameworkElement anchor)
     {
         var menu = new MenuFlyout();
-        var screenItem=new MenuFlyoutItem { Text="我的螢幕就是我的畫布",Icon=ToolIcons.CreateIcon("screen") };
+        var screenItem=new MenuFlyoutItem { Text=T("我的螢幕就是我的畫布"),Icon=ToolIcons.CreateIcon("screen") };
         screenItem.Click+=(_,_)=>ScreenCanvas_Click(this,new());menu.Items.Add(screenItem);menu.Items.Add(new MenuFlyoutSeparator());
 
         // 隱藏工具清單
@@ -559,7 +562,7 @@ public partial class MainWindow
                 var toolKey = key;
                 var item = new MenuFlyoutItem
                 {
-                    Text = ToolbarPreferences.ToolNames.GetValueOrDefault(toolKey, toolKey),
+                    Text = T(ToolbarPreferences.ToolNames.GetValueOrDefault(toolKey, toolKey)),
                     Icon = ToolIcons.CreateIcon(toolKey)
                 };
                 item.Click += (_, _) => InvokeToolByKey(toolKey);
@@ -568,11 +571,11 @@ public partial class MainWindow
             menu.Items.Add(new MenuFlyoutSeparator());
         }
 
-        var customizeItem = new MenuFlyoutItem { Text = "自訂工具列…" };
+        var customizeItem = new MenuFlyoutItem { Text = T("自訂工具列…") };
         customizeItem.Click += async (_, _) => await ShowCustomizeToolbarDialog();
         menu.Items.Add(customizeItem);
 
-        var resetItem = new MenuFlyoutItem { Text = "恢復預設工具列" };
+        var resetItem = new MenuFlyoutItem { Text = T("恢復預設工具列") };
         resetItem.Click += (_, _) => ResetToolbarToDefault();
         menu.Items.Add(resetItem);
 
@@ -662,7 +665,7 @@ public partial class MainWindow
 
                 var cb = new CheckBox
                 {
-                    Content = ToolbarPreferences.ToolNames.GetValueOrDefault(key, key),
+                    Content = T(ToolbarPreferences.ToolNames.GetValueOrDefault(key, key)),
                     IsChecked = visibleSet.Contains(key)
                 };
                 cb.Checked += (_, _) => visibleSet.Add(key);
@@ -696,11 +699,11 @@ public partial class MainWindow
 
         var scroll = new ScrollViewer { Content = panel, MaxHeight = 360, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
         var dialog = new ContentDialog
-        {
-            Title = "自訂工具列（勾選顯示，↑↓ 調整順序）",
+        {FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,
+            Title = T("自訂工具列（勾選顯示，↑↓ 調整順序）"),
             Content = scroll,
-            PrimaryButtonText = "儲存",
-            CloseButtonText = "取消",
+            PrimaryButtonText = T("儲存"),
+            CloseButtonText = T("取消"),
             XamlRoot = Root.XamlRoot
         };
 
@@ -785,7 +788,7 @@ public partial class MainWindow
             var active = (key=="layers"&&LayersPanel.Visibility==Visibility.Visible) || key == _tool || (key == "ruler" && _rulerEnabled) || (key == "compass" && _compass.IsEnabled) || (key == "shapes" && _tool is "line" or "arrow" or "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star");
             b.Background = Brush(active ? "#DCEBDD" : "#FCFCFA");
         }
-        CanvasFormatText.Text = _session.Document.Board.CanvasMode switch { "notebook" => "筆記本", "fixed" => "有邊界黑板", _ => "無邊界筆記" };
+        CanvasFormatText.Text = _session.Document.Board.CanvasMode switch { "notebook" => T("筆記本"), "fixed" => T("有邊界黑板"), _ => T("無邊界筆記") };
         RefreshNavigationChrome();UpdateSaveStatusLight(StatusText.Text);
         InspectorBookmark.Visibility = Inspector.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
     }
@@ -804,11 +807,11 @@ public partial class MainWindow
         FillOpacitySlider.Value=o?.FillOpacity??style.FillOpacity??1;
         DashBox.SelectedIndex = Math.Max(0, Array.IndexOf(DashStyles, o?.LineStyle ?? style.Dash));
         if(_toolButtons.TryGetValue("dash",out var dashButton))dashButton.Content=ToolIcons.CreateDash(o?.LineStyle??style.Dash);
-        StrokeColorButton.Content = "自訂色輪 · " + (o?.StrokeColor ?? style.Color);
+        StrokeColorButton.Content = T("自訂色輪 · ") + (o?.StrokeColor ?? style.Color);
         if (_brushSwatch is not null) _brushSwatch.Fill = Brush(o?.StrokeColor ?? style.Color);
-        FillColorButton.Content = "自訂填色與透明度";
-        WidthValueText.Text = $"{WidthSlider.Value:0.#} pt · 畫布直徑 {WidthSlider.Value * _viewport.Zoom:0.#} pt";
-        SelectionSummary.Text = o is null ? "目前畫筆 · 設定即時生效" : o.IsLocked == true ? "物件已鎖定" : "已選取物件 · 設定即時生效";
+        FillColorButton.Content = T("自訂填色與透明度");
+        WidthValueText.Text = F($"{WidthSlider.Value:0.#} pt · 畫布直徑 {WidthSlider.Value * _viewport.Zoom:0.#} pt");
+        SelectionSummary.Text = o is null ? T("目前畫筆 · 設定即時生效") : o.IsLocked == true ? T("物件已鎖定") : T("已選取物件 · 設定即時生效");
         ApplyInspectorContext(o);
         _syncingProperties = false;
         RefreshSelectionBar();
@@ -899,9 +902,9 @@ public partial class MainWindow
         var flyout = new Flyout { Content = grid };
         var index = 0;
         foreach (var (key, name) in new[] {
-            ("line", "直線"), ("arrow", "箭頭"), ("rect", "矩形"),
-            ("circle", "圓形"), ("triangle", "三角形"), ("quadrilateral", "四邊形"),
-            ("diamond", "菱形"), ("pentagon", "五角形"), ("star", "星形")
+            ("line", T("直線")), ("arrow", T("箭頭")), ("rect", T("矩形")),
+            ("circle", T("圓形")), ("triangle", T("三角形")), ("quadrilateral", T("四邊形")),
+            ("diamond", T("菱形")), ("pentagon", T("五角形")), ("star", T("星形"))
         })
         {
             var content = new StackPanel { Spacing = 6, HorizontalAlignment = HorizontalAlignment.Center };
@@ -922,7 +925,7 @@ public partial class MainWindow
         for (var i = 0; i < DashStyles.Length; i++)
         {
             var j = i;
-            var row = new MenuFlyoutItem { Text = new[] { "實線", "虛線", "點線", "點劃線" }[i],Icon=ToolIcons.CreateDashIcon(DashStyles[i]) };
+            var row = new MenuFlyoutItem { Text = new[] { T("實線"), T("虛線"), T("點線"), T("點劃線") }[i],Icon=ToolIcons.CreateDashIcon(DashStyles[i]) };
             row.Click += (_, _) => ChangeProperty(() => { if (_session.Selected is { } o) o.LineStyle = DashStyles[j]; else CurrentStyle.Dash = DashStyles[j]; });
             menu.Items.Add(row);
         }
@@ -947,14 +950,14 @@ public partial class MainWindow
         if(selected is not null){Inspector.Visibility=Visibility.Visible;RefreshProperties();RefreshChrome();return;}
         if(_tool=="laser"){ShowLaserSettings(anchor);return;}
         var panel = new StackPanel { Width = 286, Spacing = 12 };
-        panel.Children.Add(new TextBlock { Text = selected is null ? $"繪圖設定（{_styleTool}）" : "已選取物件設定", FontSize = 16, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
+        panel.Children.Add(new TextBlock { Text = selected is null ? F($"繪圖設定（{T(ToolbarPreferences.ToolNames.GetValueOrDefault(_styleTool,_styleTool))}）") : T("已選取物件設定"), FontSize = 16, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
         AddExtendedObjectSettings(panel,selected);
         var palette = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 5 };
         AddPalette(palette, c => ChangeProperty(() => { if (_session.Selected is { } o) o.StrokeColor = c; else { CurrentStyle.Color = c; LoadActiveStyle(); } }));
         panel.Children.Add(palette);
         var wheel = ColorWheel(selected?.StrokeColor ?? CurrentStyle.Color);
         panel.Children.Add(wheel);
-        var width = new Slider { Header = "線條粗細（pt）", Minimum = .5, Maximum = 128, Value = selected?.StrokeWidth ?? CurrentStyle.Width, StepFrequency = .5 };
+        var width = new Slider { Header = T("線條粗細（pt）"), Minimum = .5, Maximum = 128, Value = selected?.StrokeWidth ?? CurrentStyle.Width, StepFrequency = .5 };
         panel.Children.Add(width);
         var presets = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4 };
         foreach (var n in new[] { 2d, 3.5, 6, 10, 18, 32 })
@@ -964,30 +967,30 @@ public partial class MainWindow
             presets.Children.Add(b);
         }
         panel.Children.Add(presets);
-        var alpha = new Slider { Header = "筆畫透明度", Minimum = 0, Maximum = 1, StepFrequency = .01, Value = selected?.Opacity ?? CurrentStyle.Opacity };
+        var alpha = new Slider { Header = T("筆畫透明度"), Minimum = 0, Maximum = 1, StepFrequency = .01, Value = selected?.Opacity ?? CurrentStyle.Opacity };
         panel.Children.Add(alpha);
 
         CheckBox? filled = null;
         if ((selected?.Type ?? _styleTool) is "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star" or "arc" or "sticky")
         {
-            filled = new CheckBox { Content = "填滿圖形", IsChecked = selected is null ? CurrentStyle.Filled : selected.FillColor != "none" };
+            filled = new CheckBox { Content = T("填滿圖形"), IsChecked = selected is null ? CurrentStyle.Filled : selected.FillColor != "none" };
             panel.Children.Add(filled);
             var fillPalette = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 5 };
             AddPalette(fillPalette, c => { ChangeProperty(() => SetFillColor(c)); filled.IsChecked = true; });
             panel.Children.Add(fillPalette);
 
-            var fillAlpha = new Slider { Header = "填色透明度", Minimum = 0, Maximum = 1, StepFrequency = .01, Value = selected?.FillOpacity ?? CurrentStyle.FillOpacity ?? 1.0 };
+            var fillAlpha = new Slider { Header = T("填色透明度"), Minimum = 0, Maximum = 1, StepFrequency = .01, Value = selected?.FillOpacity ?? CurrentStyle.FillOpacity ?? 1.0 };
             fillAlpha.ValueChanged += (_, e) => ChangeProperty(() => { if (_session.Selected is { } o) o.FillOpacity = e.NewValue; else CurrentStyle.FillOpacity = e.NewValue; });
             panel.Children.Add(fillAlpha);
 
-            var fillButton = new Button { Content = "自訂填色與透明度", HorizontalAlignment = HorizontalAlignment.Stretch };
+            var fillButton = new Button { Content = T("自訂填色與透明度"), HorizontalAlignment = HorizontalAlignment.Stretch };
             fillButton.Click += (_, _) => ShowColorWheel(fillButton, _session.Selected is { FillColor: not "none" } o ? o.FillColor : CurrentStyle.Fill, c => { ChangeProperty(() => SetFillColor(c)); filled.IsChecked = true; });
             panel.Children.Add(fillButton);
 
             var gradientRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
-            var grad1 = new Button { Content = "自然綠漸層", FontSize = 12 };
+            var grad1 = new Button { Content = T("自然綠漸層"), FontSize = 12 };
             grad1.Click += (_, _) => { ChangeProperty(() => SetFillGradient("#86EFAC", "#3B82F6")); filled.IsChecked = true; };
-            var grad2 = new Button { Content = "晨曦橙漸層", FontSize = 12 };
+            var grad2 = new Button { Content = T("晨曦橙漸層"), FontSize = 12 };
             grad2.Click += (_, _) => { ChangeProperty(() => SetFillGradient("#FED7AA", "#F472B6")); filled.IsChecked = true; };
             gradientRow.Children.Add(grad1);
             gradientRow.Children.Add(grad2);
@@ -1013,7 +1016,7 @@ public partial class MainWindow
             dot.Opacity = o?.Opacity ?? CurrentStyle.Opacity;
             preview.MinWidth = Math.Max(260, dot.Width + 24);
             preview.MinHeight = Math.Max(80, dot.Height + 24);
-            label.Text = $"畫布直徑 {dot.Width:0.#} pt · 縮放 {_viewport.Zoom:P0} · 透明度 {dot.Opacity:P0}";
+            label.Text = F($"畫布直徑 {dot.Width:0.#} pt · 縮放 {_viewport.Zoom:P0} · 透明度 {dot.Opacity:P0}");
             InvalidateCanvas();
         }
 
@@ -1021,7 +1024,7 @@ public partial class MainWindow
         width.ValueChanged += (_, e) => { ChangeProperty(() => { if (_session.Selected is { } o) o.StrokeWidth = e.NewValue; else { CurrentStyle.Width = e.NewValue; LoadActiveStyle(); } }); Sync(); };
         alpha.ValueChanged += (_, e) => { ChangeProperty(() => { if (_session.Selected is { } o) o.Opacity = e.NewValue; else { CurrentStyle.Opacity = e.NewValue; LoadActiveStyle(); } }); Sync(); };
         foreach (var child in palette.Children.OfType<Button>()) child.Click += (_, _) => { wheel.Color = Direct2DCanvasRenderer.HexToColor(_session.Selected?.StrokeColor ?? CurrentStyle.Color); Sync(); };
-        if (_rulerEnabled) { var b = new Button { Content = "尺規角度與配色…" }; b.Click += (_, _) => ShowRulerSettings(anchor); panel.Children.Add(b); }
+        if (_rulerEnabled) { var b = new Button { Content = T("尺規角度與配色…") }; b.Click += (_, _) => ShowRulerSettings(anchor); panel.Children.Add(b); }
         Sync();
         var flyout = new Flyout { Content = new ScrollViewer { Content = panel, MaxHeight = Math.Max(300, Root.ActualHeight - 100), VerticalScrollBarVisibility = ScrollBarVisibility.Auto } };
         flyout.Closed += (_, _) => CommitPropertyEdit();
@@ -1031,11 +1034,11 @@ public partial class MainWindow
     private void ShowEraserSettings(FrameworkElement anchor)
     {
         var panel = new StackPanel { Width = 260, Spacing = 12 };
-        panel.Children.Add(new TextBlock { Text = "橡皮擦", FontSize = 16 });
-        var mode = new ComboBox { ItemsSource = new[] { "物件擦除（筆畫與圖形）", "局部擦除（只擦筆跡）" }, SelectedIndex = EraserModeBox.SelectedIndex, HorizontalAlignment = HorizontalAlignment.Stretch };
+        panel.Children.Add(new TextBlock { Text = T("橡皮擦"), FontSize = 16 });
+        var mode = new ComboBox { ItemsSource = new[] { T("物件擦除（筆畫與圖形）"), T("局部擦除（只擦筆跡）") }, SelectedIndex = EraserModeBox.SelectedIndex, HorizontalAlignment = HorizontalAlignment.Stretch };
         mode.SelectionChanged += (_, _) => EraserModeBox.SelectedIndex = mode.SelectedIndex;
         panel.Children.Add(mode);
-        var size = new Slider { Header = "直徑（pt）", Minimum = 4, Maximum = 160, Value = EraserSizeSlider.Value };
+        var size = new Slider { Header = T("直徑（pt）"), Minimum = 4, Maximum = 160, Value = EraserSizeSlider.Value };
         size.ValueChanged += (_, e) => EraserSizeSlider.Value = e.NewValue;
         panel.Children.Add(size);
         ShowExclusiveFlyout(new Flyout { Content = panel }, anchor);
@@ -1093,7 +1096,7 @@ public partial class MainWindow
                 case QuickActionItem.StrokeColor:
                     var colorDot = new Ellipse { Width = 16, Height = 16, Fill = Brush(selected.StrokeColor), Stroke = Brush("#879487"), StrokeThickness = 1 };
                     var colorBtn = new Button { Style = (Style)Application.Current.Resources["ToolButtonStyle"], Content = colorDot, Width = 32, Height = 32, Padding = new Thickness(4) };
-                    ToolTipService.SetToolTip(colorBtn, "線條色彩");
+                    ToolTipService.SetToolTip(colorBtn, T("線條色彩"));
                     colorBtn.Click += (_, _) => ShowColorWheel(colorBtn, selected.StrokeColor, c => ChangeProperty(() => selected.StrokeColor = c));
                     var shownColor=selected.StrokeColor;_selectionBarUpdates.Add(o=>{if(o.StrokeColor!=shownColor){shownColor=o.StrokeColor;colorDot.Fill=Brush(shownColor);}});
                     SelectionBarTools.Children.Add(colorBtn);
@@ -1101,12 +1104,12 @@ public partial class MainWindow
 
                 case QuickActionItem.StrokeWidth:
                     var wBtn = new Button { Style = (Style)Application.Current.Resources["ToolButtonStyle"], Content = new TextBlock { Text = $"{selected.StrokeWidth:0.#}", FontSize = 11, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold }, Width = 36, Height = 32, Padding = new Thickness(2) };
-                    ToolTipService.SetToolTip(wBtn, "線條粗細");
+                    ToolTipService.SetToolTip(wBtn, T("線條粗細"));
                     wBtn.Click += (_, _) =>
                     {
                         var s = new Slider { Minimum = .5, Maximum = 128, Value = selected.StrokeWidth, StepFrequency = .5, Width = 180 };
                         s.ValueChanged += (_, e) => ChangeProperty(() => selected.StrokeWidth = e.NewValue);
-                        ShowExclusiveFlyout(new Flyout { Content = new StackPanel { Spacing = 8, Children = { new TextBlock { Text = "粗細（pt）", FontSize = 12 }, s } } }, wBtn);
+                        ShowExclusiveFlyout(new Flyout { Content = new StackPanel { Spacing = 8, Children = { new TextBlock { Text = T("粗細（pt）"), FontSize = 12 }, s } } }, wBtn);
                     };
                     _selectionBarUpdates.Add(o=>((TextBlock)wBtn.Content).Text=$"{o.StrokeWidth:0.#}");
                     SelectionBarTools.Children.Add(wBtn);
@@ -1115,18 +1118,18 @@ public partial class MainWindow
                 case QuickActionItem.FillColor:
                     var fillDot = new Ellipse { Width = 16, Height = 16, Fill = Brush(selected.FillColor == "none" ? "#FCFCFA" : selected.FillColor), Stroke = Brush("#879487"), StrokeThickness = 1 };
                     var fillBtn = new Button { Style = (Style)Application.Current.Resources["ToolButtonStyle"], Content = fillDot, Width = 32, Height = 32, Padding = new Thickness(4) };
-                    ToolTipService.SetToolTip(fillBtn, "填色與透明度");
+                    ToolTipService.SetToolTip(fillBtn, T("填色與透明度"));
                     fillBtn.Click += (_, _) =>
                     {
                         var p = new StackPanel { Width = 200, Spacing = 8 };
-                        p.Children.Add(new TextBlock { Text = "填色", FontSize = 12, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
-                        var noFill = new Button { Content = "無填色", HorizontalAlignment = HorizontalAlignment.Stretch };
+                        p.Children.Add(new TextBlock { Text = T("填色"), FontSize = 12, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
+                        var noFill = new Button { Content = T("無填色"), HorizontalAlignment = HorizontalAlignment.Stretch };
                         noFill.Click += (_, _) => ChangeProperty(() => SetFilled(false));
                         p.Children.Add(noFill);
                         var pal = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4 };
                         AddPalette(pal, c => ChangeProperty(() => SetFillColor(c)));
                         p.Children.Add(pal);
-                        var alphaSlider = new Slider { Header = "填色透明度", Minimum = 0, Maximum = 1, StepFrequency = .01, Value = selected.FillOpacity ?? selected.Opacity };
+                        var alphaSlider = new Slider { Header = T("填色透明度"), Minimum = 0, Maximum = 1, StepFrequency = .01, Value = selected.FillOpacity ?? selected.Opacity };
                         alphaSlider.ValueChanged += (_, e) => ChangeProperty(() => selected.FillOpacity = e.NewValue);
                         p.Children.Add(alphaSlider);
                         ShowExclusiveFlyout(new Flyout { Content = p }, fillBtn);
@@ -1136,12 +1139,12 @@ public partial class MainWindow
                     break;
 
                 case QuickActionItem.DashStyle:
-                    var dashButton=QuickButton("dash", "線條樣式", b => ShowLineStyles(b));dashButton.Content=ToolIcons.CreateDash(selected.LineStyle);var shownDash=selected.LineStyle;_selectionBarUpdates.Add(o=>{if(o.LineStyle!=shownDash){shownDash=o.LineStyle;dashButton.Content=ToolIcons.CreateDash(shownDash);}});SelectionBarTools.Children.Add(dashButton);
+                    var dashButton=QuickButton("dash", T("線條樣式"), b => ShowLineStyles(b));dashButton.Content=ToolIcons.CreateDash(selected.LineStyle);var shownDash=selected.LineStyle;_selectionBarUpdates.Add(o=>{if(o.LineStyle!=shownDash){shownDash=o.LineStyle;dashButton.Content=ToolIcons.CreateDash(shownDash);}});SelectionBarTools.Children.Add(dashButton);
                     break;
 
                 case QuickActionItem.FontSize:
                     var fBtn = new Button { Style = (Style)Application.Current.Resources["ToolButtonStyle"], Content = new TextBlock { Text = $"{selected.FontSize ?? 18:0}pt", FontSize = 11 }, Width = 40, Height = 32, Padding = new Thickness(2) };
-                    ToolTipService.SetToolTip(fBtn, "字體大小");
+                    ToolTipService.SetToolTip(fBtn, T("字體大小"));
                     fBtn.Click += (_, _) =>
                     {
                         var nb = new NumberBox { Value = selected.FontSize ?? 18, Minimum = 8, Maximum = 200, Width = 120, SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Inline };
@@ -1154,39 +1157,39 @@ public partial class MainWindow
 
                 case QuickActionItem.Opacity:
                     var oBtn = new Button { Style = (Style)Application.Current.Resources["ToolButtonStyle"], Content = new TextBlock { Text = $"{selected.Opacity * 100:0}%", FontSize = 11 }, Width = 40, Height = 32, Padding = new Thickness(2) };
-                    ToolTipService.SetToolTip(oBtn, "物件透明度");
+                    ToolTipService.SetToolTip(oBtn, T("物件透明度"));
                     oBtn.Click += (_, _) =>
                     {
                         var s = new Slider { Minimum = 0, Maximum = 1, StepFrequency = .01, Value = selected.Opacity, Width = 180 };
                         s.ValueChanged += (_, e) => ChangeProperty(() => selected.Opacity = e.NewValue);
-                        ShowExclusiveFlyout(new Flyout { Content = new StackPanel { Spacing = 8, Children = { new TextBlock { Text = "透明度", FontSize = 12 }, s } } }, oBtn);
+                        ShowExclusiveFlyout(new Flyout { Content = new StackPanel { Spacing = 8, Children = { new TextBlock { Text = T("透明度"), FontSize = 12 }, s } } }, oBtn);
                     };
                     _selectionBarUpdates.Add(o=>((TextBlock)oBtn.Content).Text=$"{o.Opacity*100:0}%");
                     SelectionBarTools.Children.Add(oBtn);
                     break;
 
                 case QuickActionItem.EditText:
-                    SelectionBarTools.Children.Add(QuickButton("text-edit", "編輯文字", _ => StartText(selected)));
+                    SelectionBarTools.Children.Add(QuickButton("text-edit", T("編輯文字"), _ => StartText(selected)));
                     break;
 
                 case QuickActionItem.Copy:
-                    SelectionBarTools.Children.Add(QuickButton("copy", "複製（Ctrl+C）", _ => CopySelected()));
+                    SelectionBarTools.Children.Add(QuickButton("copy", T("複製（Ctrl+C）"), _ => CopySelected()));
                     break;
 
                 case QuickActionItem.Duplicate:
-                    SelectionBarTools.Children.Add(QuickButton("duplicate", "製作副本", _ => DuplicateSelected()));
+                    SelectionBarTools.Children.Add(QuickButton("duplicate", T("製作副本"), _ => DuplicateSelected()));
                     break;
 
                 case QuickActionItem.Delete:
-                    SelectionBarTools.Children.Add(QuickButton("delete", "刪除（Delete）", _ => Delete_Click(this, new RoutedEventArgs())));
+                    SelectionBarTools.Children.Add(QuickButton("delete", T("刪除（Delete）"), _ => Delete_Click(this, new RoutedEventArgs())));
                     break;
 
                 case QuickActionItem.Unlock:
-                    SelectionBarTools.Children.Add(QuickButton("unlock", "解除鎖定", _ => Lock_Click(this, new RoutedEventArgs())));
+                    SelectionBarTools.Children.Add(QuickButton("unlock", T("解除鎖定"), _ => Lock_Click(this, new RoutedEventArgs())));
                     break;
 
                 case QuickActionItem.Lock:
-                    SelectionBarTools.Children.Add(QuickButton("lock", "鎖定物件", _ => Lock_Click(this, new RoutedEventArgs())));
+                    SelectionBarTools.Children.Add(QuickButton("lock", T("鎖定物件"), _ => Lock_Click(this, new RoutedEventArgs())));
                     break;
             }
         }
@@ -1225,7 +1228,7 @@ public partial class MainWindow
     {
         var panel = new StackPanel { Width = 310, Spacing = 8, Padding = new Thickness(4) };
         var titleRow = new Grid();
-        titleRow.Children.Add(new TextBlock { Text = "計算機", FontSize = 15, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center });
+        titleRow.Children.Add(new TextBlock { Text = T("計算機"), FontSize = 15, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center });
         var modeBtn = new Button { Content = _calculator.IsDegreeMode ? "DEG" : "RAD", FontSize = 11, Padding = new Thickness(6, 2, 6, 2), HorizontalAlignment = HorizontalAlignment.Right };
         titleRow.Children.Add(modeBtn);
         panel.Children.Add(titleRow);
@@ -1329,7 +1332,7 @@ public partial class MainWindow
         panel.Children.Add(grid);
 
         var actionsRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Margin = new Thickness(0, 6, 0, 0) };
-        var insertBtn = new Button { Content = "插入畫布", Style = (Style)Application.Current.Resources["AccentButtonStyle"], FontSize = 12 };
+        var insertBtn = new Button { Content = T("插入畫布"), Style = (Style)Application.Current.Resources["AccentButtonStyle"], FontSize = 12 };
         insertBtn.Click += (_, _) =>
         {
             var board = _session.Document.Board;
@@ -1340,27 +1343,27 @@ public partial class MainWindow
             _session.SelectedId = textObj.Id;
             _session.Commit();
             RefreshEditor();
-            StatusText.Text = "計算結果已插入畫布";
+            StatusText.Text = T("計算結果已插入畫布");
         };
         actionsRow.Children.Add(insertBtn);
 
-        var copyBtn = new Button { Content = "複製結果", FontSize = 12 };
+        var copyBtn = new Button { Content = T("複製結果"), FontSize = 12 };
         copyBtn.Click += (_, _) =>
         {
             var dp = new DataPackage();
             dp.SetText(_calculator.Display);
             Clipboard.SetContent(dp);
-            StatusText.Text = "已複製計算結果至剪貼簿";
+            StatusText.Text = T("已複製計算結果至剪貼簿");
         };
         actionsRow.Children.Add(copyBtn);
 
-        var historyBtn = new Button { Content = "歷史", FontSize = 12 };
+        var historyBtn = new Button { Content = T("歷史"), FontSize = 12 };
         historyBtn.Click += (_, _) =>
         {
             var histMenu = new MenuFlyout();
             if (_calculator.History.Count == 0)
             {
-                histMenu.Items.Add(new MenuFlyoutItem { Text = "尚無歷史紀錄", IsEnabled = false });
+                histMenu.Items.Add(new MenuFlyoutItem { Text = T("尚無歷史紀錄"), IsEnabled = false });
             }
             else
             {
@@ -1375,7 +1378,7 @@ public partial class MainWindow
                     histMenu.Items.Add(mi);
                 }
                 histMenu.Items.Add(new MenuFlyoutSeparator());
-                var clearHist = new MenuFlyoutItem { Text = "清除歷史紀錄" };
+                var clearHist = new MenuFlyoutItem { Text = T("清除歷史紀錄") };
                 clearHist.Click += (_, _) => { _calculator.History.Clear(); };
                 histMenu.Items.Add(clearHist);
             }
@@ -1384,17 +1387,17 @@ public partial class MainWindow
         actionsRow.Children.Add(historyBtn);
         panel.Children.Add(actionsRow);
 
-        ShowFloatingTool("calculator","計算機",panel);
+        ShowFloatingTool("calculator",T("計算機"),panel);
     }
 
     private void ShowTimerPanel(FrameworkElement anchor)
     {
         var panel = new StackPanel { Width = 280, Spacing = 10, Padding = new Thickness(4) };
-        panel.Children.Add(new TextBlock { Text = "計時器與碼表", FontSize = 15, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
+        panel.Children.Add(new TextBlock { Text = T("計時器與碼表"), FontSize = 15, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
 
         var modeStack = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
-        var swBtn = new Button { Content = "碼表正計時", FontSize = 12, Background = _timerCoordinator.Mode == TimerMode.Stopwatch ? Brush("#DCEBDD") : Brush("#FCFCFA") };
-        var cdBtn = new Button { Content = "倒數計時", FontSize = 12, Background = _timerCoordinator.Mode == TimerMode.Countdown ? Brush("#DCEBDD") : Brush("#FCFCFA") };
+        var swBtn = new Button { Content = T("碼表正計時"), FontSize = 12, Background = _timerCoordinator.Mode == TimerMode.Stopwatch ? Brush("#DCEBDD") : Brush("#FCFCFA") };
+        var cdBtn = new Button { Content = T("倒數計時"), FontSize = 12, Background = _timerCoordinator.Mode == TimerMode.Countdown ? Brush("#DCEBDD") : Brush("#FCFCFA") };
         modeStack.Children.Add(swBtn);
         modeStack.Children.Add(cdBtn);
         panel.Children.Add(modeStack);
@@ -1412,7 +1415,7 @@ public partial class MainWindow
         var countdownPresets = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Visibility = _timerCoordinator.Mode == TimerMode.Countdown ? Visibility.Visible : Visibility.Collapsed };
         foreach (var m in new[] { 5, 15, 25 })
         {
-            var pBtn = new Button { Content = $"{m} 分鐘", FontSize = 11, Padding = new Thickness(6, 4, 6, 4) };
+            var pBtn = new Button { Content = F($"{m} 分鐘"), FontSize = 11, Padding = new Thickness(6, 4, 6, 4) };
             pBtn.Click += (_, _) =>
             {
                 _timerCoordinator.SelectPresetMinutes(m);
@@ -1421,18 +1424,18 @@ public partial class MainWindow
             countdownPresets.Children.Add(pBtn);
         }
         panel.Children.Add(countdownPresets);
-        var customDuration=new NumberBox{Header="自訂倒數（秒）",Minimum=1,Maximum=86400,Value=_timerCoordinator.CountdownDuration};
-        var applyDuration=new Button{Content="套用自訂倒數"};applyDuration.Click+=(_,_)=>{if(!double.IsFinite(customDuration.Value))return;_timerCoordinator.Mode=TimerMode.Countdown;_timerCoordinator.Reset();_timerCoordinator.SetCountdownDuration(customDuration.Value);timeDisplay.Text=_timerCoordinator.FormattedTimeString();};
+        var customDuration=new NumberBox{Header=T("自訂倒數（秒）"),Minimum=1,Maximum=86400,Value=_timerCoordinator.CountdownDuration};
+        var applyDuration=new Button{Content=T("套用自訂倒數")};applyDuration.Click+=(_,_)=>{if(!double.IsFinite(customDuration.Value))return;_timerCoordinator.Mode=TimerMode.Countdown;_timerCoordinator.Reset();_timerCoordinator.SetCountdownDuration(customDuration.Value);timeDisplay.Text=_timerCoordinator.FormattedTimeString();};
         panel.Children.Add(customDuration);panel.Children.Add(applyDuration);
 
         var controlsRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Center };
         var playBtn = new Button
         {
-            Content = _timerCoordinator.Status == TimerStatus.Running ? "暫停" : "開始",
+            Content = _timerCoordinator.Status == TimerStatus.Running ? T("暫停") : T("開始"),
             Style = (Style)Application.Current.Resources["AccentButtonStyle"],
             Width = 80
         };
-        var resetBtn = new Button { Content = "重設", Width = 80 };
+        var resetBtn = new Button { Content = T("重設"), Width = 80 };
         controlsRow.Children.Add(playBtn);
         controlsRow.Children.Add(resetBtn);
         panel.Children.Add(controlsRow);
@@ -1440,14 +1443,14 @@ public partial class MainWindow
         playBtn.Click += (_, _) =>
         {
             _timerCoordinator.TogglePlayPause();
-            playBtn.Content = _timerCoordinator.Status == TimerStatus.Running ? "暫停" : "開始";
+            playBtn.Content = _timerCoordinator.Status == TimerStatus.Running ? T("暫停") : T("開始");
             timeDisplay.Text = _timerCoordinator.FormattedTimeString();
         };
 
         resetBtn.Click += (_, _) =>
         {
             _timerCoordinator.Reset();
-            playBtn.Content = "開始";
+            playBtn.Content = T("開始");
             timeDisplay.Text = _timerCoordinator.FormattedTimeString();
         };
 
@@ -1459,7 +1462,7 @@ public partial class MainWindow
             cdBtn.Background = Brush("#FCFCFA");
             countdownPresets.Visibility = Visibility.Collapsed;
             timeDisplay.Text = _timerCoordinator.FormattedTimeString();
-            playBtn.Content = "開始";
+            playBtn.Content = T("開始");
         };
 
         cdBtn.Click += (_, _) =>
@@ -1470,7 +1473,7 @@ public partial class MainWindow
             cdBtn.Background = Brush("#DCEBDD");
             countdownPresets.Visibility = Visibility.Visible;
             timeDisplay.Text = _timerCoordinator.FormattedTimeString();
-            playBtn.Content = "開始";
+            playBtn.Content = T("開始");
         };
 
         EnsureTimerDaemon();
@@ -1479,12 +1482,12 @@ public partial class MainWindow
             timeDisplay.Text = _timerCoordinator.FormattedTimeString();
             if (_timerCoordinator.DidAlertTimesUp)
             {
-                playBtn.Content = "開始";
+                playBtn.Content = T("開始");
             }
         };
 
         var insertRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Margin = new Thickness(0, 4, 0, 0) };
-        var insertBtn = new Button { Content = "插入用時至畫布", FontSize = 12 };
+        var insertBtn = new Button { Content = T("插入用時至畫布"), FontSize = 12 };
         insertBtn.Click += (_, _) =>
         {
             var board = _session.Document.Board;
@@ -1495,12 +1498,12 @@ public partial class MainWindow
             _session.SelectedId = textObj.Id;
             _session.Commit();
             RefreshEditor();
-            StatusText.Text = "用時已插入畫布";
+            StatusText.Text = T("用時已插入畫布");
         };
         insertRow.Children.Add(insertBtn);
         panel.Children.Add(insertRow);
 
-        ShowFloatingTool("timer","計時器",panel,()=>_activeTimerDisplayUpdater=null);
+        ShowFloatingTool("timer",T("計時器"),panel,()=>_activeTimerDisplayUpdater=null);
     }
 
     private void ShowCompassPanel(FrameworkElement anchor)
@@ -1510,54 +1513,54 @@ public partial class MainWindow
         InvalidateCanvas();
 
         var panel = new StackPanel { Width = 280, Spacing = 10, Padding = new Thickness(4) };
-        panel.Children.Add(new TextBlock { Text = "圓規與圓弧", FontSize = 15, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
+        panel.Children.Add(new TextBlock { Text = T("圓規與圓弧"), FontSize = 15, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
 
-        var centerCoord = new TextBlock { Text = $"圓心座標：({_compass.Center.X:0.#}, {_compass.Center.Y:0.#})", FontSize = 12, Foreground = Brush("#68756C") };
+        var centerCoord = new TextBlock { Text = F($"圓心座標：({_compass.Center.X:0.#}, {_compass.Center.Y:0.#})"), FontSize = 12, Foreground = Brush("#68756C") };
         panel.Children.Add(centerCoord);
 
-        var centerBtn = new Button { Content = "將圓心設為目前視野中心", FontSize = 12, HorizontalAlignment = HorizontalAlignment.Stretch };
+        var centerBtn = new Button { Content = T("將圓心設為目前視野中心"), FontSize = 12, HorizontalAlignment = HorizontalAlignment.Stretch };
         centerBtn.Click += (_, _) =>
         {
             var center = _viewport.ScreenToWorld(CanvasSurface.ActualWidth / 2, CanvasSurface.ActualHeight / 2);
             _compass.MoveCenter(center);
-            centerCoord.Text = $"圓心座標：({_compass.Center.X:0.#}, {_compass.Center.Y:0.#})";
+            centerCoord.Text = F($"圓心座標：({_compass.Center.X:0.#}, {_compass.Center.Y:0.#})");
             InvalidateCanvas();
         };
         panel.Children.Add(centerBtn);
 
-        var rSlider = new Slider { Header = $"半徑（pt）：{_compass.Radius:0.#}", Minimum = 10, Maximum = 1000, Value = _compass.Radius, StepFrequency = 5 };
+        var rSlider = new Slider { Header = F($"半徑（pt）：{_compass.Radius:0.#}"), Minimum = 10, Maximum = 1000, Value = _compass.Radius, StepFrequency = 5 };
         rSlider.ValueChanged += (_, e) =>
         {
             _compass.AdjustRadius(e.NewValue);
-            rSlider.Header = $"半徑（pt）：{_compass.Radius:0.#}";
+            rSlider.Header = F($"半徑（pt）：{_compass.Radius:0.#}");
             InvalidateCanvas();
         };
         panel.Children.Add(rSlider);
 
-        var startAngleBox = new NumberBox { Header = "起點角度（0~360°）", Value = _compass.StartAngle, SmallChange = 1, Minimum = 0, Maximum = 360, SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Inline };
+        var startAngleBox = new NumberBox { Header = T("起點角度（0~360°）"), Value = _compass.StartAngle, SmallChange = 1, Minimum = 0, Maximum = 360, SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Inline };
         startAngleBox.ValueChanged += (_, e) =>
         {
             if (double.IsFinite(e.NewValue)) _compass.SetStartAngle(e.NewValue);
         };
         panel.Children.Add(startAngleBox);
 
-        var sweepAngleBox = new NumberBox { Header = "掃動角度（-360~360°）", Value = _compass.SweepAngle, SmallChange = 1, Minimum = -360, Maximum = 360, SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Inline };
+        var sweepAngleBox = new NumberBox { Header = T("掃動角度（-360~360°）"), Value = _compass.SweepAngle, SmallChange = 1, Minimum = -360, Maximum = 360, SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Inline };
         sweepAngleBox.ValueChanged += (_, e) =>
         {
             if (double.IsFinite(e.NewValue)) _compass.SetSweepAngle(e.NewValue);
         };
         panel.Children.Add(sweepAngleBox);
 
-        var lockToggle = new ToggleButton { Content = _compass.IsArmed ? "已鎖定圓心作畫" : "鎖定圓心（作畫階段）", IsChecked = _compass.IsArmed, HorizontalAlignment = HorizontalAlignment.Stretch };
+        var lockToggle = new ToggleButton { Content = _compass.IsArmed ? T("已鎖定圓心作畫") : T("鎖定圓心（作畫階段）"), IsChecked = _compass.IsArmed, HorizontalAlignment = HorizontalAlignment.Stretch };
         lockToggle.Click += (_, _) =>
         {
             _compass.ToggleArmed();
-            lockToggle.Content = _compass.IsArmed ? "已鎖定圓心作畫" : "鎖定圓心（作畫階段）";
+            lockToggle.Content = _compass.IsArmed ? T("已鎖定圓心作畫") : T("鎖定圓心（作畫階段）");
             lockToggle.IsChecked = _compass.IsArmed;
         };
         panel.Children.Add(lockToggle);
 
-        var circleBtn = new Button { Content = "一鍵繪製整圓 (360°)", Style = (Style)Application.Current.Resources["AccentButtonStyle"], HorizontalAlignment = HorizontalAlignment.Stretch };
+        var circleBtn = new Button { Content = T("一鍵繪製整圓 (360°)"), Style = (Style)Application.Current.Resources["AccentButtonStyle"], HorizontalAlignment = HorizontalAlignment.Stretch };
         circleBtn.Click += (_, _) =>
         {
             var board = _session.Document.Board;
@@ -1574,11 +1577,11 @@ public partial class MainWindow
             _session.SelectedId = obj.Id;
             _session.Commit();
             RefreshEditor();
-            StatusText.Text = "已生成整圓物件";
+            StatusText.Text = T("已生成整圓物件");
         };
         panel.Children.Add(circleBtn);
 
-        var arcBtn = new Button { Content = "繪製設定圓弧", HorizontalAlignment = HorizontalAlignment.Stretch };
+        var arcBtn = new Button { Content = T("繪製設定圓弧"), HorizontalAlignment = HorizontalAlignment.Stretch };
         arcBtn.Click += (_, _) =>
         {
             var board = _session.Document.Board;
@@ -1595,7 +1598,7 @@ public partial class MainWindow
             _session.SelectedId = obj.Id;
             _session.Commit();
             RefreshEditor();
-            StatusText.Text = $"已生成圓弧（半徑 {_compass.Radius:0.#}pt，掃角 {_compass.SweepAngle:0.#}°）";
+            StatusText.Text = F($"已生成圓弧（半徑 {_compass.Radius:0.#}pt，掃角 {_compass.SweepAngle:0.#}°）");
         };
         panel.Children.Add(arcBtn);
 
@@ -1659,7 +1662,7 @@ public partial class MainWindow
             DockHint.Height = side ? Math.Min(360, DrawingArea.ActualHeight - 32) : 64;
             DockHint.HorizontalAlignment = _toolbarDrop == "左側" ? HorizontalAlignment.Left : _toolbarDrop == "右側" ? HorizontalAlignment.Right : HorizontalAlignment.Center;
             DockHint.VerticalAlignment = _toolbarDrop == "上方" ? VerticalAlignment.Top : _toolbarDrop == "下方" ? VerticalAlignment.Bottom : VerticalAlignment.Center;
-            DockHintText.Text = side ? "直排" : "橫排";
+            DockHintText.Text = side ? T("直排") : T("橫排");
         }
         e.Handled = true;
     }

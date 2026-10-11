@@ -1,3 +1,4 @@
+using static HeiBan.Windows.Localization.Strings;
 using System.Text.Json;
 using HeiBan.Windows.Engine;
 namespace HeiBan.Windows;
@@ -32,7 +33,7 @@ public partial class MainWindow
             SetInspectorDock(settings.InspectorDock);
             LoadActiveStyle();
         }
-        catch(Exception e) when(e is IOException or JsonException or ArgumentException){StatusText.Text="教學工具偏好未載入："+e.Message;}
+        catch(Exception e) when(e is IOException or JsonException or ArgumentException){StatusText.Text=T("教學工具偏好未載入：")+e.Message;}
     }
     private static double FiniteClamp(double value,double min,double max,double fallback)=>double.IsFinite(value)?Math.Clamp(value,min,max):fallback;
     private async Task SaveTeachingSettingsAsync()
@@ -41,7 +42,7 @@ public partial class MainWindow
         var snapshot=JsonSerializer.Serialize(new TeachingSettings{LaserMode=_laser.Mode,LaserColor=_laser.Color,LaserWidth=_laser.Width,LaserDiameter=_laser.PointDiameter,LaserFade=_laser.FadeDuration,WhiteCore=_laser.WhiteCore,RulerLengthPercent=_rulerLengthPercent,InspectorDock=_inspectorDock,Styles=_toolStyles},TeachingJson);
         await _teachingSaveGate.WaitAsync();
         try{await Task.Run(()=>DocumentSessionManager.WriteAtomicAsync(TeachingPath,snapshot));}
-        catch(Exception e){StatusText.Text="偏好保存失敗："+e.Message;}
+        catch(Exception e){StatusText.Text=T("偏好保存失敗：")+e.Message;}
         finally{_teachingSaveGate.Release();}
     }
 }

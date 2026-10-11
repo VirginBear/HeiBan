@@ -1,3 +1,4 @@
+using static HeiBan.Windows.Localization.Strings;
 using System.Diagnostics;
 using System.Text.Json;
 using HeiBan.Windows.Engine;
@@ -29,8 +30,8 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     private readonly Func<Task> _requestStart;
     private readonly DispatcherTimer _renderTimer=new(){Interval=TimeSpan.FromMilliseconds(16)};
     private readonly DispatcherTimer _saveTimer=new(){Interval=TimeSpan.FromSeconds(1)};
-    private readonly TextBlock _status=new(){FontSize=11,Text="螢幕畫布",TextTrimming=TextTrimming.CharacterEllipsis,VerticalAlignment=VerticalAlignment.Center};
-    private readonly Button _mode=new(){Content="操作穿透"};
+    private readonly TextBlock _status=new(){FontSize=11,Text=T("螢幕畫布"),TextTrimming=TextTrimming.CharacterEllipsis,VerticalAlignment=VerticalAlignment.Center};
+    private readonly Button _mode=new(){Content=T("操作穿透")};
     private readonly Dictionary<string,Button> _buttons=[];
     private CanvasRenderTarget? _target,_committed;
     private bool _committedDirty=true,_fullDamage=true,_benchmarkFullFrames;
@@ -54,13 +55,13 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     {
         _owner=owner;_requestStart=requestStart;_laser=laser;
         _recoveryPath=Path.Combine(dataDirectory,"ScreenAnnotations","session.heiban");
-        Title="我的螢幕就是我的畫布";
+        Title=T("我的螢幕就是我的畫布");
         InitializeChrome();
         if(AppWindow.Presenter is OverlappedPresenter presenter){presenter.PreferredMinimumWidth=1;presenter.PreferredMinimumHeight=1;presenter.IsAlwaysOnTop=true;presenter.IsResizable=false;presenter.SetBorderAndTitleBar(false,false);}
         _dpiScale=NativeOverlayWindow.DpiScale(WinRT.Interop.WindowNative.GetWindowHandle(this));ResizeChrome();
         AppWindow.Closing+=async(_,e)=>{if(_disposed)return;e.Cancel=true;await StopAsync();};
         _overlay.Pointer+=OnPointer;_overlay.BoundsChanged+=()=>{if(IsActive){CancelGesture();CreateTarget();Changed();ResizeChrome();PositionChrome();}};
-        _overlay.Failed+=e=>{SetDrawing(false);_status.Text="繪圖未完成："+e.Message;};
+        _overlay.Failed+=e=>{SetDrawing(false);_status.Text=T("繪圖未完成：")+e.Message;};
         _overlay.Hotkey+=async id=>
         {
             if(id==1){await _requestStart();return;}
@@ -69,8 +70,8 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         };
         var failed=0;
         foreach(var key in new[]{(1,0x41u),(2,0x44u),(3,0x53u),(4,0x51u),(5,0x4Bu)})if(!_overlay.RegisterShortcut(key.Item1,0x0002|0x0001,key.Item2))failed++;
-        if(failed>0)_status.Text="部分快捷鍵被其他程式占用，請使用控制列按鈕。";
-        _renderTimer.Tick+=(_,_)=>{if(!IsActive)return;RememberExternalFocus();try{UpdateScreenEraser();if(_dirty||_laser.Samples.Count>0)Render();}catch(Exception e){_renderTimer.Stop();_overlay.Hide();_status.Text="螢幕繪圖已停止："+e.Message;}};
+        _hotkeyRegistrationFailed=failed>0;if(failed>0)_status.Text=T("部分快捷鍵被其他程式占用，請使用控制列按鈕。");
+        _renderTimer.Tick+=(_,_)=>{if(!IsActive)return;RememberExternalFocus();try{UpdateScreenEraser();if(_dirty||_laser.Samples.Count>0)Render();}catch(Exception e){_renderTimer.Stop();_overlay.Hide();_status.Text=T("螢幕繪圖已停止：")+e.Message;}};
         _saveTimer.Tick+=async(_,_)=>{_saveTimer.Stop();if(_start is not null||_textDraft is not null||_session.HasTransaction){_saveTimer.Start();return;}await SaveAsync();};
         AppWindow.Hide();
     }
@@ -80,7 +81,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         try
         {
             Directory.CreateDirectory(Path.GetDirectoryName(_recoveryPath)!);_sessionLease=new FileStream(_recoveryPath+".lock",FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
-            var doc=File.Exists(_recoveryPath)?DocumentCodec.Decode(await File.ReadAllTextAsync(_recoveryPath)):new HeiBanDocument{Board=new BoardMetadata{Title="螢幕註記",CanvasMode="fixed",BackgroundColor="transparent",GridStyle="blank"}};
+            var doc=File.Exists(_recoveryPath)?DocumentCodec.Decode(await File.ReadAllTextAsync(_recoveryPath)):new HeiBanDocument{Board=new BoardMetadata{Title=T("螢幕註記"),CanvasMode="fixed",BackgroundColor="transparent",GridStyle="blank"}};
             _session.Open(doc);CreateTarget();await _renderer.LoadImagesAsync(_target!,doc.Objects);
             IsActive=true;_laser.Clear();_owner.AppWindow.Hide();RememberExternalFocus();_overlay.Show(true);SetDrawing(true);Render();
             ResizeChrome();RefreshButtons();
@@ -99,10 +100,12 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         board.ExtraFields["windowsScreenOriginX"]=JsonSerializer.SerializeToElement(_overlay.Left);board.ExtraFields["windowsScreenOriginY"]=JsonSerializer.SerializeToElement(_overlay.Top);
         _session.Document.Board.CanvasWidth=_overlay.Width;_session.Document.Board.CanvasHeight=_overlay.Height;
     }
+    private bool _hotkeyRegistrationFailed;
     private void SetDrawing(bool value)
     {
         FinishScreenText();CancelGesture();_drawing=value;_overlay.SetDrawing(value);_overlay.SetManipulationCursor(null,null);UpdateScreenEraser();RefreshMode();
-        _status.Text=value?"作畫中 · 右鍵物件可編輯":"操作中 · Ctrl+Alt+D 繼續作畫";
+        _status.Text=value?T("作畫中 · 右鍵物件可編輯"):T("操作中 · Ctrl+Alt+D 繼續作畫");
+        RefreshMode();ResizeChrome();PositionChrome();
         _laser.Clear();_dirty=_fullDamage=_committedDirty=true;if(!value)NativeOverlayWindow.RestoreFocus(_lastExternal);
     }
     private void RememberExternalFocus()
@@ -284,7 +287,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     {
         await _saveGate.WaitAsync();
         try{var snapshot=DocumentCodec.Clone(_session.Document);var generation=_session.Generation;var epoch=_session.DocumentEpoch;await Task.Run(()=>DocumentSessionManager.WriteAtomicAsync(_recoveryPath,DocumentCodec.Encode(snapshot)));if(epoch==_session.DocumentEpoch)_session.MarkSaved(generation,snapshot.Board.Revision);return true;}
-        catch(Exception e){_status.Text="註記保存失敗，內容仍保留："+e.Message;return false;}
+        catch(Exception e){_status.Text=T("註記保存失敗，內容仍保留：")+e.Message;return false;}
         finally{_saveGate.Release();}
     }
     private async Task CaptureAsync()
@@ -296,20 +299,20 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         {
             await Task.Delay(150,cancellation.Token);
             var epoch=_session.DocumentEpoch;var capture=await RegionScreenshotService.CaptureRegionAsync(cancellation.Token);
-            if(capture is not null){await InsertScreenCaptureAsync(capture,epoch);_status.Text="截圖已加入螢幕畫布，可選取調整";}else _status.Text="已取消截圖";
+            if(capture is not null){await InsertScreenCaptureAsync(capture,epoch);_status.Text=T("截圖已加入螢幕畫布，可選取調整");}else _status.Text=T("已取消截圖");
         }
-        catch(OperationCanceledException){_status.Text="截圖已取消或逾時";}
-        catch(Exception e){_status.Text="截圖未完成："+e.Message;}
+        catch(OperationCanceledException){_status.Text=T("截圖已取消或逾時");}
+        catch(Exception e){_status.Text=T("截圖未完成：")+e.Message;}
         finally{_captureCancellation=null;if(IsActive)AppWindow.Show();}
     }
     private Task LaserSettingsAsync()
     {
-        var panel=new StackPanel{Spacing=8,Width=260};panel.Children.Add(new TextBlock{Text="雷射設定",FontSize=16});
-        var modes=new[]{"point","shortTrail","line"};var mode=new ComboBox{Header="模式",ItemsSource=new[]{"光點","短尾跡","線條"},SelectedIndex=Math.Max(0,Array.IndexOf(modes,_laser.Mode))};panel.Children.Add(mode);
-        var diameter=new Slider{Header="光點直徑",Minimum=4,Maximum=64,Value=_laser.PointDiameter};
-        var width=new Slider{Header="尾跡粗細",Minimum=1,Maximum=32,Value=_laser.Width};var fade=new Slider{Header="消退時間（秒）",Minimum=.1,Maximum=5,StepFrequency=.1,Value=_laser.FadeDuration};var white=new CheckBox{Content="白色光芯",IsChecked=_laser.WhiteCore};
+        var panel=new StackPanel{Spacing=8,Width=260};panel.Children.Add(new TextBlock{Text=T("雷射設定"),FontSize=16});
+        var modes=new[]{"point","shortTrail","line"};var mode=new ComboBox{Header=T("模式"),ItemsSource=new[]{T("光點"),T("短尾跡"),T("線條")},SelectedIndex=Math.Max(0,Array.IndexOf(modes,_laser.Mode))};panel.Children.Add(mode);
+        var diameter=new Slider{Header=T("光點直徑"),Minimum=4,Maximum=64,Value=_laser.PointDiameter};
+        var width=new Slider{Header=T("尾跡粗細"),Minimum=1,Maximum=32,Value=_laser.Width};var fade=new Slider{Header=T("消退時間（秒）"),Minimum=.1,Maximum=5,StepFrequency=.1,Value=_laser.FadeDuration};var white=new CheckBox{Content=T("白色光芯"),IsChecked=_laser.WhiteCore};
         panel.Children.Add(diameter);panel.Children.Add(width);panel.Children.Add(fade);panel.Children.Add(white);
-        var flyout=new Flyout{Content=panel};var apply=new Button{Content="套用"};apply.Click+=(_,_)=>{_laser.Mode=modes[Math.Max(0,mode.SelectedIndex)];_laser.PointDiameter=diameter.Value;_laser.Width=width.Value;_laser.FadeDuration=fade.Value;_laser.WhiteCore=white.IsChecked==true;_laser.Clear();_dirty=true;flyout.Hide();};panel.Children.Add(apply);
+        var flyout=new Flyout{Content=panel};var apply=new Button{Content=T("套用")};apply.Click+=(_,_)=>{_laser.Mode=modes[Math.Max(0,mode.SelectedIndex)];_laser.PointDiameter=diameter.Value;_laser.Width=width.Value;_laser.FadeDuration=fade.Value;_laser.WhiteCore=white.IsChecked==true;_laser.Clear();_dirty=true;flyout.Hide();};panel.Children.Add(apply);
         ShowChromeFlyout(flyout,_mode);return Task.CompletedTask;
     }
     internal async Task ValidateNativeSessionAsync(string outputDirectory)
@@ -343,17 +346,17 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         if(!IsActive)return;FinishScreenText();CancelGesture();
         try
         {
-            var picker=new global::Windows.Storage.Pickers.FileSavePicker{SuggestedFileName="螢幕註記"};
+            var picker=new global::Windows.Storage.Pickers.FileSavePicker{SuggestedFileName=T("螢幕註記")};
             WinRT.Interop.InitializeWithWindow.Initialize(picker,WinRT.Interop.WindowNative.GetWindowHandle(this));
-            picker.FileTypeChoices.Add("可編輯註記",new List<string>{".heiban"});picker.FileTypeChoices.Add("透明 PNG",new List<string>{".png"});
+            picker.FileTypeChoices.Add(T("可編輯註記"),new List<string>{".heiban"});picker.FileTypeChoices.Add(T("透明 PNG"),new List<string>{".png"});
             var file=await picker.PickSaveFileAsync();if(file is null)return;
             if(file.FileType==".png"){
                 using var target=new CanvasRenderTarget(CanvasDevice.GetSharedDevice(),_overlay.Width,_overlay.Height,96);
                 using(var ds=target.CreateDrawingSession()){ds.Clear(Color.FromArgb(0,0,0,0));_renderer.RenderObjects(ds,_session.DrawingObjects,_viewport,_overlay.Width,_overlay.Height);}
                 await target.SaveAsync(file.Path,CanvasBitmapFileFormat.Png);
             }else await DocumentSessionManager.WriteAtomicAsync(file.Path,DocumentCodec.Encode(_session.Document));
-            _status.Text="註記已另存";
-        }catch(Exception e){_status.Text="註記另存失敗："+e.Message;}
+            _status.Text=T("註記已另存");
+        }catch(Exception e){_status.Text=T("註記另存失敗：")+e.Message;}
     }
     public async Task<bool> StopAsync()
     {

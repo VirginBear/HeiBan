@@ -1,5 +1,13 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-11 — UI 語言與資料邊界
+
+Localization/Strings管理十份嵌入JSON、BCP47偏好與T／F；Ui附加属性保存資源鍵，弱引用更新靜態XAML。動態C#在建立控制項／顯示時取T，插值F保留索引及格式，GitHubUpdateService狀態改延遲求值。MainWindow.Localization首頁入口在保存成功後刷新首頁／chrome／已存在螢幕工具列；沒有per-pointer翻譯或線上服務。
+
+Settings/language.json獨立文件、原子寫入、保存未知欄位，未知語言回zh-TW並不擅改原檔。Core LayerPresentation透過可選callback翻譯展示類型，不依賴WinUI或寫文件；既有呼叫不傳callback保持原行為。作品Text／Name、ID、canvas模式、中文DockSide／bold等內部值保持原契約。新建時的預設名稱可依當時UI語言，已存在名稱不重譯。Home／dialog／flyout閱讀RTL，畫布geometry維持LTR；Root.Language及SDK PrimaryLanguageOverride補原生語言提示，框架資源重載仍待驗收。
+
+Sources.json及translations.txt是authoring來源，scripts/Build-LocalizationCatalogs.py在Windows以NLS編簡體及8語翻譯表產生Catalogs；檢查非空與格式placeholder再寫入，普通build不需Python。csproj固定LogicalName避免culture子組件路由；Package-PortableTrial捕捉JSON／翻譯表／生成器的SHA，具體來源可重建。
+
 ## 2026-10-11 — 主畫布XAML游標與背景入口
 
 MainWindow.xaml 的 CursorCanvasHost 只包CanvasControl，工具列／TextOverlay是兄弟元素。主畫布偵測控制點後先取得共享ShapeCursor native handle，再用SDK IInputCursorStaticsInterop.CreateFromHCursor 轉WinRT InputCursor，設定ProtectedCursor；cache以handle＋DPI避免每次pointer配置。更換先設新值再Dispose舊WinRT cursor；關閉先清XAML再釋放原native cursor。IInspectable vtable slot6，factory用C#/WinRT既有ActivationFactory取得並using釋放，result COM ref在finally釋放，custom copy與原handle獨立。一般畫布舊subclass hook移除，螢幕overlay仍走原native cursor。

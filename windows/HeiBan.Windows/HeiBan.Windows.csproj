@@ -88,6 +88,7 @@
 
   <!-- 資源檔案包含 -->
   <ItemGroup>
+    <EmbeddedResource Include="Localization\Catalogs\*.json" LogicalName="HeiBan.Localization.%(Filename).json" />
     <Content Include="Assets\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

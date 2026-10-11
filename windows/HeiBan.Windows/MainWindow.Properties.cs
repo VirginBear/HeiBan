@@ -1,3 +1,4 @@
+using static HeiBan.Windows.Localization.Strings;
 using HeiBan.Windows.Engine;
 using HeiBan.Windows.Models;
 using Microsoft.UI.Xaml;
@@ -43,12 +44,12 @@ public partial class MainWindow
             _inspectorContext=context;_inspectorDocument=_session.Document;ExtendedSection.Children.Clear();
             if(o is not null)AddExtendedObjectSettings(ExtendedSection,o);
             else if(type is "line" or "arrow")
-            {var button=new Button{Content="直線延伸設定"};button.Click+=(_,_)=>ShowExtensionSettings(button);ExtendedSection.Children.Add(button);}
+            {var button=new Button{Content=T("直線延伸設定")};button.Click+=(_,_)=>ShowExtensionSettings(button);ExtendedSection.Children.Add(button);}
             else if(type=="laser")
-            {var button=new Button{Content="雷射：顏色、大小與消退"};button.Click+=(_,_)=>ShowLaserSettings(button);ExtendedSection.Children.Add(button);}
+            {var button=new Button{Content=T("雷射：顏色、大小與消退")};button.Click+=(_,_)=>ShowLaserSettings(button);ExtendedSection.Children.Add(button);}
         }
         Show(ExtendedSection,ExtendedSection.Children.Count>0);
-        SelectionSummary.Text=o is null?(type=="none"?"選取物件後調整屬性":"目前工具 · 設定即時生效"):$"{LayerPresentation.Build(new[]{o})[0].Description} · {(o.IsLocked==true?"已鎖定":"設定即時生效")}";
+        SelectionSummary.Text=o is null?(type=="none"?T("選取物件後調整屬性"):T("目前工具 · 設定即時生效")):$"{LayerPresentation.Build(new[]{o}, Localization.Strings.T)[0].Description} · {T(o.IsLocked==true?"已鎖定":"設定即時生效")}";
         SetInspectorDock(_inspectorDock,false);
         foreach(var section in InspectorSections.Children.OfType<FrameworkElement>()){section.IsHitTestVisible=o?.IsLocked!=true;foreach(var control in DescendantControls(section))control.IsEnabled=o?.IsLocked!=true;}
         UpdateSaveStatusLight(StatusText.Text);
@@ -86,7 +87,7 @@ public partial class MainWindow
     private void InspectorDock_Click(object sender,RoutedEventArgs e)
     {
         var menu=new MenuFlyout();foreach(var pair in new[]{("top","上方"),("left","左側"),("bottom","下方"),("right","右側")})
-        {var side=pair.Item1;var item=new MenuFlyoutItem{Text=pair.Item2};item.Click+=(_,_)=>SetInspectorDock(side,true);menu.Items.Add(item);}ShowExclusiveFlyout(menu,(FrameworkElement)sender);
+        {var side=pair.Item1;var item=new MenuFlyoutItem{Text=T(pair.Item2)};item.Click+=(_,_)=>SetInspectorDock(side,true);menu.Items.Add(item);}ShowExclusiveFlyout(menu,(FrameworkElement)sender);
     }
     private void InspectorGrip_Pressed(object sender,PointerRoutedEventArgs e)
     {if(!e.GetCurrentPoint((UIElement)sender).Properties.IsLeftButtonPressed)return;_inspectorDragSide=_inspectorDock;((UIElement)sender).CapturePointer(e.Pointer);e.Handled=true;}
@@ -94,7 +95,7 @@ public partial class MainWindow
     {
         if(_inspectorDragSide is null)return;var p=e.GetCurrentPoint(Workspace).Position;
         _inspectorDragSide=new[]{("left",p.X),("right",Workspace.ActualWidth-p.X),("top",p.Y),("bottom",Workspace.ActualHeight-p.Y)}.OrderBy(x=>x.Item2).First().Item1;
-        ToolTipService.SetToolTip((FrameworkElement)sender,"放開後停靠："+_inspectorDragSide);e.Handled=true;
+        ToolTipService.SetToolTip((FrameworkElement)sender,T("放開後停靠：")+T(_inspectorDragSide switch{"top"=>"上方","bottom"=>"下方","left"=>"左側",_=>"右側"}));e.Handled=true;
     }
     private void InspectorGrip_Released(object sender,PointerRoutedEventArgs e)
     {var side=_inspectorDragSide;_inspectorDragSide=null;((UIElement)sender).ReleasePointerCaptures();if(side is not null)SetInspectorDock(side,true);e.Handled=true;}
@@ -117,7 +118,7 @@ public partial class MainWindow
         var position=e.GetCurrentPoint(LayerList).Position;_layerPreview?.Move(position);
         var hit=Views.LayerDragTarget.Find(LayerList,position);
         _layerDropId=(hit.Item as LayerCard)?.ObjectId;_layerDropAfter=hit.After;
-        LayerDragHint.Text=hit.Item is LayerCard row?$"放開移到「{row.Title}」{(hit.After?"下方":"上方")}":"拖到目標圖層上方或下方";e.Handled=true;
+        LayerDragHint.Text=hit.Item is LayerCard row?F($"放開移到「{row.Title}」{T(hit.After?"下方":"上方")}"):T("拖到目標圖層上方或下方");e.Handled=true;
     }
     private void LayerGrip_Released(object sender,PointerRoutedEventArgs e)
     {
@@ -130,8 +131,8 @@ public partial class MainWindow
     {
         CommitPropertyEdit();var epoch=_session.DocumentEpoch;
         var body=ColorWheel(pin.Color??"#39B9DC");var text=ColorWheel(pin.TextColor??"#397056");
-        var panel=new StackPanel{Spacing=8,Children={new TextBlock{Text="圖釘顏色"},body,new TextBlock{Text="圖釘文字顏色"},text}};
-        var result=await new ContentDialog{Title="個別圖釘配色",Content=new ScrollViewer{Content=panel,MaxHeight=460},PrimaryButtonText="套用",CloseButtonText="取消",XamlRoot=Root.XamlRoot}.ShowAsync();
+        var panel=new StackPanel{Spacing=8,Children={new TextBlock{Text=T("圖釘顏色")},body,new TextBlock{Text=T("圖釘文字顏色")},text}};
+        var result=await new ContentDialog{FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,Title=T("個別圖釘配色"),Content=new ScrollViewer{Content=panel,MaxHeight=460},PrimaryButtonText=T("套用"),CloseButtonText=T("取消"),XamlRoot=Root.XamlRoot}.ShowAsync();
         if(result!=ContentDialogResult.Primary||epoch!=_session.DocumentEpoch||!(_session.Document.Board.Pins?.Contains(pin)??false))return;
         _session.Begin();pin.Color=ColorHex(body.Color);pin.TextColor=ColorHex(text.Color);_session.Commit();RefreshEditor();
     }
@@ -141,10 +142,10 @@ public partial class MainWindow
     {
         var o=_session.Selected;var start=ColorWheel(o?.FillGradientStart??(o?.FillColor is { } fill&&fill!="none"?fill:CurrentStyle.Fill));
         var end=ColorWheel(o?.FillGradientEnd??CurrentStyle.Fill);
-        var panel=new StackPanel{Spacing=8,Children={new TextBlock{Text="漸層起點"},start,new TextBlock{Text="漸層終點"},end}};
+        var panel=new StackPanel{Spacing=8,Children={new TextBlock{Text=T("漸層起點")},start,new TextBlock{Text=T("漸層終點")},end}};
         void Apply(){ChangeProperty(()=>SetFillGradient(ColorHex(start.Color),ColorHex(end.Color)));}
         start.ColorChanged+=(_,_)=>Apply();end.ColorChanged+=(_,_)=>Apply();
-        var solid=new Button{Content="改回單色"};solid.Click+=(_,_)=>ChangeProperty(()=>SetFillColor(ColorHex(start.Color)));panel.Children.Add(solid);
+        var solid=new Button{Content=T("改回單色")};solid.Click+=(_,_)=>ChangeProperty(()=>SetFillColor(ColorHex(start.Color)));panel.Children.Add(solid);
         ShowExclusiveFlyout(new Flyout{Content=new ScrollViewer{Content=panel,MaxHeight=Math.Max(200,Root.ActualHeight-100)}},(FrameworkElement)sender);
     }
 }

@@ -1,3 +1,4 @@
+using static HeiBan.Windows.Localization.Strings;
 using System.Numerics;
 using HeiBan.Windows.Engine;
 using HeiBan.Windows.Models;
@@ -22,7 +23,7 @@ public sealed record LibraryCard(BoardMetadata Board, string? Thumbnail) : Syste
     public bool Selected {get=>_selected;set{_selected=value;PropertyChanged?.Invoke(this,new(nameof(SelectionMark)));}}
     public UIElement SelectionMark=>MainWindow.SelectionCircle(Selected);
     public string Title => Board.Title;
-    public string Format => Board.CanvasMode switch {"notebook"=>"筆記本","fixed"=>"有邊界黑板",_=>"無邊界筆記"};
+    public string Format => Board.CanvasMode switch {"notebook"=>T("筆記本"),"fixed"=>T("有邊界黑板"),_=>T("無邊界筆記")};
     public UIElement FormatIcon => Views.ToolIcons.Create(Board.CanvasMode switch{"notebook"=>"notebook","fixed"=>"rect",_=>"infinite"});
     public double CardWidth {get;init;}=190;
     public double ThumbnailHeight=>CardWidth*.85;
@@ -31,7 +32,7 @@ public sealed record LibraryCard(BoardMetadata Board, string? Thumbnail) : Syste
     public string? TrashPath {get;init;}
     public bool CanFavorite=>TrashPath is null;
     public string FavoriteGlyph=>IsFavorite?"★":"☆";
-    public string Summary => DateTimeOffset.TryParse(Board.UpdatedAt,out var date)?date.ToLocalTime().ToString("yyyy/M/d HH:mm"):"本機儲存";
+    public string Summary => DateTimeOffset.TryParse(Board.UpdatedAt,out var date)?date.ToLocalTime().ToString("yyyy/M/d HH:mm"):T("本機儲存");
 }
 public sealed record LayerCard(LayerListEntry Entry)
 {
@@ -65,11 +66,13 @@ public partial class MainWindow : Window
     {
         App.StartupStage="建立作品資料夾";
         _storage=new();
+        Localization.Strings.Initialize(_storage.DataDirectory);
         _toolbarPrefs=ToolbarPreferencesStore.Load(_storage.DataDirectory);
         _dock=_toolbarPrefs.DockSide;
         App.StartupStage="載入主視窗 XAML";
         InitializeComponent();
         InitializeLibraryChrome();BuildChrome();InitializeTeachingTools();InitializeDeferredWork();
+        ApplyLanguageChrome();
         App.StartupStage="設定主視窗";
         ExtendsContentIntoTitleBar=true;SetTitleBar(AppTitleBar);SystemBackdrop=new MicaBackdrop();
         AppWindow.TitleBar.ButtonForegroundColor=Direct2DCanvasRenderer.HexToColor("#26372F");
@@ -102,7 +105,7 @@ public partial class MainWindow : Window
         };
         Closed+=(_,_)=>{_layerPreview?.End();CanvasCursorHost.ReleaseCursor();_shapeCursor.Dispose();_updates?.Dispose();_autosave.Stop();_thumbnailTimer.Stop();_searchTimer.Stop();_teachingSaveTimer.Stop();CancelScreenshotCapture("視窗關閉");_timerTickTimer?.Stop();_laserTimer.Stop();_propertyCommitTimer.Stop();_headerHideTimer.Stop();ClearScene();CanvasSurface.RemoveFromVisualTree();_renderer.Dispose();_screenAnnotation?.Dispose();};
         App.StartupStage="顯示首頁";
-        try { EnsureScreenAnnotation(); } catch(Exception e) { StatusText.Text="螢幕畫布初始化失敗："+e.Message; }
+        try { EnsureScreenAnnotation(); } catch(Exception e) { StatusText.Text=T("螢幕畫布初始化失敗：")+e.Message; }
     }
     public async void InitializeAsync(string? file)
     {
@@ -116,8 +119,8 @@ public partial class MainWindow : Window
     }
     private async Task Error(Exception e)
     {
-        StatusText.Text="未完成："+e.Message;
-        await new ContentDialog{Title="無法完成操作",Content=e.Message,CloseButtonText="關閉",XamlRoot=Root.XamlRoot}.ShowAsync();
+        StatusText.Text=T("未完成：")+e.Message;
+        await new ContentDialog{FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,Title=T("無法完成操作"),Content=e.Message,CloseButtonText=T("關閉"),XamlRoot=Root.XamlRoot}.ShowAsync();
     }
     private async Task RefreshLibrary()
     {
@@ -167,12 +170,12 @@ public partial class MainWindow : Window
         try
         {
             var generation=_session.Generation;var epoch=_session.DocumentEpoch;
-            var snapshot=DocumentCodec.Clone(_session.Document);_saving=true;StatusText.Text="儲存中…";
+            var snapshot=DocumentCodec.Clone(_session.Document);_saving=true;StatusText.Text=T("儲存中…");
             await Task.Run(()=>_storage.SaveAsync(snapshot));
             if(epoch==_session.DocumentEpoch)
             {
                 _session.MarkSaved(generation,snapshot.Board.Revision);_saveFailed=false;_saving=false;
-                StatusText.Text=_session.IsDirty?"尚有變更":"已儲存";
+                StatusText.Text=_session.IsDirty?T("尚有變更"):T("已儲存");
                 if(deferThumbnail||_gesture||_editor is not null||_propertyEditing||generation!=_session.Generation)QueueThumbnail(snapshot,epoch);
                 else {_pendingThumbnail=null;_thumbnailTimer.Stop();await SaveThumbnail(snapshot);}
             }
@@ -202,7 +205,7 @@ public partial class MainWindow : Window
             await target.SaveAsync(_storage.ThumbnailPath(board.Id),CanvasBitmapFileFormat.Png);
             _thumbnailRevisions[board.Id]=board.Revision;
         }
-        catch(Exception e){StatusText.Text="黑板已儲存，縮圖稍後更新："+e.Message;}
+        catch(Exception e){StatusText.Text=T("黑板已儲存，縮圖稍後更新：")+e.Message;}
         finally{_thumbnailGate.Release();}
     }
     private async void New_Click(object sender,RoutedEventArgs e)
@@ -211,10 +214,10 @@ public partial class MainWindow : Window
         CommitPropertyEdit();
         try
         {
-            var name=new TextBox{PlaceholderText="作品名稱"};
-            var mode=new ComboBox{Header="格式",ItemsSource=new[]{"筆記本","無邊界筆記","有邊界黑板"},SelectedIndex=0,HorizontalAlignment=HorizontalAlignment.Stretch};
-            var size=new ComboBox{Header="尺寸",ItemsSource=new[]{"A4 直向","A4 橫向","16:9 簡報","1:1 方形"},SelectedIndex=0,HorizontalAlignment=HorizontalAlignment.Stretch};
-            var background=new ComboBox{Header="背景",ItemsSource=new[]{"純白","暖白","經典黑綠","深灰"},SelectedIndex=0,HorizontalAlignment=HorizontalAlignment.Stretch};
+            var name=new TextBox{PlaceholderText=T("作品名稱")};
+            var mode=new ComboBox{Header=T("格式"),ItemsSource=new[]{T("筆記本"),T("無邊界筆記"),T("有邊界黑板")},SelectedIndex=0,HorizontalAlignment=HorizontalAlignment.Stretch};
+            var size=new ComboBox{Header=T("尺寸"),ItemsSource=new[]{T("A4 直向"),T("A4 橫向"),T("16:9 簡報"),T("1:1 方形")},SelectedIndex=0,HorizontalAlignment=HorizontalAlignment.Stretch};
+            var background=new ComboBox{Header=T("背景"),ItemsSource=new[]{T("純白"),T("暖白"),T("經典黑綠"),T("深灰")},SelectedIndex=0,HorizontalAlignment=HorizontalAlignment.Stretch};
             var pattern=CreateBackgroundStylePicker("lines");
             var sizesByFormat=new[]{0,0,2};var patternsByFormat=new[]{"lines","dots","dots"};var previousFormat=0;
             mode.SelectionChanged+=(_,_)=>
@@ -231,11 +234,11 @@ public partial class MainWindow : Window
                 previousFormat=selectedFormat;
             };
             var content=new StackPanel{Spacing=14};foreach(var control in new UIElement[]{name,mode,size,background,pattern})content.Children.Add(control);
-            var dialog=new ContentDialog{Title="新增筆記或黑板",Content=new ScrollViewer{Content=content,MaxHeight=Math.Max(160,Root.ActualHeight-180)},PrimaryButtonText="建立",CloseButtonText="取消",DefaultButton=ContentDialogButton.Primary,XamlRoot=Root.XamlRoot};
+            var dialog=new ContentDialog{FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,Title=T("新增筆記或黑板"),Content=new ScrollViewer{Content=content,MaxHeight=Math.Max(160,Root.ActualHeight-180)},PrimaryButtonText=T("建立"),CloseButtonText=T("取消"),DefaultButton=ContentDialogButton.Primary,XamlRoot=Root.XamlRoot};
             if(await dialog.ShowAsync()!=ContentDialogResult.Primary)return;
             if(_workspaceOpen&&_session.IsDirty&&!await SaveAsync())return;
             var dimensions=new[]{(595d,842d),(842d,595d),(1920d,1080d),(1080d,1080d)}[size.SelectedIndex];
-            var board=new BoardMetadata{Title=string.IsNullOrWhiteSpace(name.Text)?"新筆記":name.Text.Trim(),CanvasMode=new[]{"notebook","infinite","fixed"}[mode.SelectedIndex],
+            var board=new BoardMetadata{Title=string.IsNullOrWhiteSpace(name.Text)?T("新筆記"):name.Text.Trim(),CanvasMode=new[]{"notebook","infinite","fixed"}[mode.SelectedIndex],
                 CanvasWidth=mode.SelectedIndex==1?null:dimensions.Item1,CanvasHeight=mode.SelectedIndex==1?null:dimensions.Item2,
                 CanvasPreset=mode.SelectedIndex==1?"infinite":new[]{"a4_portrait","a4_landscape","16_9","1_1"}[size.SelectedIndex],
                 BackgroundColor=new[]{"#ffffff","#faf8f5","#172e25","#18181b"}[background.SelectedIndex],BoardTheme=background.SelectedIndex<2?"whiteboard":"blackboard",GridStyle=ReadBackgroundStyle(pattern,"lines")};
@@ -269,7 +272,7 @@ public partial class MainWindow : Window
     {if(!_workspaceOpen||string.IsNullOrWhiteSpace(TitleBox.Text)||TitleBox.Text==_session.Document.Board.Title)return;_session.Begin();_session.Document.Board.Title=TitleBox.Text.Trim();_session.Commit();}
     private async void Export_Click(object sender,RoutedEventArgs e)=>await ExportDocumentAsync();
     private async void About_Click(object sender,RoutedEventArgs e)
-    {var result=await new ContentDialog{Title="黑板 · Windows "+Updating.GitHubUpdateService.CurrentVersion,Content="C# / .NET 10 / WinUI 3 / Win2D\n本機作品資料：\n"+_storage.DataDirectory+"\n\n功能基準：Mac 1.0.12。Windows 預覽版；實體手寫裝置、多螢幕及完整跨 App 操作仍待驗收。",PrimaryButtonText="更新設定",CloseButtonText="關閉",XamlRoot=Root.XamlRoot}.ShowAsync();if(result==ContentDialogResult.Primary)await ShowUpdatesAsync();}
+    {var result=await new ContentDialog{FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,Title=T("黑板 · Windows ")+Updating.GitHubUpdateService.CurrentVersion,Content=T("C# / .NET 10 / WinUI 3 / Win2D\n本機作品資料：\n")+_storage.DataDirectory+T("\n\n功能基準：Mac 1.0.12。Windows 預覽版；實體手寫裝置、多螢幕及完整跨 App 操作仍待驗收。"),PrimaryButtonText=T("更新設定"),CloseButtonText=T("關閉"),XamlRoot=Root.XamlRoot}.ShowAsync();if(result==ContentDialogResult.Primary)await ShowUpdatesAsync();}
     private void Tool_Click(object sender,RoutedEventArgs e)=>ActivateTool((string)((FrameworkElement)sender).Tag);
     private void Properties_Click(object sender,RoutedEventArgs e)
     {Inspector.Visibility=Inspector.Visibility==Visibility.Visible?Visibility.Collapsed:Visibility.Visible;if(Inspector.Visibility==Visibility.Visible){_changingLayers=true;try{RefreshLayersIfNeeded();}finally{_changingLayers=false;}}RefreshProperties();RefreshChrome();}
@@ -277,7 +280,7 @@ public partial class MainWindow : Window
     private async Task<string?> ChooseColor(string title,string current)
     {
         var picker=ColorWheel(current);
-        var dialog=new ContentDialog{Title=title,Content=picker,PrimaryButtonText="套用",CloseButtonText="取消",XamlRoot=Root.XamlRoot};
+        var dialog=new ContentDialog{FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,Title=title,Content=picker,PrimaryButtonText=T("套用"),CloseButtonText=T("取消"),XamlRoot=Root.XamlRoot};
         if(await dialog.ShowAsync()!=ContentDialogResult.Primary)return null;
         return $"#{picker.Color.R:X2}{picker.Color.G:X2}{picker.Color.B:X2}{picker.Color.A:X2}";
     }
@@ -285,12 +288,12 @@ public partial class MainWindow : Window
     private void FillColor_Click(object sender,RoutedEventArgs e)=>ShowColorWheel((FrameworkElement)sender,_session.Selected is { FillColor: not "none" } selected?selected.FillColor:CurrentStyle.Fill,color=>ChangeProperty(()=>SetFillColor(color)));
     private static ComboBox CreateBackgroundStylePicker(string current)
     {
-        var picker=new ComboBox{Header="背景樣式",HorizontalAlignment=HorizontalAlignment.Stretch};
-        foreach(var (key,label) in new[]{("blank","空白"),("lines","橫線條"),("dots","點狀"),("grid","方格子"),("staff","五線譜")})
+        var picker=new ComboBox{Header=T("背景樣式"),HorizontalAlignment=HorizontalAlignment.Stretch};
+        foreach(var (key,label) in new[]{("blank",T("空白")),("lines",T("橫線條")),("dots",T("點狀")),("grid",T("方格子")),("staff",T("五線譜"))})
             picker.Items.Add(new ComboBoxItem{Content=label,Tag=key});
         var selected=picker.Items.OfType<ComboBoxItem>().FirstOrDefault(item=>Equals(item.Tag,current));
         // An imported future style is retained unless the user explicitly chooses a known style.
-        if(selected is null){selected=new ComboBoxItem{Content="目前樣式（保留）",Tag=current};picker.Items.Add(selected);}
+        if(selected is null){selected=new ComboBoxItem{Content=T("目前樣式（保留）"),Tag=current};picker.Items.Add(selected);}
         picker.SelectedItem=selected;return picker;
     }
     private static string ReadBackgroundStyle(ComboBox picker,string fallback)=>(picker.SelectedItem as ComboBoxItem)?.Tag as string??fallback;
@@ -299,8 +302,8 @@ public partial class MainWindow : Window
         CommitPropertyEdit();FinishText();if(_gesture)CancelGesture();
         var board=_session.Document.Board;var epoch=_session.DocumentEpoch;
         var color=ColorWheel(board.BackgroundColor);var originalColor=color.Color;var pattern=CreateBackgroundStylePicker(board.GridStyle);
-        var content=new StackPanel{Spacing=14,Children={pattern,new TextBlock{Text="背景顏色"},color}};
-        var result=await new ContentDialog{Title="畫布背景",Content=new ScrollViewer{Content=content,MaxHeight=Math.Max(200,Root.ActualHeight-180)},PrimaryButtonText="套用",CloseButtonText="取消",XamlRoot=Root.XamlRoot}.ShowAsync();
+        var content=new StackPanel{Spacing=14,Children={pattern,new TextBlock{Text=T("背景顏色")},color}};
+        var result=await new ContentDialog{FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,Title=T("畫布背景"),Content=new ScrollViewer{Content=content,MaxHeight=Math.Max(200,Root.ActualHeight-180)},PrimaryButtonText=T("套用"),CloseButtonText=T("取消"),XamlRoot=Root.XamlRoot}.ShowAsync();
         if(result!=ContentDialogResult.Primary||epoch!=_session.DocumentEpoch||!ReferenceEquals(board,_session.Document.Board))return;
         var nextColor=color.Color.Equals(originalColor)?board.BackgroundColor:ColorHex(color.Color);var nextPattern=ReadBackgroundStyle(pattern,board.GridStyle);
         if(nextColor==board.BackgroundColor&&nextPattern==board.GridStyle)return;
@@ -322,9 +325,9 @@ public partial class MainWindow : Window
     {
         if(_session.Selected is not { } selected)return;
         var boardId=_session.Document.Board.Id;
-        var input=new TextBox { Text=selected.Name??"",PlaceholderText="例如：重點標記、課程截圖",MaxLength=120 };
-        var panel=new StackPanel { Spacing=8,Children={input,new TextBlock { Text="留空可恢復自動名稱。",FontSize=12 }} };
-        var result=await new ContentDialog { Title="重新命名圖層",Content=panel,PrimaryButtonText="儲存",CloseButtonText="取消",XamlRoot=Root.XamlRoot }.ShowAsync();
+        var input=new TextBox { Text=selected.Name??"",PlaceholderText=T("例如：重點標記、課程截圖"),MaxLength=120 };
+        var panel=new StackPanel { Spacing=8,Children={input,new TextBlock { Text=T("留空可恢復自動名稱。"),FontSize=12 }} };
+        var result=await new ContentDialog {FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight, Title=T("重新命名圖層"),Content=panel,PrimaryButtonText=T("儲存"),CloseButtonText=T("取消"),XamlRoot=Root.XamlRoot }.ShowAsync();
         if(result!=ContentDialogResult.Primary||_session.Document.Board.Id!=boardId||!_session.Document.Objects.Contains(selected))return;
         var name=string.IsNullOrWhiteSpace(input.Text)?null:input.Text.Trim();
         if(name==selected.Name)return;
@@ -346,7 +349,7 @@ public partial class MainWindow : Window
     private void Dock_Click(object sender,RoutedEventArgs e)
     {
         var menu=new MenuFlyout();foreach(var side in new[]{"上方","左側","下方","右側"})
-        {var item=new MenuFlyoutItem{Text=side};item.Click+=(_,_)=>SetDock(side);menu.Items.Add(item);}menu.ShowAt((FrameworkElement)sender);
+        {var item=new MenuFlyoutItem{Text=T(side)};item.Click+=(_,_)=>SetDock(side);menu.Items.Add(item);}menu.ShowAt((FrameworkElement)sender);
     }
     private string _dock="上方";
     private void DrawingArea_SizeChanged(object sender,SizeChangedEventArgs e)
@@ -375,7 +378,7 @@ public partial class MainWindow : Window
         SetInspectorDock(_inspectorDock);
     }
     private void AddPage_Click(object sender,RoutedEventArgs e)
-    {PreparePageChange();_session.Begin();var pages=_session.Document.Board.Pages??=[];var p=new BoardPage{Index=pages.Count,Title=$"第 {pages.Count+1} 頁"};pages.Add(p);_session.Document.Board.ActivePageId=p.Id;_session.Commit();RefreshEditor();}
+    {PreparePageChange();_session.Begin();var pages=_session.Document.Board.Pages??=[];var p=new BoardPage{Index=pages.Count,Title=F($"第 {pages.Count+1} 頁")};pages.Add(p);_session.Document.Board.ActivePageId=p.Id;_session.Commit();RefreshEditor();}
     private void PreviousPage_Click(object sender,RoutedEventArgs e)=>SwitchPage(-1);
     private void NextPage_Click(object sender,RoutedEventArgs e)=>SwitchPage(1);
     private void SwitchPage(int direction)
@@ -395,7 +398,7 @@ public partial class MainWindow : Window
         }
         else switch(e.Key)
         {case VirtualKey.Delete:Delete_Click(sender,e);e.Handled=true;break;
-         case VirtualKey.Escape:if(_readingMode){_readingMode=false;UpdateReadingModeUI();}if(_screenshotCoordinator.HasActiveSession){CancelScreenshotCapture("使用者按下 Esc");StatusText.Text="已取消截圖";}CancelGesture();FinishText();_polygon.Clear();ActivateTool("select");break;
+         case VirtualKey.Escape:if(_readingMode){_readingMode=false;UpdateReadingModeUI();}if(_screenshotCoordinator.HasActiveSession){CancelScreenshotCapture("使用者按下 Esc");StatusText.Text=T("已取消截圖");}CancelGesture();FinishText();_polygon.Clear();ActivateTool("select");break;
          case VirtualKey.V:ActivateTool("select");break;case VirtualKey.P:ActivateTool("pen");break;case VirtualKey.E:ActivateTool("eraser");break;case VirtualKey.T:ActivateTool("text");break;}
     }
 }

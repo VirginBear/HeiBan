@@ -1,3 +1,4 @@
+using static HeiBan.Windows.Localization.Strings;
 using HeiBan.Windows.Engine;
 using HeiBan.Windows.Models;
 using Microsoft.UI.Text;
@@ -15,7 +16,7 @@ internal sealed class TextDraftEditor : RichEditBox
     {
         var menu=new MenuFlyout();
         void Add(string label,Action action){var item=new MenuFlyoutItem{Text=label};item.Click+=(_,_)=>action();menu.Items.Add(item);}
-        Add("剪下",()=>TextDocument.Selection.Cut());Add("複製",()=>TextDocument.Selection.Copy());Add("貼上",()=>TextDocument.Selection.Paste(0));Add("全選",()=>TextDocument.Selection.SetRange(0,Text.Length));
+        Add(T("剪下"),()=>TextDocument.Selection.Cut());Add(T("複製"),()=>TextDocument.Selection.Copy());Add(T("貼上"),()=>TextDocument.Selection.Paste(0));Add(T("全選"),()=>TextDocument.Selection.SetRange(0,Text.Length));
         return menu;
     }
     public string Text

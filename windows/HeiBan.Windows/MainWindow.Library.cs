@@ -1,3 +1,4 @@
+using static HeiBan.Windows.Localization.Strings;
 using HeiBan.Windows.Engine;
 using HeiBan.Windows.Models;
 using Microsoft.UI.Xaml;
@@ -22,19 +23,19 @@ public partial class MainWindow
         var menu=new MenuFlyout();
         void Add(string title,Func<Task> action)
         {var item=new MenuFlyoutItem{Text=title};item.Click+=async(_,_)=>{try{await action();await RefreshLibrary();}catch(Exception ex){await Error(ex);}};menu.Items.Add(item);}
-        if(chosen.TrashPath is { } trash){Add("還原",()=>_storage.RestoreAsync(trash));ShowExclusiveFlyout(menu,anchor);return;}
-        Add("開啟作品",async()=>await OpenAsync(await _storage.LoadAsync(chosen.Board.Id)));
-        Add(_libraryUi.Favorites.Contains(chosen.Board.Id)?"取消收藏":"加入收藏",()=>ToggleLibraryFavoriteAsync(chosen.Board.Id));
-        Add("重新命名",async()=>
+        if(chosen.TrashPath is { } trash){Add(T("還原"),()=>_storage.RestoreAsync(trash));ShowExclusiveFlyout(menu,anchor);return;}
+        Add(T("開啟作品"),async()=>await OpenAsync(await _storage.LoadAsync(chosen.Board.Id)));
+        Add(_libraryUi.Favorites.Contains(chosen.Board.Id)?T("取消收藏"):T("加入收藏"),()=>ToggleLibraryFavoriteAsync(chosen.Board.Id));
+        Add(T("重新命名"),async()=>
         {
-            var input=new TextBox{Text=chosen.Title};var dialog=new ContentDialog{Title="作品名稱",Content=input,PrimaryButtonText="儲存",CloseButtonText="取消",XamlRoot=Root.XamlRoot};
+            var input=new TextBox{Text=chosen.Title};var dialog=new ContentDialog{FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,Title=T("作品名稱"),Content=input,PrimaryButtonText=T("儲存"),CloseButtonText=T("取消"),XamlRoot=Root.XamlRoot};
             if(await dialog.ShowAsync()!=ContentDialogResult.Primary||string.IsNullOrWhiteSpace(input.Text))return;
             var doc=await _storage.LoadAsync(chosen.Board.Id);doc.Board.Title=input.Text.Trim();await _storage.SaveAsync(doc);
         });
-        Add("製作副本",async()=>
-        {var doc=await _storage.LoadAsync(chosen.Board.Id);doc.Board.Id=Guid.NewGuid().ToString();doc.Board.Title+=" 副本";doc.Board.Revision=0;
+        Add(T("製作副本"),async()=>
+        {var doc=await _storage.LoadAsync(chosen.Board.Id);doc.Board.Id=Guid.NewGuid().ToString();doc.Board.Title+=T(" 副本");doc.Board.Revision=0;
             foreach(var o in doc.Objects)o.BoardId=doc.Board.Id;await _storage.SaveAsync(doc);});
-        Add("移到垃圾桶",async()=>{var selected=LibraryList.SelectedItems.OfType<LibraryCard>().ToArray();await TrashLibraryBoardsAsync(selected.Any(c=>c.Board.Id==chosen.Board.Id)?selected.Select(c=>c.Board.Id).ToArray():new[]{chosen.Board.Id});});
+        Add(T("移到垃圾桶"),async()=>{var selected=LibraryList.SelectedItems.OfType<LibraryCard>().ToArray();await TrashLibraryBoardsAsync(selected.Any(c=>c.Board.Id==chosen.Board.Id)?selected.Select(c=>c.Board.Id).ToArray():new[]{chosen.Board.Id});});
         ShowExclusiveFlyout(menu,anchor);
     }
     private async void Trash_Click(object sender,RoutedEventArgs e)
@@ -42,7 +43,7 @@ public partial class MainWindow
         try
         {
             var entries=await Task.Run(()=>_storage.TrashedBoards().ToList());var list=new ListView{ItemsSource=entries.Select(x=>x.Title).ToList(),SelectionMode=ListViewSelectionMode.Single,MaxHeight=360};
-            var dialog=new ContentDialog{Title="垃圾桶",Content=entries.Count==0?new TextBlock{Text="沒有已刪除的作品。"}:list,PrimaryButtonText="還原",CloseButtonText="關閉",XamlRoot=Root.XamlRoot,IsPrimaryButtonEnabled=entries.Count>0};
+            var dialog=new ContentDialog{FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,Title=T("垃圾桶"),Content=entries.Count==0?new TextBlock{Text=T("沒有已刪除的作品。")}:list,PrimaryButtonText=T("還原"),CloseButtonText=T("關閉"),XamlRoot=Root.XamlRoot,IsPrimaryButtonEnabled=entries.Count>0};
             if(await dialog.ShowAsync()!=ContentDialogResult.Primary||list.SelectedIndex<0)return;
             await _storage.RestoreAsync(entries[list.SelectedIndex].Path);await RefreshLibrary();
         }catch(Exception ex){await Error(ex);}

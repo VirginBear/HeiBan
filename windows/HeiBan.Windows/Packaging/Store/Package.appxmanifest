@@ -15,7 +15,11 @@
   <Dependencies>
     <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19041.0" MaxVersionTested="10.0.26100.0" />
   </Dependencies>
-  <Resources><Resource Language="zh-TW" /></Resources>
+  <Resources>
+    <Resource Language="zh-TW" /><Resource Language="zh-CN" /><Resource Language="en" />
+    <Resource Language="ja" /><Resource Language="ko" /><Resource Language="es" />
+    <Resource Language="fr" /><Resource Language="de" /><Resource Language="pt-BR" /><Resource Language="ar" />
+  </Resources>
   <Applications>
     <Application Id="HeiBan" Executable="HeiBan.exe" EntryPoint="Windows.FullTrustApplication"
                  uap10:RuntimeBehavior="packagedClassicApp" uap10:TrustLevel="mediumIL">

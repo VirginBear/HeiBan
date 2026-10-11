@@ -4,27 +4,29 @@ using HeiBan.Windows.Models;
 
 namespace HeiBan.Windows.Engine;
 
-public sealed record LayerListEntry(string ObjectId, string Title, string TypeLabel, string IconKey, bool IsLocked, bool IsVisible=true)
+public sealed record LayerListEntry(string ObjectId, string Title, string TypeLabel, string IconKey, bool IsLocked, bool IsVisible=true, Func<string,string>? Localize=null)
 {
-    public string Description => TypeLabel + (IsLocked ? " · 已鎖定" : "") + (IsVisible ? "" : " · 已隱藏");
+    public string Description => TypeLabel + (IsLocked ? Translate(" · 已鎖定") : "") + (IsVisible ? "" : Translate(" · 已隱藏"));
+    private string Translate(string value)=>Localize?.Invoke(value)??value;
 }
 
 /// <summary>Presentation never changes document IDs or writes generated names into the file.</summary>
 public static class LayerPresentation
 {
-    public static IReadOnlyList<LayerListEntry> Build(IEnumerable<BoardObject> objects)
+    public static IReadOnlyList<LayerListEntry> Build(IEnumerable<BoardObject> objects, Func<string,string>? localize=null)
     {
         var counts = new Dictionary<string, int>();
         var rows = new List<(BoardObject Object, LayerListEntry Entry)>();
         foreach (var item in objects)
         {
-            var (label, icon) = Describe(item.Type);
+            var (sourceLabel, icon) = Describe(item.Type);
+            var label=localize?.Invoke(sourceLabel)??sourceLabel;
             counts[label] = counts.GetValueOrDefault(label) + 1;
             var name = Compact(item.Name);
             var text = item.Type is "text" or "sticky" ? Compact(item.Text) : "";
             var title = name.Length > 0 ? name : text.Length > 0
                 ? $"{label}：{text}" : $"{label} {counts[label]}";
-            rows.Add((item, new(item.Id, title, label, icon, item.IsLocked == true, item.IsVisible!=false)));
+            rows.Add((item, new(item.Id, title, label, icon, item.IsLocked == true, item.IsVisible!=false, localize)));
         }
         // Assign numbers in document order so changing z-order does not rename objects.
         return rows.OrderByDescending(row => row.Object.ZIndex).Select(row => row.Entry).ToArray();

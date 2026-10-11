@@ -1,3 +1,4 @@
+using static HeiBan.Windows.Localization.Strings;
 using System.Globalization;
 using HeiBan.Windows.Engine;
 using HeiBan.Windows.Models;
@@ -22,14 +23,14 @@ public partial class MainWindow
             f.Bold=span.IsBold==true?FormatEffect.On:FormatEffect.Off;f.Italic=span.IsItalic==true?FormatEffect.On:FormatEffect.Off;f.Underline=span.IsUnderline==true?UnderlineType.Single:UnderlineType.None;f.Strikethrough=span.IsStrikethrough==true?FormatEffect.On:FormatEffect.Off;if(span.Color is not null)f.ForegroundColor=Direct2DCanvasRenderer.HexToColor(span.Color);f.BackgroundColor=span.HighlightColor is null?unhighlighted:Direct2DCanvasRenderer.HexToColor(span.HighlightColor);offset+=length;
         }
         var panel=new StackPanel{Spacing=8};var bar=new StackPanel{Orientation=Orientation.Horizontal,Spacing=4};
-        void Button(string label,Action action){var b=new Button{Content=label};b.Click+=(_,_)=>{action();editor.Focus(FocusState.Programmatic);};bar.Children.Add(b);}
+        void Button(string label,Action action){var b=new Button{Content=T(label)};b.Click+=(_,_)=>{action();editor.Focus(FocusState.Programmatic);};bar.Children.Add(b);}
         Button("粗體",()=>editor.TextDocument.Selection.CharacterFormat.Bold=FormatEffect.Toggle);
         Button("斜體",()=>editor.TextDocument.Selection.CharacterFormat.Italic=FormatEffect.Toggle);
         Button("底線",()=>{var f=editor.TextDocument.Selection.CharacterFormat;f.Underline=f.Underline==UnderlineType.None?UnderlineType.Single:UnderlineType.None;});
-        Button("刪除線",()=>editor.TextDocument.Selection.CharacterFormat.Strikethrough=FormatEffect.Toggle);
-        Button("標記",()=>{var f=editor.TextDocument.Selection.CharacterFormat;f.BackgroundColor=f.BackgroundColor.Equals(unhighlighted)?Direct2DCanvasRenderer.HexToColor("#FDE68A"):unhighlighted;});
-        var colors=new ComboBox{ItemsSource=new[]{"黑","紅","綠","藍"},Width=70};colors.SelectionChanged+=(_,_)=>{editor.TextDocument.Selection.CharacterFormat.ForegroundColor=Direct2DCanvasRenderer.HexToColor(new[]{"#111827","#EF4444","#16A34A","#2563EB"}[Math.Max(0,colors.SelectedIndex)]);editor.Focus(FocusState.Programmatic);};bar.Children.Add(colors);panel.Children.Add(new ScrollViewer{Content=bar,HorizontalScrollMode=ScrollMode.Enabled,HorizontalScrollBarVisibility=ScrollBarVisibility.Auto,VerticalScrollMode=ScrollMode.Disabled});panel.Children.Add(editor);
-        var result=await new ContentDialog{Title="文字格式：選取文字後套用",Content=panel,PrimaryButtonText="儲存",CloseButtonText="取消",XamlRoot=Root.XamlRoot}.ShowAsync();
+        Button(T("刪除線"),()=>editor.TextDocument.Selection.CharacterFormat.Strikethrough=FormatEffect.Toggle);
+        Button(T("標記"),()=>{var f=editor.TextDocument.Selection.CharacterFormat;f.BackgroundColor=f.BackgroundColor.Equals(unhighlighted)?Direct2DCanvasRenderer.HexToColor("#FDE68A"):unhighlighted;});
+        var colors=new ComboBox{ItemsSource=new[]{T("黑"),T("紅"),T("綠"),T("藍")},Width=70};colors.SelectionChanged+=(_,_)=>{editor.TextDocument.Selection.CharacterFormat.ForegroundColor=Direct2DCanvasRenderer.HexToColor(new[]{"#111827","#EF4444","#16A34A","#2563EB"}[Math.Max(0,colors.SelectedIndex)]);editor.Focus(FocusState.Programmatic);};bar.Children.Add(colors);panel.Children.Add(new ScrollViewer{Content=bar,HorizontalScrollMode=ScrollMode.Enabled,HorizontalScrollBarVisibility=ScrollBarVisibility.Auto,VerticalScrollMode=ScrollMode.Disabled});panel.Children.Add(editor);
+        var result=await new ContentDialog{FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,Title=T("文字格式：選取文字後套用"),Content=panel,PrimaryButtonText=T("儲存"),CloseButtonText=T("取消"),XamlRoot=Root.XamlRoot}.ShowAsync();
         if(result!=ContentDialogResult.Primary||board!=_session.Document.Board.Id||!_session.Document.Objects.Contains(o)||o.IsLocked==true)return;
         editor.TextDocument.GetText(TextGetOptions.None,out var raw);var text=raw.EndsWith("\r",StringComparison.Ordinal)?raw[..^1]:raw;
         var spans=new List<TextSpan>();var enumerator=StringInfo.GetTextElementEnumerator(text);

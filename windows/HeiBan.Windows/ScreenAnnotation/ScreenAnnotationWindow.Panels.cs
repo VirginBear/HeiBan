@@ -1,3 +1,4 @@
+using static HeiBan.Windows.Localization.Strings;
 using HeiBan.Windows.Engine;
 using HeiBan.Windows.Models;
 using HeiBan.Windows.Views;
@@ -53,21 +54,21 @@ internal sealed partial class ScreenAnnotationWindow
             FinishScreenText();CancelGesture();_session.SetSelection(_screenLayers.SelectedItems.OfType<LayerCard>().Select(row=>row.ObjectId));
             _tool="select";if(!_drawing)SetDrawing(true);RefreshButtons();_dirty=_fullDamage=true;
         };
-        _screenLayerHint=new TextBlock{Text="上層在前；拖曳灰色雙槓調整順序",FontSize=12,TextWrapping=TextWrapping.Wrap};
+        _screenLayerHint=new TextBlock{Text=T("上層在前；拖曳灰色雙槓調整順序"),FontSize=12,TextWrapping=TextWrapping.Wrap};
         var overlay=new Canvas{IsHitTestVisible=false};var layerHost=new Grid();layerHost.Children.Add(_screenLayers);layerHost.Children.Add(overlay);
         _screenLayerPreview=new LayerDragPreview(_screenLayers,overlay);
-        var panel=new StackPanel{Width=300,Spacing=8,Children={new TextBlock{Text="物件圖層",FontSize=16},_screenLayerHint,layerHost}};
+        var panel=new StackPanel{Width=300,Spacing=8,Children={new TextBlock{Text=T("物件圖層"),FontSize=16},_screenLayerHint,layerHost}};
         var controls=new StackPanel{Orientation=Orientation.Horizontal,Spacing=4};
         void Command(string label,Action action){var button=new Button{Content=label,Padding=new Thickness(8,4,8,4)};button.Click+=(_,_)=>{action();RefreshScreenLayers();};controls.Children.Add(button);}
-        Command("上移",()=>ShiftScreenLayer(false));Command("下移",()=>ShiftScreenLayer(true));
-        Command("鎖定",()=>{CommitScreenStyle();if(_session.Selected is not { } o)return;_session.Begin();o.IsLocked=o.IsLocked!=true;_session.Commit();Changed();});
-        Command("顯示",()=>{CommitScreenStyle();if(_session.Selected is not { } o)return;_session.Begin();o.IsVisible=o.IsVisible==false;_session.Commit();Changed();});
+        Command(T("上移"),()=>ShiftScreenLayer(false));Command(T("下移"),()=>ShiftScreenLayer(true));
+        Command(T("鎖定"),()=>{CommitScreenStyle();if(_session.Selected is not { } o)return;_session.Begin();o.IsLocked=o.IsLocked!=true;_session.Commit();Changed();});
+        Command(T("顯示"),()=>{CommitScreenStyle();if(_session.Selected is not { } o)return;_session.Begin();o.IsVisible=o.IsVisible==false;_session.Commit();Changed();});
         panel.Children.Add(controls);
-        var rename=new Button{Content="重新命名圖層…"};rename.Click+=async(_,_)=>
+        var rename=new Button{Content=T("重新命名圖層…")};rename.Click+=async(_,_)=>
         {
             if(_session.Selected is not { } o)return;var epoch=_session.DocumentEpoch;var box=new TextBox{Text=o.Name??"",MaxLength=120};
             _chromeFlyout?.Hide();
-            if(await new ContentDialog{Title="圖層名稱",Content=box,PrimaryButtonText="儲存",CloseButtonText="取消",XamlRoot=((FrameworkElement)Content).XamlRoot}.ShowAsync()!=ContentDialogResult.Primary||epoch!=_session.DocumentEpoch)return;
+            if(await new ContentDialog{Title=T("圖層名稱"),Content=box,PrimaryButtonText=T("儲存"),CloseButtonText=T("取消"),XamlRoot=((FrameworkElement)Content).XamlRoot}.ShowAsync()!=ContentDialogResult.Primary||epoch!=_session.DocumentEpoch)return;
             _session.Begin();o.Name=string.IsNullOrWhiteSpace(box.Text)?null:box.Text.Trim();_session.Commit();Changed();
         };panel.Children.Add(rename);RefreshScreenLayers();
         var flyout=new Flyout{Content=new ScrollViewer{Content=panel,MaxHeight=520}};
@@ -81,7 +82,7 @@ internal sealed partial class ScreenAnnotationWindow
     private void RefreshScreenLayers()
     {
         if(_screenLayers is null)return;_screenLayerPreview?.End();_screenDragId=_screenDropId=null;_refreshingScreenLayers=true;
-        try{_screenLayers.ItemsSource=LayerPresentation.Build(_session.Document.Objects).Select(entry=>new LayerCard(entry)).ToList();foreach(var row in _screenLayers.Items.OfType<LayerCard>().Where(row=>_session.SelectedIds.Contains(row.ObjectId)))_screenLayers.SelectedItems.Add(row);}
+        try{_screenLayers.ItemsSource=LayerPresentation.Build(_session.Document.Objects, Localization.Strings.T).Select(entry=>new LayerCard(entry)).ToList();foreach(var row in _screenLayers.Items.OfType<LayerCard>().Where(row=>_session.SelectedIds.Contains(row.ObjectId)))_screenLayers.SelectedItems.Add(row);}
         finally{_refreshingScreenLayers=false;}
     }
     private void ShiftScreenLayer(bool down)
@@ -97,18 +98,18 @@ internal sealed partial class ScreenAnnotationWindow
     private void ScreenLayerGrip_Moved(object sender,PointerRoutedEventArgs e)
     {
         if(_screenDragId is null||_screenLayers is null)return;var position=e.GetCurrentPoint(_screenLayers).Position;_screenLayerPreview?.Move(position);var hit=LayerDragTarget.Find(_screenLayers,position);
-        _screenDropId=(hit.Item as LayerCard)?.ObjectId;_screenDropAfter=hit.After;if(_screenLayerHint is not null)_screenLayerHint.Text=hit.Item is LayerCard row?$"放開移到「{row.Title}」{(hit.After?"下方":"上方")}":"拖到目標圖層";e.Handled=true;
+        _screenDropId=(hit.Item as LayerCard)?.ObjectId;_screenDropAfter=hit.After;if(_screenLayerHint is not null)_screenLayerHint.Text=hit.Item is LayerCard row?F($"放開移到「{row.Title}」{T(hit.After?"下方":"上方")}"):T("拖到目標圖層");e.Handled=true;
     }
     private void ScreenLayerGrip_Released(object sender,PointerRoutedEventArgs e)
     {
-        var id=_screenDragId;var target=_screenDropId;var after=_screenDropAfter;_screenDragId=_screenDropId=null;_screenLayerPreview?.End();if(_screenLayerHint is not null)_screenLayerHint.Text="上層在前；拖曳灰色雙槓調整順序";((UIElement)sender).ReleasePointerCaptures();
+        var id=_screenDragId;var target=_screenDropId;var after=_screenDropAfter;_screenDragId=_screenDropId=null;_screenLayerPreview?.End();if(_screenLayerHint is not null)_screenLayerHint.Text=T("上層在前；拖曳灰色雙槓調整順序");((UIElement)sender).ReleasePointerCaptures();
         if(_screenDragEpoch==_session.DocumentEpoch&&id is not null&&target is not null&&LayerReorder.Move(_session,id,target,after))Changed();e.Handled=true;
     }
-    private void ScreenLayerGrip_Canceled(object sender,PointerRoutedEventArgs e){_screenDragId=_screenDropId=null;_screenLayerPreview?.End();if(_screenLayerHint is not null)_screenLayerHint.Text="上層在前；拖曳灰色雙槓調整順序";}
+    private void ScreenLayerGrip_Canceled(object sender,PointerRoutedEventArgs e){_screenDragId=_screenDropId=null;_screenLayerPreview?.End();if(_screenLayerHint is not null)_screenLayerHint.Text=T("上層在前；拖曳灰色雙槓調整順序");}
 
     private void ShowScreenPalette()
     {
-        var panel=new StackPanel{Width=260,Spacing=10,Children={new TextBlock{Text="調色盤 · 線條／文字色",FontSize=16}}};
+        var panel=new StackPanel{Width=260,Spacing=10,Children={new TextBlock{Text=T("調色盤 · 線條／文字色"),FontSize=16}}};
         var colors=new[]{"#EF4444","#F59E0B","#FDE047","#22C55E","#3B82F6","#C084FC","#FFFFFF","#111827"};
         var grid=new Grid{ColumnSpacing=8,RowSpacing=8};for(var i=0;i<4;i++)grid.ColumnDefinitions.Add(new());for(var i=0;i<2;i++)grid.RowDefinitions.Add(new());
         for(var i=0;i<colors.Length;i++)
@@ -119,7 +120,7 @@ internal sealed partial class ScreenAnnotationWindow
         panel.Children.Add(grid);
         var wheel=new ColorPicker{Color=Direct2DCanvasRenderer.HexToColor(StyleSelection?.StrokeColor??_color),Width=260,ColorSpectrumShape=ColorSpectrumShape.Ring,IsHexInputVisible=true,IsAlphaEnabled=true};
         wheel.ColorChanged+=(_,e)=>SetScreenColor($"#{e.NewColor.R:X2}{e.NewColor.G:X2}{e.NewColor.B:X2}{e.NewColor.A:X2}");panel.Children.Add(wheel);
-        panel.Children.Add(new TextBlock{Text="填色請使用工具列的填滿按鈕。",FontSize=12});ShowChromeFlyout(new Flyout{Content=new ScrollViewer{Content=panel,MaxHeight=540,VerticalScrollBarVisibility=ScrollBarVisibility.Auto}},_paletteButton);
+        panel.Children.Add(new TextBlock{Text=T("填色請使用工具列的填滿按鈕。"),FontSize=12});ShowChromeFlyout(new Flyout{Content=new ScrollViewer{Content=panel,MaxHeight=540,VerticalScrollBarVisibility=ScrollBarVisibility.Auto}},_paletteButton);
     }
 
     private System.Numerics.Vector2? _screenEraserPointer;
