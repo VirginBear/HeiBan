@@ -2,6 +2,8 @@
 
 ## 2026-10-12 — 商店更新、工具列共用與性能清單
 
+源9b6c4e4，Package-Store退出0，x6452.35秒／ARM6453.95秒均0warning／0error。新1.0.13.0 bundle193,452,627bytes／SHA c8fc90e4…，173source與兩架構十語各581資源／PE／原Store保全檢視通过；原local/public report額外欄位造成初次byte比對失敗，改原欄位精確比對記於阶段4。未跑App／tests／提交Store，新增功能與上傳素材已備妥。
+
 開工75aa821、僅原.vscode/；只Windows。先建立[本批日誌](STORE_UPDATE_TOOLBAR_2026-10-12.zh-TW.md)，記結構／圖譜失敗及重試，再抽ToolbarUi、缓存SaveStatusDot、正式產品1.0.13／Store1.0.13.0與防覆寫報告。後續實際x64／ARM64編譯、套件／原包雜湊及兩庫同步結果追加原日誌，不套用舊測試數字。
 
 ## 2026-10-12 — Store首次審核完成並上架（使用者後台截圖）

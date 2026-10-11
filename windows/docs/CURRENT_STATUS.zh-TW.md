@@ -2,6 +2,8 @@
 
 ## 2026-10-12 — 商店1.0.13.0更新準備與工具列共用
 
+更新包已完成：`dist/store/HeiBan-Store-1.0.13.0-x64-arm64.msixbundle`，193,452,627bytes／SHA256 `c8fc90e49c2cb1517e4d7a84f9c03a106083dc2053bd05a3cd533c07893320ad`，來源9b6c4e4。x6452.35秒／ARM6453.95秒各0warning／0error，封裝退出0；十語manifest＋各581key內嵌、173來源SHA及原包保全靜態核對通过。未提交／發布新版、未執行App／tests。[上傳素材](STORE_RELEASE_NOTES_1.0.13.zh-TW.md)／[artifact](STORE_ARTIFACTS_1.0.13.0_2026-10-12.json)／[inspection](STORE_INSPECTION_1.0.13.0_2026-10-12.json)。
+
 Windows產品1.0.13／File與Assembly1.0.13.0／Store1.0.13.0。原1.0.12.0上架狀態保持歷史；新包仍未提交。共用ToolbarUi按鈕／提示／無障礙名稱／Flyout閱讀方向／四種線條樣式，螢幕工具描述集中；兩宿主維持各自布局、座標、穿透與保存生命周期。繪圖核心原本就共用Direct2DCanvasRenderer／EditorSession等類別，沒有另一套畫圖引擎。
 
 存檔圖示改只在狀態轉換時重建，語言／失敗提示仍即時刷新，減少高頻InvalidateCanvas的XAML配置。編譯／包體靜態檢視接續記在[本批階段日誌與後續效能清單](STORE_UPDATE_TOOLBAR_2026-10-12.zh-TW.md)；沒有本輪FPS／UI／硬體驗收。包體大部分為.NET／WinAppSDK，共用UI不保證大幅縮小MSIX。
