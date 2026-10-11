@@ -1,3 +1,4 @@
+using static HeiBan.Windows.Localization.Strings;
 using System.Text;
 using HeiBan.Windows.Engine;
 using HeiBan.Windows.Models;
@@ -13,16 +14,16 @@ public partial class MainWindow
     {
         if(_exporting)return;FinishText();CommitPropertyEdit();if(_gesture)CancelGesture();
         var boardId=_session.Document.Board.Id;
-        var scope=new ComboBox{Header="匯出範圍",ItemsSource=new[]{"目前頁面／全部內容","選取物件","目前視野"},SelectedIndex=0,MinWidth=250};
-        var result=await new ContentDialog{Title="匯出作品",Content=scope,PrimaryButtonText="選擇格式及位置",CloseButtonText="取消",XamlRoot=Root.XamlRoot}.ShowAsync();
+        var scope=new ComboBox{Header=T("匯出範圍"),ItemsSource=new[]{T("目前頁面／全部內容"),T("選取物件"),T("目前視野")},SelectedIndex=0,MinWidth=250};
+        var result=await new ContentDialog{FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,Title=T("匯出作品"),Content=scope,PrimaryButtonText=T("選擇格式及位置"),CloseButtonText=T("取消"),XamlRoot=Root.XamlRoot}.ShowAsync();
         if(result!=ContentDialogResult.Primary||boardId!=_session.Document.Board.Id)return;
         var doc=DocumentCodec.Clone(_session.Document);var selectedIds=_session.SelectedIds.ToHashSet();
         var objects=doc.Objects.Where(o=>o.IsVisible!=false&&(doc.Board.CanvasMode!="notebook"||o.PageId is null||o.PageId==doc.Board.ActivePageId)&&(scope.SelectedIndex!=1||selectedIds.Contains(o.Id))).ToArray();
-        if(scope.SelectedIndex==1&&objects.Length==0){StatusText.Text="請先選取物件。";return;}
+        if(scope.SelectedIndex==1&&objects.Length==0){StatusText.Text=T("請先選取物件。");return;}
         var area=scope.SelectedIndex==2?new ExportArea(-_viewport.X/_viewport.Zoom,-_viewport.Y/_viewport.Zoom,Math.Max(1,CanvasSurface.ActualWidth/_viewport.Zoom),Math.Max(1,CanvasSurface.ActualHeight/_viewport.Zoom)):BoardExporter.Bounds(doc.Board,objects,scope.SelectedIndex==1);
         var picker=new FileSavePicker{SuggestedFileName=doc.Board.Title};WinRT.Interop.InitializeWithWindow.Initialize(picker,WinRT.Interop.WindowNative.GetWindowHandle(this));
-        picker.FileTypeChoices.Add("可編輯原稿（所有頁面）",new List<string>{".heiban"});picker.FileTypeChoices.Add("跨平台 JSON（所有頁面）",new List<string>{".json"});
-        picker.FileTypeChoices.Add("PNG 圖片",new List<string>{".png"});picker.FileTypeChoices.Add("SVG 向量圖",new List<string>{".svg"});picker.FileTypeChoices.Add("PDF 文件",new List<string>{".pdf"});picker.FileTypeChoices.Add("HTML 離線作品",new List<string>{".html"});
+        picker.FileTypeChoices.Add(T("可編輯原稿（所有頁面）"),new List<string>{".heiban"});picker.FileTypeChoices.Add(T("跨平台 JSON（所有頁面）"),new List<string>{".json"});
+        picker.FileTypeChoices.Add(T("PNG 圖片"),new List<string>{".png"});picker.FileTypeChoices.Add(T("SVG 向量圖"),new List<string>{".svg"});picker.FileTypeChoices.Add(T("PDF 文件"),new List<string>{".pdf"});picker.FileTypeChoices.Add(T("HTML 離線作品"),new List<string>{".html"});
         var file=await picker.PickSaveFileAsync();if(file is null)return;_exporting=true;
         try
         {
@@ -43,7 +44,7 @@ public partial class MainWindow
                 case ".pdf":await ExportPdfAsync(doc,objects,area,file.Path);break;
                 default:await DocumentSessionManager.WriteAtomicAsync(file.Path,DocumentCodec.Encode(doc));break;
             }
-            StatusText.Text="已匯出："+file.Name;
+            StatusText.Text=T("已匯出：")+file.Name;
         }
         catch(Exception ex){await Error(ex);}
         finally{_exporting=false;}
@@ -59,7 +60,7 @@ public partial class MainWindow
             await view.EnsureCoreWebView2Async().AsTask().WaitAsync(TimeSpan.FromSeconds(30));
             view.CoreWebView2.Settings.AreDefaultContextMenusEnabled=false;view.CoreWebView2.Settings.IsScriptEnabled=false;
             var loaded=new TaskCompletionSource<bool>();
-            view.CoreWebView2.NavigationCompleted+=(_,e)=>{if(e.IsSuccess)loaded.TrySetResult(true);else loaded.TrySetException(new InvalidOperationException("PDF 排版載入失敗："+e.WebErrorStatus));};
+            view.CoreWebView2.NavigationCompleted+=(_,e)=>{if(e.IsSuccess)loaded.TrySetResult(true);else loaded.TrySetException(new InvalidOperationException(T("PDF 排版載入失敗：")+e.WebErrorStatus));};
             view.CoreWebView2.Navigate(new Uri(path).AbsoluteUri);await loaded.Task.WaitAsync(TimeSpan.FromSeconds(30));
             var settings=view.CoreWebView2.Environment.CreatePrintSettings();
             var printScale=Math.Min(1,14400/Math.Max(area.Width,area.Height));

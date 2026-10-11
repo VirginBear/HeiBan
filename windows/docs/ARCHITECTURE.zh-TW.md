@@ -1,5 +1,69 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-11 — UI 語言與資料邊界
+
+Localization/Strings管理十份嵌入JSON、BCP47偏好與T／F；Ui附加属性保存資源鍵，弱引用更新靜態XAML。動態C#在建立控制項／顯示時取T，插值F保留索引及格式，GitHubUpdateService狀態改延遲求值。MainWindow.Localization首頁入口在保存成功後刷新首頁／chrome／已存在螢幕工具列；沒有per-pointer翻譯或線上服務。
+
+Settings/language.json獨立文件、原子寫入、保存未知欄位，未知語言回zh-TW並不擅改原檔。Core LayerPresentation透過可選callback翻譯展示類型，不依賴WinUI或寫文件；既有呼叫不傳callback保持原行為。作品Text／Name、ID、canvas模式、中文DockSide／bold等內部值保持原契約。新建時的預設名稱可依當時UI語言，已存在名稱不重譯。Home／dialog／flyout閱讀RTL，畫布geometry維持LTR；Root.Language及SDK PrimaryLanguageOverride補原生語言提示，框架資源重載仍待驗收。
+
+Sources.json及translations.txt是authoring來源，scripts/Build-LocalizationCatalogs.py在Windows以NLS編簡體及8語翻譯表產生Catalogs；檢查非空與格式placeholder再寫入，普通build不需Python。csproj固定LogicalName避免culture子組件路由；Package-PortableTrial捕捉JSON／翻譯表／生成器的SHA，具體來源可重建。
+
+## 2026-10-11 — 主畫布XAML游標與背景入口
+
+MainWindow.xaml 的 CursorCanvasHost 只包CanvasControl，工具列／TextOverlay是兄弟元素。主畫布偵測控制點後先取得共享ShapeCursor native handle，再用SDK IInputCursorStaticsInterop.CreateFromHCursor 轉WinRT InputCursor，設定ProtectedCursor；cache以handle＋DPI避免每次pointer配置。更換先設新值再Dispose舊WinRT cursor；關閉先清XAML再釋放原native cursor。IInspectable vtable slot6，factory用C#/WinRT既有ActivationFactory取得並using釋放，result COM ref在finally釋放，custom copy與原handle獨立。一般畫布舊subclass hook移除，螢幕overlay仍走原native cursor。
+
+新增作品以每格式尺寸／樣式記憶控制ComboBox，infinite尺寸為Collapsed、文件width/height為null、preset為infinite。MainWindow共用CreateBackgroundStylePicker和ReadBackgroundStyle，既有背景套用以epoch／board reference守護，一笔undo；未知GridStyle選「目前樣式（保留）」不因改色消失。renderer、SVG與文件格式無需變更。
+
+
+## 2026-10-11 — 工具列換行與非永久拖曳回饋
+
+ToolbarFlowPanel 用 DIP 量測各工具，依 WorkArea 可用軸長換行／換列，ResizeChrome 只在最後乘 DPI。固定控制段保留，工具區不含 ScrollViewer。LayerDragPreview 是 ListView 上方不攔截輸入的 Canvas，原列暫時淡化、重建獨立 ToolIcons／標題，不重用原 UIElement；目標線使用已捲動列 TransformToVisual 的真實邊界。清单更新／取消／關閉清理；LayerReorder 仍僅放開提交一筆交易。
+
+ShapeCursor 共用世界控制點的 Kind／Index，八方向加 Rotation 映射系統游標；自製旋轉游標用 DPI 尺寸 AND/XOR mask。主畫布攔截自身 WinUI 內容橋 WM_SETCURSOR，僅滑鼠在畫布控制點時回應；螢幕原生 overlay 自行回應。子類化解除、共享游標不銷毀、自製游標關閉釋放。游標變動不影響 scene／作品 JSON。
+
+
+## 2026-10-11 — 操作狀態與面板
+
+MainWindow.Properties 管理型別屬性區塊、停靠／拖曳及圖釘配色。MainWindow.Home 的 _libraryMulti 決定批次 UI，LibraryCard 的通知只更新視覺勾選；永久作品資料不含選取狀態。LayerReorder 為共用交易，LayerDragTarget 以虛擬化列的實際座標決定上下插入。
+
+WindowsInkCoordinator 以單調時鐘保存停筆錨點、原始點與吸附旗標；RenderLiveStroke 讀兩端預覽，Finish 才產生 line。ScreenAnnotationWindow.Panels 提供图層／色輪及 hover 圓；dirty region 包含上一與本次橡皮擦 bounds，切回操作／工具列及彈出面板隱藏預覽。Chrome 改量測內容後以工作區限制視窗。
+
+## 2026-10-11 — 渲染視野候選網格
+
+ObjectViewportCache只接新取得的ascending OrderedBoardObjects，保留整份文件的穩定Z次序，回傳獨立候選陣列並即時過濾頁面／visibility。512以下、密集視野（query格數占已占用格35%以上或候選至少四分之一）、超過4096 query格或非有限範圍回原ordered scan；Snapshot／export enumerable與單preview沿用原路徑。診斷可BypassViewportCache比對，沒有新增產品設定。
+
+網格256世界單位，每物件最多16 memberships；更大、超界／非有限、curve／text／sticky／arc／arrow／line等複雜或未知型別列global。安全型別限rect／circle／image／tape，bounds包含原renderer保守半徑與preview偏移；renderer原有culling／geometry／clip再執行，沒有新增GPU tiles／bitmap或修改命中／擦除／套索邏輯。記憶體按文件物件數有界，不是固定MB上限；managed arrays O(n)、cells/memberships最多16n，query輸出有配置。
+
+BoardObject相關setter維護JsonIgnore RenderBoundsVersion，只反映候選邊界欄位，不是Generation／revision／保存狀態。每query先O(n)counter掃描，幾何改動只更新該物件舊新格，空格移除；source order view變更（Z/list/替換/新document/Undo）重建。Rotation在保守圓半徑內不用更新grid；其他未納入bounds欄位不影響global物件的候選資格。ClearCache／換文件／小文件清理持有參考，輸出不使用跨呼叫可覆寫scratch buffer。JSON／未知欄位／一手勢一Undo契約維持；signed zero仍保存。
+
+實際證據與失敗策略見[第二批紀錄](PERFORMANCE_BATCH2_2026-10-11.zh-TW.md)。複雜物件精確bounds、hit／erase index和GPU分區快取仍待另批。
+
+## 2026-10-10 — 順序快取與局部像素複製
+
+Core ObjectOrderCache保存整份文件的穩定升／降Z視圖。文檔／list參考、數量與逐項object參考／Z改變時重建；每次取得視圖先O(n)無配置掃描，避免Generation尚未提交就漏掉圖層修改。相同Z保持原list次序（降序不是reverse升序）；枚舉時即時過濾頁面與可見性，locked語意延續。這是UI thread資源，不寫入JSON；呼叫端在每次繪製／命中重新取得，不能跨永久修改保留舊view當索引。每頁空間索引仍未實作。
+
+Renderer只有明確Ascending的OrderedBoardObjects可略過排序，其他enumerable保留OrderBy fallback；單物件RenderPreview共用原culling／transform helper。快照匯出仍可用原稳定sort，不引用UI session view跨async操作。Hit對零rotation保持唯讀樣點參考；空心rect四邊短路及polygon局部生成去除全函式捕捉closure。
+
+Overlay committed／target皆同device／BGRA／96DPI，以CopyPixelsFromBitmap整數pixel region恢復舊新damage，再畫暫態與局部readback／Present；不經DrawImage取樣copy。沒有新GPU backend／緩衝重用／排程或schema遷移。診斷入口--performance-output在storage初始化前要求全新資料根，結果標明合成／GPU同步範圍，正常App不寫逐點效能log。
+
+## 2026-10-10 — 發行管理紀錄的讀取入口
+
+Windows README／CURRENT_STATUS 連到獨立 PRIVATE HeiBan-private。私人庫的產品 JSON／交接狀態只供具權限開發者讀取，不是 runtime 相依、不參與公開 SDK 封裝、不是 submodule。MSIX 所需公開 manifest 仍在 Windows 源碼；跨電腦先 clone／讀私人管理紀錄再核最新平台文件。本機工具／產物／作品不藉此庫同步。
+
+## 2026-10-10 — 正式 MSIX 管道
+
+HeiBanStoreBuild 為顯式 MSBuild 分支，啟用 WindowsPackageType=MSIX／AppxPackage、Store manifest、PRI 與 self-contained SDK 封裝。既有 None 與手動 PRI publish target 保持各自條件。Store 編譯使用獨立 artifacts 路徑，App 啟動仍用官方 self-contained 初始化，禁止 bootstrap／DeploymentManager 額外下載安裝。SDK 自行處理 native activation；package identity 分支停用 GitHub updater，不帶外部 helper。
+
+Packaging/Store 是產品公開身分／套件版本／品牌縮放圖與商店手冊；Package-Store.ps1 負責雙架構 SDK build、必要 payload／授權／身分核對、MakeAppx bundle 與來源／產物 SHA。純授權文件只從 SDK 生成的 PRI resfile 過濾，不改 Content payload／原檔名／內容。此層只宣告 runFullTrust，沒有 unvirtualizedResources；現有作品根在 MSIX 下的重新導向與解除安裝生命週期待實際驗收。
+
+## 2026-10-10 — preview.6 更新邊界
+
+Core/Updating/UpdatePolicy 負責嚴格版本解析、Release repo／包名／架構／URL／digest 契約；UpdateFiles 負責 PE Machine、ZIP 路徑／ADS／連結／重複／大小上限、inventory hash 與 Portable 備份／rollback；UpdateInstallation 是每安裝 cache key、短期更新 mutex 與程序租約。均不讀寫作品模型。
+
+Windows/Updating/GitHubUpdateService 以 async HttpClient 背景查詢／下載，metadata 與 package 分開限制大小，下載驗證後原子寫 pending。UI 僅從 Changed 經 DispatcherQueue 更新獨立設定面板，手勢／繪圖永久狀態不受更新影響。Closing 保存完成後取消下載、核對最新偏好及 pending 架構，再複製自包含 helper 到 cache、寫 job 並啟動；重入 Closing 由 preparingClose 保護。
+
+HeiBan.Updater 等原程序與資料保存退出，取得安裝 gate 後檢查其他視窗／原二進位版本及架構、重新核下載 SHA。Inno 原安裝註冊、Portable 宣告程式檔替換，最後核版本／架構與 result；不 kill 使用者 App。GitHub 更新只信任指定 GitHub Release／TLS 及其 digest，不具獨立發行簽章。MSIX 分支停用，交商店處理。Packaging 同時發布 helper、生成 inventory，測試腳本使用獨立 fixture／AppId。
+
 ## 2026-10-10 — preview.5 右鍵契約
 
 ScreenRightClick取消暫態後Hit；空白直接返回，維持作畫及原選取。物件命中先damage舊選取，已包含ID保留多選，否則只選命中ID；切select後damage新把手，開MenuFlyout。只更新選取疊層，不改永久scene或模式。選單坐標由overlay實體桌面轉成chrome DIP，沿用ShowChromeFlyout焦點與style commit。自動右鍵及物件選單均不再切穿透；工具列模式及Ctrl+Alt+D為明確入口。

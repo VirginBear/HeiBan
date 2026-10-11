@@ -12,7 +12,7 @@
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWinUI>true</UseWinUI>
-    <EnableMsixTooling>false</EnableMsixTooling>
+    <EnableMsixTooling Condition="'$(HeiBanStoreBuild)' != 'true'">false</EnableMsixTooling>
     <SelfContained>true</SelfContained>
     <PublishSingleFile>false</PublishSingleFile>
     <PublishAot>false</PublishAot>
@@ -21,14 +21,14 @@
     <AssemblyName>HeiBan</AssemblyName>
     <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
     <Product>HeiBan 黑板</Product>
-    <Version>1.0.12-preview.5</Version>
-    <FileVersion>1.0.12.5</FileVersion>
-    <AssemblyVersion>1.0.12.5</AssemblyVersion>
+    <Version>1.0.12-preview.6</Version>
+    <FileVersion>1.0.12.6</FileVersion>
+    <AssemblyVersion>1.0.12.6</AssemblyVersion>
     <Company>HeiBan Team</Company>
     <Copyright>© 2026 HeiBan Team. All rights reserved.</Copyright>
     <Description>HeiBan 黑板 — Windows 原生開發預覽：向量手寫板與多頁筆記系統</Description>
 
-    <!-- 安裝版與免安裝版共用 Unpackaged 自包含產物；MSIX 尚待實作 -->
+    <!-- Store is an explicit build mode so existing EXE/Portable builds keep their own initialization and PRI contract. -->
     <WindowsPackageType Condition="'$(WindowsPackageType)' == ''">None</WindowsPackageType>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     
@@ -37,6 +37,44 @@
     <TieredCompilation>true</TieredCompilation>
     <ServerGarbageCollection>false</ServerGarbageCollection>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(HeiBanStoreBuild)' == 'true'">
+    <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+    <DefaultResourceLanguage>zh-TW</DefaultResourceLanguage>
+    <EnableMsixTooling>true</EnableMsixTooling>
+    <WindowsPackageType>MSIX</WindowsPackageType>
+    <AppxPackage>true</AppxPackage>
+    <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
+    <AppxPackageSigningEnabled>false</AppxPackageSigningEnabled>
+    <AppxAutoIncrementPackageRevision>false</AppxAutoIncrementPackageRevision>
+    <AppxSymbolPackageEnabled>false</AppxSymbolPackageEnabled>
+    <AppxBundle>Never</AppxBundle>
+    <AppxPackageExtension>.msix</AppxPackageExtension>
+    <UapAppxPackageBuildMode>StoreUpload</UapAppxPackageBuildMode>
+    <WindowsAppSdkBootstrapInitialize>false</WindowsAppSdkBootstrapInitialize>
+    <WindowsAppSdkDeploymentManagerInitialize>false</WindowsAppSdkDeploymentManagerInitialize>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(HeiBanStoreBuild)' == 'true'">
+    <AppxManifest Include="Packaging\Store\Package.appxmanifest" />
+    <Content Include="Packaging\Store\Assets\**\*.png" Link="Assets\Store\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\Licenses\**" Link="Licenses\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Packaging\Store\README-Store.zh-TW.md" Link="README-Store.md" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- Legal notice version numbers are filenames, not resource qualifiers. Filter
+       only the SDK-generated PRI input list; the package Content payload stays intact. -->
+  <Target Name="ExcludeHeiBanStoreDocumentsFromPri" AfterTargets="_GenerateProjectPriConfigurationFiles"
+          Condition="'$(HeiBanStoreBuild)' == 'true' and Exists('$(_FilteredLayoutResfilesPath)')">
+    <ReadLinesFromFile File="$(_FilteredLayoutResfilesPath)">
+      <Output TaskParameter="Lines" ItemName="_HeiBanStorePriInput" />
+    </ReadLinesFromFile>
+    <ItemGroup>
+      <_HeiBanStoreIndexedFiles Include="@(_HeiBanStorePriInput)"
+        Condition="!$([System.String]::Copy('%(Identity)').Replace('/', '\').StartsWith('Licenses\')) and '%(Identity)' != 'README-Store.md'" />
+    </ItemGroup>
+    <WriteLinesToFile File="$(_FilteredLayoutResfilesPath)" Lines="@(_HeiBanStoreIndexedFiles)" Overwrite="true" Encoding="UTF-8" />
+  </Target>
 
   <ItemGroup>
     <!-- Windows App SDK & Fluent Design 核心庫 -->
@@ -50,6 +88,7 @@
 
   <!-- 資源檔案包含 -->
   <ItemGroup>
+    <EmbeddedResource Include="Localization\Catalogs\*.json" LogicalName="HeiBan.Localization.%(Filename).json" />
     <Content Include="Assets\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

@@ -6,11 +6,11 @@ namespace HeiBan.Windows.Views;
 /// <summary>The button, navigation list and canvas all draw the same original pin.</summary>
 public sealed class PinIcon : UserControl
 {
-    public PinIcon()
+    public PinIcon(string? color=null)
     {
         Width=24;Height=24;
         var canvas=new CanvasControl();
-        canvas.Draw+=(_,e)=>Direct2DCanvasRenderer.DrawPin(e.DrawingSession,new Vector2(12,9),.65f);
+        canvas.Draw+=(_,e)=>Direct2DCanvasRenderer.DrawPin(e.DrawingSession,new Vector2(12,9),.65f,color);
         Content=canvas;
         Unloaded+=(_,_)=>canvas.RemoveFromVisualTree();
     }

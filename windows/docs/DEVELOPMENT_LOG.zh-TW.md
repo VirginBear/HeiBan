@@ -1,5 +1,106 @@
 # Windows 開發日誌
 
+最終r2 x64 Release build：退出0、0警告／0錯誤、28.23秒；十份完整資源嵌入DLL、literal來源鍵無缺項為靜態檢視，非App／測試驗收。最後文字屬性展示补強由新Portable publish重新編譯，封裝證據另記。
+
+## 2026-10-11 — 首頁語言與十語WindowsUI
+
+開工8c5fcc3，僅原.vscode/未追蹤，保留。先建立[日誌](LOCALIZATION_2026-10-11.zh-TW.md)，使用者回覆採用十語；讀平台規則／目前狀態／架構／問題。加入偏好、離線581項資源與XAML／動態UI展示；交叉比對内部停靠、圖層資料、文字草稿、共享色票、螢幕既存工具列與更新狀態，不改Mac／Web或文件幾何。
+
+首次x64 build53.04秒0warning／0error；RTL补強時因MenuFlyout無FlowDirection而失敗17.61秒1warning／89errors，改PresenterStyle，最終结果接續記。實際命令／排解／生成器／打包入口SHA邊界與Mac對照在階段日誌；本輪未新增／執行tests／App，未發布商店／Release。
+
+
+本輪本機x64試用：`dist/trials/HeiBan-Windows-Portable-1.0.12-preview.6-multilingual-2026-10-11-win-x64.zip`，131,632,111 bytes／SHA256 `1a1dc766572215518ff51f480441fb7189060de10d752939bed4d7109d402f52`，source14bb289；[產物](LOCALIZATION_PORTABLE_ARTIFACT_2026-10-11.json)／[靜態檢視](LOCALIZATION_PORTABLE_INSPECTION_2026-10-11.json)。App／helper publish退出0、無warning/error；557 inventory／559 archive／124 source SHA、十語資源581完整內嵌。未執行App／tests／實機／ARM64。
+
+舊canvas-setup未發布trial清除452,220,937 bytes；9檔Data共150,783bytes先保存於 `dist/trial-data-backups/20261011-041854-3b00a2aa/`，再複製到新解壓版Data以延續原機使用，兩份皆核SHA；ZIP仍空Data。原備份及前批52檔備份、已發布Release／Storebundle保留，[清理](LOCALIZATION_TRIAL_CLEANUP_2026-10-11.json)／[資料接續](LOCALIZATION_DATA_HANDOFF_2026-10-11.json)。只原機有二進位與作品，GitHub同步來源／紀錄，私人庫保存精簡需求與交接。
+
+## 2026-10-11 — 一般畫布游標修正與試用空間清理
+
+開工 cfd3191，status 僅原.vscode/，先建立[日誌](CANVAS_SETUP_FIX_2026-10-11.zh-TW.md)。依使用者實機更正主畫布游標，改XAML ProtectedCursor＋SDK interop；補infinite不顯示尺寸、fixed預設16:9、background五種UI。首次 x64 build 0warning／0error、39.18秒；後續預設與原色保存補強、最終x64 build 0warning／0error、25.98秒，新包結果另記。
+
+已讀取GitHub正式Release名單，保留windows-v1.0.12-preview.5與其他已發布；git ls-files沒有runtime zip/msix/exe/dll/pdb，trials ignored。本次只清理明確授權舊未發布trials，3份含Data先保留；完整SHA／bytes與結果写日誌／清理manifest。私人對話摘要補實測更正及最新需求。未改Mac／Web，未跑測試／App／商店／發布。
+
+
+本輪最終試用：`dist/trials/HeiBan-Windows-Portable-1.0.12-preview.6-canvas-setup-2026-10-11-win-x64.zip`，131,543,340 bytes，SHA256 `0066ccfa530af13a21fd016f9a49fa5dc41f13fb7a9cd7600034bd4d2fae0759`，source c53462a；[artifact](CANVAS_SETUP_PORTABLE_ARTIFACT_2026-10-11.json)／[静態檢視](CANVAS_SETUP_PORTABLE_INSPECTION_2026-10-11.json)。publish退出0／無warning/error，108 source／557 inventory／空Data／PE／授權／手冊一致；未執行App／tests／實機。
+
+已刪舊5份trials解壓runtime／ZIP／sidecar，釋放2,260,814,479 bytes（約2.106GiB）；52個Data檔共73,389 bytes先移至 `dist/trial-data-backups/20261011-032945-612f03c3/`並核SHA。trials只剩最新版3項，Store原SHA與正式Release保留。[清理结果](CANVAS_SETUP_TRIAL_CLEANUP_2026-10-11.json)。下方舊試用路徑為歷史交付紀錄，其二進位已於本輪清理，歷史source／hash／logs仍留。
+
+
+## 2026-10-11 — 五項操作回饋與紀錄壓縮
+
+開工 HEAD 605eed4，git status 僅原 .vscode/，建立[阶段日誌](UX_FEEDBACK_2026-10-11.zh-TW.md)再實作。完成無捲軸換行工具列、拖曳預覽／插入線、形狀方向／旋轉游標、頭部線寬同步與主工具列圖層。八個一次性腳本逐檔 resolved path／非 reparse／SHA 核對後刪除；所有交付包／Data／歷史／SDK／建置證據保留。[清理清單](UX_FEEDBACK_CLEANUP_2026-10-11.json)。
+
+首次 x64 build 0 warning／0 error，後續整合 WM_SETCURSOR／取消清理，最終 x64 build 0 warning／0 error、25.80 秒，封裝結果另追加。更新離線手冊與架構／狀態／決策／問題，對話摘要僅私人庫。未修改 Mac／Web；本批沒有執行測試、App、4K／多螢幕／觸控筆、Store 或 Release 發布。
+
+
+本輪新 x64 免安裝包 `dist/trials/HeiBan-Windows-Portable-1.0.12-preview.6-ux-feedback-2026-10-11-win-x64.zip`，131,541,143 bytes，SHA256 `e77d2dd28526fc70b0f9049cf96d68d22c1156373bf6044c5e79d6ac719c1aa7`；來源 77a563d，App/helper publish 退出0／無warning/error。557 inventory／106 source SHA／空 Data／PE／guide／README／sidecar 靜態一致，Store原SHA相同。[artifact](UX_FEEDBACK_PORTABLE_ARTIFACT_2026-10-11.json)／[靜態檢視](UX_FEEDBACK_PORTABLE_INSPECTION_2026-10-11.json)。未執行測試／App／實機操作，未發布 Release／Store。
+
+
+## 2026-10-11 — Windows 首頁、屬性與螢幕畫布 20 項
+
+使用者逐項提出操作問題；開工 da573915，保留既有 .vscode/，先讀索引及平台文件並建立[日誌](UX_ALIGNMENT_2026-10-11.zh-TW.md)。只讀 Mac HomeView、Inspector、LayerPanel、BoardEngine+Drawing、BoardPin 模型作對照。
+
+拆開一般選取與批次模式；固定 Inspector 改成依型別顯示區塊、圖層獨立；拖曳僅放開後交易；筆的停筆判斷與預覽保留在 collector，放開後提交 line。尺長百分比、箭頭頭部與線寬分離、圖釘兩色、便條紙材質、鎖定圖示、真實保存狀態、四邊屬性停靠及螢幕畫布入口／尺寸／擦除圓圈均接上。
+
+編輯腳本第一次 XAML 區段定位過早失敗；改用 WorkspaceHeader 完整邊界，保留當時已改內容並從剩餘段繼續。第一次 x64 build 0 error／2 同一未用尺長警告，移除已由百分比取代的私有欄位；第二次 x64 build 0 warning／0 error。未跑測試／App，不套用舊 2324／127 數字。可選圖釘 color/textColor 增補與 Mac 讀寫邊界見[契約](DOCUMENT_ADDITIONS_2026-10-11.zh-TW.md)。
+
+最終來源 build 0 warning／0 error，cd16ac0 實作提交後，靜態排列發現面板同側可能遮工具列，補 dock 留白及可用高度 e60728d 再 push。另出 ux20-r2 x64：131,531,917 bytes，SHA c7c9cd4d…；App／helper publish 退出 0／log 無warning/error，557 payload inventory hash／103 source hash／空Data／PE／guide／README／sidecar靜態檢視完成。原StoreSHA相同，原初包与旧dist保留，沒有Release／Store／App測試。日誌与artifact保存實際位置及重建入口；公開與私人交接分開同步。
+
+## 2026-10-11 — 第二批本機免安裝試用包
+
+使用者詢問未發布版的免安裝試用，開工3fa30f9只原.vscode/未追蹤，先讀平台並建[日誌](PORTABLE_TRIAL_2026-10-11.zh-TW.md)。原Portable入口會覆寫同p6包，因此另加Label trial入口／存在拒絕覆寫，Common可選隔離ArtifactsPath；版本不改。重新publish App／helper、授權／README／空Data／inventory／ZIP／sidecar，557 entry SHA、93來源SHA、PE／版本／Data靜態核對完成；無新增Core／native／smoke或App啟動，不沿用前批成功數字當本批測試。
+
+靜態檢視發現guard逗號陣列加字串會拆錯sidecar項，修括號並用新Label重封r2，兩組原始log／產物保留。最終試用zip131,511,496 bytes、SHA與位置見[artifact](PORTABLE_TRIAL_ARTIFACT_2026-10-11.json)，557／93與Store保全重核通過。本機直接啟動資料夾已備好，原dist／Store SHA／作品与其他平台保留；新封裝未發Release或Store，ZIP不提交Git。平台與私人交接同步，命令／未驗收／具體Git結果另記日誌。
+
+## 2026-10-11 — 接續第二批視野候選網格
+
+從163e660開始、保留.vscode/，先建[日誌](PERFORMANCE_BATCH2_2026-10-11.zh-TW.md)与稀疏基準。九欄record比對反而慢／native CS0173與次生Xaml失敗保留；改setter非序列化counter与membership增量更新，原order/cull退路。靜態檢視抓到signed-zero相等setter問題，修正並加JSON/future-field檢查。
+
+最終2324 Core、127 strict pixels、x64／ARM64 publish通過（ARM64只編譯），10000稀疏CPUscan0.36124→grid0.07980ms；native平移仍有較差結果，raw保留、不作全面流暢保證。平台文件／工作清單更新，UI入口未變、手冊不改；版本／Store／dist／其他平台保留。命令、失敗、92 source SHA及Git同步見日誌，下一批有PERF05與硬體矩陣。
+
+## 2026-10-10 — GO：效能第一批
+
+從c39a099開始，保留使用者既有未追蹤.vscode/；先建日誌和合成CPU／native新基準，未沿用舊ARM VM數字。依證據實作ObjectOrderCache、单preview直接繪製、damage尾端索引與命中零rotation／closure配置改善；native基準抓到既有copy量化差異，保留兩次失敗後改GPU bitmap區域複製，沒有放寬像素檢查。新增重現腳本／raw samples／source hashes，資料根全新隔離、正常模式無診斷寫入。
+
+當批754 Core、70嚴格pixel comparisons与其他曲線／laser／idle契約通過，x64／ARM64 publish退出0（後者不等於實跑）；CPU10000 order p95 2.11462→0.15780ms、hit3.35256→0.33602ms，但nativeviewport成本仍高且有較差跑次。原bundle SHA一致，版本未增加、沒有Store／Release／WACK／真筆測試。修改檔案／命令／失敗／未驗收與同步結果集中在[第一批日誌](PERFORMANCE_BATCH1_2026-10-10.zh-TW.md)，原始資料在[performance證據](performance/2026-10-10-batch1/README.zh-TW.md)；Windows平台文件同步更新，私人庫另記跨電腦交接，其他平台未修改。
+
+## 2026-10-10 — Antigravity Windows 流暢度交接清單
+
+使用者要求工作清單供自行交給 Antigravity。開工兩庫乾淨、私人 visibility PRIVATE，讀開發索引／平台狀態架構問題後先建立 [本批紀錄](PERFORMANCE_WORKLIST_LOG_2026-10-10.zh-TW.md)。核對目前 Rendering／Input／renderer／overlay／Core session 與既有 Performance／歷史效能文件，明確記既有快取與背景保存已完成；整理九項待辦与首批01／02／03，辨別程式事實和待量測假設，補齊相容／資料／套件保全與驗收界線。修正查找的不存在檔案及縮圖符號後，更新工作入口与目前狀態，私人只記交接入口。沒有程式／版號／套件／圖片變更或測試執行；沒有自動傳訊 Antigravity／Store／Release／排程。同步證據另記私人日誌。
+
+## 2026-10-10 — 下一版開發與 GitHub 交接
+
+使用者確認可否續開發並要求 GitHub 同步；先讀平台文件、核兩庫 status／本機与遠端 main 一致，私人 visibility PRIVATE，建立 [本批日誌](NEXT_VERSION_HANDOFF_2026-10-10.zh-TW.md)。記錄認證中 1.0.12.0 與後續 source 開發各有版本證據，保留原套件／來源 aa71e35／私人截圖。下一版功能／版號未指定，不自訂功能；本批只更新公開／私人目前狀態及交接日誌。實際讀取與 Git 核對成功，無新增問題；未執行測試、版本變更、封裝／覆寫、後台／Release／排程或其他平台修改。Git 同步結果保存在私人交接日誌。
+
+## 2026-10-10 — 首次 Store 送審與私人截圖歸檔
+
+開工兩庫 git status 乾淨，已讀平台／私人開發規則並先建立 [本批日誌](STORE_SUBMISSION_2026-10-10.zh-TW.md)。使用者提供 Submission 1 認證中文字、立即發佈設定及三張已提交示範 PNG；只記使用者來源，不宣稱助手已登入後台、認證通過或上架。PRIVATE repo visibility 實查；截圖原 byte 複製，三組來源／目的 SHA-256 相同，尺寸／大小／雜湊寫私人 MANIFEST.json，Downloads 原檔保留。更新私人 JSON／狀態／素材入口，以及公開平台狀態、提交阻礙解除紀錄與草稿狀態。三圖為產品展示，沒有當作 MSIX／WACK 驗收。未執行測試、重建／封包、Store 操作／取消認證、Release／排程或其他平台修改；Git 同步實際結果追加本批日誌。
+
+## 2026-10-10 — 私人產品記錄與多電腦交接
+
+使用者要求把產品資料放 GitHub 私人部分。開工主庫乾淨，先讀開發索引／Windows 文件並建立 [當批日誌](PRIVATE_RECORDS_2026-10-10.zh-TW.md)。gh 確認主庫 PUBLIC、沒有 HeiBan 私人紀錄庫；另建 HeiBan-private 並核 PRIVATE 後 push 六份管理／交接文件，初始 commit df6cb37。本地与 private remote main／HEAD 核對完成後記入私人日誌。公開 Windows README／CURRENT_STATUS 增加入口，架構決策記兩庫職責。未改程式／產物／Mac／Web，未執行測試／Store／Release 或排程。私密管理欄位不放本公開日誌。
+
+## 2026-10-10 — 正式商店身分與 MSIX 封裝
+
+使用者回覆 Product identity，延續 MSIX 與 GitHub 同步授權。工作樹開工乾淨；先讀索引／Windows 文件並建立 [即時日誌](MSIX_PACKAGING_2026-10-10.zh-TW.md)。新增 Store build 分支、正式 manifest／公開 identity、原圖示縮放資源、雙架構／bundle 腳本、商店手冊與刊登／審核草稿。版本獨立，資料生命週期不作未驗證保證。初次 x64 MSIX 退出 0／18 warnings；腳本 `$arch:` ParserError 及 PRI exclude 路徑失效都記錄並修正。最終產物／SHA／Git 同步結果收尾追加；本批未執行 App 測試／WACK／Store 操作。
+
+實際完成：套件版 1.0.12.0，最後兩架構均 0 warnings／0 errors，MSIX x64 97,864,712 bytes／ARM64 95,297,105 bytes、bundle 193,163,812 bytes。25 份授權／兩份手冊、實際版本／架構／最低 OS／runtime／PRI、bundle 內容 SHA、135 來源與 3 產物 SHA 相符；SDK 最低 OS 覆寫由 Store 專案屬性修正。來源 aa71e35 已 push 並以 ls-remote 核對，最後 [產物 manifest](STORE_ARTIFACTS_1.0.12.0_2026-10-10.json) 與驗收邊界另以文件提交保存。第一版免費，Store 後台價格／市場／問卷／素材／送審未操作；WACK、真 MSIX 安裝／更新／作品移轉與 ARM64 執行未執行。
+
+## 2026-10-10 — 商店帳戶後續準備及 GitHub 同步
+
+使用者告知已申辦 Partner Center，授權記錄與更新 GitHub。開工保留上一批 Windows 自動更新未提交內容，核本地／遠端基準同為 3dca2ef，建立 [當批紀錄](STORE_PREPARATION_2026-10-10.zh-TW.md) 後調查。依 Microsoft 官方資料整理產品身分、免費 MSIX 簽章／送審條件，指出商店更新、獨立版更新、第一次資料遷移與 GPL 授權邊界。沒有修改 Mac／Web 或已封存程式／產物。Git 提交及 push 結果完成後追加；本批未重跑程式測試／建置，未製作 MSIX 或操作 Store 後台。
+
+實際完成：32 個 Windows 檔案提交 `27c968dc80766d78eb1dac3d2305d32ee2f5c63e`，push 退出 0，ls-remote main／HEAD 與本機一致，工作樹乾淨。全量 staged diff check 指出第三方語言檔兩行原有註解尾空白，保留封裝來源；排除此檔的 check 退出 0。完整命令與邊界追加當批日誌；同步結果以後續文件提交保存。GitHub preview.6 Release、MSIX／Store 尚未發布。
+
+## 2026-10-10 — GitHub 自動更新與商店路線（preview.6，本機交付完成）
+
+使用者授權直接實裝線上更新，並確認不購買外部簽章時的 MSIX 商店路線。開工工作樹乾淨，讀開發索引及 Windows 狀態／架構／問題，先建立 [當批日誌](AUTO_UPDATE_2026-10-10.zh-TW.md) 並持續記錄阻礙。只修改 Windows；没有發布或操作 Store 帳號。
+
+新增 Core 更新版本／來源／檔案契約、GitHub 背景下載服務、關於／更多設定入口、自包含 helper、程序租約、正常保存後交接、Inno 升級／Portable 明確清單與 rollback、封裝 inventory 和獨立更新檢查／隔離整合腳本。Store package identity 停用 GitHub 替換。原作品文件格式及資料根不變；新 update-files.json 是程式發行契約。
+
+本機缺 SDK／工具，隔離準備 .NET 10.0.401／Inno 6.7.3，首組工具命令拒絕、regex 換行錯判、測試例外分類、語言檔缺／過期 key、stable FileVersion 比較與交接 race 調查都保留在當批日誌。73 更新檢查、700 Core／手冊，以及隔離 x64 helper／Inno／作品標記保全已通過；最終修正後封裝和整合正在重跑。沒有沿用舊的 700 數字；實際命令及產物證據收尾追加。
+
+最後來源重跑 73／700 通過及 helper 整合成功；兩架構四包已完成、封裝退出 0，兩次 Inno Successful compile、最終 warning／error 0。Portable 555／551 檔逐 SHA、當前手冊／README、架構、空 Data 和 sidecar 通過，x64 真 App 隔離啟動／正常關閉退出 0。最後產物 [manifest](ARTIFACTS_2026-10-10_1.0.12-preview.6.json) 記大小／SHA、來源 snapshot、log hash 與未執行範圍。ARM64 執行／完整硬體／真新 Release／MSI／MSIX／Store／停電恢復未執行。只修改 Windows，未 commit／push／發布；留本機四包供使用者安裝，保留工具與隔離測試紀錄。
+
 ## 2026-10-10 — Windows x64／ARM64 GitHub 更新（完成）
 
 使用者明確授權更新VirginBear/HeiBan及清理過時Windows下載。已記錄git status、讀平台紀錄及舊公開發行規則。確認本機僅保留1.0.12-preview.5四包與SHA，x64 Portable／Setup皆存在；GitHub尚為0.1.0-preview.5七assets。只同步Windows來源與相關公開文件，保留同期Mac修改；先核SHA及相應來源、以draft上傳核對後發布，再移除過時Windows二進位，保留歷史Release說明／tag／雜湊文本。Mac公開版本另行管理，本輪不清Mac。

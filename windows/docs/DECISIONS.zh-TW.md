@@ -1,5 +1,68 @@
 # Windows 開發決策
 
+## 2026-10-11 — 十語即時UI與預設
+
+使用者確認zh-TW、zh-CN、en、ja、ko、es、fr、de、pt-BR、ar。固定正體中文為初次預設，允許首頁手動切換，成功原子保存後才更改UI。採嵌入JSON＋附加資源鍵，以即時更新自製文字並保留文件／設定碼；不把已翻譯顯示值當資料枚舉。阿拉伯語只改閱讀方向，不能鏡像畫布或截圖座標。手冊先明示正體中文；581項十語資源的完成不等於母語或原生UI驗收。Store來源manifest新增十語宣告，送審二進位仍是舊版，不能覆寫1.0.12.0提交。
+
+## 2026-10-11 — 使用者更正與舊試用清理授權
+
+- 一般畫布使用XAML ProtectedCursor，舊SetCursor／WM_SETCURSOR bridge策略由本節覆寫。使用者回報螢幕畫布成功是實機證據；主畫布新方式只編譯／静態核對，實機待試用。
+- infinite 不顯示尺寸且保存null；fixed第一次為16:9，保留後續自選；notebook尺寸原預設不變。背景UI共用五種code，未知值保留，取消不寫文件。
+- 本次使用者明確指定windows/dist/trials舊未發布版本可清除，覆寫以前「保留所有試用包」決策。新包成功後才清舊包；已發布Release／Store及其他dist不清。舊Data／unknown／modified files先保留至独立local dist備份，不上Git。
+- GitHub只保存程式／小型證據文件，trials原已ignored、沒有tracked runtime二進位；不重寫Git歷史，不刪正式Release。私人摘要新增更正段與目前狀態，舊原實作紀錄仍是歷史，不聲稱其實機成功。
+
+
+## 2026-10-11 — 使用者回饋覆寫與相容邊界
+
+1. 螢幕工具列可增加行／列，不用捲軸藏工具；原「僅中段捲動」決策由本節覆寫。
+2. 拖曳浮層／插入線只屬視覺狀態，保留放開提交與單步復原；取消及 ListView 重建要先復原原列 opacity。
+3. 箭頭頭部長／寬仍獨立，輪廓線寬改為 StrokeWidth；覆寫 UX_ALIGNMENT／DOCUMENT_ADDITIONS 中固定 2 的舊政策。既有作品不遷移 JSON，重繪／SVG 外觀依新政策；頭部仍連續線。
+4. layers 首次在 visible／hidden 均不存在時補入可見；自訂隱藏後不強制再顯示，不改既有工具順序。
+5. 清理僅限已確認無正式入口引用的一次性編輯腳本與無用固定尺寸常數；SHA／bytes 清單與失敗原因留紀錄，保留交付產物與作品。對話以需求／決策／覆寫／證據／待辦壓縮存私人庫，不公開完整產品管理或聊天內容。
+
+
+## 2026-10-11 — 選取模式、物件屬性與圖層分離
+
+首頁採 Single 一般反白，使用者開啟多選才切 Multiple 並顯示批次列／卡片圓形勾選；雙擊與右鍵開啟保留。Inspector 按物件型別分組，刷子入口選到物件時共用同一 Inspector，避免兩套不同屬性。圖層為獨立面板；灰色把手只預覽目標，放開一次正規化全文件 Z 次序並提交，隱藏／其他頁物件相對順序保留。
+
+尺以當前 Canvas 寬度的百分比計算 DIP，預設 90%、可設 20–150%，不把 4K 實體像素当 DIP。螢幕工具列量測三個 StackPanel 再依 DPI 換成視窗像素，僅中段捲動。停筆一秒只辨認近直線，離開 12 DIP 停筆範圍恢復原筆跡；不在計時回呼寫永久物件。
+
+箭頭沿用可選 headLength/headWidth，缺值採 16／10 世界單位，頭部連續 2 單位輪廓，線寬／虛線只改 shaft；同步 native、SVG、命中、框選。圖釘增加可選 color/textColor，schemaVersion 不升級；舊值仍相容，Mac 尚未支援這兩個欄位，限制必須明記。
+
+## 2026-10-11 — 第二批限定渲染候選索引
+
+選簡單網格，保留原ordered scan退路；不先承擔各型別精確hit／擦除／curve bounds或GPU tiles生命週期。低密度視野可以縮減要進renderer的集合，密集場景退回原路徑；沒有聲稱所有場景都更快。固定bounds線性掃描只作immutable synthetic下界，欠缺mutation契約；未選用四叉樹，尚無足夠證據證明其更新／記憶體成本值得增加複雜度。
+
+實測九欄record比對比直接掃描更慢，明確欄位比對收益有限；因此相關setter加非序列化counter以保持直接交易修改相容，O(n)掃counter而非多欄。單物件移動增量更新，Z/list／Undo替換重建；高頻筆點／永久文件交易不變。複雜型別保持global candidate＋既有renderer，不把既有culling相容測試稱全型別精確空間索引。實測／失敗／限制見[本批日誌](PERFORMANCE_BATCH2_2026-10-11.zh-TW.md)。
+
+## 2026-10-10 — 第一批選擇保守順序快取
+
+保留public mutable List／ZIndex契約，用O(n)無配置scan捕捉交易內改動，再僅於order改變時穩定排序；不先把模型改成全面mutation通知，也不把全部文件掃描稱空間索引。RenderPreview不建立order；命中唯讀資料與永久手勢交易不變。源碼／原始結果見[本批紀錄](PERFORMANCE_BATCH1_2026-10-10.zh-TW.md)。CPU配置與耗時有收益，但native viewport重建未一致改善，下一批才按證據比較04／05；沒有先換小畫家式backend或丟輸入點。
+
+現有螢幕快取copy在此GPU出現最大1色階的strict mismatch；選同format／96DPI的GPU bitmap區域複製，保留零容差與layered-window傳輸，沒有以放寬檢查掩蓋失敗。此選擇尚需其他GPU／DPI／device lifecycle驗收；Store送審套件是原版快照，本批source不自動替換它。
+
+## 2026-10-10 — 私人產品管理另用獨立 repo
+
+公開 HeiBan 的技術來源／必要套件 manifest 继续維護。產品管理與跨電腦交接使用獨立 PRIVATE HeiBan-private，不把公開庫分支或子目錄視作私人區域，也不把私人 repo 放成公開 submodule。公開平台入口只連到私人庫；有權限的開發者先取回／讀取紀錄，再核最新平台來源。身份／價格／進度變動兩庫依職責分别提交，不保存密碼／權杖／私鑰。前述公開產品身分屬安裝必要中繼資料，未改寫既有公開歷史。
+
+## 2026-10-10 — 已取得正式 Store 身分，選 SDK single-project MSIX
+
+使用者提供 DD7EC7CF.HeiBan／正式 Publisher／純潔的熊／HeiBan 黑板及產品 9NV8T7RKV4MZ。保存必要公開套件身分，不保存其他帳戶 ID。使用原生 SDK MSIX 管道，不直接壓縮 Unpackaged ZIP；Store 與 EXE／Portable bin／obj 隔離。首份 package version 1.0.12.0，產品 preview.6 保留；後續重送更高版本須提高套件版本。MSIX／bundle 未購買 CA／未自行公開側載，交 Store 重新簽章。只使用 runFullTrust，不先增加 unvirtualizedResources 或承諾資料庫共用；首次移轉／解除安裝保留須驗收。
+
+## 2026-10-10 — 商店身分與第一版移轉前置
+
+正式 MSIX 必須使用 Partner Center 指派的 Identity Name／Publisher／PublisherDisplayName 及使用者保留名稱，不猜測。商店對 MSIX 重新簽章，因此不購買 CA 憑證作為商店前置。EXE FileVersion 與 Store 套件版本分開；取得身分後建立遞增的四段套件版本。首次從 Inno／Portable 遷移、資料重新導向及商店解除安裝生命週期需實際驗收，不能套用獨立版的作品保留結論。GitHub 來源同步不等於 Release 或 Store 更新。
+
+## 2026-10-10 — GitHub 與 MSIX 更新責任
+
+- 現有每使用者 Inno 安裝版及 Portable 使用 GitHub Releases（清單，不能用排除預覽版的 latest）；固定 VirginBear/HeiBan、windows-v 語意版本及程序架構／包類型。preview.6 預設接收預覽，可在更新設定停用背景更新或預覽。只在 App 開啟期間檢查，沒有系統排程／常駐服務。
+- 不另外購買 CA 憑證作為 GitHub 更新前置；驗證 GitHub HTTPS／asset SHA 與大小，只描述平台來源與完整性，不當作獨立簽章。Microsoft Store 的 EXE／MSI 路線仍需可信任簽章；MSIX 路線由商店免費簽章／託管／更新，後續需真實 Store Identity／Publisher。
+- 主視窗保存作品／教學設定／螢幕註記成功後才交接，helper 等父程序退出再套用；租約與短期互斥鎖阻止新舊同一安裝重疊替換，舊版沒有租約時補查程序。交接 work lock 重試，不強制終止使用者程序。別的視窗未關閉時保留 pending。
+- Portable `update-files.json` schema：`Version` 是產品語意版本、`Files` 是相對路徑 → SHA-256 映射；排除 Data／portable.dat／清單本身。封裝時記錄全部程式檔。更新前核對舊／新清單與來源 hash，遇到修改過的已知檔、未知檔名衝突、junction 或壞路徑時改手動處理。普通失敗還原已移動程式檔；停電／強殺不宣稱完成 crash recovery，備份保留供修復。
+- Installer 交原 Inno 靜默升級，不跳過其註冊／解除安裝資訊，不變作品根。helper 從安裝目錄外的個別安裝 cache 執行，pending／偏好／結果不放在作品 JSON。保留未知更新偏好欄位。更新不自動重啟，不阻止離線使用。
+- `major.minor.patch-preview.N` 以語意排序，stable 高於同版 preview；Windows FileVersion stable 的第四碼為 0，不能用純數字判斷是否已轉正式。待更新架構及 installed／payload 的 PE Machine 均核對。
+- 有 MSIX package identity 時不使用 GitHub 檔案替換；本批未製作商店包，不把 identity 偵測分支當作商店驗收。正常關閉／隔離 smoke 及 synthetic 更新檢查不等於實際發布後的網路／硬體驗收。
+
 ## 2026-10-10 — GitHub Windows下載只保留最新二進位
 
 使用者明確要求更新及清理GitHub舊版本。先推相應Windows來源，draft上傳並核SHA／size後公開，確認未登入下載可用再刪已替代的Windows二進位及舊HTML。保留歷史Release／tag與SHA／manifest文本，不改寫Git歷史。原本機包與公開授權ZIP分開，公開manifest指向精確source commit，source tag不移動；Mac由其平台另行更新。

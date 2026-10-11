@@ -1,3 +1,4 @@
+using static HeiBan.Windows.Localization.Strings;
 using System.Numerics;
 using HeiBan.Windows.Engine;
 using HeiBan.Windows.Models;
@@ -29,7 +30,7 @@ public partial class MainWindow
         if(_session.Document.Board.Pins?.Any(p=>p.Id==pin.Id)!=true)return;
         _pinNameId=pin.Id;_pinNameEpoch=_session.DocumentEpoch;
         var point=_viewport.WorldToScreen(pin.X,pin.Y);
-        var editor=new TextBox{Text=pin.Name,MinWidth=180,MaxWidth=360,PlaceholderText="圖釘名稱"};
+        var editor=new TextBox{Text=pin.Name,MinWidth=180,MaxWidth=360,PlaceholderText=T("圖釘名稱")};
         _pinNameEditor=editor;Canvas.SetLeft(editor,Math.Clamp(point.X+12,0,Math.Max(0,CanvasSurface.ActualWidth-360)));Canvas.SetTop(editor,Math.Clamp(point.Y-8,0,Math.Max(0,CanvasSurface.ActualHeight-40)));
         TextOverlay.IsHitTestVisible=true;TextOverlay.Children.Add(editor);
         editor.KeyDown+=(_,e)=>{if(e.Key==VirtualKey.Enter){FinishPinRename();e.Handled=true;}else if(e.Key==VirtualKey.Escape){FinishPinRename(false);e.Handled=true;}};

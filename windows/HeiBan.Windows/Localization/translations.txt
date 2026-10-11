@@ -1,0 +1,493 @@
+# UTF-8 catalog authoring table. Columns: source aliases | en | ja | ko | es | fr | de | pt-BR | ar
+語言|Language|言語|언어|Idioma|Langue|Sprache|Idioma|اللغة
+黑板;HeiBan 黑板 · Windows|HeiBan|HeiBan|HeiBan|HeiBan|HeiBan|HeiBan|HeiBan|HeiBan
+黑板 · Windows |HeiBan · Windows |HeiBan · Windows |HeiBan · Windows |HeiBan · Windows |HeiBan · Windows |HeiBan · Windows |HeiBan · Windows |HeiBan · Windows\s
+作品庫|Library|ライブラリ|라이브러리|Biblioteca|Bibliothèque|Bibliothek|Biblioteca|المكتبة
+我的作品|My works|自分の作品|내 작품|Mis trabajos|Mes créations|Meine Werke|Meus trabalhos|أعمالي
+所有作品|All works|すべての作品|모든 작품|Todos los trabajos|Toutes les créations|Alle Werke|Todos os trabalhos|جميع الأعمال
+收藏|Favorites|お気に入り|즐겨찾기|Favoritos|Favoris|Favoriten|Favoritos|المفضلة
+垃圾桶|Trash|ごみ箱|휴지통|Papelera|Corbeille|Papierkorb|Lixeira|سلة المهملات
+免安裝版|Portable|ポータブル版|포터블 버전|Versión portátil|Version portable|Portable Version|Versão portátil|نسخة محمولة
+匯入;匯入作品|Import|インポート|가져오기|Importar|Importer|Importieren|Importar|استيراد
+搜尋作品|Search works|作品を検索|작품 검색|Buscar trabajos|Rechercher des créations|Werke suchen|Pesquisar trabalhos|البحث عن أعمال
+全部格式|All formats|すべての形式|모든 형식|Todos los formatos|Tous les formats|Alle Formate|Todos os formatos|جميع التنسيقات
+格式;格式篩選|Format|形式|형식|Formato|Format|Format|Formato|التنسيق
+作品排序|Sort works|作品を並べ替え|작품 정렬|Ordenar trabajos|Trier les créations|Werke sortieren|Ordenar trabalhos|ترتيب الأعمال
+最近修改|Last modified|最終更新|최근 수정|Última modificación|Dernière modification|Zuletzt geändert|Última modificação|آخر تعديل
+建立日期|Date created|作成日|만든 날짜|Fecha de creación|Date de création|Erstellungsdatum|Data de criação|تاريخ الإنشاء
+名稱;作品名稱;筆記名稱|Name|名前|이름|Nombre|Nom|Name|Nome|الاسم
+縮圖大小|Thumbnail size|サムネイルのサイズ|미리 보기 크기|Tamaño de miniatura|Taille des miniatures|Vorschaubildgröße|Tamanho da miniatura|حجم الصور المصغرة
+緊湊|Compact|コンパクト|작게|Compacto|Compact|Kompakt|Compacto|صغير
+適中|Medium|標準|보통|Mediano|Moyen|Mittel|Médio|متوسط
+大圖|Large|大きい|크게|Grande|Grand|Groß|Grande|كبير
+筆記本;筆記本（多頁）|Notebook|ノートブック|노트북|Cuaderno|Carnet|Notizbuch|Caderno|دفتر ملاحظات
+無邊界筆記|Infinite note|無限ノート|무한 노트|Nota infinita|Note infinie|Unbegrenzte Notiz|Nota infinita|ملاحظة بلا حدود
+有邊界黑板|Fixed-size board|固定サイズのボード|고정 크기 보드|Pizarra de tamaño fijo|Tableau à taille fixe|Tafel mit fester Größe|Quadro de tamanho fixo|لوحة بحجم ثابت
+新增筆記或黑板|New note or board|ノートまたはボードを作成|새 노트 또는 보드|Nueva nota o pizarra|Nouvelle note ou tableau|Neue Notiz oder Tafel|Nova nota ou quadro|ملاحظة أو لوحة جديدة
+新筆記|New note|新しいノート|새 노트|Nueva nota|Nouvelle note|Neue Notiz|Nova nota|ملاحظة جديدة
+建立|Create|作成|만들기|Crear|Créer|Erstellen|Criar|إنشاء
+尺寸|Size|サイズ|크기|Tamaño|Taille|Größe|Tamanho|الحجم
+16:9 簡報|16:9 presentation|16:9 プレゼンテーション|16:9 프레젠테이션|Presentación 16:9|Présentation 16:9|16:9 Präsentation|Apresentação 16:9|عرض تقديمي 16:9
+1:1 方形|1:1 square|1:1 正方形|1:1 정사각형|Cuadrado 1:1|Carré 1:1|1:1 Quadrat|Quadrado 1:1|مربع 1:1
+A4 直向|A4 portrait|A4 縦|A4 세로|A4 vertical|A4 portrait|A4 Hochformat|A4 retrato|A4 عمودي
+A4 橫向|A4 landscape|A4 横|A4 가로|A4 horizontal|A4 paysage|A4 Querformat|A4 paisagem|A4 أفقي
+背景;畫布背景;畫布背景…|Canvas background|キャンバスの背景|캔버스 배경|Fondo del lienzo|Arrière-plan du canevas|Leinwandhintergrund|Fundo da tela|خلفية اللوحة
+背景樣式|Background pattern|背景のパターン|배경 패턴|Patrón del fondo|Motif de fond|Hintergrundmuster|Padrão do fundo|نمط الخلفية
+背景顏色|Background color|背景色|배경색|Color del fondo|Couleur de fond|Hintergrundfarbe|Cor do fundo|لون الخلفية
+空白|Blank|無地|빈 배경|En blanco|Uni|Leer|Em branco|فارغ
+橫線條|Ruled lines|横罫線|가로줄|Renglones|Lignes|Linien|Linhas|سطور
+點狀|Dots|ドット|점|Puntos|Points|Punkte|Pontos|نقاط
+方格;方格子|Grid|方眼|격자|Cuadrícula|Quadrillage|Raster|Grade|شبكة
+五線譜|Music staff|五線譜|오선지|Pentagrama|Portée musicale|Notenlinien|Pauta musical|مدرج موسيقي
+目前樣式（保留）|Current pattern (keep)|現在のパターンを保持|현재 패턴 유지|Patrón actual (conservar)|Motif actuel (conserver)|Aktuelles Muster beibehalten|Padrão atual (manter)|النمط الحالي (إبقاء)
+開啟作品|Open work|作品を開く|작품 열기|Abrir trabajo|Ouvrir la création|Werk öffnen|Abrir trabalho|فتح العمل
+作品更多動作|More actions|その他の操作|추가 작업|Más acciones|Autres actions|Weitere Aktionen|Mais ações|إجراءات إضافية
+選取多份作品|Select multiple works|複数の作品を選択|여러 작품 선택|Seleccionar varios trabajos|Sélectionner plusieurs créations|Mehrere Werke auswählen|Selecionar vários trabalhos|تحديد عدة أعمال
+全選;全選目前結果|Select all|すべて選択|모두 선택|Seleccionar todo|Tout sélectionner|Alles auswählen|Selecionar tudo|تحديد الكل
+完成|Done|完了|완료|Listo|Terminé|Fertig|Concluído|تم
+完成 · Ctrl+Enter|Done · Ctrl+Enter|完了 · Ctrl+Enter|완료 · Ctrl+Enter|Listo · Ctrl+Enter|Terminé · Ctrl+Enter|Fertig · Ctrl+Enter|Concluído · Ctrl+Enter|تم · Ctrl+Enter
+已選 0 份|0 selected|0 件選択|0개 선택됨|0 seleccionados|0 sélectionné|0 ausgewählt|0 selecionados|تم تحديد 0
+已選 {0} 份|{0} selected|{0} 件選択|{0}개 선택됨|{0} seleccionados|{0} sélectionné(s)|{0} ausgewählt|{0} selecionados|تم تحديد {0}
+所有作品  {0}|All works  {0}|すべての作品  {0}|모든 작품  {0}|Todos los trabajos  {0}|Toutes les créations  {0}|Alle Werke  {0}|Todos os trabalhos  {0}|جميع الأعمال  {0}
+收藏  {0}|Favorites  {0}|お気に入り  {0}|즐겨찾기  {0}|Favoritos  {0}|Favoris  {0}|Favoriten  {0}|Favoritos  {0}|المفضلة  {0}
+垃圾桶  {0}|Trash  {0}|ごみ箱  {0}|휴지통  {0}|Papelera  {0}|Corbeille  {0}|Papierkorb  {0}|Lixeira  {0}|سلة المهملات  {0}
+第一份作品，從這裡開始|Start your first work here|ここから最初の作品を作成|여기서 첫 작품을 시작하세요|Empieza aquí tu primer trabajo|Commencez votre première création ici|Beginnen Sie hier Ihr erstes Werk|Comece seu primeiro trabalho aqui|ابدأ عملك الأول هنا
+沒有符合的作品|No matching works|該当する作品はありません|일치하는 작품이 없습니다|No hay trabajos coincidentes|Aucune création correspondante|Keine passenden Werke|Nenhum trabalho encontrado|لا توجد أعمال مطابقة
+收藏常用的作品|Favorite your frequently used works|よく使う作品をお気に入りに追加|자주 쓰는 작품을 즐겨찾기에 추가하세요|Añade tus trabajos habituales a favoritos|Ajoutez vos créations habituelles aux favoris|Häufig verwendete Werke als Favoriten speichern|Adicione seus trabalhos frequentes aos favoritos|أضف أعمالك المتكررة إلى المفضلة
+垃圾桶是空的;沒有已刪除的作品。|Trash is empty|ごみ箱は空です|휴지통이 비어 있습니다|La papelera está vacía|La corbeille est vide|Der Papierkorb ist leer|A lixeira está vazia|سلة المهملات فارغة
+使用搜尋或格式篩選，或按上方 ＋ 建立作品。|Search, filter by format, or press + to create a work.|検索や形式で絞り込むか、＋で作品を作成します。|검색이나 형식 필터를 사용하거나 +로 작품을 만드세요.|Busca, filtra por formato o pulsa + para crear un trabajo.|Recherchez, filtrez par format ou appuyez sur + pour créer.|Suchen, nach Format filtern oder mit + ein Werk erstellen.|Pesquise, filtre por formato ou pressione + para criar.|ابحث أو رشّح حسب التنسيق أو اضغط + لإنشاء عمل.
+作品仍保留筆跡、圖片與頁面；點選作品可還原。|Ink, images and pages are kept. Select a work to restore it.|筆跡、画像、ページは保持されています。作品を選択して復元します。|필기, 이미지, 페이지가 보존됩니다. 작품을 선택하여 복원하세요.|Se conservan trazos, imágenes y páginas. Selecciona un trabajo para restaurarlo.|Traits, images et pages sont conservés. Sélectionnez une création pour la restaurer.|Striche, Bilder und Seiten bleiben erhalten. Werk zum Wiederherstellen auswählen.|Traços, imagens e páginas são mantidos. Selecione um trabalho para restaurar.|تُحفظ الخطوط والصور والصفحات. حدد عملاً لاستعادته.
+移到垃圾桶|Move to trash|ごみ箱に移動|휴지통으로 이동|Mover a la papelera|Mettre à la corbeille|In den Papierkorb verschieben|Mover para a lixeira|نقل إلى سلة المهملات
+移到垃圾桶？|Move to trash?|ごみ箱に移動しますか？|휴지통으로 이동할까요?|¿Mover a la papelera?|Mettre à la corbeille ?|In den Papierkorb verschieben?|Mover para a lixeira?|نقل إلى سلة المهملات؟
+所選 {0} 份作品會保留在垃圾桶，可從左側還原。|The {0} selected works will stay in Trash and can be restored from the sidebar.|選択した {0} 件はごみ箱に保持され、サイドバーから復元できます。|선택한 작품 {0}개는 휴지통에 보관되며 사이드바에서 복원할 수 있습니다.|Los {0} trabajos seleccionados se conservarán en la papelera y podrán restaurarse desde la barra lateral.|Les {0} créations resteront dans la corbeille et pourront être restaurées depuis la barre latérale.|Die {0} ausgewählten Werke bleiben im Papierkorb und lassen sich über die Seitenleiste wiederherstellen.|Os {0} trabalhos ficarão na lixeira e poderão ser restaurados pela barra lateral.|ستُحفظ الأعمال المحددة وعددها {0} في سلة المهملات ويمكن استعادتها من الشريط الجانبي.
+還原|Restore|復元|복원|Restaurar|Restaurer|Wiederherstellen|Restaurar|استعادة
+改名;重新命名|Rename|名前を変更|이름 바꾸기|Cambiar nombre|Renommer|Umbenennen|Renomear|إعادة تسمية
+製作副本|Duplicate|複製を作成|복제|Duplicar|Dupliquer|Duplizieren|Duplicar|إنشاء نسخة
+ 副本| copy| のコピー| 복사본| copia| copie| Kopie| cópia| نسخة
+加入收藏|Add to favorites|お気に入りに追加|즐겨찾기에 추가|Añadir a favoritos|Ajouter aux favoris|Zu Favoriten hinzufügen|Adicionar aos favoritos|إضافة إلى المفضلة
+取消收藏|Remove from favorites|お気に入りから削除|즐겨찾기에서 제거|Quitar de favoritos|Retirer des favoris|Aus Favoriten entfernen|Remover dos favoritos|إزالة من المفضلة
+加入／取消收藏|Toggle favorite|お気に入りを切り替え|즐겨찾기 전환|Alternar favorito|Activer ou retirer des favoris|Favorit umschalten|Alternar favorito|تبديل المفضلة
+收合／展開作品庫側欄|Collapse or expand the library sidebar|ライブラリのサイドバーを折りたたむ／展開|라이브러리 사이드바 접기/펼치기|Contraer o expandir la barra lateral|Réduire ou développer la barre latérale|Bibliotheksleiste ein- oder ausklappen|Recolher ou expandir a barra lateral|طي الشريط الجانبي أو توسيعه
+回到作品庫;回到首頁|Back to library|ライブラリに戻る|라이브러리로 돌아가기|Volver a la biblioteca|Retour à la bibliothèque|Zur Bibliothek|Voltar à biblioteca|العودة إلى المكتبة
+使用說明;使用手冊|User guide|使い方|사용 설명서|Guía de usuario|Guide d'utilisation|Benutzerhandbuch|Guia do usuário|دليل الاستخدام
+使用說明（正體中文）;使用手冊（正體中文）;黑板使用手冊與快捷鍵…（正體中文）|User guide (Traditional Chinese)|使い方（繁体字中国語）|사용 설명서(번체 중국어)|Guía (chino tradicional)|Guide (chinois traditionnel)|Handbuch (traditionelles Chinesisch)|Guia (chinês tradicional)|دليل الاستخدام (الصينية التقليدية)
+黑板使用手冊與快捷鍵…|User guide and shortcuts|使い方とショートカット|설명서 및 단축키|Guía y atajos|Guide et raccourcis|Handbuch und Tastenkürzel|Guia e atalhos|الدليل والاختصارات
+關於黑板;關於黑板…|About HeiBan|HeiBan について|HeiBan 정보|Acerca de HeiBan|À propos de HeiBan|Über HeiBan|Sobre o HeiBan|حول HeiBan
+螢幕畫布;我的螢幕就是我的畫布|Screen canvas|画面キャンバス|화면 캔버스|Lienzo de pantalla|Canevas d'écran|Bildschirmleinwand|Tela de anotação|لوحة الشاشة
+我的螢幕就是我的畫布（Ctrl+Alt+A）|Screen canvas (Ctrl+Alt+A)|画面キャンバス（Ctrl+Alt+A）|화면 캔버스(Ctrl+Alt+A)|Lienzo de pantalla (Ctrl+Alt+A)|Canevas d'écran (Ctrl+Alt+A)|Bildschirmleinwand (Ctrl+Alt+A)|Tela de anotação (Ctrl+Alt+A)|لوحة الشاشة (Ctrl+Alt+A)
+螢幕註記|Screen annotations|画面の注釈|화면 주석|Anotaciones de pantalla|Annotations d'écran|Bildschirmnotizen|Anotações da tela|تعليقات الشاشة
+取消|Cancel|キャンセル|취소|Cancelar|Annuler|Abbrechen|Cancelar|إلغاء
+取消 · Esc|Cancel · Esc|キャンセル · Esc|취소 · Esc|Cancelar · Esc|Annuler · Esc|Abbrechen · Esc|Cancelar · Esc|إلغاء · Esc
+關閉|Close|閉じる|닫기|Cerrar|Fermer|Schließen|Fechar|إغلاق
+儲存|Save|保存|저장|Guardar|Enregistrer|Speichern|Salvar|حفظ
+儲存作品（Ctrl+S）|Save work (Ctrl+S)|作品を保存（Ctrl+S）|작품 저장(Ctrl+S)|Guardar trabajo (Ctrl+S)|Enregistrer (Ctrl+S)|Werk speichern (Ctrl+S)|Salvar trabalho (Ctrl+S)|حفظ العمل (Ctrl+S)
+儲存中…|Saving…|保存中…|저장 중…|Guardando…|Enregistrement…|Speichern…|Salvando…|جارٍ الحفظ…
+本機已存;本機儲存;已儲存|Saved locally|ローカルに保存済み|로컬에 저장됨|Guardado localmente|Enregistré localement|Lokal gespeichert|Salvo localmente|محفوظ محليًا
+尚有變更;尚未儲存完成|Unsaved changes|未保存の変更|저장되지 않은 변경 사항|Cambios sin guardar|Modifications non enregistrées|Ungespeicherte Änderungen|Alterações não salvas|تغييرات غير محفوظة
+儲存未完成：{0}|Save incomplete: {0}|保存未完了：{0}|저장 미완료: {0}|Guardado incompleto: {0}|Enregistrement incomplet : {0}|Speichern unvollständig: {0}|Salvamento incompleto: {0}|الحفظ غير مكتمل: {0}
+儲存狀態：{0}|Save status: {0}|保存状態：{0}|저장 상태: {0}|Estado del guardado: {0}|État d'enregistrement : {0}|Speicherstatus: {0}|Status do salvamento: {0}|حالة الحفظ: {0}
+未完成：|Incomplete: |未完了：|미완료: |Incompleto: |Non terminé : |Unvollständig: |Incompleto: |غير مكتمل:\s
+無法完成操作|Unable to complete the action|操作を完了できません|작업을 완료할 수 없습니다|No se pudo completar la acción|Impossible de terminer l'action|Aktion konnte nicht abgeschlossen werden|Não foi possível concluir a ação|تعذر إكمال الإجراء
+套用|Apply|適用|적용|Aplicar|Appliquer|Übernehmen|Aplicar|تطبيق
+清除|Clear|消去|지우기|Borrar|Effacer|Leeren|Limpar|مسح
+刪除;刪除物件|Delete|削除|삭제|Eliminar|Supprimer|Löschen|Excluir|حذف
+刪除（Delete）|Delete (Delete)|削除（Delete）|삭제(Delete)|Eliminar (Delete)|Supprimer (Delete)|Löschen (Delete)|Excluir (Delete)|حذف (Delete)
+複製|Copy|コピー|복사|Copiar|Copier|Kopieren|Copiar|نسخ
+複製（Ctrl+C）|Copy (Ctrl+C)|コピー（Ctrl+C）|복사(Ctrl+C)|Copiar (Ctrl+C)|Copier (Ctrl+C)|Kopieren (Ctrl+C)|Copiar (Ctrl+C)|نسخ (Ctrl+C)
+剪下|Cut|切り取り|잘라내기|Cortar|Couper|Ausschneiden|Recortar|قص
+貼上;貼上已複製物件|Paste|貼り付け|붙여넣기|Pegar|Coller|Einfügen|Colar|لصق
+復原這個螢幕的註記|Undo screen annotation|画面の注釈を元に戻す|화면 주석 실행 취소|Deshacer anotación|Annuler l'annotation|Bildschirmnotiz rückgängig machen|Desfazer anotação|التراجع عن تعليق الشاشة
+復原（Ctrl+Z）|Undo (Ctrl+Z)|元に戻す（Ctrl+Z）|실행 취소(Ctrl+Z)|Deshacer (Ctrl+Z)|Annuler (Ctrl+Z)|Rückgängig (Ctrl+Z)|Desfazer (Ctrl+Z)|تراجع (Ctrl+Z)
+重做|Redo|やり直す|다시 실행|Rehacer|Rétablir|Wiederholen|Refazer|إعادة
+重做（Ctrl+Y）|Redo (Ctrl+Y)|やり直す（Ctrl+Y）|다시 실행(Ctrl+Y)|Rehacer (Ctrl+Y)|Rétablir (Ctrl+Y)|Wiederholen (Ctrl+Y)|Refazer (Ctrl+Y)|إعادة (Ctrl+Y)
+選取;選取物件|Select|選択|선택|Seleccionar|Sélectionner|Auswählen|Selecionar|تحديد
+選取（V）|Select (V)|選択（V）|선택(V)|Seleccionar (V)|Sélectionner (V)|Auswählen (V)|Selecionar (V)|تحديد (V)
+畫筆;筆刷|Brush|ブラシ|브러시|Pincel|Pinceau|Pinsel|Pincel|فرشاة
+鋼筆;向量筆|Pen|ペン|펜|Pluma|Stylo|Stift|Caneta|قلم
+鋼筆／向量筆（P）|Pen (P)|ペン（P）|펜(P)|Pluma (P)|Stylo (P)|Stift (P)|Caneta (P)|قلم (P)
+鉛筆|Pencil|鉛筆|연필|Lápiz|Crayon|Bleistift|Lápis|قلم رصاص
+書法|Calligraphy|カリグラフィー|캘리그래피|Caligrafía|Calligraphie|Kalligrafie|Caligrafia|خط
+水彩|Watercolor|水彩|수채화|Acuarela|Aquarelle|Aquarell|Aquarela|ألوان مائية
+蠟筆|Crayon|クレヨン|크레용|Crayón|Crayon de cire|Wachsmalstift|Giz de cera|قلم شمعي
+油漆;油漆筆;油漆筆刷|Paint brush|ペイントブラシ|페인트 브러시|Pincel de pintura|Pinceau de peinture|Malpinsel|Pincel de pintura|فرشاة طلاء
+螢光筆|Highlighter|蛍光ペン|형광펜|Resaltador|Surligneur|Textmarker|Marca-texto|قلم تمييز
+橡皮擦|Eraser|消しゴム|지우개|Borrador|Gomme|Radierer|Borracha|ممحاة
+橡皮擦：模式與大小（E）|Eraser: mode and size (E)|消しゴム：モードとサイズ（E）|지우개: 모드 및 크기(E)|Borrador: modo y tamaño (E)|Gomme : mode et taille (E)|Radierer: Modus und Größe (E)|Borracha: modo e tamanho (E)|الممحاة: الوضع والحجم (E)
+橡皮擦：再次點擊開啟設定|Eraser: click again for settings|消しゴム：再クリックで設定|지우개: 다시 클릭하면 설정|Borrador: pulsa de nuevo para configurar|Gomme : recliquez pour les réglages|Radierer: erneut für Einstellungen klicken|Borracha: clique novamente para configurar|الممحاة: انقر مجددًا للإعدادات
+橡皮擦直徑|Eraser diameter|消しゴムの直径|지우개 지름|Diámetro del borrador|Diamètre de la gomme|Radiererdurchmesser|Diâmetro da borracha|قطر الممحاة
+物件擦除;物件擦除（筆畫與圖形）|Erase whole objects|オブジェクト全体を消去|전체 개체 지우기|Borrar objetos completos|Effacer les objets entiers|Ganze Objekte löschen|Apagar objetos inteiros|مسح العناصر بالكامل
+局部筆跡擦除;局部擦除（只擦筆跡）|Erase part of an ink stroke|筆跡の一部を消去|필기 일부 지우기|Borrar parte de un trazo|Effacer une partie du trait|Teil eines Strichs löschen|Apagar parte de um traço|مسح جزء من الخط
+模式|Mode|モード|모드|Modo|Mode|Modus|Modo|الوضع
+範圍（pt）|Range (pt)|範囲（pt）|범위(pt)|Rango (pt)|Portée (pt)|Bereich (pt)|Alcance (pt)|النطاق (pt)
+直線;線段|Line|直線|직선|Línea|Ligne|Linie|Linha|خط
+曲線;可編輯曲線|Curve|曲線|곡선|Curva|Courbe|Kurve|Curva|منحنى
+箭頭|Arrow|矢印|화살표|Flecha|Flèche|Pfeil|Seta|سهم
+矩形|Rectangle|長方形|사각형|Rectángulo|Rectangle|Rechteck|Retângulo|مستطيل
+圓形|Circle|円|원|Círculo|Cercle|Kreis|Círculo|دائرة
+三角形|Triangle|三角形|삼각형|Triángulo|Triangle|Dreieck|Triângulo|مثلث
+四邊形|Quadrilateral|四角形|사변형|Cuadrilátero|Quadrilatère|Viereck|Quadrilátero|شكل رباعي
+菱形|Diamond|ひし形|마름모|Rombo|Losange|Raute|Losango|معين
+五角形|Pentagon|五角形|오각형|Pentágono|Pentagone|Fünfeck|Pentágono|خماسي الأضلاع
+星形|Star|星|별|Estrella|Étoile|Stern|Estrela|نجمة
+文字|Text|テキスト|텍스트|Texto|Texte|Text|Texto|نص
+文字（T）|Text (T)|テキスト（T）|텍스트(T)|Texto (T)|Texte (T)|Text (T)|Texto (T)|نص (T)
+便條紙|Sticky note|付箋|메모지|Nota adhesiva|Note adhésive|Haftnotiz|Nota adesiva|ملاحظة لاصقة
+圖片|Image|画像|이미지|Imagen|Image|Bild|Imagem|صورة
+圖釘|Pin|ピン|핀|Marcador|Repère|Markierung|Marcador|علامة
+物件|Object|オブジェクト|개체|Objeto|Objet|Objekt|Objeto|عنصر
+手寫筆跡|Ink stroke|手書きの筆跡|필기 획|Trazo a mano|Trait manuscrit|Handschriftstrich|Traço manuscrito|خط يدوي
+螢光筆跡|Highlighter stroke|蛍光ペンの筆跡|형광펜 획|Trazo de resaltador|Trait de surligneur|Markerstrich|Traço de marca-texto|خط تمييز
+油漆筆跡|Paint stroke|ペイントの筆跡|페인트 획|Trazo de pintura|Trait de peinture|Pinselstrich|Traço de pintura|خط طلاء
+畫框|Frame|フレーム|프레임|Marco|Cadre|Rahmen|Moldura|إطار
+表格|Table|表|표|Tabla|Tableau|Tabelle|Tabela|جدول
+公式|Formula|数式|수식|Fórmula|Formule|Formel|Fórmula|صيغة
+心智圖|Mind map|マインドマップ|마인드맵|Mapa mental|Carte mentale|Mindmap|Mapa mental|خريطة ذهنية
+連接線|Connector|コネクタ|연결선|Conector|Connecteur|Verbindungslinie|Conector|موصل
+其他物件|Other object|その他のオブジェクト|기타 개체|Otro objeto|Autre objet|Anderes Objekt|Outro objeto|عنصر آخر
+已鎖定;物件已鎖定|Locked|ロック済み|잠김|Bloqueado|Verrouillé|Gesperrt|Bloqueado|مقفل
+ · 已鎖定| · Locked| · ロック済み| · 잠김| · Bloqueado| · Verrouillé| · Gesperrt| · Bloqueado| · مقفل
+ · 已隱藏| · Hidden| · 非表示| · 숨김| · Oculto| · Masqué| · Ausgeblendet| · Oculto| · مخفي
+鎖定;鎖定物件|Lock|ロック|잠금|Bloquear|Verrouiller|Sperren|Bloquear|قفل
+解除鎖定|Unlock|ロック解除|잠금 해제|Desbloquear|Déverrouiller|Entsperren|Desbloquear|إلغاء القفل
+物件圖層;物件圖層…|Object layers|オブジェクトのレイヤー|개체 레이어|Capas de objetos|Calques d'objets|Objektebenen|Camadas de objetos|طبقات العناصر
+圖層（上層在前）|Layers (topmost first)|レイヤー（最前面が上）|레이어(맨 앞부터)|Capas (superiores primero)|Calques (premier plan en haut)|Ebenen (Vordergrund zuerst)|Camadas (frente primeiro)|الطبقات (الأعلى أولاً)
+圖層名稱|Layer name|レイヤー名|레이어 이름|Nombre de capa|Nom du calque|Ebenenname|Nome da camada|اسم الطبقة
+重新命名圖層;重新命名圖層…|Rename layer|レイヤー名を変更|레이어 이름 바꾸기|Cambiar nombre de capa|Renommer le calque|Ebene umbenennen|Renomear camada|إعادة تسمية الطبقة
+留空可恢復自動名稱。|Leave blank to restore the automatic name.|空欄で自動の名前に戻します。|비워 두면 자동 이름으로 복원됩니다.|Déjalo vacío para restaurar el nombre automático.|Laissez vide pour rétablir le nom automatique.|Leer lassen, um den automatischen Namen wiederherzustellen.|Deixe vazio para restaurar o nome automático.|اتركه فارغًا لاستعادة الاسم التلقائي.
+上移;向前移動|Move forward|前面へ移動|앞으로 이동|Adelantar|Avancer|Nach vorn|Avançar|تقديم
+下移;向後移動|Move backward|背面へ移動|뒤로 이동|Retrasar|Reculer|Nach hinten|Recuar|تأخير
+移到最上層|Bring to front|最前面へ|맨 앞으로|Traer al frente|Mettre au premier plan|In den Vordergrund|Trazer para frente|إحضار إلى المقدمة
+移到最下層|Send to back|最背面へ|맨 뒤로|Enviar al fondo|Mettre à l'arrière-plan|In den Hintergrund|Enviar para trás|إرسال إلى الخلف
+顯示|Show|表示|표시|Mostrar|Afficher|Anzeigen|Mostrar|إظهار
+顯示／隱藏|Show or hide|表示／非表示|표시/숨기기|Mostrar u ocultar|Afficher ou masquer|Anzeigen oder ausblenden|Mostrar ou ocultar|إظهار أو إخفاء
+上層在前；拖曳灰色雙槓調整順序|Front layers first; drag the gray grip to reorder.|最前面が上です。灰色のグリップをドラッグして並べ替えます。|앞쪽 레이어가 위에 있습니다. 회색 손잡이를 드래그하여 순서를 바꾸세요.|Las capas frontales van primero; arrastra el asa gris para reordenar.|Premier plan en haut ; faites glisser la poignée grise pour réordonner.|Vordere Ebenen zuerst; grauen Griff zum Sortieren ziehen.|Camadas da frente primeiro; arraste a alça cinza para reordenar.|الطبقات الأمامية أولاً؛ اسحب المقبض الرمادي لإعادة الترتيب.
+拖曳灰色雙槓調整圖層|Drag the gray grip to reorder layers|灰色のグリップでレイヤーを並べ替え|회색 손잡이로 레이어 순서 변경|Arrastra el asa gris para reordenar capas|Glissez la poignée grise pour réordonner|Grauen Griff zum Sortieren der Ebenen ziehen|Arraste a alça cinza para reordenar camadas|اسحب المقبض الرمادي لترتيب الطبقات
+拖到目標圖層;拖到目標圖層上方或下方|Drag above or below the target layer|対象レイヤーの上下にドラッグ|대상 레이어 위 또는 아래로 드래그|Arrastra encima o debajo de la capa destino|Glissez au-dessus ou au-dessous du calque cible|Über oder unter die Zielebene ziehen|Arraste acima ou abaixo da camada de destino|اسحب أعلى الطبقة المطلوبة أو أسفلها
+放開移到「{0}」{1}|Release to move {1} “{0}”|離すと「{0}」の{1}に移動|놓으면 “{0}”의 {1}로 이동|Suelta para mover {1} de «{0}»|Relâchez pour déplacer {1} « {0} »|Loslassen, um {1} von „{0}“ zu verschieben|Solte para mover {1} de “{0}”|أفلت للنقل {1} «{0}»
+收起物件圖層|Close layers|レイヤーを閉じる|레이어 닫기|Cerrar capas|Fermer les calques|Ebenen schließen|Fechar camadas|إغلاق الطبقات
+物件圖層：選取、排序與顯示|Object layers: select, reorder and show|レイヤー：選択、並べ替え、表示|개체 레이어: 선택, 정렬, 표시|Capas: seleccionar, ordenar y mostrar|Calques : sélectionner, trier et afficher|Objektebenen: auswählen, sortieren und anzeigen|Camadas: selecionar, ordenar e mostrar|طبقات العناصر: تحديد وترتيب وإظهار
+屬性檢查器;═  屬性|Properties|プロパティ|속성|Propiedades|Propriétés|Eigenschaften|Propriedades|الخصائص
+展開屬性檢查器|Open properties|プロパティを開く|속성 열기|Abrir propiedades|Ouvrir les propriétés|Eigenschaften öffnen|Abrir propriedades|فتح الخصائص
+收起屬性|Close properties|プロパティを閉じる|속성 닫기|Cerrar propiedades|Fermer les propriétés|Eigenschaften schließen|Fechar propriedades|إغلاق الخصائص
+選取物件後調整屬性|Select an object to edit its properties|オブジェクトを選択してプロパティを編集|개체를 선택하여 속성을 수정하세요|Selecciona un objeto para editar sus propiedades|Sélectionnez un objet pour modifier ses propriétés|Objekt zum Bearbeiten der Eigenschaften auswählen|Selecione um objeto para editar suas propriedades|حدد عنصرًا لتعديل خصائصه
+已選取物件設定;選取物件樣式|Selected object settings|選択したオブジェクトの設定|선택한 개체 설정|Ajustes del objeto seleccionado|Réglages de l'objet sélectionné|Einstellungen des ausgewählten Objekts|Configurações do objeto selecionado|إعدادات العنصر المحدد
+設定即時生效|Changes apply immediately|変更はすぐに反映されます|변경 사항이 즉시 적용됩니다|Los cambios se aplican al instante|Les modifications s'appliquent immédiatement|Änderungen werden sofort angewendet|As alterações são aplicadas imediatamente|تُطبق التغييرات فورًا
+已選取物件 · 設定即時生效|Selected object · changes apply immediately|選択中のオブジェクト · 即時反映|선택한 개체 · 즉시 적용|Objeto seleccionado · cambios inmediatos|Objet sélectionné · application immédiate|Ausgewähltes Objekt · sofort anwenden|Objeto selecionado · aplicação imediata|العنصر المحدد · تطبيق فوري
+目前工具 · 設定即時生效;目前畫筆 · 設定即時生效|Current tool · changes apply immediately|現在のツール · 即時反映|현재 도구 · 즉시 적용|Herramienta actual · cambios inmediatos|Outil actuel · application immédiate|Aktuelles Werkzeug · sofort anwenden|Ferramenta atual · aplicação imediata|الأداة الحالية · تطبيق فوري
+繪圖與物件設定|Drawing and object settings|描画とオブジェクトの設定|그리기 및 개체 설정|Ajustes de dibujo y objetos|Réglages du dessin et des objets|Zeichen- und Objekteinstellungen|Configurações de desenho e objetos|إعدادات الرسم والعناصر
+繪圖設定（{0}）|Drawing settings ({0})|描画設定（{0}）|그리기 설정({0})|Ajustes de dibujo ({0})|Réglages du dessin ({0})|Zeicheneinstellungen ({0})|Configurações de desenho ({0})|إعدادات الرسم ({0})
+線條|Stroke|線|선|Trazo|Trait|Strich|Traço|الخط
+線條色彩;線條／文字色彩;文字顏色|Stroke / text color|線／文字の色|선/텍스트 색상|Color de trazo / texto|Couleur du trait / texte|Strich- / Textfarbe|Cor do traço / texto|لون الخط / النص
+粗細;線條粗細|Stroke width|線の太さ|선 굵기|Grosor del trazo|Épaisseur du trait|Strichstärke|Espessura do traço|سُمك الخط
+粗細（pt）;線條粗細（pt）|Stroke width (pt)|線の太さ（pt）|선 굵기(pt)|Grosor del trazo (pt)|Épaisseur du trait (pt)|Strichstärke (pt)|Espessura do traço (pt)|سُمك الخط (pt)
+透明度;不透明度;物件透明度;筆畫透明度|Opacity|不透明度|불투명도|Opacidad|Opacité|Deckkraft|Opacidade|العتامة
+線條樣式|Line style|線のスタイル|선 스타일|Estilo de línea|Style de ligne|Linienstil|Estilo de linha|نمط الخط
+實線|Solid|実線|실선|Continua|Continu|Durchgezogen|Contínua|متصل
+虛線|Dashed|破線|파선|Discontinua|Tirets|Gestrichelt|Tracejada|متقطع
+點線|Dotted|点線|점선|Punteada|Pointillés|Gepunktet|Pontilhada|منقط
+點劃線|Dash-dot|一点鎖線|일점쇄선|Guion y punto|Tiret-point|Strichpunkt|Traço e ponto|شرطة ونقطة
+填滿;填色;填滿圖形|Fill|塗りつぶし|채우기|Relleno|Remplissage|Füllung|Preenchimento|تعبئة
+無填滿;無填色;填滿：無填滿|No fill|塗りつぶしなし|채우기 없음|Sin relleno|Sans remplissage|Keine Füllung|Sem preenchimento|بلا تعبئة
+填满：;填滿：|Fill: |塗りつぶし：|채우기: |Relleno: |Remplissage : |Füllung: |Preenchimento: |التعبئة:\s
+填色透明度|Fill opacity|塗りつぶしの不透明度|채우기 불투명도|Opacidad del relleno|Opacité du remplissage|Füllungsdeckkraft|Opacidade do preenchimento|عتامة التعبئة
+填色與透明度;自訂填色與透明度|Fill color and opacity|塗りつぶしの色と不透明度|채우기 색상 및 불투명도|Color y opacidad del relleno|Couleur et opacité du remplissage|Füllfarbe und Deckkraft|Cor e opacidade do preenchimento|لون التعبئة وعتامتها
+填色漸層…|Fill gradient…|塗りつぶしのグラデーション…|채우기 그라데이션…|Degradado del relleno…|Dégradé du remplissage…|Füllungsverlauf…|Gradiente do preenchimento…|تدرج التعبئة…
+漸層起點|Gradient start|グラデーションの始点|그라데이션 시작|Inicio del degradado|Début du dégradé|Verlaufsanfang|Início do gradiente|بداية التدرج
+漸層終點|Gradient end|グラデーションの終点|그라데이션 끝|Fin del degradado|Fin du dégradé|Verlaufsende|Fim do gradiente|نهاية التدرج
+改回單色|Use solid color|単色に戻す|단색으로 변경|Usar color sólido|Utiliser une couleur unie|Einfarbig verwenden|Usar cor sólida|استخدام لون واحد
+填色請使用工具列的填滿按鈕。|Use the toolbar Fill button to change fill color.|塗りつぶしの色はツールバーの塗りつぶしボタンで変更します。|채우기 색상은 도구 모음의 채우기 버튼으로 변경하세요.|Usa el botón Relleno para cambiar el color.|Utilisez le bouton Remplissage de la barre d'outils.|Füllfarbe über die Schaltfläche Füllung ändern.|Use o botão Preenchimento para mudar a cor.|استخدم زر التعبئة في شريط الأدوات لتغيير اللون.
+箭頭頭部寬度|Arrowhead width|矢印の先端の幅|화살촉 너비|Ancho de la punta|Largeur de la pointe|Pfeilspitzenbreite|Largura da ponta|عرض رأس السهم
+箭頭頭部寬度（pt）|Arrowhead width (pt)|矢印の先端の幅（pt）|화살촉 너비(pt)|Ancho de la punta (pt)|Largeur de la pointe (pt)|Pfeilspitzenbreite (pt)|Largura da ponta (pt)|عرض رأس السهم (pt)
+箭頭頭部長度|Arrowhead length|矢印の先端の長さ|화살촉 길이|Longitud de la punta|Longueur de la pointe|Pfeilspitzenlänge|Comprimento da ponta|طول رأس السهم
+箭頭頭部長度（pt）|Arrowhead length (pt)|矢印の先端の長さ（pt）|화살촉 길이(pt)|Longitud de la punta (pt)|Longueur de la pointe (pt)|Pfeilspitzenlänge (pt)|Comprimento da ponta (pt)|طول رأس السهم (pt)
+物件旋轉角度|Object rotation|オブジェクトの回転|개체 회전|Rotación del objeto|Rotation de l'objet|Objektdrehung|Rotação do objeto|دوران العنصر
+直線延伸;直線延伸設定;延伸直線設定|Line extension|直線の延長|직선 연장|Extensión de línea|Prolongement de ligne|Linienverlängerung|Extensão da linha|تمديد الخط
+向 A 延伸|Extend toward A|A 方向に延長|A 방향으로 연장|Extender hacia A|Prolonger vers A|In Richtung A verlängern|Estender para A|تمديد نحو A
+向 B 延伸|Extend toward B|B 方向に延長|B 방향으로 연장|Extender hacia B|Prolonger vers B|In Richtung B verlängern|Estender para B|تمديد نحو B
+雙向延伸|Extend both ways|両方向に延長|양방향 연장|Extender en ambas direcciones|Prolonger dans les deux sens|In beide Richtungen verlängern|Estender nos dois sentidos|تمديد في الاتجاهين
+上方|Top|上|위|Arriba|Haut|Oben|Superior|أعلى
+下方|Bottom|下|아래|Abajo|Bas|Unten|Inferior|أسفل
+左側|Left|左|왼쪽|Izquierda|Gauche|Links|Esquerda|يسار
+右側|Right|右|오른쪽|Derecha|Droite|Rechts|Direita|يمين
+橫排|Horizontal|横向き|가로|Horizontal|Horizontal|Horizontal|Horizontal|أفقي
+直排|Vertical|縦向き|세로|Vertical|Vertical|Vertikal|Vertical|عمودي
+停靠|Dock|ドッキング|도킹|Acoplar|Ancrer|Andocken|Acoplar|إرساء
+工具列位置;工具列停靠位置|Toolbar position|ツールバーの位置|도구 모음 위치|Posición de la barra|Position de la barre d'outils|Werkzeugleistenposition|Posição da barra|موضع شريط الأدوات
+拖曳到上下左右停靠|Drag to dock at any edge|上下左右の端にドラッグしてドッキング|가장자리로 드래그하여 도킹|Arrastra a un borde para acoplar|Glissez vers un bord pour ancrer|Zum Andocken an einen Rand ziehen|Arraste para uma borda para acoplar|اسحب إلى أي حافة للإرساء
+拖曳到螢幕上下左右；放開後停靠|Drag to a screen edge and release to dock|画面の端にドラッグして離すとドッキング|화면 가장자리로 드래그하고 놓으면 도킹|Arrastra al borde de la pantalla y suelta para acoplar|Glissez vers un bord de l'écran puis relâchez pour ancrer|An einen Bildschirmrand ziehen und zum Andocken loslassen|Arraste até uma borda da tela e solte para acoplar|اسحب إلى حافة الشاشة ثم أفلت للإرساء
+拖曳工具列；左右直排、上下橫排|Drag toolbar: vertical at sides, horizontal at top/bottom|ツールバーをドラッグ：左右は縦、上下は横|도구 모음 드래그: 좌우는 세로, 상하는 가로|Arrastra la barra: vertical a los lados, horizontal arriba o abajo|Glissez la barre : verticale sur les côtés, horizontale en haut ou en bas|Leiste ziehen: seitlich vertikal, oben/unten horizontal|Arraste a barra: vertical nas laterais, horizontal em cima/baixo|اسحب الشريط: عمودي عند الجانبين وأفقي أعلى وأسفل
+放開後停靠：|Release to dock: |離すとドッキング：|놓으면 도킹: |Suelta para acoplar: |Relâchez pour ancrer : |Loslassen zum Andocken: |Solte para acoplar: |أفلت للإرساء:\s
+展開工具區|Expand tools|ツールを展開|도구 펼치기|Expandir herramientas|Développer les outils|Werkzeuge ausklappen|Expandir ferramentas|توسيع الأدوات
+收合工具區|Collapse tools|ツールを折りたたむ|도구 접기|Contraer herramientas|Réduire les outils|Werkzeuge einklappen|Recolher ferramentas|طي الأدوات
+展開右上導覽膠囊|Expand navigation|ナビゲーションを展開|탐색 메뉴 펼치기|Expandir navegación|Développer la navigation|Navigation ausklappen|Expandir navegação|توسيع التنقل
+固定|Pin|固定|고정|Fijar|Épingler|Anheften|Fixar|تثبيت
+固定右上導覽列；再次點擊恢復自動收合|Pin navigation; click again to restore auto-collapse|ナビゲーションを固定。再クリックで自動折りたたみに戻る|탐색 모음 고정; 다시 클릭하면 자동 접기|Fija la navegación; pulsa de nuevo para contraer automáticamente|Épinglez la navigation ; recliquez pour rétablir la réduction automatique|Navigation anheften; erneut klicken für automatisches Einklappen|Fixe a navegação; clique novamente para recolher automaticamente|ثبّت التنقل؛ انقر مجددًا لاستعادة الطي التلقائي
+更多工具與設定;螢幕畫布更多設定|More tools and settings|その他のツールと設定|추가 도구 및 설정|Más herramientas y ajustes|Autres outils et réglages|Weitere Werkzeuge und Einstellungen|Mais ferramentas e configurações|أدوات وإعدادات إضافية
+⋯ 更多：筆記資訊、背景、圖層、匯出|More: note info, background, layers and export|その他：ノート情報、背景、レイヤー、エクスポート|더 보기: 노트 정보, 배경, 레이어, 내보내기|Más: información, fondo, capas y exportación|Plus : informations, fond, calques et exportation|Mehr: Notizinfo, Hintergrund, Ebenen und Export|Mais: informações, fundo, camadas e exportação|المزيد: معلومات الملاحظة والخلفية والطبقات والتصدير
+＋ 插入內容與輔助工具|Insert content and helpers|コンテンツと補助ツールを挿入|콘텐츠 및 보조 도구 삽입|Insertar contenido y ayudas|Insérer du contenu et des outils|Inhalte und Hilfsmittel einfügen|Inserir conteúdo e auxiliares|إدراج محتوى وأدوات مساعدة
+自訂工具列…|Customize toolbar…|ツールバーをカスタマイズ…|도구 모음 사용자 지정…|Personalizar barra…|Personnaliser la barre…|Werkzeugleiste anpassen…|Personalizar barra…|تخصيص شريط الأدوات…
+自訂工具列（勾選顯示，↑↓ 調整順序）|Customize toolbar (check to show; ↑↓ to reorder)|ツールバー設定（チェックで表示、↑↓で並べ替え）|도구 모음 지정(체크하여 표시, ↑↓로 정렬)|Personalizar barra (marca para mostrar; ↑↓ para ordenar)|Personnaliser (cochez pour afficher ; ↑↓ pour trier)|Leiste anpassen (Häkchen zum Anzeigen; ↑↓ zum Sortieren)|Personalizar (marque para mostrar; ↑↓ para ordenar)|تخصيص الشريط (حدد للإظهار؛ ↑↓ للترتيب)
+恢復預設工具列|Restore default toolbar|標準のツールバーに戻す|기본 도구 모음 복원|Restaurar barra predeterminada|Rétablir la barre par défaut|Standardleiste wiederherstellen|Restaurar barra padrão|استعادة الشريط الافتراضي
+編輯模式;回到編輯模式|Edit mode|編集モード|편집 모드|Modo de edición|Mode édition|Bearbeitungsmodus|Modo de edição|وضع التحرير
+閱讀模式：拖曳移動畫布;閱讀模式：拖曳移動畫布，不會畫線|Reading mode: drag to pan without drawing|閲覧モード：ドラッグで移動、描画なし|읽기 모드: 드래그로 이동하며 그리지 않음|Modo lectura: arrastra para mover sin dibujar|Mode lecture : glissez pour déplacer sans dessiner|Lesemodus: zum Verschieben ziehen, ohne zu zeichnen|Modo leitura: arraste para mover sem desenhar|وضع القراءة: اسحب للتحريك دون رسم
+回到編輯模式（目前為閱讀模式：拖曳移動畫布，不會畫線）|Return to editing (reading mode pans without drawing)|編集に戻る（閲覧モードは描画せず移動）|편집으로 돌아가기(읽기 모드는 그리지 않고 이동)|Volver a editar (el modo lectura mueve sin dibujar)|Revenir à l'édition (la lecture déplace sans dessiner)|Zur Bearbeitung (Lesemodus verschiebt ohne Zeichnen)|Voltar a editar (leitura move sem desenhar)|العودة للتحرير (وضع القراءة يحرك دون رسم)
+鎖定視角;鎖定視角：避免平移與縮放|Lock view: prevent pan and zoom|表示をロック：移動とズームを防止|보기 잠금: 이동 및 확대/축소 방지|Bloquear vista: impedir movimiento y zoom|Verrouiller la vue : empêcher déplacement et zoom|Ansicht sperren: Verschieben und Zoom verhindern|Bloquear visão: impedir movimento e zoom|قفل العرض: منع التحريك والتكبير
+解除視角鎖定|Unlock view|表示のロック解除|보기 잠금 해제|Desbloquear vista|Déverrouiller la vue|Ansicht entsperren|Desbloquear visão|إلغاء قفل العرض
+視角已鎖定|View locked|表示をロックしました|보기가 잠겼습니다|Vista bloqueada|Vue verrouillée|Ansicht gesperrt|Visão bloqueada|تم قفل العرض
+視角已解鎖|View unlocked|表示のロックを解除しました|보기 잠금이 해제되었습니다|Vista desbloqueada|Vue déverrouillée|Ansicht entsperrt|Visão desbloqueada|تم إلغاء قفل العرض
+適合頁面／內容|Fit page or content|ページ／内容に合わせる|페이지/내용에 맞추기|Ajustar a página o contenido|Ajuster à la page ou au contenu|An Seite oder Inhalt anpassen|Ajustar à página ou conteúdo|ملاءمة الصفحة أو المحتوى
+回到原點與 100%|Reset view to origin and 100%|原点と 100% に戻す|원점 및 100%로 보기 재설정|Restablecer origen y 100%|Revenir à l'origine et à 100 %|Auf Ursprung und 100 % zurücksetzen|Restaurar origem e 100%|إعادة العرض إلى الأصل و100%
+頁面|Page|ページ|페이지|Página|Page|Seite|Página|صفحة
+頁面名稱|Page name|ページ名|페이지 이름|Nombre de página|Nom de la page|Seitenname|Nome da página|اسم الصفحة
+第 {0} 頁|Page {0}|{0} ページ|{0} 페이지|Página {0}|Page {0}|Seite {0}|Página {0}|الصفحة {0}
+重新命名目前頁|Rename current page|現在のページ名を変更|현재 페이지 이름 바꾸기|Cambiar nombre de la página actual|Renommer la page actuelle|Aktuelle Seite umbenennen|Renomear página atual|إعادة تسمية الصفحة الحالية
+複製目前頁|Duplicate current page|現在のページを複製|현재 페이지 복제|Duplicar página actual|Dupliquer la page actuelle|Aktuelle Seite duplizieren|Duplicar página atual|نسخ الصفحة الحالية
+刪除目前頁|Delete current page|現在のページを削除|현재 페이지 삭제|Eliminar página actual|Supprimer la page actuelle|Aktuelle Seite löschen|Excluir página atual|حذف الصفحة الحالية
+刪除目前頁面？|Delete current page?|現在のページを削除しますか？|현재 페이지를 삭제할까요?|¿Eliminar página actual?|Supprimer la page actuelle ?|Aktuelle Seite löschen?|Excluir página atual?|حذف الصفحة الحالية؟
+頁面與其中物件會一起刪除，可用復原恢復。|The page and its objects will be deleted. Undo can restore them.|ページとそのオブジェクトを削除します。元に戻す操作で復元できます。|페이지와 개체가 함께 삭제됩니다. 실행 취소로 복원할 수 있습니다.|Se eliminarán la página y sus objetos. Puedes restaurarlos con Deshacer.|La page et ses objets seront supprimés. Annuler permet de les restaurer.|Seite und Objekte werden gelöscht. Mit Rückgängig lassen sie sich wiederherstellen.|A página e seus objetos serão excluídos. Desfazer pode restaurá-los.|ستُحذف الصفحة وعناصرها. يمكن استعادتها بالتراجع.
+清除目前頁面？|Clear current page?|現在のページを消去しますか？|현재 페이지를 지울까요?|¿Vaciar página actual?|Effacer la page actuelle ?|Aktuelle Seite leeren?|Limpar página atual?|مسح الصفحة الحالية؟
+可用復原恢復。其他頁面不受影響。|Undo can restore this. Other pages are unaffected.|元に戻す操作で復元できます。他のページには影響しません。|실행 취소로 복원할 수 있습니다. 다른 페이지에는 영향이 없습니다.|Puedes restaurarlo con Deshacer. Las demás páginas no cambian.|Annuler permet de restaurer. Les autres pages ne changent pas.|Mit Rückgängig wiederherstellbar. Andere Seiten bleiben unverändert.|Desfazer pode restaurar. As outras páginas não são afetadas.|يمكن الاستعادة بالتراجع. لا تتأثر الصفحات الأخرى.
+筆記資訊與改名;筆記資訊與改名…|Note info and rename|ノート情報と名前の変更|노트 정보 및 이름 바꾸기|Información y nombre de la nota|Informations et nom de la note|Notizinfo und Umbenennen|Informações e nome da nota|معلومات الملاحظة وتغيير اسمها
+畫布格式：{0}|Canvas format: {0}|キャンバス形式：{0}|캔버스 형식: {0}|Formato del lienzo: {0}|Format du canevas : {0}|Leinwandformat: {0}|Formato da tela: {0}|تنسيق اللوحة: {0}
+物件數量：{0} 個物件|Objects: {0}|オブジェクト数：{0}|개체 수: {0}|Objetos: {0}|Objets : {0}|Objekte: {0}|Objetos: {0}|العناصر: {0}
+文字大小;字體大小|Font size|文字サイズ|글꼴 크기|Tamaño de fuente|Taille de police|Schriftgröße|Tamanho da fonte|حجم الخط
+文字大小（pt）|Font size (pt)|文字サイズ（pt）|글꼴 크기(pt)|Tamaño de fuente (pt)|Taille de police (pt)|Schriftgröße (pt)|Tamanho da fonte (pt)|حجم الخط (pt)
+字型;字體名稱|Font family|フォント|글꼴|Familia de fuente|Police|Schriftart|Família da fonte|نوع الخط
+對齊|Alignment|配置|정렬|Alineación|Alignement|Ausrichtung|Alinhamento|المحاذاة
+靠左|Align left|左揃え|왼쪽 정렬|Alinear a la izquierda|Aligner à gauche|Linksbündig|Alinhar à esquerda|محاذاة لليسار
+置中|Center|中央揃え|가운데 정렬|Centrar|Centrer|Zentrieren|Centralizar|توسيط
+靠右|Align right|右揃え|오른쪽 정렬|Alinear a la derecha|Aligner à droite|Rechtsbündig|Alinhar à direita|محاذاة لليمين
+粗體|Bold|太字|굵게|Negrita|Gras|Fett|Negrito|عريض
+斜體|Italic|斜体|기울임|Cursiva|Italique|Kursiv|Itálico|مائل
+底線|Underline|下線|밑줄|Subrayado|Souligné|Unterstrichen|Sublinhado|تسطير
+刪除線|Strikethrough|取り消し線|취소선|Tachado|Barré|Durchgestrichen|Tachado|يتوسطه خط
+文字設定;更多文字設定…|Text settings|テキスト設定|텍스트 설정|Ajustes de texto|Réglages du texte|Texteinstellungen|Configurações de texto|إعدادات النص
+文字設定（{0} 個文字框）|Text settings ({0} text boxes)|テキスト設定（{0} 個のテキストボックス）|텍스트 설정(텍스트 상자 {0}개)|Ajustes de texto ({0} cuadros)|Réglages du texte ({0} zones)|Texteinstellungen ({0} Textfelder)|Configurações de texto ({0} caixas)|إعدادات النص ({0} مربعات نص)
+文字設定（目前草稿）|Text settings (current draft)|テキスト設定（現在の下書き）|텍스트 설정(현재 초안)|Ajustes de texto (borrador actual)|Réglages du texte (brouillon actuel)|Texteinstellungen (aktueller Entwurf)|Configurações de texto (rascunho atual)|إعدادات النص (المسودة الحالية)
+編輯文字;編輯文字內容|Edit text|テキストを編集|텍스트 편집|Editar texto|Modifier le texte|Text bearbeiten|Editar texto|تحرير النص
+編輯局部文字格式|Format part of the text|一部の文字の書式を変更|텍스트 일부 서식 지정|Dar formato a parte del texto|Formater une partie du texte|Textteil formatieren|Formatar parte do texto|تنسيق جزء من النص
+文字格式：選取文字後套用|Text formatting: select text, then apply|文字書式：文字を選択して適用|텍스트 서식: 텍스트 선택 후 적용|Formato: selecciona texto y aplica|Format : sélectionnez le texte puis appliquez|Textformat: Text auswählen und anwenden|Formato: selecione o texto e aplique|تنسيق النص: حدد النص ثم طبّق
+只套用你修改的欄位至所選文字框|Apply only the fields you changed to the selected text boxes.|変更した項目のみ選択したテキストボックスに適用します。|변경한 필드만 선택한 텍스트 상자에 적용합니다.|Aplica solo los campos modificados a los cuadros seleccionados.|Appliquer uniquement les champs modifiés aux zones sélectionnées.|Nur geänderte Felder auf ausgewählte Textfelder anwenden.|Aplique apenas os campos alterados às caixas selecionadas.|تطبيق الحقول المعدلة فقط على مربعات النص المحددة.
+請輸入有效大小、#RRGGBB 與字體名稱。|Enter a valid size, #RRGGBB color and font name.|有効なサイズ、#RRGGBB の色、フォント名を入力してください。|올바른 크기, #RRGGBB 색상 및 글꼴 이름을 입력하세요.|Introduce un tamaño, color #RRGGBB y nombre de fuente válidos.|Saisissez une taille, une couleur #RRGGBB et une police valides.|Gültige Größe, #RRGGBB-Farbe und Schriftart eingeben.|Digite tamanho, cor #RRGGBB e nome de fonte válidos.|أدخل حجمًا ولونًا بصيغة #RRGGBB واسم خط صالحًا.
+便簽風格|Sticky note style|付箋のスタイル|메모지 스타일|Estilo de nota adhesiva|Style de note adhésive|Haftnotizstil|Estilo da nota adesiva|نمط الملاحظة اللاصقة
+經典|Classic|クラシック|클래식|Clásico|Classique|Klassisch|Clássico|كلاسيكي
+柔和|Soft|ソフト|부드럽게|Suave|Doux|Sanft|Suave|ناعم
+紙膠帶|Washi tape|マスキングテープ|종이 테이프|Cinta washi|Ruban washi|Washi-Klebeband|Fita washi|شريط ورقي
+貓咪|Cat|ねこ|고양이|Gato|Chat|Katze|Gato|قطة
+標記|Marker|マーカー|마커|Marcador|Marqueur|Marker|Marcador|علامة
+圖釘名稱|Pin name|ピンの名前|핀 이름|Nombre del marcador|Nom du repère|Markierungsname|Nome do marcador|اسم العلامة
+圖釘顏色|Pin color|ピンの色|핀 색상|Color del marcador|Couleur du repère|Markierungsfarbe|Cor do marcador|لون العلامة
+圖釘文字顏色|Pin text color|ピンの文字色|핀 텍스트 색상|Color del texto del marcador|Couleur du texte du repère|Markierungstextfarbe|Cor do texto do marcador|لون نص العلامة
+個別圖釘配色;圖釘與文字配色…|Pin and text colors|ピンと文字の色|핀 및 텍스트 색상|Colores del marcador y texto|Couleurs du repère et du texte|Markierungs- und Textfarben|Cores do marcador e texto|ألوان العلامة والنص
+新增圖釘|Add pin|ピンを追加|핀 추가|Añadir marcador|Ajouter un repère|Markierung hinzufügen|Adicionar marcador|إضافة علامة
+刪除圖釘|Delete pin|ピンを削除|핀 삭제|Eliminar marcador|Supprimer le repère|Markierung löschen|Excluir marcador|حذف العلامة
+重新命名圖釘|Rename pin|ピンの名前を変更|핀 이름 바꾸기|Cambiar nombre del marcador|Renommer le repère|Markierung umbenennen|Renomear marcador|إعادة تسمية العلامة
+重要位置|Important location|重要な位置|중요한 위치|Lugar importante|Emplacement important|Wichtige Stelle|Local importante|موضع مهم
+新圖釘名稱（預設：重要位置）|New pin name (default: Important location)|新しいピンの名前（既定：重要な位置）|새 핀 이름(기본값: 중요한 위치)|Nombre del nuevo marcador (predeterminado: Lugar importante)|Nom du repère (par défaut : Emplacement important)|Neuer Markierungsname (Standard: Wichtige Stelle)|Nome do novo marcador (padrão: Local importante)|اسم العلامة الجديدة (الافتراضي: موضع مهم)
+例如：重點標記、課程截圖|For example: key point, lesson screenshot|例：重要ポイント、授業のスクリーンショット|예: 핵심 내용, 수업 스크린샷|Ejemplo: punto clave, captura de clase|Exemple : point clé, capture de cours|Zum Beispiel: Schwerpunkt, Unterrichtsaufnahme|Exemplo: ponto importante, captura da aula|مثال: نقطة مهمة، لقطة درس
+在目前視野新增圖釘：|Add a pin in the current view: |現在の表示位置にピンを追加：|현재 보기에 핀 추가: |Añadir marcador en la vista actual: |Ajouter un repère dans la vue actuelle : |Markierung in aktueller Ansicht hinzufügen: |Adicionar marcador na visão atual: |إضافة علامة في العرض الحالي:\s
+搜尋圖釘名稱…|Search pin names…|ピン名を検索…|핀 이름 검색…|Buscar marcadores…|Rechercher des repères…|Markierungsnamen suchen…|Pesquisar marcadores…|البحث عن أسماء العلامات…
+搜尋或跳轉至圖釘視野|Search or jump to a pinned view|検索またはピンの表示に移動|핀 보기 검색 또는 이동|Buscar o ir a una vista marcada|Rechercher ou aller à une vue repérée|Suchen oder zur markierten Ansicht springen|Pesquisar ou ir para uma visão marcada|البحث أو الانتقال إلى عرض علامة
+尚無圖釘標記|No pins yet|ピンはまだありません|아직 핀이 없습니다|Aún no hay marcadores|Aucun repère pour le moment|Noch keine Markierungen|Nenhum marcador ainda|لا توجد علامات بعد
+無相符的圖釘|No matching pins|該当するピンはありません|일치하는 핀이 없습니다|No hay marcadores coincidentes|Aucun repère correspondant|Keine passenden Markierungen|Nenhum marcador encontrado|لا توجد علامات مطابقة
+調色盤;調色盤 · 線條／文字色|Color palette|カラーパレット|색상 팔레트|Paleta de colores|Palette de couleurs|Farbpalette|Paleta de cores|لوحة الألوان
+調色盤：色票與自訂色輪|Palette: swatches and custom color wheel|パレット：色見本とカスタム色相環|팔레트: 견본 및 사용자 지정 색상환|Paleta: muestras y rueda de color|Palette : nuancier et roue de couleur|Palette: Farbfelder und Farbrad|Paleta: amostras e roda de cores|لوحة الألوان: عينات وعجلة ألوان مخصصة
+顏色與筆刷|Color and brush|色とブラシ|색상 및 브러시|Color y pincel|Couleur et pinceau|Farbe und Pinsel|Cor e pincel|اللون والفرشاة
+顏色、粗細與透明度|Color, width and opacity|色、太さ、不透明度|색상, 굵기 및 불투명도|Color, grosor y opacidad|Couleur, épaisseur et opacité|Farbe, Stärke und Deckkraft|Cor, espessura e opacidade|اللون والسُمك والعتامة
+顏色、粗細與透明度；選取物件時直接修改物件|Color, width and opacity; edit the selected object directly|色、太さ、不透明度。選択中のオブジェクトを直接編集|색상, 굵기, 불투명도; 선택한 개체를 직접 수정|Color, grosor y opacidad; edita directamente el objeto seleccionado|Couleur, épaisseur et opacité ; modifiez directement l'objet sélectionné|Farbe, Stärke und Deckkraft; ausgewähltes Objekt direkt bearbeiten|Cor, espessura e opacidade; edite o objeto selecionado diretamente|اللون والسُمك والعتامة؛ عدّل العنصر المحدد مباشرة
+配色;自訂顏色|Colors|色|색상|Colores|Couleurs|Farben|Cores|الألوان
+自訂色輪 · |Custom color wheel · |カスタム色相環 · |사용자 지정 색상환 · |Rueda de color · |Roue de couleur · |Benutzerdefiniertes Farbrad · |Roda de cores · |عجلة ألوان مخصصة ·\s
+註記顏色 |Annotation color |注釈の色 |주석 색상 |Color de anotación |Couleur d'annotation |Anmerkungsfarbe |Cor da anotação |لون التعليق\s
+紅;紅色|Red|赤|빨강|Rojo|Rouge|Rot|Vermelho|أحمر
+綠;綠色|Green|緑|초록|Verde|Vert|Grün|Verde|أخضر
+藍;藍色|Blue|青|파랑|Azul|Bleu|Blau|Azul|أزرق
+黑;黑色|Black|黒|검정|Negro|Noir|Schwarz|Preto|أسود
+白色;純白|White|白|흰색|Blanco|Blanc|Weiß|Branco|أبيض
+黃色|Yellow|黄|노랑|Amarillo|Jaune|Gelb|Amarelo|أصفر
+橘色|Orange|オレンジ|주황|Naranja|Orange|Orange|Laranja|برتقالي
+粉色|Pink|ピンク|분홍|Rosa|Rose|Rosa|Rosa|وردي
+紫色|Purple|紫|보라|Morado|Violet|Violett|Roxo|بنفسجي
+深灰|Dark gray|ダークグレー|진회색|Gris oscuro|Gris foncé|Dunkelgrau|Cinza-escuro|رمادي داكن
+墨黑|Ink black|墨色|먹색|Negro tinta|Noir d'encre|Tintenschwarz|Preto-tinta|أسود حبر
+暖白|Warm white|暖かい白|따뜻한 흰색|Blanco cálido|Blanc chaud|Warmweiß|Branco quente|أبيض دافئ
+經典黑綠|Classic black and green|クラシック黒緑|클래식 검정/초록|Negro y verde clásicos|Noir et vert classiques|Klassisches Schwarz-Grün|Preto e verde clássicos|أسود وأخضر كلاسيكي
+自然綠漸層|Natural green gradient|自然な緑のグラデーション|자연 녹색 그라데이션|Degradado verde natural|Dégradé vert naturel|Natürlicher Grünverlauf|Gradiente verde natural|تدرج أخضر طبيعي
+晨曦橙漸層|Sunrise orange gradient|朝焼けオレンジのグラデーション|일출 주황 그라데이션|Degradado naranja amanecer|Dégradé orange aurore|Sonnenaufgangs-Orangeverlauf|Gradiente laranja amanhecer|تدرج برتقالي الفجر
+雷射模式|Laser mode|レーザーモード|레이저 모드|Modo láser|Mode laser|Lasermodus|Modo laser|وضع الليزر
+雷射設定|Laser settings|レーザー設定|레이저 설정|Ajustes del láser|Réglages du laser|Lasereinstellungen|Configurações do laser|إعدادات الليزر
+雷射：顏色、大小與消退|Laser: color, size and fading|レーザー：色、サイズ、消える時間|레이저: 색상, 크기 및 사라짐|Láser: color, tamaño y desvanecimiento|Laser : couleur, taille et fondu|Laser: Farbe, Größe und Verblassen|Laser: cor, tamanho e desaparecimento|الليزر: اللون والحجم والتلاشي
+雷射：再次點擊開啟設定|Laser: click again for settings|レーザー：再クリックで設定|레이저: 다시 클릭하면 설정|Láser: pulsa de nuevo para configurar|Laser : recliquez pour les réglages|Laser: erneut für Einstellungen klicken|Laser: clique novamente para configurar|الليزر: انقر مجددًا للإعدادات
+光點|Dot|光点|점|Punto|Point|Punkt|Ponto|نقطة
+光點直徑|Dot diameter|光点の直径|점 지름|Diámetro del punto|Diamètre du point|Punktdurchmesser|Diâmetro do ponto|قطر النقطة
+短尾跡|Short trail|短い軌跡|짧은 궤적|Estela corta|Traînée courte|Kurze Spur|Rastro curto|أثر قصير
+尾跡粗細|Trail width|軌跡の太さ|궤적 굵기|Grosor de la estela|Épaisseur de la traînée|Spurstärke|Espessura do rastro|سُمك الأثر
+消退時間（秒）|Fade duration (seconds)|消える時間（秒）|사라지는 시간(초)|Duración del desvanecimiento (s)|Durée du fondu (secondes)|Ausblenddauer (Sekunden)|Duração do desaparecimento (s)|مدة التلاشي (ثوانٍ)
+白色光芯|White core|白い中心|흰색 중심|Núcleo blanco|Centre blanc|Weißer Kern|Núcleo branco|مركز أبيض
+尺規;螢幕尺|Ruler|定規|자|Regla|Règle|Lineal|Régua|مسطرة
+尺規設定|Ruler settings|定規の設定|자 설정|Ajustes de la regla|Réglages de la règle|Linealeinstellungen|Configurações da régua|إعدادات المسطرة
+尺規角度與配色…;角度、尺寸與配色…|Angle, size and colors…|角度、サイズ、色…|각도, 크기 및 색상…|Ángulo, tamaño y colores…|Angle, taille et couleurs…|Winkel, Größe und Farben…|Ângulo, tamanho e cores…|الزاوية والحجم والألوان…
+螢幕尺；右鍵設定角度與配色|Ruler: right-click for angle and color settings|定規：右クリックで角度と色を設定|자: 오른쪽 클릭으로 각도 및 색상 설정|Regla: clic derecho para ajustar ángulo y color|Règle : clic droit pour régler angle et couleur|Lineal: Rechtsklick für Winkel und Farbe|Régua: clique direito para ajustar ângulo e cor|المسطرة: انقر يمينًا لضبط الزاوية واللون
+角度（0.1°）|Angle (0.1°)|角度（0.1°）|각도(0.1°)|Ángulo (0.1°)|Angle (0,1°)|Winkel (0,1°)|Ângulo (0,1°)|الزاوية (0.1°)
+角度（°）|Angle (°)|角度（°）|각도(°)|Ángulo (°)|Angle (°)|Winkel (°)|Ângulo (°)|الزاوية (°)
+水平 0.0°|Horizontal 0.0°|水平 0.0°|수평 0.0°|Horizontal 0.0°|Horizontal 0,0°|Horizontal 0,0°|Horizontal 0,0°|أفقي 0.0°
+尺身透明度|Ruler opacity|定規の不透明度|자 불투명도|Opacidad de la regla|Opacité de la règle|Linealdeckkraft|Opacidade da régua|عتامة المسطرة
+尺長（畫布寬度 %）|Ruler length (% of canvas width)|定規の長さ（キャンバス幅の %）|자 길이(캔버스 너비 %)|Longitud (% del ancho del lienzo)|Longueur (% de la largeur du canevas)|Lineallänge (% der Leinwandbreite)|Comprimento (% da largura da tela)|طول المسطرة (% من عرض اللوحة)
+刻度與文字配色|Tick and label colors|目盛りと文字の色|눈금 및 글자 색상|Colores de marcas y texto|Couleurs des graduations et du texte|Skalen- und Beschriftungsfarben|Cores das marcações e texto|ألوان التدريجات والنص
+旋轉支點所在邊|Pivot edge|支点の辺|회전 중심 가장자리|Borde del pivote|Bord du pivot|Drehpunktkante|Borda do pivô|حافة محور الدوران
+上方劃線邊|Top drawing edge|上の描画辺|위쪽 그리기 가장자리|Borde superior de dibujo|Bord supérieur de tracé|Obere Zeichenkante|Borda superior de desenho|حافة الرسم العلوية
+下方劃線邊|Bottom drawing edge|下の描画辺|아래쪽 그리기 가장자리|Borde inferior de dibujo|Bord inférieur de tracé|Untere Zeichenkante|Borda inferior de desenho|حافة الرسم السفلية
+尺身中線|Ruler centerline|定規の中心線|자 중심선|Línea central de la regla|Ligne centrale de la règle|Linealmittellinie|Linha central da régua|خط وسط المسطرة
+支點位置（0% 左端；100% 右端）|Pivot position (0% left; 100% right)|支点位置（0% 左端、100% 右端）|회전 중심 위치(0% 왼쪽, 100% 오른쪽)|Posición del pivote (0% izquierda; 100% derecha)|Position du pivot (0 % gauche ; 100 % droite)|Drehpunktposition (0 % links; 100 % rechts)|Posição do pivô (0% esquerda; 100% direita)|موضع المحور (0% يسار؛ 100% يمين)
+圓規與圓弧;圓規（兩階段畫弧）|Compass and arcs|コンパスと円弧|컴퍼스 및 원호|Compás y arcos|Compas et arcs|Zirkel und Bögen|Compasso e arcos|الفرجار والأقواس
+圓規：畫布兩階段繪製精確圓弧；右鍵開啟參數面板|Compass: position, then draw an arc; right-click for parameters|コンパス：位置を決めて円弧を描画。右クリックでパラメーター|컴퍼스: 위치 지정 후 원호 그리기; 오른쪽 클릭으로 매개변수 설정|Compás: coloca y dibuja un arco; clic derecho para parámetros|Compas : positionnez puis tracez un arc ; clic droit pour les paramètres|Zirkel: positionieren, dann Bogen zeichnen; Rechtsklick für Parameter|Compasso: posicione e desenhe um arco; clique direito para parâmetros|الفرجار: حدد الموضع ثم ارسم قوسًا؛ انقر يمينًا للمعلمات
+準備階段：可移動圓心與調整半徑|Setup: move the center and adjust the radius|準備：中心を移動して半径を調整|준비: 중심 이동 및 반지름 조정|Preparación: mueve el centro y ajusta el radio|Préparation : déplacez le centre et réglez le rayon|Vorbereitung: Mittelpunkt verschieben und Radius einstellen|Preparação: mova o centro e ajuste o raio|الإعداد: حرّك المركز واضبط نصف القطر
+圓心已鎖定：請拖曳筆尖畫弧;已鎖定圓心作畫|Center locked: drag the pen tip to draw an arc|中心をロック済み：ペン先をドラッグして円弧を描画|중심 잠김: 펜 끝을 드래그하여 원호 그리기|Centro bloqueado: arrastra la punta para dibujar un arco|Centre verrouillé : glissez la pointe pour tracer un arc|Mittelpunkt gesperrt: Spitze zum Zeichnen eines Bogens ziehen|Centro bloqueado: arraste a ponta para desenhar um arco|المركز مقفل: اسحب رأس القلم لرسم قوس
+鎖定圓心（作畫階段）|Lock center (drawing stage)|中心をロック（描画段階）|중심 잠금(그리기 단계)|Bloquear centro (fase de dibujo)|Verrouiller le centre (phase de tracé)|Mittelpunkt sperren (Zeichenphase)|Bloquear centro (fase de desenho)|قفل المركز (مرحلة الرسم)
+圓規已關閉|Compass disabled|コンパスを無効にしました|컴퍼스가 꺼졌습니다|Compás desactivado|Compas désactivé|Zirkel deaktiviert|Compasso desativado|تم تعطيل الفرجار
+圓規已啟用：拖曳圓心或半徑把手，點擊圓心鎖定後拖曳筆尖畫弧|Compass enabled: drag center or radius handle, lock the center, then drag the tip to draw.|コンパス有効：中心か半径ハンドルをドラッグし、中心をロックしてペン先で描画します。|컴퍼스 켜짐: 중심이나 반지름 손잡이를 움직이고 중심을 잠근 후 펜 끝으로 그리세요.|Compás activo: arrastra centro o radio, bloquea el centro y arrastra la punta para dibujar.|Compas activé : glissez le centre ou le rayon, verrouillez le centre puis tracez avec la pointe.|Zirkel aktiv: Mittelpunkt oder Radiusgriff ziehen, Mittelpunkt sperren und mit der Spitze zeichnen.|Compasso ativo: arraste centro ou raio, bloqueie o centro e arraste a ponta para desenhar.|الفرجار مفعّل: اسحب المركز أو مقبض نصف القطر، اقفل المركز ثم اسحب الرأس للرسم.
+圓心座標：({0:0.#}, {1:0.#})|Center: ({0:0.#}, {1:0.#})|中心：({0:0.#}, {1:0.#})|중심: ({0:0.#}, {1:0.#})|Centro: ({0:0.#}, {1:0.#})|Centre : ({0:0.#}, {1:0.#})|Mittelpunkt: ({0:0.#}, {1:0.#})|Centro: ({0:0.#}, {1:0.#})|المركز: ({0:0.#}, {1:0.#})
+將圓心設為目前視野中心|Set center to the current view center|中心を現在の表示の中央に設定|중심을 현재 보기 중앙으로 설정|Centrar en la vista actual|Placer le centre au milieu de la vue|Mittelpunkt auf aktuelle Ansichtsmitte setzen|Centralizar na visão atual|وضع المركز في وسط العرض الحالي
+半徑: {0} pt|Radius: {0} pt|半径：{0} pt|반지름: {0} pt|Radio: {0} pt|Rayon : {0} pt|Radius: {0} pt|Raio: {0} pt|نصف القطر: {0} pt
+半徑（pt）：{0:0.#}|Radius (pt): {0:0.#}|半径（pt）：{0:0.#}|반지름(pt): {0:0.#}|Radio (pt): {0:0.#}|Rayon (pt) : {0:0.#}|Radius (pt): {0:0.#}|Raio (pt): {0:0.#}|نصف القطر (pt): {0:0.#}
+半徑: {0} pt  掃角: {1:0.#}°|Radius: {0} pt  Sweep: {1:0.#}°|半径：{0} pt  掃引角：{1:0.#}°|반지름: {0} pt  회전각: {1:0.#}°|Radio: {0} pt  Barrido: {1:0.#}°|Rayon : {0} pt  Balayage : {1:0.#}°|Radius: {0} pt  Bogenwinkel: {1:0.#}°|Raio: {0} pt  Varredura: {1:0.#}°|نصف القطر: {0} pt  زاوية القوس: {1:0.#}°
+直徑（pt）|Diameter (pt)|直径（pt）|지름(pt)|Diámetro (pt)|Diamètre (pt)|Durchmesser (pt)|Diâmetro (pt)|القطر (pt)
+起點角度（0~360°）|Start angle (0–360°)|開始角（0～360°）|시작 각도(0~360°)|Ángulo inicial (0–360°)|Angle initial (0–360°)|Startwinkel (0–360°)|Ângulo inicial (0–360°)|زاوية البداية (0–360°)
+掃動角度（-360~360°）|Sweep angle (−360–360°)|掃引角（−360～360°）|회전각(-360~360°)|Ángulo de barrido (−360–360°)|Angle de balayage (−360–360°)|Bogenwinkel (−360–360°)|Ângulo de varredura (−360–360°)|زاوية القوس (−360–360°)
+起角: {0:0.#}°  掃角: {1:0.#}°|Start: {0:0.#}°  Sweep: {1:0.#}°|開始角：{0:0.#}°  掃引角：{1:0.#}°|시작: {0:0.#}°  회전각: {1:0.#}°|Inicio: {0:0.#}°  Barrido: {1:0.#}°|Début : {0:0.#}°  Balayage : {1:0.#}°|Start: {0:0.#}°  Bogenwinkel: {1:0.#}°|Início: {0:0.#}°  Varredura: {1:0.#}°|البداية: {0:0.#}°  زاوية القوس: {1:0.#}°
+預備角: {0:0.#}°|Setup angle: {0:0.#}°|準備角：{0:0.#}°|준비 각도: {0:0.#}°|Ángulo de preparación: {0:0.#}°|Angle de préparation : {0:0.#}°|Vorbereitungswinkel: {0:0.#}°|Ângulo de preparação: {0:0.#}°|زاوية الإعداد: {0:0.#}°
+繪製設定圓弧|Draw configured arc|設定した円弧を描画|설정한 원호 그리기|Dibujar arco configurado|Tracer l'arc configuré|Eingestellten Bogen zeichnen|Desenhar arco configurado|رسم القوس المحدد
+一鍵繪製整圓 (360°)|Draw full circle (360°)|全円を描画（360°）|전체 원 그리기(360°)|Dibujar círculo completo (360°)|Tracer un cercle entier (360°)|Vollkreis zeichnen (360°)|Desenhar círculo completo (360°)|رسم دائرة كاملة (360°)
+已生成整圓物件|Full circle created|全円を作成しました|전체 원이 생성되었습니다|Círculo completo creado|Cercle entier créé|Vollkreis erstellt|Círculo completo criado|تم إنشاء دائرة كاملة
+已生成圓弧（半徑 {0:0.#}pt，掃角 {1:0.#}°）|Arc created (radius {0:0.#} pt, sweep {1:0.#}°)|円弧を作成（半径 {0:0.#} pt、掃引角 {1:0.#}°）|원호 생성됨(반지름 {0:0.#} pt, 회전각 {1:0.#}°)|Arco creado (radio {0:0.#} pt, barrido {1:0.#}°)|Arc créé (rayon {0:0.#} pt, balayage {1:0.#}°)|Bogen erstellt (Radius {0:0.#} pt, Winkel {1:0.#}°)|Arco criado (raio {0:0.#} pt, varredura {1:0.#}°)|تم إنشاء قوس (نصف القطر {0:0.#} pt، الزاوية {1:0.#}°)
+{0:0.#} pt · 畫布直徑 {1:0.#} pt|{0:0.#} pt · canvas diameter {1:0.#} pt|{0:0.#} pt · キャンバス上の直径 {1:0.#} pt|{0:0.#} pt · 캔버스 지름 {1:0.#} pt|{0:0.#} pt · diámetro del lienzo {1:0.#} pt|{0:0.#} pt · diamètre sur le canevas {1:0.#} pt|{0:0.#} pt · Leinwanddurchmesser {1:0.#} pt|{0:0.#} pt · diâmetro na tela {1:0.#} pt|{0:0.#} pt · القطر على اللوحة {1:0.#} pt
+畫布直徑 {0:0.#} pt · 縮放 {1:P0} · 透明度 {2:P0}|Canvas diameter {0:0.#} pt · zoom {1:P0} · opacity {2:P0}|キャンバス上の直径 {0:0.#} pt · ズーム {1:P0} · 不透明度 {2:P0}|캔버스 지름 {0:0.#} pt · 확대 {1:P0} · 불투명도 {2:P0}|Diámetro {0:0.#} pt · zoom {1:P0} · opacidad {2:P0}|Diamètre {0:0.#} pt · zoom {1:P0} · opacité {2:P0}|Durchmesser {0:0.#} pt · Zoom {1:P0} · Deckkraft {2:P0}|Diâmetro {0:0.#} pt · zoom {1:P0} · opacidade {2:P0}|القطر {0:0.#} pt · التكبير {1:P0} · العتامة {2:P0}
+自適應（預設）|Adaptive (default)|自動調整（既定）|자동 조정(기본값)|Adaptable (predeterminado)|Adaptatif (par défaut)|Adaptiv (Standard)|Adaptável (padrão)|متكيف (افتراضي)
+匯出作品;匯出文件或圖片…|Export work|作品をエクスポート|작품 내보내기|Exportar trabajo|Exporter la création|Werk exportieren|Exportar trabalho|تصدير العمل
+匯出範圍|Export scope|エクスポート範囲|내보내기 범위|Ámbito de exportación|Portée de l'exportation|Exportbereich|Escopo da exportação|نطاق التصدير
+選擇格式及位置|Choose format and location|形式と保存先を選択|형식 및 위치 선택|Elegir formato y ubicación|Choisir le format et l'emplacement|Format und Speicherort wählen|Escolher formato e local|اختيار التنسيق والموقع
+目前視野|Current view|現在の表示範囲|현재 보기|Vista actual|Vue actuelle|Aktuelle Ansicht|Visão atual|العرض الحالي
+目前頁面／全部內容|Current page / all content|現在のページ／すべての内容|현재 페이지/전체 내용|Página actual / todo el contenido|Page actuelle / tout le contenu|Aktuelle Seite / gesamter Inhalt|Página atual / todo o conteúdo|الصفحة الحالية / كل المحتوى
+可編輯原稿（所有頁面）|Editable document (all pages)|編集可能な原稿（全ページ）|편집 가능한 문서(전체 페이지)|Documento editable (todas las páginas)|Document modifiable (toutes les pages)|Bearbeitbares Dokument (alle Seiten)|Documento editável (todas as páginas)|مستند قابل للتحرير (كل الصفحات)
+跨平台 JSON（所有頁面）|Cross-platform JSON (all pages)|クロスプラットフォーム JSON（全ページ）|크로스 플랫폼 JSON(전체 페이지)|JSON multiplataforma (todas las páginas)|JSON multiplateforme (toutes les pages)|Plattformübergreifendes JSON (alle Seiten)|JSON multiplataforma (todas as páginas)|JSON متعدد المنصات (كل الصفحات)
+可編輯註記|Editable annotations|編集可能な注釈|편집 가능한 주석|Anotaciones editables|Annotations modifiables|Bearbeitbare Notizen|Anotações editáveis|تعليقات قابلة للتحرير
+HTML 離線作品|Offline HTML document|オフライン HTML 作品|오프라인 HTML 문서|Documento HTML sin conexión|Document HTML hors ligne|Offline-HTML-Dokument|Documento HTML offline|مستند HTML دون اتصال
+PDF 文件|PDF document|PDF 文書|PDF 문서|Documento PDF|Document PDF|PDF-Dokument|Documento PDF|مستند PDF
+PNG 圖片|PNG image|PNG 画像|PNG 이미지|Imagen PNG|Image PNG|PNG-Bild|Imagem PNG|صورة PNG
+透明 PNG|Transparent PNG|透過 PNG|투명 PNG|PNG transparente|PNG transparent|Transparentes PNG|PNG transparente|PNG شفاف
+SVG 向量圖|SVG vector image|SVG ベクター画像|SVG 벡터 이미지|Imagen vectorial SVG|Image vectorielle SVG|SVG-Vektorgrafik|Imagem vetorial SVG|صورة متجهة SVG
+已匯出：|Exported: |エクスポート済み：|내보내기 완료: |Exportado: |Exporté : |Exportiert: |Exportado: |تم التصدير:\s
+PDF 排版載入失敗：|PDF layout failed to load: |PDF レイアウトの読み込み失敗：|PDF 레이아웃을 불러오지 못했습니다: |No se pudo cargar el diseño PDF: |Échec du chargement de la mise en page PDF : |PDF-Layout konnte nicht geladen werden: |Falha ao carregar o layout PDF: |تعذر تحميل تخطيط PDF:\s
+匯入圖片；也可拖入桌面截圖;圖片匯入…|Import image or drag in a screenshot|画像をインポート、またはスクリーンショットをドラッグ|이미지 가져오기 또는 스크린샷 드래그|Importa una imagen o arrastra una captura|Importez une image ou glissez une capture|Bild importieren oder Bildschirmaufnahme hineinziehen|Importe uma imagem ou arraste uma captura|استورد صورة أو اسحب لقطة شاشة
+圖片裁切;裁切圖片／恢復原圖|Crop image / restore original|画像をトリミング／元に戻す|이미지 자르기/원본 복원|Recortar imagen / restaurar original|Recadrer l'image / restaurer l'original|Bild zuschneiden / Original wiederherstellen|Recortar imagem / restaurar original|قص الصورة / استعادة الأصل
+套用裁切|Apply crop|トリミングを適用|자르기 적용|Aplicar recorte|Appliquer le recadrage|Zuschnitt anwenden|Aplicar recorte|تطبيق القص
+恢復原圖|Restore original image|元の画像を復元|원본 이미지 복원|Restaurar imagen original|Restaurer l'image originale|Originalbild wiederherstellen|Restaurar imagem original|استعادة الصورة الأصلية
+左側（原圖像素）|Left (original image pixels)|左（元画像のピクセル）|왼쪽(원본 이미지 픽셀)|Izquierda (píxeles originales)|Gauche (pixels de l'image originale)|Links (Originalbildpixel)|Esquerda (pixels originais)|اليسار (بكسلات الصورة الأصلية)
+上側（原圖像素）|Top (original image pixels)|上（元画像のピクセル）|위(원본 이미지 픽셀)|Arriba (píxeles originales)|Haut (pixels de l'image originale)|Oben (Originalbildpixel)|Superior (pixels originais)|الأعلى (بكسلات الصورة الأصلية)
+寬度（原圖像素）|Width (original image pixels)|幅（元画像のピクセル）|너비(원본 이미지 픽셀)|Ancho (píxeles originales)|Largeur (pixels de l'image originale)|Breite (Originalbildpixel)|Largura (pixels originais)|العرض (بكسلات الصورة الأصلية)
+高度（原圖像素）|Height (original image pixels)|高さ（元画像のピクセル）|높이(원본 이미지 픽셀)|Alto (píxeles originales)|Hauteur (pixels de l'image originale)|Höhe (Originalbildpixel)|Altura (pixels originais)|الارتفاع (بكسلات الصورة الأصلية)
+截圖|Screenshot|スクリーンショット|스크린샷|Captura de pantalla|Capture d'écran|Bildschirmaufnahme|Captura de tela|لقطة شاشة
+截圖置入…（Win+Shift+S）|Insert screenshot… (Win+Shift+S)|スクリーンショットを挿入…（Win+Shift+S）|스크린샷 삽입…(Win+Shift+S)|Insertar captura… (Win+Shift+S)|Insérer une capture… (Win+Shift+S)|Bildschirmaufnahme einfügen… (Win+Shift+S)|Inserir captura… (Win+Shift+S)|إدراج لقطة… (Win+Shift+S)
+截圖：拖曳框選後直接置入畫布|Screenshot: drag a region to insert it into the canvas|スクリーンショット：範囲をドラッグしてキャンバスに挿入|스크린샷: 영역을 드래그하여 캔버스에 삽입|Captura: arrastra una región para insertarla en el lienzo|Capture : glissez une zone pour l'insérer dans le canevas|Bildschirmaufnahme: Bereich ziehen und in Leinwand einfügen|Captura: arraste uma região para inserir na tela|لقطة الشاشة: اسحب منطقة لإدراجها في اللوحة
+截圖加入螢幕畫布 · Ctrl+Alt+S|Insert screenshot into screen canvas · Ctrl+Alt+S|画面キャンバスにスクリーンショットを挿入 · Ctrl+Alt+S|화면 캔버스에 스크린샷 삽입 · Ctrl+Alt+S|Insertar captura en pantalla · Ctrl+Alt+S|Insérer une capture dans le canevas d'écran · Ctrl+Alt+S|Aufnahme in Bildschirmleinwand einfügen · Ctrl+Alt+S|Inserir captura na tela · Ctrl+Alt+S|إدراج لقطة في لوحة الشاشة · Ctrl+Alt+S
+拖曳框選截圖 · Esc 或右鍵取消;拖曳框選截圖，Esc 或右鍵取消|Drag to capture a region · Esc or right-click to cancel|ドラッグで範囲を撮影 · Esc または右クリックでキャンセル|드래그하여 영역 캡처 · Esc 또는 오른쪽 클릭으로 취소|Arrastra para capturar · Esc o clic derecho para cancelar|Glissez pour capturer · Esc ou clic droit pour annuler|Bereich ziehen · Esc oder Rechtsklick zum Abbrechen|Arraste para capturar · Esc ou clique direito para cancelar|اسحب لالتقاط منطقة · Esc أو النقر يمينًا للإلغاء
+已取消截圖;截圖已取消或逾時|Screenshot canceled or timed out|スクリーンショットはキャンセルまたは時間切れ|스크린샷이 취소되었거나 시간이 초과되었습니다|Captura cancelada o agotó el tiempo|Capture annulée ou délai dépassé|Aufnahme abgebrochen oder Zeitüberschreitung|Captura cancelada ou tempo esgotado|أُلغيت اللقطة أو انتهت المهلة
+截圖已逾時（超過 60 秒）|Screenshot timed out (over 60 seconds)|スクリーンショットが時間切れ（60 秒超）|스크린샷 시간 초과(60초 이상)|Captura agotó el tiempo (más de 60 segundos)|Délai de capture dépassé (plus de 60 secondes)|Aufnahmezeit überschritten (über 60 Sekunden)|Tempo de captura esgotado (mais de 60 segundos)|انتهت مهلة اللقطة (أكثر من 60 ثانية)
+截圖已加入畫布|Screenshot added to canvas|スクリーンショットを追加しました|스크린샷이 캔버스에 추가되었습니다|Captura añadida al lienzo|Capture ajoutée au canevas|Aufnahme zur Leinwand hinzugefügt|Captura adicionada à tela|أُضيفت اللقطة إلى اللوحة
+截圖已加入螢幕畫布，可選取調整|Screenshot added to screen canvas; select to adjust|画面キャンバスに追加しました。選択して調整できます|화면 캔버스에 추가됨; 선택하여 조정하세요|Captura añadida; selecciónala para ajustar|Capture ajoutée ; sélectionnez-la pour ajuster|Aufnahme hinzugefügt; zum Anpassen auswählen|Captura adicionada; selecione para ajustar|أُضيفت اللقطة؛ حددها لضبطها
+截圖未完成：|Screenshot incomplete: |スクリーンショット未完了：|스크린샷 미완료: |Captura incompleta: |Capture incomplète : |Aufnahme unvollständig: |Captura incompleta: |اللقطة غير مكتملة:\s
+圖形：直線、箭頭、矩形、圓與多邊形|Shapes: lines, arrows, rectangles, circles and polygons|図形：直線、矢印、長方形、円、多角形|도형: 직선, 화살표, 사각형, 원 및 다각형|Formas: líneas, flechas, rectángulos, círculos y polígonos|Formes : lignes, flèches, rectangles, cercles et polygones|Formen: Linien, Pfeile, Rechtecke, Kreise und Vielecke|Formas: linhas, setas, retângulos, círculos e polígonos|الأشكال: خطوط وأسهم ومستطيلات ودوائر ومضلعات
+選取物件：樣式、複製、刪除…|Select object: style, copy, delete…|オブジェクトを選択：スタイル、コピー、削除…|개체 선택: 스타일, 복사, 삭제…|Seleccionar objeto: estilo, copiar, eliminar…|Sélectionner : style, copier, supprimer…|Objekt auswählen: Stil, Kopieren, Löschen…|Selecionar objeto: estilo, copiar, excluir…|تحديد عنصر: نمط ونسخ وحذف…
+請先選取物件。|Select an object first.|先にオブジェクトを選択してください。|먼저 개체를 선택하세요.|Selecciona primero un objeto.|Sélectionnez d'abord un objet.|Zuerst ein Objekt auswählen.|Selecione um objeto primeiro.|حدد عنصرًا أولاً.
+先複製黑板物件再貼上|Copy a HeiBan object before pasting|先に HeiBan のオブジェクトをコピーしてください|붙여넣기 전에 HeiBan 개체를 복사하세요|Copia un objeto de HeiBan antes de pegar|Copiez un objet HeiBan avant de coller|Vor dem Einfügen ein HeiBan-Objekt kopieren|Copie um objeto do HeiBan antes de colar|انسخ عنصر HeiBan قبل اللصق
+剪貼簿沒有黑板物件|No HeiBan objects on the clipboard|クリップボードに HeiBan のオブジェクトがありません|클립보드에 HeiBan 개체가 없습니다|No hay objetos HeiBan en el portapapeles|Aucun objet HeiBan dans le presse-papiers|Keine HeiBan-Objekte in der Zwischenablage|Não há objetos HeiBan na área de transferência|لا توجد عناصر HeiBan في الحافظة
+物件已複製，可貼到螢幕或黑板|Object copied; paste into a board or screen canvas|コピーしました。ボードまたは画面キャンバスに貼り付けできます|복사됨; 보드나 화면 캔버스에 붙여넣기 가능|Objeto copiado; pégalo en la pizarra o pantalla|Objet copié ; collez-le dans un tableau ou canevas d'écran|Objekt kopiert; in Tafel oder Bildschirmleinwand einfügen|Objeto copiado; cole no quadro ou na tela|نُسخ العنصر؛ الصقه في لوحة أو لوحة الشاشة
+複製未完成：|Copy incomplete: |コピー未完了：|복사 미완료: |Copia incompleta: |Copie incomplète : |Kopieren unvollständig: |Cópia incompleta: |النسخ غير مكتمل:\s
+貼上未完成：|Paste incomplete: |貼り付け未完了：|붙여넣기 미완료: |Pegado incompleto: |Collage incomplet : |Einfügen unvollständig: |Colagem incompleta: |اللصق غير مكتمل:\s
+一鍵清空畫布（可復原）|Clear canvas (undo available)|キャンバスを消去（元に戻せます）|캔버스 지우기(실행 취소 가능)|Vaciar lienzo (se puede deshacer)|Effacer le canevas (annulable)|Leinwand leeren (rückgängig möglich)|Limpar tela (pode desfazer)|مسح اللوحة (يمكن التراجع)
+一鍵清空所有螢幕註記 · Ctrl+Alt+K · 可復原|Clear all screen annotations · Ctrl+Alt+K · undo available|画面の注釈をすべて消去 · Ctrl+Alt+K · 元に戻せます|모든 화면 주석 지우기 · Ctrl+Alt+K · 실행 취소 가능|Borrar todas las anotaciones · Ctrl+Alt+K · se puede deshacer|Effacer toutes les annotations · Ctrl+Alt+K · annulable|Alle Bildschirmnotizen löschen · Ctrl+Alt+K · rückgängig möglich|Limpar todas as anotações · Ctrl+Alt+K · pode desfazer|مسح كل تعليقات الشاشة · Ctrl+Alt+K · يمكن التراجع
+已清除全部註記 · 可按復原恢復|All annotations cleared · Undo to restore|注釈をすべて消去 · 元に戻すで復元|모든 주석 지워짐 · 실행 취소로 복원|Anotaciones borradas · Deshacer para restaurar|Annotations effacées · Annuler pour restaurer|Alle Notizen gelöscht · Rückgängig zum Wiederherstellen|Anotações apagadas · Desfazer para restaurar|مُسحت كل التعليقات · تراجع للاستعادة
+作畫|Draw|描画|그리기|Dibujar|Dessiner|Zeichnen|Desenhar|رسم
+操作;操作穿透|Interact|操作|조작|Interactuar|Interagir|Bedienen|Interagir|تفاعل
+作畫中 · 右鍵物件可編輯;作畫中 · 右鍵物件可調整、複製或刪除|Drawing · right-click an object to edit, copy or delete|描画中 · 右クリックで編集、コピー、削除|그리기 중 · 오른쪽 클릭으로 수정, 복사 또는 삭제|Dibujando · clic derecho para editar, copiar o eliminar|Dessin · clic droit pour modifier, copier ou supprimer|Zeichnen · Rechtsklick zum Bearbeiten, Kopieren oder Löschen|Desenhando · clique direito para editar, copiar ou excluir|الرسم · انقر يمينًا لتعديل العنصر أو نسخه أو حذفه
+作畫中；切換穿透操作|Drawing; switch to interact with apps below|描画中。下のアプリを操作するモードに切り替え|그리기 중; 아래 앱 조작 모드로 전환|Dibujando; cambiar para interactuar con las apps inferiores|Dessin ; basculer pour interagir avec les apps dessous|Zeichnen; zum Bedienen darunterliegender Apps wechseln|Desenhando; alternar para interagir com apps abaixo|وضع الرسم؛ بدّل للتفاعل مع التطبيقات أسفل اللوحة
+操作中；回到作畫|Interacting; return to drawing|操作中。描画に戻る|조작 중; 그리기로 돌아가기|Interactuando; volver a dibujar|Interaction ; revenir au dessin|Bedienen; zum Zeichnen zurückkehren|Interagindo; voltar a desenhar|وضع التفاعل؛ العودة إلى الرسم
+操作中 · Ctrl+Alt+D 繼續作畫|Interacting · Ctrl+Alt+D to resume drawing|操作中 · Ctrl+Alt+D で描画再開|조작 중 · Ctrl+Alt+D로 그리기 재개|Interactuando · Ctrl+Alt+D para dibujar|Interaction · Ctrl+Alt+D pour dessiner|Bedienen · Ctrl+Alt+D zum Weiterzeichnen|Interagindo · Ctrl+Alt+D para desenhar|التفاعل · Ctrl+Alt+D لمتابعة الرسم
+結束螢幕畫布 · Ctrl+Alt+Q|Exit screen canvas · Ctrl+Alt+Q|画面キャンバスを終了 · Ctrl+Alt+Q|화면 캔버스 종료 · Ctrl+Alt+Q|Salir del lienzo de pantalla · Ctrl+Alt+Q|Quitter le canevas d'écran · Ctrl+Alt+Q|Bildschirmleinwand beenden · Ctrl+Alt+Q|Sair da tela de anotação · Ctrl+Alt+Q|إنهاء لوحة الشاشة · Ctrl+Alt+Q
+儲存可編輯註記／透明 PNG…|Save editable annotations / transparent PNG…|編集可能な注釈／透過 PNG を保存…|편집 가능한 주석/투명 PNG 저장…|Guardar anotaciones editables / PNG transparente…|Enregistrer les annotations / PNG transparent…|Bearbeitbare Notizen / transparentes PNG speichern…|Salvar anotações editáveis / PNG transparente…|حفظ التعليقات القابلة للتحرير / PNG شفاف…
+註記已另存|Annotations saved|注釈を保存しました|주석이 저장되었습니다|Anotaciones guardadas|Annotations enregistrées|Notizen gespeichert|Anotações salvas|تم حفظ التعليقات
+註記另存失敗：|Unable to save annotations: |注釈の保存に失敗：|주석 저장 실패: |No se pudieron guardar las anotaciones: |Impossible d'enregistrer les annotations : |Notizen konnten nicht gespeichert werden: |Falha ao salvar anotações: |تعذر حفظ التعليقات:\s
+註記保存失敗，內容仍保留：|Save failed; annotations are still retained: |保存失敗。注釈は保持されています：|저장 실패; 주석은 보존됩니다: |Error al guardar; se conservan las anotaciones: |Échec d'enregistrement ; annotations conservées : |Speichern fehlgeschlagen; Notizen bleiben erhalten: |Falha ao salvar; anotações mantidas: |فشل الحفظ؛ التعليقات ما زالت محفوظة:\s
+部分快捷鍵被其他程式占用，請使用控制列按鈕。|Some shortcuts are used by another app. Use the toolbar buttons.|一部のショートカットは別のアプリが使用中です。ツールバーのボタンをご利用ください。|일부 단축키가 다른 앱에서 사용 중입니다. 도구 모음 버튼을 사용하세요.|Otra app usa algunos atajos. Utiliza los botones de la barra.|Certains raccourcis sont utilisés par une autre app. Utilisez les boutons de la barre.|Einige Tastenkürzel werden von anderen Apps verwendet. Werkzeugleistenknöpfe nutzen.|Alguns atalhos estão em uso por outro app. Use os botões da barra.|تستخدم تطبيقات أخرى بعض الاختصارات. استخدم أزرار الشريط.
+繪圖未完成：|Drawing incomplete: |描画未完了：|그리기 미완료: |Dibujo incompleto: |Dessin incomplet : |Zeichnen unvollständig: |Desenho incompleto: |الرسم غير مكتمل:\s
+螢幕畫布初始化失敗：|Screen canvas initialization failed: |画面キャンバスの初期化失敗：|화면 캔버스 초기화 실패: |Falló la inicialización del lienzo de pantalla: |Échec d'initialisation du canevas d'écran : |Bildschirmleinwand konnte nicht initialisiert werden: |Falha ao iniciar a tela de anotação: |فشل تهيئة لوحة الشاشة:\s
+螢幕繪圖已停止：|Screen drawing stopped: |画面描画を停止しました：|화면 그리기가 중지되었습니다: |Se detuvo el dibujo en pantalla: |Dessin à l'écran arrêté : |Bildschirmzeichnen angehalten: |Desenho na tela interrompido: |توقف الرسم على الشاشة:\s
+作品庫偏好未保存：|Library preferences were not saved: |ライブラリ設定を保存できません：|라이브러리 설정을 저장하지 못했습니다: |No se guardaron las preferencias de biblioteca: |Préférences de bibliothèque non enregistrées : |Bibliothekseinstellungen nicht gespeichert: |Preferências da biblioteca não foram salvas: |لم تُحفظ إعدادات المكتبة:\s
+作品庫偏好讀取未完成，作品仍保留。|Unable to load library preferences. Your works are retained.|ライブラリ設定を読み込めません。作品は保持されています。|라이브러리 설정을 불러오지 못했습니다. 작품은 보존됩니다.|No se cargaron las preferencias. Tus trabajos se conservan.|Impossible de charger les préférences. Vos créations sont conservées.|Bibliothekseinstellungen konnten nicht geladen werden. Werke bleiben erhalten.|Não foi possível carregar preferências. Seus trabalhos são mantidos.|تعذر تحميل إعدادات المكتبة. أعمالك محفوظة.
+偏好保存失敗：|Unable to save preferences: |設定の保存失敗：|설정 저장 실패: |No se pudieron guardar las preferencias: |Impossible d'enregistrer les préférences : |Einstellungen konnten nicht gespeichert werden: |Falha ao salvar preferências: |تعذر حفظ الإعدادات:\s
+教學工具偏好未載入：|Teaching tool preferences were not loaded: |授業ツールの設定を読み込めません：|수업 도구 설정을 불러오지 못했습니다: |No se cargaron los ajustes de herramientas docentes: |Réglages des outils pédagogiques non chargés : |Lehrwerkzeugeinstellungen nicht geladen: |Preferências das ferramentas de ensino não foram carregadas: |لم تُحمّل إعدادات أدوات التعليم:\s
+停靠偏好未保存：|Dock preferences were not saved: |ドッキング設定を保存できません：|도킹 설정을 저장하지 못했습니다: |No se guardaron los ajustes de acoplamiento: |Préférences d'ancrage non enregistrées : |Andockeinstellungen nicht gespeichert: |Preferências de acoplamento não foram salvas: |لم تُحفظ إعدادات الإرساء:\s
+停靠偏好讀取未完成，註記仍保留|Dock preferences could not be loaded; annotations are retained|ドッキング設定を読み込めません。注釈は保持されています|도킹 설정을 불러오지 못했습니다; 주석은 보존됩니다|No se cargaron los ajustes; las anotaciones se conservan|Réglages d'ancrage non chargés ; annotations conservées|Andockeinstellungen nicht geladen; Notizen bleiben erhalten|Preferências não carregadas; anotações mantidas|تعذر تحميل إعدادات الإرساء؛ التعليقات محفوظة
+黑板已儲存，縮圖稍後更新：|Work saved; thumbnail will update later: |作品は保存済み。サムネイルは後で更新：|작품 저장됨; 미리 보기는 나중에 갱신됩니다: |Trabajo guardado; la miniatura se actualizará después: |Création enregistrée ; miniature actualisée plus tard : |Werk gespeichert; Vorschaubild wird später aktualisiert: |Trabalho salvo; miniatura será atualizada depois: |تم حفظ العمل؛ ستُحدّث الصورة المصغرة لاحقًا:\s
+手冊路徑未找到|User guide was not found|使い方のファイルが見つかりません|설명서 파일을 찾을 수 없습니다|No se encontró la guía|Guide introuvable|Handbuch nicht gefunden|Guia não encontrado|لم يُعثر على دليل الاستخدام
+計時器;計時器與碼表;計時器（常駐倒數與碼表）;計時器：碼表與倒數計時|Timer and stopwatch|タイマーとストップウォッチ|타이머 및 스톱워치|Temporizador y cronómetro|Minuteur et chronomètre|Timer und Stoppuhr|Temporizador e cronômetro|المؤقت وساعة الإيقاف
+倒數計時|Countdown|カウントダウン|카운트다운|Cuenta atrás|Compte à rebours|Countdown|Contagem regressiva|عد تنازلي
+碼表正計時|Stopwatch|ストップウォッチ|스톱워치|Cronómetro|Chronomètre|Stoppuhr|Cronômetro|ساعة إيقاف
+{0} 分鐘|{0} minutes|{0} 分|{0}분|{0} minutos|{0} minutes|{0} Minuten|{0} minutos|{0} دقائق
+自訂倒數（秒）|Custom countdown (seconds)|カスタムカウントダウン（秒）|사용자 지정 카운트다운(초)|Cuenta atrás personalizada (s)|Compte à rebours personnalisé (secondes)|Eigener Countdown (Sekunden)|Contagem personalizada (s)|عد تنازلي مخصص (ثوانٍ)
+套用自訂倒數|Apply custom countdown|カスタムカウントダウンを適用|사용자 지정 카운트다운 적용|Aplicar cuenta atrás|Appliquer le compte à rebours|Eigenen Countdown anwenden|Aplicar contagem personalizada|تطبيق العد التنازلي المخصص
+開始|Start|開始|시작|Iniciar|Démarrer|Starten|Iniciar|بدء
+暫停|Pause|一時停止|일시 정지|Pausar|Pause|Pausieren|Pausar|إيقاف مؤقت
+重設|Reset|リセット|초기화|Restablecer|Réinitialiser|Zurücksetzen|Redefinir|إعادة ضبط
+倒數計時時間到！|Countdown finished!|カウントダウンが終了しました！|카운트다운이 끝났습니다!|¡Cuenta atrás terminada!|Compte à rebours terminé !|Countdown beendet!|Contagem regressiva encerrada!|انتهى العد التنازلي!
+插入用時至畫布|Insert elapsed time into canvas|経過時間をキャンバスに挿入|경과 시간을 캔버스에 삽입|Insertar tiempo transcurrido|Insérer le temps écoulé|Verstrichene Zeit einfügen|Inserir tempo decorrido|إدراج الوقت المنقضي في اللوحة
+用時已插入畫布|Elapsed time inserted|経過時間を挿入しました|경과 시간이 삽입되었습니다|Tiempo transcurrido insertado|Temps écoulé inséré|Verstrichene Zeit eingefügt|Tempo decorrido inserido|تم إدراج الوقت المنقضي
+計算機;計算機（科學與括號）|Calculator|電卓|계산기|Calculadora|Calculatrice|Taschenrechner|Calculadora|آلة حاسبة
+計算機：基本與科學計算、插入算式|Calculator: basic/scientific functions and insert expressions|電卓：基本／関数計算、式を挿入|계산기: 기본/공학 계산 및 수식 삽입|Calculadora: funciones básicas/científicas e insertar fórmulas|Calculatrice : fonctions simples/scientifiques et insertion de formules|Rechner: einfache/wissenschaftliche Funktionen und Formeln einfügen|Calculadora: funções básicas/científicas e inserir fórmulas|الآلة الحاسبة: وظائف أساسية وعلمية وإدراج معادلات
+插入畫布|Insert into canvas|キャンバスに挿入|캔버스에 삽입|Insertar en el lienzo|Insérer dans le canevas|In Leinwand einfügen|Inserir na tela|إدراج في اللوحة
+計算結果已插入畫布|Calculation inserted into canvas|計算結果を挿入しました|계산 결과가 캔버스에 삽입되었습니다|Resultado insertado en el lienzo|Résultat inséré dans le canevas|Berechnung in Leinwand eingefügt|Resultado inserido na tela|تم إدراج النتيجة في اللوحة
+複製結果|Copy result|結果をコピー|결과 복사|Copiar resultado|Copier le résultat|Ergebnis kopieren|Copiar resultado|نسخ النتيجة
+已複製計算結果至剪貼簿|Result copied to clipboard|結果をクリップボードにコピーしました|결과가 클립보드에 복사되었습니다|Resultado copiado al portapapeles|Résultat copié dans le presse-papiers|Ergebnis in Zwischenablage kopiert|Resultado copiado para a área de transferência|نُسخت النتيجة إلى الحافظة
+歷史|History|履歴|기록|Historial|Historique|Verlauf|Histórico|السجل
+尚無歷史紀錄|No history yet|履歴はまだありません|아직 기록이 없습니다|Aún no hay historial|Aucun historique pour le moment|Noch kein Verlauf|Nenhum histórico ainda|لا يوجد سجل بعد
+清除歷史紀錄|Clear history|履歴を消去|기록 지우기|Borrar historial|Effacer l'historique|Verlauf löschen|Limpar histórico|مسح السجل
+遮住題目|Cover question|問題を隠す|문제 가리기|Ocultar pregunta|Masquer la question|Aufgabe abdecken|Ocultar questão|إخفاء السؤال
+揭示題目|Reveal question|問題を表示|문제 표시|Mostrar pregunta|Révéler la question|Aufgabe aufdecken|Mostrar questão|إظهار السؤال
+像素|Pixel|ピクセル|픽셀|Píxel|Pixel|Pixel|Pixel|بكسل
+黑板更新;更新設定|HeiBan updates|HeiBan の更新|HeiBan 업데이트|Actualizaciones de HeiBan|Mises à jour de HeiBan|HeiBan-Updates|Atualizações do HeiBan|تحديثات HeiBan
+檢查更新;檢查更新與更新設定…|Check for updates|更新を確認|업데이트 확인|Buscar actualizaciones|Rechercher des mises à jour|Nach Updates suchen|Verificar atualizações|التحقق من التحديثات
+目前版本：|Current version: |現在のバージョン：|현재 버전: |Versión actual: |Version actuelle : |Aktuelle Version: |Versão atual: |الإصدار الحالي:\s
+背景下載，正常關閉後更新|Download in background; update after normal exit|バックグラウンドでダウンロードし、通常終了後に更新|백그라운드 다운로드; 정상 종료 후 업데이트|Descargar en segundo plano; actualizar al cerrar normalmente|Télécharger en arrière-plan ; mettre à jour à la fermeture normale|Im Hintergrund laden; nach normalem Beenden aktualisieren|Baixar em segundo plano; atualizar após fechar normalmente|تنزيل في الخلفية؛ تحديث بعد الإغلاق المعتاد
+接收預覽版本|Receive preview versions|プレビュー版を受け取る|미리 보기 버전 받기|Recibir versiones preliminares|Recevoir les versions préliminaires|Vorabversionen erhalten|Receber versões de prévia|تلقي إصدارات المعاينة
+GitHub 官方版本與更新說明|Official GitHub releases and notes|GitHub の公式リリースと更新情報|공식 GitHub 릴리스 및 변경 내역|Versiones oficiales y notas en GitHub|Versions officielles et notes sur GitHub|Offizielle GitHub-Versionen und Hinweise|Versões oficiais e notas no GitHub|الإصدارات الرسمية وملاحظاتها على GitHub
+此版本由 Microsoft Store 管理更新。|This version is updated by Microsoft Store.|このバージョンの更新は Microsoft Store が管理します。|이 버전의 업데이트는 Microsoft Store에서 관리합니다.|Microsoft Store gestiona las actualizaciones de esta versión.|Microsoft Store gère les mises à jour de cette version.|Diese Version wird über Microsoft Store aktualisiert.|Esta versão é atualizada pela Microsoft Store.|يتولى Microsoft Store تحديث هذا الإصدار.
+隔離驗證模式不連線更新。|Updates are offline in isolated validation mode.|隔離検証モードではオンライン更新を行いません。|격리 검증 모드에서는 온라인 업데이트를 하지 않습니다.|El modo de validación aislada no conecta para actualizar.|Le mode de validation isolée ne se connecte pas pour les mises à jour.|Im isolierten Prüfmodus keine Online-Updates.|O modo de validação isolada não conecta para atualizar.|لا تتصل التحديثات في وضع التحقق المعزول.
+啟用背景更新；下載完成後於正常關閉時安裝。|Background updates enabled; install after download and normal exit.|バックグラウンド更新が有効です。ダウンロード後、通常終了時にインストールします。|백그라운드 업데이트 켜짐; 다운로드 후 정상 종료 시 설치합니다.|Actualizaciones en segundo plano activas; se instalan al cerrar normalmente.|Mises à jour en arrière-plan activées ; installation à la fermeture normale.|Hintergrundupdates aktiv; Installation nach Download und normalem Beenden.|Atualizações em segundo plano ativas; instalação ao fechar normalmente.|التحديثات الخلفية مفعلة؛ تثبيت بعد التنزيل والإغلاق المعتاد.
+已啟用背景更新。|Background updates enabled.|バックグラウンド更新を有効にしました。|백그라운드 업데이트가 켜졌습니다.|Actualizaciones en segundo plano activadas.|Mises à jour en arrière-plan activées.|Hintergrundupdates aktiviert.|Atualizações em segundo plano ativadas.|فُعّلت التحديثات الخلفية.
+自動更新已關閉。|Automatic updates disabled.|自動更新は無効です。|자동 업데이트가 꺼졌습니다.|Actualizaciones automáticas desactivadas.|Mises à jour automatiques désactivées.|Automatische Updates deaktiviert.|Atualizações automáticas desativadas.|التحديثات التلقائية معطلة.
+自動更新已關閉；暫存更新不會自動安裝。|Automatic updates disabled; cached updates will not install automatically.|自動更新は無効です。保存済みの更新は自動インストールされません。|자동 업데이트 꺼짐; 캐시된 업데이트는 자동 설치되지 않습니다.|Actualizaciones automáticas desactivadas; las descargadas no se instalarán automáticamente.|Mises à jour automatiques désactivées ; celles en cache ne s'installeront pas automatiquement.|Automatische Updates deaktiviert; zwischengespeicherte Updates werden nicht automatisch installiert.|Atualizações automáticas desativadas; atualizações em cache não serão instaladas automaticamente.|التحديثات التلقائية معطلة؛ لن تُثبّت التحديثات المخزنة تلقائيًا.
+正在檢查 GitHub 更新…|Checking GitHub for updates…|GitHub の更新を確認中…|GitHub 업데이트 확인 중…|Buscando actualizaciones en GitHub…|Recherche de mises à jour sur GitHub…|GitHub auf Updates prüfen…|Verificando atualizações no GitHub…|جارٍ التحقق من تحديثات GitHub…
+目前已是所選更新管道的最新版本。|You have the latest version for the selected update channel.|選択した更新チャンネルの最新バージョンです。|선택한 업데이트 채널의 최신 버전입니다.|Tienes la última versión del canal seleccionado.|Vous avez la dernière version du canal choisi.|Sie haben die neueste Version des gewählten Updatekanals.|Você tem a versão mais recente do canal selecionado.|لديك أحدث إصدار لقناة التحديث المحددة.
+正在背景下載 {0}，可繼續使用黑板…|Downloading {0} in background; keep using HeiBan…|{0} をバックグラウンドでダウンロード中。HeiBan は引き続き利用できます…|{0} 백그라운드 다운로드 중; HeiBan을 계속 사용하세요…|Descargando {0} en segundo plano; puedes seguir usando HeiBan…|Téléchargement de {0} en arrière-plan ; continuez à utiliser HeiBan…|{0} wird im Hintergrund geladen; HeiBan bleibt nutzbar…|Baixando {0} em segundo plano; continue usando o HeiBan…|جارٍ تنزيل {0} في الخلفية؛ يمكنك متابعة استخدام HeiBan…
+{0} 已準備完成，正常關閉後更新，下次啟動使用新版。|{0} is ready. Update after normal exit; use the new version on next launch.|{0} の準備完了。通常終了後に更新し、次回起動から新版を使えます。|{0} 준비됨. 정상 종료 후 업데이트되며 다음 실행 시 새 버전을 사용합니다.|{0} está listo. Se actualizará al cerrar y usarás la nueva versión al iniciar de nuevo.|{0} est prêt. Mise à jour à la fermeture normale ; nouvelle version au prochain lancement.|{0} ist bereit. Update nach normalem Beenden; neue Version beim nächsten Start.|{0} está pronto. Atualiza após fechar; nova versão na próxima abertura.|{0} جاهز. التحديث بعد الإغلاق المعتاد؛ الإصدار الجديد عند التشغيل التالي.
+請啟用自動更新以套用。|Enable automatic updates to apply this update.|この更新を適用するには自動更新を有効にしてください。|이 업데이트를 적용하려면 자동 업데이트를 켜세요.|Activa las actualizaciones automáticas para aplicarla.|Activez les mises à jour automatiques pour l'appliquer.|Zum Anwenden automatische Updates aktivieren.|Ative atualizações automáticas para aplicar.|فعّل التحديثات التلقائية لتطبيق التحديث.
+更新下載期間可繼續使用。作品保存成功、所有黑板視窗關閉後才安裝；下次開啟使用新版。|Keep working during download. Installation starts after works are saved and all HeiBan windows close; the new version runs next time.|ダウンロード中も利用できます。保存完了後にすべての HeiBan ウィンドウを閉じるとインストールし、次回から新版になります。|다운로드 중에도 사용할 수 있습니다. 작품 저장 후 모든 HeiBan 창을 닫으면 설치되며 다음에 새 버전이 실행됩니다.|Puedes trabajar durante la descarga. Se instala tras guardar y cerrar todas las ventanas de HeiBan; la nueva versión se abre la próxima vez.|Continuez pendant le téléchargement. Installation après enregistrement et fermeture de toutes les fenêtres HeiBan ; nouvelle version au prochain lancement.|Während des Downloads weiterarbeiten. Installation nach dem Speichern und Schließen aller HeiBan-Fenster; neue Version beim nächsten Start.|Continue trabalhando durante o download. Instala após salvar e fechar todas as janelas; nova versão na próxima abertura.|تابع العمل أثناء التنزيل. يبدأ التثبيت بعد حفظ الأعمال وإغلاق كل نوافذ HeiBan؛ يعمل الإصدار الجديد في المرة التالية.
+更新偏好無法保存，請確認資料夾可寫入。|Unable to save update preferences. Check that the folder is writable.|更新設定を保存できません。フォルダーへの書き込み権限をご確認ください。|업데이트 설정을 저장할 수 없습니다. 폴더에 쓰기 권한이 있는지 확인하세요.|No se guardaron los ajustes. Comprueba permisos de escritura de la carpeta.|Impossible d'enregistrer les réglages. Vérifiez les droits d'écriture du dossier.|Updateeinstellungen nicht gespeichert. Schreibrechte des Ordners prüfen.|Não foi possível salvar configurações. Verifique a permissão de gravação da pasta.|تعذر حفظ إعدادات التحديث. تحقق من إمكانية الكتابة في المجلد.
+更新連線逾時，下次再試；可繼續使用目前版本。|Update connection timed out. Try later; the current version remains usable.|更新接続が時間切れです。後で再試行してください。現在の版は利用できます。|업데이트 연결 시간 초과. 나중에 다시 시도하세요. 현재 버전은 계속 사용할 수 있습니다.|Conexión agotó el tiempo. Inténtalo después; puedes usar la versión actual.|Délai de connexion dépassé. Réessayez plus tard ; la version actuelle reste utilisable.|Updateverbindung abgelaufen. Später erneut versuchen; aktuelle Version bleibt nutzbar.|Conexão expirou. Tente depois; a versão atual continua utilizável.|انتهت مهلة اتصال التحديث. حاول لاحقًا؛ الإصدار الحالي قابل للاستخدام.
+目前無法連線到 GitHub，下次再試；可繼續使用目前版本。|Cannot connect to GitHub. Try later; keep using the current version.|GitHub に接続できません。後で再試行してください。現在の版は利用できます。|GitHub에 연결할 수 없습니다. 나중에 다시 시도하고 현재 버전을 계속 사용하세요.|No se puede conectar a GitHub. Inténtalo después; sigue usando la versión actual.|Impossible de se connecter à GitHub. Réessayez plus tard ; continuez avec la version actuelle.|Keine Verbindung zu GitHub. Später erneut versuchen; aktuelle Version weiterverwenden.|Não foi possível conectar ao GitHub. Tente depois; continue usando a versão atual.|تعذر الاتصال بـ GitHub. حاول لاحقًا؛ تابع استخدام الإصدار الحالي.
+這次更新未準備完成：|Update not ready: |更新の準備未完了：|업데이트 준비 미완료: |Actualización no preparada: |Mise à jour non prête : |Update noch nicht bereit: |Atualização não está pronta: |التحديث غير جاهز:\s
+更新保留到下次重試：|Update retained for the next retry: |更新は次回の再試行まで保持：|다음 재시도까지 업데이트 유지: |Actualización conservada para reintentar: |Mise à jour conservée pour le prochain essai : |Update für nächsten Versuch aufbewahrt: |Atualização mantida para nova tentativa: |التحديث محفوظ للمحاولة التالية:\s
+黑板：手寫筆記 Logo|HeiBan handwritten notes logo|HeiBan 手書きノートのロゴ|HeiBan 필기 노트 로고|Logo de notas manuscritas de HeiBan|Logo des notes manuscrites HeiBan|HeiBan-Logo für handschriftliche Notizen|Logo de notas manuscritas do HeiBan|شعار ملاحظات HeiBan المكتوبة بخط اليد
+C# / .NET 10 / WinUI 3 / Win2D\n本機作品資料：\n|C# / .NET 10 / WinUI 3 / Win2D\nLocal works folder:\n|C# / .NET 10 / WinUI 3 / Win2D\nローカルの作品フォルダー：\n|C# / .NET 10 / WinUI 3 / Win2D\n로컬 작품 폴더:\n|C# / .NET 10 / WinUI 3 / Win2D\nCarpeta local de trabajos:\n|C# / .NET 10 / WinUI 3 / Win2D\nDossier local des créations :\n|C# / .NET 10 / WinUI 3 / Win2D\nLokaler Werkeordner:\n|C# / .NET 10 / WinUI 3 / Win2D\nPasta local de trabalhos:\n|C# / .NET 10 / WinUI 3 / Win2D\nمجلد الأعمال المحلي:\n
+\n\n功能基準：Mac 1.0.12。Windows 預覽版；實體手寫裝置、多螢幕及完整跨 App 操作仍待驗收。|\n\nFeature baseline: Mac 1.0.12. Windows preview; pen hardware, multiple monitors and cross-app workflows still need real-device acceptance.|\n\n機能基準：Mac 1.0.12。Windows プレビュー版。実機ペン、複数画面、アプリ間操作の検証は未完了です。|\n\n기능 기준: Mac 1.0.12. Windows 미리 보기 버전이며 실제 펜, 다중 모니터 및 앱 간 작업은 실기 검증이 필요합니다.|\n\nBase funcional: Mac 1.0.12. Vista previa de Windows; falta validar lápices físicos, varios monitores y flujos entre apps.|\n\nBase fonctionnelle : Mac 1.0.12. Préversion Windows ; validation réelle des stylets, écrans multiples et usages entre apps encore nécessaire.|\n\nFunktionsbasis: Mac 1.0.12. Windows-Vorabversion; Stifthardware, mehrere Monitore und App-übergreifende Abläufe müssen noch praktisch geprüft werden.|\n\nBase funcional: Mac 1.0.12. Prévia do Windows; canetas físicas, vários monitores e uso entre apps ainda precisam de validação real.|\n\nالمرجع الوظيفي: Mac 1.0.12. معاينة Windows؛ ما زالت أجهزة القلم والشاشات المتعددة والعمل بين التطبيقات بحاجة إلى تحقق فعلي.
+拖曳尺身移動；拖曳兩端圓形把手旋轉。金色支點可拖到上／下劃線邊及最兩端，旋轉時固定在原位。點尺上的角度可直接輸入，精度 0.1°。|Drag the ruler to move it and its round end handles to rotate. Move the gold pivot to either drawing edge or an endpoint; it stays fixed during rotation. Click the angle to enter a value with 0.1° precision.|定規をドラッグして移動し、両端の丸いハンドルで回転します。金色の支点は上下の描画辺や端点に移動でき、回転中は固定されます。角度をクリックして 0.1° 単位で入力できます。|자를 드래그하여 이동하고 양 끝의 원형 손잡이로 회전하세요. 금색 회전 중심은 위/아래 가장자리나 양 끝으로 옮길 수 있으며 회전 중 고정됩니다. 각도를 클릭하여 0.1° 단위로 입력하세요.|Arrastra la regla para moverla y los extremos redondos para girar. El pivote dorado puede moverse a los bordes o extremos y queda fijo al girar. Pulsa el ángulo para introducirlo con precisión de 0.1°.|Glissez la règle pour la déplacer et les poignées rondes pour la tourner. Le pivot doré peut aller aux bords ou extrémités et reste fixe pendant la rotation. Cliquez sur l'angle pour saisir à 0,1° près.|Lineal zum Verschieben und runde Endgriffe zum Drehen ziehen. Goldenen Drehpunkt an obere/untere Kante oder Endpunkt verschieben; beim Drehen bleibt er fest. Winkel anklicken und mit 0,1° Genauigkeit eingeben.|Arraste a régua para mover e as alças redondas para girar. O pivô dourado pode ir às bordas ou extremidades e fica fixo ao girar. Clique no ângulo para inserir com precisão de 0,1°.|اسحب المسطرة لتحريكها والمقابض الدائرية عند الطرفين لتدويرها. يمكن نقل المحور الذهبي إلى حافة الرسم أو الطرف ويبقى ثابتًا أثناء الدوران. انقر على الزاوية لإدخالها بدقة 0.1°.
+圖形|Shapes|図形|도형|Formas|Formes|Formen|Formas|أشكال
+匯入圖片|Import image|画像をインポート|이미지 가져오기|Importar imagen|Importer une image|Bild importieren|Importar imagem|استيراد صورة
+筆刷與物件設定|Brush and object settings|ブラシとオブジェクトの設定|브러시 및 개체 설정|Ajustes del pincel y objetos|Réglages du pinceau et des objets|Pinsel- und Objekteinstellungen|Configurações do pincel e objetos|إعدادات الفرشاة والعناصر
+圓規|Compass|コンパス|컴퍼스|Compás|Compas|Zirkel|Compasso|فرجار
+復原|Undo|元に戻す|실행 취소|Deshacer|Annuler|Rückgängig|Desfazer|تراجع
+雷射|Laser|レーザー|레이저|Láser|Laser|Laser|Laser|ليزر
+遮題膠帶|Question cover tape|問題を隠すテープ|문제 가리기 테이프|Cinta para ocultar preguntas|Ruban de masquage des questions|Abdeckband für Aufgaben|Fita para ocultar questões|شريط إخفاء الأسئلة
+套索多選|Lasso selection|投げ縄選択|올가미 선택|Selección con lazo|Sélection au lasso|Lassoauswahl|Seleção por laço|تحديد بالحبل
+延伸直線|Extend line|直線を延長|직선 연장|Extender línea|Prolonger la ligne|Linie verlängern|Estender linha|تمديد الخط
+清除本頁|Clear this page|このページを消去|현재 페이지 지우기|Vaciar esta página|Effacer cette page|Diese Seite leeren|Limpar esta página|مسح هذه الصفحة
+停靠位置|Dock position|ドッキング位置|도킹 위치|Posición de acoplamiento|Position d'ancrage|Andockposition|Posição de acoplamento|موضع الإرساء

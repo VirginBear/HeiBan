@@ -1,3 +1,4 @@
+using static HeiBan.Windows.Localization.Strings;
 using System.IO;
 using System.Numerics;
 using System.Text.Json;
@@ -27,6 +28,7 @@ public partial class MainWindow
     private uint _pointerId;
     private InkPoint? _start,_lastWorld;
     private BoardObject? _preview;
+    private readonly ShapeCursor _shapeCursor=new();
     private ObjectHandles.Handle? _objectHandle;
     private BoardObject? _manipulationStart;
     private double _objectPointerAngle;
@@ -56,7 +58,7 @@ public partial class MainWindow
         var clip=board.CanvasMode=="infinite"?new Rect(0,0,w,h):new Rect(_viewport.X,_viewport.Y,(board.CanvasWidth??595)*_viewport.Zoom,(board.CanvasHeight??842)*_viewport.Zoom);
         using(var layer=ds.CreateLayer(1,clip))
         {
-            if(_preview is not null)_renderer.RenderObjects(ds,[_preview],_viewport,w,h);
+            if(_preview is not null)_renderer.RenderPreview(ds,_preview,_viewport,w,h);
             if(_ink.IsDrawing)_renderer.RenderLiveStroke(ds,_ink.ActiveStrokePoints,_viewport,_strokeColor,EffectiveWidth,_opacity,CurrentStyle.Dash);
             if(_polygon.Count>0)
             {
@@ -70,9 +72,9 @@ public partial class MainWindow
         foreach(var pin in board.Pins??[])
         {
             var p=_viewport.WorldToScreen(pin.X,pin.Y);
-            Direct2DCanvasRenderer.DrawPin(ds,new((float)p.X,(float)p.Y),.9f);
+            Direct2DCanvasRenderer.DrawPin(ds,new((float)p.X,(float)p.Y),.9f,pin.Color);
             using var format=new Microsoft.Graphics.Canvas.Text.CanvasTextFormat{FontSize=14};
-            ds.DrawText(pin.Name,(float)p.X+16,(float)p.Y,Direct2DCanvasRenderer.HexToColor("#397056"),format);
+            ds.DrawText(pin.Name,(float)p.X+16,(float)p.Y,Direct2DCanvasRenderer.HexToColor(pin.TextColor??"#397056"),format);
         }
         if(_rulerEnabled)DrawRuler(ds);
         if(_compass.IsEnabled)_renderer.RenderCompass(ds,_compass,_viewport);
@@ -123,7 +125,7 @@ public partial class MainWindow
                     if(Vector2.Distance(screen,new((float)s.X,(float)s.Y))>10)continue;
                     _objectHandle=handle;_manipulationStart=DocumentCodec.Clone(selected);
                     var center=ObjectHandles.Center(selected);_objectPointerAngle=Math.Atan2(_start.Y-center.Y,_start.X-center.X)*180/Math.PI;
-                    _session.Begin();e.Handled=true;return;
+                    _session.Begin();UpdateShapeCursor();e.Handled=true;return;
                 }
             }
             var hit=_session.Hit(_start,6/_viewport.Zoom);
@@ -189,6 +191,7 @@ public partial class MainWindow
     private void CanvasSurface_PointerMoved(object sender,PointerRoutedEventArgs e)
     {
         var p=e.GetCurrentPoint(CanvasSurface);_mouse=new((float)p.Position.X,(float)p.Position.Y);_hover=true;
+        UpdateShapeCursor();
         if(_tool=="laser"){_laser.Add(_viewport.ScreenToWorld(_mouse.X,_mouse.Y),LaserNow);InvalidateCanvas(false);return;}
         if(_tool=="lasso"&&_gesture){var lp=_viewport.ScreenToWorld(_mouse.X,_mouse.Y);if(_lasso.Count==0||Math.Sqrt(Math.Pow(lp.X-_lasso[^1].X,2)+Math.Pow(lp.Y-_lasso[^1].Y,2))>2/_viewport.Zoom)_lasso.Add(lp);InvalidateCanvas(false);return;}
         if(!_gesture||p.PointerId!=_pointerId)
@@ -214,7 +217,7 @@ public partial class MainWindow
         {
             var dist=Math.Sqrt(Math.Pow(world.X-_compass.Center.X,2)+Math.Pow(world.Y-_compass.Center.Y,2));
             _compass.AdjustRadius(dist/.65);
-            ShowHUD($"半徑: {(int)Math.Round(_compass.Radius)} pt",_mouse.X,_mouse.Y);
+            ShowHUD(F($"半徑: {(int)Math.Round(_compass.Radius)} pt"),_mouse.X,_mouse.Y);
         }
         else if(_compassPencilMoving)
         {
@@ -223,13 +226,13 @@ public partial class MainWindow
             if(!_compass.IsArmed)
             {
                 _compass.PositionPencil(angleDeg);
-                ShowHUD($"預備角: {angleDeg:0.#}°",_mouse.X,_mouse.Y);
+                ShowHUD(F($"預備角: {angleDeg:0.#}°"),_mouse.X,_mouse.Y);
             }
             else
             {
                 if(!_compass.IsDrawingArc)_compass.StartArc(angleDeg);
                 else _compass.UpdateSweep(angleDeg);
-                ShowHUD($"半徑: {(int)Math.Round(_compass.Radius)} pt  掃角: {_compass.SweepAngle:0.#}°",_mouse.X,_mouse.Y);
+                ShowHUD(F($"半徑: {(int)Math.Round(_compass.Radius)} pt  掃角: {_compass.SweepAngle:0.#}°"),_mouse.X,_mouse.Y);
             }
         }
         else if(_movingPin is not null&&_lastWorld is not null){_movingPin.X+=world.X-_lastWorld.X;_movingPin.Y+=world.Y-_lastWorld.Y;}
@@ -247,7 +250,7 @@ public partial class MainWindow
             else if(_objectHandle is { Kind:"arc_start" or "arc_end" } arcHandle)
             {
                 ObjectHandles.MoveArcEndpoint(selected,arcHandle.Index,world);
-                ShowHUD($"起角: {selected.ArcStartAngle:0.#}°  掃角: {selected.ArcSweepAngle:0.#}°",_mouse.X,_mouse.Y);
+                ShowHUD(F($"起角: {selected.ArcStartAngle:0.#}°  掃角: {selected.ArcSweepAngle:0.#}°"),_mouse.X,_mouse.Y);
             }
             else if(_objectHandle is { Kind:"vertex" } vertex)
             {
@@ -296,7 +299,7 @@ public partial class MainWindow
             if(!_compassCenterMoved)
             {
                 _compass.ToggleArmed();
-                StatusText.Text=_compass.IsArmed?"圓心已鎖定：請拖曳筆尖畫弧":"準備階段：可移動圓心與調整半徑";
+                StatusText.Text=_compass.IsArmed?T("圓心已鎖定：請拖曳筆尖畫弧"):T("準備階段：可移動圓心與調整半徑");
             }
         }
         else if(_compassPencilMoving)
@@ -323,7 +326,7 @@ public partial class MainWindow
                     _compass.IsEnabled=false;
                     _tool="select";
                     RefreshEditor();
-                    StatusText.Text=$"已生成圓弧（半徑 {_compass.Radius:0.#}pt，掃角 {_compass.SweepAngle:0.#}°）";
+                    StatusText.Text=F($"已生成圓弧（半徑 {_compass.Radius:0.#}pt，掃角 {_compass.SweepAngle:0.#}°）");
                 }
                 else
                 {
@@ -338,6 +341,7 @@ public partial class MainWindow
             {
                 _session.Begin();var box=VectorMath.ComputeBoundingBox(points,EffectiveWidth);
                 var o=Styled(new BoardObject{Type=_tool=="pen"?"stroke":_tool,X=box.MinX,Y=box.MinY,Width=box.Width,Height=box.Height,Points=JsonSerializer.Serialize(points,DocumentCodec.Options)});
+                if(_tool=="pen"&&_ink.IsStraight&&points.Count==2){o.Type="line";o.Points=null;ObjectHandles.SetEndpoints(o,points[0],points[1]);}
                 _session.Add(o);
             }
         }
@@ -360,10 +364,28 @@ public partial class MainWindow
         else{_preview.X=Math.Min(_start.X,world.X);_preview.Y=Math.Min(_start.Y,world.Y);_preview.Width=Math.Max(1,Math.Abs(world.X-_start.X));_preview.Height=Math.Max(1,Math.Abs(world.Y-_start.Y));}
     }
     private static InkPoint ConstrainLine(InkPoint anchor,InkPoint point)=>KeyIsDown(VirtualKey.Shift)?ObjectHandles.ConstrainOrthogonal(anchor,point):point;
-    private void ResetGesture(){HideHUD();_renderer.ResetLive();_gesture=_panning=_rulerMoving=_rulerRotating=_rulerPivotMoving=_shapeGesture=_lineCompleting=_marquee=false;_compassCenterMoving=_compassCenterMoved=_compassRadiusMoving=_compassPencilMoving=false;_objectHandle=null;_manipulationStart=null;_movingPin=null;_snapEdge=null;_ink.Projection=null;}
+    private void ResetGesture(){HideHUD();_renderer.ResetLive();_gesture=_panning=_rulerMoving=_rulerRotating=_rulerPivotMoving=_shapeGesture=_lineCompleting=_marquee=false;_compassCenterMoving=_compassCenterMoved=_compassRadiusMoving=_compassPencilMoving=false;_objectHandle=null;_manipulationStart=null;_movingPin=null;_snapEdge=null;_ink.Projection=null;if(_hover)UpdateShapeCursor();else ResetShapeCursor();}
     private void CancelGesture(){var changed=_session.HasTransaction;_lasso.Clear();_laser.Clear();HideHUD();_ink.Cancel();_session.Cancel();_preview=null;_lineAnchor=null;_compass.Prepare();ResetGesture();CanvasSurface.ReleasePointerCaptures();if(changed)RefreshProperties();InvalidateCanvas(changed);}
     private void CanvasSurface_PointerCanceled(object sender,PointerRoutedEventArgs e){HideHUD();if(_gesture)CancelGesture();}
-    private void CanvasSurface_PointerExited(object sender,PointerRoutedEventArgs e){HideHUD();_hover=false;InvalidateCanvas(false);}
+    private void UpdateShapeCursor()
+    {
+        BoardObject? selected=null;ObjectHandles.Handle? handle=null;
+        if(_tool=="select"&&!_readingMode&&_editor is null&&_session.SelectedIds.Count==1&&_session.Selected is {IsLocked:not true} o)
+        {
+            selected=_gesture?_manipulationStart??o:o;
+            if(_gesture)handle=_objectHandle;
+            else
+            {
+                var world=_viewport.ScreenToWorld(_mouse.X,_mouse.Y);
+                handle=ObjectHandles.Get(o,_viewport.Zoom).Where(h=>Math.Sqrt(Math.Pow(h.Point.X-world.X,2)+Math.Pow(h.Point.Y-world.Y,2))<=10/_viewport.Zoom).Select(h=>(ObjectHandles.Handle?)h).FirstOrDefault();
+            }
+        }
+        var dpi=(uint)Math.Round((Root.XamlRoot?.RasterizationScale??1)*96);
+        _shapeCursor.Update(selected,handle,dpi);CanvasCursorHost.SetNativeCursor(_shapeCursor.Current,dpi);
+    }
+    private void ResetShapeCursor()
+    {var dpi=(uint)Math.Round((Root.XamlRoot?.RasterizationScale??1)*96);_shapeCursor.Update(null,null,dpi);CanvasCursorHost.SetNativeCursor(_shapeCursor.Current,dpi);}
+    private void CanvasSurface_PointerExited(object sender,PointerRoutedEventArgs e){HideHUD();_hover=false;if(!_gesture)ResetShapeCursor();InvalidateCanvas(false);}
     private void CanvasSurface_PointerWheelChanged(object sender,PointerRoutedEventArgs e)
     {
         if(_editor is not null||_gesture||_viewLocked)return;
@@ -416,7 +438,7 @@ public partial class MainWindow
         {
             _regionCaptureCancellation?.Cancel();
             _screenshotWatchTimer.Stop();
-            StatusText.Text = "截圖已逾時（超過 60 秒）";
+            StatusText.Text = T("截圖已逾時（超過 60 秒）");
         }
         else if (!_screenshotCoordinator.HasActiveSession)
         {
@@ -438,7 +460,7 @@ public partial class MainWindow
         var cancellation = new CancellationTokenSource();
         _regionCaptureCancellation = cancellation;
         _screenshotWatchTimer.Start();
-        StatusText.Text = "拖曳框選截圖，Esc 或右鍵取消";
+        StatusText.Text = T("拖曳框選截圖，Esc 或右鍵取消");
         try
         {
             // Let the insertion menu close before taking the desktop snapshot.
@@ -447,7 +469,7 @@ public partial class MainWindow
             if (bytes is null)
             {
                 if (_screenshotCoordinator.CancelIfMatching(request.RequestId))
-                    StatusText.Text = "已取消截圖";
+                    StatusText.Text = T("已取消截圖");
                 return;
             }
             if (!_screenshotCoordinator.BeginProcessing(request.RequestId)) return;
@@ -462,16 +484,16 @@ public partial class MainWindow
             stream.Seek(0);
             var inserted = await InsertImageStreamAsync(stream, request.TargetCenter, true,
                 request.RequestId, request.BoardId, request.PageId);
-            if (inserted) StatusText.Text = "截圖已加入畫布";
+            if (inserted) StatusText.Text = T("截圖已加入畫布");
         }
         catch (OperationCanceledException)
         {
-            if (_screenshotCoordinator.CancelIfMatching(request.RequestId)) StatusText.Text = "已取消截圖";
+            if (_screenshotCoordinator.CancelIfMatching(request.RequestId)) StatusText.Text = T("已取消截圖");
         }
         catch (Exception ex)
         {
             if (_screenshotCoordinator.CancelIfMatching(request.RequestId))
-                StatusText.Text = "截圖未完成：" + ex.Message;
+                StatusText.Text = T("截圖未完成：") + ex.Message;
         }
         finally
         {
@@ -614,11 +636,11 @@ public partial class MainWindow
         var pin=PinAt(screen);
         var hit=_session.Hit(_viewport.ScreenToWorld(screen.X,screen.Y),6/_viewport.Zoom);if(hit is null||!_session.SelectedIds.Contains(hit.Id))Select(hit);
         var menu=new MenuFlyout();void Add(string name,Action action){var item=new MenuFlyoutItem{Text=name};item.Click+=(_,_)=>action();menu.Items.Add(item);}
-        if(pin is not null){Add("重新命名圖釘",()=>StartPinRename(pin));Add("刪除圖釘",()=>{_session.Begin();_session.Document.Board.Pins!.Remove(pin);_session.Commit();RefreshEditor();});}
-        if(_session.Selected is not null){Add("複製",CopySelected);Add("製作副本",DuplicateSelected);Add("刪除",()=>Delete_Click(this,new RoutedEventArgs()));
+        if(pin is not null){Add(T("重新命名圖釘"),()=>StartPinRename(pin));Add(T("圖釘與文字配色…"),()=>PinAppearance(pin));Add(T("刪除圖釘"),()=>{_session.Begin();_session.Document.Board.Pins!.Remove(pin);_session.Commit();RefreshEditor();});}
+        if(_session.Selected is not null){Add(T("複製"),CopySelected);Add(T("製作副本"),DuplicateSelected);Add(T("刪除"),()=>Delete_Click(this,new RoutedEventArgs()));
             var selection=_session.SelectedIds.ToHashSet();var board=_session.Document.Board.Id;bool Current()=>board==_session.Document.Board.Id&&_session.SelectedIds.SetEquals(selection);
             TextStyleMenu.Append(menu,_session.SelectedObjects.ToArray(),change=>{CommitPropertyEdit();if(Current()){TextStyles.ApplySelection(_session,change);RefreshEditor();}},flyout=>{flyout.ShouldConstrainToRootBounds=false;flyout.ShowAt(CanvasSurface,new Microsoft.UI.Xaml.Controls.Primitives.FlyoutShowOptions{Position=new Point(screen.X,screen.Y)});},Current,()=>{if(_session.SelectedObjects.FirstOrDefault(o=>o.Type is "text" or "sticky"&&o.IsLocked!=true) is { } text)StartText(text);});}
-        Add("貼上",PasteObject);menu.OverlayInputPassThroughElement=ToolBorder;menu.ShowAt(CanvasSurface,new Microsoft.UI.Xaml.Controls.Primitives.FlyoutShowOptions{Position=new Point(screen.X,screen.Y)});
+        Add(T("貼上"),PasteObject);menu.OverlayInputPassThroughElement=ToolBorder;menu.ShowAt(CanvasSurface,new Microsoft.UI.Xaml.Controls.Primitives.FlyoutShowOptions{Position=new Point(screen.X,screen.Y)});
     }
     private void CopySelected()
     {if(_session.Selected is not { } o)return;var package=new DataPackage();package.SetText("HEIBAN_OBJECTS:"+JsonSerializer.Serialize(_session.SelectedObjects.ToArray(),DocumentCodec.Options));Clipboard.SetContent(package);}
@@ -657,8 +679,8 @@ public partial class MainWindow
     {var originals=_session.SelectedObjects.ToArray();if(originals.Length==0)return;_session.Begin();var ids=new List<string>();foreach(var selected in originals){var o=DocumentCodec.Clone(selected);o.Id=Guid.NewGuid().ToString();_session.Move(o,20,20);_session.Add(o);ids.Add(o.Id);}_session.SetSelection(ids);_session.Commit();RefreshEditor();}
     private async void Pin_Click(object sender, RoutedEventArgs e)
     {
-        var searchBox = new TextBox { PlaceholderText = "搜尋圖釘名稱…", HorizontalAlignment = HorizontalAlignment.Stretch };
-        var newPinBox = new TextBox { PlaceholderText = "新圖釘名稱（預設：重要位置）", HorizontalAlignment = HorizontalAlignment.Stretch };
+        var searchBox = new TextBox { PlaceholderText = T("搜尋圖釘名稱…"), HorizontalAlignment = HorizontalAlignment.Stretch };
+        var newPinBox = new TextBox { PlaceholderText = T("新圖釘名稱（預設：重要位置）"), HorizontalAlignment = HorizontalAlignment.Stretch };
         var listContainer = new StackPanel { Spacing = 8 };
         var scroll = new ScrollViewer { Content = listContainer, MaxHeight = 300, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
         ContentDialog? dialog = null;
@@ -674,7 +696,7 @@ public partial class MainWindow
             {
                 listContainer.Children.Add(new TextBlock
                 {
-                    Text = string.IsNullOrEmpty(query) ? "尚無圖釘標記" : "無相符的圖釘",
+                    Text = string.IsNullOrEmpty(query) ? T("尚無圖釘標記") : T("無相符的圖釘"),
                     Foreground = Brush("#68756C"),
                     Margin = new Thickness(8),
                     HorizontalAlignment = HorizontalAlignment.Center
@@ -689,9 +711,10 @@ public partial class MainWindow
                 row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 var navContent = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
-                navContent.Children.Add(new Views.PinIcon());
-                navContent.Children.Add(new TextBlock { Text = pin.Name, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis });
+                navContent.Children.Add(new Views.PinIcon(pin.Color));
+                navContent.Children.Add(new TextBlock { Text = pin.Name, Foreground=Brush(pin.TextColor??"#397056"), VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis });
                 var navBtn = new Button { Content = navContent, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Left };
                 navBtn.Click += (_, _) =>
                 {
@@ -704,12 +727,14 @@ public partial class MainWindow
                 Grid.SetColumn(navBtn, 0);
                 row.Children.Add(navBtn);
 
-                var renameBtn = new Button { Content = "改名", Margin = new Thickness(4, 0, 0, 0), Padding = new Thickness(8, 4, 8, 4) };
+                var renameBtn = new Button { Content = T("改名"), Margin = new Thickness(4, 0, 0, 0), Padding = new Thickness(8, 4, 8, 4) };
                 renameBtn.Click += (_, _) => { dialog?.Hide(); StartPinRename(pin); };
                 Grid.SetColumn(renameBtn, 1);
                 row.Children.Add(renameBtn);
 
-                var deleteBtn = new Button { Content = "刪除", Margin = new Thickness(4, 0, 0, 0), Padding = new Thickness(8, 4, 8, 4) };
+                var colorBtn=new Button{Content=T("配色"),Margin=new Thickness(4,0,0,0),Padding=new Thickness(8,4,8,4)};
+                colorBtn.Click+=(_,_)=>{dialog?.Hide();DispatcherQueue.TryEnqueue(()=>PinAppearance(pin));};Grid.SetColumn(colorBtn,2);row.Children.Add(colorBtn);
+                var deleteBtn = new Button { Content = T("刪除"), Margin = new Thickness(4, 0, 0, 0), Padding = new Thickness(8, 4, 8, 4) };
                 deleteBtn.Click += (_, _) =>
                 {
                     _session.Begin();
@@ -718,7 +743,7 @@ public partial class MainWindow
                     RefreshEditor();
                     RenderPins();
                 };
-                Grid.SetColumn(deleteBtn, 2);
+                Grid.SetColumn(deleteBtn, 3);
                 row.Children.Add(deleteBtn);
 
                 listContainer.Children.Add(row);
@@ -729,19 +754,19 @@ public partial class MainWindow
         RenderPins();
 
         var contentPanel = new StackPanel { Spacing = 12, Width = 380 };
-        contentPanel.Children.Add(new TextBlock { Text = "搜尋或跳轉至圖釘視野", FontSize = 12, Foreground = Brush("#68756C") });
+        contentPanel.Children.Add(new TextBlock { Text = T("搜尋或跳轉至圖釘視野"), FontSize = 12, Foreground = Brush("#68756C") });
         contentPanel.Children.Add(searchBox);
         contentPanel.Children.Add(scroll);
         contentPanel.Children.Add(new Border { Height = 1, Background = Brush("#D4DBD1"), Margin = new Thickness(0, 4, 0, 4) });
-        contentPanel.Children.Add(new TextBlock { Text = "在目前視野新增圖釘：", FontSize = 12, Foreground = Brush("#68756C") });
+        contentPanel.Children.Add(new TextBlock { Text = T("在目前視野新增圖釘："), FontSize = 12, Foreground = Brush("#68756C") });
         contentPanel.Children.Add(newPinBox);
 
         dialog = new ContentDialog
-        {
-            Title = "圖釘",
+        {FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,
+            Title = T("圖釘"),
             Content = contentPanel,
-            PrimaryButtonText = "新增圖釘",
-            CloseButtonText = "關閉",
+            PrimaryButtonText = T("新增圖釘"),
+            CloseButtonText = T("關閉"),
             XamlRoot = Root.XamlRoot
         };
 
@@ -751,7 +776,7 @@ public partial class MainWindow
         _session.Begin();
         (_session.Document.Board.Pins ??= []).Add(new BoardPin
         {
-            Name = string.IsNullOrWhiteSpace(newPinBox.Text) ? "重要位置" : newPinBox.Text.Trim(),
+            Name = string.IsNullOrWhiteSpace(newPinBox.Text) ? T("重要位置") : newPinBox.Text.Trim(),
             X = world.X,
             Y = world.Y,
             Zoom = _viewport.Zoom

@@ -1,3 +1,4 @@
+using static HeiBan.Windows.Localization.Strings;
 using System.Text.Json;
 using HeiBan.Windows.Engine;
 using HeiBan.Windows.Models;
@@ -20,7 +21,7 @@ internal sealed partial class ScreenAnnotationWindow
         // Right-click edits the hit object; preserve a multi-selection when it already contains it.
         DamageSelectedObjects();if(!_session.SelectedIds.Contains(hit.Id))_session.SelectedId=hit.Id;
         _tool="select";RefreshButtons();DamageSelectedObjects();_dirty=true;
-        _status.Text="作畫中 · 右鍵物件可調整、複製或刪除";
+        _status.Text=T("作畫中 · 右鍵物件可調整、複製或刪除");
         ShowChromeFlyout(CreateObjectMenu(),(FrameworkElement)Content,new FlyoutShowOptions{Position=new Point(
             (_overlay.Left+point.X-AppWindow.Position.X)/_dpiScale,
             (_overlay.Top+point.Y-AppWindow.Position.Y)/_dpiScale)});
@@ -29,25 +30,25 @@ internal sealed partial class ScreenAnnotationWindow
     {
         var menu=new MenuFlyout();var selected=_session.Selected;
         void Add(string icon,string label,Action action,bool enabled=true){var item=new MenuFlyoutItem{Text=label,Icon=ToolIcons.CreateIcon(icon),IsEnabled=enabled};item.Click+=(_,_)=>action();menu.Items.Add(item);}
-        Add("pen","顏色、粗細與透明度",ShowBrushSettings,selected is {IsLocked:not true});
-        Add("dash-solid","線條樣式",ShowScreenLineStyles,selected is {IsLocked:not true});
-        Add("paint","填滿",ShowScreenFill,selected is {IsLocked:not true});
+        Add("pen",T("顏色、粗細與透明度"),ShowBrushSettings,selected is {IsLocked:not true});
+        Add("dash-solid",T("線條樣式"),ShowScreenLineStyles,selected is {IsLocked:not true});
+        Add("paint",T("填滿"),ShowScreenFill,selected is {IsLocked:not true});
         menu.Items.Add(new MenuFlyoutSeparator());
-        Add("copy","複製",CopyScreenSelection,selected is not null);
-        Add("duplicate","製作副本",DuplicateScreenSelection,selected is not null);
-        Add("copy","貼上",async()=>await PasteScreenSelectionAsync());
+        Add("copy",T("複製"),CopyScreenSelection,selected is not null);
+        Add("duplicate",T("製作副本"),DuplicateScreenSelection,selected is not null);
+        Add("copy",T("貼上"),async()=>await PasteScreenSelectionAsync());
         menu.Items.Add(new MenuFlyoutSeparator());
-        Add("delete","刪除物件",DeleteScreenSelection,selected is {IsLocked:not true});
-        Add(selected?.IsLocked==true?"unlock":"lock",selected?.IsLocked==true?"解除鎖定":"鎖定物件",()=>{if(_session.Selected is not { } o)return;_session.Begin();o.IsLocked=o.IsLocked!=true;_session.Commit();Changed();});
-        Add("layers","移到最上層",()=>ChangeScreenLayer(true),selected is {IsLocked:not true});
-        Add("layers","移到最下層",()=>ChangeScreenLayer(false),selected is {IsLocked:not true});
+        Add("delete",T("刪除物件"),DeleteScreenSelection,selected is {IsLocked:not true});
+        Add(selected?.IsLocked==true?"unlock":"lock",selected?.IsLocked==true?T("解除鎖定"):T("鎖定物件"),()=>{if(_session.Selected is not { } o)return;_session.Begin();o.IsLocked=o.IsLocked!=true;_session.Commit();Changed();});
+        Add("layers",T("移到最上層"),()=>ChangeScreenLayer(true),selected is {IsLocked:not true});
+        Add("layers",T("移到最下層"),()=>ChangeScreenLayer(false),selected is {IsLocked:not true});
         AppendScreenTextMenu(menu);return menu;
     }
     private string? SerializeScreenSelection()=>_session.Selected is { } selected?"HEIBAN_OBJECTS:"+JsonSerializer.Serialize(_session.SelectedObjects.ToArray(),DocumentCodec.Options):null;
     private void CopyScreenSelection()
     {
-        try{var text=SerializeScreenSelection();if(text is null)return;var package=new DataPackage();package.SetText(text);Clipboard.SetContent(package);_status.Text="物件已複製，可貼到螢幕或黑板";}
-        catch(Exception e){_status.Text="複製未完成："+e.Message;}
+        try{var text=SerializeScreenSelection();if(text is null)return;var package=new DataPackage();package.SetText(text);Clipboard.SetContent(package);_status.Text=T("物件已複製，可貼到螢幕或黑板");}
+        catch(Exception e){_status.Text=T("複製未完成：")+e.Message;}
     }
     private void DuplicateScreenSelection()
     {
@@ -58,20 +59,20 @@ internal sealed partial class ScreenAnnotationWindow
     {
         try
         {
-            var view=Clipboard.GetContent();if(!view.Contains(StandardDataFormats.Text)){_status.Text="先複製黑板物件再貼上";return;}
+            var view=Clipboard.GetContent();if(!view.Contains(StandardDataFormats.Text)){_status.Text=T("先複製黑板物件再貼上");return;}
             var text=await view.GetTextAsync();var objects=text.StartsWith("HEIBAN_OBJECTS:",StringComparison.Ordinal)?JsonSerializer.Deserialize<List<BoardObject>>(text[15..],DocumentCodec.Options):text.StartsWith("HEIBAN_OBJECT:",StringComparison.Ordinal)?new List<BoardObject>{JsonSerializer.Deserialize<BoardObject>(text[14..],DocumentCodec.Options)!}:null;
-            if(objects is null||objects.Count==0||objects.Any(o=>o is null)){_status.Text="剪貼簿沒有黑板物件";return;}
+            if(objects is null||objects.Count==0||objects.Any(o=>o is null)){_status.Text=T("剪貼簿沒有黑板物件");return;}
             CancelGesture();_session.Begin();foreach(var o in objects){o.Id=Guid.NewGuid().ToString();o.BoardId=_session.Document.Board.Id;o.PageId=null;o.IsLocked=false;_session.Move(o,20*_dpiScale,20*_dpiScale);_session.Add(o);}_session.Commit();
             await _renderer.LoadImagesAsync(_target!,objects);_tool="select";RefreshButtons();Changed();
         }
-        catch(Exception e){_session.Cancel();_status.Text="貼上未完成："+e.Message;Changed();}
+        catch(Exception e){_session.Cancel();_status.Text=T("貼上未完成：")+e.Message;Changed();}
     }
     private void DeleteScreenSelection(){CancelGesture();_session.DeleteSelected();Changed();}
     private void ChangeScreenLayer(bool front)
     {if(_session.Selected is not {IsLocked:not true} o)return;CancelGesture();_session.Begin();o.ZIndex=front?_session.Document.Objects.Max(item=>item.ZIndex)+1:_session.Document.Objects.Min(item=>item.ZIndex)-1;_session.Commit();Changed();}
     private void ClearScreenObjects()
     {
-        if(!IsActive)return;FinishScreenText();_chromeFlyout?.Hide();CancelGesture();_session.Begin();_session.Document.Objects.Clear();_session.SelectedId=null;_session.Commit();_laser.Clear();Changed();_status.Text="已清除全部註記 · 可按復原恢復";
+        if(!IsActive)return;FinishScreenText();_chromeFlyout?.Hide();CancelGesture();_session.Begin();_session.Document.Objects.Clear();_session.SelectedId=null;_session.Commit();_laser.Clear();Changed();_status.Text=T("已清除全部註記 · 可按復原恢復");
     }
     private object ValidateObjectCommands()
     {

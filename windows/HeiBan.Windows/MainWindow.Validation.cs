@@ -28,7 +28,7 @@ public partial class MainWindow
             var screenshotMask=RegionScreenshotService.ValidateMask(outputDirectory);var interactions=await ValidateInteractionsAsync(outputDirectory);var mainText=ValidateMainText();var canvasPerformance=ValidateCanvasPerformance();var cpuPerformance=await Task.Run(InteractionBenchmark.Run);
             EnsureScreenAnnotation();await _screenAnnotation!.ValidateNativeSessionAsync(outputDirectory);
             if(_session.Document.Objects.Count!=doc.Objects.Count)throw new InvalidOperationException("螢幕註記污染原作品。");
-            Inspector.Visibility=Microsoft.UI.Xaml.Visibility.Visible;RefreshEditor();var library=await ValidateLibraryChromeAsync();
+            Inspector.Visibility=Microsoft.UI.Xaml.Visibility.Visible;LayersPanel.Visibility=Microsoft.UI.Xaml.Visibility.Visible;RefreshEditor();var library=await ValidateLibraryChromeAsync();
             await File.WriteAllTextAsync(Path.Combine(outputDirectory,"result.json"),JsonSerializer.Serialize(new{success=true,architecture=System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString(),layers=LayerPresentation.Build(_session.PageObjects).Select(row=>new{row.Title,row.Description}).ToArray(),objectCount=doc.Objects.Count,library,screenshotMask,interactions,mainText,canvasPerformance,cpuPerformance,pdfBytes=new FileInfo(Path.Combine(outputDirectory,"document.pdf")).Length},new JsonSerializerOptions{WriteIndented=true}));
             if(Environment.GetEnvironmentVariable("HEIBAN_WINDOWS_QA_PREVIEW") is {Length:>0} preview)await _screenAnnotation!.ShowValidationPreviewAsync(preview);
         }

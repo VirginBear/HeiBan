@@ -119,6 +119,15 @@ public sealed class BoardMetadata
 /// </summary>
 public sealed class BoardObject
 {
+    // Transient broad-phase invalidation, not a document revision. Public setters also cover direct
+    // in-transaction edits; snapshot copies the counter, while new deserialization rebuilds the index.
+    [JsonIgnore] internal ulong RenderBoundsVersion { get; private set; }
+    private void SetBoundsValue(ref double field,double value)
+    {var changed=!field.Equals(value);field=value;if(changed)unchecked{RenderBoundsVersion++;}}
+    private void SetBoundsValue(ref string? field,string? value)
+    {if(field==value)return;field=value;unchecked{RenderBoundsVersion++;}}
+    private double _x,_y,_width,_height,_previewOffsetX,_previewOffsetY,_strokeWidth=2;
+    private string? _type="stroke",_extension;
     // Immutable payload strings are shared; mutable collections belong to this snapshot.
     internal BoardObject Snapshot() { var copy=(BoardObject)MemberwiseClone();copy._parsedPoints=null;copy.PreviewOffsetX=copy.PreviewOffsetY=0;copy.RichTextSpans=RichTextSpans?.Select(span=>span.Snapshot()).ToList();copy.ExtraFields=Engine.DocumentSnapshot.CopyFields(ExtraFields);return copy; }
 
@@ -136,19 +145,19 @@ public sealed class BoardObject
     /// 物件型別：stroke, highlighter, paint, curve, rect, circle, triangle, diamond, arrow, line, star, text, sticky, image, pin
     /// </summary>
     [JsonPropertyName("type")]
-    public string Type { get; set; } = "stroke";
+    public string Type { get=>_type!; set=>SetBoundsValue(ref _type,value); }
 
     [JsonPropertyName("x")]
-    public double X { get; set; }
+    public double X { get=>_x; set=>SetBoundsValue(ref _x,value); }
 
     [JsonPropertyName("y")]
-    public double Y { get; set; }
+    public double Y { get=>_y; set=>SetBoundsValue(ref _y,value); }
 
     [JsonPropertyName("width")]
-    public double Width { get; set; }
+    public double Width { get=>_width; set=>SetBoundsValue(ref _width,value); }
 
     [JsonPropertyName("height")]
-    public double Height { get; set; }
+    public double Height { get=>_height; set=>SetBoundsValue(ref _height,value); }
 
     [JsonPropertyName("x1")]
     public double? X1 { get; set; }
@@ -163,15 +172,15 @@ public sealed class BoardObject
     public double? Y2 { get; set; }
 
     [JsonPropertyName("extension")]
-    public string? Extension { get; set; } // none, start, end, both
+    public string? Extension { get=>_extension; set=>SetBoundsValue(ref _extension,value); } // none, start, end, both
 
     /// <summary>
     /// 筆跡點 JSON 字串 (序列化之 Point[] 陣列，含座標與壓感)
     /// </summary>
     [JsonPropertyName("points")]
     public string? Points { get => _points; set { _points = value; _parsedPoints = null; } }
-    [JsonIgnore] public double PreviewOffsetX { get; internal set; }
-    [JsonIgnore] public double PreviewOffsetY { get; internal set; }
+    [JsonIgnore] public double PreviewOffsetX { get=>_previewOffsetX; internal set=>SetBoundsValue(ref _previewOffsetX,value); }
+    [JsonIgnore] public double PreviewOffsetY { get=>_previewOffsetY; internal set=>SetBoundsValue(ref _previewOffsetY,value); }
     private string? _points;
     private List<InkPoint>? _parsedPoints;
     [JsonIgnore]
@@ -188,7 +197,7 @@ public sealed class BoardObject
     public string FillColor { get; set; } = "none";
 
     [JsonPropertyName("strokeWidth")]
-    public double StrokeWidth { get; set; } = 2.0;
+    public double StrokeWidth { get=>_strokeWidth; set=>SetBoundsValue(ref _strokeWidth,value); }
 
     [JsonPropertyName("lineStyle")]
     public string LineStyle { get; set; } = "solid"; // solid, dashed
@@ -310,6 +319,8 @@ public sealed class BoardObject
 /// </summary>
 public sealed class BoardPin
 {
+    [JsonPropertyName("color")] public string? Color {get;set;}
+    [JsonPropertyName("textColor")] public string? TextColor {get;set;}
     // Immutable payload strings are shared; mutable collections belong to this snapshot.
     internal BoardPin Snapshot() { var copy=(BoardPin)MemberwiseClone();copy.ExtraFields=Engine.DocumentSnapshot.CopyFields(ExtraFields);return copy; }
 

@@ -799,6 +799,116 @@ foreach(var offset in new[]{new InkPoint(90,20),new InkPoint(-90,20),new InkPoin
  Near(constrained.Pressure,.8,"Constraint keeps sample pressure");Near(constrained.TiltX!.Value,12,"Constraint keeps tilt");
  Check(cursor.X==anchor.X+offset.X&&cursor.Y==anchor.Y+offset.Y,"Constraint does not mutate the mouse sample");
 }
+// Order views must observe direct edits before a transaction commits, without changing stable ties.
+var orderCache=new ObjectOrderCache();
+var orderDoc=new HeiBanDocument{Board=new BoardMetadata{CanvasMode="notebook",ActivePageId="p1"},Objects=Enumerable.Range(0,80).Select(i=>new BoardObject{Id="order-"+i,Type="rect",Width=40,Height=40,FillColor="#39735A",ZIndex=i%7,PageId=i%5==0?"p2":i%3==0?null:"p1",IsVisible=i%11==0?false:null,IsLocked=i%4==0}).ToList()};
+void CheckOrder(string reason)
+{
+ var visible=orderDoc.Objects.Where(o=>o.IsVisible!=false&&(orderDoc.Board.CanvasMode!="notebook"||o.PageId is null||o.PageId==orderDoc.Board.ActivePageId));
+ Check(orderCache.Ascending(orderDoc).SequenceEqual(visible.OrderBy(o=>o.ZIndex)),"Cached drawing matches stable LINQ: "+reason);
+ Check(orderCache.Descending(orderDoc).SequenceEqual(visible.OrderByDescending(o=>o.ZIndex)),"Cached hits match stable LINQ: "+reason);
+}
+CheckOrder("initial page");var orderBuilds=orderCache.Rebuilds;CheckOrder("warm reuse");Check(orderCache.Rebuilds==orderBuilds,"Unchanged order does not rebuild");
+orderDoc.Objects[1].ZIndex=999;CheckOrder("direct ZIndex before commit");
+orderDoc.Objects.Reverse();CheckOrder("same-size source reorder and ties");
+orderDoc.Objects[1]=DocumentCodec.Clone(orderDoc.Objects[1]);CheckOrder("same-size object replacement");
+orderDoc.Objects.Add(new BoardObject{Id="order-added",ZIndex=-10});CheckOrder("add");orderDoc.Objects.RemoveAt(2);CheckOrder("delete");
+orderBuilds=orderCache.Rebuilds;orderDoc.Board.ActivePageId="p2";orderDoc.Objects[0].IsVisible=true;orderDoc.Objects[1].PageId="p2";CheckOrder("live page and visibility edits");Check(orderCache.Rebuilds==orderBuilds,"Page and visibility filtering do not allocate a new sorted view");
+orderDoc.Board.CanvasMode="infinite";CheckOrder("mode switch");orderDoc.Objects=[..orderDoc.Objects];CheckOrder("list replacement");
+orderDoc=DocumentCodec.Clone(orderDoc);CheckOrder("document replacement");orderCache.Clear();CheckOrder("clear");
+var orderedSession=new EditorSession();orderedSession.Open(orderDoc);
+void CheckOrderedSession(string reason)
+{
+ Check(orderedSession.DrawingObjects.SequenceEqual(orderedSession.VisibleObjects.OrderBy(o=>o.ZIndex)),"Session drawing: "+reason);
+ Check(ReferenceEquals(orderedSession.Hit(new(10,10),8),orderedSession.VisibleObjects.OrderByDescending(o=>o.ZIndex).FirstOrDefault(o=>VectorMath.IsPointInObject(new(10,10),o))),"Session hit preserves locked objects and stable ties: "+reason);
+}
+CheckOrderedSession("open");orderedSession.Begin();orderedSession.Document.Objects[0].ZIndex=2000;CheckOrderedSession("transaction");orderedSession.Cancel();CheckOrderedSession("cancel");
+orderedSession.Begin();orderedSession.Document.Objects[0].ZIndex=2000;orderedSession.Commit();CheckOrderedSession("commit");orderedSession.Undo();CheckOrderedSession("undo");orderedSession.Redo();CheckOrderedSession("redo");orderedSession.Open(new());CheckOrderedSession("empty switch");
+var readonlySample=new InkPoint(10,10,.75){TiltX=12,TiltY=-3,ExtraFields=new(){["future"]=future}};
+Check(VectorMath.IsPointInObject(readonlySample,new BoardObject{Type="rect",Width=20,Height=20,FillColor="#39735A"}),"Unrotated filled hit");
+Check(readonlySample.X==10&&readonlySample.Y==10&&readonlySample.Pressure==.75&&readonlySample.TiltX==12&&readonlySample.ExtraFields!.ContainsKey("future"),"Hit does not mutate input or future sample fields");
+foreach(var rotation in new[]{-180d,-90d,0d,25d,90d,180d})
+{
+ var rotatedHit=new BoardObject{Type="rect",X=10,Y=30,Width=40,Height=20,FillColor="#39735A",Rotation=rotation};
+ Check(VectorMath.IsPointInObject(ObjectHandles.ToWorld(rotatedHit,new(30,40)),rotatedHit,0),"Rotated center hit "+rotation);
+ Check(!VectorMath.IsPointInObject(ObjectHandles.ToWorld(rotatedHit,new(200,200)),rotatedHit,0),"Rotated distant miss "+rotation);
+}
+// Rendering broad phase must never reject a candidate that the original radius scan would draw.
+var viewportCache=new ObjectViewportCache();var spatialOrder=new ObjectOrderCache();
+var spatialDoc=new HeiBanDocument{Objects=Enumerable.Range(0,1000).Select(i=>new BoardObject
+ {Id="spatial-test-"+i,Type="rect",X=i%40*180-3600,Y=i/40*180-2200,Width=20,Height=30,ZIndex=i%13}).ToList()};
+var spatialRandom=new Random(107);
+void CheckSpatial(VectorMath.RectBounds world,string reason)
+{
+ var ordered=spatialOrder.Ascending(spatialDoc);var candidates=viewportCache.Query(ordered,world).ToArray();var set=candidates.ToHashSet();
+ Check(candidates.Distinct().Count()==candidates.Length,"No duplicated viewport candidate: "+reason);
+ Check(candidates.SequenceEqual(ordered.Where(set.Contains)),"Viewport preserves stable global Z/page/visibility: "+reason);
+ foreach(var item in ordered)
+ {
+  var radius=Math.Sqrt(item.Width*item.Width+item.Height*item.Height)/2+item.StrokeWidth+32;
+  var cx=item.X+item.Width/2;var cy=item.Y+item.Height/2;
+  if(item.Extension is "start" or "end" or "both"||world.Intersects(new(cx-radius,cy-radius,cx+radius,cy+radius)))
+   Check(set.Contains(item),"Viewport contains legacy render candidate: "+reason);
+ }
+}
+for(var i=0;i<160;i++)
+{
+ var x=spatialRandom.Next(-6000,6000);var y=spatialRandom.Next(-5000,5000);
+ CheckSpatial(new(x,y,x+spatialRandom.Next(1,1500),y+spatialRandom.Next(1,1000)),"random "+i);
+}
+var spatialWorld=new VectorMath.RectBounds(-150,-150,650,550);
+var spatialBuilds=viewportCache.Rebuilds;CheckSpatial(spatialWorld,"warm");Check(viewportCache.Rebuilds==spatialBuilds,"Unchanged geometry reuses grid");
+spatialDoc.Objects[0].X=0;spatialDoc.Objects[0].Y=0;CheckSpatial(spatialWorld,"direct move before commit");
+Check(viewportCache.Rebuilds==spatialBuilds&&viewportCache.Updates>0,"Direct geometry edits update memberships without a full rebuild");
+spatialDoc.Objects[1].Width=900;spatialDoc.Objects[1].Height=300;spatialDoc.Objects[1].Rotation=75;CheckSpatial(spatialWorld,"resize rotation");
+spatialDoc.Objects[2].StrokeWidth=500;CheckSpatial(spatialWorld,"stroke extent");
+spatialDoc.Objects[3].Type="curve";spatialDoc.Objects[3].Points="[{\"x\":10,\"y\":10},{\"x\":80,\"y\":200}]";
+spatialDoc.Objects[4].Type="text";spatialDoc.Objects[5].Extension="both";spatialDoc.Objects[6].Type="future-unknown";
+spatialDoc.Objects[7].Width=100000;spatialDoc.Objects[8].X=double.NaN;spatialDoc.Objects[9].X=1e20;
+CheckSpatial(spatialWorld,"global complex/oversized/nonfinite/huge");
+spatialBuilds=viewportCache.Rebuilds;var spatialUpdates=viewportCache.Updates;CheckSpatial(spatialWorld,"stable NaN global");
+Check(viewportCache.Rebuilds==spatialBuilds&&viewportCache.Updates==spatialUpdates,"Malformed NaN candidates do not invalidate each query");
+var globals=viewportCache.Query(spatialOrder.Ascending(spatialDoc),spatialWorld).ToHashSet();
+foreach(var i in new[]{3,4,5,6,7,8,9})Check(globals.Contains(spatialDoc.Objects[i]),"Unsafe bounds remain global "+i);
+Check(viewportCache.MembershipCount<=spatialDoc.Objects.Count*16,"Membership budget is bounded per object");
+spatialBuilds=viewportCache.Rebuilds;spatialDoc.Board.CanvasMode="notebook";spatialDoc.Board.ActivePageId="p1";
+foreach(var item in spatialDoc.Objects){item.PageId=item.ZIndex%2==0?"p1":"p2";item.IsVisible=item.ZIndex%3==0?false:null;}
+CheckSpatial(spatialWorld,"page visibility");spatialDoc.Board.ActivePageId="p2";CheckSpatial(spatialWorld,"page switch");
+Check(viewportCache.Rebuilds==spatialBuilds,"Page/visibility changes use live filtering without grid rebuild");
+spatialDoc.Objects[0].ZIndex=999;CheckSpatial(spatialWorld,"direct Z");spatialDoc.Objects.Reverse();CheckSpatial(spatialWorld,"reverse ties");
+spatialDoc.Objects[1]=DocumentCodec.Clone(spatialDoc.Objects[2]);CheckSpatial(spatialWorld,"same-size replacement");
+spatialDoc.Objects.Add(new(){Type="circle",X=150,Y=150,Width=100,Height=50});CheckSpatial(spatialWorld,"add");
+spatialDoc.Objects.RemoveAt(20);CheckSpatial(spatialWorld,"remove");spatialDoc.Objects=[..spatialDoc.Objects];CheckSpatial(spatialWorld,"list replacement");
+var spatialSession=new EditorSession();spatialSession.Open(spatialDoc);spatialSession.Begin();
+spatialSession.Document.Objects[1].X=700;spatialDoc=spatialSession.Document;CheckSpatial(spatialWorld,"transaction move");
+spatialSession.Cancel();spatialDoc=spatialSession.Document;CheckSpatial(spatialWorld,"cancel");
+spatialSession.Begin();spatialSession.Document.Objects[1].X=0;spatialSession.Commit();CheckSpatial(spatialWorld,"commit");
+spatialSession.Undo();spatialDoc=spatialSession.Document;CheckSpatial(spatialWorld,"undo");
+spatialSession.Redo();spatialDoc=spatialSession.Document;CheckSpatial(spatialWorld,"redo");
+spatialSession.Begin();spatialSession.SetSelection(new[]{spatialDoc.Objects[1].Id});spatialSession.PreviewMoveSelection(-200,-100);
+CheckSpatial(spatialWorld,"preview selection move");spatialSession.Cancel();spatialDoc=spatialSession.Document;CheckSpatial(spatialWorld,"preview cancel");
+CheckSpatial(new(double.NegativeInfinity,0,double.PositiveInfinity,500),"nonfinite query fallback");
+var descendingSpatial=spatialOrder.Descending(spatialDoc);Check(ReferenceEquals(viewportCache.Query(descendingSpatial,spatialWorld),descendingSpatial),"Descending views use original scan");
+spatialDoc=new(){Objects=[new(){Type="rect",Width=30,Height=20}]};CheckSpatial(spatialWorld,"small new document");
+Check(viewportCache.CellCount==0&&viewportCache.MembershipCount==0,"Small document releases prior grid");
+viewportCache.Clear();CheckSpatial(spatialWorld,"clear");
+spatialDoc=new(){Objects=Enumerable.Range(0,600).Select(i=>new BoardObject{Type="rect",X=i*500+10000,Y=10000,Width=20,Height=30}).ToList()};
+foreach(var type in new[]{"rect","circle","image","tape"})
+{
+ var item=spatialDoc.Objects[0];item.Type=type;item.Extension=null;item.X=20;item.Y=20;CheckSpatial(spatialWorld,"indexed type "+type);
+ Check(viewportCache.Query(spatialOrder.Ascending(spatialDoc),spatialWorld).Contains(item),"Indexed type is admitted in viewport "+type);
+ item.X=10000;item.Y=10000;CheckSpatial(spatialWorld,"indexed type moved out "+type);
+ Check(!viewportCache.Query(spatialOrder.Ascending(spatialDoc),spatialWorld).Contains(item),"Indexed type is removed outside viewport "+type);
+ item.Extension="both";CheckSpatial(spatialWorld,"indexed type becomes global "+type);
+ Check(viewportCache.Query(spatialOrder.Ascending(spatialDoc),spatialWorld).Contains(item),"Extension mutation updates global candidates "+type);
+}
+var counterDoc=new HeiBanDocument{Objects=[new(){Type="rect",X=2,Y=3,Width=20,Height=30,ExtraFields=new(){["future"]=future}}]};
+var beforeCounter=DocumentCodec.Clone(counterDoc);counterDoc.Objects[0].X=99;counterDoc.Objects[0].X=2;
+Check(DocumentSnapshot.Same(beforeCounter,counterDoc),"Transient invalidation does not change document equality or undo contract");
+var counterJson=DocumentCodec.Encode(counterDoc);
+Check(!counterJson.Contains("RenderBoundsVersion",StringComparison.OrdinalIgnoreCase),"Render counter is absent from persisted JSON");
+Check(DocumentCodec.Decode(counterJson).Objects[0].ExtraFields!.ContainsKey("future"),"Bounds tracking preserves future fields after reopen");
+counterDoc.Objects[0].X=-0d;Check(double.IsNegative(counterDoc.Objects[0].X),"Tracked setter preserves supplied signed zero");
 if(args.Contains("--performance"))Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(InteractionBenchmark.Run(),new System.Text.Json.JsonSerializerOptions{WriteIndented=true}));
 
 if(args.Length==2&&args[0]=="--export-fixtures")

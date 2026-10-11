@@ -1,5 +1,15 @@
 # Windows 建置與發行記錄
 
+## 2026-10-10 — 正式 Store MSIX 封裝
+
+最後來源 aa71e35 的 SDK x64／ARM64 build 分別 54.76／54.64 秒，均 0 warnings／0 errors，PackageSuccessfullyCreated。x64 MSIX 97,864,712 bytes、ARM64 MSIX 95,297,105 bytes、雙架構 bundle 193,163,812 bytes，未簽章、版本 1.0.12.0。SDK strict package／manifest validation 保持開啟，25 legal docs／當前手冊逐 byte、兩架構 PE／身分／19041、bundle 內 MSIX SHA 核對，135 source／3 artifact SHA 相符。[完整 manifest](STORE_ARTIFACTS_1.0.12.0_2026-10-10.json)、[當批日誌](MSIX_PACKAGING_2026-10-10.zh-TW.md)。App 安裝執行、移轉／解除安裝、WACK、ARM64 原生與 Store 送審未執行；不沿用上一批 App 測試數字。
+
+## 2026-10-10 — 1.0.12-preview.6 自動更新（本機四包）
+
+官方 .NET 10.0.401／Inno Setup 6.7.3 隔離工具建置。最後來源依序執行 Package-Installer.ps1／Package-Portable.ps1 的 win-x64／win-arm64，各退出 0，兩次 Successful compile；最終 log warning／error 0。新增獨立自包含 helper 與 update-files.json。產物是兩架構 EXE、兩架構 Portable ZIP，各附 SHA sidecar；未產生 MSI／MSIX，未發布。精確大小／SHA／來源 snapshot 見 [產物清單](ARTIFACTS_2026-10-10_1.0.12-preview.6.json)。
+
+73 更新檢查與 700 Core／手冊實際通過；隔離 x64 helper＋Inno 的退出等待／鎖重試／多程序延後／preview→stable／SHA 拒絕／Data／未知檔保全／安裝升級與測試註冊清除通過。最後 Portable x64 555／ARM64 551 個 inventory 檔 SHA、PE app／helper 架構、當前手冊／README、空 Data／ZIP sidecar 通過；x64 真 App 隔離主視窗啟動及正常關閉退出 0。ARM64 原生執行、完整硬體互動、真 GitHub 新版更新、Store 與停電恢復未執行。初版 warning／failed check／工具拒絕及修正過程見 [當批日誌](AUTO_UPDATE_2026-10-10.zh-TW.md)。
+
 ## 2026-10-10 — GitHub Windows 1.0.12-preview.5（已公開）
 
 x64／ARM64各提供Installer ZIP及Portable ZIP，[新版下載](https://github.com/VirginBear/HeiBan/releases/tag/windows-v1.0.12-preview.5)。相應source fddf85e已推main且tag一致，77build-source blob保持相等；公開Portable原entry／Installer原EXE逐byte相同，7assets遠端size／digest與本機相符，7個未登入下載HEAD均200。

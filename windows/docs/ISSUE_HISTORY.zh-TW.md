@@ -1,5 +1,81 @@
 # Windows 問題與排解紀錄
 
+最終r2 x64 Release build：退出0、0警告／0錯誤、28.23秒；十份完整資源嵌入DLL、literal來源鍵無缺項為靜態檢視，非App／測試驗收。最後文字屬性展示补強由新Portable publish重新編譯，封裝證據另記。
+
+## 2026-10-11 — 多語言建置與尚未驗收
+
+第二輪build 17.61秒退出1、1warning／89errors：兩個MenuFlyout.FlowDirection CS1061阻斷生成assembly，連鎖XAML pass2 WMC1509／Ui附加屬性unknown及WMC9999。改MenuFlyoutPresenterStyle Setter（實際有FlowDirection的是Presenter／FrameworkElement）；不刪Ui服務來掩蓋症狀。首次53.04秒0warning／0error是修RTL前來源，後續結果另記[日誌](LOCALIZATION_2026-10-11.zh-TW.md)。
+
+資源stdout cp950遇⋯編碼錯，生成器改UTF-8輸出；PowerShell字面萬用路徑rg及錯Common檔名調查失敗改目錄-g／Publish-Common。原生框架可能快取語言，系统檔案挑選器和低層例外保留來源語言；尚缺App實機切換／重啟／窄視窗／RTL及母語校閱，本輪不跑測試。
+
+## 2026-10-11 — 一般畫布游標未生效、尺寸與背景選項缺漏
+
+使用者實測一般畫布游標未生效而螢幕有效；前一輪native SetCursor／WM_SETCURSOR不能當已驗收主畫布方式。調查官方WinUI ProtectedCursor與SDK HCURSOR interop，改Canvas父容器XAML游標。原因為不同游標擁有層的推論，未做本輪runtime追蹤；硬體操作待驗收。
+
+新建尺寸固定顯示且index0，導致infinite出現無意義尺寸、fixed預設A4。改模式顯隱與各類預設記憶；背景renderer與SVG有grid／dots／lines／staff，但Background_Click只有ChooseColor，故補共用樣式選單／transaction／epoch守護。首次build 0warning／0error，最終x64 build 0warning／0error、25.98秒，詳見阶段日誌。
+
+盤點5份舊試用解壓目錄，其中3份已有Data，不能直接刪整包。新包封裝完成後先保留Data／未知或改動檔，確認來源範圍與正式發行排除後再刪舊runtime，清理明細另記。沒有讀取或公開作品內容。
+
+
+## 2026-10-11 — 捲軸、拖曳缺乏視覺回饋與游標
+
+使用者實際回饋：螢幕控制列捲軸、圖層只有放開閃動、形狀控制點沒有方向、粗線箭頭頭部過細、主工具列缺圖層。確認原因是中段 ScrollViewer Auto、拖曳只有文字提示、沒有 control-handle cursor 路徑、頭部硬編碼 2、layers 未納入可見工具設定。
+
+實作換行面板、拖曳浮層與插入線、共享系統／自製游標、原生／SVG 線寬同步及工具列入口；第一次編譯 0 warning／0 error。後續靜態補 WinUI WM_SETCURSOR、取消清理與虛擬化列一致性；最終建置 0 warning／0 error、25.80 秒，詳見階段日誌。路徑讀取錯誤與工具呼叫語法錯誤未影響資料，已更正。沒有本批測試／App／實機 UI 驗收。
+
+
+## 2026-10-11 — 首頁單擊、固定檢查器與工具列尺寸
+
+症狀與確認原因：首頁 Extended 加「selectedCount > 0」顯示批次列，讓單擊進入批次操作感；Inspector 固定 XAML 同時包含工具與圖層；箭頭 fallback 尺寸依 strokeWidth 放大；螢幕工具列固定尺寸塞不下新增控制項。
+
+排解：一般 Single／顯式 Multiple、依物件區塊顯示與獨立圖層、固定頭部預設且尺寸 slider、內容 Measure／DPI／工作區限制。腳本 XAML 第一段界線匹配到內層 Grid，尚未寫 XAML 即失敗；修精確外層邊界後續作。首次編譯未用舊尺長欄位警告，移除並重新 build。未執行實機 UI／DPI／拖曳測試，驗收缺口與逐項入口保存在[日誌](UX_ALIGNMENT_2026-10-11.zh-TW.md)。
+
+初份 ux20 封裝後靜態排列檢查確認同側面板可能遮工具列；追加 margin 留白／可用高度重算，按 r2 新Label重新publish，不覆寫初份。r2 log 無warning/error，557 inventory／103 source hash 靜態核對及Store保全完成。沒有將封裝完成宣稱實體 UI 已驗收。
+
+## 2026-10-11 — Trial封裝sidecar防覆寫條件
+
+新wrapper第一包完成後，靜態檢視發現PowerShell`@($payload,$zip,$zip+'.sha256')`會拆出額外.sha256項，未正確守衛既存sidecar；payload／ZIP guard有效，未覆寫舊產物，也不影響App。改`($zip+'.sha256')`，新r2 Label重新publish／壓縮，兩包／log保留；最終557 entry SHA／93 source／空Data／PE／版本靜態核對通過。沒有因紀錄要求自行跑App測試，初包是歷史候選、最終交付r2。
+
+## 2026-10-11 — 候選有效性成本／編譯失敗
+
+初次grid九欄record比對10000 p95約0.51→1.28ms，候選77個並未保證收益；明確欄位／增量更新只小幅改善，改非序列化bounds counter後acceptance0.36124→0.07980ms。explore全保留；相等setter吞signed-zero由靜態檢視抓到，改保存value、只對不等值增counter。
+
+native foreach三元式的OrderedBoardObjects與IOrderedEnumerable無共同推斷型別，CS0173導致次生Xaml WMC9999；改顯式IEnumerable。失敗沒有native結果，後續x64／ARM64無warning/error及127 strict pixels通過。完整scene平移重跑有更慢結果，原因未確認；PERF05／busy profile待開發，不把波動歸因特定GPU／timer。
+
+## 2026-10-10 — 流暢度基準的實際失敗與未解項
+
+初CPU fixture的空心rect中心不是hit，修成填色與可命中點後重測，錯誤樣本獨立保留。原生舊binary先後兩次在overlay rect收筆strict比對失敗：272 byte最大差1、首點(1504,898)的R channel1→0；主畫布階段先寫獨立JSON，不能因process exit0稱全驗證通過。改DrawImage copy為同device／BGRA／96DPI的CopyPixelsFromBitmap區域複製後嚴格形狀／筆／選取等通過，未放寬容差。[證據](performance/2026-10-10-batch1/README.zh-TW.md)。
+
+Core新增test漏傳Hit tolerance造成CS7036，補8後754項通過。熱路徑兩個capturing lambda即使候選早退也分配closure，改為局部for／四邊短路；零rotation命中避免新center與point。原生大量物件重建p95仍高且跨run波動，不能將所有症狀歸因排序；04／05待後續。真筆、混合DPI、device lost、ARM64原生與MSIX／WACK未驗收。讀錯來源路徑與PowerShell for直接pipe的錯誤／修正保存在本批日誌。
+
+## 2026-10-10 — Partner Center 無法提交的階段已解除
+
+前次使用者概觀截圖中套件已 Validated，屬性／清單／提交選項顯示完成，價格與年齡分級未顯示完成；建議重新進入檢查儲存與產生分級。無法只凭截圖斷言所有具體欄位的錯誤原因。此次使用者貼出「Submission 1：認證中」，確認依使用者資料提交階段已往前進。尚未確認通過與上架，也未登入後台；認證若失敗，依後續報告另記原因，不預先猜測。
+
+## 2026-10-10 — 公開來源沒有對應私人管理庫
+
+使用者需要跨電腦讀取私人產品記錄；主庫 API 顯示 PUBLIC，現有私人清單無 HeiBan 相關庫，指定新庫查詢回 repository not found，這是建立前的正常確認。另建立 PRIVATE HeiBan-private；確認 visibility 後才 push管理文件，並以 ls-remote 核本地／遠端。沒有把公開資料夾當作私人位置，也沒有搬入作品或密鑰。後續讀取需要相同帳號／協作者權限，不能因登入公開庫就宣稱具有私人庫權限。
+
+## 2026-10-10 — MSIX 封裝調查
+
+正式 Store 身分已取得，前批待提供問題解除。初次 MSIX SDK build 成功，但授權檔版本點號被當 PRI qualifier（17 個含 README），另缺 mspdbcmf（1 個 symbol 警告）。不把該 build 稱為無警告。README 以純檔名連結、封裝 CLI 關閉除錯 symbols；第一次以原始路徑排除 PRI 沒命中 SDK layout，改按 PackagingOutputs TargetPath 暫時排除純文件再還原。Package-Store 字串 `$arch:` 語法錯誤修正 `${arch}`；外層純 PowerShell 不能依未設定 LASTEXITCODE 推定成功。調查／最後結果見當批日誌，保留初包與過程證據。
+
+最後有效方案直接過濾 SDK 生成的 PRI resfile 文件行，Content payload 不變；兩架構各 0 warnings／0 errors，25 授權完整原 byte。SDK 曾將模板 19041 覆寫為專案 17763，Store build 顯式 TargetPlatformMinVersion=19041 並加包內 guard，最後实际包確認 19041。未執行商店安裝／資料移轉／解除安裝、ARM64 原生與 WACK，因此仍是送審前待驗收項，不預先稱審核通過。
+
+## 2026-10-10 — Store 正式身分尚待提供
+
+使用者已申辦 Partner Center，但目前只有後台網址，未取得產品套件身分。網址不能確認驗證／名稱預留／產品存在；已請使用者從 Product identity 提供三個 manifest 欄位及保留名稱。等待期間完成官方規則調查、商店準備紀錄與上一批來源同步；不使用假的 CN 或把 package identity 偵測當作 MSIX 成品。資料遷移／解除安裝保留及 runFullTrust 送審尚需實際封裝驗收。搜尋曾包含不存在的 Services 目錄，記下 rg 路徑錯誤而未推測該目錄架構。
+
+## 2026-10-10 — 自動更新實作／驗證
+
+主機缺 .NET SDK，`dotnet --info` 僅 .NET 8 runtime；官方腳本隔離安裝 10.0.401 後 WinUI 建置可用。合併工具下載／啟動命令自動審查拒絕；分步下載、核官方 Authenticode 再以隔離位置安裝成功。Inno 官方繁體翻譯缺 23 新訊息、有 3 過期 key；初包使用英文 fallback 並 warning，保存補齊／清理後的翻譯隨 Packaging 發行。詳見本批日誌，不隱藏初次 warning。
+
+更新測試先抓到 regex `$` 接受結尾換行，改 `\A`／`\z`；第二次中斷來自測試以 IOException 代替實際 InvalidDataException，補正測試捕捉範圍。69 檢查通過後，追加 PE／待更新架構共 73 檢查通過。
+
+稽核確認 preview.6 FileVersion .6 大於 stable .0，僅數字判斷會跳過正式版；改看 ProductVersion 的語意版本，隔離實際 helper 的 preview → stable 通過。另稽核 helper 起動可能早於 App 釋放交接鎖，補短期重試；安裝架構遷移時 cache 可能仍有旧 pending，交接及 PE 再核架構。後兩項不是聲稱已有使用者遇到的實測故障；以隔離 fixture 補驗證。
+
+Portable ordinary failure rollback、父程序退出後更新、其他視窗存在延後、Data hash／未知檔保全、損壞包拒絕、獨立 Inno 安裝／升級／測試註冊移除通過。真 GitHub 新 Release、ARM64 執行、完整硬體／商店／停電恢復未驗收；不以 synthetic 或 x64 smoke 替代。
+
 ## 2026-10-10 — 公開封裝／GitHub發布
 
 首輪新手冊比對KeyError，ZIP使用Windows反斜線而查詢用斜線，已正規化entry索引及安全路徑；重跑保留原entry／EXE逐byte、PE／手冊／無Data檢查通過。draft target使用短SHA回422，改完整commit後成功；draft尚無公開tag endpoint回404，透過release清單／ID核對，publish後tag endpoint正常。新版7assets遠端digest／size及公開HTTP200後才刪舊5下載，源與舊歷史文本保留。

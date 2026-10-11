@@ -1,0 +1,55 @@
+{
+  "phase": "read-only inventory before new build; no deletion yet",
+  "trials": [
+    {
+      "name": "HeiBan-Windows-Portable-1.0.12-preview.6-perf2-2026-10-11-r2-win-x64",
+      "payloadBytes": 320617041,
+      "fileCount": 576,
+      "dataFiles": 17,
+      "dataBytes": 16566,
+      "unknownFiles": 0,
+      "reparseCount": 0,
+      "hasInventory": true
+    },
+    {
+      "name": "HeiBan-Windows-Portable-1.0.12-preview.6-perf2-2026-10-11-win-x64",
+      "payloadBytes": 320600469,
+      "fileCount": 559,
+      "dataFiles": 0,
+      "dataBytes": 0,
+      "unknownFiles": 0,
+      "reparseCount": 0,
+      "hasInventory": true
+    },
+    {
+      "name": "HeiBan-Windows-Portable-1.0.12-preview.6-ux-feedback-2026-10-11-win-x64",
+      "payloadBytes": 320707889,
+      "fileCount": 574,
+      "dataFiles": 15,
+      "dataBytes": 35699,
+      "unknownFiles": 0,
+      "reparseCount": 0,
+      "hasInventory": true
+    },
+    {
+      "name": "HeiBan-Windows-Portable-1.0.12-preview.6-ux20-2026-10-11-r2-win-x64",
+      "payloadBytes": 320678692,
+      "fileCount": 579,
+      "dataFiles": 20,
+      "dataBytes": 21124,
+      "unknownFiles": 0,
+      "reparseCount": 0,
+      "hasInventory": true
+    },
+    {
+      "name": "HeiBan-Windows-Portable-1.0.12-preview.6-ux20-2026-10-11-win-x64",
+      "payloadBytes": 320657455,
+      "fileCount": 559,
+      "dataFiles": 0,
+      "dataBytes": 0,
+      "unknownFiles": 0,
+      "reparseCount": 0,
+      "hasInventory": true
+    }
+  ]
+}

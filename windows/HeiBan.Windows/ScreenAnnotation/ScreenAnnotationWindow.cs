@@ -1,3 +1,4 @@
+using static HeiBan.Windows.Localization.Strings;
 using System.Diagnostics;
 using System.Text.Json;
 using HeiBan.Windows.Engine;
@@ -29,8 +30,8 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     private readonly Func<Task> _requestStart;
     private readonly DispatcherTimer _renderTimer=new(){Interval=TimeSpan.FromMilliseconds(16)};
     private readonly DispatcherTimer _saveTimer=new(){Interval=TimeSpan.FromSeconds(1)};
-    private readonly TextBlock _status=new(){FontSize=11,Text="螢幕畫布",TextTrimming=TextTrimming.CharacterEllipsis,VerticalAlignment=VerticalAlignment.Center};
-    private readonly Button _mode=new(){Content="操作穿透"};
+    private readonly TextBlock _status=new(){FontSize=11,Text=T("螢幕畫布"),TextTrimming=TextTrimming.CharacterEllipsis,VerticalAlignment=VerticalAlignment.Center};
+    private readonly Button _mode=new(){Content=T("操作穿透")};
     private readonly Dictionary<string,Button> _buttons=[];
     private CanvasRenderTarget? _target,_committed;
     private bool _committedDirty=true,_fullDamage=true,_benchmarkFullFrames;
@@ -40,6 +41,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     private ObjectHandles.Handle? _handle;
     private readonly List<InkPoint> _points=[];
     private InkPoint? _start,_last;
+    private string _screenExtension="none";
     private string _tool="pen",_color="#EF4444",_dash="solid",_fill="none";
     private readonly List<InkPoint> _curveAnchors=[];
     private double _width=4,_opacity=1,_eraserSize=24;
@@ -53,13 +55,13 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     {
         _owner=owner;_requestStart=requestStart;_laser=laser;
         _recoveryPath=Path.Combine(dataDirectory,"ScreenAnnotations","session.heiban");
-        Title="我的螢幕就是我的畫布";
+        Title=T("我的螢幕就是我的畫布");
         InitializeChrome();
         if(AppWindow.Presenter is OverlappedPresenter presenter){presenter.PreferredMinimumWidth=1;presenter.PreferredMinimumHeight=1;presenter.IsAlwaysOnTop=true;presenter.IsResizable=false;presenter.SetBorderAndTitleBar(false,false);}
         _dpiScale=NativeOverlayWindow.DpiScale(WinRT.Interop.WindowNative.GetWindowHandle(this));ResizeChrome();
         AppWindow.Closing+=async(_,e)=>{if(_disposed)return;e.Cancel=true;await StopAsync();};
-        _overlay.Pointer+=OnPointer;_overlay.BoundsChanged+=()=>{if(IsActive){CancelGesture();CreateTarget();Changed();}};
-        _overlay.Failed+=e=>{SetDrawing(false);_status.Text="繪圖未完成："+e.Message;};
+        _overlay.Pointer+=OnPointer;_overlay.BoundsChanged+=()=>{if(IsActive){CancelGesture();CreateTarget();Changed();ResizeChrome();PositionChrome();}};
+        _overlay.Failed+=e=>{SetDrawing(false);_status.Text=T("繪圖未完成：")+e.Message;};
         _overlay.Hotkey+=async id=>
         {
             if(id==1){await _requestStart();return;}
@@ -68,8 +70,8 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         };
         var failed=0;
         foreach(var key in new[]{(1,0x41u),(2,0x44u),(3,0x53u),(4,0x51u),(5,0x4Bu)})if(!_overlay.RegisterShortcut(key.Item1,0x0002|0x0001,key.Item2))failed++;
-        if(failed>0)_status.Text="部分快捷鍵被其他程式占用，請使用控制列按鈕。";
-        _renderTimer.Tick+=(_,_)=>{if(!IsActive)return;RememberExternalFocus();try{if(_dirty||_laser.Samples.Count>0)Render();}catch(Exception e){_renderTimer.Stop();_overlay.Hide();_status.Text="螢幕繪圖已停止："+e.Message;}};
+        _hotkeyRegistrationFailed=failed>0;if(failed>0)_status.Text=T("部分快捷鍵被其他程式占用，請使用控制列按鈕。");
+        _renderTimer.Tick+=(_,_)=>{if(!IsActive)return;RememberExternalFocus();try{UpdateScreenEraser();if(_dirty||_laser.Samples.Count>0)Render();}catch(Exception e){_renderTimer.Stop();_overlay.Hide();_status.Text=T("螢幕繪圖已停止：")+e.Message;}};
         _saveTimer.Tick+=async(_,_)=>{_saveTimer.Stop();if(_start is not null||_textDraft is not null||_session.HasTransaction){_saveTimer.Start();return;}await SaveAsync();};
         AppWindow.Hide();
     }
@@ -79,7 +81,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         try
         {
             Directory.CreateDirectory(Path.GetDirectoryName(_recoveryPath)!);_sessionLease=new FileStream(_recoveryPath+".lock",FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
-            var doc=File.Exists(_recoveryPath)?DocumentCodec.Decode(await File.ReadAllTextAsync(_recoveryPath)):new HeiBanDocument{Board=new BoardMetadata{Title="螢幕註記",CanvasMode="fixed",BackgroundColor="transparent",GridStyle="blank"}};
+            var doc=File.Exists(_recoveryPath)?DocumentCodec.Decode(await File.ReadAllTextAsync(_recoveryPath)):new HeiBanDocument{Board=new BoardMetadata{Title=T("螢幕註記"),CanvasMode="fixed",BackgroundColor="transparent",GridStyle="blank"}};
             _session.Open(doc);CreateTarget();await _renderer.LoadImagesAsync(_target!,doc.Objects);
             IsActive=true;_laser.Clear();_owner.AppWindow.Hide();RememberExternalFocus();_overlay.Show(true);SetDrawing(true);Render();
             ResizeChrome();RefreshButtons();
@@ -98,10 +100,12 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         board.ExtraFields["windowsScreenOriginX"]=JsonSerializer.SerializeToElement(_overlay.Left);board.ExtraFields["windowsScreenOriginY"]=JsonSerializer.SerializeToElement(_overlay.Top);
         _session.Document.Board.CanvasWidth=_overlay.Width;_session.Document.Board.CanvasHeight=_overlay.Height;
     }
+    private bool _hotkeyRegistrationFailed;
     private void SetDrawing(bool value)
     {
-        FinishScreenText();CancelGesture();_drawing=value;_overlay.SetDrawing(value);RefreshMode();
-        _status.Text=value?"作畫中 · 右鍵物件可編輯":"操作中 · Ctrl+Alt+D 繼續作畫";
+        FinishScreenText();CancelGesture();_drawing=value;_overlay.SetDrawing(value);_overlay.SetManipulationCursor(null,null);UpdateScreenEraser();RefreshMode();
+        _status.Text=value?T("作畫中 · 右鍵物件可編輯"):T("操作中 · Ctrl+Alt+D 繼續作畫");
+        RefreshMode();ResizeChrome();PositionChrome();
         _laser.Clear();_dirty=_fullDamage=_committedDirty=true;if(!value)NativeOverlayWindow.RestoreFocus(_lastExternal);
     }
     private void RememberExternalFocus()
@@ -112,6 +116,8 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     {
         if(!IsActive||_captureCancellation is not null)return;
         var p=new InkPoint(input.X,input.Y,1);
+        UpdateScreenShapeCursor(p);
+        if(input.Kind=="move"&&_start is null&&_tool=="eraser"){UpdateScreenEraser();return;}
         if(input.Kind=="right"){FinishScreenText();ScreenRightClick(p);return;}
         if(input.Kind=="double"){FinishScreenText();if(_tool=="select"&&_session.Hit(p,6) is {IsLocked:not true,Type:"text" or "sticky"} text)BeginScreenText(p,text);return;}
         if(input.Kind=="down"){FinishScreenText();if(_tool=="text"){BeginScreenText(p);return;}}
@@ -192,15 +198,28 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         else {DamagePreview();if(!regionalSelection&&_preview is null&&input.Kind!="up")_fullDamage=true;if(regionalSelection||_tool=="eraser")_committedDirty=true;}
         _dirty=true;
     }
+    private void UpdateScreenShapeCursor(InkPoint pointer)
+    {
+        BoardObject? selected=null;ObjectHandles.Handle? handle=null;
+        if(_drawing&&_tool=="select"&&_session.SelectedIds.Count==1&&_session.Selected is {IsLocked:not true} o)
+        {
+            selected=_start is not null?_manipulation??o:o;
+            handle=_start is not null?_handle:ObjectHandles.Get(o,1).Where(h=>Math.Sqrt(Math.Pow(h.Point.X-pointer.X,2)+Math.Pow(h.Point.Y-pointer.Y,2))<14).Select(h=>(ObjectHandles.Handle?)h).FirstOrDefault();
+        }
+        _overlay.SetManipulationCursor(selected,handle);
+    }
     private BoardObject Styled(BoardObject item)
-    {item.StrokeColor=_color;item.StrokeWidth=_width*_dpiScale;item.Opacity=_tool=="highlighter"?_opacity*.4:_opacity;item.LineStyle=_dash;if(item.Type is "rect" or "circle")item.FillColor=_fill;return item;}
+    {item.StrokeColor=_color;if(item.Type is "line" or "arrow")item.Extension=_screenExtension;item.StrokeWidth=_width*_dpiScale;item.Opacity=_tool=="highlighter"?_opacity*.4:_opacity;item.LineStyle=_dash;if(item.Type is "rect" or "circle")item.FillColor=_fill;return item;}
     private static double Now=>Stopwatch.GetTimestamp()/(double)Stopwatch.Frequency;
     private void DamageStrokeTail(bool entire=false)
     {
         // The newest sample changes only the last two Catmull-Rom segments. Include
         // their control hull so fast movement and curve overshoot cannot leave stale pixels.
-        var tail=entire?_points.ToArray():_points.TakeLast(4).ToArray();if(tail.Length==0)return;
-        var left=tail.Min(p=>p.X);var top=tail.Min(p=>p.Y);var right=tail.Max(p=>p.X);var bottom=tail.Max(p=>p.Y);
+        if(_points.Count==0)return;
+        var start=entire?0:Math.Max(0,_points.Count-4);
+        var left=_points[start].X;var top=_points[start].Y;var right=left;var bottom=top;
+        for(var i=start+1;i<_points.Count;i++)
+        {var point=_points[i];left=Math.Min(left,point.X);top=Math.Min(top,point.Y);right=Math.Max(right,point.X);bottom=Math.Max(bottom,point.Y);}
         var pad=Math.Max(right-left,bottom-top)/3+_width*_dpiScale+4;
         left=Math.Max(0,Math.Floor(left-pad));top=Math.Max(0,Math.Floor(top-pad));right=Math.Min(_overlay.Width,Math.Ceiling(right+pad));bottom=Math.Min(_overlay.Height,Math.Ceiling(bottom+pad));
         if(_damage is { } old){left=Math.Min(left,old.Left);top=Math.Min(top,old.Top);right=Math.Max(right,old.Right);bottom=Math.Max(bottom,old.Bottom);}
@@ -218,7 +237,15 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             var right=Math.Min(_overlay.Width,Math.Ceiling(points.Max(p=>p.X)+pad));var bottom=Math.Min(_overlay.Height,Math.Ceiling(points.Max(p=>p.Y)+pad));
             if(right>left&&bottom>top)laserDamage=new(left,top,right-left,bottom-top);
         }
-        foreach(var bounds in new[]{_lastLaserDamage,laserDamage})if(bounds is { } rect)
+        global::Windows.Foundation.Rect? eraserDamage=null;
+        if(_screenEraserPointer is { } cursor)
+        {
+            var radius=_eraserSize*_dpiScale/2+4;
+            var left=Math.Max(0,Math.Floor(cursor.X-radius));var top=Math.Max(0,Math.Floor(cursor.Y-radius));
+            var right=Math.Min(_overlay.Width,Math.Ceiling(cursor.X+radius));var bottom=Math.Min(_overlay.Height,Math.Ceiling(cursor.Y+radius));
+            if(right>left&&bottom>top)eraserDamage=new(left,top,right-left,bottom-top);
+        }
+        foreach(var bounds in new[]{_lastLaserDamage,laserDamage,_lastEraserDamage,eraserDamage})if(bounds is { } rect)
         {
             if(_damage is { } old){var left=Math.Min(old.Left,rect.Left);var top=Math.Min(old.Top,rect.Top);_damage=new(left,top,Math.Max(old.Right,rect.Right)-left,Math.Max(old.Bottom,rect.Bottom)-top);}
             else _damage=rect;
@@ -230,23 +257,26 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         {
             _renderer.Prune(_session.Document.Objects);
             using var ds=_committed.CreateDrawingSession();ds.Clear(blank);
-            _renderer.RenderObjects(ds,_session.VisibleObjects,_viewport,_overlay.Width,_overlay.Height);_committedDirty=false;_committedBuilds++;
+            _renderer.RenderObjects(ds,_session.DrawingObjects,_viewport,_overlay.Width,_overlay.Height);_committedDirty=false;_committedBuilds++;
         }
+        // Both targets use the same device, BGRA format and 96 DPI; damage bounds are integral pixels.
+        // Copy bitmap pixels without a sampling/compositing pass that can round translucent edge colors.
+        if(!_benchmarkFullFrames)_target.CopyPixelsFromBitmap(_committed,(int)region.X,(int)region.Y,(int)region.X,(int)region.Y,(int)region.Width,(int)region.Height);
         using(var ds=_target.CreateDrawingSession())
         {
             if(_benchmarkFullFrames){ds.Clear(blank);_renderer.Prune(_session.Document.Objects);_renderer.RenderObjects(ds,_session.VisibleObjects,_viewport,_overlay.Width,_overlay.Height);}
-            else {ds.Blend=CanvasBlend.Copy;ds.DrawImage(_committed,new System.Numerics.Vector2((float)region.X,(float)region.Y),region);ds.Blend=CanvasBlend.SourceOver;}
             using var clip=ds.CreateLayer(1,region);
-            if(_preview is not null)_renderer.RenderObjects(ds,new[]{_preview},_viewport,_overlay.Width,_overlay.Height);
+            if(_preview is not null)_renderer.RenderPreview(ds,_preview,_viewport,_overlay.Width,_overlay.Height);
             if(_points.Count>0&&_tool is "pen" or "highlighter" or "paint")_renderer.RenderLiveStroke(ds,_points,_viewport,_color,_width*_dpiScale,_tool=="highlighter"?_opacity*.4:_opacity,_dash);
             if(_tool=="select")foreach(var selected in _session.SelectedObjects)_renderer.RenderSelection(ds,selected,_viewport,_session.SelectedIds.Count==1);
             _renderer.RenderLaser(ds,_laser,_viewport,Now,_dpiScale);
+            if(_screenEraserPointer is { } eraser)_renderer.RenderHover(ds,eraser,true,_eraserSize*_dpiScale,_viewport);
         }
         var x=(int)region.X;var y=(int)region.Y;var width=(int)region.Width;var height=(int)region.Height;
         var pixels=_target.GetPixelBytes(x,y,width,height);_overlay.Present(pixels,x,y,width,height);_presentedBytes+=pixels.Length;_renderedFrames++;
-        _dirty=false;_fullDamage=false;_damage=null;_lastLaserDamage=laserDamage;
+        _dirty=false;_fullDamage=false;_damage=null;_lastLaserDamage=laserDamage;_lastEraserDamage=eraserDamage;
     }
-    private void Changed(){_dirty=_fullDamage=_committedDirty=true;if(_session.IsDirty){_saveTimer.Stop();_saveTimer.Start();}}
+    private void Changed(){_dirty=_fullDamage=_committedDirty=true;RefreshScreenLayers();if(_session.IsDirty){_saveTimer.Stop();_saveTimer.Start();}}
     private void CancelGesture()
     {
         CommitScreenStyle();var committedChanged=_session.HasTransaction;var previewVisible=_preview is not null||_points.Count>0;
@@ -257,7 +287,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     {
         await _saveGate.WaitAsync();
         try{var snapshot=DocumentCodec.Clone(_session.Document);var generation=_session.Generation;var epoch=_session.DocumentEpoch;await Task.Run(()=>DocumentSessionManager.WriteAtomicAsync(_recoveryPath,DocumentCodec.Encode(snapshot)));if(epoch==_session.DocumentEpoch)_session.MarkSaved(generation,snapshot.Board.Revision);return true;}
-        catch(Exception e){_status.Text="註記保存失敗，內容仍保留："+e.Message;return false;}
+        catch(Exception e){_status.Text=T("註記保存失敗，內容仍保留：")+e.Message;return false;}
         finally{_saveGate.Release();}
     }
     private async Task CaptureAsync()
@@ -269,20 +299,20 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         {
             await Task.Delay(150,cancellation.Token);
             var epoch=_session.DocumentEpoch;var capture=await RegionScreenshotService.CaptureRegionAsync(cancellation.Token);
-            if(capture is not null){await InsertScreenCaptureAsync(capture,epoch);_status.Text="截圖已加入螢幕畫布，可選取調整";}else _status.Text="已取消截圖";
+            if(capture is not null){await InsertScreenCaptureAsync(capture,epoch);_status.Text=T("截圖已加入螢幕畫布，可選取調整");}else _status.Text=T("已取消截圖");
         }
-        catch(OperationCanceledException){_status.Text="截圖已取消或逾時";}
-        catch(Exception e){_status.Text="截圖未完成："+e.Message;}
+        catch(OperationCanceledException){_status.Text=T("截圖已取消或逾時");}
+        catch(Exception e){_status.Text=T("截圖未完成：")+e.Message;}
         finally{_captureCancellation=null;if(IsActive)AppWindow.Show();}
     }
     private Task LaserSettingsAsync()
     {
-        var panel=new StackPanel{Spacing=8,Width=260};panel.Children.Add(new TextBlock{Text="雷射設定",FontSize=16});
-        var modes=new[]{"point","shortTrail","line"};var mode=new ComboBox{Header="模式",ItemsSource=new[]{"光點","短尾跡","線條"},SelectedIndex=Math.Max(0,Array.IndexOf(modes,_laser.Mode))};panel.Children.Add(mode);
-        var diameter=new Slider{Header="光點直徑",Minimum=4,Maximum=64,Value=_laser.PointDiameter};
-        var width=new Slider{Header="尾跡粗細",Minimum=1,Maximum=32,Value=_laser.Width};var fade=new Slider{Header="消退時間（秒）",Minimum=.1,Maximum=5,StepFrequency=.1,Value=_laser.FadeDuration};var white=new CheckBox{Content="白色光芯",IsChecked=_laser.WhiteCore};
+        var panel=new StackPanel{Spacing=8,Width=260};panel.Children.Add(new TextBlock{Text=T("雷射設定"),FontSize=16});
+        var modes=new[]{"point","shortTrail","line"};var mode=new ComboBox{Header=T("模式"),ItemsSource=new[]{T("光點"),T("短尾跡"),T("線條")},SelectedIndex=Math.Max(0,Array.IndexOf(modes,_laser.Mode))};panel.Children.Add(mode);
+        var diameter=new Slider{Header=T("光點直徑"),Minimum=4,Maximum=64,Value=_laser.PointDiameter};
+        var width=new Slider{Header=T("尾跡粗細"),Minimum=1,Maximum=32,Value=_laser.Width};var fade=new Slider{Header=T("消退時間（秒）"),Minimum=.1,Maximum=5,StepFrequency=.1,Value=_laser.FadeDuration};var white=new CheckBox{Content=T("白色光芯"),IsChecked=_laser.WhiteCore};
         panel.Children.Add(diameter);panel.Children.Add(width);panel.Children.Add(fade);panel.Children.Add(white);
-        var flyout=new Flyout{Content=panel};var apply=new Button{Content="套用"};apply.Click+=(_,_)=>{_laser.Mode=modes[Math.Max(0,mode.SelectedIndex)];_laser.PointDiameter=diameter.Value;_laser.Width=width.Value;_laser.FadeDuration=fade.Value;_laser.WhiteCore=white.IsChecked==true;_laser.Clear();_dirty=true;flyout.Hide();};panel.Children.Add(apply);
+        var flyout=new Flyout{Content=panel};var apply=new Button{Content=T("套用")};apply.Click+=(_,_)=>{_laser.Mode=modes[Math.Max(0,mode.SelectedIndex)];_laser.PointDiameter=diameter.Value;_laser.Width=width.Value;_laser.FadeDuration=fade.Value;_laser.WhiteCore=white.IsChecked==true;_laser.Clear();_dirty=true;flyout.Hide();};panel.Children.Add(apply);
         ShowChromeFlyout(flyout,_mode);return Task.CompletedTask;
     }
     internal async Task ValidateNativeSessionAsync(string outputDirectory)
@@ -293,7 +323,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             _tool="pen";SetDrawing(true);OnPointer(new("down",120,300));OnPointer(new("move",200,330));OnPointer(new("up",300,300));Render();
             if(_session.Document.Objects.Count!=before+1)throw new InvalidOperationException("螢幕筆畫未提交。");
             using(var target=new CanvasRenderTarget(CanvasDevice.GetSharedDevice(),_overlay.Width,_overlay.Height,96))
-            {using(var ds=target.CreateDrawingSession()){ds.Clear(Color.FromArgb(0,0,0,0));_renderer.RenderObjects(ds,_session.VisibleObjects,_viewport,_overlay.Width,_overlay.Height);}await target.SaveAsync(Path.Combine(outputDirectory,"screen-annotations.png"),CanvasBitmapFileFormat.Png);}
+            {using(var ds=target.CreateDrawingSession()){ds.Clear(Color.FromArgb(0,0,0,0));_renderer.RenderObjects(ds,_session.DrawingObjects,_viewport,_overlay.Width,_overlay.Height);}await target.SaveAsync(Path.Combine(outputDirectory,"screen-annotations.png"),CanvasBitmapFileFormat.Png);}
             SetDrawing(false);Render();SetDrawing(true);Render();
             if(!_overlay.IsBelow(WinRT.Interop.WindowNative.GetWindowHandle(this)))throw new InvalidOperationException("模式切換後透明輸入層遮住控制列。");
             var interactions=await ValidateInteractionChangesAsync(outputDirectory);var previewPerformance=ValidatePreviewPerformance();var performance=ValidateStrokePerformance();var objectCommands=ValidateObjectCommands();var docking=ValidateChromeDocking();var text=ValidateScreenText();
@@ -316,17 +346,17 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         if(!IsActive)return;FinishScreenText();CancelGesture();
         try
         {
-            var picker=new global::Windows.Storage.Pickers.FileSavePicker{SuggestedFileName="螢幕註記"};
+            var picker=new global::Windows.Storage.Pickers.FileSavePicker{SuggestedFileName=T("螢幕註記")};
             WinRT.Interop.InitializeWithWindow.Initialize(picker,WinRT.Interop.WindowNative.GetWindowHandle(this));
-            picker.FileTypeChoices.Add("可編輯註記",new List<string>{".heiban"});picker.FileTypeChoices.Add("透明 PNG",new List<string>{".png"});
+            picker.FileTypeChoices.Add(T("可編輯註記"),new List<string>{".heiban"});picker.FileTypeChoices.Add(T("透明 PNG"),new List<string>{".png"});
             var file=await picker.PickSaveFileAsync();if(file is null)return;
             if(file.FileType==".png"){
                 using var target=new CanvasRenderTarget(CanvasDevice.GetSharedDevice(),_overlay.Width,_overlay.Height,96);
-                using(var ds=target.CreateDrawingSession()){ds.Clear(Color.FromArgb(0,0,0,0));_renderer.RenderObjects(ds,_session.VisibleObjects,_viewport,_overlay.Width,_overlay.Height);}
+                using(var ds=target.CreateDrawingSession()){ds.Clear(Color.FromArgb(0,0,0,0));_renderer.RenderObjects(ds,_session.DrawingObjects,_viewport,_overlay.Width,_overlay.Height);}
                 await target.SaveAsync(file.Path,CanvasBitmapFileFormat.Png);
             }else await DocumentSessionManager.WriteAtomicAsync(file.Path,DocumentCodec.Encode(_session.Document));
-            _status.Text="註記已另存";
-        }catch(Exception e){_status.Text="註記另存失敗："+e.Message;}
+            _status.Text=T("註記已另存");
+        }catch(Exception e){_status.Text=T("註記另存失敗：")+e.Message;}
     }
     public async Task<bool> StopAsync()
     {

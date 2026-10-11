@@ -31,5 +31,8 @@ try {
     (Get-FileHash $exe -Algorithm SHA256).Hash + '  ' + [IO.Path]::GetFileName($exe) | Set-Content "$exe.sha256" -Encoding ascii
     Write-Host "安裝版：$exe"
 } finally {
+    $staging = [IO.Path]::GetFullPath($staging)
+    $stagingRoot = [IO.Path]::GetFullPath((Join-Path $root '.staging')).TrimEnd('\') + '\'
+    if (-not $staging.StartsWith($stagingRoot,[StringComparison]::OrdinalIgnoreCase)) { throw '拒絕清理範圍外的封裝暫存。' }
     if(Test-Path $staging){Remove-Item $staging -Recurse -Force}
 }

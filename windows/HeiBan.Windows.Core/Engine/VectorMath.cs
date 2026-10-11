@@ -64,7 +64,9 @@ public static class VectorMath
     /// </summary>
     public static bool IsPointInObject(InkPoint p, BoardObject obj, double threshold = 8.0)
     {
-        p=ObjectHandles.ToLocal(obj,p);
+        // Hit testing only reads the sample. Unrotated objects already use world axes;
+        // keep the input reference here instead of allocating a center and a rotated copy per candidate.
+        if(obj.Rotation!=0)p=ObjectHandles.ToLocal(obj,p);
         var pt = new Vector2((float)p.X, (float)p.Y);
         var hitDist=obj.StrokeWidth/2+threshold;
         var box = new RectBounds(obj.X - hitDist, obj.Y - hitDist, obj.X + obj.Width + hitDist, obj.Y + obj.Height + hitDist);
@@ -80,7 +82,7 @@ public static class VectorMath
             if(obj.Type=="arrow"&&Vector2.Distance(a,b)>.01f)
             {
                 var d=Vector2.Normalize(b-a);var n=new Vector2(-d.Y,d.X);
-                var length=(float)(obj.ArrowHeadLength??Math.Max(12,obj.StrokeWidth*4));var width=(float)(obj.ArrowHeadWidth??length*.5);
+                var length=(float)(obj.ArrowHeadLength??16);var width=(float)(obj.ArrowHeadWidth??10);
                 return DistanceToSegment(pt,b,b-d*length+n*width/2)<=hitDist||DistanceToSegment(pt,b,b-d*length-n*width/2)<=hitDist;
             }
             return false;
@@ -139,15 +141,23 @@ public static class VectorMath
         if(obj.Type is "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star")
         {
             var n=obj.Type=="triangle"?3:obj.Type=="pentagon"?5:obj.Type=="star"?10:4;
-            var points=obj.ParsedPoints.Count>0?obj.ParsedPoints:Enumerable.Range(0,n).Select(i=>{var angle=-Math.PI/2+i*Math.PI*2/n;var r=obj.Type=="star"&&i%2==1?.45:1;return new InkPoint(obj.X+obj.Width/2+Math.Cos(angle)*obj.Width/2*r,obj.Y+obj.Height/2+Math.Sin(angle)*obj.Height/2*r);}).ToArray();
+            IReadOnlyList<InkPoint> points=obj.ParsedPoints;
+            if(points.Count==0)
+            {
+                var generated=new InkPoint[n];
+                for(var i=0;i<n;i++){var angle=-Math.PI/2+i*Math.PI*2/n;var r=obj.Type=="star"&&i%2==1?.45:1;generated[i]=new(obj.X+obj.Width/2+Math.Cos(angle)*obj.Width/2*r,obj.Y+obj.Height/2+Math.Sin(angle)*obj.Height/2*r);}
+                points=generated;
+            }
             if(filled&&LassoSelection.Contains(p,points))return true;
             for(var i=0;i<points.Count;i++)if(DistanceToSegment(pt,new((float)points[i].X,(float)points[i].Y),new((float)points[(i+1)%points.Count].X,(float)points[(i+1)%points.Count].Y))<=hitDist)return true;
             return false;
         }
         if(obj.Type=="rect"&&!filled)
         {
-            return new[]{(obj.X,obj.Y,obj.X+obj.Width,obj.Y),(obj.X+obj.Width,obj.Y,obj.X+obj.Width,obj.Y+obj.Height),(obj.X+obj.Width,obj.Y+obj.Height,obj.X,obj.Y+obj.Height),(obj.X,obj.Y+obj.Height,obj.X,obj.Y)}
-                .Any(edge=>DistanceToSegment(pt,new((float)edge.Item1,(float)edge.Item2),new((float)edge.Item3,(float)edge.Item4))<=hitDist);
+            // Capturing lambdas here allocated a closure even for candidates rejected above.
+            var a=new Vector2((float)obj.X,(float)obj.Y);var b=new Vector2((float)(obj.X+obj.Width),(float)obj.Y);
+            var c=new Vector2(b.X,(float)(obj.Y+obj.Height));var d=new Vector2(a.X,c.Y);
+            return DistanceToSegment(pt,a,b)<=hitDist||DistanceToSegment(pt,b,c)<=hitDist||DistanceToSegment(pt,c,d)<=hitDist||DistanceToSegment(pt,d,a)<=hitDist;
         }
 
         return true;

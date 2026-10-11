@@ -4,6 +4,7 @@ public partial class App : Application
 {
     private MainWindow? _window;
     private Window? _errorWindow;
+    private Updating.UpdateInstallation? _installationLease;
     private readonly List<string> _resourceErrors=[];
     internal static string StartupStage { get; set; }="建立主視窗";
     public App()
@@ -14,7 +15,21 @@ public partial class App : Application
     }
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
-        try { _window = new MainWindow(); _window.Activate(); }
+        try
+        {
+            if(Environment.GetCommandLineArgs().Any(arg=>arg.StartsWith("--performance-output=",StringComparison.Ordinal)))
+            {
+                var isolated=Environment.GetEnvironmentVariable("HEIBAN_WINDOWS_DATA_DIRECTORY");
+                // Check before storage/library initialization. Reusing an existing root could read or replace real recovery data.
+                if(string.IsNullOrWhiteSpace(isolated)||Directory.Exists(isolated)||File.Exists(isolated))
+                    throw new InvalidOperationException("效能診斷必須指定尚不存在的 HEIBAN_WINDOWS_DATA_DIRECTORY。");
+            }
+            if (!Updating.GitHubUpdateService.IsPackaged && string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("HEIBAN_WINDOWS_DATA_DIRECTORY")))
+                _installationLease = new Updating.UpdateInstallation(AppContext.BaseDirectory);
+            _window = new MainWindow();
+            _window.Closed += (_, _) => _installationLease?.Dispose();
+            _window.Activate();
+        }
         catch(Exception e)
         {
             string? log=null;

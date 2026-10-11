@@ -3,7 +3,7 @@ namespace HeiBan.Windows.Engine;
 public static class SelectionStyle
 {
     // Copy only changed style fields; coordinates, identity, contents and locked objects stay independent.
-    private static readonly string[] Fields=["StrokeColor","StrokeWidth","Opacity","FillColor","FillOpacity","FillGradientStart","FillGradientEnd","LineStyle","Extension","FontSize","FontFamily","IsBold","IsItalic","IsUnderline","IsStrikethrough","Align","StickyStyle","BrushKind"];
+    private static readonly string[] Fields=["StrokeColor","StrokeWidth","Opacity","FillColor","FillOpacity","FillGradientStart","FillGradientEnd","LineStyle","Extension","ArrowHeadLength","ArrowHeadWidth","FontSize","FontFamily","IsBold","IsItalic","IsUnderline","IsStrikethrough","Align","StickyStyle","BrushKind"];
     public static void ApplyChanged(BoardObject before,BoardObject after,IEnumerable<BoardObject> targets)
     {
         foreach(var name in Fields)
@@ -14,6 +14,8 @@ public static class SelectionStyle
             {
                 if(name is "FontSize" or "FontFamily" or "IsBold" or "IsItalic" or "IsUnderline" or "IsStrikethrough" or "Align"&&target.Type is not("text" or "sticky"))continue;
                 if(name=="StickyStyle"&&target.Type!="sticky")continue;
+                if(name is "ArrowHeadLength" or "ArrowHeadWidth"&&target.Type!="arrow")continue;
+                if(name=="Extension"&&target.Type is not("line" or "arrow"))continue;
                 property.SetValue(target,value);
             }
         }

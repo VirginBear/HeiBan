@@ -55,7 +55,7 @@ public partial class MainWindow
             var stroke=strokes[10];_session.SelectedId=stroke.Id;_session.PreviewMoveSelection(15,12);Compare();_session.PreviewMoveSelection(-8,5);Compare();_session.Commit();Compare();_session.Undo();Compare();
             return new{objects=300,textObjects=140,strokePoints=19200,samplesPerRun=40,originalMedianMs=original.Median,originalP95Ms=original.P95,
                 cachedMedianMs=optimized.Median,cachedP95Ms=optimized.P95,originalAllocatedBytes=original.Allocations,cachedAllocatedBytes=optimized.Allocations,
-                pixelEquivalentFrames=frames,stableSceneBuilds=1,idleTextLayoutRebuilds=0,scope="同VM原生完整／快取scene同步繪製，含GPU同步；非實體輸入端到端延遲"};
+                pixelEquivalentFrames=frames,stableSceneBuilds=1,idleTextLayoutRebuilds=0,scope="同機原生完整／快取scene同步繪製，含GPU同步；此binary內參考比較，非本批前測或實體輸入端到端延遲"};
         }
         finally{_renderer.BypassTextCache=false;_session.Open(saved);_viewport.X=x;_viewport.Y=y;_viewport.Zoom=zoom;ClearScene();RefreshEditor();}
     }

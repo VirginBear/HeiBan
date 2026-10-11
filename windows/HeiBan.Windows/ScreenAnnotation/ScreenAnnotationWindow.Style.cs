@@ -1,3 +1,4 @@
+using static HeiBan.Windows.Localization.Strings;
 using HeiBan.Windows.Engine;
 using HeiBan.Windows.Models;
 using HeiBan.Windows.Views;
@@ -43,17 +44,20 @@ internal sealed partial class ScreenAnnotationWindow
     private void RefreshScreenStyleButtons()
     {
         var selected=StyleSelection;
+        _brushButton.IsEnabled=selected?.IsLocked!=true;
         _brushButton.Content=new Ellipse{Width=22,Height=22,Fill=new SolidColorBrush(Direct2DCanvasRenderer.HexToColor(selected?.StrokeColor??_color)),Stroke=ChromeBrush(100,85,100,92),StrokeThickness=1};
         _dashButton.Content=ToolIcons.CreateDash(selected?.LineStyle??_dash);
         if(_fillButton is null)return;
         var fill=selected?.FillColor??_fill;
         _fillButton.Content=new Ellipse{Width=18,Height=18,Fill=fill is "none" or "transparent"?ChromeBrush(0,0,0,0):new SolidColorBrush(Direct2DCanvasRenderer.HexToColor(fill)),Stroke=ChromeBrush(255,65,98,81),StrokeThickness=2};
-        ToolTipService.SetToolTip(_fillButton,fill=="none"?"填滿：無填滿":"填滿："+fill);
+        _fillButton.IsEnabled=selected?.IsLocked!=true&&(selected?.Type??_tool) is "rect" or "circle" or "triangle" or "quadrilateral" or "sticky" or "arc";
+        _dashButton.IsEnabled=selected?.IsLocked!=true&&(selected?.Type??_tool) is not("text" or "image" or "sticky" or "eraser" or "laser");
+        ToolTipService.SetToolTip(_fillButton,fill=="none"?T("填滿：無填滿"):T("填滿：")+fill);
     }
     private void ShowScreenFill()
     {
         var menu=new MenuFlyout();
-        foreach(var pair in new[]{("無填滿","none"),("紅色","#EF4444"),("黃色","#F59E0B"),("綠色","#22C55E"),("藍色","#3B82F6"),("白色","#FFFFFF"),("黑色","#111827")})
+        foreach(var pair in new[]{(T("無填滿"),"none"),(T("紅色"),"#EF4444"),(T("黃色"),"#F59E0B"),(T("綠色"),"#22C55E"),(T("藍色"),"#3B82F6"),(T("白色"),"#FFFFFF"),(T("黑色"),"#111827")})
         {
             var value=pair.Item2;var item=new MenuFlyoutItem{Text=pair.Item1};item.Click+=(_,_)=>{SetScreenFill(value);CommitScreenStyle();};menu.Items.Add(item);
         }
@@ -69,7 +73,7 @@ internal sealed partial class ScreenAnnotationWindow
         if(!IsActive||epoch!=_session.DocumentEpoch)throw new InvalidOperationException("螢幕註記工作階段已改變，截圖未置入。");
         var data="data:image/bmp;base64,"+Convert.ToBase64String(capture.Bytes);
         var image=new BoardObject{Type="image",X=capture.Left-_overlay.Left,Y=capture.Top-_overlay.Top,Width=capture.Width,Height=capture.Height,
-            ImageUrl=data,OriginalImageUrl=data,OriginalWidth=capture.Width,OriginalHeight=capture.Height,Opacity=1,Name="截圖"};
+            ImageUrl=data,OriginalImageUrl=data,OriginalWidth=capture.Width,OriginalHeight=capture.Height,Opacity=1,Name=T("截圖")};
         // Decode before committing so an invalid result cannot leave an unusable object or an open transaction.
         await _renderer.LoadImagesAsync(_target!,new[]{image});
         if(!IsActive||epoch!=_session.DocumentEpoch)return;

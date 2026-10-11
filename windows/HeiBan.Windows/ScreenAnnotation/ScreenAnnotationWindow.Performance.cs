@@ -7,6 +7,12 @@ namespace HeiBan.Windows.ScreenAnnotation;
 
 internal sealed partial class ScreenAnnotationWindow
 {
+    internal async Task<object> RunPerformanceBatchAsync()
+    {
+        await StartAsync();
+        try { return new { width=_overlay.Width,height=_overlay.Height,pixelDpi=96,dpiScale=_dpiScale,preview = ValidatePreviewPerformance(), stroke = ValidateStrokePerformance() }; }
+        finally { await StopAsync(); }
+    }
     // Opt-in native validation only: isolated data, deterministic samples, no hardware input claim.
     private void DamageSelectedObjects()
     {
@@ -47,11 +53,20 @@ internal sealed partial class ScreenAnnotationWindow
                     if(!pixels.AsSpan().SequenceEqual(_overlay.ReadPresentedPixels()))throw new InvalidOperationException("圖形／框選局部預覽與整屏像素不一致："+key);frames++;
                 }
                 OnPointer(new("up",1500,970));Render();var committed=_overlay.ReadPresentedPixels();_benchmarkFullFrames=true;Render();_benchmarkFullFrames=false;
-                if(!committed.AsSpan().SequenceEqual(_overlay.ReadPresentedPixels()))throw new InvalidOperationException("圖形／框選收筆局部重繪殘影："+key);frames++;
+                var fullCommitted=_overlay.ReadPresentedPixels();
+                if(!committed.AsSpan().SequenceEqual(fullCommitted))
+                {
+                    var first=-1;var different=0;var maxDelta=0;var channels=new int[4];
+                    for(var pixel=0;pixel<committed.Length;pixel++)if(committed[pixel]!=fullCommitted[pixel])
+                    {if(first<0)first=pixel;different++;channels[pixel%4]++;maxDelta=Math.Max(maxDelta,Math.Abs(committed[pixel]-fullCommitted[pixel]));}
+                    throw new InvalidOperationException($"圖形／框選收筆局部重繪殘影：{key}; first=({first/4%_overlay.Width},{first/4/_overlay.Width}) channel={first%4} actual={committed[first]} expected={fullCommitted[first]} differences={different} maxDelta={maxDelta} BGRA={string.Join(',',channels)}");
+                }
+                frames++;
                 _session.Open(DocumentCodec.Clone(saved));
             }
             var originalBytes=32L*_overlay.Width*_overlay.Height*4;if(bytes>=originalBytes*.25)throw new InvalidOperationException("圖形／框選預覽傳輸未減少75%。");
-            regionalTimes.Sort();fullTimes.Sort();return new{pixelEquivalentFrames=frames,previewFrames=32,idleToolSwitchDoesNotRender=true,originalReadbackBytes=originalBytes,regionalReadbackBytes=bytes,regionalMedianMs=regionalTimes[regionalTimes.Count/2],fullMedianMs=fullTimes[fullTimes.Count/2],scope="同步原生圖形／框選幀，非硬體輸入延遲"};
+            var regionalSamplesMs=regionalTimes.ToArray();var fullSamplesMs=fullTimes.ToArray();
+            regionalTimes.Sort();fullTimes.Sort();return new{pixelEquivalentFrames=frames,previewFrames=32,idleToolSwitchDoesNotRender=true,originalReadbackBytes=originalBytes,regionalReadbackBytes=bytes,regionalMedianMs=regionalTimes[regionalTimes.Count/2],fullMedianMs=fullTimes[fullTimes.Count/2],regionalSamplesMs,fullSamplesMs,regionalP95Ms=regionalTimes[(int)Math.Ceiling(regionalTimes.Count*.95)-1],regionalP99Ms=regionalTimes[(int)Math.Ceiling(regionalTimes.Count*.99)-1],fullP95Ms=fullTimes[(int)Math.Ceiling(fullTimes.Count*.95)-1],fullP99Ms=fullTimes[(int)Math.Ceiling(fullTimes.Count*.99)-1],scope="同步原生圖形／框選幀，非硬體輸入延遲"};
         }
         finally{_benchmarkFullFrames=false;CancelGesture();_session.Open(saved);_tool=tool;Changed();Render();_renderTimer.Start();}
     }
@@ -59,17 +74,18 @@ internal sealed partial class ScreenAnnotationWindow
     {
         _renderTimer.Stop();
         var savedTool=_tool;var savedOpacity=_opacity;var savedLaserMode=_laser.Mode;var savedFade=_laser.FadeDuration;
-        (double MedianMs,double P95Ms,long Bytes) Measure(bool original)
+        (double MedianMs,double P95Ms,double P99Ms,long Bytes,double[] SamplesMs,long InputRenderAllocatedBytes,int[] Collections) Measure(bool original)
         {
             CancelGesture();_tool="pen";_benchmarkFullFrames=original;Render();
             OnPointer(new("down",350,500));Render();
-            var bytesBefore=_presentedBytes;var times=new List<double>();
+            var bytesBefore=_presentedBytes;var times=new List<double>(80);var collections=new[]{GC.CollectionCount(0),GC.CollectionCount(1),GC.CollectionCount(2)};var allocated=GC.GetAllocatedBytesForCurrentThread();
             for(var i=1;i<=80;i++)
             {
                 OnPointer(new("move",350+i*8,500+Math.Sin(i*.13)*55));
                 var timer=Stopwatch.StartNew();Render();times.Add(timer.Elapsed.TotalMilliseconds);
             }
-            times.Sort();var result=(times[times.Count/2],times[(int)(times.Count*.95)],_presentedBytes-bytesBefore);
+            allocated=GC.GetAllocatedBytesForCurrentThread()-allocated;for(var g=0;g<3;g++)collections[g]=GC.CollectionCount(g)-collections[g];
+            var samples=times.ToArray();times.Sort();var result=(times[times.Count/2],times[(int)Math.Ceiling(times.Count*.95)-1],times[(int)Math.Ceiling(times.Count*.99)-1],_presentedBytes-bytesBefore,samples,allocated,collections);
             CancelGesture();_benchmarkFullFrames=false;Render();return result;
         }
         try
@@ -125,7 +141,7 @@ internal sealed partial class ScreenAnnotationWindow
             if(!cleared.AsSpan().SequenceEqual(_overlay.ReadPresentedPixels()))throw new InvalidOperationException("雷射消退後殘影。");
             _tool="pen";var frames=_renderedFrames;OnPointer(new("move",700,700));
             if(_dirty||_renderedFrames!=frames)throw new InvalidOperationException("畫筆懸停造成無效重繪。");
-            return new{samplesPerRun=80,originalMedianMs=original.MedianMs,originalP95Ms=original.P95Ms,optimizedMedianMs=optimized.MedianMs,optimizedP95Ms=optimized.P95Ms,originalReadbackBytes=original.Bytes,optimizedReadbackBytes=optimized.Bytes,pixelEquivalentFrames=verifiedFrames,selectionPixelEquivalentFrames=selectionFrames,selectionReadbackBytes=selectionBytes,selectionPreviewCommitUndo=true,largeCurveOvershootPixelEquivalent=true,laserReadbackBytes,laserClearsWithoutGhosting=true,idleHoverDoesNotRender=true,scheduledIntervalMs=16,scope="同步原生幀測量，非實體滑鼠／手寫端到端延遲"};
+            return new{samplesPerRun=80,originalMedianMs=original.MedianMs,originalP95Ms=original.P95Ms,originalP99Ms=original.P99Ms,optimizedMedianMs=optimized.MedianMs,optimizedP95Ms=optimized.P95Ms,optimizedP99Ms=optimized.P99Ms,originalSamplesMs=original.SamplesMs,optimizedSamplesMs=optimized.SamplesMs,originalInputRenderAllocatedBytes=original.InputRenderAllocatedBytes,optimizedInputRenderAllocatedBytes=optimized.InputRenderAllocatedBytes,originalCollections=original.Collections,optimizedCollections=optimized.Collections,allocationScope="Pointer handler + render + diagnostic Stopwatch allocations on UI thread; excludes async worker allocations",originalReadbackBytes=original.Bytes,optimizedReadbackBytes=optimized.Bytes,pixelEquivalentFrames=verifiedFrames,selectionPixelEquivalentFrames=selectionFrames,selectionReadbackBytes=selectionBytes,selectionPreviewCommitUndo=true,largeCurveOvershootPixelEquivalent=true,laserReadbackBytes,laserClearsWithoutGhosting=true,idleHoverDoesNotRender=true,scheduledIntervalMs=16,scope="同步原生幀測量，非實體滑鼠／手寫端到端延遲；original為此binary的完整重繪參考，不是本批前測"};
         }
         finally{_benchmarkFullFrames=false;_laser.Clear();_laser.Mode=savedLaserMode;_laser.FadeDuration=savedFade;CancelGesture();_tool=savedTool;_opacity=savedOpacity;Render();_renderTimer.Start();}
     }

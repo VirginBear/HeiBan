@@ -1,0 +1,10 @@
+{
+  "source": "dist/trial-data-backups/20261011-041854-3b00a2aa/HeiBan-Windows-Portable-1.0.12-preview.6-canvas-setup-2026-10-11-win-x64/Data",
+  "destination": "dist/trials/HeiBan-Windows-Portable-1.0.12-preview.6-multilingual-2026-10-11-win-x64/Data",
+  "files": 9,
+  "bytes": 150783,
+  "hashMatched": true,
+  "zipDataRemainsEmpty": true,
+  "backupRetained": true,
+  "scope": "Local extracted trial only; copy preserved Data into empty target; no app execution or data uploaded"
+}

@@ -1,3 +1,4 @@
+using static HeiBan.Windows.Localization.Strings;
 using HeiBan.Windows.Engine;
 using HeiBan.Windows.Models;
 using HeiBan.Windows.Views;
@@ -23,14 +24,14 @@ internal sealed partial class ScreenAnnotationWindow
     {
         FinishScreenText();CancelGesture();if(existing?.IsLocked==true)return;
         _textOriginalId=existing?.Id;_textDraft=existing is null?new BoardObject{Type="text",X=point.X,Y=point.Y,Width=280*_dpiScale,Height=100*_dpiScale,FontSize=24*_dpiScale,StrokeColor=_color,Opacity=_opacity,FillColor="none",Text=""}:DocumentCodec.Clone(existing);
-        var window=new Window{Title="文字"};_textWindow=window;
+        var window=new Window{Title=T("文字")};_textWindow=window;
         if(window.AppWindow.Presenter is OverlappedPresenter presenter){presenter.IsAlwaysOnTop=true;presenter.IsResizable=false;presenter.SetBorderAndTitleBar(false,false);}
         var area=DisplayArea.GetFromWindowId(AppWindow.Id,DisplayAreaFallback.Primary).WorkArea;
         window.AppWindow.Move(new PointInt32((int)Math.Clamp(_overlay.Left+_textDraft.X,area.X,Math.Max(area.X,area.X+area.Width-340*_dpiScale)),(int)Math.Clamp(_overlay.Top+_textDraft.Y,area.Y,Math.Max(area.Y,area.Y+area.Height-240*_dpiScale))));
         _textDpi=NativeOverlayWindow.DpiScale(WinRT.Interop.WindowNative.GetWindowHandle(window));window.AppWindow.Resize(new SizeInt32((int)(340*_textDpi),(int)(240*_textDpi)));
         var input=new TextDraftEditor{Text=_textDraft.Text??"",TextWrapping=TextWrapping.Wrap,Height=164,HorizontalAlignment=HorizontalAlignment.Stretch};_textInput=input;RefreshScreenTextDraft();
         var panel=new StackPanel{Spacing=8,Padding=new Thickness(10),RequestedTheme=ElementTheme.Light};panel.Children.Add(input);
-        var buttons=new StackPanel{Orientation=Orientation.Horizontal,Spacing=8};var done=new Button{Content="完成 · Ctrl+Enter"};var cancel=new Button{Content="取消 · Esc"};buttons.Children.Add(done);buttons.Children.Add(cancel);panel.Children.Add(buttons);
+        var buttons=new StackPanel{Orientation=Orientation.Horizontal,Spacing=8};var done=new Button{Content=T("完成 · Ctrl+Enter")};var cancel=new Button{Content=T("取消 · Esc")};buttons.Children.Add(done);buttons.Children.Add(cancel);panel.Children.Add(buttons);
         window.Content=new Border{RequestedTheme=ElementTheme.Light,Child=panel,CornerRadius=new CornerRadius(12),Background=ChromeBrush(255,247,250,246),BorderBrush=ChromeBrush(90,92,123,108),BorderThickness=new Thickness(1)};
         done.Click+=(_,_)=>FinishScreenText();cancel.Click+=(_,_)=>FinishScreenText(false);
         input.KeyDown+=(_,args)=>{if(args.Key==VirtualKey.Escape){FinishScreenText(false);args.Handled=true;}else if(args.Key==VirtualKey.Enter&&Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control).HasFlag(global::Windows.UI.Core.CoreVirtualKeyStates.Down)){FinishScreenText();args.Handled=true;}};

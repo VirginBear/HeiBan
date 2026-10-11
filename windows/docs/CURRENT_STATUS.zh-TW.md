@@ -1,5 +1,106 @@
 # Windows 目前開發狀態
 
+最終r2 x64 Release build：退出0、0警告／0錯誤、28.23秒；十份完整資源嵌入DLL、literal來源鍵無缺項為靜態檢視，非App／測試驗收。最後文字屬性展示补強由新Portable publish重新編譯，封裝證據另記。
+
+## 2026-10-11 — Windows 十語介面
+
+首頁側欄「語言」提供正體中文（預設）、簡體中文、英文、日文、韓文、西班牙文、法文、德文、葡萄牙文（巴西）、阿拉伯文。保存成功即時更新首頁及工具列，重新啟動沿用Settings/language.json；不跟隨OS改預設。581個自製UI字串各有十語離線資源，範圍含首頁／新建作品、一般／螢幕畫布、屬性／圖層、共用文字、更新設定與提示。
+
+作品名稱／文字／ID／文件碼／中文內部停靠值與幾何不翻譯。阿拉伯語導覽、對話與彈出選單RTL，畫布LTR；手冊／法律文保留正體中文及原文，入口明示。WinUI內建ColorPicker／系统選檔及原始例外不保證隨即時切換，需實機查核；母語校閱、長字串／RTL／窄視窗、偏好重啟與磁碟失敗、App／tests均未執行。只做x64編譯／本機封裝，ARM64本輪未建置；詳見[階段日誌及Mac比對](LOCALIZATION_2026-10-11.zh-TW.md)。來源Store manifest宣告十語，原1.0.12.0送審套件保留，下次正式MSIX需增版另提交。
+
+
+本輪本機x64試用：`dist/trials/HeiBan-Windows-Portable-1.0.12-preview.6-multilingual-2026-10-11-win-x64.zip`，131,632,111 bytes／SHA256 `1a1dc766572215518ff51f480441fb7189060de10d752939bed4d7109d402f52`，source14bb289；[產物](LOCALIZATION_PORTABLE_ARTIFACT_2026-10-11.json)／[靜態檢視](LOCALIZATION_PORTABLE_INSPECTION_2026-10-11.json)。App／helper publish退出0、無warning/error；557 inventory／559 archive／124 source SHA、十語資源581完整內嵌。未執行App／tests／實機／ARM64。
+
+舊canvas-setup未發布trial清除452,220,937 bytes；9檔Data共150,783bytes先保存於 `dist/trial-data-backups/20261011-041854-3b00a2aa/`，再複製到新解壓版Data以延續原機使用，兩份皆核SHA；ZIP仍空Data。原備份及前批52檔備份、已發布Release／Storebundle保留，[清理](LOCALIZATION_TRIAL_CLEANUP_2026-10-11.json)／[資料接續](LOCALIZATION_DATA_HANDOFF_2026-10-11.json)。只原機有二進位與作品，GitHub同步來源／紀錄，私人庫保存精簡需求與交接。
+
+## 2026-10-11 — 一般畫布游標與作品／背景設定
+
+使用者實機確認上一版螢幕游標有效，但一般畫布無效；不能把上一輪編譯成功當作主畫布游標驗收。現改 CursorCanvasHost.ProtectedCursor，SDK CreateFromHCursor 轉WinRT cursor，移除舊Win32橋hook。無邊界新作品無尺寸；fixed 首次16:9（1920×1080）仍可改，notebook 維持A4，各格式記住本次對話框選擇。背景既有繪圖／匯出已支援五種，這次補新建與既有作品共用UI。
+
+[阶段日誌／Mac對照](CANVAS_SETUP_FIX_2026-10-11.zh-TW.md)。首次 x64 build 0 warning／0 error、39.18秒；後續預設記憶／取消保留補強，最終x64 build 0warning／0error、25.98秒；封裝接續記錄。本批未執行測試／App／實機UI。使用者明確授權刪除舊未發布trials以減少空間，先保留作品Data，保護最新版與已發布／Store包；不刪Git歷史。聊天摘要仍放PRIVATE。
+
+
+本輪最終試用：`dist/trials/HeiBan-Windows-Portable-1.0.12-preview.6-canvas-setup-2026-10-11-win-x64.zip`，131,543,340 bytes，SHA256 `0066ccfa530af13a21fd016f9a49fa5dc41f13fb7a9cd7600034bd4d2fae0759`，source c53462a；[artifact](CANVAS_SETUP_PORTABLE_ARTIFACT_2026-10-11.json)／[静態檢視](CANVAS_SETUP_PORTABLE_INSPECTION_2026-10-11.json)。publish退出0／無warning/error，108 source／557 inventory／空Data／PE／授權／手冊一致；未執行App／tests／實機。
+
+已刪舊5份trials解壓runtime／ZIP／sidecar，釋放2,260,814,479 bytes（約2.106GiB）；52個Data檔共73,389 bytes先移至 `dist/trial-data-backups/20261011-032945-612f03c3/`並核SHA。trials只剩最新版3項，Store原SHA與正式Release保留。[清理结果](CANVAS_SETUP_TRIAL_CLEANUP_2026-10-11.json)。下方舊試用路徑為歷史交付紀錄，其二進位已於本輪清理，歷史source／hash／logs仍留。
+
+
+## 2026-10-11 — 操作回饋追加五項
+
+螢幕工具列移除 ScrollViewer，工作區不足改換行／換列；主／螢幕圖層拖曳加入原列淡化、圖示名稱預覽與插入線；形狀八方向縮放及圓弧旋轉游標；箭頭頭部輪廓跟隨 StrokeWidth（覆寫上一階段固定 2 的策略，幾何長寬仍独立）；主工具列 layers 入口及保留隱藏偏好的遷移。
+
+[階段紀錄／Mac 比對](UX_FEEDBACK_2026-10-11.zh-TW.md)保存原因、修改檔案、命令、清理與驗收界線。對話的精簡交接摘要保存私人庫。本批 x64 build 初次 0 warning／0 error；整合補強後最終 x64 build 0 warning／0 error、25.80 秒，封裝結果接續記錄。測試、App、4K／DPI／滑鼠實機均未執行。已交付 ZIP、Store bundle、SDK、Data、歷史保留；僅清理八個一次性腳本，見[清單](UX_FEEDBACK_CLEANUP_2026-10-11.json)。
+
+
+本輪新 x64 免安裝包 `dist/trials/HeiBan-Windows-Portable-1.0.12-preview.6-ux-feedback-2026-10-11-win-x64.zip`，131,541,143 bytes，SHA256 `e77d2dd28526fc70b0f9049cf96d68d22c1156373bf6044c5e79d6ac719c1aa7`；來源 77a563d，App/helper publish 退出0／無warning/error。557 inventory／106 source SHA／空 Data／PE／guide／README／sidecar 靜態一致，Store原SHA相同。[artifact](UX_FEEDBACK_PORTABLE_ARTIFACT_2026-10-11.json)／[靜態檢視](UX_FEEDBACK_PORTABLE_INSPECTION_2026-10-11.json)。未執行測試／App／實機操作，未發布 Release／Store。
+
+
+## 2026-10-11 — Windows 20 項操作調整
+
+已接上首頁開啟／一般選取／圓形多選、停筆一秒直線預覽、百分比尺長、依物件分類屬性、箭頭頭部獨立尺寸、個別圖釘配色、延伸入口移入屬性、紙張便條視覺、上下視角鎖定同步、独立圖層與拖曳排序、雷射再次點擊設定、存檔勾號／虛線圓、屬性四邊停靠；螢幕畫布增加橡皮擦預覽、內容量測工具列、圖層與調色盤。
+
+最終本機 x64 試用：`dist/trials/HeiBan-Windows-Portable-1.0.12-preview.6-ux20-2026-10-11-r2-win-x64.zip`，131,531,917 bytes，SHA `c7c9cd4d23e300f8c3e68b5ecbac763432e4fbcde782aba8ded075cce0f252e3`；同名資料夾直接啟動 HeiBan.exe。[產物](UX20_PORTABLE_ARTIFACT_2026-10-11.json)／[靜態檢視](UX20_PORTABLE_INSPECTION_2026-10-11.json)。來源 e60728d，App／helper publish 退出 0、log 無 warning／error，557 inventory／103 source SHA／空 Data／PE／手冊／sidecar 核對完成。補強四邊面板留白以避免蓋工具列；第一份候選與舊包均保留。
+
+第一輪／第二輪 x64 build 已退出 0，第二輪 0 warning／0 error。本批未執行 Core／native／實際 UI 操作測試；20 項實體滑鼠、4K DPI、多螢幕驗收仍待使用者試用。完整入口、類型矩陣、原因、命令與限制見[本批紀錄](UX_ALIGNMENT_2026-10-11.zh-TW.md)。本機免安裝另以 ux20 標籤製作，來源版號維持 preview.6；沒有發 Release 或改 Store 送審版。
+
+## 2026-10-11 — 第二批本機x64免安裝試用包可用
+
+使用者要求未發布版本仍可試用，已另製作`dist/trials/HeiBan-Windows-Portable-1.0.12-preview.6-perf2-2026-10-11-r2-win-x64.zip`與同名直接啟動資料夾。完整解壓、雙擊HeiBan.exe，作品存自己Data。Label区分同version歷史包，沒有覆寫原dist或Store1.0.12.0；ZIP只在本機，未發GitHub Release／Store。初包保留，最終r2補強封裝guard後重出。
+
+App／helper self-contained x64 publish与封裝退出0、無warning/error，557 payload逐SHA／空Data／PE／版本／sidecar／93來源SHA核對完成；本批未執行新App／Core／native／smoke測試，前批2324／127是歷史來源驗收。原bundle SHA相同，ARM64本批未封裝。來源／檔案／命令／限制见[本批紀錄](PORTABLE_TRIAL_2026-10-11.zh-TW.md)、[產物清單](PORTABLE_TRIAL_ARTIFACT_2026-10-11.json)。Git同步封裝入口與紀錄，不包含本機ZIP／作品。
+
+## 2026-10-11 — 第二批渲染候選索引
+
+完成PERF04渲染分支：大而稀疏視野採網格，保留stable Z與live頁面／visibility，小／密集／超界回原scan、複雜型別保守global。非序列化bounds counter、交易內geometry增量更新、Z/list／Cancel／Undo替換重建。Hit／擦除／框選沒有接index，PERF04整項仍待辦；PERF05 GPU分區未實作。
+
+本批2324 Core、127幅零容差pixels、x64／ARM64 Release publish通過、無warning/error訊息（ARM64未實跑）。Sparse10000 CPU p95 scan0.36124→grid0.07980ms、單物件更新0.08176ms，cold／配置成本另記。完整scene pan兩組6.3884→4.2346、4.8220→5.4971ms，不一致，不能宣稱整體FPS／端到端延遲达標；dense pan仍約196ms。下一批PERF05優先但需新基準／GPU預算設計。
+
+[日誌](PERFORMANCE_BATCH2_2026-10-11.zh-TW.md)、[raw資料／限制](performance/2026-10-11-batch2/README.zh-TW.md)。版本／送審bundle SHA／私人三圖保留；無新Installer／MSIX／Release／Store操作／硬體矩陣驗收。既有.vscode/保留不讀／提交，其他平台未改。
+
+## 2026-10-10 — 流暢度第一批實作與同機證據
+
+使用者對九項清單指示 GO，完成首批的軟體基準、熱路徑配置改善及穩定 Z 順序快取。命中保留 locked／同 Z 次序，交易內直接 Z／list 修改、切頁、Cancel／Undo／Redo 均涵蓋；單物件 preview 不排序，筆跡 damage 索引掃描尾端四點不丟輸入。另修現有 overlay bitmap copy 色階差異，所有像素規則維持零容差。
+
+本次754 Core checks、70個嚴格像素比較及其他曲線／雷射／idle契約通過；x64與ARM64 Release publish退出0，ARM64僅編譯未實跑。10000物件CPU順序p95 2.11462→0.15780ms、命中3.35256→0.33602ms；配置量明顯下降。原生大量場景重建／平移／縮放p95未一致改善，不能宣稱整體FPS提升。PERF-01／02仍缺busy timer、保存期间操作與實體輸入／DPI驗收；04／05是下一批優先候選，06只做現有copy相容修復，07／08與09硬體矩陣仍待執行。
+
+[實作日誌](PERFORMANCE_BATCH1_2026-10-10.zh-TW.md)、[原始樣本／重現命令／限制](performance/2026-10-10-batch1/README.zh-TW.md)、[更新工作清單](ANTIGRAVITY_PERFORMANCE_WORKLIST_2026-10-10.zh-TW.md)。建置與資料全部在新隔離.build目錄；Store 1.0.12.0原bundle SHA前後一致，未更版／重封Store包／發GitHub Release／操作Partner Center。現有.vscode/保留且不提交；Mac／Web與私人產品素材未修改。
+
+## 2026-10-10 — Antigravity 流暢度工作清單已編製
+
+使用者要求列出可交接的修改工作。已依當前來源整理 [九項工作清單](ANTIGRAVITY_PERFORMANCE_WORKLIST_2026-10-10.zh-TW.md)，含現況、優先順序、依賴、定位、修改策略及驗收條件；第一批為 PERF-01 基準、02 熱路徑與排程、03 排序快取。空間索引／分區快取／GPU 合成／獨立輸入／保存記憶體皆依量測與相容驗收展開，不預先承諾收益。尚未執行本輪實作／效能測試／建置／封裝或 Store 操作；送審 1.0.12.0 保留。[編製紀錄](PERFORMANCE_WORKLIST_LOG_2026-10-10.zh-TW.md)。
+
+## 2026-10-10 — 可接續下一版 Windows 開發
+
+目前 Store 1.0.12.0 仍以使用者提供的「認證中」為最新已知狀態；可以開發下一版，GitHub source 更新不會修改已上傳的套件。保留送審 build source aa71e35／原始套件／產物 SHA／私人三張截圖作該版本證據。下一版功能與版本號尚未指定，本批只更新交接紀錄，沒有改程式／提高版本／重封包／測試或 Store 操作。後續正式更新需遞增套件版並另行提交認證。[交接紀錄](NEXT_VERSION_HANDOFF_2026-10-10.zh-TW.md)。
+
+## 2026-10-10 — Store Submission 1 已送審，認證中（使用者提供）
+
+使用者貼出 Partner Center「產品提交：認證中」及「通過認證後立即開始發佈」，已自行完成首次提交；尚未確認通過或已上架，助手未登入後台查證。前次套件 Validated／提交按鈕問題與此次進度見 [本批紀錄](STORE_SUBMISSION_2026-10-10.zh-TW.md)。三張經使用者授權的 Store 示範截圖原 byte 保存於 PRIVATE HeiBan-private，不放入公開程式庫；可跨電腦 clone／pull 取回。當前等待認證結果，未啟用查詢排程。未重封包、執行 App／WACK 測試或修改其他平台；下方「尚未送審」為前批歷史狀態。
+
+## 2026-10-10 — 跨電腦私人產品紀錄已建立
+
+使用者要求私人保存產品資訊，已建立 [HeiBan-private](https://github.com/VirginBear/HeiBan-private)，GitHub visibility 核對 PRIVATE。包含完整產品紀錄、Store 策略／待辦與多電腦交接；開發者需有權限，先讀私人庫 README／AGENTS／PRODUCT_INFORMATION／CURRENT_STATUS，再讀本平台文件。公開庫只保存技術必需識別與讀取入口，不複製私人管理欄位；沒有改程式／重封包／執行測試或 Store 操作。[本批紀錄](PRIVATE_RECORDS_2026-10-10.zh-TW.md)。
+
+## 2026-10-10 — 正式 MSIX／bundle 封裝完成，尚未送審
+
+使用者提供 HeiBan 黑板正式 Product identity，並確認第一版免費。Windows Store SDK single-project MSIX 明確 build 模式，原 EXE／Portable 路線分開。首份套件版 1.0.12.0／產品 preview.6；最後 x64／ARM64 建置各 0 warnings／0 errors，兩份 MSIX 及一份雙架構 bundle 產出。實際包身分、最低 OS 19041、PE Machine、25 份授權與手冊原 byte、不帶作品／helper／symbols、bundle 內 MSIX SHA 通過，135 個來源／3 產物 SHA 相符。[產物清單](STORE_ARTIFACTS_1.0.12.0_2026-10-10.json)。
+
+來源 `aa71e3584ff91b9f5832f9abec66980049d34aa4` 已 push，ls-remote HEAD／main 相同。見 [本批紀錄](MSIX_PACKAGING_2026-10-10.zh-TW.md)、[商店草稿](STORE_LISTING_DRAFT.zh-TW.md) 與 [隱私草稿](PRIVACY_POLICY_DRAFT.zh-TW.md)。未簽章包供 Store 送審，未購買 CA。商店安裝／資料遷移／更新／解除安裝／WACK、ARM64 執行、送審／上架未執行；本批未執行 App 測試。下方「身分待提供」與「尚未產生 MSIX」均為前批歷史，不是目前狀態。
+
+## 2026-10-10 — Partner Center 已申辦，商店準備與來源同步
+
+使用者告知已申辦帳戶，要求紀錄並更新 GitHub。已建立 [商店準備清單與當批日誌](STORE_PREPARATION_2026-10-10.zh-TW.md)，整理正式 MSIX 所需三項產品身分與保留名稱、免費商店簽章、送審素材及資料遷移驗收。尚未檢視私人後台或取得身分，MSIX／Store 送審未完成。本批同步上一批 Windows preview.6 來源；下方「未 commit／push」為上批結束時狀態，實際同步結果以本批日誌為準。GitHub 公開下載仍為 preview.5，未新增 Release。
+
+Windows preview.6 自動更新來源與紀錄已 commit／push：`27c968dc80766d78eb1dac3d2305d32ee2f5c63e`。本機 HEAD 與遠端 main／HEAD 核對一致，push 後工作樹乾淨；本段結果另以文件提交保存。只同步來源不會讓既有安裝版收到新版本。
+
+## 2026-10-10 — 1.0.12-preview.6 GitHub 自動更新（完成本機交付，未發布）
+
+Windows 來源升至 1.0.12-preview.6／FileVersion 1.0.12.6。首頁關於 → 更新設定、畫布更多 → 檢查更新與更新設定；GitHub 版啟動約十秒後及開啟期間每六小時背景檢查／下載，支援停用與預覽管道。按 Windows tag、語意版本、程序架構及 Installer／Portable 篩選，HTTPS 固定 repo／轉址白名單、size／GitHub SHA-256 驗證。
+
+保存成功後交給自包含 helper，等待父程序退出及同一安裝所有視窗關閉。Installer Inno 靜默升級；Portable 宣告檔案清單及 hash 預檢、備份／普通失敗 rollback，保留 Data／portable.dat／未知檔。新增關閉重入防護、交接鎖重試、待更新與已安裝 PE 架構核對、preview → stable 語意比較。Package identity 下不執行 GitHub 更新，由 Store 管理。
+
+本批最後來源 73 更新檢查及 700 Core／手冊檢查實際通過，隔離 x64 真 helper／真 Inno 流程（含鎖重試、preview→stable、其他視窗延後）通過；最終 x64 真 HeiBan 隔離啟動／正常關閉退出 0。兩架構 EXE／Portable 四包封裝退出 0、compiler warning／error 0，Portable x64 555／ARM64 551 個 inventory 檔逐 SHA、架構／手冊／README／空 Data／sidecar 通過。見 [最終產物與來源 SHA](ARTIFACTS_2026-10-10_1.0.12-preview.6.json)。ARM64 本機執行、真正 GitHub 新 Release 發布後更新、完整硬體操作／Store 封裝及送審未執行。MSI／MSIX 未產生，未 commit／push／發布，公開版本仍 preview.5；舊版需先手動裝含更新功能版本。SHA 驗證不是 Authenticode，未購買簽章憑證。見 [本批紀錄](AUTO_UPDATE_2026-10-10.zh-TW.md)。
+
 ## 2026-10-10 — GitHub Windows 1.0.12-preview.5（已公開）
 
 x64／ARM64各提供Installer ZIP及Portable ZIP，[新版下載](https://github.com/VirginBear/HeiBan/releases/tag/windows-v1.0.12-preview.5)。相應source fddf85e已推main且tag一致，77build-source blob保持相等；公開Portable原entry／Installer原EXE逐byte相同，7assets遠端size／digest與本機相符，7個未登入下載HEAD均200。
