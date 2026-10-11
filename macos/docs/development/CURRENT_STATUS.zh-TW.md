@@ -2,6 +2,12 @@
 
 更新：2026-10-11。平台：macOS；最新本機開發版 1.0.12 / 20261010.4。
 
+## 2026-10-11 — Antigravity 第一批獨立複核與相容性修復 (M21 排解)
+
+來源 31576eb 複核中發現的舊圖釘座標 probe 問題（缺失／null isWorldSpace 被補 true，導致舊視窗位移跳過遷移），已於 `BoardTypes.swift:406` 徹底修復（移除 `?? true` 保留 nil 語意）。
+獨立座標 probe 達成 **4 通過／0 失敗**（missing、null、false、true 全數吻合預期）。
+完整 runner 新增 46.6 與 46.7 斷言，**1,559 項斷言全數通過（0 失敗）**；`build_app.sh` 重新編譯封裝，`codesign --verify --deep --strict` 簽署有效。MAC-SYNC-01 跨平台往返保全完整驗收通過。詳見 [複核報告](ANTIGRAVITY_REVIEW_2026-10-11.zh-TW.md) 與 [日誌 04](logs/2026-10-11/04.zh-TW.md)。
+
 ## 2026-10-11 — Windows 最新來源同步與 Mac 改善實作 (第一批完成)
 
 兩庫 main 已與遠端一致，Git 追蹤檔無缺漏。已建立 [完整核對、進度與 12 項工作清單](WINDOWS_SYNC_REVIEW_2026-10-11.zh-TW.md)／[核對 JSON](SYNC_AUDIT_2026-10-11.json)。

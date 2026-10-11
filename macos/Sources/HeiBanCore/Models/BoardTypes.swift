@@ -403,7 +403,7 @@ public struct BoardPin: Codable, Identifiable, Equatable, Hashable {
         self.y = try container.decodeIfPresent(Double.self, forKey: .y) ?? 0.0
         self.zoom = try container.decodeIfPresent(Double.self, forKey: .zoom) ?? 1.0
         self.createdAt = try container.decodeIfPresent(String.self, forKey: .createdAt) ?? ISO8601DateFormatter().string(from: Date())
-        self.isWorldSpace = try container.decodeIfPresent(Bool.self, forKey: .isWorldSpace) ?? true
+        self.isWorldSpace = try container.decodeIfPresent(Bool.self, forKey: .isWorldSpace)
         self.boardId = try container.decodeIfPresent(String.self, forKey: .boardId)
         self.color = try container.decodeIfPresent(String.self, forKey: .color)
         self.textColor = try container.decodeIfPresent(String.self, forKey: .textColor)

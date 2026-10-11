@@ -196,3 +196,11 @@ Windows BoardPin 已有 color／textColor 及 JsonExtensionData。已在 Mac `Bo
 日期：2026-10-11。狀態：已排解（實作、[測試 26] & [測試 46] 客觀斷言 100% 通過與發行封裝驗證）。
 
 `AboutInfo` 已對齊 `1.0.12` / `20261010.4`（支援 Bundle 動態識別與預設回退）、`feedbackUrl` 修正為 `https://github.com/VirginBear/HeiBan/issues`、補齊 1.0.12 變更紀錄；測試套件已同步對齊真版本與更新日誌，`build_app.sh` 封裝與深層簽署成功。
+
+
+## M21 — 自訂 BoardPin decoder 破壞舊座標標記語意
+
+日期：2026-10-11。狀態：已排解（實作修復、相容性探針 4/4 通過、測試套件 1,559 項全數通過與 App 重新封裝簽章）。
+
+來源 31576eb 的 `BoardTypes.swift:406` 對缺失／null `isWorldSpace` 補 `?? true`，導致舊版 viewport offset 標記提前被視為世界座標，跳過座標轉換與遷移。已修正為保留原生 `decodeIfPresent` 之 `nil` 語意。
+在 `HeiBanTestRunner` 新增 46.6 與 46.7 斷言，涵蓋 missing／null／false／true 完整解碼、座標計算、單次遷移防呆與往返重開；獨立編譯 probe 達成 4 passed 0 failed；完整 runner 1,559 項斷言 100% 通過；`build_app.sh` 重新編譯封裝成功。

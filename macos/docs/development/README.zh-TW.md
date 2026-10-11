@@ -11,6 +11,8 @@
 | [DECISIONS](DECISIONS.zh-TW.md) | 架構選擇、替代方案與代價 | 做出重要決定時 |
 | [CODE_REVIEW](CODE_REVIEW_2026-10-09.zh-TW.md) | 本次稽核與整理結果 | 本批完成時 |
 
+最新交付核對見 [Antigravity 第一批獨立複核](ANTIGRAVITY_REVIEW_2026-10-11.zh-TW.md)：既有測試通過，舊圖釘座標相容性仍有阻擋。
+
 ## 工作順序
 
 1. 檢查目前 Git 變更與平台範圍。

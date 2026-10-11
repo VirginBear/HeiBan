@@ -4,6 +4,8 @@
 此索引由 `macos/scripts/new_dev_entry.py` 生成；實際內容由開發者填寫。
 歷史變更摘要及曾遇問題另見 [ISSUE_HISTORY](ISSUE_HISTORY.zh-TW.md)。
 
+- [2026-10-11 · 排解 M21：修復舊版圖釘座標 nil 語意與相容性探針](logs/2026-10-11/04.zh-TW.md)
+- [2026-10-11 · 複核 Antigravity MAC-SYNC 第一批交付](logs/2026-10-11/03.zh-TW.md)
 - [2026-10-11 · MAC-SYNC 第一批：圖釘資料往返保全與版本回報對齊 (P0)](logs/2026-10-11/02.zh-TW.md)
 - [2026-10-11 · 核對兩庫同步完整性及 Windows 改善對 Mac 的適用性](logs/2026-10-11/01.zh-TW.md)
 - [2026-10-10 · 追查螢幕文字提交後未顯示](logs/2026-10-10/06.zh-TW.md)

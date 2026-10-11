@@ -5164,6 +5164,54 @@ do {
     assertEqual(AboutInfo.changelog[0].version, "1.0.12", "更新日誌：最新紀錄為 1.0.12 正式版")
     assertEqual(AboutInfo.changelog[0].releaseDate, "2026-10-10", "更新日誌：發布日期為 2026-10-10")
     assertTrue(AboutInfo.changelog[0].highlights.count >= 3, "更新日誌：1.0.12 涵蓋螢幕文字、右鍵設定與批次格式等重點項目")
+
+    // 46.6 舊版圖釘座標相容性探針 (missing / null / false / true 語意保全)
+    let legacyCases: [(name: String, flag: String, expected: Point)] = [
+        ("missing", "", Point(x: 250, y: 125)),
+        ("null", ",\"isWorldSpace\":null", Point(x: 250, y: 125)),
+        ("false", ",\"isWorldSpace\":false", Point(x: 250, y: 125)),
+        ("true", ",\"isWorldSpace\":true", Point(x: 100, y: 150))
+    ]
+    let canvasSize1200x800 = CGSize(width: 1200, height: 800)
+    for c in legacyCases {
+        let json = "{\"id\":\"legacy_\(c.name)\",\"name\":\"Legacy\",\"x\":100,\"y\":150,\"zoom\":2,\"createdAt\":\"2026-09-01T00:00:00Z\"\(c.flag)}"
+        let pin = try! JSONDecoder().decode(BoardPin.self, from: Data(json.utf8))
+        let actual = pin.resolveWorldPosition(canvasSize: canvasSize1200x800)
+        assertEqual(actual, c.expected, "舊圖釘相容探針 [\(c.name)]: 座標計算必須精確符合預期")
+    }
+
+    // 46.7 舊圖釘遷移生命週期 (解碼 missing -> 遷移至世界座標 -> 保存 -> 重開，只轉換一次)
+    let legacyMissingJson = "{\"id\":\"legacy_mig_1\",\"name\":\"待遷移圖釘\",\"x\":100,\"y\":150,\"zoom\":2,\"createdAt\":\"2026-09-01T00:00:00Z\",\"color\":\"#39B9DC\",\"textColor\":\"#397056\",\"boardId\":\"b1\",\"customNote\":\"legacy_tag\"}"
+    let unmigratedPin = try! JSONDecoder().decode(BoardPin.self, from: Data(legacyMissingJson.utf8))
+    assertEqual(unmigratedPin.isWorldSpace, nil, "解碼缺失標記：isWorldSpace 必須保留為 nil (不被提前補 true)")
+
+    let migEngine = BoardEngine()
+    migEngine.board.pins = [unmigratedPin]
+    migEngine.migratePinsToWorldSpace(canvasSize: canvasSize1200x800)
+
+    // 遷移後：座標轉為世界座標 (250, 125)，isWorldSpace 變為 true
+    let migratedPin = migEngine.board.pins![0]
+    assertEqual(migratedPin.isWorldSpace, true, "遷移後：isWorldSpace 標記為 true")
+    assertEqual(migratedPin.x, 250.0, "遷移後：x 座標轉換為世界座標 250.0")
+    assertEqual(migratedPin.y, 125.0, "遷移後：y 座標轉換為世界座標 125.0")
+    assertEqual(migratedPin.color, "#39B9DC", "遷移後：color 保留")
+    assertEqual(migratedPin.textColor, "#397056", "遷移後：textColor 保留")
+    assertEqual(migratedPin.boardId, "b1", "遷移後：boardId 保留")
+    assertEqual(migratedPin.extraFields?["customNote"], .string("legacy_tag"), "遷移後：未知欄位保留")
+
+    // 二次遷移防呆：不重複轉換
+    migEngine.migratePinsToWorldSpace(canvasSize: canvasSize1200x800)
+    assertEqual(migEngine.board.pins![0].x, 250.0, "二次遷移防呆：世界座標不再重複偏移")
+    assertEqual(migEngine.board.pins![0].y, 125.0, "二次遷移防呆：世界座標不再重複偏移")
+
+    // 往返保存再載入
+    let savedData = try! JSONEncoder().encode(migEngine.board.pins![0])
+    let reloadedPin = try! JSONDecoder().decode(BoardPin.self, from: savedData)
+    assertEqual(reloadedPin.isWorldSpace, true, "重開：isWorldSpace 為 true")
+    assertEqual(reloadedPin.x, 250.0, "重開：x 為 250.0")
+    assertEqual(reloadedPin.y, 125.0, "重開：y 為 125.0")
+    assertEqual(reloadedPin.color, "#39B9DC", "重開：color 保留")
+    assertEqual(reloadedPin.extraFields?["customNote"], .string("legacy_tag"), "重開：未知欄位保留")
 }
 
 print("\n==================================================")
