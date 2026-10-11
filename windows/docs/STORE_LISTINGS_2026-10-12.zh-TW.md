@@ -22,4 +22,5 @@
 - 實際命令：兩庫 `git fetch origin` 均退出0；`git rev-list --left-right --count HEAD...origin/main` 均0/0；`git remote get-url origin` 各指向正確repo。PowerShell `Get-Content`／Regex解析文案確認10語、說明非空、各6項新增／16項功能；`git diff --check` 退出0。
 - 未執行：App、程式測試、編譯、封裝、母語校閱、Partner Center填寫／提交／發布、效能驗證。沒有新的架構決定或程式問題，未更動 DECISIONS／ISSUE_HISTORY。
 - 正式進版及商店提交仍待整批驗證及使用者決定，不因本批文案完成而改候選核准狀態。
-- GitHub同步結果於完成後接續。
+- GitHub同步結果：公開文案提交 `bf29843d72e01a5e8cc0f7c959b8b813baea3705` 已push退出0，`git ls-remote origin refs/heads/main` 核同該HEAD；公開status只原 `.vscode/`。私人必要交接亦已分庫push及核對遠端，status乾淨；私人commit與詳細欄位僅保存在私人紀錄。
+- Git顯示新增Markdown的LF後續可能依本機設定轉CRLF；文字檔未依賴逐byte manifest，因此不改全repo規則。`open_in_codex` 顯示queued，已排入本對話的文件面板開啟，並提供直接文件連結供複製。
