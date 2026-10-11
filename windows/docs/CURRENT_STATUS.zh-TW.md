@@ -8,6 +8,11 @@
 
 作品名稱／文字／ID／文件碼／中文內部停靠值與幾何不翻譯。阿拉伯語導覽、對話與彈出選單RTL，畫布LTR；手冊／法律文保留正體中文及原文，入口明示。WinUI內建ColorPicker／系统選檔及原始例外不保證隨即時切換，需實機查核；母語校閱、長字串／RTL／窄視窗、偏好重啟與磁碟失敗、App／tests均未執行。只做x64編譯／本機封裝，ARM64本輪未建置；詳見[階段日誌及Mac比對](LOCALIZATION_2026-10-11.zh-TW.md)。來源Store manifest宣告十語，原1.0.12.0送審套件保留，下次正式MSIX需增版另提交。
 
+
+本輪本機x64試用：`dist/trials/HeiBan-Windows-Portable-1.0.12-preview.6-multilingual-2026-10-11-win-x64.zip`，131,632,111 bytes／SHA256 `1a1dc766572215518ff51f480441fb7189060de10d752939bed4d7109d402f52`，source14bb289；[產物](LOCALIZATION_PORTABLE_ARTIFACT_2026-10-11.json)／[靜態檢視](LOCALIZATION_PORTABLE_INSPECTION_2026-10-11.json)。App／helper publish退出0、無warning/error；557 inventory／559 archive／124 source SHA、十語資源581完整內嵌。未執行App／tests／實機／ARM64。
+
+舊canvas-setup未發布trial清除452,220,937 bytes；9檔Data共150,783bytes先保存於 `dist/trial-data-backups/20261011-041854-3b00a2aa/`，再複製到新解壓版Data以延續原機使用，兩份皆核SHA；ZIP仍空Data。原備份及前批52檔備份、已發布Release／Storebundle保留，[清理](LOCALIZATION_TRIAL_CLEANUP_2026-10-11.json)／[資料接續](LOCALIZATION_DATA_HANDOFF_2026-10-11.json)。只原機有二進位與作品，GitHub同步來源／紀錄，私人庫保存精簡需求與交接。
+
 ## 2026-10-11 — 一般畫布游標與作品／背景設定
 
 使用者實機確認上一版螢幕游標有效，但一般畫布無效；不能把上一輪編譯成功當作主畫布游標驗收。現改 CursorCanvasHost.ProtectedCursor，SDK CreateFromHCursor 轉WinRT cursor，移除舊Win32橋hook。無邊界新作品無尺寸；fixed 首次16:9（1920×1080）仍可改，notebook 維持A4，各格式記住本次對話框選擇。背景既有繪圖／匯出已支援五種，這次補新建與既有作品共用UI。

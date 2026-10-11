@@ -13,7 +13,7 @@
 - 使用者已回覆「採用這10種」。首頁側欄新增語言選單，原生語言名永遠可辨認；預設zh-TW，不跟隨OS擅自改語言。Settings/language.json 原子保存、保留未知欄位；保存失敗不套用新語言。
 - 靜態XAML採附加資源鍵＋弱引用更新；動態標籤與插值採T／F。資料名稱、作品Text、ID、JSON欄位、色碼、快捷鍵、中文停靠值保持原契約；圖層只翻譯自動產生的類型／狀態標籤。
 - 阿拉伯語翻轉首頁導覽與對話文字；一般／螢幕畫布的幾何與輸入保持LTR，不鏡像使用者物件。手冊及法律文件保留原文，使用說明入口明示正體中文。
-- 建置輸入採UTF-8翻譯表、固定UI來源清單、10份嵌入JSON；不需要線上翻譯服務。簡體中文以Windows NLS字形转换及區域術語表編製，其他語言人工編寫，仍需母語使用者校閱。
+- 建置輸入採UTF-8翻譯表、固定UI來源清單、10份嵌入JSON；不需要線上翻譯服務。簡體中文以Windows NLS字形转换及區域術語表編製，其他語言由開發助手撰寫，仍需母語使用者校閱。
 - 實際遇到：PowerShell字面萬用字元路徑的rg讀取失敗，改查目錄與-g；最初搜尋錯寫HeiBan.Core，改HeiBan.Windows.Core。資源編製工具stdout預設cp950無法輸出⋯，明確設UTF-8後成功列出缺項。這些是來源調查／字串編製，不是App或測試執行。
 
 
@@ -61,3 +61,13 @@
 - 封裝沿用preview.6，另Label multilingual-2026-10-11避免覆寫。Git只同步來源／文件／來源清單，不上傳二進位或Data。新包完成後才清理先前未發布canvas-setup trial，沿用保護Data／未知修改檔／publishedassets／Store的脚本；若舊程式仍開著將停止清理。
 
 - 封裝前git diff --cached --check指出翻譯表的刻意尾端空白；改以\s顯式編碼、生成器decode，產出JSON內容不變，再核diff。沒有為消除警告移除UI連接詞所需空白。
+
+## 階段 5：本機封裝、舊試用清理與資料接續
+
+- `Package-PortableTrial.ps1 -Runtime win-x64 -Label multilingual-2026-10-11`，PATH只暫時加入bundled dotnet且finally恢復；App／helper publish及封裝退出0，publish log無warning/error，最新版文字屬性补強已編譯。版本1.0.12-preview.6、FileVersion1.0.12.6、ProductVersion +14bb289；source commit `14bb28990e511e9b29659f1d5cca36132ca5a38d`已push／ls-remote同本機。
+- 新ZIP `dist/trials/HeiBan-Windows-Portable-1.0.12-preview.6-multilingual-2026-10-11-win-x64.zip`，131,632,111 bytes，SHA256 `1a1dc766572215518ff51f480441fb7189060de10d752939bed4d7109d402f52`，同名資料夾HeiBan.exe可啟動。557 inventory／559 archive／124 source SHA逐項相符；兩個EXE PE x64；十份581來源JSON完整內嵌DLL；guide／README／Licenses／sidecar一致。檢視腳本只读bytes／metadata／archive，未執行App或tests。實際命令 `python windows/.build/localization-inspect-2026-10-11.py` 退出0，sourceMismatch0，package Data0。
+- [artifact](LOCALIZATION_PORTABLE_ARTIFACT_2026-10-11.json)／[inspection](LOCALIZATION_PORTABLE_INSPECTION_2026-10-11.json)保存逐SHA及範圍；log在 `.build/portable-trial-83d1fd9499054bed8bb852165eb5beae/publish.log`，外層localization-package-2026-10-11.log退出0。未發佈Release／Store、未產出ARM64新包。
+- `Clear-ObsoleteTrials.ps1 -KeepTrial HeiBan-Windows-Portable-1.0.12-preview.6-multilingual-2026-10-11-win-x64`退出0。讀實際已發布資產、檢查兩次是否舊程式執行、確定resolved absolute targets在trials，保留Data／未知或修改檔後才刪runtime／ZIP／sidecar。刪一份canvas-setup舊trial，釋放452,220,937 bytes（約431.271MiB）；9檔Data共150,783 bytes逐SHA搬移保存至 `dist/trial-data-backups/20261011-041854-3b00a2aa/`。0 unknown／modified檔、StoreSHA前後相同。[清理結果](LOCALIZATION_TRIAL_CLEANUP_2026-10-11.json)。先前52檔／73,389bytes舊備份保留，不混庫。
+- 為讓原機試用接續既有作品／設定，確認新試用未執行且Data為空後，從此次備份**複製**9檔到新解壓版Data，逐SHA相同；原備份保持完整並附恢復README。沒有搬資料進ZIP，也沒有寫安裝版／MSIX的資料根。[資料接續結果](LOCALIZATION_DATA_HANDOFF_2026-10-11.json)只記數量及路由，未記用戶檔名／內容；新解壓版因此有9檔，下載ZIP仍空Data。
+- 封裝前靜態檢視的解壓Data0是當時狀態；之後本機沿用9檔的狀態在inspection另列，不把作品當payload進inventory。ZIP未變，舊Data及已發布／Store1.0.12.0原件／其它dist／SDK／歷史均保留；trial本來ignored、不占GitHub二進位空間。
+- 清理log `.build/trial-cleanup-20261011-041854-3b00a2aa/cleanup.json`／localization-cleanup-2026-10-11.log 保留。Storebundle SHA仍 `d7a49b63d88fa880b1a97b0c307361ad2cfbc9b3d58786048887093d7204ea7b`。

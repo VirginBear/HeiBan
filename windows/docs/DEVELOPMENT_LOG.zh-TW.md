@@ -8,6 +8,11 @@
 
 首次x64 build53.04秒0warning／0error；RTL补強時因MenuFlyout無FlowDirection而失敗17.61秒1warning／89errors，改PresenterStyle，最終结果接續記。實際命令／排解／生成器／打包入口SHA邊界與Mac對照在階段日誌；本輪未新增／執行tests／App，未發布商店／Release。
 
+
+本輪本機x64試用：`dist/trials/HeiBan-Windows-Portable-1.0.12-preview.6-multilingual-2026-10-11-win-x64.zip`，131,632,111 bytes／SHA256 `1a1dc766572215518ff51f480441fb7189060de10d752939bed4d7109d402f52`，source14bb289；[產物](LOCALIZATION_PORTABLE_ARTIFACT_2026-10-11.json)／[靜態檢視](LOCALIZATION_PORTABLE_INSPECTION_2026-10-11.json)。App／helper publish退出0、無warning/error；557 inventory／559 archive／124 source SHA、十語資源581完整內嵌。未執行App／tests／實機／ARM64。
+
+舊canvas-setup未發布trial清除452,220,937 bytes；9檔Data共150,783bytes先保存於 `dist/trial-data-backups/20261011-041854-3b00a2aa/`，再複製到新解壓版Data以延續原機使用，兩份皆核SHA；ZIP仍空Data。原備份及前批52檔備份、已發布Release／Storebundle保留，[清理](LOCALIZATION_TRIAL_CLEANUP_2026-10-11.json)／[資料接續](LOCALIZATION_DATA_HANDOFF_2026-10-11.json)。只原機有二進位與作品，GitHub同步來源／紀錄，私人庫保存精簡需求與交接。
+
 ## 2026-10-11 — 一般畫布游標修正與試用空間清理
 
 開工 cfd3191，status 僅原.vscode/，先建立[日誌](CANVAS_SETUP_FIX_2026-10-11.zh-TW.md)。依使用者實機更正主畫布游標，改XAML ProtectedCursor＋SDK interop；補infinite不顯示尺寸、fixed預設16:9、background五種UI。首次 x64 build 0warning／0error、39.18秒；後續預設與原色保存補強、最終x64 build 0warning／0error、25.98秒，新包結果另記。

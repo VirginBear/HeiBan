@@ -1,0 +1,89 @@
+{
+  "sourceCommit": "14bb28990e511e9b29659f1d5cca36132ca5a38d",
+  "label": "multilingual-2026-10-11",
+  "runtime": "win-x64",
+  "version": "1.0.12-preview.6",
+  "zipRelativePath": "dist/trials/HeiBan-Windows-Portable-1.0.12-preview.6-multilingual-2026-10-11-win-x64.zip",
+  "bytes": 131632111,
+  "sha256": "1a1dc766572215518ff51f480441fb7189060de10d752939bed4d7109d402f52",
+  "success": true,
+  "scope": "Static catalog, ZIP, source byte, inventory, license, PE and preservation inspection; no app execution or tests",
+  "inventoryFiles": 557,
+  "archiveFiles": 559,
+  "sourceFiles": 124,
+  "sourceMismatch": 0,
+  "dataFiles": 0,
+  "guideMatches": true,
+  "readmeMatches": true,
+  "architectures": [
+    {
+      "path": "HeiBan.exe",
+      "machine": "0x8664"
+    },
+    {
+      "path": "Updater/HeiBan.Updater.exe",
+      "machine": "0x8664"
+    }
+  ],
+  "catalogs": {
+    "ar": {
+      "entries": 581,
+      "completeByteResourceEmbedded": true
+    },
+    "de": {
+      "entries": 581,
+      "completeByteResourceEmbedded": true
+    },
+    "en": {
+      "entries": 581,
+      "completeByteResourceEmbedded": true
+    },
+    "es": {
+      "entries": 581,
+      "completeByteResourceEmbedded": true
+    },
+    "fr": {
+      "entries": 581,
+      "completeByteResourceEmbedded": true
+    },
+    "ja": {
+      "entries": 581,
+      "completeByteResourceEmbedded": true
+    },
+    "ko": {
+      "entries": 581,
+      "completeByteResourceEmbedded": true
+    },
+    "pt-BR": {
+      "entries": 581,
+      "completeByteResourceEmbedded": true
+    },
+    "zh-CN": {
+      "entries": 581,
+      "completeByteResourceEmbedded": true
+    },
+    "zh-TW": {
+      "entries": 581,
+      "completeByteResourceEmbedded": true
+    }
+  },
+  "publishDiagnostics": [],
+  "storeSha256": "d7a49b63d88fa880b1a97b0c307361ad2cfbc9b3d58786048887093d7204ea7b",
+  "storeUnchanged": true,
+  "evidenceRelativePath": ".build/portable-trial-83d1fd9499054bed8bb852165eb5beae",
+  "failures": [],
+  "productVersion": "1.0.12-preview.6+14bb28990e511e9b29659f1d5cca36132ca5a38d",
+  "fileVersion": "1.0.12.6",
+  "extractedDataFilesAtInitialInspection": 0,
+  "extractedDataFilesAfterLocalHandoff": 9,
+  "localDataHandoff": "LOCALIZATION_DATA_HANDOFF_2026-10-11.json",
+  "postCleanup": {
+    "zipHashUnchanged": true,
+    "all124SourceBytesUnchanged": true,
+    "localDataCopyHashMatched": false,
+    "oldTrialRemoved": true,
+    "storeUnchanged": true,
+    "remainingTrialEntries": 3,
+    "priorBackupRetained": true
+  }
+}
