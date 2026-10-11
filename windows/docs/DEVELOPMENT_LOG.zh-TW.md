@@ -1,5 +1,12 @@
 # Windows 開發日誌
 
+## 2026-10-11 — 一般畫布游標修正與試用空間清理
+
+開工 cfd3191，status 僅原.vscode/，先建立[日誌](CANVAS_SETUP_FIX_2026-10-11.zh-TW.md)。依使用者實機更正主畫布游標，改XAML ProtectedCursor＋SDK interop；補infinite不顯示尺寸、fixed預設16:9、background五種UI。首次 x64 build 0warning／0error、39.18秒；後續預設與原色保存補強、最終x64 build 0warning／0error、25.98秒，新包結果另記。
+
+已讀取GitHub正式Release名單，保留windows-v1.0.12-preview.5與其他已發布；git ls-files沒有runtime zip/msix/exe/dll/pdb，trials ignored。本次只清理明確授權舊未發布trials，3份含Data先保留；完整SHA／bytes與結果写日誌／清理manifest。私人對話摘要補實測更正及最新需求。未改Mac／Web，未跑測試／App／商店／發布。
+
+
 ## 2026-10-11 — 五項操作回饋與紀錄壓縮
 
 開工 HEAD 605eed4，git status 僅原 .vscode/，建立[阶段日誌](UX_FEEDBACK_2026-10-11.zh-TW.md)再實作。完成無捲軸換行工具列、拖曳預覽／插入線、形狀方向／旋轉游標、頭部線寬同步與主工具列圖層。八個一次性腳本逐檔 resolved path／非 reparse／SHA 核對後刪除；所有交付包／Data／歷史／SDK／建置證據保留。[清理清單](UX_FEEDBACK_CLEANUP_2026-10-11.json)。

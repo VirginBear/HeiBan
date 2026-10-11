@@ -69,7 +69,6 @@ public partial class MainWindow : Window
         _dock=_toolbarPrefs.DockSide;
         App.StartupStage="載入主視窗 XAML";
         InitializeComponent();
-        Root.Loaded+=(_,_)=>_shapeCursor.Attach(WinRT.Interop.WindowNative.GetWindowHandle(this),()=>_hover&&_tool=="select"&&_editor is null&&!_readingMode);
         InitializeLibraryChrome();BuildChrome();InitializeTeachingTools();InitializeDeferredWork();
         App.StartupStage="設定主視窗";
         ExtendsContentIntoTitleBar=true;SetTitleBar(AppTitleBar);SystemBackdrop=new MicaBackdrop();
@@ -101,7 +100,7 @@ public partial class MainWindow : Window
             }
             finally{_preparingClose=false;}
         };
-        Closed+=(_,_)=>{_layerPreview?.End();_shapeCursor.Dispose();_updates?.Dispose();_autosave.Stop();_thumbnailTimer.Stop();_searchTimer.Stop();_teachingSaveTimer.Stop();CancelScreenshotCapture("視窗關閉");_timerTickTimer?.Stop();_laserTimer.Stop();_propertyCommitTimer.Stop();_headerHideTimer.Stop();ClearScene();CanvasSurface.RemoveFromVisualTree();_renderer.Dispose();_screenAnnotation?.Dispose();};
+        Closed+=(_,_)=>{_layerPreview?.End();CanvasCursorHost.ReleaseCursor();_shapeCursor.Dispose();_updates?.Dispose();_autosave.Stop();_thumbnailTimer.Stop();_searchTimer.Stop();_teachingSaveTimer.Stop();CancelScreenshotCapture("視窗關閉");_timerTickTimer?.Stop();_laserTimer.Stop();_propertyCommitTimer.Stop();_headerHideTimer.Stop();ClearScene();CanvasSurface.RemoveFromVisualTree();_renderer.Dispose();_screenAnnotation?.Dispose();};
         App.StartupStage="顯示首頁";
         try { EnsureScreenAnnotation(); } catch(Exception e) { StatusText.Text="螢幕畫布初始化失敗："+e.Message; }
     }
@@ -216,15 +215,30 @@ public partial class MainWindow : Window
             var mode=new ComboBox{Header="格式",ItemsSource=new[]{"筆記本","無邊界筆記","有邊界黑板"},SelectedIndex=0,HorizontalAlignment=HorizontalAlignment.Stretch};
             var size=new ComboBox{Header="尺寸",ItemsSource=new[]{"A4 直向","A4 橫向","16:9 簡報","1:1 方形"},SelectedIndex=0,HorizontalAlignment=HorizontalAlignment.Stretch};
             var background=new ComboBox{Header="背景",ItemsSource=new[]{"純白","暖白","經典黑綠","深灰"},SelectedIndex=0,HorizontalAlignment=HorizontalAlignment.Stretch};
-            var content=new StackPanel{Spacing=14};foreach(var control in new UIElement[]{name,mode,size,background})content.Children.Add(control);
-            var dialog=new ContentDialog{Title="新增筆記或黑板",Content=content,PrimaryButtonText="建立",CloseButtonText="取消",DefaultButton=ContentDialogButton.Primary,XamlRoot=Root.XamlRoot};
+            var pattern=CreateBackgroundStylePicker("lines");
+            var sizesByFormat=new[]{0,0,2};var patternsByFormat=new[]{"lines","dots","dots"};var previousFormat=0;
+            mode.SelectionChanged+=(_,_)=>
+            {
+                // Infinite notes have no document dimensions. Remember bounded presets separately,
+                // so first entering fixed boards starts at 16:9 without losing later user choices.
+                if(previousFormat!=1)sizesByFormat[previousFormat]=Math.Max(0,size.SelectedIndex);
+                patternsByFormat[previousFormat]=ReadBackgroundStyle(pattern,patternsByFormat[previousFormat]);
+                var selectedFormat=mode.SelectedIndex;
+                pattern.SelectedItem=pattern.Items.OfType<ComboBoxItem>().First(item=>Equals(item.Tag,patternsByFormat[selectedFormat]));
+                size.Visibility=selectedFormat==1?Visibility.Collapsed:Visibility.Visible;
+                size.IsEnabled=selectedFormat!=1;
+                if(selectedFormat!=1)size.SelectedIndex=sizesByFormat[selectedFormat];
+                previousFormat=selectedFormat;
+            };
+            var content=new StackPanel{Spacing=14};foreach(var control in new UIElement[]{name,mode,size,background,pattern})content.Children.Add(control);
+            var dialog=new ContentDialog{Title="新增筆記或黑板",Content=new ScrollViewer{Content=content,MaxHeight=Math.Max(160,Root.ActualHeight-180)},PrimaryButtonText="建立",CloseButtonText="取消",DefaultButton=ContentDialogButton.Primary,XamlRoot=Root.XamlRoot};
             if(await dialog.ShowAsync()!=ContentDialogResult.Primary)return;
             if(_workspaceOpen&&_session.IsDirty&&!await SaveAsync())return;
             var dimensions=new[]{(595d,842d),(842d,595d),(1920d,1080d),(1080d,1080d)}[size.SelectedIndex];
             var board=new BoardMetadata{Title=string.IsNullOrWhiteSpace(name.Text)?"新筆記":name.Text.Trim(),CanvasMode=new[]{"notebook","infinite","fixed"}[mode.SelectedIndex],
                 CanvasWidth=mode.SelectedIndex==1?null:dimensions.Item1,CanvasHeight=mode.SelectedIndex==1?null:dimensions.Item2,
                 CanvasPreset=mode.SelectedIndex==1?"infinite":new[]{"a4_portrait","a4_landscape","16_9","1_1"}[size.SelectedIndex],
-                BackgroundColor=new[]{"#ffffff","#faf8f5","#172e25","#18181b"}[background.SelectedIndex],BoardTheme=background.SelectedIndex<2?"whiteboard":"blackboard",GridStyle=mode.SelectedIndex==0?"lines":"dots"};
+                BackgroundColor=new[]{"#ffffff","#faf8f5","#172e25","#18181b"}[background.SelectedIndex],BoardTheme=background.SelectedIndex<2?"whiteboard":"blackboard",GridStyle=ReadBackgroundStyle(pattern,"lines")};
             if(mode.SelectedIndex==0){board.Pages=[new BoardPage()];board.ActivePageId=board.Pages[0].Id;}
             var doc=new HeiBanDocument{Board=board};await _storage.SaveAsync(doc);await OpenAsync(doc);
         }catch(Exception ex){await Error(ex);}
@@ -269,8 +283,29 @@ public partial class MainWindow : Window
     }
     private void StrokeColor_Click(object sender,RoutedEventArgs e)=>ShowColorWheel((FrameworkElement)sender,_session.Selected?.StrokeColor??CurrentStyle.Color,color=>ChangeProperty(()=>{if(_session.Selected is { } o)o.StrokeColor=color;else{CurrentStyle.Color=color;LoadActiveStyle();}}));
     private void FillColor_Click(object sender,RoutedEventArgs e)=>ShowColorWheel((FrameworkElement)sender,_session.Selected is { FillColor: not "none" } selected?selected.FillColor:CurrentStyle.Fill,color=>ChangeProperty(()=>SetFillColor(color)));
+    private static ComboBox CreateBackgroundStylePicker(string current)
+    {
+        var picker=new ComboBox{Header="背景樣式",HorizontalAlignment=HorizontalAlignment.Stretch};
+        foreach(var (key,label) in new[]{("blank","空白"),("lines","橫線條"),("dots","點狀"),("grid","方格子"),("staff","五線譜")})
+            picker.Items.Add(new ComboBoxItem{Content=label,Tag=key});
+        var selected=picker.Items.OfType<ComboBoxItem>().FirstOrDefault(item=>Equals(item.Tag,current));
+        // An imported future style is retained unless the user explicitly chooses a known style.
+        if(selected is null){selected=new ComboBoxItem{Content="目前樣式（保留）",Tag=current};picker.Items.Add(selected);}
+        picker.SelectedItem=selected;return picker;
+    }
+    private static string ReadBackgroundStyle(ComboBox picker,string fallback)=>(picker.SelectedItem as ComboBoxItem)?.Tag as string??fallback;
     private async void Background_Click(object sender,RoutedEventArgs e)
-    {var c=await ChooseColor("畫布背景",_session.Document.Board.BackgroundColor);if(c is null)return;_session.Begin();_session.Document.Board.BackgroundColor=c;_session.Commit();InvalidateCanvas();}
+    {
+        CommitPropertyEdit();FinishText();if(_gesture)CancelGesture();
+        var board=_session.Document.Board;var epoch=_session.DocumentEpoch;
+        var color=ColorWheel(board.BackgroundColor);var originalColor=color.Color;var pattern=CreateBackgroundStylePicker(board.GridStyle);
+        var content=new StackPanel{Spacing=14,Children={pattern,new TextBlock{Text="背景顏色"},color}};
+        var result=await new ContentDialog{Title="畫布背景",Content=new ScrollViewer{Content=content,MaxHeight=Math.Max(200,Root.ActualHeight-180)},PrimaryButtonText="套用",CloseButtonText="取消",XamlRoot=Root.XamlRoot}.ShowAsync();
+        if(result!=ContentDialogResult.Primary||epoch!=_session.DocumentEpoch||!ReferenceEquals(board,_session.Document.Board))return;
+        var nextColor=color.Color.Equals(originalColor)?board.BackgroundColor:ColorHex(color.Color);var nextPattern=ReadBackgroundStyle(pattern,board.GridStyle);
+        if(nextColor==board.BackgroundColor&&nextPattern==board.GridStyle)return;
+        _session.Begin();board.BackgroundColor=nextColor;board.GridStyle=nextPattern;_session.Commit();InvalidateCanvas();
+    }
     private void Layer_Changed(object sender,SelectionChangedEventArgs e)
     {if(_changingLayers)return;CommitPropertyEdit();_session.SetSelection(LayerList.SelectedItems.OfType<LayerCard>().Select(row=>row.ObjectId));RefreshProperties();InvalidateCanvas(false);}
     private void SyncLayerSelection()

@@ -1,5 +1,12 @@
 # Windows 目前開發狀態
 
+## 2026-10-11 — 一般畫布游標與作品／背景設定
+
+使用者實機確認上一版螢幕游標有效，但一般畫布無效；不能把上一輪編譯成功當作主畫布游標驗收。現改 CursorCanvasHost.ProtectedCursor，SDK CreateFromHCursor 轉WinRT cursor，移除舊Win32橋hook。無邊界新作品無尺寸；fixed 首次16:9（1920×1080）仍可改，notebook 維持A4，各格式記住本次對話框選擇。背景既有繪圖／匯出已支援五種，這次補新建與既有作品共用UI。
+
+[阶段日誌／Mac對照](CANVAS_SETUP_FIX_2026-10-11.zh-TW.md)。首次 x64 build 0 warning／0 error、39.18秒；後續預設記憶／取消保留補強，最終x64 build 0warning／0error、25.98秒；封裝接續記錄。本批未執行測試／App／實機UI。使用者明確授權刪除舊未發布trials以減少空間，先保留作品Data，保護最新版與已發布／Store包；不刪Git歷史。聊天摘要仍放PRIVATE。
+
+
 ## 2026-10-11 — 操作回饋追加五項
 
 螢幕工具列移除 ScrollViewer，工作區不足改換行／換列；主／螢幕圖層拖曳加入原列淡化、圖示名稱預覽與插入線；形狀八方向縮放及圓弧旋轉游標；箭頭頭部輪廓跟隨 StrokeWidth（覆寫上一階段固定 2 的策略，幾何長寬仍独立）；主工具列 layers 入口及保留隱藏偏好的遷移。

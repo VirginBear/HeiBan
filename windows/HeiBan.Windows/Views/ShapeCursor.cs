@@ -8,30 +8,9 @@ internal sealed class ShapeCursor : IDisposable
 {
     private nint _rotation;
     private int _rotationSize;
-    private bool _onHandle;
-    private readonly List<nint> _hooked=[];
-    private SubclassProc? _procedure;
-    private Func<bool>? _overCanvas;
-    internal void Attach(nint window,Func<bool> overCanvas)
-    {
-        if(_procedure is not null)return;
-        _overCanvas=overCanvas;_procedure=Procedure;
-        Hook(window);
-        // WinUI's content bridge owns WM_SETCURSOR. Intercept only while a canvas handle is active;
-        // toolbars, dialogs, text editors and other windows keep their normal cursors.
-        EnumChildWindows(window,(child,_)=>{Hook(child);return true;},0);
-    }
-    private void Hook(nint window)
-    {if(_procedure is not null&&SetWindowSubclass(window,_procedure,0x484243,0))_hooked.Add(window);}
-    private nint Procedure(nint window,uint message,nuint wParam,nint lParam,nuint id,nuint data)
-    {
-        if(message==0x0020&&_onHandle&&_overCanvas?.Invoke()==true&&(lParam.ToInt64()&0xffff)==1){Apply();return 1;}
-        return DefSubclassProc(window,message,wParam,lParam);
-    }
     internal nint Current {get;private set;}
     internal void Update(BoardObject? selected,ObjectHandles.Handle? handle,uint dpi=96,int defaultResource=32512)
     {
-        _onHandle=handle is not null;
         var resource=defaultResource; // Borrowed shared Windows cursors must never be destroyed.
         if(handle is {Kind:"resize"} resize&&selected is not null)
         {
@@ -71,17 +50,9 @@ internal sealed class ShapeCursor : IDisposable
     private static double Cross(double ax,double ay,double bx,double by,double x,double y)=>(bx-ax)*(y-ay)-(by-ay)*(x-ax);
     public void Dispose()
     {
-        if(_procedure is not null)foreach(var window in _hooked)RemoveWindowSubclass(window,_procedure,0x484243);
-        _hooked.Clear();_overCanvas=null;
         SetCursor(LoadCursor(0,new nint(32512)));
         if(_rotation!=0)DestroyCursor(_rotation);_rotation=Current=0;_rotationSize=0;
     }
-    [UnmanagedFunctionPointer(CallingConvention.Winapi)] private delegate nint SubclassProc(nint window,uint message,nuint wParam,nint lParam,nuint id,nuint data);
-    [UnmanagedFunctionPointer(CallingConvention.Winapi)] private delegate bool EnumProc(nint window,nint data);
-    [DllImport("user32.dll")] private static extern bool EnumChildWindows(nint window,EnumProc procedure,nint data);
-    [DllImport("comctl32.dll")] private static extern bool SetWindowSubclass(nint window,SubclassProc procedure,nuint id,nuint data);
-    [DllImport("comctl32.dll")] private static extern bool RemoveWindowSubclass(nint window,SubclassProc procedure,nuint id);
-    [DllImport("comctl32.dll")] private static extern nint DefSubclassProc(nint window,uint message,nuint wParam,nint lParam);
     [DllImport("user32.dll",CharSet=CharSet.Unicode)] private static extern nint LoadCursor(nint instance,nint name);
     [DllImport("user32.dll")] private static extern nint SetCursor(nint cursor);
     [DllImport("user32.dll")] private static extern int GetSystemMetricsForDpi(int index,uint dpi);

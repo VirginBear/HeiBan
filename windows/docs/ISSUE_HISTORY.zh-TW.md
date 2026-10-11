@@ -1,5 +1,14 @@
 # Windows 問題與排解紀錄
 
+## 2026-10-11 — 一般畫布游標未生效、尺寸與背景選項缺漏
+
+使用者實測一般畫布游標未生效而螢幕有效；前一輪native SetCursor／WM_SETCURSOR不能當已驗收主畫布方式。調查官方WinUI ProtectedCursor與SDK HCURSOR interop，改Canvas父容器XAML游標。原因為不同游標擁有層的推論，未做本輪runtime追蹤；硬體操作待驗收。
+
+新建尺寸固定顯示且index0，導致infinite出現無意義尺寸、fixed預設A4。改模式顯隱與各類預設記憶；背景renderer與SVG有grid／dots／lines／staff，但Background_Click只有ChooseColor，故補共用樣式選單／transaction／epoch守護。首次build 0warning／0error，最終x64 build 0warning／0error、25.98秒，詳見阶段日誌。
+
+盤點5份舊試用解壓目錄，其中3份已有Data，不能直接刪整包。新包封裝完成後先保留Data／未知或改動檔，確認來源範圍與正式發行排除後再刪舊runtime，清理明細另記。沒有讀取或公開作品內容。
+
+
 ## 2026-10-11 — 捲軸、拖曳缺乏視覺回饋與游標
 
 使用者實際回饋：螢幕控制列捲軸、圖層只有放開閃動、形狀控制點沒有方向、粗線箭頭頭部過細、主工具列缺圖層。確認原因是中段 ScrollViewer Auto、拖曳只有文字提示、沒有 control-handle cursor 路徑、頭部硬編碼 2、layers 未納入可見工具設定。

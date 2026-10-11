@@ -1,5 +1,13 @@
 # Windows 開發決策
 
+## 2026-10-11 — 使用者更正與舊試用清理授權
+
+- 一般畫布使用XAML ProtectedCursor，舊SetCursor／WM_SETCURSOR bridge策略由本節覆寫。使用者回報螢幕畫布成功是實機證據；主畫布新方式只編譯／静態核對，實機待試用。
+- infinite 不顯示尺寸且保存null；fixed第一次為16:9，保留後續自選；notebook尺寸原預設不變。背景UI共用五種code，未知值保留，取消不寫文件。
+- 本次使用者明確指定windows/dist/trials舊未發布版本可清除，覆寫以前「保留所有試用包」決策。新包成功後才清舊包；已發布Release／Store及其他dist不清。舊Data／unknown／modified files先保留至独立local dist備份，不上Git。
+- GitHub只保存程式／小型證據文件，trials原已ignored、沒有tracked runtime二進位；不重寫Git歷史，不刪正式Release。私人摘要新增更正段與目前狀態，舊原實作紀錄仍是歷史，不聲稱其實機成功。
+
+
 ## 2026-10-11 — 使用者回饋覆寫與相容邊界
 
 1. 螢幕工具列可增加行／列，不用捲軸藏工具；原「僅中段捲動」決策由本節覆寫。

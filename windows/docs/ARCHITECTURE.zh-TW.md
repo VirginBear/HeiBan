@@ -1,5 +1,12 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-11 — 主畫布XAML游標與背景入口
+
+MainWindow.xaml 的 CursorCanvasHost 只包CanvasControl，工具列／TextOverlay是兄弟元素。主畫布偵測控制點後先取得共享ShapeCursor native handle，再用SDK IInputCursorStaticsInterop.CreateFromHCursor 轉WinRT InputCursor，設定ProtectedCursor；cache以handle＋DPI避免每次pointer配置。更換先設新值再Dispose舊WinRT cursor；關閉先清XAML再釋放原native cursor。IInspectable vtable slot6，factory用C#/WinRT既有ActivationFactory取得並using釋放，result COM ref在finally釋放，custom copy與原handle獨立。一般畫布舊subclass hook移除，螢幕overlay仍走原native cursor。
+
+新增作品以每格式尺寸／樣式記憶控制ComboBox，infinite尺寸為Collapsed、文件width/height為null、preset為infinite。MainWindow共用CreateBackgroundStylePicker和ReadBackgroundStyle，既有背景套用以epoch／board reference守護，一笔undo；未知GridStyle選「目前樣式（保留）」不因改色消失。renderer、SVG與文件格式無需變更。
+
+
 ## 2026-10-11 — 工具列換行與非永久拖曳回饋
 
 ToolbarFlowPanel 用 DIP 量測各工具，依 WorkArea 可用軸長換行／換列，ResizeChrome 只在最後乘 DPI。固定控制段保留，工具區不含 ScrollViewer。LayerDragPreview 是 ListView 上方不攔截輸入的 Canvas，原列暫時淡化、重建獨立 ToolIcons／標題，不重用原 UIElement；目標線使用已捲動列 TransformToVisual 的真實邊界。清单更新／取消／關閉清理；LayerReorder 仍僅放開提交一筆交易。

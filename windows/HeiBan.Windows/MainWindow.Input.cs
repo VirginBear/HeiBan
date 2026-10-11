@@ -363,7 +363,7 @@ public partial class MainWindow
         else{_preview.X=Math.Min(_start.X,world.X);_preview.Y=Math.Min(_start.Y,world.Y);_preview.Width=Math.Max(1,Math.Abs(world.X-_start.X));_preview.Height=Math.Max(1,Math.Abs(world.Y-_start.Y));}
     }
     private static InkPoint ConstrainLine(InkPoint anchor,InkPoint point)=>KeyIsDown(VirtualKey.Shift)?ObjectHandles.ConstrainOrthogonal(anchor,point):point;
-    private void ResetGesture(){HideHUD();_renderer.ResetLive();_gesture=_panning=_rulerMoving=_rulerRotating=_rulerPivotMoving=_shapeGesture=_lineCompleting=_marquee=false;_compassCenterMoving=_compassCenterMoved=_compassRadiusMoving=_compassPencilMoving=false;_objectHandle=null;_manipulationStart=null;_movingPin=null;_snapEdge=null;_ink.Projection=null;if(_hover)UpdateShapeCursor();else _shapeCursor.Update(null,null);}
+    private void ResetGesture(){HideHUD();_renderer.ResetLive();_gesture=_panning=_rulerMoving=_rulerRotating=_rulerPivotMoving=_shapeGesture=_lineCompleting=_marquee=false;_compassCenterMoving=_compassCenterMoved=_compassRadiusMoving=_compassPencilMoving=false;_objectHandle=null;_manipulationStart=null;_movingPin=null;_snapEdge=null;_ink.Projection=null;if(_hover)UpdateShapeCursor();else ResetShapeCursor();}
     private void CancelGesture(){var changed=_session.HasTransaction;_lasso.Clear();_laser.Clear();HideHUD();_ink.Cancel();_session.Cancel();_preview=null;_lineAnchor=null;_compass.Prepare();ResetGesture();CanvasSurface.ReleasePointerCaptures();if(changed)RefreshProperties();InvalidateCanvas(changed);}
     private void CanvasSurface_PointerCanceled(object sender,PointerRoutedEventArgs e){HideHUD();if(_gesture)CancelGesture();}
     private void UpdateShapeCursor()
@@ -379,9 +379,12 @@ public partial class MainWindow
                 handle=ObjectHandles.Get(o,_viewport.Zoom).Where(h=>Math.Sqrt(Math.Pow(h.Point.X-world.X,2)+Math.Pow(h.Point.Y-world.Y,2))<=10/_viewport.Zoom).Select(h=>(ObjectHandles.Handle?)h).FirstOrDefault();
             }
         }
-        _shapeCursor.Update(selected,handle,(uint)Math.Round((Root.XamlRoot?.RasterizationScale??1)*96));
+        var dpi=(uint)Math.Round((Root.XamlRoot?.RasterizationScale??1)*96);
+        _shapeCursor.Update(selected,handle,dpi);CanvasCursorHost.SetNativeCursor(_shapeCursor.Current,dpi);
     }
-    private void CanvasSurface_PointerExited(object sender,PointerRoutedEventArgs e){HideHUD();_hover=false;if(!_gesture)_shapeCursor.Update(null,null);InvalidateCanvas(false);}
+    private void ResetShapeCursor()
+    {var dpi=(uint)Math.Round((Root.XamlRoot?.RasterizationScale??1)*96);_shapeCursor.Update(null,null,dpi);CanvasCursorHost.SetNativeCursor(_shapeCursor.Current,dpi);}
+    private void CanvasSurface_PointerExited(object sender,PointerRoutedEventArgs e){HideHUD();_hover=false;if(!_gesture)ResetShapeCursor();InvalidateCanvas(false);}
     private void CanvasSurface_PointerWheelChanged(object sender,PointerRoutedEventArgs e)
     {
         if(_editor is not null||_gesture||_viewLocked)return;
