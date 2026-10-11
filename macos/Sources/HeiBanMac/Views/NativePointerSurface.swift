@@ -19,6 +19,7 @@ struct NativePointerSurface: NSViewRepresentable {
         private var magnification = 1.0
         private var windowObserver: NSObjectProtocol?
         private var hoverMonitor: Any?
+        private let textContext = TextStyleContextMenu()
         override var isFlipped: Bool { true }
         override var acceptsFirstResponder: Bool { true }
         init(engine: BoardEngine, onInteraction: (() -> Void)?) { self.engine = engine; self.onInteraction = onInteraction; super.init(frame: .zero) }
@@ -96,6 +97,9 @@ struct NativePointerSurface: NSViewRepresentable {
         }
         override func rightMouseDown(with event: NSEvent) {
             guard !engine.readingMode else { return }
+            if engine.showInlineTextEditor { engine.commitInlineTextEntry() }
+            onInteraction?()
+            window?.makeFirstResponder(self)
             let location = point(event)
             let world = VectorMath.screenToWorld(Point(location), viewport: engine.viewport)
             if let hit = engine.currentPageObjects.reversed().first(where: {
@@ -130,6 +134,7 @@ struct NativePointerSurface: NSViewRepresentable {
             paste.target = self
             paste.isEnabled = !engine.internalClipboard.isEmpty || NSPasteboard.general.string(forType: .string) != nil
             menu.addItem(paste)
+            textContext.append(to: menu, engine: engine, view: self, point: location)
             menu.popUp(positioning: nil, at: location, in: self)
         }
 

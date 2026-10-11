@@ -103,5 +103,7 @@ codesign --force --sign "${HEIBAN_SIGNING_IDENTITY:--}" --identifier com.bear.He
 codesign --verify --strict "$APP_DIR"
 
 touch "$APP_DIR"
+# 使用者要求本機只留最新成品；只有完整封裝與簽章成功才清理舊版本。
+python3 "$SCRIPT_DIR/cleanup_old_artifacts.py"
 echo "✅ App bundle created successfully at: $APP_DIR"
 echo "👉 You can run it with: open \"$APP_DIR\""

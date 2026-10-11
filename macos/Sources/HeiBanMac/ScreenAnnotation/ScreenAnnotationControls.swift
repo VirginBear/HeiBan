@@ -1,11 +1,12 @@
 import HeiBanCore
 import SwiftUI
 
-/// 控制列只呼叫控制器命令；視窗、快捷鍵與文件寫入由控制器／session 管理。
+/// 同一組命令依停靠邊重排；視窗幾何／偏好仍由原生控制器持有。
 struct ScreenAnnotationControls: View {
     @ObservedObject var controller: ScreenAnnotationController
     var body: some View {
         ScreenAnnotationToolControls(controller: controller, engine: controller.activeEngine)
+            .frame(width: controller.controlsSize.width, height: controller.controlsSize.height)
     }
 }
 
@@ -14,118 +15,202 @@ private struct ScreenAnnotationToolControls: View {
     @ObservedObject var engine: BoardEngine
     @ViewState private var laserSettings = false
     @ViewState private var eraserSettings = false
+    @ViewState private var brushSettings = false
     private let annotationTools: [(tool: String, icon: String, title: String)] = [
-        (.select, "cursorarrow", "選取註記"), (.pen, "pencil", "畫筆"), (.highlighter, "highlighter", "螢光筆"),
-        (.line, "line.diagonal", "直線"),
-        (.arrow, "arrow.up.right", "箭頭"), (.rect, "square", "矩形"), (.circle, "circle", "圓"),
-        (.eraser, "eraser", "橡皮擦"), (.laser, "rays", "雷射筆：再次點擊開啟設定"),
+        (.select, "cursorarrow", "選取"), (.pen, "pencil", "畫筆"), (.highlighter, "highlighter", "螢光筆"),
+        (.line, "line.diagonal", "直線"), (.arrow, "arrow.up.right", "箭頭"),
+        (.rect, "square", "矩形"), (.circle, "circle", "圓"),
+        (.text, "textformat", "文字（T）"),
+        (.eraser, "eraser", "橡皮擦"), (.laser, "rays", "雷射筆"),
     ]
-    private func annotationTool(_ tool: String, icon: String, title: String) -> some View {
-        Button {
-            if tool == .laser && engine.currentTool == .laser {
-                laserSettings = true
-            } else if tool == .eraser && engine.currentTool == .eraser {
-                eraserSettings = true
-            } else {
-                controller.selectTool(tool)
-            }
-        } label: {
-            Image(systemName: icon).frame(width: 23, height: 25)
-                .background(
-                    engine.currentTool == tool ? Color.accentColor.opacity(0.15) : .clear,
-                    in: RoundedRectangle(cornerRadius: 5))
-        }
-        .help(title)
-        .popover(
-            isPresented: Binding(get: { laserSettings && tool == .laser }, set: { laserSettings = $0 }),
-            arrowEdge: .top
-        ) {
-            LaserSettingsView(laser: engine.laserEngine)
-        }
-        .popover(
-            isPresented: Binding(get: { eraserSettings && tool == .eraser }, set: { eraserSettings = $0 }),
-            arrowEdge: .top
-        ) {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("橡皮擦").font(.headline)
-                Picker("模式", selection: $engine.eraserMode) {
-                    Text("物件").tag(EraserMode.object)
-                    Text("像素").tag(EraserMode.pixel)
-                }.pickerStyle(.segmented)
-                Text("範圍 \(Int(engine.eraserSize)) pt")
-                Slider(value: $engine.eraserSize, in: 4...120, step: 2)
-            }.padding(16).frame(width: 260)
+    private var vertical: Bool { controller.controlsDock.isVertical }
+    private var popoverEdge: Edge {
+        switch controller.controlsDock {
+        case .top: return .top
+        case .bottom: return .bottom
+        case .left: return .leading
+        case .right: return .trailing
         }
     }
+
     var body: some View {
-        VStack(spacing: 10) {
-            HStack(spacing: 10) {
-                AnnotationPanelGrip().frame(width: 22, height: 25).help("拖曳握把移動控制列")
-                Button {
-                    controller.toggleDrawing()
-                } label: {
-                    Label(
-                        controller.isDrawing ? "作畫" : "操作",
-                        systemImage: controller.isDrawing ? "pencil.tip" : "cursorarrow"
-                    )
-                    .foregroundStyle(controller.isDrawing ? Color.orange : Color.green)
-                }.help("⌘⌥⇧D 切換作畫／滑鼠穿透")
-                Divider().frame(height: 20)
-                ForEach(annotationTools, id: \.tool) { item in
-                    annotationTool(item.tool, icon: item.icon, title: item.title)
-                }
-                Divider().frame(height: 20)
-                Button {
-                    controller.activeEngine.undo()
-                } label: {
-                    Image(systemName: "arrow.uturn.backward")
-                }.help("復原這個螢幕的註記")
-                Button {
-                    controller.activeEngine.redo()
-                } label: {
-                    Image(systemName: "arrow.uturn.forward")
-                }.help("重做")
-                Menu {
-                    Button("截圖並儲存 PNG　⌘⌥⇧S") { controller.captureScreen() }
-                    Button("儲存可編輯註記 .heiban…") { controller.saveEditable() }
-                    Button("清除註記…") { controller.clearAnnotations() }
-                    Button("使用手冊") { controller.showUserGuide() }
-                } label: {
-                    MenuDisclosureLabel("螢幕畫布更多") {
-                        Image(systemName: "ellipsis").frame(width: 18, height: 24)
-                    }
-                }
-                .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
-                Button {
-                    controller.stop()
-                } label: {
-                    Image(systemName: "xmark")
-                }.help("結束螢幕畫布 · ⌘⌥⇧X")
-            }
-            HStack(spacing: 8) {
-                ForEach(["#ef4444", "#f59e0b", "#22c55e", "#3b82f6", "#ffffff", "#111827"], id: \.self) {
-                    color in
-                    Button {
-                        controller.setColor(color)
-                    } label: {
-                        Circle().fill(Color(hex: color)).frame(width: 20, height: 20).overlay(
-                            Circle().stroke(.gray.opacity(0.4)))
-                    }.accessibilityLabel("註記顏色 \(color)")
-                }
-                Text("粗細").font(.caption)
-                Slider(
-                    value: Binding(get: { engine.activeStrokeWidth }, set: controller.setWidth), in: 1...32
-                ).frame(width: 75)
-                Text("透明度").font(.caption)
-                Slider(value: Binding(get: { engine.activeOpacity }, set: controller.setOpacity), in: 0.1...1)
-                    .frame(width: 65)
-                Text(controller.message).font(.system(size: 10)).foregroundStyle(.secondary).lineLimit(2)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
+        Group {
+            if vertical { verticalControls } else { horizontalControls }
         }
-        .buttonStyle(.plain).font(.system(size: 14)).padding(14)
+        .buttonStyle(.plain).font(.system(size: 14)).padding(vertical ? 8 : 12)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
         .overlay(RoundedRectangle(cornerRadius: 16).stroke(.gray.opacity(0.2)))
         .disabled(controller.isCapturing)
+    }
+
+    private var grip: some View {
+        AnnotationPanelGrip(onBegin: controller.beginControlsDrag,
+                            onMove: controller.moveControlsDrag, onEnd: controller.endControlsDrag)
+            .frame(width: 24, height: 30)
+            .help("拖曳到螢幕上下左右；放開後停靠，左右自動直排")
+            .accessibilityLabel("移動螢幕畫布工具列")
+    }
+
+    private var drawingButton: some View {
+        Button { controller.toggleDrawing() } label: {
+            Group {
+                if vertical {
+                    Image(systemName: controller.isDrawing ? "pencil.tip" : "cursorarrow")
+                } else {
+                    Label(controller.isDrawing ? "作畫" : "操作",
+                          systemImage: controller.isDrawing ? "pencil.tip" : "cursorarrow")
+                }
+            }
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(controller.isDrawing ? Color.orange : Color.green)
+                .frame(width: vertical ? 32 : 62, height: 32)
+                .contentShape(Rectangle())
+        }.help("\(controller.isDrawing ? "作畫中" : "操作中・滑鼠穿透")；⌘⌥⇧D 切換\n\(controller.message)")
+            .accessibilityLabel(controller.isDrawing ? "切換為滑鼠穿透" : "切換為作畫")
+    }
+
+    private var horizontalControls: some View {
+        HStack(spacing: 6) {
+            grip
+            drawingButton
+            Divider().frame(height: 22)
+            // 只捲動工具區，樣式／清空／結束入口在短視窗也始終可見。
+            ScrollView(.horizontal) {
+                HStack(spacing: 4) {
+                    toolButtons
+                    Divider().frame(height: 22)
+                    undoButton
+                    redoButton
+                    captureButton
+                    moreMenu
+                }.fixedSize()
+            }.frame(height: 36).scrollIndicators(.hidden)
+            brushSettingsButton
+            Divider().frame(height: 22)
+            clearButton
+            closeButton
+        }
+    }
+
+    private var verticalControls: some View {
+        VStack(spacing: 6) {
+            VStack(spacing: 4) { grip; drawingButton }
+            Divider()
+            // 一欄圖示保留點擊範圍；文字及滑桿只出現在提示／彈出面板。
+            // 固定模式與清空／結束；較短螢幕只捲動中間工具區。
+            ScrollView(.vertical) {
+                VStack(spacing: 4) {
+                    VStack(spacing: 2) { toolButtons }
+                    Divider()
+                    brushSettingsButton
+                    undoButton
+                    redoButton
+                    captureButton
+                }.frame(maxWidth: .infinity)
+            }.scrollIndicators(.hidden)
+            Divider()
+            VStack(spacing: 4) { clearButton; moreMenu; closeButton }
+        }
+    }
+
+    private var toolButtons: some View {
+        ForEach(annotationTools, id: \.tool) { item in
+            Button {
+                if item.tool == .laser && engine.currentTool == .laser {
+                    laserSettings = true
+                } else if item.tool == .eraser && engine.currentTool == .eraser {
+                    eraserSettings = true
+                } else {
+                    controller.selectTool(item.tool)
+                }
+            } label: {
+                Group {
+                    if item.tool == .text { Text("T").font(.system(size: 18, weight: .medium, design: .serif)) }
+                    else { Image(systemName: item.icon) }
+                }
+                .frame(width: 32, height: 32)
+                .background(engine.currentTool == item.tool ? Color.accentColor.opacity(0.15) : .clear,
+                            in: RoundedRectangle(cornerRadius: 6))
+                .contentShape(Rectangle())
+            }
+            .help(item.title + (item.tool == .eraser || item.tool == .laser ? "：再次點擊開啟設定" : ""))
+            .accessibilityLabel(item.title)
+            .popover(isPresented: Binding(get: { laserSettings && item.tool == .laser }, set: { laserSettings = $0 }),
+                     arrowEdge: popoverEdge) {
+                LaserSettingsView(laser: engine.laserEngine)
+            }
+            .popover(isPresented: Binding(get: { eraserSettings && item.tool == .eraser }, set: { eraserSettings = $0 }),
+                     arrowEdge: popoverEdge) {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("橡皮擦").font(.headline)
+                    Picker("模式", selection: $engine.eraserMode) {
+                        Text("物件").tag(EraserMode.object)
+                        Text("像素").tag(EraserMode.pixel)
+                    }.pickerStyle(.segmented)
+                    Text("範圍 \(Int(engine.eraserSize)) pt")
+                    Slider(value: $engine.eraserSize, in: 4...120, step: 2)
+                }.padding(16).frame(width: 260)
+            }
+        }
+    }
+
+    private var brushSettingsButton: some View {
+        Button { brushSettings = true } label: {
+            Circle().fill(Color(hex: engine.activeColor)).frame(width: 22, height: 22)
+                .overlay(Circle().stroke(.gray.opacity(0.5)))
+                .frame(width: 32, height: 32).contentShape(Rectangle())
+        }
+        .help("顏色、粗細與透明度")
+        .accessibilityLabel("開啟註記顏色、粗細與透明度設定")
+        .popover(isPresented: $brushSettings, arrowEdge: popoverEdge) {
+            AnnotationBrushSettings(controller: controller, engine: engine)
+        }
+    }
+
+    private func iconButton(_ icon: String, title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: icon).frame(width: 30, height: 32).contentShape(Rectangle())
+        }.help(title).accessibilityLabel(title)
+    }
+    private var undoButton: some View {
+        iconButton("arrow.uturn.backward", title: "復原這個螢幕的註記", action: engine.undo).disabled(!engine.canUndo)
+    }
+    private var redoButton: some View {
+        iconButton("arrow.uturn.forward", title: "重做", action: engine.redo).disabled(!engine.canRedo)
+    }
+    private var clearButton: some View {
+        iconButton("trash", title: "一鍵清空所有螢幕註記（可復原，不結束螢幕畫布）", action: controller.clearAnnotations)
+    }
+    private var closeButton: some View {
+        iconButton("xmark", title: "結束螢幕畫布 · ⌘⌥⇧X", action: controller.stop)
+    }
+    private var captureButton: some View {
+        iconButton("camera", title: "截圖並儲存 PNG · ⌘⌥⇧S", action: controller.captureScreen)
+    }
+    private var moreMenu: some View {
+        Menu {
+            Menu("工具列位置") {
+                ForEach(AnnotationToolbarDock.allCases, id: \.rawValue) { dock in
+                    Button { controller.setControlsDock(dock) } label: {
+                        if controller.controlsDock == dock { Label(dock.title, systemImage: "checkmark") }
+                        else { Text(dock.title) }
+                    }
+                }
+            }
+            Divider()
+            Button("截圖並儲存 PNG　⌘⌥⇧S") { controller.captureScreen() }
+            Button("儲存可編輯註記 .heiban…") { controller.saveEditable() }
+            Button("一鍵清空畫布（可復原）") { controller.clearAnnotations() }
+            Button("使用手冊") { controller.showUserGuide() }
+            Divider()
+            Text(controller.message)
+        } label: {
+            if vertical {
+                Image(systemName: "ellipsis").frame(width: 32, height: 32)
+            } else {
+                MenuDisclosureLabel("螢幕畫布更多") { Image(systemName: "ellipsis").frame(width: 18, height: 24) }
+            }
+        }.menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+            .help("螢幕畫布更多設定").accessibilityLabel("螢幕畫布更多設定")
     }
 }

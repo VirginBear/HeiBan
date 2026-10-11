@@ -29,7 +29,8 @@ public struct SelectionQuickActionBar: View {
         let state = engine.selectionQuickBarState(for: barSize)
         if state.isVisible {
             HStack(spacing: 6) {
-                if state.allowsColor {
+                // 文字格式集中到文字框右鍵，純文字選取不再重複顯示改色入口。
+                if state.allowsColor && !engine.selectedObjects.allSatisfy({ $0.type == "text" || $0.type == "sticky" }) {
                     colorPickerSection
                 }
                 if state.allowsStrokeWidth {

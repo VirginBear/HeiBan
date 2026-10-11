@@ -65,6 +65,7 @@ extension BoardEngine {
         }
         showTextEditor = false
         showInlineTextEditor = true
+        inlineTextFormatAction = nil
         editingTextObjectId = nil
         originalTextObject = nil
         textEntryKind = kind
@@ -81,16 +82,20 @@ extension BoardEngine {
     }
 
     public func beginEditingText(object: BoardObject) {
-        guard object.type == "text" || object.type == "sticky" else { return }
+        guard object.isLocked != true, object.type == "text" || object.type == "sticky" else { return }
         showTextEditor = false
         showInlineTextEditor = true
+        inlineTextFormatAction = nil
         editingTextObjectId = object.id
         originalTextObject = object
         textEntryKind = object.type
         textEntryPoint = Point(x: object.x, y: object.y)
         inlineTextPoint = textEntryPoint
         textDraft = object.text ?? ""
-        editingRichTextSpans = object.richTextSpans ?? []
+        editingRichTextSpans = object.richTextSpans ?? [TextSpan(
+            text: object.text ?? "", isBold: object.isBold, isItalic: object.isItalic,
+            isUnderline: object.isUnderline, isStrikethrough: object.isStrikethrough,
+            color: object.strokeColor, highlightColor: object.highlightColor)]
         editingFontFamily = object.fontFamily ?? "PingFang TC"
         editingFontSize = object.fontSize ?? (object.type == "sticky" ? 16 : 24)
         editingTextAlign = object.align ?? "left"
@@ -180,9 +185,10 @@ extension BoardEngine {
     }
 
     public func requestInlineTextFormat(_ action: String) {
+        let format = action.hasPrefix("all:") ? String(action.dropFirst(4)) : action
         guard
-            ["bold", "italic", "underline", "strikethrough", "highlight"].contains(action)
-                || action.hasPrefix("color:#")
+            ["bold", "italic", "underline", "strikethrough", "highlight"].contains(format)
+                || format.hasPrefix("color:#")
         else { return }
         inlineTextFormatAction = action
         inlineTextFormatRevision &+= 1

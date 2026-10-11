@@ -13,6 +13,15 @@ final class ScreenAnnotationController: ObservableObject {
     @Published private(set) var isCapturing = false
     @Published var message = "⌘⌥⇧D 作畫／操作 · ⌘⌥⇧X 結束"
     @Published private(set) var activeEngine = BoardEngine(restoreSession: false, persistenceEnabled: false)
+    @Published private(set) var controlsDock = AnnotationToolbarDock(
+        rawValue: UserDefaults.standard.string(forKey: "HeiBan.screenToolbar.dock") ?? "top") ?? .top
+    @Published private(set) var controlsSize = NSSize(width: 820, height: 60)
+    private var controlsPosition: Double = {
+        let value = UserDefaults.standard.object(forKey: "HeiBan.screenToolbar.position") as? Double ?? 0.5
+        return value.isFinite ? min(1, max(0, value)) : 0.5
+    }()
+    private var controlsDisplayID = (UserDefaults.standard.object(forKey: "HeiBan.screenToolbar.display") as? NSNumber)?.uint32Value
+    private var controlsDrag: (mouse: NSPoint, frame: NSRect)?
     private var sessions: [ScreenAnnotationSession] = []
     private var controls: NSPanel?
     private let hotKeys = ScreenAnnotationHotKeys()
@@ -75,6 +84,10 @@ final class ScreenAnnotationController: ObservableObject {
             guard self.isActive, self.sessions.contains(where: { $0.panel == event.window }),
                 event.keyCode == 53
             else { return event }
+            // 文字編輯器先處理 Esc／中文組字；不能被全域暫停作畫攔走。
+            if self.sessions.contains(where: { $0.panel == event.window && $0.engine.inlineTextEditing }) {
+                return event
+            }
             self.setDrawing(false)
             return nil
         }
@@ -179,6 +192,9 @@ final class ScreenAnnotationController: ObservableObject {
             raiseOverlayWindows()
             return
         }
+        if !drawing {
+            commitTextDrafts()
+        }
         isDrawing = drawing
         for session in sessions {
             session.setDrawing(drawing)
@@ -200,6 +216,7 @@ final class ScreenAnnotationController: ObservableObject {
             capture.cancel()
             return
         }
+        commitTextDrafts()
         do { for session in sessions { try session.saveRecovery() } } catch {
             message = "註記未能保存，保留畫布：\(error.localizedDescription)"
             return
@@ -215,6 +232,7 @@ final class ScreenAnnotationController: ObservableObject {
         controls?.orderOut(nil)
         controls?.close()
         controls = nil
+        controlsDrag = nil
         isActive = false
         isDrawing = false
         lastExternalApp?.activate(options: [])
@@ -222,8 +240,18 @@ final class ScreenAnnotationController: ObservableObject {
 
     func selectTool(_ tool: ToolType) {
         if !isDrawing { setDrawing(true) }
+        commitTextDrafts()
         for session in sessions where session.engine.currentTool != tool {
             session.engine.selectTool(tool)
+        }
+    }
+
+    /// 暫停、換工具、保存及截圖共同收束文字草稿，先結束原生組字。
+    /// 不把未提交文字只留在 editor；停止後仍沿用既有 .heiban 恢復檔。
+    private func commitTextDrafts() {
+        for session in sessions where session.engine.showInlineTextEditor {
+            (session.panel.firstResponder as? NSTextView)?.unmarkText()
+            session.engine.commitInlineTextEntry()
         }
     }
     func setColor(_ color: String) {
@@ -246,14 +274,22 @@ final class ScreenAnnotationController: ObservableObject {
     }
 
     func clearAnnotations() {
-        let alert = NSAlert()
-        alert.messageText = "清除所有螢幕的註記？"
-        alert.informativeText = "只清除透明畫布上的物件，不影響背後的程式。可在本次工作階段復原。"
-        alert.addButton(withTitle: "取消")
-        alert.addButton(withTitle: "清除")
-        if withHiddenOverlays({ alert.runModal() }) == .alertSecondButtonReturn {
-            sessions.forEach { $0.engine.clearAll() }
+        guard isActive, !isCapturing, !isPresentingDialog else { return }
+        // 清空是可復原的編輯命令，不走 modal／orderOut／stop，避免露出黑板首頁。
+        // 取消未完成筆畫後恢復原工具／樣式與穿透模式；雷射尾跡也要一併消失。
+        for session in sessions {
+            session.setDrawing(isDrawing)
+            session.engine.laserEngine.clear()
+            session.engine.clearAll()
         }
+        message = "已清空所有螢幕註記 · 可在各螢幕復原"
+        do {
+            // 空白狀態立即落盤，避免清空後立刻停止／重開又恢復舊註記。
+            for session in sessions { try session.saveRecovery() }
+        } catch {
+            message = "已清空；註記暫存失敗：\(error.localizedDescription)"
+        }
+        if isDrawing { focusDrawingCanvas() }
     }
 
     var focusedEngine: BoardEngine? {
@@ -264,6 +300,7 @@ final class ScreenAnnotationController: ObservableObject {
     }
 
     func saveEditable() {
+        commitTextDrafts()
         guard isActive else { return }
         let panel = NSSavePanel()
         panel.title = "儲存可編輯螢幕註記"
@@ -284,6 +321,7 @@ final class ScreenAnnotationController: ObservableObject {
 
     func captureScreen() {
         guard isActive, !isCapturing else { return }
+        commitTextDrafts()
         let wasDrawing = isDrawing
         let mouseSession = sessions.first { $0.panel.frame.contains(NSEvent.mouseLocation) }
         let id = mouseSession?.displayID ?? selectedDisplayID
@@ -327,10 +365,13 @@ final class ScreenAnnotationController: ObservableObject {
     }
 
     private func showControls() {
-        let screen = NSScreen.screens.first { $0.frame.contains(NSEvent.mouseLocation) } ?? NSScreen.main!
+        guard let screen = NSScreen.screens.first(where: { displayID(for: $0) == controlsDisplayID })
+            ?? NSScreen.screens.first(where: { $0.frame.contains(NSEvent.mouseLocation) }) ?? NSScreen.main
+        else { return }
+        let frame = AnnotationToolbarLayout.frame(for: controlsDock, position: controlsPosition, on: screen)
+        controlsSize = frame.size
         let panel = AnnotationControlsPanel(
-            contentRect: NSRect(
-                x: screen.visibleFrame.midX - 370, y: screen.visibleFrame.maxY - 118, width: 740, height: 102),
+            contentRect: frame,
             styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         panel.title = "螢幕畫布控制列"
         panel.level = AnnotationWindowPolicy.controlsLevel
@@ -338,11 +379,66 @@ final class ScreenAnnotationController: ObservableObject {
         panel.backgroundColor = .clear
         panel.hidesOnDeactivate = false
         panel.isReleasedWhenClosed = false
+        panel.isMovable = false
         panel.isMovableByWindowBackground = false
         panel.collectionBehavior = AnnotationWindowPolicy.collectionBehavior
-        panel.contentView = NSHostingView(rootView: ScreenAnnotationControls(controller: self))
+        let host = NSHostingView(rootView: ScreenAnnotationControls(controller: self))
+        host.sizingOptions = []
+        host.autoresizingMask = [.width, .height]
+        panel.contentView = host
         controls = panel
+        if let id = displayID(for: screen) { selectDisplay(id) }
         panel.orderFrontRegardless()
+    }
+
+    private func displayID(for screen: NSScreen) -> UInt32? {
+        (screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber)?.uint32Value
+    }
+
+    func setControlsDock(_ dock: AnnotationToolbarDock) {
+        guard let screen = controls?.screen ?? NSScreen.main else { return }
+        controlsDrag = nil
+        placeControls(dock: dock, on: screen)
+    }
+
+    func beginControlsDrag(at point: NSPoint) {
+        guard !isCapturing, let panel = controls else { return }
+        controlsDrag = (point, panel.frame)
+    }
+
+    func moveControlsDrag(to point: NSPoint) {
+        guard let drag = controlsDrag, let panel = controls,
+            let screen = NSScreen.screens.first(where: { $0.frame.contains(point) }) ?? panel.screen else { return }
+        let available = AnnotationToolbarLayout.availableFrame(on: screen)
+        var origin = NSPoint(x: drag.frame.minX + point.x - drag.mouse.x, y: drag.frame.minY + point.y - drag.mouse.y)
+        origin.x = min(max(available.minX, origin.x), max(available.minX, available.maxX - drag.frame.width))
+        origin.y = min(max(available.minY, origin.y), max(available.minY, available.maxY - drag.frame.height))
+        // 拖動過程不發布 SwiftUI 方向／尺寸，不會因握把換位置而反覆跳動。
+        panel.setFrameOrigin(origin)
+    }
+
+    func endControlsDrag(at point: NSPoint) {
+        guard let drag = controlsDrag else { return }
+        controlsDrag = nil
+        guard hypot(point.x - drag.mouse.x, point.y - drag.mouse.y) > 3,
+            let screen = NSScreen.screens.first(where: { $0.frame.contains(point) }) ?? controls?.screen else { return }
+        let dock = AnnotationToolbarLayout.nearestDock(to: point, on: screen, current: controlsDock)
+        controlsPosition = AnnotationToolbarLayout.position(forDrop: point, dock: dock, on: screen)
+        placeControls(dock: dock, on: screen)
+        if let id = displayID(for: screen) { selectDisplay(id) }
+    }
+
+    private func placeControls(dock: AnnotationToolbarDock, on screen: NSScreen) {
+        guard let panel = controls else { return }
+        controlsDock = dock
+        let frame = AnnotationToolbarLayout.frame(for: dock, position: controlsPosition, on: screen)
+        controlsSize = frame.size
+        panel.setFrame(frame, display: true, animate: false)
+        controlsDisplayID = displayID(for: screen)
+        let defaults = UserDefaults.standard
+        defaults.set(dock.rawValue, forKey: "HeiBan.screenToolbar.dock")
+        defaults.set(controlsPosition, forKey: "HeiBan.screenToolbar.position")
+        if let id = controlsDisplayID { defaults.set(NSNumber(value: id), forKey: "HeiBan.screenToolbar.display") }
     }
 
     private func focusDrawingCanvas() {

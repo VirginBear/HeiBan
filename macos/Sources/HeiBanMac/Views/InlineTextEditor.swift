@@ -9,6 +9,7 @@ private enum InlineTextFormat: Equatable {
 /// A native NSTextView keeps macOS input-method composition (including CJK IMEs)
 /// inside the canvas while retaining a real UTF-16 selection for rich formatting.
 private struct InlineTextEditorRepresentable: NSViewRepresentable {
+    let engine: BoardEngine
     @Binding var text: String
     @Binding var spans: [TextSpan]
     let fontFamily: String
@@ -33,6 +34,7 @@ private struct InlineTextEditorRepresentable: NSViewRepresentable {
 
         let textView = InlineNSTextView(frame: NSRect(x: 0, y: 0, width: 360, height: 120))
         textView.delegate = context.coordinator
+        textView.engine = engine
         textView.isRichText = true
         textView.allowsUndo = true
         textView.isVerticallyResizable = true
@@ -61,6 +63,7 @@ private struct InlineTextEditorRepresentable: NSViewRepresentable {
     func updateNSView(_ scroll: NSScrollView, context: Context) {
         context.coordinator.parent = self
         guard let textView = context.coordinator.textView else { return }
+        textView.engine = engine
         textView.onCommit = onCommit
         textView.onCancel = onCancel
         textView.alphaValue = opacity
@@ -166,7 +169,9 @@ private struct InlineTextEditorRepresentable: NSViewRepresentable {
         func apply(_ rawAction: String) {
             guard let textView else { return }
             let format: InlineTextFormat
-            switch rawAction {
+            let wholeText = rawAction.hasPrefix("all:")
+            let action = wholeText ? String(rawAction.dropFirst(4)) : rawAction
+            switch action {
             case "bold": format = .bold
             case "italic": format = .italic
             case "underline": format = .underline
@@ -175,8 +180,8 @@ private struct InlineTextEditorRepresentable: NSViewRepresentable {
             case let value where value.hasPrefix("color:#"): format = .color(String(value.dropFirst(6)))
             default: return
             }
-            let range = textView.selectedRange()
             let length = (textView.string as NSString).length
+            let range = wholeText ? NSRange(location: 0, length: length) : textView.selectedRange()
             let safeRange = NSRange(location: min(range.location, length), length: min(range.length, max(0, length - range.location)))
             let storage = textView.textStorage
             let currentFont = (textView.typingAttributes[.font] as? NSFont) ?? textView.font ?? NSFont.systemFont(ofSize: CGFloat(parent.fontSize))
@@ -216,6 +221,11 @@ private struct InlineTextEditorRepresentable: NSViewRepresentable {
                     }
                 }
                 storage?.endEditing()
+            }
+            if wholeText {
+                var attributes = textView.typingAttributes
+                applyToTypingAttributes(&attributes)
+                textView.typingAttributes = attributes
             }
             parent.spans = extractSpans(from: textView.attributedString())
         }
@@ -321,6 +331,17 @@ private final class InlineTextScrollView: NSScrollView {
 }
 
 private final class InlineNSTextView: NSTextView {
+    var engine: BoardEngine?
+    private let textContext = TextStyleContextMenu()
+
+    override func menu(for event: NSEvent) -> NSMenu? {
+        let menu = super.menu(for: event) ?? NSMenu()
+        if let engine {
+            textContext.append(to: menu, engine: engine, draft: true, view: self,
+                               point: convert(event.locationInWindow, from: nil))
+        }
+        return menu
+    }
     var onCommit: (() -> Void)?
     var onCancel: (() -> Void)?
 
@@ -340,15 +361,6 @@ private final class InlineNSTextView: NSTextView {
 struct InlineTextEditorOverlay: View {
     @ObservedObject var engine: BoardEngine
 
-    private var isSticky: Bool { engine.textEntryKind == .sticky }
-    private var inputBackground: Color {
-        if isSticky {
-            let sticky = engine.objects.first { $0.id == engine.editingTextObjectId }
-            return Color(hex: sticky?.fillColor ?? StickyPalette.yellow)
-        }
-        return Color(hex: engine.board.backgroundColor)
-    }
-
     var body: some View {
         GeometryReader { geometry in
             // Keep the complete panel inside the canvas and clear of the docked controls.
@@ -363,7 +375,7 @@ struct InlineTextEditorOverlay: View {
             let x = min(max(left, anchorX), max(left, geometry.size.width - right - width))
             let y = min(max(top, anchorY), max(top, geometry.size.height - bottom - height))
 
-            editorPanel
+            InlineTextEditorPanel(engine: engine)
                 .frame(width: width, height: height)
                 .background(Color(nsColor: .windowBackgroundColor), in: RoundedRectangle(cornerRadius: 14))
                 .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.primary.opacity(0.16), lineWidth: 1))
@@ -372,7 +384,22 @@ struct InlineTextEditorOverlay: View {
         }
     }
 
-    private var editorPanel: some View {
+}
+
+/// 文字內容面板共用原生 NSTextView；格式集中在文字框右鍵，不常駐占位。
+struct InlineTextEditorPanel: View {
+    @ObservedObject var engine: BoardEngine
+
+    private var isSticky: Bool { engine.textEntryKind == .sticky }
+    private var inputBackground: Color {
+        if isSticky {
+            let sticky = engine.objects.first { $0.id == engine.editingTextObjectId }
+            return Color(hex: sticky?.fillColor ?? StickyPalette.yellow)
+        }
+        return Color(hex: engine.board.backgroundColor)
+    }
+
+    var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Label(isSticky ? "編輯便簽" : "編輯文字", systemImage: isSticky ? "note.text" : "character.cursor.ibeam")
@@ -387,49 +414,8 @@ struct InlineTextEditorOverlay: View {
             }
             .controlSize(.small)
 
-            HStack(spacing: 5) {
-                formatButton("B", help: "粗體", format: .bold).fontWeight(.bold)
-                formatButton("I", help: "斜體", format: .italic).italic()
-                formatButton("U", help: "底線", format: .underline).underline()
-                formatButton("S", help: "刪除線", format: .strikethrough).strikethrough()
-                formatButton("▧", help: "螢光標記", format: .highlight)
-                formatButton("A", help: "將所選文字設為目前文字色", format: .color(engine.editingTextColor))
-                ColorPicker("文字色彩", selection: Binding(
-                    get: { Color(hex: engine.editingTextColor) },
-                    set: { engine.editingTextColor = Self.hex(from: $0); engine.requestInlineTextFormat("color:\(engine.editingTextColor)") }
-                ))
-                .labelsHidden()
-                .frame(width: 26)
-                Spacer(minLength: 0)
-                Picker("對齊", selection: $engine.editingTextAlign) {
-                    Text("靠左").tag("left")
-                    Text("置中").tag("center")
-                    Text("靠右").tag("right")
-                }
-                .labelsHidden()
-                .frame(width: 84)
-            }
-            .controlSize(.small)
-
-            HStack(spacing: 8) {
-                TextField("字體", text: $engine.editingFontFamily)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 112)
-                    .accessibilityLabel("字體")
-                Stepper(value: $engine.editingFontSize, in: 8...144, step: 1) {
-                    Text("\(Int(engine.editingFontSize)) pt").monospacedDigit()
-                }
-                .frame(width: 108)
-                Text("不透明度").font(.system(size: 11))
-                Slider(value: $engine.editingTextOpacity, in: 0.05...1)
-                    .accessibilityLabel("文字不透明度")
-                Text(engine.editingTextOpacity, format: .percent.precision(.fractionLength(0)))
-                    .font(.system(size: 11).monospacedDigit())
-                    .frame(width: 34, alignment: .trailing)
-            }
-            .controlSize(.small)
-
             InlineTextEditorRepresentable(
+                engine: engine,
                 text: $engine.textDraft,
                 spans: $engine.editingRichTextSpans,
                 fontFamily: engine.editingFontFamily,
@@ -447,7 +433,7 @@ struct InlineTextEditorOverlay: View {
             .clipShape(RoundedRectangle(cornerRadius: 8))
             .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.primary.opacity(0.12), lineWidth: 1))
 
-            Text("Enter 換行 · ⌘Enter 完成 · Esc 取消")
+            Text("Enter 換行 · ⌘Enter 完成 · Esc 取消 · 右鍵調整文字")
                 .font(.system(size: 10))
                 .foregroundStyle(.secondary)
         }
@@ -455,31 +441,6 @@ struct InlineTextEditorOverlay: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    private func formatButton(_ title: String, help: String, format: InlineTextFormat) -> some View {
-        Button {
-            engine.requestInlineTextFormat(actionName(for: format))
-        } label: {
-            Text(title).frame(width: 25, height: 24)
-        }
-        .buttonStyle(.bordered)
-        .help(help)
-    }
-
-    private func actionName(for format: InlineTextFormat) -> String {
-        switch format {
-        case .bold: "bold"
-        case .italic: "italic"
-        case .underline: "underline"
-        case .strikethrough: "strikethrough"
-        case .highlight: "highlight"
-        case .color(let hex): "color:\(hex)"
-        }
-    }
-
-    private static func hex(from color: Color) -> String {
-        let rgb = (NSColor(color).usingColorSpace(.deviceRGB) ?? .white)
-        return String(format: "#%02x%02x%02x", Int(rgb.redComponent * 255), Int(rgb.greenComponent * 255), Int(rgb.blueComponent * 255))
-    }
 }
 
 private extension NSColor {

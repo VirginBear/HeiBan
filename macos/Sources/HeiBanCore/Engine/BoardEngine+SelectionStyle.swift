@@ -92,6 +92,44 @@ extension BoardEngine {
         modifySelectedObjects { $0.strokeColor = color }
     }
 
+    /// 文字框右鍵的批次修改：混合選取不改圖片／圖形；富文字色與基底色
+    /// 一起更新，否則 spans 的色彩會蓋過物件色。每次設定只有一筆歷史。
+    public func setSelectedTextStyle(
+        fontSize: Double? = nil, color: String? = nil, fontFamily: String? = nil,
+        align: String? = nil, opacity: Double? = nil,
+        bold: Bool? = nil, italic: Bool? = nil, underline: Bool? = nil
+    ) {
+        guard fontSize?.isFinite != false, opacity?.isFinite != false else { return }
+        let pageIDs = Set(currentPageObjects.map(\.id))
+        func update(_ object: inout BoardObject) {
+            if let fontSize {
+                object.fontSize = max(8, min(144, fontSize))
+                if object.type == "text" { object.height = max(object.height, ceil(estimatedStickyTextHeight(object))) }
+            }
+            if let color { object.strokeColor = color }
+            if let fontFamily, !fontFamily.isEmpty { object.fontFamily = fontFamily }
+            if let align, ["left", "center", "right"].contains(align) { object.align = align }
+            if let opacity { object.opacity = max(0.05, min(1, opacity)) }
+            if let bold { object.isBold = bold }
+            if let italic { object.isItalic = italic }
+            if let underline { object.isUnderline = underline }
+            object.richTextSpans = object.richTextSpans?.map { span in
+                var changed = span
+                if let color { changed.color = color }
+                if let bold { changed.isBold = bold }
+                if let italic { changed.isItalic = italic }
+                if let underline { changed.isUnderline = underline }
+                return changed
+            }
+        }
+        modifySelectedObjects(matching: { object in
+            guard pageIDs.contains(object.id), object.type == "text" || object.type == "sticky" else { return false }
+            var changed = object
+            update(&changed)
+            return changed != object
+        }, update)
+    }
+
     public func setSelectedFillColor(_ color: String) {
         modifySelectedObjects { object in
             object.fillColor = color

@@ -1,6 +1,6 @@
 # Mac 實際架構與維護邊界
 
-更新：2026-10-09。這份文件描述現況，未建立不存在的 Storage／Metal 模組。
+更新：2026-10-10。這份文件描述現況，未建立不存在的 Storage／Metal 模組。
 
 ## 套件與職責
 
@@ -58,7 +58,13 @@ Core 目前仍依賴 CoreGraphics、SwiftUI Path、ImageIO、Security 與部分 
 
 ## 螢幕畫布邊界
 
-Controller 管開始、穿透、焦點、截圖、停止；Session 管每顯示器的 engine／透明 NSPanel／恢復檔；AnnotationInputView 擁有原生輸入與整個螢幕的命中區域；Canvas 僅組合既有渲染層（GeometryReader 與原生輸入同尺寸）；AnnotationWindowPolicy 統一跨程式層級／Space 行為；Controls 只呼叫命令；HotKeys 只登記三組快捷鍵。先保存才關閉；恢復檔損壞先保留原檔，避免空白覆寫。
+Controller 管開始、穿透、焦點、截圖、停止；Session 管每顯示器的 engine／透明 NSPanel／恢復檔；AnnotationInputView 擁有原生輸入與整個螢幕的命中區域；Canvas 僅組合既有渲染層（GeometryReader 與原生輸入同尺寸）；AnnotationWindowPolicy 統一跨程式層級／Space 行為；AnnotationToolbarLayout 統一四邊尺寸／停靠座標；Grip只傳遞原生手勢，Controller在拖曳時移origin、放開時更新方向／尺寸及本機偏好；Controls依方向排版，只呼叫命令；HotKeys 只登記三組快捷鍵。先保存才關閉；恢復檔損壞先保留原檔，避免空白覆寫。
+
+1.0.11 左右 Controls 為 64 pt 單欄圖示，上下為 60 pt 高單列。四邊色圓共用 AnnotationBrushSettings，重用同一 engine 的顏色、粗細、透明度 bindings，僅保存面板開關；不增加樣式副本、歷史或文件格式。設定視圖自行定義 plain 按鈕樣式、280 pt 自然寬度、3×2 色票及直排滑桿，不繼承窄控制列布局提案／假設外部按鈕環境。可捲動工具區與固定動作分開；工具名稱使用 help／accessibilityLabel，狀態訊息在更多選單／設定面板可讀，工具列不再常駐屬性／狀態列。
+
+1.0.12 文字 editor 是 AnnotationInputView 的可互動 NSHostingView 子視圖，僅其 frame 內 hitTest 交給子視圖；renderer 仍不命中，其餘整屏接原生 PointerView。只訂閱文字編輯開關／錨點來增刪／定位，非每個指標樣本重排。InlineTextEditorPanel 共用 NSTextView 草稿，完成才提交；Controller 暫停／保存／換工具／停止時共用 commitTextDrafts。Esc 在編輯時不被穿透切換截走。
+
+TextStyleContextMenu 由 PointerView 與 NSTextView 各自持有，包含預設命令及自訂值 NSPopover；草稿只修改編輯狀態、已提交物件走 setSelectedTextStyle。批次命令共用 modifySelectedObjects，限定本頁未鎖定 text／sticky，一次發布／undo；色彩與字形同步 rich spans，不改填色、圖片或圖形。自訂面板套用前核對選取／草稿對象，僅傳修改欄位；樣式調整不增加文件格式。
 
 ## 開發時注意
 
@@ -67,3 +73,5 @@ Controller 管開始、穿透、焦點、截圖、停止；Session 管每顯示�
 - `.partial` 橡皮擦是舊文件相容值，不能當死 enum 刪除。
 - SwiftUI `@State` 有同名 Core 狀態型別干擾，現有視圖使用 `@ViewState` 別名；不要為格式統一隨意改回。
 - 廣域錄製權限／一次性系統選取器是不同授權路徑，詳見截圖問題紀錄。
+
+螢幕畫布清空不屬於退出／modal生命週期：取消暫態時保留工具與模式，clearAll產生可復原歷史，雷射不進歷史；空白恢復檔立即寫入。普通作品庫不受影響。工具列設定不寫進.heiban／undo，尺寸按visibleFrame限制、超出工具內容可捲動。

@@ -57,6 +57,7 @@ struct HeiBanApp: App {
                 Button(screenCanvas.isActive ? "切換作畫／操作　⌘⌥⇧D" : "我的螢幕就是我的畫布　⌘⌥⇧D") { screenCanvas.toggleDrawing() }
                 Button("截圖並儲存　⌘⌥⇧S") { screenCanvas.captureScreen() }.disabled(!screenCanvas.isActive || screenCanvas.isCapturing)
                 Button("儲存可編輯註記…") { screenCanvas.saveEditable() }.disabled(!screenCanvas.isActive)
+                Button("一鍵清空螢幕畫布（可復原）") { screenCanvas.clearAnnotations() }.disabled(!screenCanvas.isActive || screenCanvas.isCapturing)
                 Button("結束螢幕畫布　⌘⌥⇧X") { screenCanvas.stop() }.disabled(!screenCanvas.isActive)
             }
             CommandGroup(replacing: .help) { Button("黑板使用手冊") { HeiBanUserGuide.shared.show() } }
@@ -72,6 +73,7 @@ struct HeiBanApp: App {
         MenuBarExtra("黑板螢幕畫布", systemImage: "pencil.tip.crop.circle") {
             Button(screenCanvas.isActive ? "切換作畫／操作　⌘⌥⇧D" : "開啟螢幕畫布　⌘⌥⇧D") { screenCanvas.toggleDrawing() }
             Button("截圖並儲存　⌘⌥⇧S") { screenCanvas.captureScreen() }.disabled(!screenCanvas.isActive || screenCanvas.isCapturing)
+            Button("一鍵清空螢幕畫布（可復原）") { screenCanvas.clearAnnotations() }.disabled(!screenCanvas.isActive || screenCanvas.isCapturing)
             Button("結束螢幕畫布　⌘⌥⇧X") { screenCanvas.stop() }.disabled(!screenCanvas.isActive)
             Divider()
             Button("使用手冊") { HeiBanUserGuide.shared.show() }
