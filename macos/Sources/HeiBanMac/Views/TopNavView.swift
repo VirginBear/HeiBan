@@ -8,6 +8,11 @@ public struct TopNavView: View {
     @ViewState private var showBackgroundSettings = false
     @ViewState private var showNoteInfoPopover = false
     @ViewState private var showToolbarCustomizer = false
+    @Binding private var headerPinned: Bool
+    private var onPanelChanged: (Bool) -> Void
+    private var panelOpen: Bool {
+        showLaserSettings || showBackgroundSettings || showNoteInfoPopover || showToolbarCustomizer
+    }
 
     private var saveLabel: String {
         if engine.autosaveStatus.contains("失敗") || engine.autosaveStatus.contains("無法") { return "儲存失敗" }
@@ -21,8 +26,10 @@ public struct TopNavView: View {
         return VectorMath.screenToWorld(centerScreen, viewport: engine.viewport)
     }
 
-    public init(engine: BoardEngine) {
+    public init(engine: BoardEngine, headerPinned: Binding<Bool> = .constant(false), onPanelChanged: @escaping (Bool) -> Void = { _ in }) {
         self.engine = engine
+        self._headerPinned = headerPinned
+        self.onPanelChanged = onPanelChanged
     }
 
     public var body: some View {
@@ -72,6 +79,13 @@ public struct TopNavView: View {
 
             // 6. Compact Status Light Indicator
             statusIndicatorView
+            Button { headerPinned.toggle() } label: {
+                Image(systemName: headerPinned ? "eye.fill" : "eye")
+                    .font(.system(size: 12))
+                    .foregroundStyle(headerPinned ? Color.accentColor : .secondary)
+                    .frame(width: 24, height: 24)
+            }
+            .help(headerPinned ? "取消固定：離開後自動隱藏導覽列" : "固定導覽列")
         }
         .buttonStyle(.plain)
         .padding(.horizontal, 10)
@@ -92,6 +106,8 @@ public struct TopNavView: View {
         .sheet(isPresented: $showToolbarCustomizer) {
             ToolbarCustomizeSheet(engine: engine, isPresented: $showToolbarCustomizer)
         }
+        .onChange(of: panelOpen) { _, open in onPanelChanged(open) }
+        .onDisappear { onPanelChanged(false) }
     }
 
     // MARK: - Insert Menu

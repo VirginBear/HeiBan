@@ -30,15 +30,25 @@ extension BoardEngine {
     }
 
     public func scheduleAutosave() {
-        guard persistence.enabled else { return }
+        let settings = AppSettingsManager.shared.current
+        guard persistence.enabled, settings.autoSaveEnabled, settings.autoSaveFrequency != .manual else { return }
         persistence.workItem?.cancel()
         // 新工作使舊工作的 UI 回報失效；寫入本身由串行 queue 保證順序。
         persistence.generation += 1
         let generation = persistence.generation
-        let work = DispatchWorkItem { [weak self] in self?.writeAutosaveSnapshot(generation: generation) }
+        let work = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            let latest = AppSettingsManager.shared.current
+            guard latest.autoSaveEnabled, latest.autoSaveFrequency != .manual else {
+                self.autosaveStatus = "尚未儲存"
+                return
+            }
+            self.autosaveStatus = "儲存中…"
+            self.writeAutosaveSnapshot(generation: generation)
+        }
         persistence.workItem = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7, execute: work)
-        autosaveStatus = "儲存中…"
+        DispatchQueue.main.asyncAfter(deadline: .now() + settings.autoSaveFrequency.rawValue, execute: work)
+        autosaveStatus = "尚未儲存"
     }
 
     private func writeAutosaveSnapshot(generation: Int) {
@@ -110,4 +120,51 @@ extension BoardEngine {
     }
 
     public func flushAutosave() { _ = saveBeforeLeaving() }
+
+    /// 正常結束應用程式時使用非同步保存，避免大作品的編碼／磁碟寫入凍結主執行緒。
+    public func saveBeforeLeaving(completion: @escaping (Bool) -> Void) {
+        dispatchPrecondition(condition: .onQueue(.main))
+        guard persistence.enabled else { completion(true); return }
+        if showingHome && objects.isEmpty && !libraryBoards.contains(where: { $0.id == board.id }) {
+            completion(true)
+            return
+        }
+
+        commitInlineTextEntry()
+        persistence.workItem?.cancel()
+        persistence.generation += 1
+        let generation = persistence.generation
+        var snapshot = document
+        let nextRev = (snapshot.board.revision ?? 0) + 1
+        snapshot.board.revision = nextRev
+        autosaveStatus = "儲存中…"
+
+        BoardPersistenceState.queue.async { [weak self] in
+            do {
+                try Self.library.save(snapshot)
+                if let url = Self.autosaveURL {
+                    try FileManager.default.createDirectory(
+                        at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+                    let data = try HeiBanDocumentCodec.encode(snapshot)
+                    try data.write(to: url, options: .atomic)
+                }
+                DispatchQueue.main.async {
+                    guard let self else { completion(false); return }
+                    guard self.persistence.generation == generation else { completion(false); return }
+                    self.board.revision = nextRev
+                    self.refreshLibrary()
+                    self.autosaveStatus = "本機已儲存 \(Date.now.formatted(date: .omitted, time: .shortened))"
+                    completion(true)
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    guard let self else { completion(false); return }
+                    guard self.persistence.generation == generation else { completion(false); return }
+                    self.autosaveStatus = "儲存失敗：\(error.localizedDescription)"
+                    self.showTemporaryStatus("儲存失敗，保留目前黑板：\(error.localizedDescription)")
+                    completion(false)
+                }
+            }
+        }
+    }
 }

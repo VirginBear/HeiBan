@@ -11,11 +11,13 @@
 | [DECISIONS](DECISIONS.zh-TW.md) | 架構選擇、替代方案與代價 | 做出重要決定時 |
 | [CODE_REVIEW](CODE_REVIEW_2026-10-09.zh-TW.md) | 本次稽核與整理結果 | 本批完成時 |
 
-最新交付核對見 [Antigravity 第一批獨立複核](ANTIGRAVITY_REVIEW_2026-10-11.zh-TW.md)：既有測試通過，舊圖釘座標相容性仍有阻擋。
+最新Windows清晨來源核對見[10/12同步與下一步](WINDOWS_SYNC_REVIEW_2026-10-12.zh-TW.md)：两庫已取回、Mac未提交成果保留；本批没有重建App。
 
-下一批工具列優先依 [Antigravity Mac 工具列追齊清單](../ANTIGRAVITY_MAC_TOOLBAR_WORKLIST_2026-10-11.zh-TW.md)；涵蓋一般／螢幕列，尚未實作。
+最新本機交付為1.0.13／20261011.1，見 [日誌10](logs/2026-10-11/10.zh-TW.md)：右上懸停導覽、普通圖層原生拖曳回饋及首頁螢幕畫布入口已實作封裝，實際操作待驗收。
 
-最新工具列交付見 [獨立複核與M23–25修正目標](MAC_TOOLBAR_REVIEW_2026-10-11.zh-TW.md)：核心套件通過但實際偏好／草稿／鎖定流程仍有缺口。
+工具列整體進度依 [Antigravity Mac 工具列追齊清單](../ANTIGRAVITY_MAC_TOOLBAR_WORKLIST_2026-10-11.zh-TW.md)。TB01–03已實作，M23–25有前批回歸確認；TB04–10尚未整體完成。本批普通圖層改進不表示螢幕畫布已有圖層入口。
+
+历史相容性複核見 [Antigravity 第一批獨立複核](ANTIGRAVITY_REVIEW_2026-10-11.zh-TW.md)；其中M21其後已修復。歷史工具列缺口見 [工具列複核](MAC_TOOLBAR_REVIEW_2026-10-11.zh-TW.md)，目前狀態以CURRENT_STATUS的新紀錄為準。
 
 ## 工作順序
 

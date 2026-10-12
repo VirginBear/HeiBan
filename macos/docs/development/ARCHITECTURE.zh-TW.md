@@ -1,6 +1,6 @@
 # Mac 實際架構與維護邊界
 
-更新：2026-10-10。這份文件描述現況，未建立不存在的 Storage／Metal 模組。
+更新：2026-10-12。這份文件描述現況，未建立不存在的 Storage／Metal 模組。
 
 ## 套件與職責
 
@@ -50,10 +50,10 @@ Core 目前仍依賴 CoreGraphics、SwiftUI Path、ImageIO、Security 與部分 
 1. 永久物件在世界座標；滑鼠與游標範圍在螢幕座標。縮放只能透過 viewport 換算，筆寬與橡皮擦範圍單位不可混用。
 2. 高頻取樣只改預覽／工具狀態。手勢結束產生一次命令；雷射、圓規輔助線、游標不加入物件或匯出。
 3. 多選樣式修改跳過鎖定物件；批次發布 objects，保留原物件順序，一筆歷史交易。
-4. 普通作品先在主執行緒取得值型別快照，串行 queue 寫入。generation 只拒絕過期 UI 回報，**不是**磁碟寫入取消機制。
+4. 普通作品先在主執行緒取得值型別快照，串行 queue 寫入。自動保存頻率由 AppSettings 控制；關閉自動保存不會關閉 persistence owner，手動／離開仍須落盤。generation 只拒絕過期 UI 回報，**不是**磁碟寫入取消機制。
 5. 切換文件統一 `activate`，同時保留版本／未知欄位並清掉舊互動與歷史。對外 `load` 先保存目前作品。
 6. 螢幕註記、未整合的 DocumentSession 使用 `persistenceEnabled: false`；由各自保存擁有者處理，不能回寫 current 或普通作品庫。
-7. 退出保存由 AppDelegate 處理，失敗拒絕退出；View 不再另寫一份退出快照。
+7. 退出保存由 AppDelegate 以 `terminateLater` 等待非同步寫入回報，成功才允許結束，失敗拒絕退出；View 不另寫退出快照。螢幕恢復檔由 ScreenAnnotationController 先提交文字並保存，失敗時保留透明畫布。
 8. 多文件、雲端、協作、更新模型的存在，不代表正式 UI 已啟用。移除前要查檢查程式與既定產品需求。
 
 ## 螢幕畫布邊界
@@ -75,3 +75,9 @@ TextStyleContextMenu 由 PointerView 與 NSTextView 各自持有，包含預設�
 - 廣域錄製權限／一次性系統選取器是不同授權路徑，詳見截圖問題紀錄。
 
 螢幕畫布清空不屬於退出／modal生命週期：取消暫態時保留工具與模式，clearAll產生可復原歷史，雷射不進歷史；空白恢復檔立即寫入。普通作品庫不受影響。工具列設定不寫進.heiban／undo，尺寸按visibleFrame限制、超出工具內容可捲動。
+
+## 1.0.13 導覽與圖層拖曳
+
+WorkspaceHeaderView 在工作區上疊放 TopNav／ReadingNavigation，不改 Canvas 尺寸。原生 NSTrackingArea 偵測膠囊附近游標，hitTest 回 nil；只有顯示中的膠囊與收起箭頭接受點擊。隱藏使用 opacity／allowsHitTesting，不重建 popover 錨點；700ms 可取消延時避免游標進選單時消失。固定顯示是本機 AppStorage 偏好，未加入作品格式或復原。
+
+LayerPanelView 持有當前拖曳 ID、作品／頁 ID 及目標上下側；LayerDragHandle 的 NSDraggingSession 產生 Finder 式圖示／名稱預覽，來源結束回呼（含取消）清理 UI。DropDelegate 只接受本 panel 的私有型別與 session，drop 前再核對作品／頁／鎖定狀態；moveLayer 依 stable zIndex 排序替換當頁槽位，提交一次既有 reorderObjects 交易。相同位置不產生歷史，其他頁相對順序／物件內容／未知欄位保留。build_app.sh 只宣告內部 drag UTType，不為它設定文件開啟副檔名。

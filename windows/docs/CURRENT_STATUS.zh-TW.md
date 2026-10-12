@@ -1,5 +1,9 @@
 # Windows 目前開發狀態
 
+## 2026-10-12 — Parallels ARM64 試用版已部署
+
+依目前 Windows 來源 commit `148d427a47e03a09bf21431d248fe00e3e9b6d9a` 建置 1.0.14.0 原生 ARM64 可攜試用包，標籤 `parallels-arm64-2026-10-12`。ZIP 位於 `dist/trials/HeiBan-Windows-Portable-1.0.14-parallels-arm64-2026-10-12-win-arm64.zip`，123,816,578 bytes／SHA256 `eed7341e766c423e0c6b9a7ce239974c64175c3533e58431e0f862105e4fe5e1`；PE架構為AArch64，571項封裝內容，ZIP不含作品Data。Parallels Windows 11 ARM64已部署至 `C:\HeiBanPreview\Trial-1.0.14-parallels-arm64-2026-10-12`，桌面捷徑「HeiBan Windows 1.0.14 ARM64 Trial」。由舊 `C:\HeiBanPreview\Current\Data` 接續56個檔案共2,588,837 bytes，逐檔SHA核對；舊目錄保留。新程序PID 13520、主視窗「HeiBan 黑板 · Windows」，Responding=True，執行檔版本1.0.14.0。未透過Microsoft Store安裝或改動商店套件。[部署證據](PARALLELS_TRIAL_DEPLOYMENT_2026-10-12.json)／[本批日誌](PARALLELS_TRIAL_2026-10-12.zh-TW.md)。完整功能、回歸、作品操作與效能測試仍待實際試用，不因啟動成功視為整批驗收。
+
 ## 2026-10-12 — runFullTrust 送審欄位說明
 
 已核對Store manifest為FullTrustApplication／packagedClassicApp／mediumIL，需保留runFullTrust；提供[325字元短版英文說明與證據](STORE_RUN_FULL_TRUST_2026-10-12.zh-TW.md)，涵蓋桌面執行、本機檔案、螢幕註記、快捷鍵及主動截圖。短文依使用者回報截斷縮短，未宣稱官方欄位上限。未變更權限、版本、產物或後台，核准仍依本次Microsoft審查。

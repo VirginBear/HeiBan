@@ -1,0 +1,132 @@
+{
+  "date": "2026-10-12",
+  "timezone": "Asia/Taipei",
+  "scope": "Git來源／文件同步與Mac規劃，不是App或二進位同步",
+  "publicRepository": "VirginBear/HeiBan",
+  "before": "7198f1114c4332c7fec388db4154887d38efa6ea",
+  "after": "148d427a47e03a09bf21431d248fe00e3e9b6d9a",
+  "addedCommits": 17,
+  "remoteMainConfirmed": "148d427a47e03a09bf21431d248fe00e3e9b6d9a",
+  "ahead": 0,
+  "behind": 0,
+  "changedUpstreamFiles": 86,
+  "changedUpstreamPlatform": "windows",
+  "upstreamLocalOverlap": [],
+  "macWorkingFilesPreservedBeforeDocumentationUpdates": {
+    "count": 30,
+    "mismatched": [],
+    "backupLocation": ".git/codex-sync-backups/20261012-windows-sync/"
+  },
+  "windowsGitBlobInspection": {
+    "tracked": 347,
+    "matched": 347,
+    "mismatched": 0
+  },
+  "privateCheckout": {
+    "synchronized": true,
+    "visibilityVerified": "private",
+    "keptSeparate": true,
+    "privateProductContentsCopiedToPublic": false
+  },
+  "macApp": {
+    "version": "1.0.13",
+    "build": "20261011.1",
+    "rebuiltThisBatch": false,
+    "binarySHA256": "d98feeccab8d2a62b27d1bd6d96de7a3d57425c9c31ed07497f84186d057e74f"
+  },
+  "commits": [
+    {
+      "sha": "148d427a47e03a09bf21431d248fe00e3e9b6d9a",
+      "committedAt": "2026-10-12T06:09:04+08:00",
+      "title": "docs(windows): shorten runFullTrust explanation for submission field"
+    },
+    {
+      "sha": "47c6bce9b7326e4e80371073ea3778281a91ed3e",
+      "committedAt": "2026-10-12T06:05:32+08:00",
+      "title": "docs(windows): explain runFullTrust Store capability usage"
+    },
+    {
+      "sha": "9e1e2123ff43587f42b9190cd0cd875644839805",
+      "committedAt": "2026-10-12T05:46:43+08:00",
+      "title": "docs(windows): record Store copy sync evidence"
+    },
+    {
+      "sha": "bf29843d72e01a5e8cc0f7c959b8b813baea3705",
+      "committedAt": "2026-10-12T05:45:10+08:00",
+      "title": "docs(windows): prepare Store listing copy in ten languages"
+    },
+    {
+      "sha": "bdee8dc6c8b0622a6edd27079bb19a453dff8fb5",
+      "committedAt": "2026-10-12T05:29:16+08:00",
+      "title": "docs(windows): verify multilingual guide repository sync"
+    },
+    {
+      "sha": "da30db5b7c3a794a8b67355d439c0c036dfe1fe7",
+      "committedAt": "2026-10-12T05:27:04+08:00",
+      "title": "docs(windows): record multilingual guide packages and trial data handoff"
+    },
+    {
+      "sha": "1ab7018b24e4fc06f354ac8d968207de8d0c7770",
+      "committedAt": "2026-10-12T05:22:33+08:00",
+      "title": "windows: preserve generated guide line endings across checkouts"
+    },
+    {
+      "sha": "84583637706e172e0ed64c0e8431122311f17309",
+      "committedAt": "2026-10-12T05:20:28+08:00",
+      "title": "windows: bundle ten-language offline guides with shared language-aware entry"
+    },
+    {
+      "sha": "87c6ae26ebde89846a0d2d7168c9cc2d7daa7033",
+      "committedAt": "2026-10-12T04:52:39+08:00",
+      "title": "docs(windows): record release policy sync evidence"
+    },
+    {
+      "sha": "873015f2733ddd30f6ab6702b55d7d761c96fbd7",
+      "committedAt": "2026-10-12T04:52:20+08:00",
+      "title": "docs(windows): require validated series and user decision before version bump"
+    },
+    {
+      "sha": "9cf2f124e0e7182e74d357014efb86f84430884e",
+      "committedAt": "2026-10-12T04:50:02+08:00",
+      "title": "docs(windows): record verified save-mode repository sync"
+    },
+    {
+      "sha": "a7c415fbfa0fda420b0795c951ec35c539f070f3",
+      "committedAt": "2026-10-12T04:47:52+08:00",
+      "title": "docs(windows): record 1.0.14 packages and preserved trial data"
+    },
+    {
+      "sha": "c409a6e8e27e4d1ee7e9187e86c8929109187bb6",
+      "committedAt": "2026-10-12T04:39:22+08:00",
+      "title": "windows: default auto-save off and animate saved exit"
+    },
+    {
+      "sha": "963f2d0082854a1407651541b1743e4394458c6f",
+      "committedAt": "2026-10-12T04:20:48+08:00",
+      "title": "docs(windows): record update delivery synchronization"
+    },
+    {
+      "sha": "82e41939196fb4c4f4221062706922c4e4640de3",
+      "committedAt": "2026-10-12T04:18:42+08:00",
+      "title": "docs(windows): record Store 1.0.13.0 bundle and performance handoff"
+    },
+    {
+      "sha": "9b6c4e48563c6cfc95a4e7d1de3ecd2be8d0b825",
+      "committedAt": "2026-10-12T04:14:05+08:00",
+      "title": "windows: share toolbar UI and prepare Store 1.0.13.0"
+    },
+    {
+      "sha": "75aa821420aab7a0ccb7907c90a5763ab80e38c4",
+      "committedAt": "2026-10-12T03:59:32+08:00",
+      "title": "docs(windows): record Store availability from Partner Center screenshot"
+    }
+  ],
+  "notPerformed": [
+    "App啟動／操作",
+    "實作測試套件",
+    "Mac或Windows重新建置",
+    "Windows安裝包下載或重建",
+    "讀取／同步使用者作品",
+    "推送／商店／Release發布"
+  ]
+}

@@ -4,11 +4,14 @@ import HeiBanCore
 
 /// 一個顯示器的一份透明文件、原生視窗與恢復檔；不回寫普通作品庫。
 final class ScreenAnnotationSession {
+    private static let recoveryQueue = DispatchQueue(label: "com.bear.HeiBan.screen-recovery", qos: .utility)
     let displayID: UInt32
     let engine: BoardEngine
     let panel: NSPanel
     let recoveryURL: URL
     var subscription: AnyCancellable?
+    var recoveryWorkItem: DispatchWorkItem?
+    var onRecoveryFailure: ((String) -> Void)?
     private(set) var recoveryIssue: String?
 
     init(screen: NSScreen, recoveryDirectory: URL, onActivate: @escaping (UInt32) -> Void) {
@@ -75,13 +78,55 @@ final class ScreenAnnotationSession {
 
     func saveRecovery() throws {
         guard recoveryIssue != "無法保留原註記暫存；本次停用自動暫存" else { return }
-        try FileManager.default.createDirectory(
-            at: recoveryURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try Self.persistRecoverySnapshots([(recoveryURL, recoveryDocument())])
+    }
+
+    static func persistRecoverySnapshots(_ snapshots: [(URL, HeiBanDocument)]) throws {
+        try recoveryQueue.sync {
+            try writeRecoverySnapshots(snapshots)
+        }
+    }
+
+    private static func writeRecoverySnapshots(_ snapshots: [(URL, HeiBanDocument)]) throws {
+        for (url, document) in snapshots {
+            try FileManager.default.createDirectory(
+                at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            let data = try HeiBanDocumentCodec.encode(document)
+            try data.write(to: url, options: .atomic)
+        }
+    }
+
+    func recoveryDocument() -> HeiBanDocument {
         var document = engine.document
         document.extraFields = (document.extraFields ?? [:]).merging(["purpose": .string("screenAnnotation")])
         { _, value in value }
-        let data = try HeiBanDocumentCodec.encode(document)
-        try data.write(to: recoveryURL, options: .atomic)
+        return document
+    }
+
+    func scheduleRecovery() {
+        recoveryWorkItem?.cancel()
+        let settings = AppSettingsManager.shared.current
+        guard settings.autoSaveEnabled, settings.autoSaveFrequency != .manual else { return }
+        let work = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            let latest = AppSettingsManager.shared.current
+            guard latest.autoSaveEnabled, latest.autoSaveFrequency != .manual else { return }
+            guard self.recoveryIssue != "無法保留原註記暫存；本次停用自動暫存" else { return }
+            let document = self.recoveryDocument()
+            let url = self.recoveryURL
+            Self.recoveryQueue.async { [weak self] in
+                do {
+                    try Self.writeRecoverySnapshots([(url, document)])
+                } catch {
+                    let message = error.localizedDescription
+                    DispatchQueue.main.async {
+                        self?.onRecoveryFailure?(message)
+                    }
+                }
+            }
+        }
+        recoveryWorkItem = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + settings.autoSaveFrequency.rawValue, execute: work)
     }
 }
 

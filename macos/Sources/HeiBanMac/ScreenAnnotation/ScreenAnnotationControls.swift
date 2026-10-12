@@ -19,11 +19,27 @@ private struct ScreenAnnotationToolControls: View {
     private let annotationTools: [(tool: String, icon: String, title: String)] = [
         (.select, "cursorarrow", "選取"), (.pen, "pencil", "畫筆"), (.highlighter, "highlighter", "螢光筆"),
         (.line, "line.diagonal", "直線"), (.arrow, "arrow.up.right", "箭頭"),
+        (.curve, "scribble", "曲線"),
         (.rect, "square", "矩形"), (.circle, "circle", "圓"),
         (.text, "textformat", "文字（T）"),
         (.eraser, "eraser", "橡皮擦"), (.laser, "rays", "雷射筆"),
     ]
     private var vertical: Bool { controller.controlsDock.isVertical }
+    private var horizontalToolAreaWidth: CGFloat { max(32, controller.controlsSize.width - 310) }
+    private var horizontalToolColumns: [GridItem] {
+        let count = max(1, min(annotationTools.count, Int((horizontalToolAreaWidth + 4) / 36)))
+        return Array(repeating: GridItem(.fixed(32), spacing: 4, alignment: .center), count: count)
+    }
+    private var horizontalToolRows: Int {
+        let columns = max(1, min(annotationTools.count, Int((horizontalToolAreaWidth + 4) / 36)))
+        return (annotationTools.count + columns - 1) / columns
+    }
+    private var verticalColumnsCount: Int {
+        controller.controlsSize.width >= 80 ? 2 : 1
+    }
+    private var verticalColumns: [GridItem] {
+        Array(repeating: GridItem(.fixed(32), spacing: 4, alignment: .center), count: verticalColumnsCount)
+    }
     private var popoverEdge: Edge {
         switch controller.controlsDock {
         case .top: return .top
@@ -35,7 +51,9 @@ private struct ScreenAnnotationToolControls: View {
 
     var body: some View {
         Group {
-            if vertical { verticalControls } else { horizontalControls }
+            if controller.controlsCollapsed { collapsedControls }
+            else if vertical { verticalControls }
+            else { horizontalControls }
         }
         .buttonStyle(.plain).font(.system(size: 14)).padding(vertical ? 8 : 12)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
@@ -74,17 +92,15 @@ private struct ScreenAnnotationToolControls: View {
             grip
             drawingButton
             Divider().frame(height: 22)
-            // 只捲動工具區，樣式／清空／結束入口在短視窗也始終可見。
-            ScrollView(.horizontal) {
-                HStack(spacing: 4) {
-                    toolButtons
-                    Divider().frame(height: 22)
-                    undoButton
-                    redoButton
-                    captureButton
-                    moreMenu
-                }.fixedSize()
-            }.frame(height: 36).scrollIndicators(.hidden)
+            // 依螢幕實際寬度換列；固定控制與工具按鈕分開，所有工具不需捲動尋找。
+            LazyVGrid(columns: horizontalToolColumns, alignment: .leading, spacing: 4) { toolButtons }
+                .frame(width: horizontalToolAreaWidth, height: CGFloat(horizontalToolRows) * 36, alignment: .leading)
+            Divider().frame(height: 22)
+            undoButton
+            redoButton
+            captureButton
+            layersButton
+            moreMenu
             brushSettingsButton
             Divider().frame(height: 22)
             clearButton
@@ -92,22 +108,45 @@ private struct ScreenAnnotationToolControls: View {
         }
     }
 
+    private var collapsedControls: some View {
+        Group {
+            if vertical {
+                VStack(spacing: 5) {
+                    grip
+                    drawingButton
+                    Divider()
+                    clearButton
+                    moreMenu
+                    expandButton
+                    closeButton
+                }
+            } else {
+                HStack(spacing: 6) {
+                    grip
+                    drawingButton
+                    Divider().frame(height: 22)
+                    clearButton
+                    moreMenu
+                    expandButton
+                    closeButton
+                }
+            }
+        }
+    }
+
     private var verticalControls: some View {
         VStack(spacing: 6) {
             VStack(spacing: 4) { grip; drawingButton }
             Divider()
-            // 一欄圖示保留點擊範圍；文字及滑桿只出現在提示／彈出面板。
-            // 固定模式與清空／結束；較短螢幕只捲動中間工具區。
-            ScrollView(.vertical) {
-                VStack(spacing: 4) {
-                    VStack(spacing: 2) { toolButtons }
-                    Divider()
-                    brushSettingsButton
-                    undoButton
-                    redoButton
-                    captureButton
-                }.frame(maxWidth: .infinity)
-            }.scrollIndicators(.hidden)
+            // 空間不足時切換為雙欄，杜絕 ScrollView 滾動隱藏按鈕
+            LazyVGrid(columns: verticalColumns, spacing: 4) {
+                toolButtons
+                undoButton
+                redoButton
+                captureButton
+                layersButton
+                brushSettingsButton
+            }
             Divider()
             VStack(spacing: 4) { clearButton; moreMenu; closeButton }
         }
@@ -160,8 +199,8 @@ private struct ScreenAnnotationToolControls: View {
                 .overlay(Circle().stroke(.gray.opacity(0.5)))
                 .frame(width: 32, height: 32).contentShape(Rectangle())
         }
-        .help("顏色、粗細與透明度")
-        .accessibilityLabel("開啟註記顏色、粗細與透明度設定")
+        .help("顏色、粗細、線型與填色")
+        .accessibilityLabel("開啟註記樣式設定")
         .popover(isPresented: $brushSettings, arrowEdge: popoverEdge) {
             AnnotationBrushSettings(controller: controller, engine: engine)
         }
@@ -187,8 +226,29 @@ private struct ScreenAnnotationToolControls: View {
     private var captureButton: some View {
         iconButton("camera", title: "截圖並儲存 PNG · ⌘⌥⇧S", action: controller.captureScreen)
     }
+    private var expandButton: some View {
+        iconButton("arrow.up.left.and.arrow.down.right", title: "展開螢幕畫布工具列") {
+            controller.setControlsCollapsed(false)
+        }
+    }
+    private var layersButton: some View {
+        Button {
+            engine.showLayerPanel.toggle()
+        } label: {
+            Image(systemName: "square.3.layers.3d")
+                .frame(width: 32, height: 32)
+                .background(
+                    engine.showLayerPanel ? Color.accentColor.opacity(0.18) : .clear,
+                    in: RoundedRectangle(cornerRadius: 6)
+                )
+                .contentShape(Rectangle())
+        }
+        .help("物件圖層")
+        .accessibilityLabel("開啟物件圖層面板")
+    }
     private var moreMenu: some View {
         Menu {
+            Button("收合工具列") { controller.setControlsCollapsed(true) }
             Menu("工具列位置") {
                 ForEach(AnnotationToolbarDock.allCases, id: \.rawValue) { dock in
                     Button { controller.setControlsDock(dock) } label: {
@@ -200,6 +260,7 @@ private struct ScreenAnnotationToolControls: View {
             Divider()
             Button("截圖並儲存 PNG　⌘⌥⇧S") { controller.captureScreen() }
             Button("儲存可編輯註記 .heiban…") { controller.saveEditable() }
+            Button("物件圖層") { engine.showLayerPanel = true }
             Button("一鍵清空畫布（可復原）") { controller.clearAnnotations() }
             Button("使用手冊") { controller.showUserGuide() }
             Divider()
@@ -212,5 +273,8 @@ private struct ScreenAnnotationToolControls: View {
             }
         }.menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
             .help("螢幕畫布更多設定").accessibilityLabel("螢幕畫布更多設定")
+            .popover(isPresented: $engine.showLayerPanel, arrowEdge: popoverEdge) {
+                LayerPanelView(engine: engine).frame(width: 280, height: 440)
+            }
     }
 }

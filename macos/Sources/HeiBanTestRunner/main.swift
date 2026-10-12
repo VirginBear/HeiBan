@@ -2815,13 +2815,13 @@ do {
 
     // 26.5 關於資訊與更新日誌真實性 (A22 & MAC-SYNC-02)
     assertEqual(AboutInfo.appName, "HeiBan 黑板", "App 名稱相符")
-    assertEqual(AboutInfo.appVersion, "1.0.12", "真版本號為 1.0.12 (對齊 Release.json 與 App plist)")
-    assertEqual(AboutInfo.buildNumber, "20261010.4", "組建編號存在且為 20261010.4")
+    assertEqual(AboutInfo.appVersion, "1.0.13", "真版本號為 1.0.13 (對齊 Release.json 與 App plist)")
+    assertEqual(AboutInfo.buildNumber, "20261011.1", "組建編號存在且為 20261011.1")
     assertEqual(AboutInfo.engineVersion.contains("HeiBan Blackboard Vector Engine"), true, "引擎核心資訊明確")
     assertEqual(AboutInfo.feedbackUrl, "https://github.com/VirginBear/HeiBan/issues", "意見回覆入口指向真實倉庫 VirginBear/HeiBan/issues")
     assertEqual(AboutInfo.changelog.count >= 2, true, "更新日誌至少涵蓋 2 個版本紀錄")
-    assertEqual(AboutInfo.changelog[0].version, "1.0.12", "最新更新日誌對應 1.0.12 正式版")
-    assertEqual(AboutInfo.changelog[0].highlights.count >= 3, true, "1.0.12 重點更新項目豐富詳盡")
+    assertEqual(AboutInfo.changelog[0].version, "1.0.13", "最新更新日誌對應 1.0.13 正式版")
+    assertEqual(AboutInfo.changelog[0].highlights.count >= 3, true, "1.0.13 重點更新項目豐富詳盡")
 }
 
 // ==============================================================================
@@ -5162,12 +5162,12 @@ do {
 
     // 46.5 MAC-SYNC-02: 版本對齊、真實 Build、問題回報入口與更新日誌
     assertEqual(AboutInfo.appName, "HeiBan 黑板", "版本資訊：App 名稱相符")
-    assertEqual(AboutInfo.appVersion, "1.0.12", "版本對齊：核心版本號真實對齊 1.0.12")
-    assertEqual(AboutInfo.buildNumber, "20261010.4", "版本對齊：組建編號真實對齊 20261010.4")
+    assertEqual(AboutInfo.appVersion, "1.0.13", "版本對齊：核心版本號真實對齊 1.0.13")
+    assertEqual(AboutInfo.buildNumber, "20261011.1", "版本對齊：組建編號真實對齊 20261011.1")
     assertEqual(AboutInfo.feedbackUrl, "https://github.com/VirginBear/HeiBan/issues", "回報入口：指向 VirginBear/HeiBan/issues")
-    assertEqual(AboutInfo.changelog[0].version, "1.0.12", "更新日誌：最新紀錄為 1.0.12 正式版")
-    assertEqual(AboutInfo.changelog[0].releaseDate, "2026-10-10", "更新日誌：發布日期為 2026-10-10")
-    assertTrue(AboutInfo.changelog[0].highlights.count >= 3, "更新日誌：1.0.12 涵蓋螢幕文字、右鍵設定與批次格式等重點項目")
+    assertEqual(AboutInfo.changelog[0].version, "1.0.13", "更新日誌：最新紀錄為 1.0.13 正式版")
+    assertEqual(AboutInfo.changelog[0].releaseDate, "2026-10-11", "更新日誌：發布日期為 2026-10-11")
+    assertTrue(AboutInfo.changelog[0].highlights.count >= 3, "更新日誌：1.0.13 涵蓋導覽自動隱藏、圖層拖曳與首頁螢幕畫布入口")
 
     // 46.6 舊版圖釘座標相容性探針 (missing / null / false / true 語意保全)
     let legacyCases: [(name: String, flag: String, expected: Point)] = [
@@ -5393,6 +5393,227 @@ do {
     assertTrue(lockEngine.objects.contains(where: { $0.text == "locked draft text" }), "M25: 鎖定前文字草稿被成功提交為畫布物件")
     lockEngine.toggleViewportLock()
     assertEqual(lockEngine.viewportLocked, false, "M25: 再次調用解鎖視角")
+}
+
+// ==============================================================================
+// [測試 48] MAC-TB-04 ~ MAC-TB-07 & MAC-SYNC-13: 螢幕列排布、收合、樣式面板與圖層曲線 (先靶後箭)
+// ==============================================================================
+do {
+    print("\n[測試 48] MAC-TB-04 ~ MAC-TB-07 & MAC-SYNC-13: 螢幕列排布、收合、樣式面板與圖層曲線 (立靶驗收)")
+
+    // 48.1 MAC-SYNC-13 & M27: 自動存檔開關、自訂頻率與 manual 遷移
+    assertEqual(AutoSaveFrequency.fast.rawValue, 5.0, "存檔頻率：即時為 5.0 秒")
+    assertEqual(AutoSaveFrequency.standard.rawValue, 15.0, "存檔頻率：標準為 15.0 秒")
+    assertEqual(AutoSaveFrequency.relaxed.rawValue, 30.0, "存檔頻率：緩和為 30.0 秒")
+    assertEqual(AutoSaveFrequency.slow.rawValue, 60.0, "存檔頻率：節能為 60.0 秒")
+    assertEqual(AutoSaveFrequency.manual.rawValue, 0.0, "存檔頻率：手動為 0.0 秒")
+
+    let defaultSettings = AppSettings()
+    assertEqual(defaultSettings.autoSaveEnabled, true, "預設偏好：自動存檔預設啟用")
+    assertEqual(defaultSettings.autoSaveFrequency, .standard, "預設偏好：自動存檔頻率預設為標準")
+
+    // 舊版設定包含 manual 頻率但無 autoSaveEnabled 時無損遷移為關閉狀態
+    let legacyManualJSON = """
+    {"autoSaveFrequency":0,"appTheme":"blackboard","defaultCanvasMode":"infinite"}
+    """.data(using: .utf8)!
+    let migratedSettings = try! JSONDecoder().decode(AppSettings.self, from: legacyManualJSON)
+    assertEqual(migratedSettings.autoSaveEnabled, false, "偏好遷移：舊 manual 頻率自動無損轉為 autoSaveEnabled=false")
+    assertEqual(migratedSettings.autoSaveFrequency, .manual, "偏好遷移：維持 manual 標記")
+
+    // 48.2 MAC-TB-04: 螢幕工具列自適應排布、無捲軸換行/列與多顯示器邊界保全
+    // 橫向寬螢幕（寬度 1200）：工具區單列排布
+    let wideHSize = AnnotationToolbarLayout.size(for: .top, availableSize: NSSize(width: 1200, height: 800))
+    assertEqual(Double(wideHSize.width), 820.0, "橫向佈局（寬螢幕）：寬度限制為 820 pt")
+    assertEqual(Double(wideHSize.height), 60.0, "橫向佈局（寬螢幕）：高度為標準單列 60 pt")
+
+    // 橫向窄螢幕（寬度 600）：工具區空間約 180 pt，自動換為 2 列，高度擴展至 96 pt
+    let narrowHSize = AnnotationToolbarLayout.size(for: .bottom, availableSize: NSSize(width: 600, height: 800))
+    assertEqual(Double(narrowHSize.width), 600.0, "橫向佈局（窄螢幕）：填滿可用寬度 600 pt")
+    assertEqual(Double(narrowHSize.height), 96.0, "橫向佈局（窄螢幕）：自動換為 2 列（高 96 pt，杜絕水平滾動）")
+
+    // 橫向極窄螢幕（寬度 450）：自動換為 3 列，高度擴展至 132 pt
+    let veryNarrowHSize = AnnotationToolbarLayout.size(for: .top, availableSize: NSSize(width: 450, height: 800))
+    assertEqual(Double(veryNarrowHSize.width), 450.0, "橫向佈局（極窄螢幕）：填滿可用寬度 450 pt")
+    assertEqual(Double(veryNarrowHSize.height), 132.0, "橫向佈局（極窄螢幕）：自動換為 3 列（高 132 pt，全工具可達）")
+
+    // 直向高螢幕（高度 800）：單欄 64 pt 排布
+    let tallVSize = AnnotationToolbarLayout.size(for: .left, availableSize: NSSize(width: 1200, height: 800))
+    assertEqual(Double(tallVSize.width), 64.0, "直向佈局（標準高螢幕）：單欄寬度為 64 pt")
+    assertEqual(Double(tallVSize.height), 688.0, "直向佈局（標準高螢幕）：標準高度為 688 pt")
+
+    // 直向短螢幕（高度 500）：空間不足單欄排布時，自動切換為雙欄 96 pt，高度適配 <= 500 pt
+    let shortVSize = AnnotationToolbarLayout.size(for: .right, availableSize: NSSize(width: 1200, height: 500))
+    assertEqual(Double(shortVSize.width), 96.0, "直向佈局（短螢幕）：自動切換為雙欄 96 pt（杜絕垂直滾動）")
+    assertTrue(Double(shortVSize.height) <= 500.0, "直向佈局（短螢幕）：高度適配不超出可用邊界")
+
+    // 負座標外接顯示器（如 x: -1920, y: 0, width: 1920, height: 1080）
+    let negScreenFrame = NSRect(x: -1920, y: 0, width: 1920, height: 1080)
+    let negAvailable = AnnotationToolbarLayout.availableFrame(for: negScreenFrame)
+    assertEqual(Double(negAvailable.minX), -1908.0, "負座標顯示器：minX 正確預留邊距")
+    assertEqual(Double(negAvailable.maxX), -12.0, "負座標顯示器：maxX 正確預留邊距")
+    let negToolbarFrame = AnnotationToolbarLayout.frame(for: .top, position: 0.5, availableFrame: negAvailable)
+    assertTrue(negToolbarFrame.minX >= negAvailable.minX, "負座標工具列：minX 在安全可視區內")
+    assertTrue(negToolbarFrame.maxX <= negAvailable.maxX, "負座標工具列：maxX 在安全可視區內")
+    assertTrue(negToolbarFrame.maxY <= negAvailable.maxY, "負座標工具列：maxY 在安全可視區內")
+
+    // 停靠邊判斷
+    let dockTop = AnnotationToolbarLayout.nearestDock(to: NSPoint(x: 200, y: 790), visibleFrame: NSRect(x: 0, y: 0, width: 800, height: 800), current: .left)
+    assertEqual(dockTop, .top, "停靠判定：靠近上方時判定為 top")
+    let dockBottom = AnnotationToolbarLayout.nearestDock(to: NSPoint(x: 200, y: 10), visibleFrame: NSRect(x: 0, y: 0, width: 800, height: 800), current: .left)
+    assertEqual(dockBottom, .bottom, "停靠判定：靠近下方時判定為 bottom")
+
+    // 48.3 MAC-TB-05: 螢幕工具列收合與展開保全
+    let collapsedHSize = AnnotationToolbarLayout.size(for: .top, collapsed: true, availableSize: NSSize(width: 1200, height: 800))
+    assertEqual(Double(collapsedHSize.width), 272.0, "橫向收合：收合寬度為精簡 272 pt")
+    assertEqual(Double(collapsedHSize.height), 60.0, "橫向收合：收合高度維持 60 pt")
+
+    let collapsedVSize = AnnotationToolbarLayout.size(for: .left, collapsed: true, availableSize: NSSize(width: 1200, height: 800))
+    assertEqual(Double(collapsedVSize.width), 64.0, "直向收合：收合寬度維持 64 pt")
+    assertEqual(Double(collapsedVSize.height), 252.0, "直向收合：收合高度為精簡 252 pt")
+
+    let expandedHSize = AnnotationToolbarLayout.size(for: .top, collapsed: false, availableSize: NSSize(width: 1200, height: 800))
+    assertEqual(Double(expandedHSize.width), 820.0, "展開恢復：恢復完整寬度 820 pt")
+
+    // 48.4 MAC-TB-06: 完整樣式面板（選取物件修改 vs 未選取預設隔離、單次 Undo、混合值、最近色、線型、填色、漸層、箭頭、延伸）
+    let styleEngine = BoardEngine(restoreSession: false)
+    let rectObj = BoardObject(id: "style_rect", type: "rect", x: 10, y: 10, width: 100, height: 100, strokeColor: "#ffffff", strokeWidth: 2.0, opacity: 1.0)
+    let lineObj = BoardObject(id: "style_line", type: "line", x: 0, y: 0, width: 100, height: 0, strokeColor: "#ffffff", strokeWidth: 2.0, opacity: 1.0)
+    styleEngine.addObject(rectObj)
+    styleEngine.addObject(lineObj)
+    assertEqual(styleEngine.objects.count, 2, "畫布初始包含 2 個物件")
+
+    // 樣式修改隔離：選取 rectObj 修改色彩
+    styleEngine.selectedIds = ["style_rect"]
+    assertEqual(styleEngine.selectedIds, ["style_rect"], "已選取 style_rect")
+    styleEngine.setSelectedStrokeColor("#3b82f6")
+    assertEqual(styleEngine.objects.first(where: { $0.id == "style_rect" })?.strokeColor, "#3b82f6", "選取樣式修改：style_rect 成功變更為藍色")
+    assertEqual(styleEngine.objects.first(where: { $0.id == "style_line" })?.strokeColor, "#ffffff", "選取樣式隔離：未選取之 style_line 保持原色不受污染")
+    styleEngine.undo()
+    assertEqual(styleEngine.objects.first(where: { $0.id == "style_rect" })?.strokeColor, "#ffffff", "選取樣式復原：Undo 一筆成功復原原色")
+    styleEngine.redo()
+    assertEqual(styleEngine.objects.first(where: { $0.id == "style_rect" })?.strokeColor, "#3b82f6", "選取樣式重做：Redo 成功重新套用藍色")
+
+    // 未選取時修改預設：更新 activeColor 不產生 Undo
+    styleEngine.selectedIds = []
+    styleEngine.activeColor = "#10b981"
+    assertEqual(styleEngine.activeColor, "#10b981", "未選取時：更新預設筆刷色為綠色")
+    assertEqual(styleEngine.objects.first(where: { $0.id == "style_rect" })?.strokeColor, "#3b82f6", "未選取時：畫布物件不被污染")
+
+    // 最近使用色彩（Recent Colors）
+    styleEngine.registerRecentColor("#f43f5e")
+    assertEqual(styleEngine.recentColors.first, "#f43f5e", "最近色彩：新顏色成功插入至第 0 位")
+    styleEngine.registerRecentColor("#f43f5e")
+    assertEqual(styleEngine.recentColors.filter { $0 == "#f43f5e" }.count, 1, "最近色彩：重複色彩自動去重並置頂")
+    assertTrue(styleEngine.recentColors.count <= 8, "最近色彩：容量上限不超過 8 色")
+
+    // 線條樣式（Line Style: solid, dashed, dotted, dashDot）
+    styleEngine.selectedIds = ["style_rect"]
+    styleEngine.setSelectedLineStyle("dashed")
+    assertEqual(styleEngine.objects.first(where: { $0.id == "style_rect" })?.lineStyle, "dashed", "線條樣式：成功變更為虛線")
+    styleEngine.undo()
+    assertEqual(styleEngine.objects.first(where: { $0.id == "style_rect" })?.lineStyle ?? "solid", "solid", "線條樣式：Undo 成功復原為實線")
+
+    // 填色與填色透明度（Fill Color & Fill Opacity）
+    styleEngine.selectedIds = ["style_rect"]
+    styleEngine.setSelectedFillColor("#fbbf24")
+    styleEngine.setSelectedFillOpacity(0.65)
+    assertEqual(styleEngine.objects.first(where: { $0.id == "style_rect" })?.fillColor, "#fbbf24", "填色修改：成功填入琥珀黃")
+    assertEqual(styleEngine.objects.first(where: { $0.id == "style_rect" })?.fillOpacity, 0.65, "填色透明度：成功設為 65%")
+    styleEngine.undo() // 復原 fillOpacity
+    styleEngine.undo() // 復原 fillColor
+    assertEqual(styleEngine.objects.first(where: { $0.id == "style_rect" })?.fillColor ?? "none", "none", "填色復原：Undo 成功復原無填色")
+
+    // 混合填色測試
+    let rectObj2 = BoardObject(id: "style_rect2", type: "rect", x: 120, y: 10, width: 100, height: 100, fillColor: "#ef4444")
+    styleEngine.addObject(rectObj2)
+    styleEngine.selectedIds = ["style_rect", "style_rect2"]
+    styleEngine.objects[0].fillColor = "#3b82f6"
+    assertTrue(styleEngine.selectedFillColor.isMixed, "混合填色：兩物件不同填色時回報 isMixed=true")
+
+    // 漸層填色（Gradient Fill）
+    styleEngine.selectedIds = ["style_rect"]
+    styleEngine.toggleSelectedGradient()
+    styleEngine.setSelectedGradientColors(start: "#ef4444", end: "#3b82f6")
+    assertEqual(styleEngine.objects.first(where: { $0.id == "style_rect" })?.fillGradientStart, "#ef4444", "漸層設定：起點色正確儲存")
+    assertEqual(styleEngine.objects.first(where: { $0.id == "style_rect" })?.fillGradientEnd, "#3b82f6", "漸層設定：終點色正確儲存")
+    assertTrue(styleEngine.selectedGradientEnabled, "漸層狀態：回報已啟用漸層")
+    styleEngine.toggleSelectedGradient()
+    assertFalse(styleEngine.selectedGradientEnabled, "漸層狀態：再次切換成功停用漸層")
+
+    // 箭頭大小與線段延伸
+    let arrowObj = BoardObject(id: "style_arrow", type: "arrow", x: 0, y: 0, width: 100, height: 50, arrowHeadLength: 16.0, arrowHeadWidth: 10.0)
+    styleEngine.addObject(arrowObj)
+    styleEngine.selectedIds = ["style_arrow"]
+    styleEngine.setSelectedArrowHeadLength(28.0)
+    styleEngine.setSelectedArrowHeadWidth(18.0)
+    assertEqual(styleEngine.objects.first(where: { $0.id == "style_arrow" })?.arrowHeadLength, 28.0, "箭頭設定：箭頭長度成功變更為 28 pt")
+    assertEqual(styleEngine.objects.first(where: { $0.id == "style_arrow" })?.arrowHeadWidth, 18.0, "箭頭設定：箭頭寬度成功變更為 18 pt")
+    styleEngine.undo() // 復原寬度
+    styleEngine.undo() // 復原長度
+    assertEqual(styleEngine.objects.first(where: { $0.id == "style_arrow" })?.arrowHeadLength, 16.0, "箭頭設定：Undo 成功復原原長度")
+
+    styleEngine.selectedIds = ["style_line"]
+    styleEngine.setSelectedLineExtension(.both)
+    assertEqual(styleEngine.objects.first(where: { $0.id == "style_line" })?.extensionMode, .both, "線段延伸：線段兩端成功設定延伸")
+    assertEqual(styleEngine.selectedLineExtension.valueOrNil, .both, "線段延伸：selectedLineExtension 正確回報 .both")
+    styleEngine.undo()
+    assertEqual(styleEngine.objects.first(where: { $0.id == "style_line" })?.extensionMode ?? .none, .none, "線段延伸：Undo 成功復原為 none")
+
+    // 文字物件保護：文字核心屬性不被筆刷線寬污染
+    let textObj = BoardObject(id: "style_text", type: "text", x: 50, y: 50, width: 200, height: 40, text: "保持完整", fontSize: 24.0)
+    styleEngine.addObject(textObj)
+    styleEngine.selectedIds = ["style_text"]
+    styleEngine.setSelectedStrokeWidth(12.0)
+    styleEngine.setSelectedFillColor("#000000")
+    assertEqual(styleEngine.objects.first(where: { $0.id == "style_text" })?.text, "保持完整", "文字防護：文字內容完整無損")
+    assertEqual(styleEngine.objects.first(where: { $0.id == "style_text" })?.fontSize, 24.0, "文字防護：字級大小完整無損")
+
+    // 48.5 MAC-TB-07: 螢幕圖層與曲線入口（交易隔離、控制點微調、排序撤銷）
+    let layerEngineA = BoardEngine(restoreSession: false)
+    let layerEngineB = BoardEngine(restoreSession: false)
+
+    // 曲線工具切換與物件生成
+    layerEngineA.selectTool(.curve)
+    assertEqual(layerEngineA.currentTool, .curve, "曲線入口：成功選取 .curve 工具")
+    let curveObj = BoardObject(
+        id: "curve_1",
+        type: "curve",
+        x: 10, y: 10, width: 90, height: 70,
+        points: "10,10 50,80 100,20",
+        strokeColor: "#ef4444"
+    )
+    layerEngineA.addObject(curveObj)
+    assertEqual(layerEngineA.objects.first(where: { $0.id == "curve_1" })?.points, "10,10 50,80 100,20", "曲線物件：控制點陣列完整保存")
+
+    // 圖層排序與單次 Undo
+    let o1 = BoardObject(id: "layer_o1", type: "rect", x: 0, y: 0, width: 50, height: 50, strokeColor: "#ffffff", zIndex: 1)
+    let o2 = BoardObject(id: "layer_o2", type: "rect", x: 10, y: 10, width: 50, height: 50, strokeColor: "#ffffff", zIndex: 2)
+    let o3 = BoardObject(id: "layer_o3", type: "rect", x: 20, y: 20, width: 50, height: 50, strokeColor: "#ffffff", zIndex: 3)
+    layerEngineA.addObject(o1)
+    layerEngineA.addObject(o2)
+    layerEngineA.addObject(o3)
+    layerEngineA.bringToFront(ids: ["layer_o1"])
+    assertTrue((layerEngineA.objects.first(where: { $0.id == "layer_o1" })?.zIndex ?? 0) > (layerEngineA.objects.first(where: { $0.id == "layer_o3" })?.zIndex ?? 0), "圖層排序：layer_o1 成功置頂")
+    layerEngineA.undo()
+    assertEqual(layerEngineA.objects.first(where: { $0.id == "layer_o1" })?.zIndex, 1, "圖層排序：Undo 一筆成功復原原排序")
+
+    // 圖層鎖定防護
+    layerEngineA.toggleLock(ids: ["layer_o2"])
+    assertTrue(layerEngineA.objects.first(where: { $0.id == "layer_o2" })?.isLocked ?? false, "圖層鎖定：layer_o2 成功鎖定")
+    layerEngineA.selectedIds = ["layer_o1", "layer_o2"]
+    layerEngineA.setSelectedStrokeColor("#ec4899")
+    assertEqual(layerEngineA.objects.first(where: { $0.id == "layer_o1" })?.strokeColor, "#ec4899", "未鎖定物件：成功修改顏色為粉紅")
+    assertEqual(layerEngineA.objects.first(where: { $0.id == "layer_o2" })?.strokeColor ?? "#ffffff", "#ffffff", "已鎖定物件：嚴格不受樣式修改污染！")
+
+    // 多螢幕 Session 隔離
+    let objB = BoardObject(id: "screenB_obj", type: "rect", x: 0, y: 0, width: 50, height: 50, strokeColor: "#ffffff")
+    layerEngineB.addObject(objB)
+    assertEqual(layerEngineB.objects.count, 1, "螢幕 B session：僅包含自己的 1 個物件")
+    assertEqual(layerEngineA.objects.count, 4, "螢幕 A session：包含自己的 4 個物件")
+    layerEngineA.selectedIds = ["layer_o1"]
+    layerEngineA.setSelectedStrokeColor("#6366f1")
+    assertEqual(layerEngineB.objects.first?.strokeColor, "#ffffff", "跨螢幕隔離：螢幕 A 的修改絕不污染螢幕 B 的物件")
+    assertEqual(layerEngineB.selectedIds.isEmpty, true, "跨螢幕隔離：螢幕 B 維持未選取狀態")
 }
 
 print("\n==================================================")

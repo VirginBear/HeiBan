@@ -121,6 +121,15 @@ struct HomeView: View {
             shelfButton("favorites", "收藏", "star", engine.libraryBoards.filter { shelf.favorites.contains($0.id) }.count)
             shelfButton("trash", "垃圾桶", "trash", engine.trashedLibraryBoards.count)
             Spacer()
+            Button { ScreenAnnotationController.shared.start() } label: {
+                HStack {
+                    Image(systemName: "rectangle.and.pencil.and.ellipsis")
+                    if sidebar { Text("螢幕畫布") }
+                }
+            }
+            .buttonStyle(.plain)
+            .help("我的螢幕就是我的畫布")
+            .accessibilityLabel("螢幕畫布")
             Button { settings = true } label: {
                 HStack { Image(systemName: "person.crop.circle"); if sidebar { Text("帳號與設定") } }
             }.buttonStyle(.plain).help("帳號與設定")

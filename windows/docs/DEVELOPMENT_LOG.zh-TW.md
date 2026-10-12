@@ -1,5 +1,13 @@
 # Windows 開發日誌
 
+## 2026-10-12 — Parallels ARM64 試用版封裝與部署
+
+使用者要求在Parallels安裝目前Windows測試版，明確選擇非Store試用方式。VM為Windows 11 Pro ARM64、Windows PowerShell 5.1、.NET SDK 10.0.401；從共享工作區同步Windows來源及Git metadata到VM隔離鏡像，來源commit `148d427a47e03a09bf21431d248fe00e3e9b6d9a`，Windows來源無未提交變更。執行 `Package-PortableTrial.ps1 -Runtime win-arm64 -Label parallels-arm64-2026-10-12` 成功，版本仍1.0.14.0；新ZIP123,816,578 bytes／SHA256 `eed7341e766c423e0c6b9a7ce239974c64175c3533e58431e0f862105e4fe5e1`，571項、Data為空、PE AArch64。包與sidecar已放入本機 `dist/trials/`，未提交公開發布。
+
+初次執行封裝腳本遇到Windows PowerShell 5.1對原生Git萬用字元參數語法錯誤；在VM臨時來源鏡像把pathspec整理成字串陣列後重試成功，未改工作區程式碼。部署腳本的路徑字元解析亦以 `[char]92` 修正並通過parser。部署到 `C:\HeiBanPreview\Trial-1.0.14-parallels-arm64-2026-10-12`，建立桌面捷徑，從原 `Current\Data` 複製56檔／2,588,837 bytes並逐檔SHA核同，舊目錄保留。新程序PID 13520，主視窗標題「HeiBan 黑板 · Windows」，Responding=True；本機與VM共享包hash核同。[部署紀錄](PARALLELS_TRIAL_2026-10-12.zh-TW.md)／[機器可讀結果](PARALLELS_TRIAL_DEPLOYMENT_2026-10-12.json)。
+
+此批僅驗證候選封裝、資料複製完整性與VM啟動；Core／UI tests、作品操作／存檔回歸、效能、RTL／硬體及母語仍未測。未安裝MSIX或商店版、未進正式版號、未修改Mac／Web程式。產品版本政策與試用候選狀態不變。
+
 ## 2026-10-12 — runFullTrust 文案縮短
 
 使用者回報長文在欄位截斷，改325字元單段英文；PowerShell Length確認含空白標點325，未檢視後台maxlength，不推定官方500字元上限。舊長版保留為背景資料，更新CURRENT_STATUS與原說明日誌。附信只讀為資料，原件／年齡分級紀錄保存在私人庫，不把它當成本次更新認證完成。公開開工只既存.vscode/、私人乾淨且PRIVATE；本批未改程式／版本／套件，未執行App／tests／build或後台填寫／提交。

@@ -26,10 +26,11 @@ struct HeiBanApp: App {
                 .onAppear {
                     NSApplication.shared.applicationIconImage = HeiBanBrand.appIcon
                     screenCanvas.registerShortcuts()
-                    appDelegate.persistBeforeQuit = {
-                        screenCanvas.stop()
-                        guard !screenCanvas.isActive else { return false }
-                        return engine.saveBeforeLeaving()
+                    appDelegate.persistBeforeQuit = { completion in
+                        screenCanvas.prepareForTermination { screensSaved in
+                            guard screensSaved else { completion(false); return }
+                            engine.saveBeforeLeaving(completion: completion)
+                        }
                     }
                 }
                 .onOpenURL { url in
@@ -82,8 +83,32 @@ struct HeiBanApp: App {
 }
 
 private final class HeiBanAppDelegate: NSObject, NSApplicationDelegate {
-    var persistBeforeQuit: (() -> Bool)?
+    var persistBeforeQuit: ((@escaping (Bool) -> Void) -> Void)?
+    private var terminationInProgress = false
+    private var terminationEventMonitor: Any?
+
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-        (persistBeforeQuit?() ?? true) ? .terminateNow : .terminateCancel
+        guard let persistBeforeQuit else { return .terminateNow }
+        guard !terminationInProgress else { return .terminateCancel }
+        terminationInProgress = true
+        terminationEventMonitor = NSEvent.addLocalMonitorForEvents(
+            matching: [.keyDown, .keyUp, .leftMouseDown, .leftMouseUp, .leftMouseDragged,
+                       .rightMouseDown, .rightMouseUp, .rightMouseDragged,
+                       .otherMouseDown, .otherMouseUp, .otherMouseDragged, .scrollWheel]
+        ) { [weak self] event in
+            self?.terminationInProgress == true ? nil : event
+        }
+        persistBeforeQuit { [weak self] saved in
+            DispatchQueue.main.async {
+                guard let self else { return }
+                self.terminationInProgress = false
+                if let monitor = self.terminationEventMonitor {
+                    NSEvent.removeMonitor(monitor)
+                    self.terminationEventMonitor = nil
+                }
+                sender.reply(toApplicationShouldTerminate: saved)
+            }
+        }
+        return .terminateLater
     }
 }

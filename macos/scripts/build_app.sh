@@ -32,6 +32,9 @@ mkdir -p "$APP_DIR/Contents/Resources"
 
 cp "$RELEASE_BIN" "$APP_DIR/Contents/MacOS/HeiBanMac"
 chmod +x "$APP_DIR/Contents/MacOS/HeiBanMac"
+# 早期腳本的舊名稱不再是 CFBundleExecutable。合併覆蓋 bundle 會留下它；
+# 封裝只保留當前執行檔，避免把舊程式一併簽署與累積在使用者電腦。
+rm -f "$APP_DIR/Contents/MacOS/HeiBan"
 for RESOURCE_BUNDLE in "$MACOS_DIR/.build/release/"*.bundle; do
     if [ -d "$RESOURCE_BUNDLE" ]; then
         cp -R "$RESOURCE_BUNDLE" "$APP_DIR/Contents/Resources/"
@@ -74,6 +77,10 @@ cat << EOF > "$APP_DIR/Contents/Info.plist"
             <key>public.filename-extension</key><array><string>heiban</string></array>
             <key>public.mime-type</key><string>application/vnd.heiban+json</string>
         </dict>
+    </dict><dict>
+        <key>UTTypeIdentifier</key><string>com.bear.heiban.layer-drag</string>
+        <key>UTTypeDescription</key><string>黑板內部圖層排序</string>
+        <key>UTTypeConformsTo</key><array><string>public.data</string></array>
     </dict></array>
     <key>CFBundleDocumentTypes</key>
     <array><dict>

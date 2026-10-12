@@ -20,7 +20,7 @@ public struct MainWindowView: View {
                             VStack {
                                 HStack {
                                     Spacer()
-                                    ReadingNavigationView(engine: engine)
+                                    WorkspaceHeaderView(engine: engine)
                                 }.padding(16)
                                 Spacer()
                             }
@@ -28,7 +28,7 @@ public struct MainWindowView: View {
                             VStack {
                                 HStack {
                                     Spacer()
-                                    TopNavView(engine: engine)
+                                    WorkspaceHeaderView(engine: engine)
                                 }
                                 .padding(.trailing, 16)
                                 .padding(.top, 12)

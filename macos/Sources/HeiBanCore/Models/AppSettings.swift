@@ -85,10 +85,10 @@ public struct ChangelogEntry: Codable, Equatable, Identifiable {
 public struct AboutInfo: Equatable {
     public static let appName = "HeiBan 黑板"
     public static var appVersion: String {
-        (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "1.0.12"
+        (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "1.0.13"
     }
     public static var buildNumber: String {
-        (Bundle.main.infoDictionary?["CFBundleVersion"] as? String) ?? "20261010.4"
+        (Bundle.main.infoDictionary?["CFBundleVersion"] as? String) ?? "20261011.1"
     }
     public static let engineVersion = "HeiBan Blackboard Vector Engine 1.0"
     public static let copyright = "© 2026 HeiBan Team. All rights reserved."
@@ -96,6 +96,11 @@ public struct AboutInfo: Equatable {
     public static let supportEmail = "support@heiban.app"
 
     public static let changelog: [ChangelogEntry] = [
+        ChangelogEntry(version: "1.0.13", releaseDate: "2026-10-11", highlights: [
+            "編輯／閱讀畫布右上導覽列靠近才顯示，支援固定顯示；選單與設定開啟時保持可用",
+            "圖層握把原生拖曳：跟隨預覽、來源淡化及上下插入提示，放下一次復原",
+            "首頁帳號與設定上方新增螢幕畫布入口，收合側欄仍可使用"
+        ]),
         ChangelogEntry(version: "1.0.12", releaseDate: "2026-10-10", highlights: [
             "「我的螢幕就是我的畫布」新增原生文字框 (T) 輸入、換行與 ⌘Enter 提交",
             "文字框原地右鍵支援快捷文字大小、自訂顏色與「更多文字設定」面板",
@@ -150,6 +155,8 @@ public struct AppSettings: Codable, Equatable {
     public var defaultFontFamily: String
     public var defaultFontSize: Double
     public var autoSaveFrequency: AutoSaveFrequency
+    /// 自動保存開關獨立於保存擁有者；關閉時手動保存與離開保存仍有效。
+    public var autoSaveEnabled: Bool
     public var defaultToolbarDock: String // "left", "right", "top", "bottom", "floating"
     public var showCanvasGrid: Bool
     public var isHapticFeedbackEnabled: Bool
@@ -162,6 +169,7 @@ public struct AppSettings: Codable, Equatable {
         defaultFontFamily: String = "PingFang TC",
         defaultFontSize: Double = 24.0,
         autoSaveFrequency: AutoSaveFrequency = .standard,
+        autoSaveEnabled: Bool? = nil,
         defaultToolbarDock: String = "left",
         showCanvasGrid: Bool = true,
         isHapticFeedbackEnabled: Bool = true,
@@ -173,10 +181,36 @@ public struct AppSettings: Codable, Equatable {
         self.defaultFontFamily = defaultFontFamily
         self.defaultFontSize = defaultFontSize
         self.autoSaveFrequency = autoSaveFrequency
+        self.autoSaveEnabled = autoSaveEnabled ?? (autoSaveFrequency != .manual)
         self.defaultToolbarDock = defaultToolbarDock
         self.showCanvasGrid = showCanvasGrid
         self.isHapticFeedbackEnabled = isHapticFeedbackEnabled
         self.loggedInUserEmail = loggedInUserEmail
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case appTheme, defaultCanvasMode, defaultPaperPreset, defaultFontFamily, defaultFontSize
+        case autoSaveFrequency, autoSaveEnabled, defaultToolbarDock, showCanvasGrid
+        case isHapticFeedbackEnabled, loggedInUserEmail
+    }
+
+    /// 舊偏好沒有 autoSaveEnabled：沿用原本 frequency=manual 的選擇作為關閉狀態。
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        let frequency = try values.decodeIfPresent(AutoSaveFrequency.self, forKey: .autoSaveFrequency) ?? .standard
+        self.init(
+            appTheme: try values.decodeIfPresent(AppTheme.self, forKey: .appTheme) ?? .blackboard,
+            defaultCanvasMode: try values.decodeIfPresent(CanvasMode.self, forKey: .defaultCanvasMode) ?? .infinite,
+            defaultPaperPreset: try values.decodeIfPresent(String.self, forKey: .defaultPaperPreset) ?? "A4",
+            defaultFontFamily: try values.decodeIfPresent(String.self, forKey: .defaultFontFamily) ?? "PingFang TC",
+            defaultFontSize: try values.decodeIfPresent(Double.self, forKey: .defaultFontSize) ?? 24,
+            autoSaveFrequency: frequency,
+            autoSaveEnabled: try values.decodeIfPresent(Bool.self, forKey: .autoSaveEnabled) ?? (frequency != .manual),
+            defaultToolbarDock: try values.decodeIfPresent(String.self, forKey: .defaultToolbarDock) ?? "left",
+            showCanvasGrid: try values.decodeIfPresent(Bool.self, forKey: .showCanvasGrid) ?? true,
+            isHapticFeedbackEnabled: try values.decodeIfPresent(Bool.self, forKey: .isHapticFeedbackEnabled) ?? true,
+            loggedInUserEmail: try values.decodeIfPresent(String.self, forKey: .loggedInUserEmail)
+        )
     }
 }
 
@@ -204,21 +238,29 @@ public final class AppSettingsManager {
     }
 
     public func update(_ block: (inout AppSettings) -> Void) {
-        block(&current)
-        save()
+        var updated = current
+        block(&updated)
+        guard persist(updated) else { return }
+        current = updated
         updateSyncStateFromSettings()
     }
 
     public func resetToDefaults() {
-        current = AppSettings()
-        save()
+        let defaults = AppSettings()
+        guard persist(defaults) else { return }
+        current = defaults
         updateSyncStateFromSettings()
     }
 
     public func save() {
-        if let data = try? JSONEncoder().encode(current) {
-            userDefaults.set(data, forKey: storageKey)
-        }
+        _ = persist(current)
+    }
+
+    @discardableResult
+    private func persist(_ settings: AppSettings) -> Bool {
+        guard let data = try? JSONEncoder().encode(settings) else { return false }
+        userDefaults.set(data, forKey: storageKey)
+        return true
     }
 
     public func setSyncState(_ state: CloudSyncState) {

@@ -1,0 +1,17 @@
+﻿{
+    "version":  "1.0.14.0",
+    "runtime":  "win-arm64",
+    "label":  "parallels-arm64-2026-10-12",
+    "installPath":  "C:\\HeiBanPreview\\Trial-1.0.14-parallels-arm64-2026-10-12",
+    "desktopShortcut":  "C:\\Mac\\Home\\Desktop\\HeiBan Windows 1.0.14 ARM64 Trial.lnk",
+    "pid":  13520,
+    "runningPath":  "C:\\HeiBanPreview\\Trial-1.0.14-parallels-arm64-2026-10-12\\HeiBan.exe",
+    "packageSha256":  "eed7341e766c423e0c6b9a7ce239974c64175c3533e58431e0f862105e4fe5e1",
+    "sharedArtifact":  "\\\\Mac\\Home\\Desktop\\Code\\HeiBan\\windows\\dist\\trials\\HeiBan-Windows-Portable-1.0.14-parallels-arm64-2026-10-12-win-arm64.zip",
+    "sharedArtifactVerified":  true,
+    "preservedExistingPath":  "C:\\HeiBanPreview\\Current",
+    "dataFilesVerified":  56,
+    "dataBytesVerified":  2588837,
+    "oldCurrentPreserved":  true,
+    "newTrialDataPath":  "C:\\HeiBanPreview\\Trial-1.0.14-parallels-arm64-2026-10-12\\Data"
+}

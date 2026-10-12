@@ -131,15 +131,24 @@ public struct NativeSettingsView: View {
             Divider()
 
             Text("存檔與安全").font(.headline)
+            Toggle("自動保存", isOn: $vm.settings.autoSaveEnabled)
+                .onChange(of: vm.settings.autoSaveEnabled) { _, isEnabled in
+                    AppSettingsManager.shared.update {
+                        $0.autoSaveEnabled = isEnabled
+                        if isEnabled && $0.autoSaveFrequency == .manual { $0.autoSaveFrequency = .standard }
+                    }
+                    vm.refresh()
+                }
             Picker("本機自動存檔頻率", selection: $vm.settings.autoSaveFrequency) {
-                ForEach(AutoSaveFrequency.allCases, id: \.self) { freq in
+                ForEach(AutoSaveFrequency.allCases.filter { $0 != .manual }, id: \.self) { freq in
                     Text(freq.displayName).tag(freq)
                 }
             }
+            .disabled(!vm.settings.autoSaveEnabled)
             .onChange(of: vm.settings.autoSaveFrequency) { _, newFreq in
                 AppSettingsManager.shared.update { $0.autoSaveFrequency = newFreq }
             }
-            Text("黑板採用原子替換（Atomic Write）機制保存至專屬沙盒，防止電源中斷導致檔案毀損。")
+            Text("一般黑板與螢幕註記依此頻率自動保存。關閉自動保存不會停用手動保存、切換作品或正常結束時的保存。")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 

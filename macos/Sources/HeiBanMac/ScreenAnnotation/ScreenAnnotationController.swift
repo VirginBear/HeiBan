@@ -15,6 +15,7 @@ final class ScreenAnnotationController: ObservableObject {
     @Published private(set) var activeEngine = BoardEngine(restoreSession: false, persistenceEnabled: false)
     @Published private(set) var controlsDock = AnnotationToolbarDock(
         rawValue: UserDefaults.standard.string(forKey: "HeiBan.screenToolbar.dock") ?? "top") ?? .top
+    @Published private(set) var controlsCollapsed = UserDefaults.standard.bool(forKey: "HeiBan.screenToolbar.collapsed")
     @Published private(set) var controlsSize = NSSize(width: 820, height: 60)
     private var controlsPosition: Double = {
         let value = UserDefaults.standard.object(forKey: "HeiBan.screenToolbar.position") as? Double ?? 0.5
@@ -127,13 +128,12 @@ final class ScreenAnnotationController: ObservableObject {
             return
         }
         for session in sessions {
-            session.subscription = session.engine.$objects.dropFirst().debounce(
-                for: .seconds(0.8), scheduler: DispatchQueue.main
-            ).sink { [weak self, weak session] _ in
+            session.onRecoveryFailure = { [weak self] detail in
+                self?.message = "註記暫存失敗：\(detail)"
+            }
+            session.subscription = session.engine.$objects.dropFirst().sink { [weak session] _ in
                 guard let session else { return }
-                do { try session.saveRecovery() } catch {
-                    self?.message = "註記暫存失敗：\(error.localizedDescription)"
-                }
+                session.scheduleRecovery()
             }
             session.panel.orderFrontRegardless()
         }
@@ -221,7 +221,48 @@ final class ScreenAnnotationController: ObservableObject {
             message = "註記未能保存，保留畫布：\(error.localizedDescription)"
             return
         }
+        finishStopAfterRecoverySaved()
+    }
+
+    /// App 正常退出時先提交每個顯示器的草稿，背景寫恢復檔；全部成功後才關閉疊層。
+    func prepareForTermination(completion: @escaping (Bool) -> Void) {
+        guard isActive else { completion(true); return }
+        guard !isCapturing else {
+            message = "截圖尚未完成；請稍後再結束黑板"
+            completion(false)
+            return
+        }
+
+        commitTextDrafts()
+        if isDrawing {
+            isDrawing = false
+            for session in sessions { session.setDrawing(false) }
+        }
+
+        let snapshots = sessions.compactMap { session -> (URL, HeiBanDocument)? in
+            if session.recoveryIssue == "無法保留原註記暫存；本次停用自動暫存" { return nil }
+            return (session.recoveryURL, session.recoveryDocument())
+        }
+        DispatchQueue.global(qos: .utility).async { [weak self] in
+            do {
+                try ScreenAnnotationSession.persistRecoverySnapshots(snapshots)
+                DispatchQueue.main.async {
+                    guard let self else { completion(false); return }
+                    self.finishStopAfterRecoverySaved()
+                    completion(true)
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    self?.message = "螢幕註記未能保存，保留畫布：\(error.localizedDescription)"
+                    completion(false)
+                }
+            }
+        }
+    }
+
+    private func finishStopAfterRecoverySaved() {
         for session in sessions {
+            session.recoveryWorkItem?.cancel()
             session.engine.cancelTransientInteraction()
             session.engine.laserEngine.cleanupOnDeactivate()
             session.subscription?.cancel()
@@ -254,17 +295,92 @@ final class ScreenAnnotationController: ObservableObject {
             session.engine.commitInlineTextEntry()
         }
     }
+    var hasSelectedStyleTarget: Bool { !activeEngine.selectedObjects.isEmpty }
+    var selectedStrokeColorForControls: String {
+        activeEngine.selectedStrokeColor.valueOrNil ?? activeEngine.selectedObjects.first?.strokeColor
+            ?? activeEngine.activeColor
+    }
+    var selectedStrokeWidthForControls: Double {
+        activeEngine.selectedStrokeWidth.valueOrNil ?? activeEngine.selectedObjects.first?.strokeWidth
+            ?? activeEngine.activeStrokeWidth
+    }
+    var selectedOpacityForControls: Double {
+        activeEngine.selectedOpacity.valueOrNil ?? activeEngine.selectedObjects.first?.opacity
+            ?? activeEngine.activeOpacity
+    }
+
+    var hasSelectedStrokeTarget: Bool {
+        activeEngine.selectedObjects.contains(where: { $0.type != "text" && $0.type != "image" })
+    }
+    var hasSelectedFillTarget: Bool {
+        activeEngine.selectedObjects.contains(where: {
+            ["rect", "circle", "ellipse", "triangle", "quadrilateral", "diamond", "star", "sticky"].contains($0.type)
+        })
+    }
+    var hasSelectedArrowTarget: Bool {
+        activeEngine.selectedObjects.contains(where: { $0.type == "arrow" })
+    }
+    var hasSelectedLineOrArrowTarget: Bool {
+        activeEngine.selectedObjects.contains(where: { $0.type == "line" || $0.type == "arrow" })
+    }
+
     func setColor(_ color: String) {
+        if hasSelectedStyleTarget {
+            activeEngine.setSelectedStrokeColor(color)
+            activeEngine.registerRecentColor(color)
+            return
+        }
         for session in sessions {
             session.engine.activeColor = color
             session.engine.laserEngine.color = color
         }
+        activeEngine.registerRecentColor(color)
     }
     func setWidth(_ width: Double) {
+        if hasSelectedStyleTarget {
+            activeEngine.setSelectedStrokeWidth(width)
+            return
+        }
         for session in sessions { session.engine.activeStrokeWidth = width }
     }
     func setOpacity(_ opacity: Double) {
+        if hasSelectedStyleTarget {
+            activeEngine.setSelectedOpacity(opacity)
+            return
+        }
         for session in sessions { session.engine.activeOpacity = opacity }
+    }
+    func setLineStyle(_ style: String) {
+        if hasSelectedStyleTarget {
+            activeEngine.setSelectedLineStyle(style)
+            return
+        }
+        for session in sessions { session.engine.activeLineStyle = style }
+    }
+    func setFillColor(_ color: String) {
+        if hasSelectedStyleTarget {
+            activeEngine.setSelectedFillColor(color)
+        }
+    }
+    func setFillOpacity(_ opacity: Double) {
+        if hasSelectedStyleTarget {
+            activeEngine.setSelectedFillOpacity(opacity)
+        }
+    }
+    func setArrowHeadLength(_ length: Double) {
+        if hasSelectedStyleTarget {
+            activeEngine.setSelectedArrowHeadLength(length)
+        }
+    }
+    func setArrowHeadWidth(_ width: Double) {
+        if hasSelectedStyleTarget {
+            activeEngine.setSelectedArrowHeadWidth(width)
+        }
+    }
+    func setLineExtension(_ mode: LineExtension) {
+        if hasSelectedStyleTarget {
+            activeEngine.setSelectedLineExtension(mode)
+        }
     }
 
     func showUserGuide() {
@@ -368,7 +484,8 @@ final class ScreenAnnotationController: ObservableObject {
         guard let screen = NSScreen.screens.first(where: { displayID(for: $0) == controlsDisplayID })
             ?? NSScreen.screens.first(where: { $0.frame.contains(NSEvent.mouseLocation) }) ?? NSScreen.main
         else { return }
-        let frame = AnnotationToolbarLayout.frame(for: controlsDock, position: controlsPosition, on: screen)
+        let frame = AnnotationToolbarLayout.frame(
+            for: controlsDock, position: controlsPosition, collapsed: controlsCollapsed, on: screen)
         controlsSize = frame.size
         let panel = AnnotationControlsPanel(
             contentRect: frame,
@@ -401,6 +518,13 @@ final class ScreenAnnotationController: ObservableObject {
         placeControls(dock: dock, on: screen)
     }
 
+    func setControlsCollapsed(_ collapsed: Bool) {
+        guard controlsCollapsed != collapsed, let screen = controls?.screen ?? NSScreen.main else { return }
+        controlsCollapsed = collapsed
+        UserDefaults.standard.set(collapsed, forKey: "HeiBan.screenToolbar.collapsed")
+        placeControls(dock: controlsDock, on: screen)
+    }
+
     func beginControlsDrag(at point: NSPoint) {
         guard !isCapturing, let panel = controls else { return }
         controlsDrag = (point, panel.frame)
@@ -431,7 +555,8 @@ final class ScreenAnnotationController: ObservableObject {
     private func placeControls(dock: AnnotationToolbarDock, on screen: NSScreen) {
         guard let panel = controls else { return }
         controlsDock = dock
-        let frame = AnnotationToolbarLayout.frame(for: dock, position: controlsPosition, on: screen)
+        let frame = AnnotationToolbarLayout.frame(
+            for: dock, position: controlsPosition, collapsed: controlsCollapsed, on: screen)
         controlsSize = frame.size
         panel.setFrame(frame, display: true, animate: false)
         controlsDisplayID = displayID(for: screen)

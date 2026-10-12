@@ -3,6 +3,36 @@ import Foundation
 
 /// 物件圖層、群組、選取與剪貼簿操作；幾何、歷史與儲存沿用同一份作品資料。
 extension BoardEngine {
+    /// 圖層列表由上往下代表前景到背景。拖曳只在放下時呼叫，一次復原整個排序。
+    public func moveLayer(id: String, relativeTo targetID: String, above: Bool) {
+        // 非法重複 ID 不能交給既有 reorderObjects 的 ID map，否則可能覆蓋物件。
+        guard Set(objects.map(\.id)).count == objects.count else {
+            statusMessage = "作品含有重複物件識別碼，無法拖曳排序。請保留原稿。"
+            return
+        }
+        let pageObjects = currentPageObjects.enumerated().sorted {
+            $0.element.zIndex == $1.element.zIndex ? $0.offset < $1.offset : $0.element.zIndex < $1.element.zIndex
+        }.map(\.element)
+        guard id != targetID,
+              let source = pageObjects.first(where: { $0.id == id }), source.isLocked != true,
+              pageObjects.contains(where: { $0.id == targetID }) else { return }
+        var pageIDs = pageObjects.map(\.id)
+        let previousIDs = pageIDs
+        pageIDs.removeAll { $0 == id }
+        guard let index = pageIDs.firstIndex(of: targetID) else { return }
+        pageIDs.insert(id, at: index + (above ? 1 : 0))
+        guard pageIDs != previousIDs else { return }
+
+        // 當頁 ID 只替換全文件排序中的當頁槽位，不把其他頁物件當成遺漏資料追加。
+        let pageIDSet = Set(pageIDs)
+        var iterator = pageIDs.makeIterator()
+        let ordered = objects.enumerated().sorted {
+            $0.element.zIndex == $1.element.zIndex ? $0.offset < $1.offset : $0.element.zIndex < $1.element.zIndex
+        }.map(\.element)
+        let allIDs = ordered.map { pageIDSet.contains($0.id) ? (iterator.next() ?? $0.id) : $0.id }
+        reorderObjects(newOrder: allIDs)
+    }
+
     public func reorderObjects(newOrder: [String]) {
         let prev = objects
         var idMap: [String: BoardObject] = [:]

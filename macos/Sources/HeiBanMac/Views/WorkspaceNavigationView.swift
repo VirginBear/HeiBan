@@ -53,6 +53,8 @@ struct WorkspaceNavigationView: View {
 
 struct ReadingNavigationView: View {
     @ObservedObject var engine: BoardEngine
+    @Binding var headerPinned: Bool
+    var onPanelChanged: (Bool) -> Void
     @ViewState private var showPins = false
     @ViewState private var pinSearchQuery = ""
     var body: some View {
@@ -152,8 +154,13 @@ struct ReadingNavigationView: View {
                         if engine.viewportLocked { Text("請先解除左下角的視角鎖定").font(.caption).foregroundStyle(.secondary) }
                     }.padding(16).frame(width: 260)
                 }
+            Button { headerPinned.toggle() } label: {
+                Image(systemName: headerPinned ? "eye.fill" : "eye")
+            }.help(headerPinned ? "取消固定導覽列" : "固定導覽列")
         }.buttonStyle(.plain).padding(.horizontal, 16).padding(.vertical, 12)
             .background(.regularMaterial, in: Capsule()).shadow(color: .black.opacity(0.06), radius: 8, y: 2)
             .fixedSize(horizontal: true, vertical: true)
+            .onChange(of: showPins) { _, open in onPanelChanged(open) }
+            .onDisappear { onPanelChanged(false) }
     }
 }

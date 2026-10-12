@@ -1,15 +1,30 @@
 import SwiftUI
 import HeiBanCore
 
+private struct LayerDragSession {
+    var objectID: String
+    var boardID: String
+    var pageID: String?
+}
+
+private struct LayerInsertion: Equatable {
+    var targetID: String
+    var above: Bool
+}
+
 public struct LayerPanelView: View {
     @ObservedObject var engine: BoardEngine
+    @ViewState private var dragSession: LayerDragSession?
+    @ViewState private var insertion: LayerInsertion?
 
     public init(engine: BoardEngine) {
         self.engine = engine
     }
 
     private var reversedObjects: [BoardObject] {
-        engine.currentPageObjects.sorted { $0.zIndex > $1.zIndex }
+        engine.currentPageObjects.enumerated().sorted {
+            $0.element.zIndex == $1.element.zIndex ? $0.offset > $1.offset : $0.element.zIndex > $1.element.zIndex
+        }.map(\.element)
     }
 
     public var body: some View {
@@ -138,6 +153,14 @@ public struct LayerPanelView: View {
                         ForEach(reversedObjects) { object in
                             let isSelected = engine.selectedIds.contains(object.id)
                             HStack(spacing: 8) {
+                                LayerDragHandle(object: object, onStart: {
+                                    dragSession = LayerDragSession(objectID: object.id, boardID: engine.board.id, pageID: engine.activePageId)
+                                    engine.selectedIds = [object.id]
+                                }, onFinish: {
+                                    dragSession = nil
+                                    insertion = nil
+                                })
+                                .frame(width: 16, height: 24)
                                 Group {
                                     if object.type == "pin" {
                                         HeiBanPinIcon().frame(width: 16, height: 16)
@@ -191,6 +214,7 @@ public struct LayerPanelView: View {
                                 .buttonStyle(.plain)
                                 .help((object.isVisible ?? true) ? "顯示中" : "已隱藏")
                             }
+                            .frame(height: 24)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
                             .background(
@@ -198,9 +222,28 @@ public struct LayerPanelView: View {
                                     .fill(isSelected ? Color.accentColor.opacity(0.12) : Color.clear)
                             )
                             .contentShape(Rectangle())
+                            .opacity(dragSession?.objectID == object.id ? 0.4 : 1)
+                            .overlay(alignment: insertion?.above == false ? .bottom : .top) {
+                                if insertion?.targetID == object.id {
+                                    HStack(spacing: 0) {
+                                        Circle().fill(Color.accentColor).frame(width: 6, height: 6)
+                                        Rectangle().fill(Color.accentColor).frame(height: 2)
+                                    }
+                                    .allowsHitTesting(false)
+                                    .help("插入「\(object.displayName)」\(insertion?.above == true ? "上方" : "下方")")
+                                }
+                            }
+                            .onDrop(of: [LayerDragType.value], delegate: LayerRowDropDelegate(
+                                engine: engine, targetID: object.id, session: $dragSession, insertion: $insertion))
                             .onTapGesture {
                                 engine.selectedIds = [object.id]
                             }
+                        }
+                        // 底部留一個真正的 drop 區，最後一列也容易放到背景最底層。
+                        if let last = reversedObjects.last {
+                            Color.clear.frame(height: 18).contentShape(Rectangle())
+                                .onDrop(of: [LayerDragType.value], delegate: LayerRowDropDelegate(
+                                    engine: engine, targetID: last.id, session: $dragSession, insertion: $insertion, bottomZone: true))
                         }
                     }
                     .padding(.horizontal, 8)
@@ -216,5 +259,46 @@ public struct LayerPanelView: View {
                 .stroke(Color.black.opacity(0.08), lineWidth: 1)
         )
         .shadow(color: Color.black.opacity(0.18), radius: 12, x: 0, y: 6)
+        .onDisappear { dragSession = nil; insertion = nil }
+    }
+}
+
+private struct LayerRowDropDelegate: DropDelegate {
+    let engine: BoardEngine
+    let targetID: String
+    @Binding var session: LayerDragSession?
+    @Binding var insertion: LayerInsertion?
+    var bottomZone = false
+
+    private var valid: Bool {
+        guard let session, session.boardID == engine.board.id, session.pageID == engine.activePageId,
+              session.objectID != targetID else { return false }
+        let objects = engine.currentPageObjects
+        return objects.contains { $0.id == session.objectID && $0.isLocked != true }
+            && objects.contains { $0.id == targetID }
+    }
+    func validateDrop(info: DropInfo) -> Bool { valid && info.hasItemsConforming(to: [LayerDragType.value]) }
+    func dropEntered(info: DropInfo) { updateInsertion(info) }
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        guard valid else { return DropProposal(operation: .cancel) }
+        updateInsertion(info)
+        return DropProposal(operation: .move)
+    }
+    func dropExited(info: DropInfo) {
+        if insertion?.targetID == targetID { insertion = nil }
+    }
+    func performDrop(info: DropInfo) -> Bool {
+        guard valid, let session else { return false }
+        let above = !bottomZone && info.location.y < 18
+        // 只接受本列表建立的 session，不從剪貼簿重建物件；中途切頁不會誤改新頁。
+        engine.moveLayer(id: session.objectID, relativeTo: targetID, above: above)
+        insertion = nil
+        self.session = nil
+        return true
+    }
+    private func updateInsertion(_ info: DropInfo) {
+        guard valid else { return }
+        let next = LayerInsertion(targetID: targetID, above: !bottomZone && info.location.y < 18)
+        if insertion != next { insertion = next }
     }
 }
