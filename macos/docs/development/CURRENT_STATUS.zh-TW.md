@@ -1,6 +1,16 @@
 # Mac 目前開發狀態
 
+## 2026-10-13 — 補齊Mac交接與跨平台減重計劃
+
+已整理[Mac目前開發進度、排錯與交接總表](MAC_DEVELOPMENT_HANDOFF_2026-10-13.zh-TW.md)，分開來源實作、歷史局部驗證與最終共用工具批次待驗收；補維護README／M28、M29、M32後續狀態／M39文檔漂移及ADR歷史取代說明，更新Antigravity現況與開發入口。下一步MAC-H01–08優先資料保存及螢幕控制可達，再作樣式／輸入／性能與語言驗收。
+
+Windows已另建立Store減重計劃與基準JSON，供Windows端接手；兩平台程式／成品與版本均未改。本批只有文件結構、連結／數據與Git同步核對，沒有重新編譯、測試套件或App操作；既有快取清理維持。完整同步結果見[日誌03](logs/2026-10-13/03.zh-TW.md)。
+
 更新：2026-10-13。平台：macOS；最新本機開發版 1.0.13 / 20261011.1。
+
+## 2026-10-13 — Mac／Windows 封裝體積分析
+
+只讀成品與封裝設定，未改兩平台程式／包、未重建／測試／發布。Mac App13.52MB、ZIP4.15MB；Windows1.0.14 ARM64開發試用ZIP123.82MB、內容346.95MB（與Mac版號不同）。主要成本為自包含.NET90.35MB、獨立Updater82.83MB、ML含Tensors42.23MB及SDK投影26.87MB；Mac框架由OS提供。UpdaterAOT／相依精簡／共享runtime是待評估方案，非已完成減重。 使用者後續聚焦Store：現有Store包已排除Updater，故優化helper對Store新增減重為0MB；兩案應優先評估SDK／ML相依，參考載荷不能當MSIX保證節省。見[分析](PACKAGE_SIZE_ANALYSIS_2026-10-13.zh-TW.md)／[數據](PACKAGE_SIZE_AUDIT_2026-10-13.json)／[日誌02](logs/2026-10-13/02.zh-TW.md)。
 
 ## 2026-10-13 — 清理編譯快取並發布目前 Mac 成品
 

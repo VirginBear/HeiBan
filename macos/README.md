@@ -1,5 +1,7 @@
 # 黑板 · macOS 原生版
 
+開發接手：先讀[10/13進度、排錯與待驗收總表](docs/development/MAC_DEVELOPMENT_HANDOFF_2026-10-13.zh-TW.md)與[維護入口](docs/development/README.zh-TW.md)。Mac1.0.13最終共用工具批次已封裝公開預覽，完整功能回歸待驗收；本次文檔同步沒有進版或重建。
+
 Swift／SwiftUI／AppKit；macOS 14+，目前預編譯版支援 Apple Silicon（ARM64）。
 
 - [下載 1.0.13 公開預覽](https://github.com/VirginBear/HeiBan/releases/tag/macos-v1.0.13)

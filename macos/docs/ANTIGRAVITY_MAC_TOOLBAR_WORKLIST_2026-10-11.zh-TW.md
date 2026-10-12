@@ -1,6 +1,20 @@
 # 給 Antigravity：Mac 工具列追齊 Windows 的開發與驗收清單
 
-日期：2026-10-12。狀態：功能入口與核心檢查已有進度；**不是完整操作驗收完成**。使用者再現螢幕退出按鈕裁切，本批已修幾何並開始 App 操作核對。版本維持 1.0.13，不發布。
+## 2026-10-13 現況補齊（優先於下方歷史對照）
+
+版本仍1.0.13 / 20261011.1，已於10/13公開預覽。最終10/12日誌09共用工具與指標命中實作已封裝；本次僅補文件，未新增驗收。下方10/11–12表格／固定尺寸是當時調查或歷史檢查，現行動態尺寸以ToolbarContentPolicy＋itemCount為準。
+
+| 工作 | 目前進度 | 下一步 |
+| --- | --- | --- |
+| TB01–03 | 已實作；7198f11歷史独立複核1,642斷言／probe7項，後續日誌06另有1,752 | 不以舊數字當最终全部通過；草稿／失敗保存持續回歸 |
+| TB04–05 | 動態格數換行／換欄、固定清空退出、收合與偏好已接線 | 四邊／短屏／負坐標／長清單實機 |
+| TB06–07 | 共用ToolbarBrushSettings／曲線／圖層，選取樣式與無選取預設分離 | 混合值／锁定／Undo／跨session／曲線與拖曳實機 |
+| TB08–09 | 共用圖示／More／文字T、面板與輸入疊層 | 所有popover、尺／圓規命中、四邊避讓／中文組字 |
+| TB10 | 最終封裝32.93秒／簽章成功；公開asset核對完成 | 最終功能套件與全操作回歸尚未执行 |
+
+詳[交接總表](development/MAC_DEVELOPMENT_HANDOFF_2026-10-13.zh-TW.md)與[最終共用日誌09](development/logs/2026-10-12/09.zh-TW.md)。以下逐項勾選保留歷史狀態，不代表本日新增测试。
+
+以下為2026-10-12歷史快照；「不發布」指當時決定，後續公開預覽以本頁頂端為準。當時狀態：功能入口與核心檢查已有進度；**不是完整操作驗收完成**。使用者再現螢幕退出按鈕裁切，本批已修幾何並開始 App 操作核對。版本維持 1.0.13，不發布。
 
 2026-10-12 複核：原先 1,713 項斷言只檢查核心狀態／預期常數，不能證明 SwiftUI 真實内容可達。TB04–10 的勾選先撤回完整驗收狀態；既有實作保留，依 [日誌06](development/logs/2026-10-12/06.zh-TW.md) 分項記錄實際操作。横列固定控制總寬212pt、高螢幕直列64×784pt、短螢幕雙欄84×496pt、收合横列284×60pt已修正。
 
@@ -19,7 +33,7 @@
 - [原 Mac 同步清單](development/WINDOWS_SYNC_REVIEW_2026-10-11.zh-TW.md)：本清單細化03／04／06，圖層排序依賴05，發行證據依賴12。
 - [原 ProDrafts 清單](ANTIGRAVITY_PRODRAFTS_WORKLIST_2026-10-09.zh-TW.md)：既有四邊、瘦側欄、色圈設定、拖曳不抖等要求仍有效。
 
-## 2. 主工具列現況對照
+## 2. 主工具列歷史對照（10/11來源）
 
 | 細節 | Windows 本地來源 | Mac 本地來源 | 追齊目標 |
 |---|---|---|---|
@@ -35,7 +49,7 @@
 | 圖示／下拉間距 | 共用ToolIcons、狀態反白 | SF Symbols與MenuDisclosureLabel已有8pt間距；文字主按鈕已是T | 保留已完成的間距／T；圖層、圖釘、更多及新項目一致尺寸與命中區 |
 | 儲存／視角鎖定 | 真實saving/dirty/draft/transaction決定勾號／虛線圓，上下鎖定同步 | 頂部saveLabel識別尚未儲存，但indicator一般分支仍綠點；下方有視角鎖定 | 固定尺寸、真實狀態、不誤報已存；同一viewportLocked更新所有入口 |
 
-## 3. 螢幕工具列現況對照
+## 3. 螢幕工具列歷史對照（10/11來源）
 
 | 細節 | Windows 本地來源 | Mac 本地來源 | 追齊目標 |
 |---|---|---|---|
@@ -55,11 +69,11 @@
 ### 第一批：入口與偏好／狀態（優先）
 
 - [x] **MAC-TB-01 精簡主工具列与偏好遷移**（P1）。對應 ToolbarPreferences.swift、BoardEngine的載入／保存、ToolbarCustomizeSheet。提供常用預設與完整catalog；對新設定用精簡預設，舊設定保留順序／隱藏選擇。去重、合法ID及必需入口可達；用明確遷移規則，不在每次啟動覆寫。
-  - 驗收：全新偏好／舊全顯示／自訂順序／明確隱藏圖層／重置預設／損壞資料都可開；重新啟動維持配置。舊21項全顯示不得硬改，使用者可由「恢復預設」取得精簡列。（已於7198f11修正，核心runner 1,713 斷言通過；Release probe 通過；[複核報告](development/MAC_TOOLBAR_REVIEW_2026-10-11.zh-TW.md)）
+  - 驗收：全新偏好／舊全顯示／自訂順序／明確隱藏圖層／重置預設／損壞資料都可開；重新啟動維持配置。舊21項全顯示不得硬改，使用者可由「恢復預設」取得精簡列。（7198f11當時獨立複核1,642斷言／Release probe7項，後續批次核心數字不代表完整UI；[複核報告](development/MAC_TOOLBAR_REVIEW_2026-10-11.zh-TW.md)）
 - [x] **MAC-TB-02 圖層及教學工具catalog與統一命令**（P1）。主列補layers，圖釘／圓規／計算機／計時器／視角鎖定可自訂；線段延伸移出列／更多／自訂，原值仍在屬性使用。主列／更多／頂導覽同一命令；設定toggle同步反白。
-  - 驗收：所有新增可見／隱藏路徑都可啟用；面板再次點擊可回收／呼喚；鎖定圖示一致；文字保持T，圖釘共用既有斜向圖示。（已於7198f11修正，核心runner 1,713 斷言通過；Release probe 通過；[複核報告](development/MAC_TOOLBAR_REVIEW_2026-10-11.zh-TW.md)）
+  - 驗收：所有新增可見／隱藏路徑都可啟用；面板再次點擊可回收／呼喚；鎖定圖示一致；文字保持T，圖釘共用既有斜向圖示。（7198f11當時獨立複核1,642斷言／Release probe7項，後續批次核心數字不代表完整UI；[複核報告](development/MAC_TOOLBAR_REVIEW_2026-10-11.zh-TW.md)）
 - [x] **MAC-TB-03 儲存回饋真實且固定大小**（P0）。對应TopNavView與既有Persistence狀態。消除尚未儲存卻落入綠點的分支；dirty／草稿／交易／寫入中／完成／失敗分別展示，固定槽位避免擠動。
-  - 驗收：待存虛線圓、成功勾號、寫入中與錯誤能区分；失敗不報成功，不能以任何非錯誤文字當已存。連續編輯工具位置不變；狀態必須由真實寫入流程提供。（已於7198f11修正，核心runner 1,713 斷言通過；Release probe 通過；[複核報告](development/MAC_TOOLBAR_REVIEW_2026-10-11.zh-TW.md)）
+  - 驗收：待存虛線圓、成功勾號、寫入中與錯誤能区分；失敗不報成功，不能以任何非錯誤文字當已存。連續編輯工具位置不變；狀態必須由真實寫入流程提供。（7198f11當時獨立複核1,642斷言／Release probe7項，後續批次核心數字不代表完整UI；[複核報告](development/MAC_TOOLBAR_REVIEW_2026-10-11.zh-TW.md)）
 
 ### 第二批：螢幕列排布與完整設定
 
@@ -99,7 +113,7 @@
 - `Sources/HeiBanCore/Engine/BoardEngine.swift`：toolbar偏好載入／保存／命令。
 - `Sources/HeiBanMac/Views/ToolbarView.swift`、`ToolbarCustomizeSheet.swift`、`TopNavView.swift`、`WorkspaceNavigationView.swift`。
 - `Sources/HeiBanMac/Views/InspectorView.swift`、`InspectorDockView.swift`、`LayerPanelView.swift`、`MenuDisclosureLabel.swift`。
-- `Sources/HeiBanMac/ScreenAnnotation/AnnotationToolbarLayout.swift`、`ScreenAnnotationControls.swift`、`AnnotationBrushSettings.swift`、`ScreenAnnotationController.swift`。
+- `Sources/HeiBanMac/ScreenAnnotation/AnnotationToolbarLayout.swift`、`ScreenAnnotationControls.swift`、`ScreenAnnotationController.swift`；現行共用樣式在 `Views/ToolbarBrushSettings.swift`。
 
 **Windows只讀參考**：
 

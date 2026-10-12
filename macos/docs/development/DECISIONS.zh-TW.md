@@ -1,6 +1,6 @@
 # Mac 架構決策紀錄
 
-更新：2026-10-09。決策有取捨，後續變更以新編號取代，不刪除原理由。
+更新：2026-10-13。決策有取捨，後續變更以新編號取代，不刪除原理由。
 
 ## ADR-M01 — 平台目錄分離
 
@@ -39,6 +39,8 @@ App 封裝與手冊版本共同讀取 `macos/Release.json`，避免 README、手
 原因：跨人員／工具接手時保留排錯理由，避免暫存程式遺失、文件彼此漂移。代價：每批需投入文件維護；規則不會自動感知外部開發者沒有遵守，也不等同自動提交 Git。
 
 ## ADR-M08 — 跨程式螢幕畫布由原生視圖擁有輸入
+
+2026-10-13現況補註：以下為1.0.8採用時的結構。ADR-M23已取代host繼承PointerView及renderer不命中的做法：AnnotationInputView現為普通NSView，renderer中一份NativePointerSurface接指標，上層工具可命中；視窗／透明底層政策仍保留。
 
 日期：2026-10-09，1.0.8。採用。NSPanel.contentView 是 AnnotationInputView，繼承既有 PointerView；SwiftUI renderer 為不可命中的子視圖。世界座標等於每顯示器左上本地座標，viewport 鎖定 identity。首點接受輸入；透明空白 backing 使用 1% alpha 以保留 WindowServer 輸入覆蓋。
 
@@ -151,3 +153,7 @@ hiddenTitleBar在本機未執行頂端雙擊縮放；保留現有簡潔介面，
 ## ADR-M24 — 成品與再生編譯快取分開，現版以平台tag公開
 
 2026-10-13，採用。使用者授權清理開發編譯快取並公開Mac；在無編譯程序且確認獨立App簽章／版本／上一批SHA後，移除專案macos/.build，保留產品、來源、開發文件及作品。下次完整編譯會重新生成SDK模組，首次成本較高；不清系統全域快取。發布只封裝既有成功成品，避免不必要重建。版本維持1.0.13 / 20261011.1，macos-v1.0.13獨立tag／prerelease，不移動舊tag、不混Windows成品。相應來源、授權、手冊、大小／SHA及未驗收範圍一起提供，發布結果另提交文檔記錄。
+
+## 2026-10-13 文件交接補齊
+
+本批没有新程式架構決策。依ADR-M07補齊現況／驗證界線／失敗方案，以MAC_DEVELOPMENT_HANDOFF和M39連結最新證據；ADR-M18／M20的獨立樣式及清單由ADR-M23取代，ADR-M24清理與公開政策不變。Windows減重候選在Windows文件規劃，未將其採為Mac或Windows已實作部署。

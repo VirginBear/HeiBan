@@ -2,8 +2,9 @@
 
 更新：2026-10-13。歷史計畫、實作與驗收是三種不同狀態。
 
-## 目前工作平台：macOS
+## Mac維護與目前交付
 
+- [Mac開發進度、排錯與交接總表](../macos/docs/development/MAC_DEVELOPMENT_HANDOFF_2026-10-13.zh-TW.md)
 - [Mac 1.0.13公開與快取清理](../macos/docs/development/RELEASE_2026-10-13.zh-TW.md)
 - [維護文件總覽](../macos/docs/development/README.zh-TW.md)
 - [目前開發狀態與待辦](../macos/docs/development/CURRENT_STATUS.zh-TW.md)
@@ -16,6 +17,12 @@
 - [Mac工具列追齊Windows：Antigravity工作與驗收清單](../macos/docs/ANTIGRAVITY_MAC_TOOLBAR_WORKLIST_2026-10-11.zh-TW.md)
 - [本次程式整理稽核](../macos/docs/development/CODE_REVIEW_2026-10-09.zh-TW.md)
 - [使用手冊](../macos/docs/USER_GUIDE.zh-TW.html)
+
+## Windows端減重評估接手
+
+- [Windows版本減重分析計劃報告書](../windows/docs/WINDOWS_SIZE_REDUCTION_PLAN_2026-10-13.zh-TW.md)。
+- [Store／Portable基準數據](../windows/docs/PACKAGE_SIZE_BASELINE_2026-10-13.json)與[文件同步交接](../windows/docs/SIZE_PLAN_HANDOFF_2026-10-13.zh-TW.md)。
+- 方案尚未實作，版本政策不變；Windows原機成品／作品／工具不隨Git同步。
 
 ## 其他平台與共用文件
 

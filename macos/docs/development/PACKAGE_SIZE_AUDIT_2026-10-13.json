@@ -1,0 +1,92 @@
+{
+  "date": "2026-10-13",
+  "method": "ZIP central-directory file_size / compress_size; backslashes normalized for grouping; .NET/projection/ML membership from HeiBan.deps.json runtime/native assets. Logical file content bytes, MB=1000000 bytes; no filesystem block overhead. SDK other group is residual, not an exact per-package attribution.",
+  "windows": {
+    "file": "windows/dist/trials/HeiBan-Windows-Portable-1.0.14-parallels-arm64-2026-10-12-win-arm64.zip",
+    "version": "1.0.14 development trial",
+    "sha256": "eed7341e766c423e0c6b9a7ce239974c64175c3533e58431e0f862105e4fe5e1",
+    "archiveBytes": 123816578,
+    "fileCount": 571,
+    "logicalPayloadBytes": 346950805,
+    "compressedEntryBytes": 123735700,
+    "groups": {
+      "other_frameworks_and_packaging": {
+        "files": 327,
+        "uncompressedBytes": 98182590,
+        "compressedEntryBytes": 32964081
+      },
+      "app_assets_and_guides": {
+        "files": 15,
+        "uncompressedBytes": 1327218,
+        "compressedEntryBytes": 1032385
+      },
+      "licenses": {
+        "files": 25,
+        "uncompressedBytes": 944304,
+        "compressedEntryBytes": 150536
+      },
+      "updater_self_contained": {
+        "files": 3,
+        "uncompressedBytes": 82832393,
+        "compressedEntryBytes": 30705547
+      },
+      "main_dotnet_runtime": {
+        "files": 187,
+        "uncompressedBytes": 90347472,
+        "compressedEntryBytes": 34146450
+      },
+      "machine_learning_dependencies": {
+        "files": 6,
+        "uncompressedBytes": 42225720,
+        "compressedEntryBytes": 16777513
+      },
+      "heiban_main_binary_and_pri": {
+        "files": 4,
+        "uncompressedBytes": 3950160,
+        "compressedEntryBytes": 1129330
+      },
+      "debug_symbols": {
+        "files": 2,
+        "uncompressedBytes": 270596,
+        "compressedEntryBytes": 144395
+      },
+      "windows_sdk_dotnet_projection": {
+        "files": 2,
+        "uncompressedBytes": 26870352,
+        "compressedEntryBytes": 6685463
+      }
+    },
+    "libraries": [
+      "HeiBan/1.0.14",
+      "runtimepack.Microsoft.NETCore.App.Runtime.win-arm64/10.0.12",
+      "runtimepack.Microsoft.Windows.SDK.NET.Ref/10.0.26100.57",
+      "Microsoft.Graphics.Win2D/1.4.0",
+      "Microsoft.Web.WebView2/1.0.3719.77",
+      "Microsoft.Windows.AI.MachineLearning/2.1.74",
+      "Microsoft.WindowsAppSDK/2.5.1",
+      "Microsoft.WindowsAppSDK.AI/2.5.5",
+      "Microsoft.WindowsAppSDK.Foundation/2.3.12",
+      "Microsoft.WindowsAppSDK.InteractiveExperiences/2.1.9",
+      "Microsoft.WindowsAppSDK.ML/2.1.94",
+      "Microsoft.WindowsAppSDK.Search/2.5.5",
+      "Microsoft.WindowsAppSDK.Widgets/2.0.5",
+      "Microsoft.WindowsAppSDK.WinUI/2.3.9",
+      "System.Numerics.Tensors/9.0.0",
+      "HeiBan.Windows.Core/1.0.0",
+      "Microsoft.Web.WebView2.Core.Projection/1.0.3719.77"
+    ]
+  },
+  "macos": {
+    "file": "macos/dist/HeiBan.app",
+    "version": "1.0.13 / 20261011.1",
+    "logicalPayloadBytes": 13520180,
+    "binaryBytes": 11469280,
+    "zipBytes": 4148023,
+    "dmgBytes": 4717776
+  },
+  "limits": [
+    "Windows latest x64 and MSIX sizes taken from tracked artifact reports only; those binaries are not in this Mac checkout.",
+    "Artifact builds have different versions and are not claims of identical functionality.",
+    "No rebuild, tests, application UI, package modification or dependency removal."
+  ]
+}

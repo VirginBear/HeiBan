@@ -11,11 +11,14 @@
 | [DECISIONS](DECISIONS.zh-TW.md) | 架構選擇、替代方案與代價 | 做出重要決定時 |
 | [CODE_REVIEW](CODE_REVIEW_2026-10-09.zh-TW.md) | 本次稽核與整理結果 | 本批完成時 |
 
-最新Windows清晨來源核對見[10/12同步與下一步](WINDOWS_SYNC_REVIEW_2026-10-12.zh-TW.md)：两庫已取回、Mac未提交成果保留；本批没有重建App。
+## 目前交付與接手入口（2026-10-13）
 
-最新本機交付為1.0.13／20261011.1，見 [日誌10](logs/2026-10-11/10.zh-TW.md)：右上懸停導覽、普通圖層原生拖曳回饋及首頁螢幕畫布入口已實作封裝，實際操作待驗收。
+- [Mac開發進度、排錯與交接總表](MAC_DEVELOPMENT_HANDOFF_2026-10-13.zh-TW.md)：功能／操作、近期排解、證據界線及MAC-H01–08下一步。
+- 最新App為1.0.13 / 20261011.1，主執行檔SHA94b441f4…；最終功能封裝依[10/12日誌09](logs/2026-10-12/09.zh-TW.md)，一般／螢幕共用工具及指標／輔助疊層已接入，完整回歸待驗收。
+- [10/13公開預覽與快取清理](RELEASE_2026-10-13.zh-TW.md)：macos-v1.0.13來源tag固定，5檔assets公開；已清理1.597GB再生快取，保留唯一最新App及開發文件。
+- [體積分析](PACKAGE_SIZE_ANALYSIS_2026-10-13.zh-TW.md)與[Windows減重計劃](../../../windows/docs/WINDOWS_SIZE_REDUCTION_PLAN_2026-10-13.zh-TW.md)：WindowsStore尚未實作減重，不與Mac成品混合。
 
-工具列整體進度依 [Antigravity Mac 工具列追齊清單](../ANTIGRAVITY_MAC_TOOLBAR_WORKLIST_2026-10-11.zh-TW.md)。TB01–03已實作，M23–25有前批回歸確認；TB04–10尚未整體完成。本批普通圖層改進不表示螢幕畫布已有圖層入口。
+[Antigravity工具列清單](../ANTIGRAVITY_MAC_TOOLBAR_WORKLIST_2026-10-11.zh-TW.md)保留歷史／核心檢查與後續驗收目標；TB04–10已有實作但尚未全面操作確認。M37取代舊獨立螢幕catalog／樣式方案，螢幕已有共用圖層入口；不能沿用10/11「螢幕缺圖層」摘要。Windows同步歷史仍見[10/12核對](WINDOWS_SYNC_REVIEW_2026-10-12.zh-TW.md)。
 
 历史相容性複核見 [Antigravity 第一批獨立複核](ANTIGRAVITY_REVIEW_2026-10-11.zh-TW.md)；其中M21其後已修復。歷史工具列缺口見 [工具列複核](MAC_TOOLBAR_REVIEW_2026-10-11.zh-TW.md)，目前狀態以CURRENT_STATUS的新紀錄為準。
 

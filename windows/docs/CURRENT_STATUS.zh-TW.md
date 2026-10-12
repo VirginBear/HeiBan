@@ -1,5 +1,11 @@
 # Windows 目前開發狀態
 
+## 2026-10-13 — Store減重分析與Windows端接手計劃
+
+已完成[Windows版本減重分析計劃報告書](WINDOWS_SIZE_REDUCTION_PLAN_2026-10-13.zh-TW.md)及[基準JSON](PACKAGE_SIZE_BASELINE_2026-10-13.json)。最新guides商店候選ARM64 MSIX95.55MB／x64 98.12MB來自原Windows封裝紀錄，本Mac沒有MSIX重新拆解。Store已排除Updater，該優化對商店新增節省0MB；優先評估SDK必要元件引用，另比較SDK共享框架／.NET仍自包含。Portable參考ML42.23MB／壓縮16.78MB不代表MSIX保證可省。
+
+WR-01–05是待Windows端評估／開發／測試的工作清單；本批沒有修改程式／版本／套件／產物，沒有執行build／App／tests／WACK／Store提交。1.0.14仍為未核准正式進版的開發候選。計劃、對照、拒絕條件及同步證據見[交接日誌](SIZE_PLAN_HANDOFF_2026-10-13.zh-TW.md)。
+
 ## 2026-10-12 — Parallels ARM64 試用版已部署
 
 依目前 Windows 來源 commit `148d427a47e03a09bf21431d248fe00e3e9b6d9a` 建置 1.0.14.0 原生 ARM64 可攜試用包，標籤 `parallels-arm64-2026-10-12`。ZIP 位於 `dist/trials/HeiBan-Windows-Portable-1.0.14-parallels-arm64-2026-10-12-win-arm64.zip`，123,816,578 bytes／SHA256 `eed7341e766c423e0c6b9a7ce239974c64175c3533e58431e0f862105e4fe5e1`；PE架構為AArch64，571項封裝內容，ZIP不含作品Data。Parallels Windows 11 ARM64已部署至 `C:\HeiBanPreview\Trial-1.0.14-parallels-arm64-2026-10-12`，桌面捷徑「HeiBan Windows 1.0.14 ARM64 Trial」。由舊 `C:\HeiBanPreview\Current\Data` 接續56個檔案共2,588,837 bytes，逐檔SHA核對；舊目錄保留。新程序PID 13520、主視窗「HeiBan 黑板 · Windows」，Responding=True，執行檔版本1.0.14.0。未透過Microsoft Store安裝或改動商店套件。[部署證據](PARALLELS_TRIAL_DEPLOYMENT_2026-10-12.json)／[本批日誌](PARALLELS_TRIAL_2026-10-12.zh-TW.md)。完整功能、回歸、作品操作與效能測試仍待實際試用，不因啟動成功視為整批驗收。

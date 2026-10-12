@@ -1,5 +1,9 @@
 # Windows 開發日誌
 
+## 2026-10-13 — Windows Store減重計劃交接
+
+使用者將於Windows端評估、開發與測試，要求報告及目前紀錄推送GitHub。本批完成Windows減重計劃／基準JSON及來源／可行性／量測界線，補狀態／問題／決策與README入口；没有程式實作／進版／build／tests／App／WACK／Store操作。Mac交接文檔亦補齊，公開main同步；私人遠端及既有發行tag不變。[本批交接日誌](SIZE_PLAN_HANDOFF_2026-10-13.zh-TW.md)保存起始變更與最終同步結果。
+
 ## 2026-10-12 — Parallels ARM64 試用版封裝與部署
 
 使用者要求在Parallels安裝目前Windows測試版，明確選擇非Store試用方式。VM為Windows 11 Pro ARM64、Windows PowerShell 5.1、.NET SDK 10.0.401；從共享工作區同步Windows來源及Git metadata到VM隔離鏡像，來源commit `148d427a47e03a09bf21431d248fe00e3e9b6d9a`，Windows來源無未提交變更。執行 `Package-PortableTrial.ps1 -Runtime win-arm64 -Label parallels-arm64-2026-10-12` 成功，版本仍1.0.14.0；新ZIP123,816,578 bytes／SHA256 `eed7341e766c423e0c6b9a7ce239974c64175c3533e58431e0f862105e4fe5e1`，571項、Data為空、PE AArch64。包與sidecar已放入本機 `dist/trials/`，未提交公開發布。

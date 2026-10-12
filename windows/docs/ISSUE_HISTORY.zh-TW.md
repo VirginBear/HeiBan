@@ -1,5 +1,11 @@
 # Windows 問題與排解紀錄
 
+## 2026-10-13 — 免安裝包體分析不可直接當Store減重結論
+
+症狀：先前通用分析以Updater82.83MB作優先候選，但使用者實際關心Store。原因：混用Portable與MSIX發行管道；Store腳本與原payloadChecks已排除Updater，優化helper新增商店節省0MB。更正：在減重報告分開比較主App相依與官網更新程式，Portable ML載荷僅作參考，不當MSIX確定減少量；待Windows端以同來源兩CPU成品拆解核對。
+
+最新Store使用guides候選95.55MB／98.12MB（原機JSON），不沿用稍早95.45MB批次或把193.68MB雙架構bundle當用戶下載量。詳[報告](WINDOWS_SIZE_REDUCTION_PLAN_2026-10-13.zh-TW.md)。本批沒有新的App故障重現或減重修復，不以文檔完成標示元件已移除。
+
 ## 2026-10-12 — 手冊單語／過時內容／兩個開啟入口
 
 首頁LaunchUri與作品LaunchFile各硬編碼正體中文HTML；十語介面仍開中文且label標正體中文。舊開始章一律auto-save與screen固定尺寸／scroll說明已過時。改共用LaunchFile、current language路徑及fallback，重新編排十語操作契約，修正相關說明。原HTML單行使初讀輸出截斷；Python -c嵌套引號SyntaxError未改文件，改存HTMLParser脚本讀段落退出0。沒有App／母語／RTL操作驗收；詳MULTILINGUAL_GUIDE日誌。Store同版防覆寫阻礙開發包，新增label隔離，不改版本規則。
