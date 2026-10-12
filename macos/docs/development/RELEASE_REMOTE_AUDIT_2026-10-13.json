@@ -1,0 +1,75 @@
+{
+  "date": "2026-10-13",
+  "repository": "VirginBear/HeiBan",
+  "sourceCommit": "3da9310aec26771456c14a425dad3b6bc50755fa",
+  "releaseTag": "macos-v1.0.13",
+  "releaseURL": "https://github.com/VirginBear/HeiBan/releases/tag/macos-v1.0.13",
+  "releaseID": 411021460,
+  "draft": false,
+  "prerelease": true,
+  "publishedAt": "2026-10-12T21:47:15Z",
+  "assets": [
+    {
+      "name": "HeiBan-macOS-1.0.13-arm64.dmg",
+      "bytes": 4717776,
+      "digest": "sha256:592f7b700a02e801d7e1d2cb5f951b21ccd602c4e149dd32e1b8b7f03a7f7dc2",
+      "state": "uploaded",
+      "downloadURL": "https://github.com/VirginBear/HeiBan/releases/download/macos-v1.0.13/HeiBan-macOS-1.0.13-arm64.dmg"
+    },
+    {
+      "name": "HeiBan-macOS-1.0.13-arm64.zip",
+      "bytes": 4148023,
+      "digest": "sha256:549d533006ebcabdd638e68ec449e7c235c8ac674fb683266f128f6932bb89d3",
+      "state": "uploaded",
+      "downloadURL": "https://github.com/VirginBear/HeiBan/releases/download/macos-v1.0.13/HeiBan-macOS-1.0.13-arm64.zip"
+    },
+    {
+      "name": "HeiBan-User-Guide-macOS-1.0.13.html",
+      "bytes": 32276,
+      "digest": "sha256:79b7c83f2dfa91bfddd696fde28ee56acdea4aaeb17d1973f53140cb83362f14",
+      "state": "uploaded",
+      "downloadURL": "https://github.com/VirginBear/HeiBan/releases/download/macos-v1.0.13/HeiBan-User-Guide-macOS-1.0.13.html"
+    },
+    {
+      "name": "PUBLIC_ARTIFACTS.json",
+      "bytes": 673,
+      "digest": "sha256:d676ee5c68384b4b601e91704c134797bc72c7eac5ac94b4d28890509d61fa1a",
+      "state": "uploaded",
+      "downloadURL": "https://github.com/VirginBear/HeiBan/releases/download/macos-v1.0.13/PUBLIC_ARTIFACTS.json"
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "bytes": 294,
+      "digest": "sha256:a6dce631f862c0846ee913536f74bc515ed6e59ce05a1868d9a45e1c52e5d268",
+      "state": "uploaded",
+      "downloadURL": "https://github.com/VirginBear/HeiBan/releases/download/macos-v1.0.13/SHA256SUMS.txt"
+    }
+  ],
+  "anonymousDownloadHEAD": [
+    {
+      "name": "HeiBan-macOS-1.0.13-arm64.dmg",
+      "status": "200",
+      "exitCode": 0
+    },
+    {
+      "name": "HeiBan-macOS-1.0.13-arm64.zip",
+      "status": "200",
+      "exitCode": 0
+    },
+    {
+      "name": "HeiBan-User-Guide-macOS-1.0.13.html",
+      "status": "200",
+      "exitCode": 0
+    },
+    {
+      "name": "PUBLIC_ARTIFACTS.json",
+      "status": "200",
+      "exitCode": 0
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "status": "200",
+      "exitCode": 0
+    }
+  ]
+}
