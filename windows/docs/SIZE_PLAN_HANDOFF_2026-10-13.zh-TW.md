@@ -1,6 +1,6 @@
 # 2026-10-13 Windows減重計劃與Git接手紀錄
 
-狀態：報告與基準完成，準備公開Git同步；減重開發／測試未執行。
+狀態：報告與基準完成，已推送公開GitHub並核對遠端；減重開發／測試未執行。
 
 ## 目的與範圍
 
@@ -25,3 +25,5 @@ WINDOWS_SIZE_REDUCTION_PLAN報告、PACKAGE_SIZE_BASELINE JSON；Windows README�
 ## 核對與同步結果
 
 358個本地Markdown連結均存在，新增JSON可解析，Portable分組總量與原始audit一致。Mac成品版本／build／SHA符合既有紀錄，沒有重建快取；變更共21份文件，Git提交／push結果下方追加。完整工作日誌亦見[Mac日誌03](../../macos/docs/development/logs/2026-10-13/03.zh-TW.md)。公開origin為VirginBear/HeiBan，本批不推private遠端，不改公開Release或既有tag。
+
+文件提交ecdfb106ccab374fa35ae063801baaba3779bd0f已push到origin/main；ls-remote核對完整SHA一致，範圍只有21份Markdown／JSON，git diff --cached --check退出0，提交後工作區乾淨。本段為遠端確認後的追加紀錄，另提交同步。沒有產品進版、重建或新候選發布。
