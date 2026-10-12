@@ -5,6 +5,7 @@ import HeiBanCore
 /// 一個顯示器的一份透明文件、原生視窗與恢復檔；不回寫普通作品庫。
 final class ScreenAnnotationSession {
     private static let recoveryQueue = DispatchQueue(label: "com.bear.HeiBan.screen-recovery", qos: .utility)
+    private let dialogService = MacPlatformDialogService()
     let displayID: UInt32
     let engine: BoardEngine
     let panel: NSPanel
@@ -20,6 +21,9 @@ final class ScreenAnnotationSession {
             ?? 0
         recoveryURL = recoveryDirectory.appendingPathComponent("display-\(displayID).heiban")
         engine = BoardEngine(restoreSession: false, persistenceEnabled: false)
+        engine.dialogService = dialogService
+        engine.pasteboardService = MacPlatformPasteboardService()
+        engine.imageDecoderService = MacPlatformImageDecoderService()
         engine.board.title = "螢幕註記 · \(screen.localizedName)"
         engine.board.backgroundColor = "#ffffff"
         if FileManager.default.fileExists(atPath: recoveryURL.path) {

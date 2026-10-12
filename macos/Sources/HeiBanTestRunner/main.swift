@@ -3531,12 +3531,12 @@ do {
     imageEngine.updateHoveredHandle(at: ptBlank)
     assertEqual(imageEngine.currentCursorType(at: ptBlank), nil, "懸停於空白處無特殊游標")
 
-    // 34.3 線條物件周邊控制點與旋轉點之鼠標動態判定
+    // 34.3 圖形物件周邊控制點與旋轉點之鼠標動態判定
     let lineEngine = BoardEngine(restoreSession: false)
     lineEngine.viewport = ViewportTransform(x: 0, y: 0, zoom: 1.0)
     let testLine = BoardObject(
         id: "line_test_cursor",
-        type: "line",
+        type: "rect",
         x: 100, y: 150, width: 200, height: 100,
         x1: 100, y1: 150, x2: 300, y2: 250
     )
@@ -3550,11 +3550,11 @@ do {
     let lineHandles = VectorMath.handlePositions(for: lineBounds, zoom: 1.0)
     let lineRotatePt = Point(x: Double(lineHandles[.rotate]!.x), y: Double(lineHandles[.rotate]!.y))
     lineEngine.updateHoveredHandle(at: lineRotatePt)
-    assertEqual(lineEngine.currentCursorType(at: lineRotatePt), .rotate, "線條旋轉控制點出現旋轉鼠標")
+    assertEqual(lineEngine.currentCursorType(at: lineRotatePt), .rotate, "圖形旋轉控制點出現旋轉鼠標")
 
     let lineTLPt = Point(x: Double(lineHandles[.topLeft]!.x), y: Double(lineHandles[.topLeft]!.y))
     lineEngine.updateHoveredHandle(at: lineTLPt)
-    assertEqual(lineEngine.currentCursorType(at: lineTLPt), .resizeDiagonalNWSE, "線條左上控制點出現對角雙向箭頭")
+    assertEqual(lineEngine.currentCursorType(at: lineTLPt), .resizeDiagonalNWSE, "圖形左上控制點出現對角雙向箭頭")
 
     // 34.4 拖曳中游標鎖定與放開恢復 (Drag Cursor Locking)
     lineEngine.beginPointerGesture(at: lineRotatePt, isShift: false)
@@ -5439,11 +5439,11 @@ do {
     // 直向高螢幕（高度 800）：單欄 64 pt 排布
     let tallVSize = AnnotationToolbarLayout.size(for: .left, availableSize: NSSize(width: 1200, height: 800))
     assertEqual(Double(tallVSize.width), 64.0, "直向佈局（標準高螢幕）：單欄寬度為 64 pt")
-    assertEqual(Double(tallVSize.height), 688.0, "直向佈局（標準高螢幕）：標準高度為 688 pt")
+    assertEqual(Double(tallVSize.height), 784.0, "直向佈局（標準高螢幕）：容納實際格尺寸與固定區")
 
     // 直向短螢幕（高度 500）：空間不足單欄排布時，自動切換為雙欄 96 pt，高度適配 <= 500 pt
     let shortVSize = AnnotationToolbarLayout.size(for: .right, availableSize: NSSize(width: 1200, height: 500))
-    assertEqual(Double(shortVSize.width), 96.0, "直向佈局（短螢幕）：自動切換為雙欄 96 pt（杜絕垂直滾動）")
+    assertEqual(Double(shortVSize.width), 84.0, "直向佈局（短螢幕）：依實際32pt格與間距切換雙欄")
     assertTrue(Double(shortVSize.height) <= 500.0, "直向佈局（短螢幕）：高度適配不超出可用邊界")
 
     // 負座標外接顯示器（如 x: -1920, y: 0, width: 1920, height: 1080）
@@ -5464,7 +5464,7 @@ do {
 
     // 48.3 MAC-TB-05: 螢幕工具列收合與展開保全
     let collapsedHSize = AnnotationToolbarLayout.size(for: .top, collapsed: true, availableSize: NSSize(width: 1200, height: 800))
-    assertEqual(Double(collapsedHSize.width), 272.0, "橫向收合：收合寬度為精簡 272 pt")
+    assertEqual(Double(collapsedHSize.width), 284.0, "橫向收合：握把、模式與四個控制具有實際空間")
     assertEqual(Double(collapsedHSize.height), 60.0, "橫向收合：收合高度維持 60 pt")
 
     let collapsedVSize = AnnotationToolbarLayout.size(for: .left, collapsed: true, availableSize: NSSize(width: 1200, height: 800))
@@ -5614,6 +5614,123 @@ do {
     layerEngineA.setSelectedStrokeColor("#6366f1")
     assertEqual(layerEngineB.objects.first?.strokeColor, "#ffffff", "跨螢幕隔離：螢幕 A 的修改絕不污染螢幕 B 的物件")
     assertEqual(layerEngineB.selectedIds.isEmpty, true, "跨螢幕隔離：螢幕 B 維持未選取狀態")
+}
+
+print("\n[測試 49] Mac 實際貼上、原生 AB 手勢、旋轉避讓與平台發行篩選")
+do {
+    final class ClipboardFixture: PlatformPasteboardService {
+        var text: String?
+        var image: (data: Data, width: Double, height: Double)?
+        var deferred: (((data: Data, width: Double, height: Double)?) -> Void)?
+        var delay = false
+        func copyString(_ text: String) { self.text = text; image = nil }
+        func pasteString() -> String? { text }
+        func pasteImageData() -> (data: Data, width: Double, height: Double)? { image }
+        func readImage(completion: @escaping ((data: Data, width: Double, height: Double)?) -> Void) {
+            if delay { deferred = completion } else { completion(image) }
+        }
+    }
+    let clipboard = ClipboardFixture()
+    let engine = BoardEngine(restoreSession: false, persistenceEnabled: false)
+    engine.showingHome = false
+    engine.canvasSize = CGSize(width: 800, height: 600)
+    engine.pasteboardService = clipboard
+    let original = BoardObject(id: "old-copy", type: "rect", x: 10, y: 20, width: 100, height: 50)
+    engine.objects = [original]
+    engine.selectedIds = [original.id]
+    engine.copySelected()
+    clipboard.text = "https://example.invalid/screenshot.png"
+    clipboard.image = (Data([1, 2, 3]), 320, 200)
+    engine.pasteClipboard()
+    assertEqual(engine.objects.count, 2, "外部圖片貼上只新增一個物件")
+    assertEqual(engine.objects.last?.type, "image", "外部圖片優先於舊 internalClipboard")
+    assertEqual(engine.objects.last?.originalWidth, 320, "貼上保留影像像素寬度")
+    engine.undo()
+    assertEqual(engine.objects.count, 1, "圖片貼上一次 Undo 移除")
+    clipboard.image = nil; clipboard.text = nil
+    engine.pasteClipboard()
+    assertEqual(engine.objects.count, 1, "外部剪貼簿空白不重貼舊物件")
+    clipboard.delay = true
+    engine.pasteClipboard()
+    engine.board.id = "other-board"
+    clipboard.deferred?((Data([1]), 100, 100))
+    assertEqual(engine.objects.count, 1, "非同步圖片返回時不污染切換後的作品")
+
+    let lineEngine = BoardEngine(restoreSession: false, persistenceEnabled: false)
+    lineEngine.showingHome = false
+    lineEngine.canvasSize = CGSize(width: 900, height: 700)
+    lineEngine.viewport = ViewportTransform(x: 30, y: 40, zoom: 2)
+    lineEngine.objects = [BoardObject(id: "ab", type: "arrow", x: 100, y: 100, width: 200, height: 0)]
+    lineEngine.selectedIds = ["ab"]
+    lineEngine.selectTool(.select)
+    assertTrue(lineEngine.selectionUsesEndpoints, "單一箭頭只顯示 AB")
+    let aScreen = VectorMath.worldToScreen(Point(x: 100, y: 100), viewport: lineEngine.viewport)
+    let newScreen = VectorMath.worldToScreen(Point(x: 130, y: 180), viewport: lineEngine.viewport)
+    lineEngine.beginPointerGesture(at: aScreen)
+    lineEngine.updatePointerGesture(at: newScreen, translation: CGSize(width: 60, height: 160))
+    assertEqual(lineEngine.objects[0].x, 100, "端點拖曳只更新預覽，不逐樣本提交")
+    lineEngine.endPointerGesture(translation: CGSize(width: 60, height: 160))
+    assertEqual(lineEngine.objects[0].x1, 130, "原生 pointer 手勢更新 A x")
+    assertEqual(lineEngine.objects[0].y1, 180, "原生 pointer 手勢更新 A y")
+    assertEqual(lineEngine.objects[0].x2, 300, "舊水平線缺失 B 補全且保留")
+    assertEqual(lineEngine.objects[0].height, 80, "AB 改動同步包圍範圍")
+    lineEngine.undo()
+    assertEqual(lineEngine.objects[0].height, 0, "AB 一次 Undo 復原舊水平線")
+    // Undo 清理暫態選取；重新選取才能驗證線段旋轉／hover 的真實防護。
+    lineEngine.selectedIds = ["ab"]
+    lineEngine.setSelectedRotationAngle(45)
+    assertEqual(lineEngine.objects[0].rotation, 0, "線段旋轉屬性不可繞過 AB")
+    lineEngine.updateHoveredHandle(at: VectorMath.worldToScreen(Point(x: 200, y: 75), viewport: lineEngine.viewport))
+    assertEqual(lineEngine.hoveredTransformHandle, nil, "單線無矩形旋轉命中")
+
+    let rect = BoardObject(id: "rotate", type: "rect", x: 100, y: 250, width: 200, height: 100)
+    let state = SelectionQuickActionCoordinator.computeState(selectedObjects: [rect], bounds: Rect(minX: 100, minY: 250, maxX: 300, maxY: 350), viewport: ViewportTransform(), canvasSize: CGSize(width: 900, height: 700))
+    assertTrue(state.center.y + 18 <= 250 - 25 - 8, "快速列底緣不遮擋旋轉點及命中區")
+    let panel = CGSize(width: 500, height: 64)
+    let compactY = lineEngine.toolbarPosition(in: CGSize(width: 900, height: 700), panelSize: panel, topClearance: 12).y
+    lineEngine.toolbarDock = "top"
+    let hiddenY = lineEngine.toolbarPosition(in: CGSize(width: 900, height: 700), panelSize: panel, topClearance: 12).y
+    let shownY = lineEngine.toolbarPosition(in: CGSize(width: 900, height: 700), panelSize: panel, topClearance: 64).y
+    assertEqual(shownY - hiddenY, 52, "右上導覽顯示時上工具列讓位 52pt")
+    _ = compactY
+    for width in [450.0, 600, 820] {
+        let size = AnnotationToolbarLayout.size(for: .top, availableSize: NSSize(width: width, height: 800))
+        let columns = AnnotationToolbarLayout.horizontalColumns(width: size.width)
+        let gridWidth = Double(columns * 32 + max(0, columns - 1) * 4)
+        assertTrue(gridWidth + Double(AnnotationToolbarLayout.horizontalFixedWidth) <= size.width, "實際工具格與固定退出區可容納：\(width)")
+        let rows = Int(ceil(Double(AnnotationToolbarCatalog.horizontalItemCount) / Double(columns)))
+        assertTrue(Double(rows * 36 - 4 + 24) <= size.height, "實際上下內距與工具列高度可容納：\(width)")
+    }
+    for height in [400.0, 500, 800] {
+        let size = AnnotationToolbarLayout.size(for: .left, availableSize: NSSize(width: 1000, height: height))
+        let columns = max(1, Int((size.width - 12) / 36))
+        let rows = Int(ceil(Double(AnnotationToolbarCatalog.verticalItemCount) / Double(columns)))
+        assertTrue(Double(rows * 36 - 4 + 212) <= size.height, "直排格、模式、退出區全部可容納：\(height)")
+    }
+    let releasesJSON = """
+    [
+      {"tag_name":"windows-v9.0.0","html_url":"https://github.com/VirginBear/HeiBan/releases/tag/windows-v9.0.0","draft":false,"prerelease":false,"assets":[]},
+      {"tag_name":"macos-v1.0.8","html_url":"https://github.com/VirginBear/HeiBan/releases/tag/macos-v1.0.8","draft":false,"prerelease":true,"assets":[{"name":"HeiBan-macOS-1.0.8-arm64.zip","browser_download_url":"https://github.com/VirginBear/HeiBan/releases/download/macos-v1.0.8/HeiBan-macOS-1.0.8-arm64.zip"}]}
+    ]
+    """
+    let releases = try! JSONDecoder().decode([MacGitHubRelease].self, from: Data(releasesJSON.utf8))
+    assertEqual(MacGitHubRelease.select(releases, includePreview: true, architecture: "arm64")?.version, "1.0.8", "發行篩選跳過 Windows 且接受匹配 Mac 預覽包")
+    assertEqual(MacGitHubRelease.select(releases, includePreview: false, architecture: "arm64")?.version, nil, "穩定管道不收預覽版")
+    assertEqual(MacGitHubRelease.select(releases, includePreview: true, architecture: "x64")?.version, nil, "不收不相容處理器包")
+    assertTrue(MacReleaseVersion("1.0.8")! < MacReleaseVersion("1.0.13")!, "本地開發版不被舊公開包降版")
+    assertTrue(MacReleaseVersion("1.0.13-preview.9")! < MacReleaseVersion("1.0.13-preview.10")!, "預覽版以數值排序")
+    assertTrue(MacReleaseVersion("1.0.13-preview.10")! < MacReleaseVersion("1.0.13")!, "正式版高於同版本預覽版")
+    lineEngine.objects[0].isLocked = true
+    assertTrue(lineEngine.selectionUsesEndpoints, "鎖定線段也不退回矩形選取框")
+    let lockedLine = lineEngine.objects[0]
+    lineEngine.beginPointerGesture(at: Point(x: 230, y: 240))
+    lineEngine.updatePointerGesture(at: Point(x: 250, y: 260), translation: CGSize(width: 20, height: 20))
+    lineEngine.endPointerGesture(translation: CGSize(width: 20, height: 20))
+    assertEqual(lineEngine.objects[0], lockedLine, "鎖定 AB 不能拖曳修改")
+    assertEqual(MacReleaseVersion(""), nil, "空版本不崩潰")
+    for invalid in ["1..0.13", "+1.0.13", "1.0.13-", "1.0"] {
+        assertEqual(MacReleaseVersion(invalid), nil, "不合法版本不觸發更新：\(invalid)")
+    }
 }
 
 print("\n==================================================")

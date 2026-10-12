@@ -5,6 +5,7 @@ import HeiBanCore
 typealias ViewState<Value> = SwiftUI.State<Value>
 
 struct HomeView: View {
+    @ObservedObject private var language = L10n.shared
     @ObservedObject var engine: BoardEngine
     @StateObject private var shelf = LibraryShelf(library: BoardEngine.library)
     @AppStorage("HeiBan.home.sidebar") private var sidebar = true
@@ -44,45 +45,45 @@ struct HomeView: View {
                     HeiBanLogo().frame(width: 112, height: 60)
                     Spacer()
                     Button { selectionMode.toggle(); selectedBoardIDs.removeAll() } label: { Image(systemName: selectionMode ? "checkmark.circle.fill" : "checkmark.circle") }
-                        .disabled(section == "trash").help("選取多份作品").accessibilityLabel(selectionMode ? "結束多選" : "選取多份作品")
-                    Button { engine.openFromFilePrompt() } label: { Label("匯入", systemImage: "square.and.arrow.down") }
+                        .disabled(section == "trash").help(L10n.t("選取多份作品")).accessibilityLabel(L10n.t(selectionMode ? "結束多選" : "選取多份作品"))
+                    Button { engine.openFromFilePrompt() } label: { Label(L10n.t("匯入"), systemImage: "square.and.arrow.down") }
                     Button { showAdvancedSheet = true } label: { Image(systemName: "plus") }
-                        .buttonStyle(.borderedProminent).tint(sage).keyboardShortcut("n", modifiers: .command).help("新增筆記本、無邊界筆記或有邊界黑板")
-                    TextField("搜尋作品", text: $search).textFieldStyle(.roundedBorder).frame(width: 200)
+                        .buttonStyle(.borderedProminent).tint(sage).keyboardShortcut("n", modifiers: .command).help(L10n.t("新增筆記本、無邊界筆記或有邊界黑板"))
+                    TextField(L10n.t("搜尋作品"), text: $search).textFieldStyle(.roundedBorder).frame(width: 200)
                 }
                 HStack {
-                    Text(heading).font(.title2.weight(.semibold))
+                    Text(L10n.t(heading)).font(.title2.weight(.semibold))
                     Text("\(boards.count)").foregroundStyle(.secondary).monospacedDigit()
                     Spacer()
-                    Picker("格式", selection: $format) {
-                        Text("全部格式").tag("all"); Text("筆記本").tag("notebook")
-                        Text("無邊界筆記").tag("infinite"); Text("有邊界黑板").tag("fixed")
+                    Picker(L10n.t("格式"), selection: $format) {
+                        Text(L10n.t("全部格式")).tag("all"); Text(L10n.t("筆記本")).tag("notebook")
+                        Text(L10n.t("無邊界筆記")).tag("infinite"); Text(L10n.t("有邊界黑板")).tag("fixed")
                     }.labelsHidden().frame(width: 132)
-                    Picker("排序", selection: $sort) {
-                        Text("最近修改").tag("updated"); Text("建立日期").tag("created"); Text("名稱").tag("title")
+                    Picker(L10n.t("排序"), selection: $sort) {
+                        Text(L10n.t("最近修改")).tag("updated"); Text(L10n.t("建立日期")).tag("created"); Text(L10n.t("名稱")).tag("title")
                     }.labelsHidden().frame(width: 112)
                     Menu {
-                        Button("緊湊") { cardWidth = 160 }; Button("適中") { cardWidth = 190 }; Button("大圖") { cardWidth = 250 }
+                        Button(L10n.t("緊湊")) { cardWidth = 160 }; Button(L10n.t("適中")) { cardWidth = 190 }; Button(L10n.t("大圖")) { cardWidth = 250 }
                     } label: {
-                        MenuDisclosureLabel("縮圖大小") { Image(systemName: "square.grid.2x2").font(.system(size: 16)) }
-                    }.menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize().help("縮圖大小")
+                        MenuDisclosureLabel(L10n.t("縮圖大小")) { Image(systemName: "square.grid.2x2").font(.system(size: 16)) }
+                    }.menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize().help(L10n.t("縮圖大小"))
                 }
                 if selectionMode {
                     HStack {
                         Text("已選 \(selectedBoardIDs.count) 份").font(.subheadline)
-                        Button("全選目前結果") { selectedBoardIDs = Set(boards.map(\.id)) }
-                        Button("移到垃圾桶") { confirmDeleteBoards = true }.disabled(selectedBoardIDs.isEmpty)
+                        Button(L10n.t("全選目前結果")) { selectedBoardIDs = Set(boards.map(\.id)) }
+                        Button(L10n.t("移到垃圾桶")) { confirmDeleteBoards = true }.disabled(selectedBoardIDs.isEmpty)
                         Spacer()
-                        Button("完成") { selectionMode = false; selectedBoardIDs.removeAll() }
+                        Button(L10n.t("完成")) { selectionMode = false; selectedBoardIDs.removeAll() }
                     }.padding(10).background(sage.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
                 }
-                if section == "trash" { Text("這裡的作品可還原，原本的筆跡、圖片與頁面都會保留。").font(.caption).foregroundStyle(.secondary) }
+                if section == "trash" { Text(L10n.t("這裡的作品可還原，原本的筆跡、圖片與頁面都會保留。")).font(.caption).foregroundStyle(.secondary) }
                 ScrollView {
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: cardWidth), spacing: 20)], spacing: 24) {
                         ForEach(boards) { board in card(board) }
                     }.padding(.vertical, 4)
                     if boards.isEmpty {
-                        ContentUnavailableView(heading == "垃圾桶" ? "垃圾桶是空的" : section == "favorites" && search.isEmpty ? "收藏常用的作品" : engine.libraryBoards.isEmpty ? "第一份作品，從這裡開始" : "沒有符合的作品", systemImage: section == "favorites" ? "star" : section == "trash" ? "trash" : "square.grid.2x2", description: Text(section == "favorites" ? "點作品上的星號，就能在這裡快速找到。" : "使用上方搜尋與格式篩選，或點＋建立作品。"))
+                        ContentUnavailableView(L10n.t(heading == "垃圾桶" ? "垃圾桶是空的" : section == "favorites" && search.isEmpty ? "收藏常用的作品" : engine.libraryBoards.isEmpty ? "第一份作品，從這裡開始" : "沒有符合的作品"), systemImage: section == "favorites" ? "star" : section == "trash" ? "trash" : "square.grid.2x2", description: Text(L10n.t(section == "favorites" ? "點作品上的星號，就能在這裡快速找到。" : "使用上方搜尋與格式篩選，或點＋建立作品。")))
                             .frame(maxWidth: .infinity).padding(.top, 60)
                     }
                 }
@@ -95,27 +96,28 @@ struct HomeView: View {
         .onChange(of: section) { _, _ in selectionMode = false; selectedBoardIDs.removeAll() }
         .onChange(of: search) { _, _ in retainVisibleSelection() }
         .onChange(of: format) { _, _ in retainVisibleSelection() }
+        .environment(\.layoutDirection, language.direction)
         .sheet(isPresented: $settings) { NativeSettingsView() }
         .sheet(item: $renaming) { board in
             VStack(alignment: .leading, spacing: 16) {
-                Text("重新命名黑板").font(.headline)
-                TextField("名稱", text: $renameTitle).textFieldStyle(.roundedBorder)
-                HStack { Spacer(); Button("取消") { renaming = nil }; Button("儲存") { engine.renameLibraryBoard(board.id, title: renameTitle); renaming = nil }.keyboardShortcut(.defaultAction) }
+                Text(L10n.t("重新命名黑板")).font(.headline)
+                TextField(L10n.t("名稱"), text: $renameTitle).textFieldStyle(.roundedBorder)
+                HStack { Spacer(); Button(L10n.t("取消")) { renaming = nil }; Button(L10n.t("儲存")) { engine.renameLibraryBoard(board.id, title: renameTitle); renaming = nil }.keyboardShortcut(.defaultAction) }
             }.padding(24).frame(width: 360)
         }
         .sheet(isPresented: $showAdvancedSheet) {
             AdvancedBoardSheet(engine: engine, isPresented: $showAdvancedSheet, initialMode: .notebook, initialTheme: .whiteboard)
         }
-        .alert("移到垃圾桶？", isPresented: $confirmDeleteBoards) {
-            Button("取消", role: .cancel) { }
-            Button("移到垃圾桶", role: .destructive) { engine.trashLibraryBoards(selectedBoardIDs); selectedBoardIDs.removeAll() }
+        .alert(L10n.t("移到垃圾桶？"), isPresented: $confirmDeleteBoards) {
+            Button(L10n.t("取消"), role: .cancel) { }
+            Button(L10n.t("移到垃圾桶"), role: .destructive) { engine.trashLibraryBoards(selectedBoardIDs); selectedBoardIDs.removeAll() }
         } message: { Text("所選 \(selectedBoardIDs.count) 份作品會保留在垃圾桶，可從左側還原。") }
     }
     private var sidebarView: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Button { withAnimation(.easeInOut(duration: 0.18)) { sidebar.toggle() } } label: { Image(systemName: "sidebar.left") }.buttonStyle(.plain).help(sidebar ? "收合側欄" : "展開側欄")
-                if sidebar { Text("作品庫").font(.headline); Spacer() }
+                Button { withAnimation(.easeInOut(duration: 0.18)) { sidebar.toggle() } } label: { Image(systemName: "sidebar.left") }.buttonStyle(.plain).help(L10n.t(sidebar ? "收合側欄" : "展開側欄"))
+                if sidebar { Text(L10n.t("作品庫")).font(.headline); Spacer() }
             }.padding(.bottom, 20)
             shelfButton("all", "所有作品", "square.grid.2x2", engine.libraryBoards.count)
             shelfButton("favorites", "收藏", "star", engine.libraryBoards.filter { shelf.favorites.contains($0.id) }.count)
@@ -124,32 +126,32 @@ struct HomeView: View {
             Button { ScreenAnnotationController.shared.start() } label: {
                 HStack {
                     Image(systemName: "rectangle.and.pencil.and.ellipsis")
-                    if sidebar { Text("螢幕畫布") }
+                    if sidebar { Text(L10n.t("螢幕畫布")) }
                 }
             }
             .buttonStyle(.plain)
-            .help("我的螢幕就是我的畫布")
-            .accessibilityLabel("螢幕畫布")
+            .help(L10n.t("我的螢幕就是我的畫布"))
+            .accessibilityLabel(L10n.t("螢幕畫布"))
             Button { settings = true } label: {
-                HStack { Image(systemName: "person.crop.circle"); if sidebar { Text("帳號與設定") } }
-            }.buttonStyle(.plain).help("帳號與設定")
+                HStack { Image(systemName: "person.crop.circle"); if sidebar { Text(L10n.t("帳號與設定")) } }
+            }.buttonStyle(.plain).help(L10n.t("帳號與設定"))
             Menu {
-                Button("使用手冊") { HeiBanUserGuide.shared.show() }
-                Button("我的螢幕就是我的畫布") { ScreenAnnotationController.shared.start() }
+                Button(L10n.t("使用手冊")) { HeiBanUserGuide.shared.show() }
+                Button(L10n.t("我的螢幕就是我的畫布")) { ScreenAnnotationController.shared.start() }
                 Divider()
-                Button("建立功能示範黑板") { engine.loadShowcaseBoard() }
+                Button(L10n.t("建立功能示範黑板")) { engine.loadShowcaseBoard() }
             } label: {
-                HStack { Image(systemName: "questionmark.circle"); if sidebar { Text("使用說明") } }
-            }.menuStyle(.borderlessButton).menuIndicator(.hidden).help("使用說明")
+                HStack { Image(systemName: "questionmark.circle"); if sidebar { Text(L10n.t("使用說明")) } }
+            }.menuStyle(.borderlessButton).menuIndicator(.hidden).help(L10n.t("使用說明"))
         }.padding(16).padding(.top, 28).frame(width: sidebar ? 188 : 56).frame(maxHeight: .infinity)
             .background(Color(red: 0.925, green: 0.94, blue: 0.915))
     }
     private func shelfButton(_ key: String, _ title: String, _ icon: String, _ count: Int) -> some View {
         Button { section = key } label: {
-            HStack(spacing: 10) { Image(systemName: icon).frame(width: 20); if sidebar { Text(title); Spacer(); Text("\(count)").font(.caption).foregroundStyle(.secondary) } }
+            HStack(spacing: 10) { Image(systemName: icon).frame(width: 20); if sidebar { Text(L10n.t(title)); Spacer(); Text("\(count)").font(.caption).foregroundStyle(.secondary) } }
                 .foregroundStyle(section == key ? sage : .primary).padding(.vertical, 10).padding(.horizontal, sidebar ? 8 : 0)
                 .frame(maxWidth: .infinity, alignment: .leading).background(section == key ? sage.opacity(0.12) : .clear, in: RoundedRectangle(cornerRadius: 8))
-        }.buttonStyle(.plain).help(title)
+        }.buttonStyle(.plain).help(L10n.t(title))
     }
     private func retainVisibleSelection() { selectedBoardIDs.formIntersection(Set(boards.map(\.id))) }
     private func toggleSelection(_ id: String) { if selectedBoardIDs.contains(id) { selectedBoardIDs.remove(id) } else { selectedBoardIDs.insert(id) } }
@@ -170,7 +172,7 @@ struct HomeView: View {
                     .overlay(alignment: .bottomTrailing) {
                         if section != "trash" {
                             Button { shelf.toggleFavorite(board.id) } label: { Image(systemName: shelf.favorites.contains(board.id) ? "star.fill" : "star").foregroundStyle(shelf.favorites.contains(board.id) ? sage : .secondary).padding(7).background(.regularMaterial, in: Circle()) }
-                                .buttonStyle(.plain).help(shelf.favorites.contains(board.id) ? "取消收藏" : "加入收藏")
+                                .buttonStyle(.plain).help(L10n.t(shelf.favorites.contains(board.id) ? "取消收藏" : "加入收藏"))
                                 .accessibilityLabel("\(shelf.favorites.contains(board.id) ? "取消收藏" : "收藏") \(board.title)").padding(7)
                         }
                     }
@@ -179,17 +181,17 @@ struct HomeView: View {
                 Text(board.title).font(.system(size: 13, weight: .medium)).lineLimit(1)
                 Spacer(minLength: 0)
                 Menu {
-                    if section == "trash" { Button("還原") { engine.restoreLibraryBoard(board.id) } }
+                    if section == "trash" { Button(L10n.t("還原")) { engine.restoreLibraryBoard(board.id) } }
                     else {
-                        Button(shelf.favorites.contains(board.id) ? "取消收藏" : "加入收藏") { shelf.toggleFavorite(board.id) }
-                        Button("重新命名") { renameTitle = board.title; renaming = board }
-                        Button("製作副本") { engine.duplicateLibraryBoard(board.id) }
+                        Button(L10n.t(shelf.favorites.contains(board.id) ? "取消收藏" : "加入收藏")) { shelf.toggleFavorite(board.id) }
+                        Button(L10n.t("重新命名")) { renameTitle = board.title; renaming = board }
+                        Button(L10n.t("製作副本")) { engine.duplicateLibraryBoard(board.id) }
                         Divider()
-                        Button("移到垃圾桶…", role: .destructive) { selectedBoardIDs = [board.id]; confirmDeleteBoards = true }
+                        Button(L10n.t("移到垃圾桶…"), role: .destructive) { selectedBoardIDs = [board.id]; confirmDeleteBoards = true }
                     }
                 } label: {
-                    MenuDisclosureLabel("作品的更多動作") { Image(systemName: "ellipsis").font(.system(size: 16, weight: .semibold)) }
-                }.menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize().help("作品的更多動作")
+                    MenuDisclosureLabel(L10n.t("作品的更多動作")) { Image(systemName: "ellipsis").font(.system(size: 16, weight: .semibold)) }
+                }.menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize().help(L10n.t("作品的更多動作"))
             }
             Text(dateLabel(board.updatedAt)).font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
         }
@@ -201,6 +203,7 @@ struct HomeView: View {
 }
 
 struct AdvancedBoardSheet: View {
+    @ObservedObject private var language = L10n.shared
     @ObservedObject var engine: BoardEngine
     @Binding var isPresented: Bool
 
@@ -254,10 +257,10 @@ struct AdvancedBoardSheet: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("新增筆記或黑板")
+                Text(L10n.t("新增筆記或黑板"))
                     .font(.headline)
                 Spacer()
-                Button("關閉") { isPresented = false }
+                Button(L10n.t("關閉")) { isPresented = false }
                     .keyboardShortcut(.cancelAction)
             }
             .padding()
@@ -265,62 +268,62 @@ struct AdvancedBoardSheet: View {
             Divider()
 
             Form {
-                Section("基本資訊") {
-                    TextField("筆記名稱", text: $title)
-                    Picker("畫布型態", selection: $mode) {
-                        Text("筆記本").tag(CanvasMode.notebook)
-                        Text("無邊界筆記").tag(CanvasMode.infinite)
-                        Text("有邊界黑板").tag(CanvasMode.fixed)
+                Section(L10n.t("基本資訊")) {
+                    TextField(L10n.t("筆記名稱"), text: $title)
+                    Picker(L10n.t("畫布型態"), selection: $mode) {
+                        Text(L10n.t("筆記本")).tag(CanvasMode.notebook)
+                        Text(L10n.t("無邊界筆記")).tag(CanvasMode.infinite)
+                        Text(L10n.t("有邊界黑板")).tag(CanvasMode.fixed)
                     }
                 }
 
                 if mode != .infinite {
-                    Section("頁面規格") {
-                        Picker("尺寸標準", selection: $preset) {
+                    Section(L10n.t("頁面規格")) {
+                        Picker(L10n.t("尺寸標準"), selection: $preset) {
                             Text("A4 (595 × 842)").tag(CanvasPreset.a4_portrait)
                             Text("A3 (842 × 1191)").tag(CanvasPreset.a3_landscape)
-                            Text("B5 常用 (499 × 709)").tag(CanvasPreset.b5)
-                            Text("16:9 簡報 (1920 × 1080)").tag(CanvasPreset.sixteen_nine)
-                            Text("4:3 課堂 (1440 × 1080)").tag(CanvasPreset.four_three)
-                            Text("1:1 正方形 (1080 × 1080)").tag(CanvasPreset.one_one)
-                            Text("9:16 直式 (1080 × 1920)").tag(CanvasPreset.nine_sixteen)
+                            Text(L10n.t("B5 常用 (499 × 709)")).tag(CanvasPreset.b5)
+                            Text(L10n.t("16:9 簡報 (1920 × 1080)")).tag(CanvasPreset.sixteen_nine)
+                            Text(L10n.t("4:3 課堂 (1440 × 1080)")).tag(CanvasPreset.four_three)
+                            Text(L10n.t("1:1 正方形 (1080 × 1080)")).tag(CanvasPreset.one_one)
+                            Text(L10n.t("9:16 直式 (1080 × 1920)")).tag(CanvasPreset.nine_sixteen)
                         }
 
-                        Picker("版面方向", selection: $orientation) {
-                            Text("直向 (Portrait)").tag("portrait")
-                            Text("橫向 (Landscape)").tag("landscape")
+                        Picker(L10n.t("版面方向"), selection: $orientation) {
+                            Text(L10n.t("直向 (Portrait)")).tag("portrait")
+                            Text(L10n.t("橫向 (Landscape)")).tag("landscape")
                         }
                     }
                 }
 
                 if mode == .notebook {
-                    Section("筆記本封面") {
-                        Picker("封面風格", selection: $coverStyle) {
+                    Section(L10n.t("筆記本封面")) {
+                        Picker(L10n.t("封面風格"), selection: $coverStyle) {
                             ForEach(covers, id: \.0) { item in
-                                Text(item.1).tag(item.0)
+                                Text(L10n.t(item.1)).tag(item.0)
                             }
                         }
                     }
                 }
 
-                Section("內頁版型與背景") {
-                    Picker("內文風格", selection: $gridStyle) {
-                        Text("• 點點 (Dots)").tag(GridStyle.dots)
-                        Text("⊞ 格子 (Grid)").tag(GridStyle.grid)
-                        Text("☰ 橫線 (Lines)").tag(GridStyle.lines)
-                        Text("𝄞 五線譜 (Staff)").tag(GridStyle.staff)
-                        Text("◻ 全白 (Blank)").tag(GridStyle.blank)
+                Section(L10n.t("內頁版型與背景")) {
+                    Picker(L10n.t("內文風格"), selection: $gridStyle) {
+                        Text(L10n.t("• 點點 (Dots)")).tag(GridStyle.dots)
+                        Text(L10n.t("⊞ 格子 (Grid)")).tag(GridStyle.grid)
+                        Text(L10n.t("☰ 橫線 (Lines)")).tag(GridStyle.lines)
+                        Text(L10n.t("𝄞 五線譜 (Staff)")).tag(GridStyle.staff)
+                        Text(L10n.t("◻ 全白 (Blank)")).tag(GridStyle.blank)
                     }
 
-                    Picker("背景底色", selection: $bgColor) {
+                    Picker(L10n.t("背景底色"), selection: $bgColor) {
                         ForEach(bgColors, id: \.0) { item in
-                            Text(item.1).tag(item.0)
+                            Text(L10n.t(item.1)).tag(item.0)
                         }
                     }
 
-                    Picker("線條 / 點點顏色", selection: $gridColor) {
+                    Picker(L10n.t("線條 / 點點顏色"), selection: $gridColor) {
                         ForEach(gridColors, id: \.0) { item in
-                            Text(item.1).tag(item.0)
+                            Text(L10n.t(item.1)).tag(item.0)
                         }
                     }
                 }
@@ -331,8 +334,8 @@ struct AdvancedBoardSheet: View {
 
             HStack {
                 Spacer()
-                Button("取消") { isPresented = false }
-                Button("建立") {
+                Button(L10n.t("取消")) { isPresented = false }
+                Button(L10n.t("建立")) {
                     createCustom()
                     isPresented = false
                 }
@@ -366,6 +369,7 @@ struct AdvancedBoardSheet: View {
 }
 
 private struct BoardThumbnailView: View {
+    @ObservedObject private var language = L10n.shared
     let board: BoardMetadata
     @ViewState<[BoardObject]> private var objects: [BoardObject] = []
 

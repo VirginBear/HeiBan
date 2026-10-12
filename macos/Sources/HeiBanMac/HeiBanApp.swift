@@ -15,14 +15,23 @@ struct HeiBanApp: App {
         return eng
     }()
 
+    @ObservedObject private var language = L10n.shared
     @ObservedObject private var screenCanvas = ScreenAnnotationController.shared
 
     private var commandEngine: BoardEngine { screenCanvas.focusedEngine ?? engine }
+
+    // NSTextView 包含原生文字框／輸入法 field editor；文字貼上保留 AppKit 行為。
+    private func performClipboardAction(_ selector: String, canvasAction: () -> Void) {
+        if NSApplication.shared.keyWindow?.firstResponder is NSTextView {
+            NSApplication.shared.sendAction(Selector(selector), to: nil, from: nil)
+        } else if !commandEngine.showingHome && !commandEngine.readingMode { canvasAction() }
+    }
 
     var body: some Scene {
         WindowGroup {
             MainWindowView(engine: engine)
                 .preferredColorScheme(.light)
+                .task { await MacUpdateService.shared.checkOnLaunch() }
                 .onAppear {
                     NSApplication.shared.applicationIconImage = HeiBanBrand.appIcon
                     screenCanvas.registerShortcuts()
@@ -42,42 +51,62 @@ struct HeiBanApp: App {
         .windowStyle(.hiddenTitleBar)
         .windowToolbarStyle(.unifiedCompact)
         .commands {
+            CommandGroup(after: .windowSize) {
+                Button(L10n.t("放大／還原視窗")) {
+                    // AppKit zoom 會保留還原尺寸及目前螢幕的工作區，不進入另一個 Space。
+                    // 透明螢幕畫布的 NSPanel 不能套用普通視窗縮放。
+                    guard let window = NSApplication.shared.keyWindow,
+                          !(window is NSPanel), window.styleMask.contains(.resizable),
+                          !window.styleMask.contains(.fullScreen) else { return }
+                    window.performZoom(nil)
+                }
+                .keyboardShortcut("0", modifiers: [.command, .option])
+                .disabled(screenCanvas.isActive)
+            }
             CommandGroup(replacing: .newItem) {
-                Button("開啟黑板專案檔 (.heiban)...") {
+                Button(L10n.t("開啟黑板專案檔 (.heiban)...")) {
                     engine.openFromFilePrompt()
                 }
                 .keyboardShortcut("o", modifiers: .command)
 
-                Button("儲存黑板專案檔 (.heiban)...") {
+                Button(L10n.t("儲存黑板專案檔 (.heiban)...")) {
                     if screenCanvas.focusedEngine != nil { screenCanvas.saveEditable() }
                     else { engine.saveToFilePrompt() }
                 }
                 .keyboardShortcut("s", modifiers: .command)
             }
-            CommandMenu("螢幕畫布") {
-                Button(screenCanvas.isActive ? "切換作畫／操作　⌘⌥⇧D" : "我的螢幕就是我的畫布　⌘⌥⇧D") { screenCanvas.toggleDrawing() }
-                Button("截圖並儲存　⌘⌥⇧S") { screenCanvas.captureScreen() }.disabled(!screenCanvas.isActive || screenCanvas.isCapturing)
-                Button("儲存可編輯註記…") { screenCanvas.saveEditable() }.disabled(!screenCanvas.isActive)
-                Button("一鍵清空螢幕畫布（可復原）") { screenCanvas.clearAnnotations() }.disabled(!screenCanvas.isActive || screenCanvas.isCapturing)
-                Button("結束螢幕畫布　⌘⌥⇧X") { screenCanvas.stop() }.disabled(!screenCanvas.isActive)
+            CommandGroup(replacing: .pasteboard) {
+                Button(L10n.t("剪下")) { performClipboardAction("cut:") { commandEngine.cutSelected() } }
+                    .keyboardShortcut("x", modifiers: .command)
+                Button(L10n.t("拷貝")) { performClipboardAction("copy:") { commandEngine.copySelected() } }
+                    .keyboardShortcut("c", modifiers: .command)
+                Button(L10n.t("貼上")) { performClipboardAction("paste:") { commandEngine.pasteClipboard() } }
+                    .keyboardShortcut("v", modifiers: .command)
             }
-            CommandGroup(replacing: .help) { Button("黑板使用手冊") { HeiBanUserGuide.shared.show() } }
+            CommandMenu(L10n.t("螢幕畫布")) {
+                Button(screenCanvas.isActive ? "切換作畫／操作　⌘⌥⇧D" : "我的螢幕就是我的畫布　⌘⌥⇧D") { screenCanvas.toggleDrawing() }
+                Button(L10n.t("截圖並儲存　⌘⌥⇧S")) { screenCanvas.captureScreen() }.disabled(!screenCanvas.isActive || screenCanvas.isCapturing)
+                Button(L10n.t("儲存可編輯註記…")) { screenCanvas.saveEditable() }.disabled(!screenCanvas.isActive)
+                Button(L10n.t("一鍵清空螢幕畫布（可復原）")) { screenCanvas.clearAnnotations() }.disabled(!screenCanvas.isActive || screenCanvas.isCapturing)
+                Button(L10n.t("結束螢幕畫布　⌘⌥⇧X")) { screenCanvas.stop() }.disabled(!screenCanvas.isActive)
+            }
+            CommandGroup(replacing: .help) { Button(L10n.t("黑板使用手冊")) { HeiBanUserGuide.shared.show() } }
             CommandGroup(replacing: .undoRedo) {
-                Button("復原") { commandEngine.undo() }
+                Button(L10n.t("復原")) { commandEngine.undo() }
                     .keyboardShortcut("z", modifiers: .command)
                     .disabled(!commandEngine.canUndo || commandEngine.readingMode)
-                Button("重做") { commandEngine.redo() }
+                Button(L10n.t("重做")) { commandEngine.redo() }
                     .keyboardShortcut("z", modifiers: [.command, .shift])
                     .disabled(!commandEngine.canRedo || commandEngine.readingMode)
             }
         }
         MenuBarExtra("黑板螢幕畫布", systemImage: "pencil.tip.crop.circle") {
             Button(screenCanvas.isActive ? "切換作畫／操作　⌘⌥⇧D" : "開啟螢幕畫布　⌘⌥⇧D") { screenCanvas.toggleDrawing() }
-            Button("截圖並儲存　⌘⌥⇧S") { screenCanvas.captureScreen() }.disabled(!screenCanvas.isActive || screenCanvas.isCapturing)
-            Button("一鍵清空螢幕畫布（可復原）") { screenCanvas.clearAnnotations() }.disabled(!screenCanvas.isActive || screenCanvas.isCapturing)
-            Button("結束螢幕畫布　⌘⌥⇧X") { screenCanvas.stop() }.disabled(!screenCanvas.isActive)
+            Button(L10n.t("截圖並儲存　⌘⌥⇧S")) { screenCanvas.captureScreen() }.disabled(!screenCanvas.isActive || screenCanvas.isCapturing)
+            Button(L10n.t("一鍵清空螢幕畫布（可復原）")) { screenCanvas.clearAnnotations() }.disabled(!screenCanvas.isActive || screenCanvas.isCapturing)
+            Button(L10n.t("結束螢幕畫布　⌘⌥⇧X")) { screenCanvas.stop() }.disabled(!screenCanvas.isActive)
             Divider()
-            Button("使用手冊") { HeiBanUserGuide.shared.show() }
+            Button(L10n.t("使用手冊")) { HeiBanUserGuide.shared.show() }
         }
     }
 }

@@ -7,9 +7,10 @@ enum HeiBanBrand {
 }
 
 struct HeiBanLogo: View {
+    @ObservedObject private var language = L10n.shared
     var body: some View {
         Image(nsImage: HeiBanBrand.logo)
             .resizable().interpolation(.high).scaledToFit()
-            .accessibilityLabel("黑板：手寫筆記 Logo")
+            .accessibilityLabel(L10n.t("黑板：手寫筆記 Logo"))
     }
 }

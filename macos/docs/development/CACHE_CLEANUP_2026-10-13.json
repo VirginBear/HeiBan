@@ -1,0 +1,13 @@
+{
+  "date": "2026-10-13",
+  "platform": "macos",
+  "path": "macos/.build",
+  "removedAllocatedBytes": 1596936192,
+  "removedFileCount": 6899,
+  "keptApp": "macos/dist/HeiBan.app",
+  "version": "1.0.13",
+  "build": "20261011.1",
+  "binarySHA256": "94b441f4f451bd04e0842f3ba53d35bff7ff90cc4d3d96e56fa0a3190fb2b193",
+  "appFileBytes": 13520180,
+  "rebuildRequiredForNextCompilation": true
+}

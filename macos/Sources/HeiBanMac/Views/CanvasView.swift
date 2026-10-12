@@ -4,6 +4,7 @@ import UniformTypeIdentifiers
 import HeiBanCore
 
 public struct CanvasView: View {
+    @ObservedObject private var language = L10n.shared
     @ObservedObject var engine: BoardEngine
     @AppStorage("HeiBan.rulerLabelColor") private var rulerLabelColor = "#FFFFFF"
     @AppStorage("HeiBan.rulerColorMode") private var rulerColorMode = "adaptive"
@@ -53,7 +54,6 @@ public struct CanvasView: View {
                 }
 
                 if !engine.readingMode {
-                    LineEndpointHandlesView(engine: engine, preview: engine.strokePreview)
                     PolygonVertexHandlesView(engine: engine)
                 }
 
@@ -132,7 +132,7 @@ public struct CanvasView: View {
     }
 }
 
-private struct CanvasImageDropDelegate: DropDelegate {
+struct CanvasImageDropDelegate: DropDelegate {
     let engine: BoardEngine
 
     func performDrop(info: DropInfo) -> Bool {
@@ -177,6 +177,7 @@ private struct CanvasImageDropDelegate: DropDelegate {
 }
 
 private struct PinMarkerOverlayView: View {
+    @ObservedObject private var language = L10n.shared
     @ObservedObject var engine: BoardEngine
 
     var body: some View {
@@ -209,28 +210,28 @@ private struct PinMarkerOverlayView: View {
                     .onEnded { _ in engine.endPinDrag(id: pin.id) }
             )
             .contextMenu {
-                Button("前往此圖釘視角") {
+                Button(L10n.t("前往此圖釘視角")) {
                     engine.jumpToPin(pin)
                 }
                 Divider()
-                Menu("圖釘主體顏色") {
-                    Button("藍綠色（預設）") { engine.updatePinColor(id: pin.id, color: "#39B9DC", textColor: pin.textColor) }
-                    Button("珊瑚粉") { engine.updatePinColor(id: pin.id, color: "#fb7185", textColor: pin.textColor) }
-                    Button("琥珀黃") { engine.updatePinColor(id: pin.id, color: "#f59e0b", textColor: pin.textColor) }
-                    Button("翡翠綠") { engine.updatePinColor(id: pin.id, color: "#10b981", textColor: pin.textColor) }
-                    Button("靛藍紫") { engine.updatePinColor(id: pin.id, color: "#6366f1", textColor: pin.textColor) }
-                    Button("深石墨") { engine.updatePinColor(id: pin.id, color: "#475569", textColor: pin.textColor) }
+                Menu(L10n.t("圖釘主體顏色")) {
+                    Button(L10n.t("藍綠色（預設）")) { engine.updatePinColor(id: pin.id, color: "#39B9DC", textColor: pin.textColor) }
+                    Button(L10n.t("珊瑚粉")) { engine.updatePinColor(id: pin.id, color: "#fb7185", textColor: pin.textColor) }
+                    Button(L10n.t("琥珀黃")) { engine.updatePinColor(id: pin.id, color: "#f59e0b", textColor: pin.textColor) }
+                    Button(L10n.t("翡翠綠")) { engine.updatePinColor(id: pin.id, color: "#10b981", textColor: pin.textColor) }
+                    Button(L10n.t("靛藍紫")) { engine.updatePinColor(id: pin.id, color: "#6366f1", textColor: pin.textColor) }
+                    Button(L10n.t("深石墨")) { engine.updatePinColor(id: pin.id, color: "#475569", textColor: pin.textColor) }
                 }
-                Menu("圖釘文字顏色") {
-                    Button("森林深綠（預設）") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#397056") }
-                    Button("純白") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#ffffff") }
-                    Button("深灰黑") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#1e293b") }
-                    Button("珊瑚紅") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#e11d48") }
-                    Button("琥珀棕") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#b45309") }
-                    Button("靛青") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#1e40af") }
+                Menu(L10n.t("圖釘文字顏色")) {
+                    Button(L10n.t("森林深綠（預設）")) { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#397056") }
+                    Button(L10n.t("純白")) { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#ffffff") }
+                    Button(L10n.t("深灰黑")) { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#1e293b") }
+                    Button(L10n.t("珊瑚紅")) { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#e11d48") }
+                    Button(L10n.t("琥珀棕")) { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#b45309") }
+                    Button(L10n.t("靛青")) { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#1e40af") }
                 }
                 Divider()
-                Button("刪除圖釘", role: .destructive) {
+                Button(L10n.t("刪除圖釘"), role: .destructive) {
                     engine.removePin(id: pin.id)
                 }
             }
@@ -244,7 +245,8 @@ private struct PinMarkerOverlayView: View {
     }
 }
 
-private struct PolygonVertexHandlesView: View {
+struct PolygonVertexHandlesView: View {
+    @ObservedObject private var language = L10n.shared
     @ObservedObject var engine: BoardEngine
 
     var body: some View {
@@ -262,6 +264,7 @@ private struct PolygonVertexHandlesView: View {
 }
 
 struct EraserCursorOverlayView: View {
+    @ObservedObject private var language = L10n.shared
     @ObservedObject var engine: BoardEngine
     let point: Point
 
@@ -284,6 +287,7 @@ struct EraserCursorOverlayView: View {
 }
 
 private struct HoverCursorOverlayView: View {
+    @ObservedObject private var language = L10n.shared
     let point: Point
     let diameter: Double
     let color: Color
@@ -311,6 +315,7 @@ private struct HoverCursorOverlayView: View {
 }
 
 private struct PolygonVertexHandleView: View {
+    @ObservedObject private var language = L10n.shared
     @ObservedObject var engine: BoardEngine
     let objectID: String
     let index: Int
@@ -328,12 +333,13 @@ private struct PolygonVertexHandleView: View {
                     .onChanged { engine.updatePolygonVertex(objectID: objectID, index: index, at: Point($0.location)) }
                     .onEnded { _ in engine.endPolygonVertexDrag(objectID: objectID) }
             )
-            .help("拖曳調整多邊形頂點")
+            .help(L10n.t("拖曳調整多邊形頂點"))
     }
 }
 
 // MARK: - Canvas Objects Rendering Layer
 struct CanvasObjectsLayer: View {
+    @ObservedObject private var language = L10n.shared
     @ObservedObject var engine: BoardEngine
     @ViewState<CGSize> private var offset = CGSize.zero
     @ViewState<LineEndpointPreview?> private var endpoint: LineEndpointPreview?

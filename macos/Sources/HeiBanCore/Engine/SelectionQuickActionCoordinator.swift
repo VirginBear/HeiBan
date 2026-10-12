@@ -70,9 +70,11 @@ public enum SelectionQuickActionCoordinator {
 
         let placement: SelectionQuickBarPlacement
         let centerY: CGFloat
-        if screenRect.minY - barSize.height - 12 >= topMargin {
+        // 旋轉點在包圍框上方 25 pt，快速列底緣再留 12 pt；不覆蓋命中區。
+        let handleClearance: CGFloat = 42
+        if screenRect.minY - barSize.height - handleClearance >= topMargin {
             placement = .above
-            centerY = screenRect.minY - barSize.height / 2 - 8
+            centerY = screenRect.minY - barSize.height / 2 - handleClearance
         } else {
             placement = .below
             centerY = min(canvasSize.height - barSize.height / 2 - 12, screenRect.maxY + barSize.height / 2 + 8)

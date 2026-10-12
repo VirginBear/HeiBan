@@ -29,6 +29,12 @@ HEIBAN_SIGNING_IDENTITY='Developer ID Application: YOUR NAME (TEAMID)' bash scri
 
 發行封裝：`python3 scripts/package_public_release.py --platform macos`，只使用已建置的 `macos/dist/HeiBan.app`，產生 Mac DMG／ZIP／手冊與 SHA-256。不修改作品資料夾。
 
+### 清理 Mac 編譯快取
+
+完成App封裝、停止所有編譯程序後，可以在專案根目錄刪除 `macos/.build/`。它包含SDK預編譯模組、增量中間檔及除錯／Release建置產物；下次編譯重新產生，首次會較慢。`macos/dist/HeiBan.app` 是獨立成品，不依賴這份開發快取；保留 dist、來源、開發文件及使用者作品。不要把清理套用到系統全域快取或作品資料夾。
+
+2026-10-13清理紀錄見 [Mac 日誌](../macos/docs/development/logs/2026-10-13/01.zh-TW.md)。
+
 ## Windows
 
 在 Windows 建置，不能在 Mac 直接執行 WinUI XAML 編譯器。需要 .NET 10 SDK、Windows SDK 26100 與 WinUI XAML 編譯相依環境；完整 Visual Studio Windows 桌面開發環境亦可。`windows/global.json` 允許同主版較新 feature band。封裝需要 PowerShell 7 與官方 Inno Setup 6.7+／7（商用建置請確認適用的編譯器條款）。

@@ -55,6 +55,11 @@ def common_files(platform: str) -> dict[str, bytes]:
         "INSTALL-README.txt": INSTRUCTIONS.encode(),
     }
     if platform == "macos":
+        # Mac 包不攜帶過時的 Windows 功能宣告；平台進度以相應說明為準。
+        files["INSTALL-README.txt"] = files["INSTALL-README.txt"].replace(
+            "Windows 透明螢幕畫布／雷射等仍未提供；包內舊手冊以最新線上文件為準。\n".encode(),
+            "各平台功能與限制請參閱對應文件及內建手冊。\n".encode(),
+        )
         return files
     exception = ROOT / "windows/LICENSE-WINDOWS-EXCEPTION.txt"
     if not exception.is_file():

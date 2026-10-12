@@ -2,8 +2,11 @@ import SwiftUI
 import HeiBanCore
 
 struct ToolbarCustomizeSheet: View {
+    @ObservedObject private var language = L10n.shared
     @ObservedObject var engine: BoardEngine
     @Binding var isPresented: Bool
+
+    var screenContext = false
 
     private var allOrderedKeys: [String] {
         var result: [String] = []
@@ -23,22 +26,22 @@ struct ToolbarCustomizeSheet: View {
                 result.append(def.id)
             }
         }
-        return result
+        return result.filter { ToolbarContentPolicy.isAvailable($0, screen: screenContext) }
     }
 
     var body: some View {
         VStack(spacing: 16) {
             HStack {
-                Text("自訂工具列").font(.headline)
+                Text(L10n.t("自訂工具列")).font(.headline)
                 Spacer()
-                Button("恢復預設") {
+                Button(L10n.t("恢復預設")) {
                     engine.resetToolbarPreferences()
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
             }
 
-            Text("勾選以在工具列中顯示，點擊箭頭可調整前後順序。隱藏的工具仍可由工具列的「更多」按鈕快速啟用。")
+            Text(L10n.t("勾選以在工具列中顯示，點擊箭頭可調整前後順序。隱藏的工具仍可由工具列的「更多」按鈕快速啟用。"))
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -61,7 +64,7 @@ struct ToolbarCustomizeSheet: View {
                                     .frame(width: 22)
                                     .foregroundColor(.accentColor)
 
-                                Text(def.displayName)
+                                Text(L10n.t(def.displayName))
                                     .font(.system(size: 13))
 
                                 Spacer()
@@ -98,7 +101,7 @@ struct ToolbarCustomizeSheet: View {
 
             HStack {
                 Spacer()
-                Button("完成") {
+                Button(L10n.t("完成")) {
                     isPresented = false
                 }
                 .buttonStyle(.borderedProminent)

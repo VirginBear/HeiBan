@@ -36,7 +36,8 @@ struct CanvasObjectsView: View {
                     objectContext.translateBy(x: selectionOffset.width, y: selectionOffset.height)
                 }
                 renderObject(renderable, in: &objectContext, canvasSize: size)
-                if isSelected {
+                // 線段／箭頭只有AB控制；不能在另一個渲染層再畫回矩形外框。
+                if isSelected && !["line", "arrow"].contains(obj.type) {
                     drawSelectionOutline(for: renderable, in: &context, offset: selectionOffset)
                 }
             }
@@ -639,52 +640,6 @@ struct CanvasObjectsView: View {
             let resolved = context.resolve(Text(glyph.text).font(font).foregroundColor(strokeColor))
             context.draw(resolved, at: CGPoint(x: screenX + glyph.x, y: screenY + glyph.y), anchor: .topLeading)
         }
-    }
-}
-
-struct LineEndpointHandlesView: View {
-    @ObservedObject var engine: BoardEngine
-    @ObservedObject var preview: StrokePreviewStore
-
-    private var selectedLine: BoardObject? {
-        engine.currentPageObjects.reversed().first {
-            engine.selectedIds.contains($0.id) && ($0.type == "line" || $0.type == "arrow")
-        }
-    }
-
-    var body: some View {
-        if let line = selectedLine {
-            let start = endpointPosition(for: line, endpoint: .start)
-            let end = endpointPosition(for: line, endpoint: .end)
-            endpointHandle(at: start, objectID: line.id, endpoint: .start)
-            endpointHandle(at: end, objectID: line.id, endpoint: .end)
-        }
-    }
-
-    private func endpointPosition(for line: BoardObject, endpoint: LineEndpoint) -> CGPoint {
-        let previewPoint = preview.lineEndpoint.flatMap {
-            $0.objectID == line.id && $0.endpoint == endpoint ? $0.point : nil
-        }
-        let x = previewPoint?.x ?? (endpoint == .start ? (line.x1 ?? line.x) : (line.x2 ?? line.x + line.width))
-        let y = previewPoint?.y ?? (endpoint == .start ? (line.y1 ?? line.y) : (line.y2 ?? line.y + line.height))
-        return CGPoint(x: x * engine.viewport.zoom + engine.viewport.x, y: y * engine.viewport.zoom + engine.viewport.y)
-    }
-
-    private func endpointHandle(at point: CGPoint, objectID: String, endpoint: LineEndpoint) -> some View {
-        Circle()
-            .fill(endpoint == .start ? Color.blue : Color.cyan)
-            .frame(width: 16, height: 16)
-            .overlay(Circle().stroke(.white, lineWidth: 2))
-            .shadow(color: .black.opacity(0.35), radius: 3)
-            .position(point)
-            .gesture(
-                DragGesture(minimumDistance: 0, coordinateSpace: .named("canvas"))
-                    .onChanged { value in
-                        engine.updateLineEndpointDrag(objectID: objectID, endpoint: endpoint, at: Point(value.location))
-                    }
-                    .onEnded { _ in engine.endLineEndpointDrag() }
-            )
-            .help(endpoint == .start ? "拖曳 A 點調整直線起點" : "拖曳 B 點調整直線終點")
     }
 }
 

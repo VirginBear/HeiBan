@@ -2,6 +2,7 @@ import SwiftUI
 import HeiBanCore
 
 public struct CompassOverlayView: View {
+    @ObservedObject private var language = L10n.shared
     @ObservedObject var compass: CompassToolEngine
     @ObservedObject var engine: BoardEngine
 
@@ -130,7 +131,7 @@ public struct CompassOverlayView: View {
                     compass.adjustRadius(to: worldRadius)
                 }
         )
-        .help("拖曳調整圓規半徑")
+        .help(L10n.t("拖曳調整圓規半徑"))
     }
 
     // MARK: - Pencil Tip Handle
@@ -186,7 +187,7 @@ public struct CompassOverlayView: View {
             } label: {
                 HStack(spacing: 4) {
                     Image(systemName: "circle")
-                    Text("整圓")
+                    Text(L10n.t("整圓"))
                 }
                 .font(.system(size: 11, weight: .semibold))
                 .padding(.horizontal, 8)
@@ -194,7 +195,7 @@ public struct CompassOverlayView: View {
                 .background(Color.accentColor.opacity(0.18), in: RoundedRectangle(cornerRadius: 6))
             }
             .buttonStyle(.plain)
-            .help("一鍵繪製完整圓形")
+            .help(L10n.t("一鍵繪製完整圓形"))
 
             if compass.isDrawingArc && abs(compass.sweepAngle) > 0.1 {
                 Button {
@@ -202,7 +203,7 @@ public struct CompassOverlayView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "checkmark")
-                        Text("完成圓弧")
+                        Text(L10n.t("完成圓弧"))
                     }
                     .font(.system(size: 11, weight: .semibold))
                     .padding(.horizontal, 8)
@@ -222,7 +223,7 @@ public struct CompassOverlayView: View {
                     .padding(4)
             }
             .buttonStyle(.plain)
-            .help("收起圓規")
+            .help(L10n.t("收起圓規"))
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 5)

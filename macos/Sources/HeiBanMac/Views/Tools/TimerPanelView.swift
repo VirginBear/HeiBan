@@ -2,6 +2,7 @@ import SwiftUI
 import HeiBanCore
 
 public struct TimerPanelView: View {
+    @ObservedObject private var language = L10n.shared
     @ObservedObject var coordinator: TimerCoordinator
     @ObservedObject var engine: BoardEngine
 
@@ -62,7 +63,7 @@ public struct TimerPanelView: View {
     private var timeDisplayView: some View {
         VStack(spacing: 2) {
             if coordinator.status == .timesUp {
-                Text("⏰ 時間到！")
+                Text(L10n.t("⏰ 時間到！"))
                     .font(.system(size: 11, weight: .bold))
                     .foregroundStyle(.red)
                     .transition(.opacity)
@@ -132,7 +133,7 @@ public struct TimerPanelView: View {
                 } label: {
                     HStack(spacing: 3) {
                         Image(systemName: "arrow.counterclockwise")
-                        Text("重設")
+                        Text(L10n.t("重設"))
                     }
                     .font(.system(size: 12, weight: .medium))
                     .padding(.horizontal, 10)
@@ -148,7 +149,7 @@ public struct TimerPanelView: View {
             } label: {
                 HStack(spacing: 4) {
                     Image(systemName: "text.insert")
-                    Text("插入用時至畫布")
+                    Text(L10n.t("插入用時至畫布"))
                 }
                 .font(.system(size: 11, weight: .semibold))
                 .frame(maxWidth: .infinity)
@@ -157,7 +158,7 @@ public struct TimerPanelView: View {
                 .foregroundStyle(Color.accentColor)
             }
             .buttonStyle(.plain)
-            .help("將當前計時器用時插入黑板為可編輯文字物件")
+            .help(L10n.t("將當前計時器用時插入黑板為可編輯文字物件"))
         }
     }
 }

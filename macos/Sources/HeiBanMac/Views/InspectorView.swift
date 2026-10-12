@@ -3,6 +3,7 @@ import HeiBanCore
 import SwiftUI
 
 public struct InspectorView: View {
+    @ObservedObject private var language = L10n.shared
     @ObservedObject var engine: BoardEngine
 
     private let horizontal: Bool
@@ -40,8 +41,8 @@ public struct InspectorView: View {
                     HStack(spacing: 12) {
                         Image(systemName: "hand.tap").font(.title2).foregroundStyle(.secondary)
                         VStack(alignment: .leading, spacing: 5) {
-                            Text("選取物件後調整屬性").font(.subheadline.bold())
-                            Text("色彩、線條、透明度與旋轉會分區顯示。").font(.caption).foregroundStyle(.secondary)
+                            Text(L10n.t("選取物件後調整屬性")).font(.subheadline.bold())
+                            Text(L10n.t("色彩、線條、透明度與旋轉會分區顯示。")).font(.caption).foregroundStyle(.secondary)
                         }
                         Spacer()
                     }.frame(maxHeight: .infinity)
@@ -80,13 +81,13 @@ public struct InspectorView: View {
     private var header: some View {
         HStack {
             HStack {
-                Label("屬性檢查器", systemImage: "slider.horizontal.3")
+                Label(L10n.t("屬性檢查器"), systemImage: "slider.horizontal.3")
                     .font(.system(size: 13, weight: .bold))
                 Spacer()
             }
             .frame(height: 26)
             .contentShape(Rectangle())
-            .help("拖曳標題到視窗上下左右停靠")
+            .help(L10n.t("拖曳標題到視窗上下左右停靠"))
             .gesture(
                 DragGesture(minimumDistance: 6, coordinateSpace: .named("HeiBan.workspace"))
                     .onChanged { onDragChanged?($0) }
@@ -110,10 +111,10 @@ public struct InspectorView: View {
             Image(systemName: "hand.tap")
                 .font(.system(size: 28))
                 .foregroundColor(.secondary.opacity(0.6))
-            Text("未選取任何物件")
+            Text(L10n.t("未選取任何物件"))
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundColor(.secondary)
-            Text("在畫布上點選或框選物件，即可即時調整線條、填色、粗細與延伸方向。")
+            Text(L10n.t("在畫布上點選或框選物件，即可即時調整線條、填色、粗細與延伸方向。"))
                 .font(.system(size: 11))
                 .foregroundColor(.secondary.opacity(0.8))
                 .multilineTextAlignment(.center)
@@ -132,14 +133,14 @@ public struct InspectorView: View {
                 .foregroundColor(.secondary)
             Spacer()
             if engine.selectedIds.count >= 2 {
-                Button("群組") {
+                Button(L10n.t("群組")) {
                     engine.groupSelected()
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
             }
             if engine.selectedObjects.contains(where: { $0.groupId != nil }) {
-                Button("解組") {
+                Button(L10n.t("解組")) {
                     engine.ungroupSelected()
                 }
                 .buttonStyle(.bordered)
@@ -154,11 +155,11 @@ public struct InspectorView: View {
             // 1. Stroke Color
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
-                    Text("線條色彩")
+                    Text(L10n.t("線條色彩"))
                         .font(.system(size: 11, weight: .semibold))
                     Spacer()
                     if engine.selectedStrokeColor.isMixed {
-                        Text("混合色彩")
+                        Text(L10n.t("混合色彩"))
                             .font(.system(size: 10))
                             .foregroundColor(.secondary)
                     }
@@ -182,7 +183,7 @@ public struct InspectorView: View {
                         .buttonStyle(.plain)
                     }
                     ColorPicker(
-                        "自訂線條色",
+                        L10n.t("自訂線條色"),
                         selection: Binding(
                             get: { Color(hex: engine.selectedStrokeColor.valueOrNil ?? "#86efac") },
                             set: { engine.setSelectedStrokeColor(hexString($0)) }
@@ -202,7 +203,7 @@ public struct InspectorView: View {
                     .controlSize(.small)
                     if engine.selectedGradientEnabled {
                         ColorPicker(
-                            "起點",
+                            L10n.t("起點"),
                             selection: Binding(
                                 get: { Color(hex: engine.selectedGradientStart) },
                                 set: {
@@ -210,9 +211,9 @@ public struct InspectorView: View {
                                         start: hexString($0), end: engine.selectedGradientEnd)
                                 }
                             )
-                        ).labelsHidden().help("漸層起點顏色")
+                        ).labelsHidden().help(L10n.t("漸層起點顏色"))
                         ColorPicker(
-                            "終點",
+                            L10n.t("終點"),
                             selection: Binding(
                                 get: { Color(hex: engine.selectedGradientEnd) },
                                 set: {
@@ -220,7 +221,7 @@ public struct InspectorView: View {
                                         start: engine.selectedGradientStart, end: hexString($0))
                                 }
                             )
-                        ).labelsHidden().help("漸層終點顏色")
+                        ).labelsHidden().help(L10n.t("漸層終點顏色"))
                     }
                 }
             }
@@ -228,11 +229,11 @@ public struct InspectorView: View {
             // 2. Fill Color
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
-                    Text("填色")
+                    Text(L10n.t("填色"))
                         .font(.system(size: 11, weight: .semibold))
                     Spacer()
                     if engine.selectedFillColor.isMixed {
-                        Text("混合填色")
+                        Text(L10n.t("混合填色"))
                             .font(.system(size: 10))
                             .foregroundColor(.secondary)
                     }
@@ -252,7 +253,7 @@ public struct InspectorView: View {
                             )
                     }
                     .buttonStyle(.plain)
-                    .help("無填色")
+                    .help(L10n.t("無填色"))
 
                     ForEach(standardColors.prefix(7), id: \.self) { hex in
                         Button {
@@ -272,7 +273,7 @@ public struct InspectorView: View {
                         .buttonStyle(.plain)
                     }
                     ColorPicker(
-                        "自訂填色",
+                        L10n.t("自訂填色"),
                         selection: Binding(
                             get: { Color(hex: engine.selectedFillColor.valueOrNil ?? "#fde047") },
                             set: { color in
@@ -286,7 +287,7 @@ public struct InspectorView: View {
                     .frame(width: 24)
                 }
                 HStack(spacing: 8) {
-                    Text("填色透明度").font(.system(size: 10, weight: .medium)).foregroundStyle(.secondary)
+                    Text(L10n.t("填色透明度")).font(.system(size: 10, weight: .medium)).foregroundStyle(.secondary)
                     Slider(
                         value: Binding(
                             get: { engine.selectedFillOpacity.valueOrNil ?? 1 },
@@ -308,7 +309,7 @@ public struct InspectorView: View {
             // 3. Stroke Width
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text("粗細")
+                    Text(L10n.t("粗細"))
                         .font(.system(size: 11, weight: .semibold))
                     Spacer()
                     Text(
@@ -331,7 +332,7 @@ public struct InspectorView: View {
             // 4. Opacity
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text("不透明度")
+                    Text(L10n.t("不透明度"))
                         .font(.system(size: 11, weight: .semibold))
                     Spacer()
                     Text(
@@ -354,11 +355,11 @@ public struct InspectorView: View {
             // 5. Line Style
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
-                    Text("線條樣式")
+                    Text(L10n.t("線條樣式"))
                         .font(.system(size: 11, weight: .semibold))
                     Spacer()
                     if engine.selectedLineStyle.isMixed {
-                        Text("混合樣式")
+                        Text(L10n.t("混合樣式"))
                             .font(.system(size: 10))
                             .foregroundColor(.secondary)
                     }
@@ -370,19 +371,19 @@ public struct InspectorView: View {
                         set: { engine.setSelectedLineStyle($0) }
                     )
                 ) {
-                    Text("實線").tag("solid")
-                    Text("虛線").tag("dashed")
-                    Text("點線").tag("dotted")
-                    Text("點劃線").tag("dashDot")
+                    Text(L10n.t("實線")).tag("solid")
+                    Text(L10n.t("虛線")).tag("dashed")
+                    Text(L10n.t("點線")).tag("dotted")
+                    Text(L10n.t("點劃線")).tag("dashDot")
                 }
                 .pickerStyle(.menu)
             }
 
             if engine.selectedObjects.contains(where: { $0.type == "arrow" }) {
                 VStack(alignment: .leading, spacing: 7) {
-                    Text("箭頭大小").font(.system(size: 11, weight: .semibold))
+                    Text(L10n.t("箭頭大小")).font(.system(size: 11, weight: .semibold))
                     HStack {
-                        Text("長度")
+                        Text(L10n.t("長度"))
                         Slider(
                             value: Binding(
                                 get: { engine.selectedArrowHeadLength.valueOrNil ?? 16 },
@@ -391,7 +392,7 @@ public struct InspectorView: View {
                             .frame(width: 22)
                     }
                     HStack {
-                        Text("寬度")
+                        Text(L10n.t("寬度"))
                         Slider(
                             value: Binding(
                                 get: { engine.selectedArrowHeadWidth.valueOrNil ?? 10 },
@@ -406,11 +407,11 @@ public struct InspectorView: View {
             if engine.selectedObjects.contains(where: { $0.type == "line" || $0.type == "arrow" }) {
                 VStack(alignment: .leading, spacing: 6) {
                     HStack {
-                        Text("線段／箭頭延伸 (A/B)")
+                        Text(L10n.t("線段／箭頭延伸 (A/B)"))
                             .font(.system(size: 11, weight: .semibold))
                         Spacer()
                         if engine.selectedLineExtension.isMixed {
-                            Text("混合延伸")
+                            Text(L10n.t("混合延伸"))
                                 .font(.system(size: 10))
                                 .foregroundColor(.secondary)
                         }
@@ -438,11 +439,11 @@ public struct InspectorView: View {
             if engine.selectedObjects.contains(where: { $0.type == "sticky" }) {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        Text("便簽樣式")
+                        Text(L10n.t("便簽樣式"))
                             .font(.system(size: 11, weight: .semibold))
                         Spacer()
                         if engine.selectedStickyStyle.isMixed {
-                            Text("混合樣式")
+                            Text(L10n.t("混合樣式"))
                                 .font(.system(size: 10))
                                 .foregroundColor(.secondary)
                         }
@@ -460,7 +461,7 @@ public struct InspectorView: View {
                     }
                     .pickerStyle(.menu)
 
-                    Text("便簽色盤")
+                    Text(L10n.t("便簽色盤"))
                         .font(.system(size: 11, weight: .semibold))
                         .padding(.top, 2)
                     HStack(spacing: 8) {
@@ -490,11 +491,11 @@ public struct InspectorView: View {
                                 Image(systemName: "exclamationmark.triangle.fill")
                                     .foregroundColor(.orange)
                                     .font(.system(size: 11))
-                                Text("文字超出便簽邊界")
+                                Text(L10n.t("文字超出便簽邊界"))
                                     .font(.system(size: 11, weight: .medium))
                                     .foregroundColor(.orange)
                             }
-                            Button("自動擴展適配高度") {
+                            Button(L10n.t("自動擴展適配高度")) {
                                 for obj in engine.selectedObjects where obj.type == "sticky" {
                                     engine.expandStickyToFit(id: obj.id)
                                 }
@@ -509,10 +510,11 @@ public struct InspectorView: View {
                 }
             }
 
-            // 7. Rotation
+            // 線段方向由 AB 兩點決定，屬性不再提供無效的 rotation 欄位。
+            if engine.selectedObjects.contains(where: { !["line", "arrow"].contains($0.type) }) {
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text("旋轉角度")
+                    Text(L10n.t("旋轉角度"))
                         .font(.system(size: 11, weight: .semibold))
                     Spacer()
                     Text(
@@ -531,7 +533,7 @@ public struct InspectorView: View {
                         in: 0...360,
                         step: 5
                     )
-                    Button("歸零") {
+                    Button(L10n.t("歸零")) {
                         engine.setSelectedRotationAngle(0.0)
                     }
                     .buttonStyle(.borderless)
@@ -541,13 +543,15 @@ public struct InspectorView: View {
 
             Divider()
 
+            }
+
             // Quick actions
             HStack(spacing: 8) {
                 Button {
                     engine.copySelected()
                     engine.pasteClipboard(offset: CGPoint(x: 24, y: 24))
                 } label: {
-                    Label("複製副本", systemImage: "plus.square.on.square")
+                    Label(L10n.t("複製副本"), systemImage: "plus.square.on.square")
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
@@ -557,7 +561,7 @@ public struct InspectorView: View {
                 Button(role: .destructive) {
                     engine.deleteSelected()
                 } label: {
-                    Label("刪除", systemImage: "trash")
+                    Label(L10n.t("刪除"), systemImage: "trash")
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)

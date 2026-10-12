@@ -3,6 +3,7 @@ import AppKit
 import HeiBanCore
 
 struct RulerSettingsView: View {
+    @ObservedObject private var language = L10n.shared
     let engine: BoardEngine
     @ObservedObject private var rulerStore: RulerStateStore
     @AppStorage("HeiBan.rulerColorMode") private var colorMode = "adaptive"
@@ -20,26 +21,26 @@ struct RulerSettingsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
-                Text("尺規設定").font(.headline)
+                Text(L10n.t("尺規設定")).font(.headline)
                 Spacer()
-                Button("關閉") { dismiss() }
+                Button(L10n.t("關閉")) { dismiss() }
             }
             HStack {
-                Text("角度")
-                TextField("例如 12.5", text: $angleText)
+                Text(L10n.t("角度"))
+                TextField(L10n.t("例如 12.5"), text: $angleText)
                     .textFieldStyle(.roundedBorder)
                     .monospacedDigit()
                     .focused($editingAngle)
                     .onSubmit(applyAngle)
-                    .accessibilityLabel("尺規角度，精度零點一度")
+                    .accessibilityLabel(L10n.t("尺規角度，精度零點一度"))
                 Text("°")
-                Button("套用", action: applyAngle)
+                Button(L10n.t("套用"), action: applyAngle)
             }
             HStack {
                 Button("−0.1°") { adjustAngle(-0.1) }
                 Button("+0.1°") { adjustAngle(0.1) }
                 Spacer()
-                Button("水平 0.0°") {
+                Button(L10n.t("水平 0.0°")) {
                     engine.setRulerAngle(0)
                     syncAngle()
                 }
@@ -47,15 +48,15 @@ struct RulerSettingsView: View {
             if let angleError {
                 Text(angleError).font(.caption).foregroundStyle(.red)
             }
-            Text("輸入後按 Return 套用。支援負角度，旋轉仍以選定的固定點為中心。")
+            Text(L10n.t("輸入後按 Return 套用。支援負角度，旋轉仍以選定的固定點為中心。"))
                 .font(.caption).foregroundStyle(.secondary)
             Divider()
-            Picker("配色", selection: $colorMode) {
-                Text("自適應（預設）").tag("adaptive")
-                Text("自訂刻度與文字").tag("custom")
+            Picker(L10n.t("配色"), selection: $colorMode) {
+                Text(L10n.t("自適應（預設）")).tag("adaptive")
+                Text(L10n.t("自訂刻度與文字")).tag("custom")
             }
             if colorMode == "custom" {
-                ColorPicker("刻度與角度文字", selection: Binding(
+                ColorPicker(L10n.t("刻度與角度文字"), selection: Binding(
                     get: { Color(hex: customColor) },
                     set: { color in
                         guard let rgb = NSColor(color).usingColorSpace(.deviceRGB) else { return }
@@ -63,10 +64,10 @@ struct RulerSettingsView: View {
                     }
                 ), supportsOpacity: false)
             }
-            Text("白底使用深色刻度，暗底使用淺色刻度；尺身與角度底色也會一起調整。")
+            Text(L10n.t("白底使用深色刻度，暗底使用淺色刻度；尺身與角度底色也會一起調整。"))
                 .font(.caption).foregroundStyle(.secondary)
             HStack {
-                Text("尺身透明度")
+                Text(L10n.t("尺身透明度"))
                 Slider(value: Binding(get: { rulerStore.state.opacity }, set: { engine.ruler.opacity = $0 }), in: 0.12...0.75)
             }
             .font(.caption)

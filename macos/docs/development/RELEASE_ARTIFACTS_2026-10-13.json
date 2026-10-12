@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-13",
+  "tag": "macos-v1.0.13",
+  "build": "20261011.1",
+  "binarySHA256": "94b441f4f451bd04e0842f3ba53d35bff7ff90cc4d3d96e56fa0a3190fb2b193",
+  "platform": "macos-arm64",
+  "version": "1.0.13",
+  "license": "GPL-3.0-only",
+  "additionalPermission": null,
+  "preview": true,
+  "artifacts": [
+    {
+      "filename": "HeiBan-macOS-1.0.13-arm64.zip",
+      "bytes": 4148023,
+      "sha256": "549d533006ebcabdd638e68ec449e7c235c8ac674fb683266f128f6932bb89d3"
+    },
+    {
+      "filename": "HeiBan-macOS-1.0.13-arm64.dmg",
+      "bytes": 4717776,
+      "sha256": "592f7b700a02e801d7e1d2cb5f951b21ccd602c4e149dd32e1b8b7f03a7f7dc2"
+    },
+    {
+      "filename": "HeiBan-User-Guide-macOS-1.0.13.html",
+      "bytes": 32276,
+      "sha256": "79b7c83f2dfa91bfddd696fde28ee56acdea4aaeb17d1973f53140cb83362f14"
+    }
+  ]
+}

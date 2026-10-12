@@ -15,7 +15,7 @@ final class HeiBanUserGuide: NSObject, NSWindowDelegate {
         webView.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
         let panel = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1020, height: 740),
                              styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
-        panel.title = "黑板 · 使用手冊"
+        panel.title = L10n.t("黑板 · 使用手冊")
         panel.minSize = NSSize(width: 680, height: 480)
         panel.contentView = webView
         panel.isReleasedWhenClosed = false

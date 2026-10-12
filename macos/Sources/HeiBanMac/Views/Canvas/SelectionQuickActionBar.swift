@@ -3,6 +3,7 @@ import AppKit
 import HeiBanCore
 
 public struct SelectionQuickActionBar: View {
+    @ObservedObject private var language = L10n.shared
     @ObservedObject var engine: BoardEngine
     @ViewState private var barSize = CGSize(width: 220, height: 36)
     @ViewState private var showColorPopover = false
@@ -71,10 +72,10 @@ public struct SelectionQuickActionBar: View {
                 .frame(width: 26, height: 26)
         }
         .buttonStyle(.plain)
-        .help("修改選取物件色彩")
+        .help(L10n.t("修改選取物件色彩"))
         .popover(isPresented: $showColorPopover) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("線條色彩").font(.caption.bold())
+                Text(L10n.t("線條色彩")).font(.caption.bold())
                 HStack(spacing: 5) {
                     ForEach(standardColors, id: \.0) { hex, name in
                         QuickColorSwatch(
@@ -102,10 +103,10 @@ public struct SelectionQuickActionBar: View {
                 .frame(width: 26, height: 26)
         }
         .buttonStyle(.plain)
-        .help("粗細設定")
+        .help(L10n.t("粗細設定"))
         .popover(isPresented: $showWidthPopover) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("線條粗細").font(.caption.bold())
+                Text(L10n.t("線條粗細")).font(.caption.bold())
                 HStack(spacing: 4) {
                     ForEach(strokeSizes, id: \.self) { sz in
                         Button {
@@ -136,12 +137,12 @@ public struct SelectionQuickActionBar: View {
                 .frame(width: 26, height: 26)
         }
         .buttonStyle(.plain)
-        .help("填色與透明度")
+        .help(L10n.t("填色與透明度"))
         .popover(isPresented: $showFillPopover) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("形狀填色").font(.caption.bold())
+                Text(L10n.t("形狀填色")).font(.caption.bold())
                 HStack(spacing: 5) {
-                    Button("無填色") {
+                    Button(L10n.t("無填色")) {
                         engine.setSelectedFillColor("none")
                         showFillPopover = false
                     }
@@ -174,7 +175,7 @@ public struct SelectionQuickActionBar: View {
                 .frame(width: 26, height: 26)
         }
         .buttonStyle(.plain)
-        .help("製作副本 (Cmd+D)")
+        .help(L10n.t("製作副本 (Cmd+D)"))
 
         if engine.selectedObjects.contains(where: { $0.type == "tape" }) {
             Button {
@@ -189,7 +190,7 @@ public struct SelectionQuickActionBar: View {
                     .frame(width: 26, height: 26)
             }
             .buttonStyle(.plain)
-            .help("切換遮題揭示／遮蔽")
+            .help(L10n.t("切換遮題揭示／遮蔽"))
         }
 
         Button {
@@ -201,39 +202,40 @@ public struct SelectionQuickActionBar: View {
                 .frame(width: 26, height: 26)
         }
         .buttonStyle(.plain)
-        .help("刪除選取物件 (Delete)")
+        .help(L10n.t("刪除選取物件 (Delete)"))
     }
 
     @ViewBuilder
     private func moreMenu(state: SelectionQuickActionBarState) -> some View {
         Menu {
-            Button("拷貝 (Cmd+C)") { engine.copySelected() }
+            Button(L10n.t("拷貝 (Cmd+C)")) { engine.copySelected() }
             Button(state.isLocked ? "解鎖物件" : "鎖定物件") { engine.toggleSelectedLock() }
-            Button("選取內容截圖") { engine.copySelectionAsImage() }
+            Button(L10n.t("選取內容截圖")) { engine.copySelectionAsImage() }
             Divider()
-            Button("置於頂層") { engine.bringSelectedToFront() }
-            Button("置於底層") { engine.sendSelectedToBack() }
+            Button(L10n.t("置於頂層")) { engine.bringSelectedToFront() }
+            Button(L10n.t("置於底層")) { engine.sendSelectedToBack() }
             if state.selectedCount >= 2 {
-                Button("群組 (Cmd+G)") { engine.groupSelected() }
+                Button(L10n.t("群組 (Cmd+G)")) { engine.groupSelected() }
             }
             if engine.selectedObjects.contains(where: { $0.groupId != nil }) {
-                Button("解散群組 (Cmd+Shift+G)") { engine.ungroupSelected() }
+                Button(L10n.t("解散群組 (Cmd+Shift+G)")) { engine.ungroupSelected() }
             }
             Divider()
-            Button("詳細屬性…") { engine.showInspector = true }
+            Button(L10n.t("詳細屬性…")) { engine.showInspector = true }
         } label: {
-            MenuDisclosureLabel("物件更多動作") {
+            MenuDisclosureLabel(L10n.t("物件更多動作")) {
                 Image(systemName: "ellipsis").font(.system(size: 14, weight: .semibold))
             }
         }
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
         .fixedSize(horizontal: true, vertical: true)
-        .help("更多動作")
+        .help(L10n.t("更多動作"))
     }
 }
 
 private struct QuickColorSwatch: View {
+    @ObservedObject private var language = L10n.shared
     let hex: String
     let name: String
     let isSelected: Bool

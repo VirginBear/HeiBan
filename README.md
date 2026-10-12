@@ -10,7 +10,7 @@
 
 | 電腦 | 版本 | 下載 |
 | --- | --- | --- |
-| Apple Silicon Mac（M 系列），macOS 14+ | 1.0.8 | [DMG 安裝映像](https://github.com/VirginBear/HeiBan/releases/download/macos-v1.0.8/HeiBan-macOS-1.0.8-arm64.dmg) · [ZIP](https://github.com/VirginBear/HeiBan/releases/download/macos-v1.0.8/HeiBan-macOS-1.0.8-arm64.zip) |
+| Apple Silicon Mac（M 系列），macOS 14+ | 1.0.13 | [DMG 安裝映像](https://github.com/VirginBear/HeiBan/releases/download/macos-v1.0.13/HeiBan-macOS-1.0.13-arm64.dmg) · [ZIP](https://github.com/VirginBear/HeiBan/releases/download/macos-v1.0.13/HeiBan-macOS-1.0.13-arm64.zip) |
 | Windows 11，Intel／AMD 64 位元 | 1.0.12-preview.5 | [安裝版](https://github.com/VirginBear/HeiBan/releases/download/windows-v1.0.12-preview.5/HeiBan-Windows-Installer-1.0.12-preview.5-win-x64.zip) · [免安裝版](https://github.com/VirginBear/HeiBan/releases/download/windows-v1.0.12-preview.5/HeiBan-Windows-Portable-1.0.12-preview.5-win-x64.zip) |
 | Windows 11，ARM／Apple Silicon 上的 ARM Windows | 1.0.12-preview.5 | [安裝版](https://github.com/VirginBear/HeiBan/releases/download/windows-v1.0.12-preview.5/HeiBan-Windows-Installer-1.0.12-preview.5-win-arm64.zip) · [免安裝版](https://github.com/VirginBear/HeiBan/releases/download/windows-v1.0.12-preview.5/HeiBan-Windows-Portable-1.0.12-preview.5-win-arm64.zip) |
 
@@ -32,7 +32,7 @@ Mac 目前只提供 ARM64 下載包；尚無 Intel／Universal 包。Mac 未完�
 ## 操作說明
 
 - [快速開始](docs/QUICK_START.zh-TW.md)
-- [Mac 完整手冊](macos/docs/USER_GUIDE.zh-TW.md)／[下載 HTML 手冊](https://github.com/VirginBear/HeiBan/releases/download/macos-v1.0.8/HeiBan-User-Guide-macOS-1.0.8.html)
+- [Mac 完整手冊](macos/docs/USER_GUIDE.zh-TW.md)／[下載 HTML 手冊](https://github.com/VirginBear/HeiBan/releases/download/macos-v1.0.13/HeiBan-User-Guide-macOS-1.0.13.html)
 - [Windows 操作與開發說明](windows/README.md)
 - [已知限制](docs/KNOWN_ISSUES.zh-TW.md)
 - [隱私與資料保存](PRIVACY.md)

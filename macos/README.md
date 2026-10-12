@@ -2,7 +2,7 @@
 
 Swift／SwiftUI／AppKit；macOS 14+，目前預編譯版支援 Apple Silicon（ARM64）。
 
-- [下載 1.0.8 公開預覽](https://github.com/VirginBear/HeiBan/releases/tag/macos-v1.0.8)
+- [下載 1.0.13 公開預覽](https://github.com/VirginBear/HeiBan/releases/tag/macos-v1.0.13)
 - [安裝、更新與移除](../docs/INSTALL.zh-TW.md)
 - [快速開始](../docs/QUICK_START.zh-TW.md)／[完整使用手冊](docs/USER_GUIDE.zh-TW.md)
 - [建置原始碼](../docs/BUILDING.zh-TW.md)
@@ -12,10 +12,10 @@ Swift／SwiftUI／AppKit；macOS 14+，目前預編譯版支援 Apple Silicon（
 
 原稿與作品庫在本機保存；請先備份重要作品。程式、資源、文件與產物都在 macos/，不引用 Windows 專案。授權為 [GPL-3.0-only](../LICENSE)，第三方依各自條款。
 
-## 本機開發版 1.0.13
+## 1.0.13 公開預覽
 
-2026-10-11補齊右上導覽自動隱藏／固定顯示、普通圖層面板原生拖曳預覽與插入位置提示，並在首頁「帳號與設定」上方新增螢幕畫布入口。螢幕畫布 T 與文字右鍵批次格式沿用1.0.12。
+2026-10-13 提供與目前本機相同的 1.0.13 / 20261011.1 成品；Apple Silicon ARM64，macOS 14+。新增一般／螢幕畫布共用工具列、四邊排版與樣式面板，原生圖片貼上、AB端點、標題列雙擊放大還原、Mac發行檢查與十語介面入口，並沿用右上導覽自動隱藏、圖層拖曳預覽及螢幕文字右鍵格式。
 
-本機App位於 macos/dist/HeiBan.app；先正常退出舊行程再開新版。詳見 [1.0.13變更與操作](docs/CHANGES_1.0.13.zh-TW.md)／[本批開發紀錄](docs/development/logs/2026-10-11/10.zh-TW.md)。這批尚未更新上方GitHub下載；編譯封裝與實際操作驗收分開，長列表拖曳、取消／復原與懸停面板仍待試用。
+詳見 [1.0.13變更與操作](docs/CHANGES_1.0.13.zh-TW.md)／[發行紀錄](docs/development/RELEASE_2026-10-13.zh-TW.md)。公開包提供 DMG／ZIP、離線 HTML 手冊與 SHA-256；最新共用工具列的全功能、四邊與多螢幕互動仍待操作驗收，不能以編譯封裝成功當成全部通過。
 
 本機只保留最新 App；build_app.sh 成功封裝／簽章後自動清理可辨識的舊 Mac App／ZIP／DMG。歷史開發文件、來源與公開成品版本／雜湊紀錄保留，舊公開包仍可從 GitHub 取得。

@@ -12,6 +12,7 @@ public class BoardEngine: ObservableObject {
         case moveSelection
         case marqueeSelection
         case transformSelection(TransformHandle)
+        case lineEndpoint(String, LineEndpoint)
         case stroke
         case shape
         case polygon(String)
@@ -48,13 +49,22 @@ public class BoardEngine: ObservableObject {
             || (toolbarDock == "floating" && toolbarFloatingVertical)
     }
 
+    public var selectedEndpointLine: BoardObject? {
+        let selected = selectedObjects
+        guard selected.count == 1, let object = selected.first,
+              ["line", "arrow"].contains(object.type) else { return nil }
+        return object
+    }
+
+    public var selectionUsesEndpoints: Bool { selectedEndpointLine != nil }
+
     public var selectionBoundingBox: CGRect? {
         VectorMath.selectionBounds(
             for: currentPageObjects.filter { selectedIds.contains($0.id) && $0.isVisible != false })
     }
 
     public func updateHoveredHandle(at screenPoint: Point?) {
-        guard currentTool == .select, let screenPoint, let selBounds = selectionBoundingBox else {
+        guard currentTool == .select, !selectionUsesEndpoints, let screenPoint, let selBounds = selectionBoundingBox else {
             if hoveredTransformHandle != nil { hoveredTransformHandle = nil }
             return
         }
@@ -68,7 +78,7 @@ public class BoardEngine: ObservableObject {
             return active.cursorType
         }
         if let screenPoint {
-            guard currentTool == .select, let selBounds = selectionBoundingBox else { return nil }
+            guard currentTool == .select, !selectionUsesEndpoints, let selBounds = selectionBoundingBox else { return nil }
             let worldPoint = VectorMath.screenToWorld(screenPoint, viewport: viewport)
             return VectorMath.hitTestHandle(point: worldPoint, bounds: selBounds, zoom: viewport.zoom)?
                 .cursorType
@@ -349,6 +359,7 @@ public class BoardEngine: ObservableObject {
     public func saveToolbarPreferences() {
         if let encoded = try? JSONEncoder().encode(toolbarPreferences) {
             UserDefaults.standard.set(encoded, forKey: "HeiBan.toolbarPreferences")
+            NotificationCenter.default.post(name: Notification.Name("HeiBan.toolbarPreferencesChanged"), object: self)
         }
     }
 
@@ -599,7 +610,7 @@ public class BoardEngine: ObservableObject {
             [toolbarOffset.width, toolbarOffset.height], forKey: "HeiBan.toolbarOffset")
     }
 
-    public func toolbarPosition(in windowSize: CGSize, panelSize: CGSize? = nil) -> CGPoint {
+    public func toolbarPosition(in windowSize: CGSize, panelSize: CGSize? = nil, topClearance: CGFloat = 64) -> CGPoint {
         let size =
             panelSize ?? toolbarLayoutSize
             ?? CGSize(width: isToolbarVertical ? 64 : 420, height: isToolbarVertical ? 420 : 64)
@@ -610,7 +621,7 @@ public class BoardEngine: ObservableObject {
         case "right":
             base = CGPoint(x: windowSize.width - size.width / 2 - 12, y: (windowSize.height + 56) / 2)
         case "top":
-            base = CGPoint(x: windowSize.width / 2, y: 64 + size.height / 2)
+            base = CGPoint(x: windowSize.width / 2, y: topClearance + size.height / 2)
         case "bottom":
             base = CGPoint(x: windowSize.width / 2, y: windowSize.height - 48.0)
         default:  // floating
@@ -786,6 +797,8 @@ public class BoardEngine: ObservableObject {
     }
 
     public func updateLineEndpointDrag(objectID: String, endpoint: LineEndpoint, at screenPoint: Point) {
+        guard let line = currentPageObjects.first(where: { $0.id == objectID }),
+              ["line", "arrow"].contains(line.type), line.isLocked != true else { return }
         let worldPoint = VectorMath.screenToWorld(screenPoint, viewport: viewport)
         if strokePreview.lineEndpoint?.objectID != objectID
             || strokePreview.lineEndpoint?.endpoint != endpoint
@@ -802,6 +815,13 @@ public class BoardEngine: ObservableObject {
             let index = objects.firstIndex(where: { $0.id == preview.objectID })
         else { return }
         var updated = objects[index]
+        guard updated.isLocked != true else { strokePreview.lineEndpoint = nil; return }
+        // 先補全舊文件缺失的端點，水平／垂直線也能更新包圍範圍。
+        updated.x1 = updated.x1 ?? updated.x
+        updated.y1 = updated.y1 ?? updated.y
+        updated.x2 = updated.x2 ?? updated.x + updated.width
+        updated.y2 = updated.y2 ?? updated.y + updated.height
+        updated.rotation = 0
         let previousX =
             preview.endpoint == .start ? updated.x1 ?? updated.x : updated.x2 ?? updated.x + updated.width
         let previousY =
@@ -924,8 +944,19 @@ public class BoardEngine: ObservableObject {
                 return
             }
 
-            // 1. Check if user clicked on any transform handle of the current selection!
-            if let selBounds = selectionBoundingBox,
+            if let line = selectedEndpointLine, line.isLocked != true {
+                for endpoint in [LineEndpoint.start, .end] {
+                    let point = Point(x: endpoint == .start ? line.x1 ?? line.x : line.x2 ?? line.x + line.width,
+                                      y: endpoint == .start ? line.y1 ?? line.y : line.y2 ?? line.y + line.height)
+                    if hypot(worldPoint.x - point.x, worldPoint.y - point.y) <= 10 / viewport.zoom {
+                        pointerGesture = .lineEndpoint(line.id, endpoint)
+                        updateLineEndpointDrag(objectID: line.id, endpoint: endpoint, at: screenPoint)
+                        return
+                    }
+                }
+            }
+            // 單一線段只有 AB 端點；其他物件沿用包圍框與旋轉控制。
+            if !selectionUsesEndpoints, let selBounds = selectionBoundingBox,
                 let handle = VectorMath.hitTestHandle(
                     point: worldPoint, bounds: selBounds, zoom: viewport.zoom)
             {
@@ -1030,6 +1061,8 @@ public class BoardEngine: ObservableObject {
         }
 
         switch pointerGesture {
+        case .lineEndpoint(let id, let endpoint):
+            updateLineEndpointDrag(objectID: id, endpoint: endpoint, at: screenPoint)
         case .idle:
             break
         case .pan:
@@ -1129,6 +1162,8 @@ public class BoardEngine: ObservableObject {
         switch pointerGesture {
         case .idle, .pan, .textEntry, .polygon:
             break
+        case .lineEndpoint:
+            endLineEndpointDrag()
         case .erasing:
             endEraserSwipe()
         case .moveSelection:

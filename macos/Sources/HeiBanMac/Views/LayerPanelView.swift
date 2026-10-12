@@ -13,6 +13,7 @@ private struct LayerInsertion: Equatable {
 }
 
 public struct LayerPanelView: View {
+    @ObservedObject private var language = L10n.shared
     @ObservedObject var engine: BoardEngine
     @ViewState private var dragSession: LayerDragSession?
     @ViewState private var insertion: LayerInsertion?
@@ -63,7 +64,7 @@ public struct LayerPanelView: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(engine.selectedIds.isEmpty)
-                .help("置於頂層")
+                .help(L10n.t("置於頂層"))
 
                 Button {
                     engine.bringForward(ids: engine.selectedIds)
@@ -73,7 +74,7 @@ public struct LayerPanelView: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(engine.selectedIds.isEmpty)
-                .help("上移一層")
+                .help(L10n.t("上移一層"))
 
                 Button {
                     engine.sendBackward(ids: engine.selectedIds)
@@ -83,7 +84,7 @@ public struct LayerPanelView: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(engine.selectedIds.isEmpty)
-                .help("下移一層")
+                .help(L10n.t("下移一層"))
 
                 Button {
                     engine.sendToBack(ids: engine.selectedIds)
@@ -93,7 +94,7 @@ public struct LayerPanelView: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(engine.selectedIds.isEmpty)
-                .help("置於底層")
+                .help(L10n.t("置於底層"))
 
                 Spacer()
 
@@ -105,7 +106,7 @@ public struct LayerPanelView: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(engine.selectedIds.isEmpty)
-                .help("切換鎖定")
+                .help(L10n.t("切換鎖定"))
 
                 Button {
                     engine.toggleVisibility(ids: engine.selectedIds)
@@ -115,7 +116,7 @@ public struct LayerPanelView: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(engine.selectedIds.isEmpty)
-                .help("切換顯示／隱藏")
+                .help(L10n.t("切換顯示／隱藏"))
 
                 Button {
                     engine.removeObjects(ids: engine.selectedIds)
@@ -126,7 +127,7 @@ public struct LayerPanelView: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(engine.selectedIds.isEmpty)
-                .help("刪除選取物件")
+                .help(L10n.t("刪除選取物件"))
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
@@ -141,7 +142,7 @@ public struct LayerPanelView: View {
                     Image(systemName: "square.dashed")
                         .font(.system(size: 28))
                         .foregroundColor(.secondary.opacity(0.4))
-                    Text("黑板尚無圖層物件")
+                    Text(L10n.t("黑板尚無圖層物件"))
                         .font(.system(size: 12))
                         .foregroundColor(.secondary)
                     Spacer()
@@ -172,7 +173,7 @@ public struct LayerPanelView: View {
                                 .frame(width: 16)
 
                                 if engine.editingLayerId == object.id {
-                                    TextField("名稱", text: $engine.editingLayerName, onCommit: {
+                                    TextField(L10n.t("名稱"), text: $engine.editingLayerName, onCommit: {
                                         engine.setCustomName(id: object.id, name: engine.editingLayerName)
                                         engine.editingLayerId = nil
                                     })

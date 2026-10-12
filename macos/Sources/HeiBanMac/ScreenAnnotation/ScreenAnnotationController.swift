@@ -157,6 +157,10 @@ final class ScreenAnnotationController: ObservableObject {
         if session.engine.currentTool != activeEngine.currentTool {
             session.engine.selectTool(activeEngine.currentTool)
         }
+        session.engine.toolbarPreferences = activeEngine.toolbarPreferences
+        session.engine.activeBrushKind = activeEngine.activeBrushKind
+        session.engine.activeLineStyle = activeEngine.activeLineStyle
+        session.engine.activeHighlighterOpacity = activeEngine.activeHighlighterOpacity
         session.engine.activeColor = activeEngine.activeColor
         session.engine.activeStrokeWidth = activeEngine.activeStrokeWidth
         session.engine.activeOpacity = activeEngine.activeOpacity
@@ -295,94 +299,6 @@ final class ScreenAnnotationController: ObservableObject {
             session.engine.commitInlineTextEntry()
         }
     }
-    var hasSelectedStyleTarget: Bool { !activeEngine.selectedObjects.isEmpty }
-    var selectedStrokeColorForControls: String {
-        activeEngine.selectedStrokeColor.valueOrNil ?? activeEngine.selectedObjects.first?.strokeColor
-            ?? activeEngine.activeColor
-    }
-    var selectedStrokeWidthForControls: Double {
-        activeEngine.selectedStrokeWidth.valueOrNil ?? activeEngine.selectedObjects.first?.strokeWidth
-            ?? activeEngine.activeStrokeWidth
-    }
-    var selectedOpacityForControls: Double {
-        activeEngine.selectedOpacity.valueOrNil ?? activeEngine.selectedObjects.first?.opacity
-            ?? activeEngine.activeOpacity
-    }
-
-    var hasSelectedStrokeTarget: Bool {
-        activeEngine.selectedObjects.contains(where: { $0.type != "text" && $0.type != "image" })
-    }
-    var hasSelectedFillTarget: Bool {
-        activeEngine.selectedObjects.contains(where: {
-            ["rect", "circle", "ellipse", "triangle", "quadrilateral", "diamond", "star", "sticky"].contains($0.type)
-        })
-    }
-    var hasSelectedArrowTarget: Bool {
-        activeEngine.selectedObjects.contains(where: { $0.type == "arrow" })
-    }
-    var hasSelectedLineOrArrowTarget: Bool {
-        activeEngine.selectedObjects.contains(where: { $0.type == "line" || $0.type == "arrow" })
-    }
-
-    func setColor(_ color: String) {
-        if hasSelectedStyleTarget {
-            activeEngine.setSelectedStrokeColor(color)
-            activeEngine.registerRecentColor(color)
-            return
-        }
-        for session in sessions {
-            session.engine.activeColor = color
-            session.engine.laserEngine.color = color
-        }
-        activeEngine.registerRecentColor(color)
-    }
-    func setWidth(_ width: Double) {
-        if hasSelectedStyleTarget {
-            activeEngine.setSelectedStrokeWidth(width)
-            return
-        }
-        for session in sessions { session.engine.activeStrokeWidth = width }
-    }
-    func setOpacity(_ opacity: Double) {
-        if hasSelectedStyleTarget {
-            activeEngine.setSelectedOpacity(opacity)
-            return
-        }
-        for session in sessions { session.engine.activeOpacity = opacity }
-    }
-    func setLineStyle(_ style: String) {
-        if hasSelectedStyleTarget {
-            activeEngine.setSelectedLineStyle(style)
-            return
-        }
-        for session in sessions { session.engine.activeLineStyle = style }
-    }
-    func setFillColor(_ color: String) {
-        if hasSelectedStyleTarget {
-            activeEngine.setSelectedFillColor(color)
-        }
-    }
-    func setFillOpacity(_ opacity: Double) {
-        if hasSelectedStyleTarget {
-            activeEngine.setSelectedFillOpacity(opacity)
-        }
-    }
-    func setArrowHeadLength(_ length: Double) {
-        if hasSelectedStyleTarget {
-            activeEngine.setSelectedArrowHeadLength(length)
-        }
-    }
-    func setArrowHeadWidth(_ width: Double) {
-        if hasSelectedStyleTarget {
-            activeEngine.setSelectedArrowHeadWidth(width)
-        }
-    }
-    func setLineExtension(_ mode: LineExtension) {
-        if hasSelectedStyleTarget {
-            activeEngine.setSelectedLineExtension(mode)
-        }
-    }
-
     func showUserGuide() {
         // 手冊是普通原生視窗；先穿透，避免透明輸入層截走手冊的點擊。
         setDrawing(false)
@@ -419,7 +335,7 @@ final class ScreenAnnotationController: ObservableObject {
         commitTextDrafts()
         guard isActive else { return }
         let panel = NSSavePanel()
-        panel.title = "儲存可編輯螢幕註記"
+        panel.title = L10n.t("儲存可編輯螢幕註記")
         panel.nameFieldStringValue = "螢幕註記.heiban"
         panel.allowedContentTypes = [HeiBanFileType.document]
         if withHiddenOverlays({ panel.runModal() }) == .OK, let url = panel.url {
@@ -454,7 +370,7 @@ final class ScreenAnnotationController: ObservableObject {
             switch result {
             case .image(let data):
                 let panel = NSSavePanel()
-                panel.title = "儲存螢幕與註記截圖"
+                panel.title = L10n.t("儲存螢幕與註記截圖")
                 panel.nameFieldStringValue = "黑板螢幕截圖.png"
                 panel.allowedContentTypes = [.png]
                 if self.withHiddenOverlays({ panel.runModal() }) == .OK, let url = panel.url {
@@ -485,12 +401,13 @@ final class ScreenAnnotationController: ObservableObject {
             ?? NSScreen.screens.first(where: { $0.frame.contains(NSEvent.mouseLocation) }) ?? NSScreen.main
         else { return }
         let frame = AnnotationToolbarLayout.frame(
-            for: controlsDock, position: controlsPosition, collapsed: controlsCollapsed, on: screen)
+            for: controlsDock, position: controlsPosition, collapsed: controlsCollapsed, on: screen, itemCount: ToolbarContentPolicy.screenItemCount(activeEngine.toolbarPreferences))
         controlsSize = frame.size
+        for session in sessions { session.engine.toolbarDock = controlsDock.rawValue }
         let panel = AnnotationControlsPanel(
             contentRect: frame,
             styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
-        panel.title = "螢幕畫布控制列"
+        panel.title = L10n.t("螢幕畫布控制列")
         panel.level = AnnotationWindowPolicy.controlsLevel
         panel.isOpaque = false
         panel.backgroundColor = .clear
@@ -510,6 +427,23 @@ final class ScreenAnnotationController: ObservableObject {
 
     private func displayID(for screen: NSScreen) -> UInt32? {
         (screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber)?.uint32Value
+    }
+
+    /// 工具偏好共用，但視窗尺寸屬於螢幕模式；只在低頻清單變更時重排。
+    func toolbarPreferencesChanged() {
+        for session in sessions where session.engine !== activeEngine {
+            if session.engine.toolbarPreferences != activeEngine.toolbarPreferences {
+                session.engine.toolbarPreferences = activeEngine.toolbarPreferences
+            }
+        }
+        guard controlsDrag == nil, let screen = controls?.screen else { return }
+        placeControls(dock: controlsDock, on: screen)
+    }
+
+    func importImage() {
+        setDrawing(true)
+        commitTextDrafts()
+        withHiddenOverlays { activeEngine.importImageFromFilePrompt() }
     }
 
     func setControlsDock(_ dock: AnnotationToolbarDock) {
@@ -547,7 +481,9 @@ final class ScreenAnnotationController: ObservableObject {
         guard hypot(point.x - drag.mouse.x, point.y - drag.mouse.y) > 3,
             let screen = NSScreen.screens.first(where: { $0.frame.contains(point) }) ?? controls?.screen else { return }
         let dock = AnnotationToolbarLayout.nearestDock(to: point, on: screen, current: controlsDock)
-        controlsPosition = AnnotationToolbarLayout.position(forDrop: point, dock: dock, on: screen)
+        let available = AnnotationToolbarLayout.availableFrame(on: screen)
+        let size = AnnotationToolbarLayout.size(for: dock, on: screen, itemCount: ToolbarContentPolicy.screenItemCount(activeEngine.toolbarPreferences))
+        controlsPosition = AnnotationToolbarLayout.position(forDrop: point, dock: dock, availableFrame: available, size: size)
         placeControls(dock: dock, on: screen)
         if let id = displayID(for: screen) { selectDisplay(id) }
     }
@@ -555,8 +491,10 @@ final class ScreenAnnotationController: ObservableObject {
     private func placeControls(dock: AnnotationToolbarDock, on screen: NSScreen) {
         guard let panel = controls else { return }
         controlsDock = dock
+        // 僅更新螢幕 engine 的排版資料，不能呼叫會改一般畫布偏好的 setToolbarDock。
+        for session in sessions { session.engine.toolbarDock = dock.rawValue }
         let frame = AnnotationToolbarLayout.frame(
-            for: dock, position: controlsPosition, collapsed: controlsCollapsed, on: screen)
+            for: dock, position: controlsPosition, collapsed: controlsCollapsed, on: screen, itemCount: ToolbarContentPolicy.screenItemCount(activeEngine.toolbarPreferences))
         controlsSize = frame.size
         panel.setFrame(frame, display: true, animate: false)
         controlsDisplayID = displayID(for: screen)
@@ -570,7 +508,7 @@ final class ScreenAnnotationController: ObservableObject {
         guard let panel = sessions.first(where: { $0.displayID == selectedDisplayID })?.panel else { return }
         // 作畫開始後 Esc／繪圖快捷鍵屬於畫布；非啟動 panel 不把背後程式切回首頁。
         panel.makeKey()
-        panel.makeFirstResponder(panel.contentView)
+        panel.makeFirstResponder((panel.contentView as? AnnotationInputView)?.pointerReceiver ?? panel.contentView)
     }
 
     /// 切換前景程式／Space 後只重排疊層；不搶主程式焦點、不取消筆畫。

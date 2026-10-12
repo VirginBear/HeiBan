@@ -6,13 +6,15 @@ import HeiBanCore
 struct NativePointerSurface: NSViewRepresentable {
     let engine: BoardEngine
     var onInteraction: (() -> Void)? = nil
-    func makeNSView(context: Context) -> PointerView { PointerView(engine: engine, onInteraction: onInteraction) }
-    func updateNSView(_ view: PointerView, context: Context) { view.engine = engine; view.onInteraction = onInteraction }
+    var screenAnnotation = false
+    func makeNSView(context: Context) -> PointerView { let view = PointerView(engine: engine, onInteraction: onInteraction); view.screenAnnotation = screenAnnotation; return view }
+    func updateNSView(_ view: PointerView, context: Context) { view.engine = engine; view.onInteraction = onInteraction; view.screenAnnotation = screenAnnotation }
     static func dismantleNSView(_ view: PointerView, coordinator: ()) { view.engine.holdTimer?.invalidate() }
 
     // 螢幕註記覆寫空白區域／首點命中，仍共用同一套筆畫、選取與鍵盤路由。
     class PointerView: NSView {
         var engine: BoardEngine
+        var screenAnnotation = false
         var onInteraction: (() -> Void)?
         private var start: CGPoint?
         private var middleStart: CGPoint?
@@ -22,6 +24,7 @@ struct NativePointerSurface: NSViewRepresentable {
         private let textContext = TextStyleContextMenu()
         override var isFlipped: Bool { true }
         override var acceptsFirstResponder: Bool { true }
+        override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
         init(engine: BoardEngine, onInteraction: (() -> Void)?) { self.engine = engine; self.onInteraction = onInteraction; super.init(frame: .zero) }
         required init?(coder: NSCoder) { fatalError("init(coder:) unavailable") }
         private func point(_ event: NSEvent) -> CGPoint { convert(event.locationInWindow, from: nil) }
@@ -59,6 +62,10 @@ struct NativePointerSurface: NSViewRepresentable {
         }
         override func mouseDown(with event: NSEvent) {
             onInteraction?()
+            if screenAnnotation {
+                window?.makeKey()
+                if engine.showInlineTextEditor { engine.commitInlineTextEntry() }
+            }
             window?.makeFirstResponder(self)
             let location = point(event)
             start = location
@@ -113,26 +120,26 @@ struct NativePointerSurface: NSViewRepresentable {
 
             let menu = NSMenu()
             let hasSelection = !engine.selectedIds.isEmpty
-            let delete = NSMenuItem(title: "刪除", action: #selector(deleteFromContext(_:)), keyEquivalent: "")
+            let delete = NSMenuItem(title: L10n.t("刪除"), action: #selector(deleteFromContext(_:)), keyEquivalent: "")
             delete.target = self
             delete.isEnabled = hasSelection
             menu.addItem(delete)
-            let copy = NSMenuItem(title: "複製", action: #selector(copyFromContext(_:)), keyEquivalent: "")
+            let copy = NSMenuItem(title: L10n.t("複製"), action: #selector(copyFromContext(_:)), keyEquivalent: "")
             copy.target = self
             copy.isEnabled = hasSelection
             menu.addItem(copy)
-            let clone = NSMenuItem(title: "建立副本", action: #selector(cloneFromContext(_:)), keyEquivalent: "")
+            let clone = NSMenuItem(title: L10n.t("建立副本"), action: #selector(cloneFromContext(_:)), keyEquivalent: "")
             clone.target = self
             clone.isEnabled = hasSelection
             menu.addItem(clone)
-            let cut = NSMenuItem(title: "剪下", action: #selector(cutFromContext(_:)), keyEquivalent: "")
+            let cut = NSMenuItem(title: L10n.t("剪下"), action: #selector(cutFromContext(_:)), keyEquivalent: "")
             cut.target = self
             cut.isEnabled = hasSelection
             menu.addItem(cut)
             menu.addItem(.separator())
-            let paste = NSMenuItem(title: "貼上", action: #selector(pasteFromContext(_:)), keyEquivalent: "")
+            let paste = NSMenuItem(title: L10n.t("貼上"), action: #selector(pasteFromContext(_:)), keyEquivalent: "")
             paste.target = self
-            paste.isEnabled = !engine.internalClipboard.isEmpty || NSPasteboard.general.string(forType: .string) != nil
+            paste.isEnabled = NSPasteboard.general.string(forType: .string) != nil || MacPlatformPasteboardService.containsImage
             menu.addItem(paste)
             textContext.append(to: menu, engine: engine, view: self, point: location)
             menu.popUp(positioning: nil, at: location, in: self)

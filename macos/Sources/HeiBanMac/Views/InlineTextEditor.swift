@@ -45,7 +45,7 @@ private struct InlineTextEditorRepresentable: NSViewRepresentable {
         textView.textContainer?.widthTracksTextView = true
         textView.textContainer?.containerSize = NSSize(width: 360, height: CGFloat.greatestFiniteMagnitude)
         textView.textContainerInset = NSSize(width: 10, height: 10)
-        textView.setAccessibilityLabel("文字內容")
+        textView.setAccessibilityLabel(L10n.t("文字內容"))
         textView.drawsBackground = false
         textView.onCommit = onCommit
         textView.onCancel = onCancel
@@ -359,6 +359,7 @@ private final class InlineNSTextView: NSTextView {
 }
 
 struct InlineTextEditorOverlay: View {
+    @ObservedObject private var language = L10n.shared
     @ObservedObject var engine: BoardEngine
 
     var body: some View {
@@ -388,6 +389,7 @@ struct InlineTextEditorOverlay: View {
 
 /// 文字內容面板共用原生 NSTextView；格式集中在文字框右鍵，不常駐占位。
 struct InlineTextEditorPanel: View {
+    @ObservedObject private var language = L10n.shared
     @ObservedObject var engine: BoardEngine
 
     private var isSticky: Bool { engine.textEntryKind == .sticky }
@@ -405,9 +407,9 @@ struct InlineTextEditorPanel: View {
                 Label(isSticky ? "編輯便簽" : "編輯文字", systemImage: isSticky ? "note.text" : "character.cursor.ibeam")
                     .font(.system(size: 13, weight: .semibold))
                 Spacer()
-                Button("取消") { engine.cancelInlineTextEntry() }
+                Button(L10n.t("取消")) { engine.cancelInlineTextEntry() }
                     .keyboardShortcut(.cancelAction)
-                Button("完成") { engine.commitInlineTextEntry() }
+                Button(L10n.t("完成")) { engine.commitInlineTextEntry() }
                     .keyboardShortcut(.return, modifiers: .command)
                     .buttonStyle(.borderedProminent)
                     .tint(Color(hex: "#4f8c70"))
@@ -433,7 +435,7 @@ struct InlineTextEditorPanel: View {
             .clipShape(RoundedRectangle(cornerRadius: 8))
             .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.primary.opacity(0.12), lineWidth: 1))
 
-            Text("Enter 換行 · ⌘Enter 完成 · Esc 取消 · 右鍵調整文字")
+            Text(L10n.t("Enter 換行 · ⌘Enter 完成 · Esc 取消 · 右鍵調整文字"))
                 .font(.system(size: 10))
                 .foregroundStyle(.secondary)
         }

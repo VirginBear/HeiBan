@@ -1,6 +1,6 @@
 # Mac 實際架構與維護邊界
 
-更新：2026-10-12。這份文件描述現況，未建立不存在的 Storage／Metal 模組。
+更新：2026-10-13。這份文件描述現況，未建立不存在的 Storage／Metal 模組。
 
 ## 套件與職責
 
@@ -58,11 +58,11 @@ Core 目前仍依賴 CoreGraphics、SwiftUI Path、ImageIO、Security 與部分 
 
 ## 螢幕畫布邊界
 
-Controller 管開始、穿透、焦點、截圖、停止；Session 管每顯示器的 engine／透明 NSPanel／恢復檔；AnnotationInputView 擁有原生輸入與整個螢幕的命中區域；Canvas 僅組合既有渲染層（GeometryReader 與原生輸入同尺寸）；AnnotationWindowPolicy 統一跨程式層級／Space 行為；AnnotationToolbarLayout 統一四邊尺寸／停靠座標；Grip只傳遞原生手勢，Controller在拖曳時移origin、放開時更新方向／尺寸及本機偏好；Controls依方向排版，只呼叫命令；HotKeys 只登記三組快捷鍵。先保存才關閉；恢復檔損壞先保留原檔，避免空白覆寫。
+Controller 管開始、穿透、焦點、截圖、停止；Session 管每顯示器的 engine／透明 NSPanel／恢復檔；AnnotationInputView 保有1%透明底層與文字編輯host；ScreenAnnotationCanvas共用普通畫布的NativePointerSurface和工具疊層。PointerView只有一份事件監聽，位於尺／圓規等互動視圖下方。AnnotationWindowPolicy 統一跨程式層級／Space 行為；Grip只傳原生手勢，Controller拖曳時只移origin，放開才更新方向／尺寸／本機偏好；HotKeys只登記三組快捷鍵。先保存才關閉；恢復檔損壞先保留，避免空白覆寫。
 
-1.0.11 左右 Controls 為 64 pt 單欄圖示，上下為 60 pt 高單列。四邊色圓共用 AnnotationBrushSettings，重用同一 engine 的顏色、粗細、透明度 bindings，僅保存面板開關；不增加樣式副本、歷史或文件格式。設定視圖自行定義 plain 按鈕樣式、280 pt 自然寬度、3×2 色票及直排滑桿，不繼承窄控制列布局提案／假設外部按鈕環境。可捲動工具區與固定動作分開；工具名稱使用 help／accessibilityLabel，狀態訊息在更多選單／設定面板可讀，工具列不再常駐屬性／狀態列。
+ToolbarPreferences定義兩種畫布共用的工具與排序；ToolbarContentPolicy排除螢幕pins/viewLock，把Undo/Redo拆同尺寸格，固定clearAll由螢幕尾端提供。ToolbarToolsView／ToolbarBrushSettings共用圖示、More、自訂和樣式交易；偏好低頻通知同步現有engine，重新出現時回讀UserDefaults。螢幕模式覆寫截圖PNG、圖片對話框的高位階視窗遮讓、選取工具啟動作畫、四邊停靠及全螢幕清空。AnnotationToolbarLayout依實際itemCount限制在visibleFrame內，32pt工具格／4pt間距，空間不足換列／欄；清空與退出不被中段擠出。舊17/16格數只供舊幾何呼叫相容，不作正式工具定義。
 
-1.0.12 文字 editor 是 AnnotationInputView 的可互動 NSHostingView 子視圖，僅其 frame 內 hitTest 交給子視圖；renderer 仍不命中，其餘整屏接原生 PointerView。只訂閱文字編輯開關／錨點來增刪／定位，非每個指標樣本重排。InlineTextEditorPanel 共用 NSTextView 草稿，完成才提交；Controller 暫停／保存／換工具／停止時共用 commitTextDrafts。Esc 在編輯時不被穿透切換截走。
+文字editor為AnnotationInputView獨立可互動NSHostingView子視圖；其frame優先命中，其餘交共用renderer，空白處由NativePointerSurface接收。只訂閱文字編輯開關／錨點來增刪／定位，非每個指標樣本重排。InlineTextEditorPanel共用NSTextView草稿，完成才提交；Controller暫停／保存／換工具／停止時共用commitTextDrafts。Esc編輯時不被穿透切換攔截。
 
 TextStyleContextMenu 由 PointerView 與 NSTextView 各自持有，包含預設命令及自訂值 NSPopover；草稿只修改編輯狀態、已提交物件走 setSelectedTextStyle。批次命令共用 modifySelectedObjects，限定本頁未鎖定 text／sticky，一次發布／undo；色彩與字形同步 rich spans，不改填色、圖片或圖形。自訂面板套用前核對選取／草稿對象，僅傳修改欄位；樣式調整不增加文件格式。
 
@@ -74,10 +74,15 @@ TextStyleContextMenu 由 PointerView 與 NSTextView 各自持有，包含預設�
 - SwiftUI `@State` 有同名 Core 狀態型別干擾，現有視圖使用 `@ViewState` 別名；不要為格式統一隨意改回。
 - 廣域錄製權限／一次性系統選取器是不同授權路徑，詳見截圖問題紀錄。
 
-螢幕畫布清空不屬於退出／modal生命週期：取消暫態時保留工具與模式，clearAll產生可復原歷史，雷射不進歷史；空白恢復檔立即寫入。普通作品庫不受影響。工具列設定不寫進.heiban／undo，尺寸按visibleFrame限制、超出工具內容可捲動。
+螢幕畫布清空不屬於退出／modal生命週期：取消暫態時保留工具與模式，clearAll產生可復原歷史，雷射不進歷史；空白恢復檔立即寫入。普通作品庫不受影響。工具列設定不寫進.heiban／undo，尺寸按visibleFrame與實際工具格數限制、空間不足換列／換欄。
 
 ## 1.0.13 導覽與圖層拖曳
 
 WorkspaceHeaderView 在工作區上疊放 TopNav／ReadingNavigation，不改 Canvas 尺寸。原生 NSTrackingArea 偵測膠囊附近游標，hitTest 回 nil；只有顯示中的膠囊與收起箭頭接受點擊。隱藏使用 opacity／allowsHitTesting，不重建 popover 錨點；700ms 可取消延時避免游標進選單時消失。固定顯示是本機 AppStorage 偏好，未加入作品格式或復原。
 
 LayerPanelView 持有當前拖曳 ID、作品／頁 ID 及目標上下側；LayerDragHandle 的 NSDraggingSession 產生 Finder 式圖示／名稱預覽，來源結束回呼（含取消）清理 UI。DropDelegate 只接受本 panel 的私有型別與 session，drop 前再核對作品／頁／鎖定狀態；moveLayer 依 stable zIndex 排序替換當頁槽位，提交一次既有 reorderObjects 交易。相同位置不產生歷史，其他頁相對順序／物件內容／未知欄位保留。build_app.sh 只宣告內部 drag UTType，不為它設定文件開啟副檔名。
+
+
+## 開發快取與公開包
+
+macos/.build是可重新產生的SDK模組／中間檔／建置產品，沒有作品或不可替代來源；最新macos/dist/HeiBan.app包含自身執行檔與Resources，不依賴這份快取。沒有編譯工作執行時才清理；清理後先保留已簽章成品，避免單純公開封裝就重新編譯產生大量快取。scripts/package_public_release.py的Mac分支只讀已建App、授權與手冊，產DMG／ZIP及雜湊，不修改Windows包或作品庫。發行tag連結來源commit，開發日誌區分前批編譯／局部操作與此次發布，不把發布視為全功能驗收。

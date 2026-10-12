@@ -1,6 +1,6 @@
 # 安裝、更新與移除
 
-更新：2026-10-10。下載來源：[VirginBear/HeiBan Releases](https://github.com/VirginBear/HeiBan/releases)。目前為公開預覽，請保留重要作品的 `.heiban` 原稿與備份。
+更新：2026-10-13（Mac 下載）。下載來源：[VirginBear/HeiBan Releases](https://github.com/VirginBear/HeiBan/releases)。目前為公開預覽，請保留重要作品的 `.heiban` 原稿與備份。
 
 ## 選對版本
 
@@ -15,7 +15,7 @@ Windows 11 為主要支援目標；Windows 10 1809 只是程式 API 最低基線
 
 ## macOS：DMG
 
-1. 下載 `HeiBan-macOS-1.0.8-arm64.dmg`。
+1. 下載 `HeiBan-macOS-1.0.13-arm64.dmg`。
 2. 打開映像，把 `HeiBan.app` 拖到同一視窗的 **Applications／應用程式**。
 3. 退出磁碟映像，再從「應用程式」啟動黑板。
 4. 首頁點「＋」選擇筆記本、無邊界筆記或有邊界黑板。
@@ -70,7 +70,7 @@ Release 附 `SHA256SUMS.txt`，只記錄該平台公開包。
 Mac 終端機：
 
 ```bash
-shasum -a 256 HeiBan-macOS-1.0.8-arm64.dmg
+shasum -a 256 HeiBan-macOS-1.0.13-arm64.dmg
 ```
 
 Windows PowerShell：

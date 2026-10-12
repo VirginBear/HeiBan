@@ -2,20 +2,22 @@ import AppKit
 import HeiBanCore
 import SwiftUI
 
-/// 四邊工具列共用的樣式面板；只綁定目前螢幕的 engine，不污染其他顯示器。
-struct AnnotationBrushSettings: View {
-    @ObservedObject var controller: ScreenAnnotationController
+/// 一般與透明畫布共用樣式面板；選取物件與新筆刷使用相同引擎交易入口。
+struct ToolbarBrushSettings: View {
+    @ObservedObject private var language = L10n.shared
     @ObservedObject var engine: BoardEngine
+
+    private var style: ToolbarStyleActions { ToolbarStyleActions(engine: engine) }
 
     @ViewState private var hexInput = ""
 
-    private let colors = ["#ef4444", "#f59e0b", "#22c55e", "#3b82f6", "#ffffff", "#111827"]
-    private var currentColor: String { controller.selectedStrokeColorForControls }
-    private var currentWidth: Double { controller.selectedStrokeWidthForControls }
-    private var currentOpacity: Double { controller.selectedOpacityForControls }
+    private let colors = ["#86efac", "#fef08a", "#93c5fd", "#ffffff", "#f472b6", "#fb923c", "#c084fc", "#ef4444", "#111827"]
+    private var currentColor: String { style.selectedStrokeColorForControls }
+    private var currentWidth: Double { style.selectedStrokeWidthForControls }
+    private var currentOpacity: Double { style.selectedOpacityForControls }
 
     private var activeLineStyle: String {
-        if controller.hasSelectedStyleTarget {
+        if style.hasSelectedStyleTarget {
             return engine.selectedLineStyle.valueOrNil ?? "solid"
         }
         return engine.activeLineStyle
@@ -27,6 +29,7 @@ struct AnnotationBrushSettings: View {
                 headerSection
 
                 // 1. 筆刷／線條色彩與預設色票
+                if !style.hasSelectedStyleTarget { brushKindSection }
                 strokeColorSection
 
                 // 2. 自訂顏色與 Hex 輸入
@@ -39,28 +42,26 @@ struct AnnotationBrushSettings: View {
                 lineStyleSection
 
                 // 5. 粗細與不透明度 (非文字、非圖片)
-                if !controller.hasSelectedStyleTarget || controller.hasSelectedStrokeTarget {
+                if !style.hasSelectedStyleTarget || style.hasSelectedStrokeTarget {
                     strokeGeometrySection
                 }
 
                 // 6. 填色、填色不透明度與漸層 (幾何圖形或便籤)
-                if !controller.hasSelectedStyleTarget || controller.hasSelectedFillTarget {
+                if style.hasSelectedFillTarget {
                     fillSection
                 }
 
                 // 7. 箭頭大小
-                if controller.hasSelectedArrowTarget {
+                if style.hasSelectedArrowTarget {
                     arrowSettingsSection
                 }
 
                 // 8. 線段延伸
-                if controller.hasSelectedLineOrArrowTarget {
+                if style.hasSelectedLineOrArrowTarget {
                     lineExtensionSection
                 }
 
-                Text(controller.message).font(.system(size: 10)).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                if !style.hasSelectedStyleTarget { brushPreview }
             }
             .padding(16)
         }
@@ -75,11 +76,41 @@ struct AnnotationBrushSettings: View {
 
     // MARK: - Sections
 
+    private var brushKindSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(L10n.t("筆刷類型")).font(.caption.bold())
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 6) {
+                ForEach(BrushKind.allCases, id: \.self) { kind in
+                    Button { engine.activeBrushKind = kind } label: {
+                        Label(L10n.t(kind.displayName), systemImage: kind.systemIconName)
+                            .font(.caption2).frame(maxWidth: .infinity, alignment: .leading).padding(6)
+                            .background(engine.activeBrushKind == kind ? Color.accentColor.opacity(0.2) : Color.primary.opacity(0.05),
+                                        in: RoundedRectangle(cornerRadius: 6))
+                    }
+                }
+            }
+        }
+    }
+    private var brushPreview: some View {
+        let diameter = engine.activeBrushWidth * engine.viewport.zoom
+        return VStack(alignment: .leading, spacing: 5) {
+            Text("實際大小 · 畫布上直徑 \(diameter.formatted(.number.precision(.fractionLength(0...1)))) pt")
+                .font(.caption).foregroundStyle(.secondary)
+            ScrollView([.horizontal, .vertical]) {
+                Circle().fill(Color(hex: engine.activeColor).opacity(style.selectedOpacityForControls))
+                    .frame(width: diameter, height: diameter)
+                    .frame(width: max(240, diameter + 24), height: max(80, diameter + 24))
+            }.frame(height: 100)
+                .background(Color.primary.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+                .accessibilityLabel(L10n.t("與目前畫布縮放相同的筆刷尺寸預覽"))
+        }
+    }
+
     private var headerSection: some View {
         HStack {
-            Text("顏色與樣式").font(.headline)
+            Text(L10n.t("顏色與樣式")).font(.headline)
             Spacer()
-            if controller.hasSelectedStyleTarget {
+            if style.hasSelectedStyleTarget {
                 Text("\(engine.selectedObjects.count) 個選取物件")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
@@ -93,16 +124,16 @@ struct AnnotationBrushSettings: View {
     private var strokeColorSection: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text("線條顏色").font(.system(size: 11, weight: .semibold))
+                Text(L10n.t("線條顏色")).font(.system(size: 11, weight: .semibold))
                 Spacer()
-                if controller.hasSelectedStyleTarget && engine.selectedStrokeColor.isMixed {
-                    Text("混合顏色").font(.caption2).foregroundStyle(.secondary)
+                if style.hasSelectedStyleTarget && engine.selectedStrokeColor.isMixed {
+                    Text(L10n.t("混合顏色")).font(.caption2).foregroundStyle(.secondary)
                 }
             }
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 6), spacing: 8) {
                 ForEach(colors, id: \.self) { color in
                     Button {
-                        controller.setColor(color)
+                        style.setColor(color)
                         hexInput = color
                     } label: {
                         Circle().fill(Color(hex: color)).frame(width: 22, height: 22)
@@ -119,11 +150,11 @@ struct AnnotationBrushSettings: View {
 
     private var customColorSection: some View {
         HStack(spacing: 8) {
-            ColorPicker("自訂", selection: Binding(
+            ColorPicker(L10n.t("自訂"), selection: Binding(
                 get: { Color(hex: currentColor) },
                 set: {
                     let hex = Self.hexString($0)
-                    controller.setColor(hex)
+                    style.setColor(hex)
                     hexInput = hex
                 }
             ), supportsOpacity: false)
@@ -137,7 +168,7 @@ struct AnnotationBrushSettings: View {
                     applyHexInput()
                 }
 
-            Button("套用") {
+            Button(L10n.t("套用")) {
                 applyHexInput()
             }
             .buttonStyle(.bordered)
@@ -149,11 +180,11 @@ struct AnnotationBrushSettings: View {
         Group {
             if !engine.recentColors.isEmpty {
                 VStack(alignment: .leading, spacing: 5) {
-                    Text("最近使用").font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
+                    Text(L10n.t("最近使用")).font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
                     HStack(spacing: 6) {
                         ForEach(engine.recentColors.prefix(8), id: \.self) { color in
                             Button {
-                                controller.setColor(color)
+                                style.setColor(color)
                                 hexInput = color
                             } label: {
                                 Circle().fill(Color(hex: color)).frame(width: 18, height: 18)
@@ -172,20 +203,20 @@ struct AnnotationBrushSettings: View {
     private var lineStyleSection: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text("線條樣式").font(.system(size: 11, weight: .semibold))
+                Text(L10n.t("線條樣式")).font(.system(size: 11, weight: .semibold))
                 Spacer()
-                if controller.hasSelectedStyleTarget && engine.selectedLineStyle.isMixed {
-                    Text("混合樣式").font(.caption2).foregroundStyle(.secondary)
+                if style.hasSelectedStyleTarget && engine.selectedLineStyle.isMixed {
+                    Text(L10n.t("混合樣式")).font(.caption2).foregroundStyle(.secondary)
                 }
             }
             Picker("", selection: Binding(
                 get: { activeLineStyle },
-                set: { controller.setLineStyle($0) }
+                set: { style.setLineStyle($0) }
             )) {
-                Text("實線").tag("solid")
-                Text("虛線").tag("dashed")
-                Text("點線").tag("dotted")
-                Text("點劃線").tag("dashDot")
+                Text(L10n.t("實線")).tag("solid")
+                Text(L10n.t("虛線")).tag("dashed")
+                Text(L10n.t("點線")).tag("dotted")
+                Text(L10n.t("點劃線")).tag("dashDot")
             }
             .pickerStyle(.segmented)
         }
@@ -195,21 +226,21 @@ struct AnnotationBrushSettings: View {
         VStack(alignment: .leading, spacing: 10) {
             VStack(spacing: 5) {
                 HStack {
-                    Text("粗細")
+                    Text(L10n.t("粗細"))
                     Spacer()
                     Text("\(currentWidth, specifier: "%.1f") pt").monospacedDigit()
                 }
-                Slider(value: Binding(get: { currentWidth }, set: controller.setWidth), in: 1...32)
-                    .accessibilityLabel("線條粗細")
+                Slider(value: Binding(get: { currentWidth }, set: style.setWidth), in: 1...64)
+                    .accessibilityLabel(L10n.t("線條粗細"))
             }
             VStack(spacing: 5) {
                 HStack {
-                    Text("不透明度")
+                    Text(L10n.t("不透明度"))
                     Spacer()
                     Text("\(Int(currentOpacity * 100))%").monospacedDigit()
                 }
-                Slider(value: Binding(get: { currentOpacity }, set: controller.setOpacity), in: 0.1...1)
-                    .accessibilityLabel("線條透明度")
+                Slider(value: Binding(get: { currentOpacity }, set: style.setOpacity), in: 0.1...1)
+                    .accessibilityLabel(L10n.t("線條透明度"))
             }
         }
     }
@@ -218,26 +249,26 @@ struct AnnotationBrushSettings: View {
         VStack(alignment: .leading, spacing: 8) {
             Divider()
             HStack {
-                Text("填色").font(.system(size: 11, weight: .semibold))
+                Text(L10n.t("填色")).font(.system(size: 11, weight: .semibold))
                 Spacer()
-                if controller.hasSelectedStyleTarget && engine.selectedFillColor.isMixed {
-                    Text("混合填色").font(.caption2).foregroundStyle(.secondary)
+                if style.hasSelectedStyleTarget && engine.selectedFillColor.isMixed {
+                    Text(L10n.t("混合填色")).font(.caption2).foregroundStyle(.secondary)
                 }
             }
             HStack(spacing: 6) {
                 Button {
-                    controller.setFillColor("none")
+                    style.setFillColor("none")
                 } label: {
                     Circle().stroke(Color.secondary.opacity(0.5), lineWidth: 1)
                         .background(Circle().fill(Color.clear))
                         .frame(width: 20, height: 20)
                         .overlay(Image(systemName: "slash.circle").font(.system(size: 12)).foregroundStyle(.secondary))
                 }
-                .help("無填色")
+                .help(L10n.t("無填色"))
 
                 ForEach(colors.prefix(4), id: \.self) { hex in
                     Button {
-                        controller.setFillColor(hex)
+                        style.setFillColor(hex)
                     } label: {
                         Circle().fill(Color(hex: hex)).frame(width: 20, height: 20)
                             .overlay(Circle().stroke(Color.gray.opacity(0.4), lineWidth: 1))
@@ -246,11 +277,11 @@ struct AnnotationBrushSettings: View {
                     .help("填色 \(hex)")
                 }
 
-                ColorPicker("自訂填色", selection: Binding(
+                ColorPicker(L10n.t("自訂填色"), selection: Binding(
                     get: { Color(hex: engine.selectedFillColor.valueOrNil ?? "#3b82f6") },
                     set: { color in
                         let hex = Self.hexString(color)
-                        controller.setFillColor(hex)
+                        style.setFillColor(hex)
                     }
                 ), supportsOpacity: false)
                 .labelsHidden()
@@ -259,18 +290,18 @@ struct AnnotationBrushSettings: View {
             // 填色不透明度
             VStack(spacing: 4) {
                 HStack {
-                    Text("填色透明度").font(.caption).foregroundStyle(.secondary)
+                    Text(L10n.t("填色透明度")).font(.caption).foregroundStyle(.secondary)
                     Spacer()
                     Text("\(Int((engine.selectedFillOpacity.valueOrNil ?? 1.0) * 100))%").font(.caption).monospacedDigit()
                 }
                 Slider(value: Binding(
                     get: { engine.selectedFillOpacity.valueOrNil ?? 1.0 },
-                    set: { controller.setFillOpacity($0) }
+                    set: { style.setFillOpacity($0) }
                 ), in: 0...1)
             }
 
             // 漸層填色
-            if controller.hasSelectedStyleTarget {
+            if style.hasSelectedStyleTarget {
                 HStack(spacing: 8) {
                     Button {
                         engine.toggleSelectedGradient()
@@ -282,14 +313,14 @@ struct AnnotationBrushSettings: View {
                     .controlSize(.small)
 
                     if engine.selectedGradientEnabled {
-                        ColorPicker("起點", selection: Binding(
+                        ColorPicker(L10n.t("起點"), selection: Binding(
                             get: { Color(hex: engine.selectedGradientStart) },
                             set: { engine.setSelectedGradientColors(start: Self.hexString($0), end: engine.selectedGradientEnd) }
-                        )).labelsHidden().help("漸層起點")
-                        ColorPicker("終點", selection: Binding(
+                        )).labelsHidden().help(L10n.t("漸層起點"))
+                        ColorPicker(L10n.t("終點"), selection: Binding(
                             get: { Color(hex: engine.selectedGradientEnd) },
                             set: { engine.setSelectedGradientColors(start: engine.selectedGradientStart, end: Self.hexString($0)) }
-                        )).labelsHidden().help("漸層終點")
+                        )).labelsHidden().help(L10n.t("漸層終點"))
                     }
                 }
             }
@@ -299,20 +330,20 @@ struct AnnotationBrushSettings: View {
     private var arrowSettingsSection: some View {
         VStack(alignment: .leading, spacing: 6) {
             Divider()
-            Text("箭頭大小").font(.system(size: 11, weight: .semibold))
+            Text(L10n.t("箭頭大小")).font(.system(size: 11, weight: .semibold))
             HStack {
-                Text("長度")
+                Text(L10n.t("長度"))
                 Slider(value: Binding(
                     get: { engine.selectedArrowHeadLength.valueOrNil ?? 16.0 },
-                    set: { controller.setArrowHeadLength($0) }
+                    set: { style.setArrowHeadLength($0) }
                 ), in: 4...64)
                 Text("\(Int(engine.selectedArrowHeadLength.valueOrNil ?? 16.0))").monospacedDigit().frame(width: 24)
             }
             HStack {
-                Text("寬度")
+                Text(L10n.t("寬度"))
                 Slider(value: Binding(
                     get: { engine.selectedArrowHeadWidth.valueOrNil ?? 10.0 },
-                    set: { controller.setArrowHeadWidth($0) }
+                    set: { style.setArrowHeadWidth($0) }
                 ), in: 4...48)
                 Text("\(Int(engine.selectedArrowHeadWidth.valueOrNil ?? 10.0))").monospacedDigit().frame(width: 24)
             }
@@ -323,15 +354,15 @@ struct AnnotationBrushSettings: View {
         VStack(alignment: .leading, spacing: 6) {
             Divider()
             HStack {
-                Text("線段延伸").font(.system(size: 11, weight: .semibold))
+                Text(L10n.t("線段延伸")).font(.system(size: 11, weight: .semibold))
                 Spacer()
                 if engine.selectedLineExtension.isMixed {
-                    Text("混合").font(.caption2).foregroundStyle(.secondary)
+                    Text(L10n.t("混合")).font(.caption2).foregroundStyle(.secondary)
                 }
             }
             Picker("", selection: Binding(
                 get: { engine.selectedLineExtension.valueOrNil ?? .none },
-                set: { controller.setLineExtension($0) }
+                set: { style.setLineExtension($0) }
             )) {
                 ForEach(LineExtension.allCases, id: \.self) { mode in
                     Text(mode.displayName).tag(mode)
@@ -348,7 +379,7 @@ struct AnnotationBrushSettings: View {
         if !clean.hasPrefix("#") { clean = "#" + clean }
         let hexDigits = clean.dropFirst()
         if hexDigits.count == 6 && hexDigits.allSatisfy({ $0.isHexDigit }) {
-            controller.setColor(clean)
+            style.setColor(clean)
             hexInput = clean
         }
     }
@@ -362,4 +393,96 @@ struct AnnotationBrushSettings: View {
             Int((rgb.blueComponent * 255).rounded())
         )
     }
+}
+
+/// 跨畫布共享樣式命令：有選取時只改所選物件，沒有選取時只改之後落筆的預設。
+/// 不直接修改 board.objects，讓 Undo、鎖定及文件保存沿用核心規則。
+private struct ToolbarStyleActions {
+    let engine: BoardEngine
+    var hasSelectedStyleTarget: Bool { !engine.selectedObjects.isEmpty }
+    var selectedStrokeColorForControls: String {
+        engine.selectedStrokeColor.valueOrNil ?? engine.selectedObjects.first?.strokeColor
+            ?? engine.activeColor
+    }
+    var selectedStrokeWidthForControls: Double {
+        engine.selectedStrokeWidth.valueOrNil ?? engine.selectedObjects.first?.strokeWidth
+            ?? engine.activeStrokeWidth
+    }
+    var selectedOpacityForControls: Double {
+        engine.selectedOpacity.valueOrNil ?? engine.selectedObjects.first?.opacity
+            ?? (engine.currentTool == .highlighter ? engine.activeHighlighterOpacity : engine.activeOpacity)
+    }
+
+    var hasSelectedStrokeTarget: Bool {
+        engine.selectedObjects.contains(where: { $0.type != "text" && $0.type != "image" })
+    }
+    var hasSelectedFillTarget: Bool {
+        engine.selectedObjects.contains(where: {
+            ["rect", "circle", "ellipse", "triangle", "quadrilateral", "diamond", "star", "sticky"].contains($0.type)
+        })
+    }
+    var hasSelectedArrowTarget: Bool {
+        engine.selectedObjects.contains(where: { $0.type == "arrow" })
+    }
+    var hasSelectedLineOrArrowTarget: Bool {
+        engine.selectedObjects.contains(where: { $0.type == "line" || $0.type == "arrow" })
+    }
+
+    func setColor(_ color: String) {
+        if hasSelectedStyleTarget {
+            engine.setSelectedStrokeColor(color)
+            engine.registerRecentColor(color)
+            return
+        }
+        engine.updateCurrentToolStyle(color: color)
+        engine.registerRecentColor(color)
+    }
+    func setWidth(_ width: Double) {
+        if hasSelectedStyleTarget {
+            engine.setSelectedStrokeWidth(width)
+            return
+        }
+        engine.activeStrokeWidth = width
+    }
+    func setOpacity(_ opacity: Double) {
+        if hasSelectedStyleTarget {
+            engine.setSelectedOpacity(opacity)
+            return
+        }
+        if engine.currentTool == .highlighter { engine.activeHighlighterOpacity = opacity }
+        else { engine.activeOpacity = opacity }
+    }
+    func setLineStyle(_ style: String) {
+        if hasSelectedStyleTarget {
+            engine.setSelectedLineStyle(style)
+            return
+        }
+        engine.activeLineStyle = style
+    }
+    func setFillColor(_ color: String) {
+        if hasSelectedStyleTarget {
+            engine.setSelectedFillColor(color)
+        }
+    }
+    func setFillOpacity(_ opacity: Double) {
+        if hasSelectedStyleTarget {
+            engine.setSelectedFillOpacity(opacity)
+        }
+    }
+    func setArrowHeadLength(_ length: Double) {
+        if hasSelectedStyleTarget {
+            engine.setSelectedArrowHeadLength(length)
+        }
+    }
+    func setArrowHeadWidth(_ width: Double) {
+        if hasSelectedStyleTarget {
+            engine.setSelectedArrowHeadWidth(width)
+        }
+    }
+    func setLineExtension(_ mode: LineExtension) {
+        if hasSelectedStyleTarget {
+            engine.setSelectedLineExtension(mode)
+        }
+    }
+
 }

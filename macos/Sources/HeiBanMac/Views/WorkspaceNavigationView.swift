@@ -2,20 +2,21 @@ import SwiftUI
 import HeiBanCore
 
 struct WorkspaceNavigationView: View {
+    @ObservedObject private var language = L10n.shared
     @ObservedObject var engine: BoardEngine
     var body: some View {
         HStack(spacing: 8) {
-            Button { engine.setNavigationZoom(engine.viewport.zoom / 1.15) } label: { Image(systemName: "minus") }.disabled(engine.viewportLocked).help("縮小")
+            Button { engine.setNavigationZoom(engine.viewport.zoom / 1.15) } label: { Image(systemName: "minus") }.disabled(engine.viewportLocked).help(L10n.t("縮小"))
             Menu {
-                Button("適合頁面／內容") { engine.fitNavigationView() }
-                Button("回到原點與 100%") { engine.resetNavigationView() }
+                Button(L10n.t("適合頁面／內容")) { engine.fitNavigationView() }
+                Button(L10n.t("回到原點與 100%")) { engine.resetNavigationView() }
                 Divider()
                 ForEach([25, 50, 75, 100, 150, 200], id: \.self) { percent in Button("\(percent)%") { engine.setNavigationZoom(Double(percent) / 100) } }
             } label: {
                 MenuDisclosureLabel("\(Int((engine.viewport.zoom * 100).rounded()))%") { Text("\(Int((engine.viewport.zoom * 100).rounded()))%").font(.system(size: 12, weight: .medium, design: .monospaced)) }
             }
-                .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize().disabled(engine.viewportLocked).help("縮放、適合內容、回到原點")
-            Button { engine.setNavigationZoom(engine.viewport.zoom * 1.15) } label: { Image(systemName: "plus") }.disabled(engine.viewportLocked).help("放大")
+                .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize().disabled(engine.viewportLocked).help(L10n.t("縮放、適合內容、回到原點"))
+            Button { engine.setNavigationZoom(engine.viewport.zoom * 1.15) } label: { Image(systemName: "plus") }.disabled(engine.viewportLocked).help(L10n.t("放大"))
             Divider().frame(height: 18)
             Button { engine.setViewportLocked(!engine.viewportLocked) } label: { Image(systemName: engine.viewportLocked ? "lock.fill" : "lock.open") }
                 .foregroundStyle(engine.viewportLocked ? Color.accentColor : .primary).help(engine.viewportLocked ? "解除視角鎖定" : "鎖定視角：避免平移與縮放")
@@ -26,20 +27,20 @@ struct WorkspaceNavigationView: View {
                 Divider().frame(height: 18)
                 HStack(spacing: 6) {
                     Button { engine.goToPreviousPage() } label: { Image(systemName: "chevron.left") }
-                        .disabled(engine.currentPageIndex <= 0).help("上一頁")
+                        .disabled(engine.currentPageIndex <= 0).help(L10n.t("上一頁"))
                     Menu {
                         ForEach(engine.pages) { page in Button(page.title) { engine.switchPage(to: page.id) } }
                         Divider()
-                        Button("新增頁面") { engine.addPage() }
-                        Button("刪除目前頁面", role: .destructive) { if let id = engine.activePageId { engine.deletePage(id: id) } }
+                        Button(L10n.t("新增頁面")) { engine.addPage() }
+                        Button(L10n.t("刪除目前頁面"), role: .destructive) { if let id = engine.activePageId { engine.deletePage(id: id) } }
                             .disabled(engine.totalPages <= 1)
                     } label: {
                         MenuDisclosureLabel("\(engine.currentPageIndex + 1) / \(engine.totalPages)") { Text("\(engine.currentPageIndex + 1) / \(engine.totalPages)").monospacedDigit().font(.system(size: 11, weight: .medium)) }
                     }
-                    .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize().help("切換筆記本頁面")
+                    .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize().help(L10n.t("切換筆記本頁面"))
                     Button { engine.goToNextPage() } label: { Image(systemName: "chevron.right") }
-                        .disabled(engine.currentPageIndex >= engine.totalPages - 1).help("下一頁")
-                    Button { engine.addPage() } label: { Image(systemName: "plus") }.help("新增頁面")
+                        .disabled(engine.currentPageIndex >= engine.totalPages - 1).help(L10n.t("下一頁"))
+                    Button { engine.addPage() } label: { Image(systemName: "plus") }.help(L10n.t("新增頁面"))
                 }
                 .font(.system(size: 12))
             }
@@ -52,6 +53,7 @@ struct WorkspaceNavigationView: View {
 }
 
 struct ReadingNavigationView: View {
+    @ObservedObject private var language = L10n.shared
     @ObservedObject var engine: BoardEngine
     @Binding var headerPinned: Bool
     var onPanelChanged: (Bool) -> Void
@@ -59,31 +61,31 @@ struct ReadingNavigationView: View {
     @ViewState private var pinSearchQuery = ""
     var body: some View {
         HStack(spacing: 16) {
-            Button { engine.returnHome() } label: { Image(systemName: "chevron.left") }.help("回到作品庫")
+            Button { engine.returnHome() } label: { Image(systemName: "chevron.left") }.help(L10n.t("回到作品庫"))
             Text(engine.board.title).font(.system(size: 12, weight: .medium)).lineLimit(1).frame(maxWidth: 180)
             if engine.isNotebook {
                 Button { engine.goToPreviousPage() } label: { Image(systemName: "chevron.left") }
-                    .disabled(engine.currentPageIndex <= 0).help("上一頁")
+                    .disabled(engine.currentPageIndex <= 0).help(L10n.t("上一頁"))
                 Menu {
                     ForEach(engine.pages) { page in Button(page.title) { engine.switchPage(to: page.id) } }
                 } label: { MenuDisclosureLabel("\(engine.currentPageIndex + 1) / \(engine.totalPages)") { Text("\(engine.currentPageIndex + 1) / \(engine.totalPages)").monospacedDigit() } }
-                    .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize().help("前往頁面")
+                    .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize().help(L10n.t("前往頁面"))
                 Button { engine.goToNextPage() } label: { Image(systemName: "chevron.right") }
-                    .disabled(engine.currentPageIndex >= engine.totalPages - 1).help("下一頁")
+                    .disabled(engine.currentPageIndex >= engine.totalPages - 1).help(L10n.t("下一頁"))
             }
-            Button { engine.setReadingMode(false) } label: { Image(systemName: "pencil") }.help("回到編輯模式")
+            Button { engine.setReadingMode(false) } label: { Image(systemName: "pencil") }.help(L10n.t("回到編輯模式"))
             Button { showPins.toggle() } label: { HeiBanPinIcon().frame(width: 22, height: 22) }
-                .accessibilityLabel("圖釘導航").help("圖釘導航")
+                .accessibilityLabel(L10n.t("圖釘導航")).help(L10n.t("圖釘導航"))
                 .popover(isPresented: $showPins) {
                     VStack(alignment: .leading, spacing: 10) {
-                        HStack { HeiBanPinIcon().frame(width: 20, height: 20); Text("圖釘導航").font(.headline) }
+                        HStack { HeiBanPinIcon().frame(width: 20, height: 20); Text(L10n.t("圖釘導航")).font(.headline) }
 
                         // Search pins input
                         HStack(spacing: 6) {
                             Image(systemName: "magnifyingglass")
                                 .foregroundColor(.secondary)
                                 .font(.system(size: 11))
-                            TextField("搜尋圖釘…", text: $pinSearchQuery)
+                            TextField(L10n.t("搜尋圖釘…"), text: $pinSearchQuery)
                                 .textFieldStyle(.plain)
                                 .font(.system(size: 12))
                             if !pinSearchQuery.isEmpty {
@@ -128,30 +130,30 @@ struct ReadingNavigationView: View {
                                         .buttonStyle(.plain)
                                         .disabled(engine.viewportLocked)
                                         .contextMenu {
-                                            Menu("圖釘主體顏色") {
-                                                Button("藍綠色（預設）") { engine.updatePinColor(id: pin.id, color: "#39B9DC", textColor: pin.textColor) }
-                                                Button("珊瑚粉") { engine.updatePinColor(id: pin.id, color: "#fb7185", textColor: pin.textColor) }
-                                                Button("琥珀黃") { engine.updatePinColor(id: pin.id, color: "#f59e0b", textColor: pin.textColor) }
-                                                Button("翡翠綠") { engine.updatePinColor(id: pin.id, color: "#10b981", textColor: pin.textColor) }
-                                                Button("靛藍紫") { engine.updatePinColor(id: pin.id, color: "#6366f1", textColor: pin.textColor) }
-                                                Button("深石墨") { engine.updatePinColor(id: pin.id, color: "#475569", textColor: pin.textColor) }
+                                            Menu(L10n.t("圖釘主體顏色")) {
+                                                Button(L10n.t("藍綠色（預設）")) { engine.updatePinColor(id: pin.id, color: "#39B9DC", textColor: pin.textColor) }
+                                                Button(L10n.t("珊瑚粉")) { engine.updatePinColor(id: pin.id, color: "#fb7185", textColor: pin.textColor) }
+                                                Button(L10n.t("琥珀黃")) { engine.updatePinColor(id: pin.id, color: "#f59e0b", textColor: pin.textColor) }
+                                                Button(L10n.t("翡翠綠")) { engine.updatePinColor(id: pin.id, color: "#10b981", textColor: pin.textColor) }
+                                                Button(L10n.t("靛藍紫")) { engine.updatePinColor(id: pin.id, color: "#6366f1", textColor: pin.textColor) }
+                                                Button(L10n.t("深石墨")) { engine.updatePinColor(id: pin.id, color: "#475569", textColor: pin.textColor) }
                                             }
-                                            Menu("圖釘文字顏色") {
-                                                Button("森林深綠（預設）") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#397056") }
-                                                Button("純白") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#ffffff") }
-                                                Button("深灰黑") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#1e293b") }
-                                                Button("珊瑚紅") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#e11d48") }
-                                                Button("琥珀棕") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#b45309") }
-                                                Button("靛青") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#1e40af") }
+                                            Menu(L10n.t("圖釘文字顏色")) {
+                                                Button(L10n.t("森林深綠（預設）")) { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#397056") }
+                                                Button(L10n.t("純白")) { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#ffffff") }
+                                                Button(L10n.t("深灰黑")) { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#1e293b") }
+                                                Button(L10n.t("珊瑚紅")) { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#e11d48") }
+                                                Button(L10n.t("琥珀棕")) { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#b45309") }
+                                                Button(L10n.t("靛青")) { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#1e40af") }
                                             }
                                             Divider()
-                                            Button("刪除圖釘", role: .destructive) { engine.removePin(id: pin.id) }
+                                            Button(L10n.t("刪除圖釘"), role: .destructive) { engine.removePin(id: pin.id) }
                                         }
                                     }
                                 }
                             }.frame(maxHeight: 220)
                         }
-                        if engine.viewportLocked { Text("請先解除左下角的視角鎖定").font(.caption).foregroundStyle(.secondary) }
+                        if engine.viewportLocked { Text(L10n.t("請先解除左下角的視角鎖定")).font(.caption).foregroundStyle(.secondary) }
                     }.padding(16).frame(width: 260)
                 }
             Button { headerPinned.toggle() } label: {

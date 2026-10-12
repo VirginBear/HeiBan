@@ -115,3 +115,39 @@ Grip只傳原生mouseDown／Dragged／Up位置。拖曳時沿起始mouse／windo
 日期：2026-10-12。部分採用。螢幕控制列色圈使用同一個 AnnotationBrushSettings。當前顯示器有選取物件時，顏色／粗細／透明度透過 activeEngine 的既有 `setSelected*` 命令修改選取，產生既有編輯交易；沒有選取時才更新未來筆刷樣式。雷射顏色只跟著預設色彩變更，不被已選取物件樣式修改。六色與原生 ColorPicker 提供顏色入口。
 
 原因：避免改色圈時把其他顯示器或未選取筆刷設定意外污染。現有Core選取樣式命令處理鎖定與Undo；UI在混合值時以首物件值供滑桿起點。代價：本批只完成線色／線寬／物件透明度，沒有填色alpha、漸層、線型與箭頭參數；混合／鎖定／取消／Undo仍需實機驗收。
+
+## ADR-M19 — 原生剪貼簿與 AB 控制共用引擎路由
+
+2026-10-12，採用。系統剪貼簿代表最近一次跨 App 複製，優先於內部快照；缺服務才回退內部。Mac adapter 可以注入專用貼上板，PNG 轉換取像素大小，不用 NSImage 的點大小。URL回讀在主緒插入前核對作品／頁；輸入文字的 responder 優先原生Paste。克隆直接使用選取快照，避免依賴外部影像回讀。
+
+單一線段／箭頭的A、B共用 NativePointerSurface → BoardEngine → StrokePreviewStore，不再保留另一套 SwiftUI endpoint gesture。只有放下提交文件及一筆Undo；鎖定線保留端點顯示但禁止修改，線段方向由端點決定。其他圖形沿用通用 transform。代價：多物件選取仍保留共用框，不能稱每條線都個別AB編輯。
+
+## ADR-M20 — 共用工具清單、固定操作區與真實內容加總
+
+2026-10-12，取代ADR-M17的舊尺寸假設。AnnotationToolbarCatalog同時供Core格數與SwiftUI工具內容，格32pt、間距4pt；上下保留固定清空／退出，左右依高度換欄。測試須核對固定區＋實際格總大小能放進panel，不只重述688／272等錯誤常數。純圖示的更多不得塞入額外下拉；縮小到極端尺寸仍需實機驗收。
+
+## ADR-M21 — Mac 介面語言及官方發行檢查保持平台獨立
+
+2026-10-12，採用。Mac使用獨立詞庫＋低頻observable偏好，不以語言變更重建BoardEngine，也不翻譯文件內容；只低頻UI訂閱，純绘製視圖不訂閱。阿拉伯語RTL僅套用首頁／設定，不改畫布座標。初始詞庫來自同專案Windows語意，Mac手工補丁與alias另記錄；並不是Windows runtime依賴。
+
+更新查官方GitHub API，僅接受macos-v與相容CPU的Mac套件，比較語意版本與預覽版本，不以Windows版本／commit／build日期排序。只提供發行頁手動安裝，不背景替換未公證開發App。代價：網路／API限制會使檢查失敗但離線編輯繼續；手冊、動態語句及十語長字串仍需完整人工校對。
+
+## ADR-M22 — 隱藏標題列的雙擊以原生zoom補接
+
+日期：2026-10-12。範圍：Mac普通主視窗。
+
+hiddenTitleBar在本機未執行頂端雙擊縮放；保留現有簡潔介面，以不命中的NSView觀察window附著與局部NSEvent monitor，只攔自身標題列雙擊，直接NSWindow.performZoom，不自訂最大化frame或替換SwiftUI delegate。單擊／拖曳／內容雙擊仍交原生，monitor在移除時清理；系統三鈕／resize邊緣／panel／fullscreen／sheet排除。本App頂端雙擊依使用者要求固定放大還原，不改macOS全域偏好。其他macOS版本／多顯示器仍待實機確認。
+
+
+## ADR-M23 — 一般畫布為工具基準，螢幕模式使用相同元件
+
+2026-10-12，採用；實際四邊／多顯示器操作仍待驗收。取代 ADR-M20 的獨立工具清單與 ADR-M18 的獨立樣式面板：ToolbarPreferences 是唯一工具定義和排序來源；ToolbarContentPolicy 只過濾螢幕不適用的 pins/viewLock 及固定尾端 clearAll。兩種工具列均渲染 ToolbarToolsView／ToolbarBrushSettings；隱藏工具同樣渲染元件，不另寫命令 switch。偏好變更用低頻通知同步現有 engine，不與文件 Undo 混用。
+
+螢幕控制器只接管 selectTool（作畫／穿透與多螢幕）、截圖另存 PNG、圖片對話框的高位階視窗遮讓、四邊停靠、清空全部螢幕及退出。中段格數由實際篩選結果加 More 計算，Undo/Redo 拆為同尺寸格；清空／退出不進工具捲動區。保留 Core 舊格數預設供現有呼叫相容，已移除舊11工具內容；正式 controller 一律傳實際 itemCount。
+
+透明 renderer 共用原生指標面、尺／圓規／多邊形頂點／快速列／套索／輔助面板；只有背景及視角導航不加入。AnnotationInputView 只負責1%透明背景與原生文字 host，避免父子各安裝一套指標 monitor。註記仍每顯示器獨立保存 .heiban，與普通作品隔離。工具新增時更新唯一共用 renderer 和定義，不再補第二套螢幕命令。
+
+
+## ADR-M24 — 成品與再生編譯快取分開，現版以平台tag公開
+
+2026-10-13，採用。使用者授權清理開發編譯快取並公開Mac；在無編譯程序且確認獨立App簽章／版本／上一批SHA後，移除專案macos/.build，保留產品、來源、開發文件及作品。下次完整編譯會重新生成SDK模組，首次成本較高；不清系統全域快取。發布只封裝既有成功成品，避免不必要重建。版本維持1.0.13 / 20261011.1，macos-v1.0.13獨立tag／prerelease，不移動舊tag、不混Windows成品。相應來源、授權、手冊、大小／SHA及未驗收範圍一起提供，發布結果另提交文檔記錄。

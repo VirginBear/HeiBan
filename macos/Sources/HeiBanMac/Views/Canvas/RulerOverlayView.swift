@@ -48,6 +48,7 @@ private struct RulerBodyView: View, Equatable {
 
 // MARK: - Virtual Ruler Overlay
 struct RulerOverlayView: View {
+    @ObservedObject private var language = L10n.shared
     let engine: BoardEngine
     let appearance: RulerAppearance
     @ObservedObject private var rulerStore: RulerStateStore
@@ -104,7 +105,7 @@ struct RulerOverlayView: View {
         .position(x: ruler.screenCenterX + localX * cos(angle) - localY * sin(angle),
                   y: ruler.screenCenterY + localX * sin(angle) + localY * cos(angle))
         .accessibilityLabel("尺規角度 \(String(format: "%.1f", ruler.angle)) 度，點擊輸入角度")
-        .help("點擊輸入角度與設定尺規配色（精度 0.1°）")
+        .help(L10n.t("點擊輸入角度與設定尺規配色（精度 0.1°）"))
     }
 
     private func rotationHandle(fromLeft: Bool) -> some View {
@@ -147,7 +148,7 @@ struct RulerOverlayView: View {
                     .onEnded { _ in engine.endRulerDrag() }
             )
             .zIndex(10)
-            .help("拖曳此把手移動尺")
+            .help(L10n.t("拖曳此把手移動尺"))
     }
 
     private var pivotHandle: some View {
@@ -166,6 +167,6 @@ struct RulerOverlayView: View {
                 DragGesture(coordinateSpace: .named("rulerOverlay"))
                     .onChanged { value in engine.updateRulerPivot(at: Point(value.location)) }
             )
-            .help("沿尺拖曳設定旋轉固定點與尺緣")
+            .help(L10n.t("沿尺拖曳設定旋轉固定點與尺緣"))
     }
 }

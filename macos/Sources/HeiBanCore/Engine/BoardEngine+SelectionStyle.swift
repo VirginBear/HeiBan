@@ -212,7 +212,9 @@ extension BoardEngine {
     }
 
     public func setSelectedRotationAngle(_ degrees: Double) {
-        modifySelectedObjects { $0.rotation = degrees.truncatingRemainder(dividingBy: 360.0) }
+        modifySelectedObjects(matching: { !["line", "arrow"].contains($0.type) }) {
+            $0.rotation = degrees.truncatingRemainder(dividingBy: 360.0)
+        }
     }
 
     public func setSelectedLineExtension(_ extensionMode: LineExtension) {

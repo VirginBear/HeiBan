@@ -3,7 +3,9 @@ import HeiBanCore
 import SwiftUI
 
 public struct MainWindowView: View {
+    @ObservedObject private var language = L10n.shared
     @ObservedObject private var engine: BoardEngine
+    @ViewState private var headerVisible = false
 
     public init(engine: BoardEngine) { self.engine = engine }
 
@@ -20,7 +22,7 @@ public struct MainWindowView: View {
                             VStack {
                                 HStack {
                                     Spacer()
-                                    WorkspaceHeaderView(engine: engine)
+                                    WorkspaceHeaderView(engine: engine) { headerVisible = $0 }
                                 }.padding(16)
                                 Spacer()
                             }
@@ -28,13 +30,13 @@ public struct MainWindowView: View {
                             VStack {
                                 HStack {
                                     Spacer()
-                                    WorkspaceHeaderView(engine: engine)
+                                    WorkspaceHeaderView(engine: engine) { headerVisible = $0 }
                                 }
                                 .padding(.trailing, 16)
                                 .padding(.top, 12)
                                 Spacer()
                             }
-                            ToolbarView(engine: engine, windowSize: geo.size)
+                            ToolbarView(engine: engine, windowSize: geo.size, topClearance: headerVisible ? 64 : 12)
                         } else {
                             // Immersive mode subtle floating restore pill
                             VStack {
@@ -45,7 +47,7 @@ public struct MainWindowView: View {
                                     } label: {
                                         HStack(spacing: 5) {
                                             Image(systemName: "arrow.down.right.and.arrow.up.left")
-                                            Text("退出沉浸模式")
+                                            Text(L10n.t("退出沉浸模式"))
                                         }
                                         .font(.system(size: 11, weight: .medium))
                                         .padding(.horizontal, 10)
@@ -103,7 +105,9 @@ public struct MainWindowView: View {
                 }
             }
         }
+        .environment(\.locale, language.locale)
         .frame(minWidth: 960, minHeight: 640)
+        .background(WindowTitlebarInteraction())
         // 退出保存集中在 HeiBanAppDelegate；此處再保存會重複增加修訂版號。
         // 以下觀察涵蓋 UI 直接修改資料的情況，與命令保存共用同一 debounce 排程。
         .onChange(of: engine.objects) { _, _ in engine.scheduleAutosave() }

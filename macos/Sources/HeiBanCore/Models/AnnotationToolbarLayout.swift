@@ -16,6 +16,13 @@ public enum AnnotationToolbarDock: String, CaseIterable, Codable {
     }
 }
 
+/// 舊佈局呼叫者的預設格數；正式工具內容只由 ToolbarPreferences / ToolbarContentPolicy 定義。
+/// 當前螢幕控制器一律傳入 itemCount，不依賴這些相容預設。
+public enum AnnotationToolbarCatalog {
+    public static let horizontalItemCount = 17
+    public static let verticalItemCount = 16
+}
+
 public struct AnnotationToolbarLayout {
     public static let inset: CGFloat = 12
 
@@ -32,42 +39,44 @@ public struct AnnotationToolbarLayout {
         availableFrame(for: screen.visibleFrame)
     }
 
-    public static func size(for dock: AnnotationToolbarDock, collapsed: Bool = false, availableSize: NSSize) -> NSSize {
+    public static func size(for dock: AnnotationToolbarDock, collapsed: Bool = false, availableSize: NSSize, itemCount: Int? = nil) -> NSSize {
+        let verticalCount = max(1, itemCount ?? AnnotationToolbarCatalog.verticalItemCount)
+        let horizontalCount = max(1, itemCount ?? AnnotationToolbarCatalog.horizontalItemCount)
         let preferred: NSSize
         if collapsed {
             preferred = dock.isVertical
-                ? NSSize(width: 64, height: min(252, availableSize.height))
-                : NSSize(width: min(272, availableSize.width), height: 60)
+                ? NSSize(width: 64, height: 252)
+                : NSSize(width: min(284, availableSize.width), height: 60)
+        } else if dock.isVertical {
+            // 「更多」已併入共用網格；尾端只留下清空／退出，不累積舊工具列空白。
+            let fixedHeight: CGFloat = itemCount == nil ? 212 : 176
+            let rowsAvailable = max(1, Int((availableSize.height - fixedHeight + 4) / 36))
+            let columns = min(verticalCount, max(1, Int(ceil(Double(verticalCount) / Double(rowsAvailable)))))
+            let rows = Int(ceil(Double(verticalCount) / Double(columns)))
+            preferred = NSSize(width: max(64, CGFloat(columns) * 36 + 12),
+                               height: fixedHeight + CGFloat(rows) * 36 - 4)
         } else {
-            if dock.isVertical {
-                let fixedSectionHeight: CGFloat = 204
-                let toolAreaHeight = availableSize.height - fixedSectionHeight
-                // 16 個按鈕（11 個繪圖工具 + 5 個操作按鈕），每個 36 pt 高
-                if toolAreaHeight >= 16 * 36 - 4 {
-                    // 單欄 64 pt
-                    preferred = NSSize(width: 64, height: min(688, availableSize.height))
-                } else {
-                    // 空間不足單欄排完：自動切換為雙欄 96 pt，杜絕滾動遮擋！
-                    preferred = NSSize(width: 96, height: min(492, availableSize.height))
-                }
-            } else {
-                let width = min(820, availableSize.width)
-                let toolArea = max(32, width - 310)
-                let toolCount = 11
-                let columns = max(1, min(toolCount, Int((toolArea + 4) / 36)))
-                let rows = (toolCount + columns - 1) / columns
-                preferred = NSSize(width: width, height: 60 + CGFloat(rows - 1) * 36)
-            }
+            let width = min(itemCount == nil ? 820 : max(284, horizontalFixedWidth + CGFloat(horizontalCount) * 36 - 4), availableSize.width, 820)
+            let columns = horizontalColumns(width: width, itemCount: horizontalCount)
+            let rows = Int(ceil(Double(horizontalCount) / Double(columns)))
+            preferred = NSSize(width: width, height: 60 + CGFloat(rows - 1) * 36)
         }
         return NSSize(width: min(preferred.width, availableSize.width), height: min(preferred.height, availableSize.height))
     }
 
-    public static func size(for dock: AnnotationToolbarDock, collapsed: Bool = false, on screen: NSScreen) -> NSSize {
-        size(for: dock, collapsed: collapsed, availableSize: availableFrame(on: screen).size)
+    /// 握把＋模式 92，清空＋退出 70，分隔線 2，組間距 24，外內距 24。
+    /// 中段依共用偏好計算數量，每格 32 pt／4 pt 間距；退出固定在中段之外。
+    public static let horizontalFixedWidth: CGFloat = 212
+    public static func horizontalColumns(width: CGFloat, itemCount: Int = AnnotationToolbarCatalog.horizontalItemCount) -> Int {
+        max(1, min(max(1, itemCount), Int((max(32, width - horizontalFixedWidth) + 4) / 36)))
     }
 
-    public static func frame(for dock: AnnotationToolbarDock, position: Double, collapsed: Bool = false, availableFrame: NSRect) -> NSRect {
-        let size = size(for: dock, collapsed: collapsed, availableSize: availableFrame.size)
+    public static func size(for dock: AnnotationToolbarDock, collapsed: Bool = false, on screen: NSScreen, itemCount: Int? = nil) -> NSSize {
+        size(for: dock, collapsed: collapsed, availableSize: availableFrame(on: screen).size, itemCount: itemCount)
+    }
+
+    public static func frame(for dock: AnnotationToolbarDock, position: Double, collapsed: Bool = false, availableFrame: NSRect, itemCount: Int? = nil) -> NSRect {
+        let size = size(for: dock, collapsed: collapsed, availableSize: availableFrame.size, itemCount: itemCount)
         let fraction = CGFloat(position.isFinite ? min(1, max(0, position)) : 0.5)
         var origin = availableFrame.origin
         if dock.isVertical {
@@ -80,8 +89,8 @@ public struct AnnotationToolbarLayout {
         return NSRect(origin: origin, size: size)
     }
 
-    public static func frame(for dock: AnnotationToolbarDock, position: Double, collapsed: Bool = false, on screen: NSScreen) -> NSRect {
-        frame(for: dock, position: position, collapsed: collapsed, availableFrame: availableFrame(on: screen))
+    public static func frame(for dock: AnnotationToolbarDock, position: Double, collapsed: Bool = false, on screen: NSScreen, itemCount: Int? = nil) -> NSRect {
+        frame(for: dock, position: position, collapsed: collapsed, availableFrame: availableFrame(on: screen), itemCount: itemCount)
     }
 
     public static func nearestDock(to point: NSPoint, visibleFrame: NSRect, current: AnnotationToolbarDock) -> AnnotationToolbarDock {

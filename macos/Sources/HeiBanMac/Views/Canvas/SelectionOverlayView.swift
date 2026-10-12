@@ -3,6 +3,9 @@ import HeiBanCore
 
 struct SelectionOverlayView: View {
     @ObservedObject var engine: BoardEngine
+    @ObservedObject private var preview: StrokePreviewStore
+
+    init(engine: BoardEngine) { self.engine = engine; self.preview = engine.strokePreview }
 
     var body: some View {
         ZStack {
@@ -25,8 +28,24 @@ struct SelectionOverlayView: View {
                     context.stroke(Path(screenRect), with: .color(Color.accentColor), style: strokeStyle)
                 }
 
+                if let line = engine.selectedEndpointLine {
+                    for endpoint in [LineEndpoint.start, .end] {
+                        let active = preview.lineEndpoint.flatMap { $0.objectID == line.id && $0.endpoint == endpoint ? $0.point : nil }
+                        let world = active ?? Point(x: endpoint == .start ? line.x1 ?? line.x : line.x2 ?? line.x + line.width,
+                                                    y: endpoint == .start ? line.y1 ?? line.y : line.y2 ?? line.y + line.height)
+                        let projected = VectorMath.worldToScreen(world, viewport: engine.viewport)
+                        // 整段平移也走獨立預覽，端點須跟著圖面移動而不逐樣本寫文件。
+                        let point = Point(x: projected.x + preview.selectionOffset.width, y: projected.y + preview.selectionOffset.height)
+                        let circle = Path(ellipseIn: CGRect(x: point.x - 7, y: point.y - 7, width: 14, height: 14))
+                        context.fill(circle, with: .color(.white))
+                        context.stroke(circle, with: .color(line.isLocked == true ? .gray : .accentColor), lineWidth: 2)
+                        context.draw(Text(endpoint == .start ? "A" : "B").font(.system(size: 12, weight: .bold)).foregroundColor(line.isLocked == true ? .gray : .accentColor),
+                                     at: CGPoint(x: point.x, y: point.y + 19))
+                    }
+                }
+
                 // 2. Draw Selection Bounding Box & 8 Handles & Rotation Handle
-                if !engine.selectedIds.isEmpty, let bounds = engine.selectionBoundingBox {
+                if !engine.selectionUsesEndpoints, !engine.selectedIds.isEmpty, let bounds = engine.selectionBoundingBox {
                     let screenOrigin = VectorMath.worldToScreen(Point(x: bounds.minX, y: bounds.minY), viewport: engine.viewport)
                     let screenW = bounds.width * zoom
                     let screenH = bounds.height * zoom

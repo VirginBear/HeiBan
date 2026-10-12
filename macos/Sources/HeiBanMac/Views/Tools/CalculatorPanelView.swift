@@ -2,6 +2,7 @@ import SwiftUI
 import HeiBanCore
 
 public struct CalculatorPanelView: View {
+    @ObservedObject private var language = L10n.shared
     @ObservedObject var model: CalculatorModel
     @ObservedObject var engine: BoardEngine
 
@@ -66,7 +67,7 @@ public struct CalculatorPanelView: View {
                     .background(Color.accentColor.opacity(0.15), in: Capsule())
             }
             .buttonStyle(.plain)
-            .help("切換角度 (DEG) / 弧度 (RAD) 模式")
+            .help(L10n.t("切換角度 (DEG) / 弧度 (RAD) 模式"))
 
             Button {
                 withAnimation(.spring(response: 0.28, dampingFraction: 0.8)) {
@@ -94,7 +95,7 @@ public struct CalculatorPanelView: View {
                         }
                     }
                 } label: {
-                    MenuDisclosureLabel("運算歷史記錄") {
+                    MenuDisclosureLabel(L10n.t("運算歷史記錄")) {
                         Image(systemName: "clock.arrow.circlepath")
                             .font(.system(size: 14)).foregroundStyle(.secondary)
                     }
@@ -102,7 +103,7 @@ public struct CalculatorPanelView: View {
                 .menuStyle(.borderlessButton)
                 .menuIndicator(.hidden)
                 .fixedSize(horizontal: true, vertical: true)
-                .help("運算歷史記錄")
+                .help(L10n.t("運算歷史記錄"))
             }
         }
         .padding(.bottom, 4)
@@ -181,7 +182,7 @@ public struct CalculatorPanelView: View {
             } label: {
                 HStack(spacing: 3) {
                     Image(systemName: "doc.on.doc")
-                    Text("拷貝")
+                    Text(L10n.t("拷貝"))
                 }
                 .font(.system(size: 11, weight: .medium))
                 .padding(.horizontal, 8)
@@ -189,7 +190,7 @@ public struct CalculatorPanelView: View {
                 .background(Color.primary.opacity(0.06), in: RoundedRectangle(cornerRadius: 6))
             }
             .buttonStyle(.plain)
-            .help("拷貝運算數值至剪貼簿")
+            .help(L10n.t("拷貝運算數值至剪貼簿"))
 
             Spacer()
 
@@ -198,7 +199,7 @@ public struct CalculatorPanelView: View {
             } label: {
                 HStack(spacing: 4) {
                     Image(systemName: "text.insert")
-                    Text("插入畫布")
+                    Text(L10n.t("插入畫布"))
                 }
                 .font(.system(size: 11, weight: .semibold))
                 .padding(.horizontal, 10)
@@ -207,7 +208,7 @@ public struct CalculatorPanelView: View {
                 .foregroundStyle(Color.accentColor)
             }
             .buttonStyle(.plain)
-            .help("將運算結果插入黑板為可編輯文字物件")
+            .help(L10n.t("將運算結果插入黑板為可編輯文字物件"))
         }
     }
 

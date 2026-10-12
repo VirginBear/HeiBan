@@ -29,7 +29,7 @@ final class TextStyleContextMenu {
                 else { engine.setSelectedTextStyle(fontSize: Double(size)) }
             })
         }
-        let sizeItem = NSMenuItem(title: "文字大小", action: nil, keyEquivalent: "")
+        let sizeItem = NSMenuItem(title: L10n.t("文字大小"), action: nil, keyEquivalent: "")
         sizeItem.submenu = sizeMenu
         menu.addItem(sizeItem)
 
@@ -42,7 +42,7 @@ final class TextStyleContextMenu {
                 } else { engine.setSelectedTextStyle(color: hex) }
             })
         }
-        let colorItem = NSMenuItem(title: "文字顏色", action: nil, keyEquivalent: "")
+        let colorItem = NSMenuItem(title: L10n.t("文字顏色"), action: nil, keyEquivalent: "")
         colorItem.submenu = colorMenu
         menu.addItem(colorItem)
         for (title, action, enabled) in [
@@ -133,6 +133,7 @@ private struct TextStyleChange {
 }
 
 private struct TextStyleSettings: View {
+    @ObservedObject private var language = L10n.shared
     @ViewState private var size: Double
     @ViewState private var color: String
     @ViewState private var family: String
@@ -158,17 +159,17 @@ private struct TextStyleSettings: View {
     private var validColor: Bool { color.range(of: "^#[0-9a-fA-F]{6}$", options: .regularExpression) != nil }
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("文字設定").font(.headline)
-            if mixed { Text("只套用你修改的欄位至所選文字框").font(.caption).foregroundStyle(.secondary) }
+            Text(L10n.t("文字設定")).font(.headline)
+            if mixed { Text(L10n.t("只套用你修改的欄位至所選文字框")).font(.caption).foregroundStyle(.secondary) }
             HStack {
-                Text("文字大小")
+                Text(L10n.t("文字大小"))
                 TextField("pt", value: $size, format: .number).frame(width: 70)
                 Stepper("pt", value: $size, in: 8...144)
             }
             HStack {
-                Text("文字顏色")
+                Text(L10n.t("文字顏色"))
                 Circle().fill(Color(hex: color)).frame(width: 18, height: 18)
-                TextField("#RRGGBB", text: $color).accessibilityLabel("自訂文字顏色十六進位值")
+                TextField("#RRGGBB", text: $color).accessibilityLabel(L10n.t("自訂文字顏色十六進位值"))
             }
             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4)) {
                 ForEach(["#111827", "#ffffff", "#ef4444", "#f59e0b", "#22c55e", "#3b82f6", "#a855f7", "#ec4899"], id: \.self) { hex in
@@ -179,16 +180,16 @@ private struct TextStyleSettings: View {
                     }.buttonStyle(.plain).accessibilityLabel("文字顏色 \(hex)")
                 }
             }
-            TextField("字體名稱", text: $family).accessibilityLabel("字體名稱")
-            Picker("對齊", selection: $alignment) {
-                Text("靠左").tag("left"); Text("置中").tag("center"); Text("靠右").tag("right")
+            TextField(L10n.t("字體名稱"), text: $family).accessibilityLabel(L10n.t("字體名稱"))
+            Picker(L10n.t("對齊"), selection: $alignment) {
+                Text(L10n.t("靠左")).tag("left"); Text(L10n.t("置中")).tag("center"); Text(L10n.t("靠右")).tag("right")
             }.pickerStyle(.segmented)
             Text("不透明度 \(Int(opacity * 100))%")
-            Slider(value: $opacity, in: 0.05...1).accessibilityLabel("文字不透明度")
+            Slider(value: $opacity, in: 0.05...1).accessibilityLabel(L10n.t("文字不透明度"))
             HStack {
-                Button("取消", action: close)
+                Button(L10n.t("取消"), action: close)
                 Spacer()
-                Button("套用") {
+                Button(L10n.t("套用")) {
                     apply(TextStyleChange(size: changed.contains("size") ? size : nil,
                         color: changed.contains("color") ? color : nil,
                         family: changed.contains("family") ? family : nil,

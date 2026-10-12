@@ -4,7 +4,9 @@ import SwiftUI
 
 /// 隱藏只影響導覽列命中，不重建子視圖／改變畫布大小；popover 可繼續持有錨點。
 struct WorkspaceHeaderView: View {
+    @ObservedObject private var language = L10n.shared
     @ObservedObject var engine: BoardEngine
+    var onVisibilityChanged: (Bool) -> Void = { _ in }
     @AppStorage("HeiBan.workspaceHeaderPinned") private var pinned = false
     @ViewState private var revealed = false
     @ViewState private var hovered = false
@@ -36,8 +38,8 @@ struct WorkspaceHeaderView: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .help("顯示導覽列；也可將滑鼠移到右上角")
-                .accessibilityLabel("顯示導覽列")
+                .help(L10n.t("顯示導覽列；也可將滑鼠移到右上角"))
+                .accessibilityLabel(L10n.t("顯示導覽列"))
                 .onHover { if $0 { reveal() } }
             }
         }
@@ -60,7 +62,9 @@ struct WorkspaceHeaderView: View {
             trackingMenus = max(0, trackingMenus - 1)
             scheduleHide()
         }
-        .onDisappear { hideTask?.cancel() }
+        .onAppear { onVisibilityChanged(visible) }
+        .onChange(of: visible) { _, value in onVisibilityChanged(value) }
+        .onDisappear { hideTask?.cancel(); onVisibilityChanged(false) }
     }
 
     private func reveal() {

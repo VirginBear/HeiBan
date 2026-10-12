@@ -22,6 +22,13 @@ public protocol PlatformPasteboardService: AnyObject {
     func copyString(_ text: String)
     func pasteString() -> String?
     func pasteImageData() -> (data: Data, width: Double, height: Double)?
+    func readImage(completion: @escaping ((data: Data, width: Double, height: Double)?) -> Void)
+}
+
+public extension PlatformPasteboardService {
+    func readImage(completion: @escaping ((data: Data, width: Double, height: Double)?) -> Void) {
+        completion(pasteImageData())
+    }
 }
 
 public protocol PlatformImageDecoderService: AnyObject {

@@ -315,14 +315,29 @@ extension BoardEngine {
     }
 
     public func pasteClipboard(offset: CGPoint = CGPoint(x: 20, y: 20)) {
-        var sourceObjects = internalClipboard
-        if sourceObjects.isEmpty,
-            let clipStr = pasteboardService?.pasteString(),
-            let data = clipStr.data(using: .utf8),
-            let decoded = try? JSONDecoder().decode([BoardObject].self, from: data)
-        {
-            sourceObjects = decoded
+        guard !readingMode else { return }
+        // 系統剪貼簿是最新來源；外部截圖不能被上一次複製的黑板物件蓋過。
+        if let service = pasteboardService {
+            if let text = service.pasteString(), let data = text.data(using: .utf8),
+               let decoded = try? JSONDecoder().decode([BoardObject].self, from: data), !decoded.isEmpty {
+                pasteObjects(decoded, offset: offset)
+            } else {
+                let boardID = board.id
+                let pageID = activePageId
+                service.readImage { [weak self] image in
+                    guard let self, self.board.id == boardID, self.activePageId == pageID,
+                          !self.showingHome, !self.readingMode else { return }
+                    guard let image else { self.showTemporaryStatus("剪貼簿無可用圖片或黑板物件"); return }
+                    _ = self.importImage(data: image.data, originalSize: CGSize(width: image.width, height: image.height))
+                    self.showTemporaryStatus("已貼上圖片")
+                }
+            }
+        } else {
+            pasteObjects(internalClipboard, offset: offset)
         }
+    }
+
+    private func pasteObjects(_ sourceObjects: [BoardObject], offset: CGPoint) {
         guard !sourceObjects.isEmpty else { return }
 
         var groupMap: [String: String] = [:]
@@ -367,9 +382,10 @@ extension BoardEngine {
     }
 
     public func duplicateSelected() {
-        guard !selectedIds.isEmpty else { return }
+        guard !readingMode, !selectedIds.isEmpty else { return }
         copySelected()
-        pasteClipboard(offset: CGPoint(x: 24, y: 24))
+        // 克隆是物件命令，不等待外部剪貼簿或網路圖片讀取。
+        pasteObjects(internalClipboard, offset: CGPoint(x: 24, y: 24))
     }
 
     public func deleteSelected() {

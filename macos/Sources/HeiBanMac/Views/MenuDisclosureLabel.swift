@@ -41,7 +41,7 @@ private enum MenuLabelImageCache {
     }()
 
     static func image<Content: View>(name: String, scheme: ColorScheme, scale: CGFloat, content: Content) -> NSImage {
-        let key = "\(name)|\(scheme)|\(scale)" as NSString
+        let key = "\(name)|\(scheme)|\(scale)|\(L10n.shared.code)" as NSString
         if let existing = cache.object(forKey: key) { return existing }
         let renderer = ImageRenderer(content: content.environment(\.colorScheme, scheme))
         renderer.scale = scale

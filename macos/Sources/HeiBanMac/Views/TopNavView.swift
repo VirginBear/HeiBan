@@ -3,6 +3,7 @@ import AppKit
 import HeiBanCore
 
 public struct TopNavView: View {
+    @ObservedObject private var language = L10n.shared
     @ObservedObject var engine: BoardEngine
     @ViewState private var showLaserSettings = false
     @ViewState private var showBackgroundSettings = false
@@ -42,7 +43,7 @@ public struct TopNavView: View {
                     .font(.system(size: 13, weight: .semibold))
                     .frame(width: 24, height: 24)
             }
-            .help("回到作品庫")
+            .help(L10n.t("回到作品庫"))
 
             Divider().frame(height: 16)
 
@@ -64,7 +65,7 @@ public struct TopNavView: View {
                     .frame(width: 20, height: 20)
                     .foregroundStyle(Color.accentColor)
             }
-            .help("圖釘視角導航")
+            .help(L10n.t("圖釘視角導航"))
             .popover(isPresented: $engine.showPinManager) {
                 PinManagerPopover(engine: engine, isPresented: $engine.showPinManager)
             }
@@ -118,54 +119,54 @@ public struct TopNavView: View {
                 Button {
                     engine.beginInlineTextEntry(at: worldCenterPoint, kind: .text)
                 } label: {
-                    Label("文字", systemImage: "textformat")
+                    Label(L10n.t("文字"), systemImage: "textformat")
                 }
 
                 Button {
                     engine.beginInlineTextEntry(at: worldCenterPoint, kind: .sticky)
                 } label: {
-                    Label("便條紙", systemImage: "note.text")
+                    Label(L10n.t("便條紙"), systemImage: "note.text")
                 }
 
                 Button {
                     engine.captureScreenAndPaste()
                 } label: {
-                    Label("截圖置入…", systemImage: "camera.viewfinder")
+                    Label(L10n.t("截圖置入…"), systemImage: "camera.viewfinder")
                 }
 
                 Button {
                     engine.importImageFromFilePrompt()
                 } label: {
-                    Label("圖片匯入…", systemImage: "photo.badge.plus")
+                    Label(L10n.t("圖片匯入…"), systemImage: "photo.badge.plus")
                 }
             }
 
             Section("輔助工具") {
                 Button { ScreenAnnotationController.shared.start() } label: {
-                    Label("我的螢幕就是我的畫布", systemImage: "rectangle.and.pencil.and.ellipsis")
+                    Label(L10n.t("我的螢幕就是我的畫布"), systemImage: "rectangle.and.pencil.and.ellipsis")
                 }
-                Button("雷射筆設定…") { showLaserSettings = true }
+                Button(L10n.t("雷射筆設定…")) { showLaserSettings = true }
 
                 Button {
                     engine.toggleCompass()
                 } label: {
-                    Label("圓規", systemImage: "circle.circle")
+                    Label(L10n.t("圓規"), systemImage: "circle.circle")
                 }
 
                 Button {
                     engine.toggleCalculator()
                 } label: {
-                    Label("計算機", systemImage: "plus.forwardslash.minus")
+                    Label(L10n.t("計算機"), systemImage: "plus.forwardslash.minus")
                 }
 
                 Button {
                     engine.toggleTimer()
                 } label: {
-                    Label("計時器", systemImage: "timer")
+                    Label(L10n.t("計時器"), systemImage: "timer")
                 }
             }
         } label: {
-            MenuDisclosureLabel("插入內容或輔助工具") {
+            MenuDisclosureLabel(L10n.t("插入內容或輔助工具")) {
                 Image(systemName: "plus")
                     .font(.system(size: 16, weight: .semibold))
                     .frame(width: 18, height: 24)
@@ -174,7 +175,7 @@ public struct TopNavView: View {
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
         .fixedSize(horizontal: true, vertical: true)
-        .help("插入內容或輔助工具")
+        .help(L10n.t("插入內容或輔助工具"))
     }
 
     // MARK: - More Menu
@@ -185,7 +186,7 @@ public struct TopNavView: View {
                 Button {
                     showNoteInfoPopover = true
                 } label: {
-                    Label("筆記資訊與改名…", systemImage: "info.circle")
+                    Label(L10n.t("筆記資訊與改名…"), systemImage: "info.circle")
                 }
 
                 Button {
@@ -199,45 +200,45 @@ public struct TopNavView: View {
                 ForEach(BoardTheme.allCases, id: \.self) { theme in
                     Button(theme.displayName) { engine.updateBoardTheme(theme) }
                 }
-                Button("自訂背景與格線…") { showBackgroundSettings = true }
+                Button(L10n.t("自訂背景與格線…")) { showBackgroundSettings = true }
             }
 
             Section("圖層與屬性") {
                 Button {
                     engine.toggleLayerPanel()
                 } label: {
-                    Label("物件圖層", systemImage: "square.3.layers.3d")
+                    Label(L10n.t("物件圖層"), systemImage: "square.3.layers.3d")
                 }
 
                 Button {
                     engine.showInspector.toggle()
                 } label: {
-                    Label("物件屬性", systemImage: "slider.horizontal.3")
+                    Label(L10n.t("物件屬性"), systemImage: "slider.horizontal.3")
                 }
             }
 
             Section("文件與匯出") {
-                Button("匯入／開啟…") { engine.openFromFilePrompt() }
-                Button("另存黑板專案…") { engine.saveToFilePrompt() }
-                Button("PNG 圖片…") { engine.exportPNGPrompt() }
-                Button("PDF 向量文件…") { engine.exportPDFPrompt() }
-                Button("SVG 向量圖檔…") { engine.exportSVGPrompt() }
-                Button("離線 HTML…") { engine.exportHTMLPrompt() }
+                Button(L10n.t("匯入／開啟…")) { engine.openFromFilePrompt() }
+                Button(L10n.t("另存黑板專案…")) { engine.saveToFilePrompt() }
+                Button(L10n.t("PNG 圖片…")) { engine.exportPNGPrompt() }
+                Button(L10n.t("PDF 向量文件…")) { engine.exportPDFPrompt() }
+                Button(L10n.t("SVG 向量圖檔…")) { engine.exportSVGPrompt() }
+                Button(L10n.t("離線 HTML…")) { engine.exportHTMLPrompt() }
             }
 
             Section("使用說明") {
-                Button("黑板使用手冊") { HeiBanUserGuide.shared.show() }
+                Button(L10n.t("黑板使用手冊")) { HeiBanUserGuide.shared.show() }
             }
 
             Section("偏好設定") {
                 Button {
                     showToolbarCustomizer = true
                 } label: {
-                    Label("自訂工具列…", systemImage: "wrench.and.screwdriver")
+                    Label(L10n.t("自訂工具列…"), systemImage: "wrench.and.screwdriver")
                 }
             }
         } label: {
-            MenuDisclosureLabel("更多") {
+            MenuDisclosureLabel(L10n.t("更多")) {
                 Image(systemName: "ellipsis")
                     .font(.system(size: 16, weight: .semibold))
                     .frame(width: 18, height: 24)
@@ -246,7 +247,7 @@ public struct TopNavView: View {
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
         .fixedSize(horizontal: true, vertical: true)
-        .help("筆記資訊、背景、圖層、匯出與偏好")
+        .help(L10n.t("筆記資訊、背景、圖層、匯出與偏好"))
     }
 
     // MARK: - Status Indicator (MAC-TB-03)
@@ -262,12 +263,12 @@ public struct TopNavView: View {
                 ProgressView()
                     .controlSize(.mini)
                     .frame(width: 14, height: 14)
-                    .help("儲存中…")
+                    .help(L10n.t("儲存中…"))
             case .unsaved:
                 Image(systemName: "circle.dashed")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(Color(hex: "#A87929"))
-                    .help("尚未儲存完成：存在尚未寫入本機磁碟的變更")
+                    .help(L10n.t("尚未儲存完成：存在尚未寫入本機磁碟的變更"))
             case .saved(let detail):
                 Image(systemName: "checkmark")
                     .font(.system(size: 11, weight: .bold))
@@ -285,13 +286,13 @@ public struct TopNavView: View {
             HStack {
                 Image(systemName: "info.circle.fill")
                     .foregroundStyle(Color.accentColor)
-                Text("筆記資訊與改名")
+                Text(L10n.t("筆記資訊與改名"))
                     .font(.system(size: 13, weight: .bold))
             }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text("筆記名稱").font(.caption).foregroundStyle(.secondary)
-                TextField("筆記標題", text: $engine.board.title)
+                Text(L10n.t("筆記名稱")).font(.caption).foregroundStyle(.secondary)
+                TextField(L10n.t("筆記標題"), text: $engine.board.title)
                     .textFieldStyle(.roundedBorder)
             }
 
@@ -308,7 +309,7 @@ public struct TopNavView: View {
 
             HStack {
                 Spacer()
-                Button("完成") {
+                Button(L10n.t("完成")) {
                     showNoteInfoPopover = false
                 }
                 .buttonStyle(.borderedProminent)
@@ -330,9 +331,9 @@ public struct TopNavView: View {
     // MARK: - Background Settings Popover
     private var backgroundSettingsPopover: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("畫布背景與格線").font(.headline)
+            Text(L10n.t("畫布背景與格線")).font(.headline)
 
-            ColorPicker("背景顏色", selection: Binding(
+            ColorPicker(L10n.t("背景顏色"), selection: Binding(
                 get: { Color(hex: engine.board.backgroundColor) },
                 set: { color in
                     guard let rgb = NSColor(color).usingColorSpace(.deviceRGB) else { return }
@@ -346,20 +347,20 @@ public struct TopNavView: View {
                 }
             ), supportsOpacity: false)
 
-            Picker("格線顏色", selection: Binding(
+            Picker(L10n.t("格線顏色"), selection: Binding(
                 get: { engine.board.gridColor ?? "" },
                 set: { engine.updateGridColor($0.isEmpty ? nil : $0) }
             )) {
-                Text("自適應").tag("")
-                Text("白色").tag("#ffffff")
-                Text("淺灰").tag("#94a3b8")
-                Text("深灰").tag("#475569")
-                Text("柔黑").tag("#18181b")
+                Text(L10n.t("自適應")).tag("")
+                Text(L10n.t("白色")).tag("#ffffff")
+                Text(L10n.t("淺灰")).tag("#94a3b8")
+                Text(L10n.t("深灰")).tag("#475569")
+                Text(L10n.t("柔黑")).tag("#18181b")
             }
 
             HStack {
                 Spacer()
-                Button("完成") { showBackgroundSettings = false }
+                Button(L10n.t("完成")) { showBackgroundSettings = false }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.small)
             }
@@ -371,6 +372,7 @@ public struct TopNavView: View {
 
 // MARK: - Pin Manager Popover
 struct PinManagerPopover: View {
+    @ObservedObject private var language = L10n.shared
     @ObservedObject var engine: BoardEngine
     @Binding var isPresented: Bool
     @ViewState private var pinSearchQuery = ""
@@ -379,15 +381,15 @@ struct PinManagerPopover: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 7) {
                 HeiBanPinIcon().frame(width: 20, height: 20).foregroundStyle(Color.accentColor)
-                Text("圖釘視角導航").font(.system(size: 13, weight: .bold))
+                Text(L10n.t("圖釘視角導航")).font(.system(size: 13, weight: .bold))
             }
 
             // Add pin input
             HStack {
-                TextField("新圖釘名稱 (如：板書起點)", text: $engine.newPinName)
+                TextField(L10n.t("新圖釘名稱 (如：板書起點)"), text: $engine.newPinName)
                     .textFieldStyle(.roundedBorder)
 
-                Button("新增") {
+                Button(L10n.t("新增")) {
                     let name = engine.newPinName.trimmingCharacters(in: .whitespacesAndNewlines)
                     engine.addPin(name: name.isEmpty ? "視角 \(Int.random(in: 10...99))" : name)
                     engine.newPinName = ""
@@ -399,7 +401,7 @@ struct PinManagerPopover: View {
                 Image(systemName: "magnifyingglass")
                     .foregroundColor(.secondary)
                     .font(.system(size: 11))
-                TextField("搜尋圖釘…", text: $pinSearchQuery)
+                TextField(L10n.t("搜尋圖釘…"), text: $pinSearchQuery)
                     .textFieldStyle(.plain)
                     .font(.system(size: 12))
                 if !pinSearchQuery.isEmpty {
@@ -443,7 +445,7 @@ struct PinManagerPopover: View {
                                 .accessibilityLabel("前往圖釘：\(pin.name)")
                                 .help("前往圖釘：\(pin.name)")
 
-                                TextField("圖釘名稱", text: Binding(
+                                TextField(L10n.t("圖釘名稱"), text: Binding(
                                     get: { engine.board.pins?.first(where: { $0.id == pin.id })?.name ?? pin.name },
                                     set: { engine.renamePin(id: pin.id, name: $0) }
                                 ))
@@ -468,24 +470,24 @@ struct PinManagerPopover: View {
                             .padding(.vertical, 6)
                             .background(Color.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 6))
                             .contextMenu {
-                                Menu("圖釘主體顏色") {
-                                    Button("藍綠色（預設）") { engine.updatePinColor(id: pin.id, color: "#39B9DC", textColor: pin.textColor) }
-                                    Button("珊瑚粉") { engine.updatePinColor(id: pin.id, color: "#fb7185", textColor: pin.textColor) }
-                                    Button("琥珀黃") { engine.updatePinColor(id: pin.id, color: "#f59e0b", textColor: pin.textColor) }
-                                    Button("翡翠綠") { engine.updatePinColor(id: pin.id, color: "#10b981", textColor: pin.textColor) }
-                                    Button("靛藍紫") { engine.updatePinColor(id: pin.id, color: "#6366f1", textColor: pin.textColor) }
-                                    Button("深石墨") { engine.updatePinColor(id: pin.id, color: "#475569", textColor: pin.textColor) }
+                                Menu(L10n.t("圖釘主體顏色")) {
+                                    Button(L10n.t("藍綠色（預設）")) { engine.updatePinColor(id: pin.id, color: "#39B9DC", textColor: pin.textColor) }
+                                    Button(L10n.t("珊瑚粉")) { engine.updatePinColor(id: pin.id, color: "#fb7185", textColor: pin.textColor) }
+                                    Button(L10n.t("琥珀黃")) { engine.updatePinColor(id: pin.id, color: "#f59e0b", textColor: pin.textColor) }
+                                    Button(L10n.t("翡翠綠")) { engine.updatePinColor(id: pin.id, color: "#10b981", textColor: pin.textColor) }
+                                    Button(L10n.t("靛藍紫")) { engine.updatePinColor(id: pin.id, color: "#6366f1", textColor: pin.textColor) }
+                                    Button(L10n.t("深石墨")) { engine.updatePinColor(id: pin.id, color: "#475569", textColor: pin.textColor) }
                                 }
-                                Menu("圖釘文字顏色") {
-                                    Button("森林深綠（預設）") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#397056") }
-                                    Button("純白") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#ffffff") }
-                                    Button("深灰黑") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#1e293b") }
-                                    Button("珊瑚紅") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#e11d48") }
-                                    Button("琥珀棕") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#b45309") }
-                                    Button("靛青") { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#1e40af") }
+                                Menu(L10n.t("圖釘文字顏色")) {
+                                    Button(L10n.t("森林深綠（預設）")) { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#397056") }
+                                    Button(L10n.t("純白")) { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#ffffff") }
+                                    Button(L10n.t("深灰黑")) { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#1e293b") }
+                                    Button(L10n.t("珊瑚紅")) { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#e11d48") }
+                                    Button(L10n.t("琥珀棕")) { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#b45309") }
+                                    Button(L10n.t("靛青")) { engine.updatePinColor(id: pin.id, color: pin.color, textColor: "#1e40af") }
                                 }
                                 Divider()
-                                Button("刪除圖釘", role: .destructive) { engine.removePin(id: pin.id) }
+                                Button(L10n.t("刪除圖釘"), role: .destructive) { engine.removePin(id: pin.id) }
                             }
                         }
                     }
@@ -494,7 +496,7 @@ struct PinManagerPopover: View {
             }
 
             if engine.viewportLocked {
-                Text("視角已鎖定，解除鎖定後即可跳轉")
+                Text(L10n.t("視角已鎖定，解除鎖定後即可跳轉"))
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }

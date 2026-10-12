@@ -3,6 +3,7 @@ import HeiBanCore
 
 /// Placement preferences are workspace state, independent of document history.
 struct InspectorDockView: View {
+    @ObservedObject private var language = L10n.shared
     @ObservedObject var engine: BoardEngine
     let windowSize: CGSize
     @AppStorage("HeiBan.inspector.dock") private var savedEdge = "right"
@@ -24,7 +25,7 @@ struct InspectorDockView: View {
             let bottom: CGFloat = engine.toolbarDock == "bottom" ? 96 : 76
             return CGSize(width: 280, height: engine.selectedIds.isEmpty ? 220 : min(520, max(220, windowSize.height - top - bottom - 16)))
         }
-        return vertical ? CGSize(width: 52, height: 68) : CGSize(width: 94, height: 36)
+        return vertical ? CGSize(width: 40, height: 44) : CGSize(width: 94, height: 36)
     }
     private var limits: CGRect {
         let left: CGFloat = engine.toolbarDock == "left" ? 92 : 16
@@ -86,10 +87,9 @@ struct InspectorDockView: View {
                     InspectorView(engine: engine, horizontal: !vertical, onDragChanged: dragChanged, onDragEnded: dragEnded)
                 } else {
                     Button { engine.showInspector = true } label: {
-                        let layout = vertical ? AnyLayout(VStackLayout(spacing: 6)) : AnyLayout(HStackLayout(spacing: 6))
-                        layout {
+                        HStack(spacing: 6) {
                             Image(systemName: "slider.horizontal.3").font(.system(size: 14, weight: .semibold))
-                            Text("屬性").font(.system(size: 12, weight: .medium))
+                            if !vertical { Text(L10n.t("屬性")).font(.system(size: 12, weight: .medium)).lineLimit(1) }
                         }
                         .frame(width: size.width, height: size.height)
                         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
@@ -98,16 +98,16 @@ struct InspectorDockView: View {
                     }
                     .buttonStyle(.plain)
                     .highPriorityGesture(drag)
-                    .help("點擊開啟屬性；拖曳標籤到視窗上下左右停靠")
-                    .accessibilityLabel("屬性，拖曳可切換停靠位置")
+                    .help(L10n.t("點擊開啟屬性；拖曳標籤到視窗上下左右停靠"))
+                    .accessibilityLabel(L10n.t("屬性，拖曳可切換停靠位置"))
                 }
             }
             .frame(width: size.width, height: size.height)
             .contextMenu {
-                Button("停靠左側") { savedEdge = "left" }
-                Button("停靠右側") { savedEdge = "right" }
-                Button("停靠上方") { savedEdge = "top" }
-                Button("停靠下方") { savedEdge = "bottom" }
+                Button(L10n.t("停靠左側")) { savedEdge = "left" }
+                Button(L10n.t("停靠右側")) { savedEdge = "right" }
+                Button(L10n.t("停靠上方")) { savedEdge = "top" }
+                Button(L10n.t("停靠下方")) { savedEdge = "bottom" }
             }
             .position(center)
 

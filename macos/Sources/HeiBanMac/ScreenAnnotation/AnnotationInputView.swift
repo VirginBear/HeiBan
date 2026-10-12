@@ -3,19 +3,24 @@ import Combine
 import HeiBanCore
 import SwiftUI
 
-/// AppKit 擁有全螢幕輸入面積；SwiftUI 子視圖只負責畫出註記。
+/// AppKit 保有透明底層與文字輸入生命週期，SwiftUI 共用指標面及尺／圓規等互動元件。
 /// 空白畫布也必須命中，不能依註記已有的可見像素決定是否接收滑鼠。
-final class AnnotationInputView: NativePointerSurface.PointerView {
+final class AnnotationInputView: NSView {
+    let engine: BoardEngine
     private var editor: NSHostingView<AnnotationTextEditorPanel>?
     private var editorSubscription: AnyCancellable?
 
     init(engine: BoardEngine, size: CGSize, onInteraction: @escaping () -> Void) {
-        super.init(engine: engine, onInteraction: onInteraction)
+        self.engine = engine
+        super.init(frame: .zero)
         frame = NSRect(origin: .zero, size: size)
         autoresizingMask = [.width, .height]
         setAccessibilityRole(.group)
-        setAccessibilityLabel("透明螢幕畫布")
-        let renderer = AnnotationRenderHost(rootView: ScreenAnnotationCanvas(engine: engine))
+        setAccessibilityLabel(L10n.t("透明螢幕畫布"))
+        let renderer = AnnotationRenderHost(rootView: ScreenAnnotationCanvas(engine: engine, onInteraction: { [weak self] in
+            self?.window?.makeKey()
+            onInteraction()
+        }))
         renderer.frame = bounds
         renderer.autoresizingMask = [.width, .height]
         addSubview(renderer)
@@ -26,6 +31,7 @@ final class AnnotationInputView: NativePointerSurface.PointerView {
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) unavailable") }
+    override var isFlipped: Bool { true }
     override var isOpaque: Bool { false }
     override var mouseDownCanMoveWindow: Bool { false }
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
@@ -37,6 +43,10 @@ final class AnnotationInputView: NativePointerSurface.PointerView {
         if let editor, editor.frame.contains(local),
            // NSView.hitTest 接收父視圖座標；local 已是 editor 的父視圖座標。
            let hit = editor.hitTest(local) { return hit }
+        // 共用指標面與互動工具疊層保留正常 SwiftUI 命中：尺／圓規／輔助面板不能被父輸入層攔截。
+        for child in subviews.reversed() where child !== editor {
+            if let hit = child.hitTest(local) { return hit }
+        }
         return self
     }
 
@@ -51,13 +61,23 @@ final class AnnotationInputView: NativePointerSurface.PointerView {
         // 非啟動 panel 取得鍵盤焦點但不啟動主視窗，第一筆也能直接落下。
         window?.makeKey()
         if engine.showInlineTextEditor { engine.commitInlineTextEntry() }
-        super.mouseDown(with: event)
+        pointerReceiver?.mouseDown(with: event)
     }
 
     override func rightMouseDown(with event: NSEvent) {
         window?.makeKey()
         if engine.showInlineTextEditor { engine.commitInlineTextEntry() }
-        super.rightMouseDown(with: event)
+        pointerReceiver?.rightMouseDown(with: event)
+    }
+
+    /// 真正取樣與鍵盤路由的唯一 PointerView；父 host 不再建立第二套事件監聽器。
+    var pointerReceiver: NativePointerSurface.PointerView? {
+        func find(in view: NSView) -> NativePointerSurface.PointerView? {
+            if let pointer = view as? NativePointerSurface.PointerView { return pointer }
+            for child in view.subviews { if let pointer = find(in: child) { return pointer } }
+            return nil
+        }
+        return find(in: self)
     }
 
     override func layout() {
@@ -69,7 +89,7 @@ final class AnnotationInputView: NativePointerSurface.PointerView {
         guard engine.showInlineTextEditor else {
             if let editor {
                 if let responder = window?.firstResponder as? NSView, responder.isDescendant(of: editor) {
-                    window?.makeFirstResponder(self)
+                    window?.makeFirstResponder(pointerReceiver)
                 }
                 editor.removeFromSuperview()
                 self.editor = nil
@@ -99,6 +119,7 @@ final class AnnotationInputView: NativePointerSurface.PointerView {
 }
 
 private struct AnnotationTextEditorPanel: View {
+    @ObservedObject private var language = L10n.shared
     @ObservedObject var engine: BoardEngine
     var body: some View {
         InlineTextEditorPanel(engine: engine)
@@ -110,5 +131,5 @@ private struct AnnotationTextEditorPanel: View {
 
 private final class AnnotationRenderHost: NSHostingView<ScreenAnnotationCanvas> {
     override var isOpaque: Bool { false }
-    override func hitTest(_ point: NSPoint) -> NSView? { nil }
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
 }
