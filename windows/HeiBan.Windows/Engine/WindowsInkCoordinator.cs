@@ -20,13 +20,7 @@ public sealed class WindowsInkCoordinator
     public bool TrySnapStraight(double zoom)
     {
         if(!IsDrawing||_straight||Projection is not null||_points.Count<5||Now-_holdSince<1)return false;
-        var a=_points[0];var b=_points[^1];var dx=b.X-a.X;var dy=b.Y-a.Y;var length=Math.Sqrt(dx*dx+dy*dy);
-        if(length*zoom<24)return false;
-        // A loop or a large bend is not a line. The tolerance is in screen DIP, as is hold motion.
-        var tolerance=Math.Max(5/zoom,length*.035);
-        if(_points.Any(p=>Math.Abs((p.X-a.X)*dy-(p.Y-a.Y)*dx)/length>tolerance))return false;
-        var travel=0d;for(var i=1;i<_points.Count;i++)travel+=Math.Sqrt(Math.Pow(_points[i].X-_points[i-1].X,2)+Math.Pow(_points[i].Y-_points[i-1].Y,2));
-        if(travel>length*1.2)return false;
+        if(!StraightStrokeRecognizer.IsEligible(_points,zoom))return false;
         _straight=true;return true;
     }
     public bool ProcessPointerDown(PointerPoint point, ViewportTransform viewport)

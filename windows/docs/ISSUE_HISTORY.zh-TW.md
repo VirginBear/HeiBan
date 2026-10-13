@@ -1,10 +1,14 @@
 # Windows 問題與排解紀錄
 
+## 2026-10-13 — screen補上停筆一秒轉直線（來源接線、待驗收）
+
+主畫布已有近直線幾何辨識與停筆計時，screen原本只保留自由筆跡。新增Core共用近直線判定，screen在持筆期間每100ms觀察native overlay點列；最後一次超過12 DIP的移動後，符合長度／彎曲容差且停住滿一秒才將活動預覽端點化，放開後才提交一筆line物件。取消、完成與Dispose停timer。未build／測試／實機，DPI、滑鼠與筆裝置結果尚待驗證；尺規／圖片匯入／圓規等差異仍在。
+
 ## 2026-10-13 — 工具列來源清單重複與screen焦點每幀輪詢已整理（待實機）
 
 先前screen工具名稱／按鍵另存於`ToolbarUi.ScreenTools`，實際能力再存於`ScreenToolbarSupported`，容易在兩份清單改漏；現已移除screen視窗私有能力清單，改由Core policy投影一般工具catalog並只暴露已接handler項目。screen填色按鈕原固定佔用一格，現放入「圖形」選單，十語手冊已同步。渲染timer原16ms取樣前景視窗，焦點恢復改250ms獨立timer並在切換／離開時同步取樣。
 
-未解：screen功能集合仍少於一般畫布；尺／便條／圖片／圓規／計算機／計時器等差異仍存在。套索已在本批接入但未驗收。Core／renderer包體仍未變；Store MSIX的ML／AI載荷雖已靜態確認存在，但刪除相依會改SDK／native runtime，未經同來源package與功能回歸驗證，故未排除。未build或實機，以上源碼行為待編譯及使用者測試確認。[本批日誌](WINDOWS_OPTIMIZATION_BATCH_2026-10-13.zh-TW.md)。
+未解：screen功能集合仍少於一般畫布；尺／圖片／圓規／計算機／計時器等差異仍存在。套索、便條紙、膠帶與停筆轉直線已接線但未驗收。Core／renderer包體仍未變；Store MSIX的ML／AI載荷雖已靜態確認存在，但刪除相依會改SDK／native runtime，未經同來源package與功能回歸驗證，故未排除。未build或實機，以上源碼行為待編譯及使用者測試確認。[本批日誌](WINDOWS_OPTIMIZATION_BATCH_2026-10-13.zh-TW.md)。
 
 ## 2026-10-13 — 工具列差距：第一批已修正共用設定與形狀入口，主問題仍開啟
 

@@ -1,10 +1,18 @@
 # Windows 開發決策
 
+## 2026-10-13 — 共用直線辨識幾何、分離宿主持筆計時
+
+screen補上普通畫布已提供的停筆一秒近直線吸附。公用Core StraightStrokeRecognizer只判幾何與screen長度門檻，普通畫布保留WindowsInkCoordinator的pointer sample／hold狀態，screen保留native overlay像素點、DPI尺度與自己的DispatcherTimer。Timer只在持筆期間每100ms檢查，靜止滿一秒且符合幾何才吸附；成功只在活動預覽呈現端點，放開後新增一個line物件；取消及結束都停timer。尚未編譯或實機驗收，若DPI／手寫筆交互不符，優先在宿主adapter校正，不複製第二套幾何規則。
+
 ## 2026-10-13 — Screen工具能力不再維護第二份catalog
 
 Screen工具按鍵順序與名稱由一般`ToolbarPreferences` catalog提供；Core policy只列出screen確實接線的能力，再做宿主篩選。新增一般工具不會自動在screen出現，必須先補screen session adapter，避免空按鈕／無作用命令。兩個視窗仍獨立建立XAML與session。填色移入screen的「圖形」選單，沿用原fill設定及Undo，不再佔一格專用chrome。詳[本機優化日誌](WINDOWS_OPTIMIZATION_BATCH_2026-10-13.zh-TW.md)。
 
 ShapeTools選單目錄同時供兩個宿主選形及screen輸入型別檢查使用；選單仍可按宿主呈現不同layout，但順序／labels／keys不再分別編碼。
+
+## 2026-10-13 — 共用直線辨識幾何、分離宿主持筆計時
+
+screen補上普通畫布已提供的停筆一秒近直線吸附。公用Core `StraightStrokeRecognizer`只判幾何與screen長度門檻，普通畫布保留`WindowsInkCoordinator`的pointer sample／hold狀態，screen保留native overlay像素點、DPI尺度與自己的DispatcherTimer。成功只在活動預覽呈現端點，放開後新增一個line物件；取消及結束都停timer。尚未編譯或實機驗收，若DPI／手寫筆交互不符，優先在宿主adapter校正，不複製第二套幾何規則。
 
 ## 2026-10-13 — 焦點恢復輪詢不佔用繪圖節拍
 

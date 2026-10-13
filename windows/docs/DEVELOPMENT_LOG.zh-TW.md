@@ -1,5 +1,9 @@
 # Windows 開發日誌
 
+## 2026-10-13 — screen近直線停筆吸附接線（待驗收）
+
+為補齊一般畫布已有的停筆一秒近直線轉線，將幾何資格判斷抽到Core，WindowsInkCoordinator與screen共用；screen保留native輸入點、DPI換算與session transaction，持筆時每100ms檢查，閒置一秒且形狀符合才顯示端點預覽，放開提交一條線。同步更新十語screen手冊。未build／測試／啟動App／實機驗收；完整實際命令、局限與其餘待辦見[優化批次紀錄](WINDOWS_OPTIMIZATION_BATCH_2026-10-13.zh-TW.md)。
+
 ## 2026-10-13 — Windows操作／精簡優化第一階段（待實機）
 
 開工HEAD與origin/main同為`c04cd797654a563e7b3a9bb6b85c02a9bdb52853`；原有未追蹤`.vscode/`保留。使用者要求直接落實Windows端整套優化，實機細節留待後續。新建[本批日誌](WINDOWS_OPTIMIZATION_BATCH_2026-10-13.zh-TW.md)。

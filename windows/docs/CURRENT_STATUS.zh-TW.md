@@ -2,7 +2,7 @@
 
 ## 2026-10-13 — 操作與精簡優化（本機開發中、未驗收）
 
-使用者要求開始Windows操作邏輯／程式精簡工作，實機細節留到後續。工具列policy現在把screen能力集合與一般ToolbarPreferences catalog交叉產生，不再另維護一份ScreenTools key／名稱表；顯示與隱藏只接受已有screen handler的項目。screen填色入口移入共用「圖形」選單，移除一個固定專用按鈕；套索、便條紙、遮題膠帶已有screen來源接線，尚待實機驗收。輸入渲染的16ms timer不再輪詢前景視窗；另以250ms焦點記錄timer服務還原操作。
+使用者要求開始Windows操作邏輯／程式精簡工作，實機細節留到後續。工具列policy現在把screen能力集合與一般ToolbarPreferences catalog交叉產生，不再另維護一份ScreenTools key／名稱表；顯示與隱藏只接受已有screen handler的項目。screen填色入口移入共用「圖形」選單，移除一個固定專用按鈕；套索、便條紙、遮題膠帶及停筆一秒近直線吸附已有screen來源接線，尚待實機驗收。直線幾何判斷抽為主／screen共用Core來源。輸入渲染的16ms timer不再輪詢前景視窗；另以250ms焦點記錄timer服務還原操作。
 
 十語screen手冊說明填色改由「圖形」選單設定，套索圈選可選取相交物件；生成器重新產生十份HTML。這是catalog／操作簡化與閒置輪詢下降；WT-01仍未補齊尺／圖片／圓規／計算機／計時器等screen handler，WT-02／04未完成。Store SDK／ML依賴未排除，沒有包體減重數據；SDK刪除、共享框架與Updater AOT需要分開候選及驗收。
 

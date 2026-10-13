@@ -23,11 +23,14 @@
 - screen套索沿用Core `LassoSelection.Intersects`，獨立保存暫態桌面座標點，拖曳時只畫預覽，放開才更新選取；Shift可將圈選加入目前選取，不建立文件物件或Undo交易。入口接入一般toolbar偏好，screen能力已新增`lasso`。
 - screen可從共用工具目錄建立便條紙與遮題膠帶：便條紙沿現有文字編輯器建立並使用淡黃底色；膠帶沿既有形狀預覽建立，雙擊切換揭示狀態並記錄一筆session交易。兩項只完成screen來源接線，尚未人工驗收。
 - screen圖形選單包含填色入口與共用九形狀項目，兩畫布的形狀選單及screen形狀預覽能力共用`ToolbarUi.ShapeTools`。
+- screen直線停筆吸附沿用一般畫布的同一Core幾何判斷`StraightStrokeRecognizer`；screen以DPI感知的一秒timer判斷，合格時只更新筆跡預覽端點，放開才建立line物件。timer在取消／完成／Dispose時停止。普通畫布原有hold處理仍由`WindowsInkCoordinator`負責。
 - Store原生ML/AI依賴約42MB，source只有meta package引用，尚無DLL級安全排除證據；Updater helper尚未AOT候選，也未動csproj／manifest，以免無測試包改動SDK部署契約。
 
 ## 範圍與驗收狀態
 
-- 本批是WT-01／WT-03／WT-04的一部分，不是完整優化方案結案。screen仍未接入尺規、圖片檔匯入、圓規、計算機／計時器及一般畫布的停筆一秒自動直線等功能；WT-02共用設定面板、WT-04全面停靠／窄視窗校正仍待續作。
+- 追加來源實作：新增共用Core直線幾何辨識，screen持筆時以100ms timer檢查；最後一次超過12 DIP移動後靜止滿一秒、且筆跡長度／彎曲符合門檻才吸附。screen預覽即時改為端點，指標放開後建立線段，取消／完成／Dispose都停止timer。此邏輯未build或實機驗收。
+
+- 本批是WT-01／WT-03／WT-04的一部分，不是完整優化方案結案。screen仍未接入尺規、圖片檔匯入、圓規、計算機／計時器等功能；WT-02共用設定面板、WT-04全面停靠／窄視窗校正仍待續作。
 - 程式簡化目前限於共用工具能力表與形狀清單，未刪除不確定的程式或資產，也沒有實際C#行數／安裝包體積改善數據。包體減重要以同來源建置並驗證必要執行元件後才能判定；42MB ML載荷仍保留。
 - `python windows/scripts/Build-UserGuides.py`執行成功，產生十語手冊；只代表文件產生器完成，不代表App功能驗收。
 - `git diff --check`執行成功（Git僅提示工作副本的換行格式可能轉成CRLF）。未執行C# build、測試、App啟動、硬體量測、封裝或Store操作；所有新增交互仍須使用者實機驗收。

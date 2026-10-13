@@ -34,6 +34,8 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     private readonly DispatcherTimer _renderTimer=new(){Interval=TimeSpan.FromMilliseconds(16)};
     // Focus restoration does not need frame-rate polling; keep this outside the drawing tick.
     private readonly DispatcherTimer _focusRememberTimer=new(){Interval=TimeSpan.FromMilliseconds(250)};
+    // Poll only during an active pen gesture; idle rendering never pays for straight-line recognition.
+    private readonly DispatcherTimer _straightenTimer=new(){Interval=TimeSpan.FromMilliseconds(100)};
     private readonly DispatcherTimer _saveTimer=new(){Interval=TimeSpan.FromSeconds(1)};
     private readonly TextBlock _status=new(){FontSize=11,Text=T("螢幕畫布"),TextTrimming=TextTrimming.CharacterEllipsis,VerticalAlignment=VerticalAlignment.Center};
     private readonly Button _mode=new(){Content=T("操作穿透")};
@@ -46,6 +48,9 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     private ObjectHandles.Handle? _handle;
     private readonly List<InkPoint> _points=[];
     private InkPoint? _start,_last;
+    private InkPoint? _penHoldAnchor;
+    private double _penHoldSince;
+    private bool _screenPenStraight;
     private string _screenExtension="none";
     private string _tool="pen",_color="#EF4444",_dash="solid",_fill="none";
     private readonly List<InkPoint> _curveAnchors=[];
@@ -79,6 +84,11 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         _hotkeyRegistrationFailed=failed>0;if(failed>0)_status.Text=T("部分快捷鍵被其他程式占用，請使用控制列按鈕。");
         _renderTimer.Tick+=(_,_)=>{if(!IsActive)return;try{UpdateScreenEraser();if(_dirty||_laser.Samples.Count>0)Render();}catch(Exception e){_renderTimer.Stop();_overlay.Hide();_status.Text=T("螢幕繪圖已停止：")+e.Message;}};
         _focusRememberTimer.Tick+=(_,_)=>{if(IsActive)RememberExternalFocus();};
+        _straightenTimer.Tick+=(_,_)=>
+        {
+            if(IsActive&&_drawing&&_tool=="pen"&&_start is not null&&Now-_penHoldSince>=1&&StraightStrokeRecognizer.IsEligible(_points,1/_dpiScale))
+            {_screenPenStraight=true;_straightenTimer.Stop();_dirty=true;}
+        };
         _saveTimer.Tick+=async(_,_)=>{_saveTimer.Stop();if(!_owner.AutoSaveEnabled||_stopping||!IsActive)return;if(_start is not null||_textDraft is not null||_session.HasTransaction){_saveTimer.Start();return;}await SaveAsync();};
         AppWindow.Hide();
     }
@@ -180,6 +190,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         {
             if(_tool=="select")DamageSelectedObjects(); // Remove the previous selection adorners even when the new gesture starts on blank space.
             _start=_last=p;if(_tool!="select")_session.Begin();_points.Clear();_points.Add(p);
+            _screenPenStraight=false;_penHoldAnchor=_tool=="pen"?p:null;_penHoldSince=Now;_straightenTimer.Stop();if(_penHoldAnchor is not null)_straightenTimer.Start();
             if(_tool=="select")
             {
                 _handle=_session.SelectedIds.Count==1&&_session.Selected is {IsLocked:not true} selected?ObjectHandles.Get(selected,1).Where(h=>Math.Sqrt(Math.Pow(h.Point.X-p.X,2)+Math.Pow(h.Point.Y-p.Y,2))<14).Select(h=>(ObjectHandles.Handle?)h).FirstOrDefault():null;
@@ -209,7 +220,13 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
                 if(_tool is "line" or "arrow")ObjectHandles.SetEndpoints(_preview,_start,input.Shift?ObjectHandles.ConstrainOrthogonal(_start,p):p);
                 else {_preview.X=Math.Min(_start.X,p.X);_preview.Y=Math.Min(_start.Y,p.Y);_preview.Width=Math.Max(1,Math.Abs(p.X-_start.X));_preview.Height=Math.Max(1,Math.Abs(p.Y-_start.Y));if(_marquee){_preview.LineStyle=p.X<_start.X?"dashed":"solid";_preview.StrokeColor=p.X<_start.X?"#39735A":"#3976C4";}}
             }
-            else if(_tool is "pen" or "highlighter" or "paint")_points.Add(p);
+            else if(_tool is "pen" or "highlighter" or "paint")
+            {
+                _points.Add(p);
+                // The screen host stores physical overlay pixels, so compare movement in screen DIP.
+                if(_tool=="pen"&&_penHoldAnchor is { } anchor&&Math.Sqrt(Math.Pow(p.X-anchor.X,2)+Math.Pow(p.Y-anchor.Y,2))>12*_dpiScale)
+                {_penHoldAnchor=p;_penHoldSince=Now;_screenPenStraight=false;_straightenTimer.Stop();_straightenTimer.Start();}
+            }
             if(regionalSelection)DamageSelectedObjects();
             _last=p;
         }
@@ -224,9 +241,14 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             else if(_points.Count>0&&_tool is "pen" or "highlighter" or "paint")
             {
                 var bounds=VectorMath.ComputeBoundingBox(_points,_width*_dpiScale);
-                _session.Add(Styled(new BoardObject{Type=_tool=="pen"?"stroke":_tool,X=bounds.MinX,Y=bounds.MinY,Width=bounds.Width,Height=bounds.Height,Points=JsonSerializer.Serialize(_points,DocumentCodec.Options)}));
+                if(_tool=="pen"&&_screenPenStraight)
+                {
+                    var line=Styled(new BoardObject{Type="line",X=bounds.MinX,Y=bounds.MinY,Width=bounds.Width,Height=bounds.Height});
+                    ObjectHandles.SetEndpoints(line,_points[0],_points[^1]);_session.Add(line);
+                }
+                else _session.Add(Styled(new BoardObject{Type=_tool=="pen"?"stroke":_tool,X=bounds.MinX,Y=bounds.MinY,Width=bounds.Width,Height=bounds.Height,Points=JsonSerializer.Serialize(_points,DocumentCodec.Options)}));
             }
-            _session.Commit();if(_marquee)DamageSelectedObjects();var committedDamage=_damage;RefreshScreenStyleButtons();_marquee=false;_points.Clear();_start=_last=null;_preview=null;_handle=null;_renderer.ResetLive();Changed();
+            _straightenTimer.Stop();_penHoldAnchor=null;_screenPenStraight=false;_session.Commit();if(_marquee)DamageSelectedObjects();var committedDamage=_damage;RefreshScreenStyleButtons();_marquee=false;_points.Clear();_start=_last=null;_preview=null;_handle=null;_renderer.ResetLive();Changed();
             if(partialCommit){_fullDamage=false;_damage=previewCommit?committedDamage:strokeDamage;}
         }
         if(_tool is "pen" or "highlighter" or "paint"){if(input.Kind!="up")DamageStrokeTail();}
@@ -302,7 +324,11 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             if(_benchmarkFullFrames){ds.Clear(blank);_renderer.Prune(_session.Document.Objects);_renderer.RenderObjects(ds,_session.VisibleObjects,_viewport,_overlay.Width,_overlay.Height);}
             using var clip=ds.CreateLayer(1,region);
             if(_preview is not null)_renderer.RenderPreview(ds,_preview,_viewport,_overlay.Width,_overlay.Height);
-            if(_points.Count>0&&_tool is "pen" or "highlighter" or "paint" or "lasso")_renderer.RenderLiveStroke(ds,_points,_viewport,_tool=="lasso"?"#39735A":_color,_tool=="lasso"?1:_width*_dpiScale,_tool=="highlighter"?_opacity*.4:_opacity,_tool=="lasso"?"dashed":_dash);
+            if(_points.Count>0&&_tool is "pen" or "highlighter" or "paint" or "lasso")
+            {
+                IReadOnlyList<InkPoint> livePoints=_screenPenStraight&&_points.Count>1?new[]{_points[0],_points[^1]}:_points;
+                _renderer.RenderLiveStroke(ds,livePoints,_viewport,_tool=="lasso"?"#39735A":_color,_tool=="lasso"?1:_width*_dpiScale,_tool=="highlighter"?_opacity*.4:_opacity,_tool=="lasso"?"dashed":_dash);
+            }
             if(_tool=="select")foreach(var selected in _session.SelectedObjects)_renderer.RenderSelection(ds,selected,_viewport,_session.SelectedIds.Count==1);
             _renderer.RenderLaser(ds,_laser,_viewport,Now,_dpiScale);
             if(_screenEraserPointer is { } eraser)_renderer.RenderHover(ds,eraser,true,_eraserSize*_dpiScale,_viewport);
@@ -316,7 +342,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     private void CancelGesture()
     {
         CommitScreenStyle();var committedChanged=_session.HasTransaction;var previewVisible=_preview is not null||_points.Count>0;
-        DamagePreview();_session.Cancel();_curveAnchors.Clear();_marquee=false;_points.Clear();_start=_last=null;_preview=null;_handle=null;_renderer.ResetLive();
+        _straightenTimer.Stop();_penHoldAnchor=null;_screenPenStraight=false;DamagePreview();_session.Cancel();_curveAnchors.Clear();_marquee=false;_points.Clear();_start=_last=null;_preview=null;_handle=null;_renderer.ResetLive();
         if(committedChanged){_dirty=_fullDamage=_committedDirty=true;_damage=null;}else if(previewVisible)_dirty=true;
     }
     private async Task<bool> SaveAsync()
@@ -416,6 +442,6 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     }
     public void Dispose()
     {
-        if(_disposed)return;FinishScreenText();_disposed=true;_captureCancellation?.Cancel();_renderTimer.Stop();_focusRememberTimer.Stop();_saveTimer.Stop();_styleCommitTimer.Stop();_dockTimer.Stop();_target?.Dispose();_committed?.Dispose();_renderer.Dispose();_sessionLease?.Dispose();_sessionLease=null;_overlay.Dispose();Close();
+        if(_disposed)return;FinishScreenText();_disposed=true;_captureCancellation?.Cancel();_renderTimer.Stop();_focusRememberTimer.Stop();_straightenTimer.Stop();_saveTimer.Stop();_styleCommitTimer.Stop();_dockTimer.Stop();_target?.Dispose();_committed?.Dispose();_renderer.Dispose();_sessionLease?.Dispose();_sessionLease=null;_overlay.Dispose();Close();
     }
 }

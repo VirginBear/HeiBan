@@ -50,7 +50,7 @@ Mac最後共用版尚未全面功能回歸；以前1713／1752斷言不能轉作
 
 - WT-01部分：screen能力集合現在在Core由一般catalog順序投影，`ToolbarUi.ScreenTools`不再重複保存按鍵／名稱。screen偏好仍只顯示已實作handler；尚未達到「一般工具扣圖釘／視角導航後全數相同」，因缺少handler的項目暫不出現。
 - WT-02：尚未完成。Brush／eraser／laser／layers／calculator／timer UI仍有宿主專用實作，未抽session-aware builder。
-- WT-03部分：既有九形狀入口保留；screen填色按鈕已併入「圖形」選單，使用原fill交易；screen套索沿Core相交判定，拖曳只畫暫態圈選、Shift可追加。便條紙沿用文字編輯器，遮題膠帶支援拖曳建立及雙擊切換揭示。此來源尚未編譯或互動驗收。直線停筆判定、尺規／圓規、圖片檔匯入仍未接線。
+- WT-03部分：既有九形狀入口保留；screen填色按鈕已併入「圖形」選單，使用原fill交易；screen套索沿Core相交判定，拖曳只畫暫態圈選、Shift可追加。便條紙沿用文字編輯器，遮題膠帶支援拖曳建立及雙擊切換揭示。直線辨識幾何已由screen與一般畫布共用Core recognizer，screen用DPI感知的一秒timer預覽及提交直線。此來源尚未編譯或互動驗收。尺規／圓規及圖片檔匯入仍未接線。
 - WT-04部分：screen少一個固定填色chrome按鈕；Focus polling由每16ms一次改為250ms獨立記錄，並在穿透／結束時即時更新。沒有驗證焦點切換、窄螢幕、DPI或手動操作。
 - 程式瘦身：移除重複screen工具名稱與能力集合其中一份；沒有刪除原始碼／使用者資料／發布成品。此為維護面整理，不會自動縮小MSIX；SDK／ML相依及Updater未變更。
 
