@@ -27,7 +27,7 @@ internal sealed partial class ScreenAnnotationWindow
         for(var index=0;index<Math.Min(actions.Length,_chromeActions.Count);index++)Label(_chromeActions[index],actions[index]);
         Label(_clearButton,"一鍵清空所有螢幕註記 · Ctrl+Alt+K · 可復原");
         Label(_closeButton,"結束螢幕畫布 · Ctrl+Alt+Q");
-        Label(_brushButton,"顏色、粗細與透明度");Label(_fillButton,"填滿");
+        Label(_brushButton,"顏色、粗細與透明度");
         Label(_moreButton,"螢幕畫布更多設定");Label(_dashButton,"線條樣式");
         ToolTipService.SetToolTip(_chromeGrip,T("拖曳到螢幕上下左右；放開後停靠"));
         if(!IsActive)_status.Text=T(_hotkeyRegistrationFailed?"部分快捷鍵被其他程式占用，請使用控制列按鈕。":"螢幕畫布");
@@ -37,7 +37,7 @@ internal sealed partial class ScreenAnnotationWindow
     private StackPanel _chromeStart=null!,_chromeEnd=null!;
     private Grid _chromeGrip=null!;
     private Border _chromeToolHost=null!;
-    private Button _dashButton=null!,_brushButton=null!,_clearButton=null!,_closeButton=null!,_moreButton=null!,_fillButton=null!;
+    private Button _dashButton=null!,_brushButton=null!,_clearButton=null!,_closeButton=null!,_moreButton=null!;
     private readonly List<Button> _chromeActions=[];
     private bool _collapsed;
     private static SolidColorBrush ChromeBrush(byte alpha,byte r,byte g,byte b)=>new(Color.FromArgb(alpha,r,g,b));
@@ -53,7 +53,7 @@ internal sealed partial class ScreenAnnotationWindow
         _chromeGrip.Children.Add(new TextBlock{Text="☰",FontSize=18,HorizontalAlignment=HorizontalAlignment.Center,VerticalAlignment=VerticalAlignment.Center,Foreground=ChromeBrush(255,62,81,69)});
         ToolTipService.SetToolTip(_chromeGrip,T("拖曳到螢幕上下左右；放開後停靠"));ExtendsContentIntoTitleBar=true;SetTitleBar(_chromeGrip);
         _mode.Height=32;_mode.MinWidth=_mode.MinHeight=0;_mode.Padding=new Thickness(3);_mode.BorderThickness=new Thickness(0);_mode.CornerRadius=new CornerRadius(6);_mode.Background=ChromeBrush(0,0,0,0);_mode.Click+=(_,_)=>SetDrawing(!_drawing);
-        foreach(var pair in ToolbarUi.ScreenTools)
+        foreach(var pair in ToolbarUi.ScreenTools.Where(pair=>pair.Key is not("undo" or "redo" or "screenshot" or "layers" or "brush" or "dash")))
         {var key=pair.Key;var button=ChromeButton(key,T(pair.Label));button.Click+=(_,_)=>{if(key=="shapes")ShowScreenShapes();else ChooseScreenTool(key);};_buttons[key]=button;}
         _chromeActions.Add(ActionButton("undo",T("復原這個螢幕的註記"),async()=>await UndoScreenAsync(false),"undo"));
         _chromeActions.Add(ActionButton("redo",T("重做"),async()=>await UndoScreenAsync(true),"redo"));
@@ -62,7 +62,6 @@ internal sealed partial class ScreenAnnotationWindow
         _paletteButton=ActionButton("palette",T("調色盤：色票與自訂色輪"),ShowScreenPalette);_chromeActions.Add(_paletteButton);
         _dashButton=ChromeButton("dash-solid",T("線條樣式"));_dashButton.Click+=(_,_)=>ShowScreenLineStyles();_buttons["dash"]=_dashButton;
         _brushButton=ChromeButton("pen",T("顏色、粗細與透明度"));_brushButton.Click+=(_,_)=>ShowBrushSettings();_buttons["brush"]=_brushButton;
-        _fillButton=ChromeButton("paint",T("填滿"));_fillButton.Click+=(_,_)=>ShowScreenFill();RefreshScreenStyleButtons();
         _styleCommitTimer.Tick+=(_,_)=>CommitScreenStyle();
         _clearButton=ActionButton("delete",T("一鍵清空所有螢幕註記 · Ctrl+Alt+K · 可復原"),ClearScreenObjects);
         _closeButton=ActionButton("close",T("結束螢幕畫布 · Ctrl+Alt+Q"),async()=>await StopAsync());
@@ -80,7 +79,9 @@ internal sealed partial class ScreenAnnotationWindow
     private void ShowScreenShapes()
     {
         var menu=new MenuFlyout();
-        foreach(var (key,label) in new[]{("line","直線"),("arrow","箭頭"),("rect","矩形"),("circle","圓形"),("triangle","三角形"),("quadrilateral","四邊形"),("diamond","菱形"),("pentagon","五角形"),("star","星形")})
+        var fill=new MenuFlyoutItem{Text=T("填滿"),Icon=ToolIcons.CreateIcon("paint")};
+        fill.Click+=(_,_)=>ShowScreenFill(_buttons["shapes"]);menu.Items.Add(fill);menu.Items.Add(new MenuFlyoutSeparator());
+        foreach(var (key,label) in ToolbarUi.ShapeTools)
         {
             var item=new MenuFlyoutItem{Text=T(label),Icon=ToolIcons.CreateIcon(key)};
             item.Click+=(_,_)=>ChooseScreenTool(key);menu.Items.Add(item);
@@ -90,7 +91,7 @@ internal sealed partial class ScreenAnnotationWindow
     private MenuFlyoutSubItem ScreenToolbarCustomization()
     {
         var submenu=new MenuFlyoutSubItem{Text=T("自訂工具列")};
-        foreach(var key in ToolbarContentPolicy.VisibleTools(_toolbarPreferences,screenCanvas:true).Concat(ToolbarContentPolicy.HiddenTools(_toolbarPreferences,screenCanvas:true)).Where(ScreenToolbarSupported.Contains))
+        foreach(var key in ToolbarContentPolicy.VisibleTools(_toolbarPreferences,screenCanvas:true).Concat(ToolbarContentPolicy.HiddenTools(_toolbarPreferences,screenCanvas:true)))
         {
             var item=new ToggleMenuFlyoutItem{Text=T(ToolbarPreferences.ToolNames.GetValueOrDefault(key,key)),IsChecked=_toolbarPreferences.VisibleTools.Contains(key)};
             item.Click+=async(_,_)=>

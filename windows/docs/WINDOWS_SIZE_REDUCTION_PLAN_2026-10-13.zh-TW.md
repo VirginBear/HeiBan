@@ -2,6 +2,8 @@
 
 日期：2026-10-13。狀態：分析與開發計劃完成，減重實作／新候選／驗收尚未進行。
 
+2026-10-13後續本機優化批次只整理screen toolbar catalog與降低焦點輪詢頻率，沒有修改SDK／ML／Updater依賴或產生新封裝；不改變下列size基線與WR候選狀態。詳[本機優化日誌](WINDOWS_OPTIMIZATION_BATCH_2026-10-13.zh-TW.md)。
+
 Windows原機補充：已取回Mac最新交接並只讀拆解既有Store MSIX，確認ML載荷存在，詳[工具共用／體積本機分析](TOOLBAR_AND_SIZE_REVIEW_2026-10-13.zh-TW.md)及下方Store補充。WT-01–04工具對齊另列，不把共用UI當成減重／性能驗收。
 
 主要對象：Microsoft Store MSIX版；官網安裝版及離線免安裝版另列。使用者將在Windows電腦評估、開發與測試。本報告不構成正式進版或Store提交授權。

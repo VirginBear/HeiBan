@@ -925,15 +925,11 @@ public partial class MainWindow
         for (var i = 0; i < 3; i++) grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         var flyout = new Flyout { Content = grid };
         var index = 0;
-        foreach (var (key, name) in new[] {
-            ("line", T("直線")), ("arrow", T("箭頭")), ("rect", T("矩形")),
-            ("circle", T("圓形")), ("triangle", T("三角形")), ("quadrilateral", T("四邊形")),
-            ("diamond", T("菱形")), ("pentagon", T("五角形")), ("star", T("星形"))
-        })
+        foreach (var (key, label) in ToolbarUi.ShapeTools)
         {
             var content = new StackPanel { Spacing = 6, HorizontalAlignment = HorizontalAlignment.Center };
             content.Children.Add(ToolIcons.Create(key));
-            content.Children.Add(new TextBlock { Text = name, FontSize = 12, HorizontalAlignment = HorizontalAlignment.Center });
+            content.Children.Add(new TextBlock { Text = T(label), FontSize = 12, HorizontalAlignment = HorizontalAlignment.Center });
             var button = new Button { Content = content, Width = 74, Padding = new Thickness(8), Background = Brush("#FCFCFA"), BorderBrush = Brush("#D4DBD1"), CornerRadius = new CornerRadius(8) };
             button.Click += (_, _) => { flyout.Hide(); ActivateTool(key); };
             Grid.SetRow(button, index / 3);

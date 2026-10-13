@@ -45,7 +45,7 @@ internal sealed partial class ScreenAnnotationWindow
         var ordered=new List<Button>();
         foreach(var key in ToolbarContentPolicy.VisibleTools(_toolbarPreferences,screenCanvas:true))
         {
-            if(!ScreenToolbarSupported.Contains(key))continue;
+            if(!ToolbarContentPolicy.IsAvailableOnScreen(key))continue;
             if(_buttons.TryGetValue(key,out var toolButton))ordered.Add(toolButton);
             else if(_chromeActions.FirstOrDefault(button=>button.Tag as string==key) is { } actionButton)ordered.Add(actionButton);
         }
@@ -56,7 +56,6 @@ internal sealed partial class ScreenAnnotationWindow
         foreach(var button in ordered)_chromeTools.Children.Add(button);
         if(!vertical&&!_collapsed)_chromeTools.Children.Add(_moreButton);
         _chromeEnd=new StackPanel{Orientation=orientation,Spacing=4,VerticalAlignment=VerticalAlignment.Center,HorizontalAlignment=HorizontalAlignment.Center};
-        _chromeEnd.Children.Add(_fillButton);
         _chromeEnd.Children.Add(_clearButton);if(vertical||_collapsed)_chromeEnd.Children.Add(_moreButton);_chromeEnd.Children.Add(_closeButton);
         _chromeToolHost=new Border{Child=_chromeTools,Visibility=_collapsed?Visibility.Collapsed:Visibility.Visible,MinWidth=0,MinHeight=0};
         var root=new Grid{Padding=new Thickness(vertical?8:12),ColumnSpacing=6,RowSpacing=6,RequestedTheme=ElementTheme.Light};

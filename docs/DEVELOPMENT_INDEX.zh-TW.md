@@ -20,6 +20,7 @@
 
 ## Windows端減重評估接手
 
+- [Windows操作／精簡優化本機批次（待實機）](../windows/docs/WINDOWS_OPTIMIZATION_BATCH_2026-10-13.zh-TW.md)：screen catalog去重、填色入口收整、焦點輪詢降頻；未build／測試，包體減重尚未驗證。
 - [工具列一致性第一批實作日誌（未驗收）](../windows/docs/TOOLBAR_ALIGNMENT_2026-10-13.zh-TW.md)：共用偏好政策、形狀選單及十語手冊已落源碼；其他工具及面板仍待接線。
 - [Windows版本減重分析計劃報告書](../windows/docs/WINDOWS_SIZE_REDUCTION_PLAN_2026-10-13.zh-TW.md)。
 - [Store／Portable基準數據](../windows/docs/PACKAGE_SIZE_BASELINE_2026-10-13.json)與[文件同步交接](../windows/docs/SIZE_PLAN_HANDOFF_2026-10-13.zh-TW.md)。

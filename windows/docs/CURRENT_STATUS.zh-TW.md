@@ -1,5 +1,13 @@
 # Windows 目前開發狀態
 
+## 2026-10-13 — 操作與精簡優化（本機開發中、未驗收）
+
+使用者要求開始Windows操作邏輯／程式精簡工作，實機細節留到後續。工具列policy現在把screen能力集合與一般ToolbarPreferences catalog交叉產生，不再另維護一份ScreenTools key／名稱表；顯示與隱藏只接受已有screen handler的項目。screen填色入口移入共用「圖形」選單，移除一個固定專用按鈕；套索、便條紙、遮題膠帶已有screen來源接線，尚待實機驗收。輸入渲染的16ms timer不再輪詢前景視窗；另以250ms焦點記錄timer服務還原操作。
+
+十語screen手冊說明填色改由「圖形」選單設定，套索圈選可選取相交物件；生成器重新產生十份HTML。這是catalog／操作簡化與閒置輪詢下降；WT-01仍未補齊尺／圖片／圓規／計算機／計時器等screen handler，WT-02／04未完成。Store SDK／ML依賴未排除，沒有包體減重數據；SDK刪除、共享框架與Updater AOT需要分開候選及驗收。
+
+未執行C# build、測試、App、封裝、硬體／效能測量、Store操作或版號變更；來源編譯與互動狀態未知。完整目的、限制、命令及待驗收見[優化日誌](WINDOWS_OPTIMIZATION_BATCH_2026-10-13.zh-TW.md)。
+
 ## 2026-10-13 — 工具列一致性第一批實作（未驗收）
 
 依使用者「GO」開始 WT 工作：新增Core `ToolbarContentPolicy`，螢幕畫布讀一般畫布同一份 `Settings/toolbar.json`，支援工具依一般偏好顯示／隱藏與排序；screen host capability policy 排除圖釘與視角鎖定，不影響物件鎖定。screen也有自己的「更多→自訂工具列」，只呈現已接妥的共同工具，保留各自WinUI控制項、桌面輸入與文件session。

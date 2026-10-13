@@ -1,4 +1,5 @@
 using static HeiBan.Windows.Localization.Strings;
+using HeiBan.Windows.Engine;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
@@ -9,12 +10,18 @@ namespace HeiBan.Windows.Views;
 /// <summary>Shared chrome construction; each host owns its controls, coordinates and edit transactions.</summary>
 internal static class ToolbarUi
 {
-    internal static readonly (string Key, string Label)[] ScreenTools =
+    internal static readonly (string Key, string Label)[] ShapeTools =
     [
-        ("select", "選取"), ("pen", "畫筆"), ("highlighter", "螢光筆"), ("curve", "曲線"), ("paint", "油漆筆刷"),
-        ("shapes", "圖形：直線、箭頭、矩形、圓與多邊形"),
-        ("text", "文字（T）"), ("eraser", "橡皮擦：再次點擊開啟設定"), ("laser", "雷射：再次點擊開啟設定")
+        ("line", "直線"), ("arrow", "箭頭"), ("rect", "矩形"),
+        ("circle", "圓形"), ("triangle", "三角形"), ("quadrilateral", "四邊形"),
+        ("diamond", "菱形"), ("pentagon", "五角形"), ("star", "星形")
     ];
+
+    // Derive screen button keys from the shared preference catalog. Keep only tools that
+    // have a working screen-session handler; the labels are localized from the same keys.
+    internal static readonly (string Key, string Label)[] ScreenTools = ToolbarContentPolicy.ScreenCanvasTools
+        .Select(key => (key, ToolbarPreferences.ToolNames.GetValueOrDefault(key, key)))
+        .ToArray();
 
     internal static Button CreateButton(string icon, string label, Action? action = null, string? key = null)
     {

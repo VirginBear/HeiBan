@@ -47,21 +47,17 @@ internal sealed partial class ScreenAnnotationWindow
         _brushButton.IsEnabled=selected?.IsLocked!=true;
         _brushButton.Content=new Ellipse{Width=22,Height=22,Fill=new SolidColorBrush(Direct2DCanvasRenderer.HexToColor(selected?.StrokeColor??_color)),Stroke=ChromeBrush(100,85,100,92),StrokeThickness=1};
         _dashButton.Content=ToolIcons.CreateDash(selected?.LineStyle??_dash);
-        if(_fillButton is null)return;
-        var fill=selected?.FillColor??_fill;
-        _fillButton.Content=new Ellipse{Width=18,Height=18,Fill=fill is "none" or "transparent"?ChromeBrush(0,0,0,0):new SolidColorBrush(Direct2DCanvasRenderer.HexToColor(fill)),Stroke=ChromeBrush(255,65,98,81),StrokeThickness=2};
-        _fillButton.IsEnabled=selected?.IsLocked!=true&&(selected?.Type??_tool) is "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star" or "sticky" or "arc";
         _dashButton.IsEnabled=selected?.IsLocked!=true&&(selected?.Type??_tool) is not("text" or "image" or "sticky" or "eraser" or "laser");
-        ToolTipService.SetToolTip(_fillButton,fill=="none"?T("填滿：無填滿"):T("填滿：")+fill);
     }
-    private void ShowScreenFill()
+    private void ShowScreenFill()=>ShowScreenFill(_moreButton);
+    private void ShowScreenFill(FrameworkElement anchor)
     {
         var menu=new MenuFlyout();
         foreach(var pair in new[]{(T("無填滿"),"none"),(T("紅色"),"#EF4444"),(T("黃色"),"#F59E0B"),(T("綠色"),"#22C55E"),(T("藍色"),"#3B82F6"),(T("白色"),"#FFFFFF"),(T("黑色"),"#111827")})
         {
             var value=pair.Item2;var item=new MenuFlyoutItem{Text=pair.Item1};item.Click+=(_,_)=>{SetScreenFill(value);CommitScreenStyle();};menu.Items.Add(item);
         }
-        ShowChromeFlyout(menu,_fillButton);
+        ShowChromeFlyout(menu,anchor);
     }
     private async Task UndoScreenAsync(bool redo)
     {

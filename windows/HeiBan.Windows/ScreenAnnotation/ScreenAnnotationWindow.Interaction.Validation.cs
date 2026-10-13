@@ -49,7 +49,7 @@ internal sealed partial class ScreenAnnotationWindow
             SetDrawing(false);Render();if(_target!.GetPixelBytes(1,1,1,1)[3]!=0)throw new InvalidOperationException("操作模式未清除輸入背景alpha。");
             SetDrawing(true);Render();if(_target!.GetPixelBytes(1,1,1,1)[3]!=1)throw new InvalidOperationException("作畫模式未恢復可接收輸入的alpha背景。");
             DockChrome("left");SetChromeCollapsed(false);await Task.Delay(120);((Border)Content).UpdateLayout();
-            var controls=_buttons.Values.Concat(_chromeActions).Concat(new[]{_mode,_brushButton,_dashButton,_fillButton,_clearButton,_moreButton,_closeButton}).ToArray();
+            var controls=_buttons.Values.Concat(_chromeActions).Concat(new[]{_mode,_brushButton,_dashButton,_clearButton,_moreButton,_closeButton}).ToArray();
             var sizes=controls.Select(button=>new{width=button.ActualWidth,height=button.ActualHeight,iconWidth=(button.Content as FrameworkElement)?.ActualWidth??0,iconHeight=(button.Content as FrameworkElement)?.ActualHeight??0}).ToArray();
             if(sizes.Any(size=>Math.Abs(size.width-32)>.5||Math.Abs(size.height-32)>.5||size.iconWidth>24||size.iconHeight>24))throw new InvalidOperationException("直排圖示被壓縮或超出按鈕："+System.Text.Json.JsonSerializer.Serialize(sizes));
             if(_chromeToolHost.ActualWidth<32||_chromeTools.ActualHeight<32)throw new InvalidOperationException("直排工具區量測壓縮了項目。");

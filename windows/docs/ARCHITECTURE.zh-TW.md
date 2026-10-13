@@ -1,5 +1,15 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-13 — 工具列能力來自共用catalog；輸入與渲染節拍分離
+
+`ToolbarContentPolicy.ScreenCanvasTools`從`ToolbarPreferences.AllDefaultTools`順序投影screen已實作能力；`ToolbarUi.ScreenTools`再從同一catalog取得名稱。偏好順序／顯隱、可用能力和WinUI元素分層：不存在真實命令處理器的項目不會只因catalog有key便顯示。每個Window仍建自己的Button並由各自session處理Undo／座標／輸入；清空、結束、palette等screen工作階段chrome保留固定區。
+
+`ToolbarUi.ShapeTools`是主／screen形狀選單及screen shape-kind集合唯一的九形狀順序來源。screen fill入口位於此選單；由所選物件的更多選單呼叫fill時改用固定更多按鈕作flyout anchor，避免shape工具被自訂隱藏後錨點脫離visual tree。
+
+screen shapes menu容納形狀選擇與fill子命令，共用原有填色交易，避免新增專用工具列格。16ms render timer只處理預覽／呈現；前景視窗焦點恢復記錄移到250ms timer，並在切入操作／結束時即時取樣。計時器隨session啟停；焦點狀態不寫入作品。此降低閒置時的輪詢頻率，尚無實機性能數據。
+
+screen的lasso輸入adapter在手勢期間持有獨立screen pixel點列，只渲染預覽；收手後以Core `LassoSelection.Intersects`計算命中，才更新該screen session的選取集合。Shift按鍵狀態沿native pointer sample傳遞，用來合併現有選取。此操作不建BoardObject、不建立Undo交易；取消手勢仍由screen host清掉暫態點。
+
 ## 2026-10-13 — 共用偏好政策與螢幕宿主（第一批實作）
 
 `ToolbarContentPolicy`在Core讀取已正規化的`ToolbarPreferences`，依宿主回傳相同順序的visible／hidden清單；screen只排除`pins`、`viewLock`。偏好檔格式不變，策略本身不保存／改寫設定；螢幕畫布自訂入口只可修改已接妥的共同工具，成功才重建screen chrome，保存失敗復原記憶體清單。兩個宿主仍建立獨立XAML controls，螢幕DPI、桌面穿透、文件session／Undo／保存owner不變。

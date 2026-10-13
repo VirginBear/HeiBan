@@ -1,5 +1,15 @@
 # Windows 開發決策
 
+## 2026-10-13 — Screen工具能力不再維護第二份catalog
+
+Screen工具按鍵順序與名稱由一般`ToolbarPreferences` catalog提供；Core policy只列出screen確實接線的能力，再做宿主篩選。新增一般工具不會自動在screen出現，必須先補screen session adapter，避免空按鈕／無作用命令。兩個視窗仍獨立建立XAML與session。填色移入screen的「圖形」選單，沿用原fill設定及Undo，不再佔一格專用chrome。詳[本機優化日誌](WINDOWS_OPTIMIZATION_BATCH_2026-10-13.zh-TW.md)。
+
+ShapeTools選單目錄同時供兩個宿主選形及screen輸入型別檢查使用；選單仍可按宿主呈現不同layout，但順序／labels／keys不再分別編碼。
+
+## 2026-10-13 — 焦點恢復輪詢不佔用繪圖節拍
+
+螢幕畫布16ms渲染更新不再每幀呼叫`GetForegroundWindow`。焦點記錄獨立為250ms timer，並在進入操作穿透及停止保存前同步取樣；渲染節拍仍專注暫態更新與提交。此項只減少閒置原生API輪詢，未驗證實測流暢度或焦點交接。
+
 ## 2026-10-13 — 工具列共用先保留偏好schema與宿主邊界
 
 依使用者GO，新增純Core `ToolbarContentPolicy`，一般與螢幕畫布讀相同`toolbar.json`順序／顯隱，不更改schema；screen policy排除pins與viewLock，物件鎖定仍留screen context menu。每個Window自行建立controls，screen自訂只展示目前已有handler的共同工具。此批不把不完整功能先放進catalog；沒有建置／測試前不宣稱工具齊全。下一階段需為尺規、圖片匯入、圓規、計算機、計時器與共享設定UI建立session-aware adapters，再擴充能力集合。

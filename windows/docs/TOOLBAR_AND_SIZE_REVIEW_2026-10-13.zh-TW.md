@@ -32,7 +32,7 @@ Mac最後共用版尚未全面功能回歸；以前1713／1752斷言不能轉作
 | 面向 | 一般畫布 | 螢幕畫布目前 | 統一目標 |
 | --- | --- | --- | --- |
 | 清單／順序 | Core ToolbarPreferences；新預設9項，其他進更多，可排序隱藏 | ToolbarUi.ScreenTools硬編碼11個作畫按鈕，加固定動作與樣式列 | 共用catalog、同一排序／顯隱偏好；依宿主能力過濾 |
-| 選取 | 選取、框選、套索入口 | 選取／框選及Shift多選，無自由套索入口與流程 | 接相同選取模式及反饋 |
+| 選取 | 選取、框選、套索入口 | 選取／框選、Shift多選；本機批次新增套索入口與圈選接線（未驗收） | 共用Core相交判定；screen維持自己的desktop pixel預覽與session選取 |
 | 圖形 | 圖形按鈕內9種：直線、箭頭、矩形、圓、三角、四邊、菱形、五角、星 | 直線／箭頭／矩形／圓各佔一格；OnPointer僅這4類建立預覽 | 同一圖形選單、同一形狀建立與幾何規則 |
 | 筆跡 | WindowsInkCoordinator、合併輸入點、停筆1秒近直線轉直線、BrushKind | 原生OnPointer收_points；輸入點pressure固定1，未接停筆直線規則或BrushKind選擇 | 共用宿主無關的筆跡收集／停筆規則，保持各自輸入adapter |
 | 尺／圓規 | 有面板、命中、拖曳、尺投影與兩階段圓弧 | 螢幕宿主目前沒有對應owner與輸入接線 | 需移出一般window依賴並補可操作疊層 |
@@ -45,6 +45,14 @@ Mac最後共用版尚未全面功能回歸；以前1713／1752斷言不能轉作
 | 螢幕外殼 | 作品導覽及視角操作 | 穿透／作畫、清空、結束 | screen必要外殼獨立；繪圖工具內容一致 |
 
 **繪圖Core與renderer已有共用，但手勢協調、工具清單、面板與宿主接線未完全共用。** 前批ToolbarUi共享的是按鈕／提示／無障礙／RTL／線型選單建立政策，ScreenTools仍是一份獨立縮減清單。這是本次差異的可確認原因。
+
+### 2026-10-13 本機實作狀態（未驗收）
+
+- WT-01部分：screen能力集合現在在Core由一般catalog順序投影，`ToolbarUi.ScreenTools`不再重複保存按鍵／名稱。screen偏好仍只顯示已實作handler；尚未達到「一般工具扣圖釘／視角導航後全數相同」，因缺少handler的項目暫不出現。
+- WT-02：尚未完成。Brush／eraser／laser／layers／calculator／timer UI仍有宿主專用實作，未抽session-aware builder。
+- WT-03部分：既有九形狀入口保留；screen填色按鈕已併入「圖形」選單，使用原fill交易；screen套索沿Core相交判定，拖曳只畫暫態圈選、Shift可追加。便條紙沿用文字編輯器，遮題膠帶支援拖曳建立及雙擊切換揭示。此來源尚未編譯或互動驗收。直線停筆判定、尺規／圓規、圖片檔匯入仍未接線。
+- WT-04部分：screen少一個固定填色chrome按鈕；Focus polling由每16ms一次改為250ms獨立記錄，並在穿透／結束時即時更新。沒有驗證焦點切換、窄螢幕、DPI或手動操作。
+- 程式瘦身：移除重複screen工具名稱與能力集合其中一份；沒有刪除原始碼／使用者資料／發布成品。此為維護面整理，不會自動縮小MSIX；SDK／ML相依及Updater未變更。
 
 來源定位：`HeiBan.Windows.Core/Engine/ToolbarPreferences.cs`；`HeiBan.Windows/MainWindow.Chrome.cs` BuildChrome／ShowMoreToolsMenu／ShowShapes／ShowBrushSettings；`MainWindow.Input.cs`；`Views/ToolbarUi.cs`；`ScreenAnnotation/ScreenAnnotationWindow.Chrome.cs`／`.Docking.cs`／`.Panels.cs`／`ScreenAnnotationWindow.cs` OnPointer。上述皆本機同步後來源，不以舊圖推定目前行為。
 

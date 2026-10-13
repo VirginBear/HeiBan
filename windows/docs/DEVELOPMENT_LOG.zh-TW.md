@@ -1,5 +1,15 @@
 # Windows 開發日誌
 
+## 2026-10-13 — Windows操作／精簡優化第一階段（待實機）
+
+開工HEAD與origin/main同為`c04cd797654a563e7b3a9bb6b85c02a9bdb52853`；原有未追蹤`.vscode/`保留。使用者要求直接落實Windows端整套優化，實機細節留待後續。新建[本批日誌](WINDOWS_OPTIMIZATION_BATCH_2026-10-13.zh-TW.md)。
+
+確認前批工具列雖共用顯隱／順序政策，但screen另有ToolbarUi.ScreenTools及ScreenToolbarSupported兩份按鍵集合。現將已實作screen能力集中於Core policy，ScreenTools名稱／順序由一般catalog投影；偏好顯示與隱藏均只含有真實handler的screen工具。一般／screen九種形狀及screen shape-kind共用一份ToolbarUi.ShapeTools。screen填色由固定chrome按鈕移入圖形選單，screen新增Core `LassoSelection.Intersects`圈選流程：點列只作手勢預覽、放開才更新screen選取，Shift可以合併選取；便條紙沿用文字編輯器建立，遮題膠帶支援拖曳建立及雙擊切換揭示狀態。十語Documentation/Guides來源與Assets/Guides派生HTML同步。另移除16ms渲染節拍內的前景視窗輪詢，增加250ms焦點記錄timer並在穿透／結束時同步記錄。
+
+實際命令：`python windows/scripts/Build-UserGuides.py`退出0，十語各25章／55段。以`Get-Content`／`rg`檢視工具列／輸入／screen session、手冊與Updater／csproj引用，沒有可無風險移除的SDK DLL依賴證據；既有MSIX含約42MB ML載荷但相依移除尚無執行證據。`git diff --check`退出0，僅有Git工作副本換行格式警告。
+
+未執行build、tests、啟動App、手動操作、效能／硬體測量、封裝、WACK、Store／Release、進版或刪除檔案。未改App／Store版本或其他平台。screen完整功能對齊及SDK／Updater包體方案仍需獨立候選與回歸，不能把此次catalog整理當作完成WT-01–04或真正包體減重。
+
 ## 2026-10-13 — 工具列一致性第一批實作（未驗收）
 
 使用者對`TOOLBAR_AND_SIZE_REVIEW_2026-10-13.zh-TW.md`明確「GO」。開工HEAD `d3935ef6790046bf8e8d9150735580e315b22130`，`git status --short`只有先存未追蹤`.vscode/`；保留。新增`ToolbarContentPolicy`，screen讀一般工具偏好並只按已接妥的共同工具顯隱／排序，排除圖釘／視角鎖定。一般與screen各自建立XAML、session、座標及Undo仍分離。screen把4個基本圖形按鈕收為9形狀選單，補多邊形拖曳及填色；十語手冊來源同步更新。

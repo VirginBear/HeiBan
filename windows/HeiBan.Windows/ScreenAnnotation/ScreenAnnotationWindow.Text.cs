@@ -20,10 +20,10 @@ internal sealed partial class ScreenAnnotationWindow
     private string? _textOriginalId;
     private double _textDpi=1;
     private BoardObject[] ScreenTexts=>_session.SelectedObjects.Where(o=>o.Type is "text" or "sticky"&&o.IsLocked!=true).ToArray();
-    private void BeginScreenText(InkPoint point,BoardObject? existing=null)
+    private void BeginScreenText(InkPoint point,BoardObject? existing=null,string type="text")
     {
         FinishScreenText();CancelGesture();if(existing?.IsLocked==true)return;
-        _textOriginalId=existing?.Id;_textDraft=existing is null?new BoardObject{Type="text",X=point.X,Y=point.Y,Width=280*_dpiScale,Height=100*_dpiScale,FontSize=24*_dpiScale,StrokeColor=_color,Opacity=_opacity,FillColor="none",Text=""}:DocumentCodec.Clone(existing);
+        _textOriginalId=existing?.Id;_textDraft=existing is null?new BoardObject{Type=type,X=point.X,Y=point.Y,Width=280*_dpiScale,Height=100*_dpiScale,FontSize=24*_dpiScale,StrokeColor=_color,Opacity=_opacity,FillColor=type=="sticky"?"#FFF0AB":"none",Text=""}:DocumentCodec.Clone(existing);
         var window=new Window{Title=T("文字")};_textWindow=window;
         if(window.AppWindow.Presenter is OverlappedPresenter presenter){presenter.IsAlwaysOnTop=true;presenter.IsResizable=false;presenter.SetBorderAndTitleBar(false,false);}
         var area=DisplayArea.GetFromWindowId(AppWindow.Id,DisplayAreaFallback.Primary).WorkArea;

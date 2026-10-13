@@ -17,8 +17,7 @@ namespace HeiBan.Windows.ScreenAnnotation;
 /// <summary>One independent annotation session over the live desktop; the host board is never its storage.</summary>
 internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
 {
-    private static readonly HashSet<string> ScreenShapeTools=["line","arrow","rect","circle","triangle","quadrilateral","diamond","pentagon","star"];
-    private static readonly HashSet<string> ScreenToolbarSupported=["select","pen","curve","highlighter","paint","eraser","shapes","text","screenshot","brush","dash","undo","redo","laser","layers"];
+    private static readonly HashSet<string> ScreenShapeTools=ToolbarUi.ShapeTools.Select(shape=>shape.Key).ToHashSet(StringComparer.Ordinal);
     private readonly MainWindow _owner;
     private readonly NativeOverlayWindow _overlay=new();
     private readonly EditorSession _session=new();
@@ -33,6 +32,8 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     private readonly string _recoveryPath;
     private readonly Func<Task> _requestStart;
     private readonly DispatcherTimer _renderTimer=new(){Interval=TimeSpan.FromMilliseconds(16)};
+    // Focus restoration does not need frame-rate polling; keep this outside the drawing tick.
+    private readonly DispatcherTimer _focusRememberTimer=new(){Interval=TimeSpan.FromMilliseconds(250)};
     private readonly DispatcherTimer _saveTimer=new(){Interval=TimeSpan.FromSeconds(1)};
     private readonly TextBlock _status=new(){FontSize=11,Text=T("螢幕畫布"),TextTrimming=TextTrimming.CharacterEllipsis,VerticalAlignment=VerticalAlignment.Center};
     private readonly Button _mode=new(){Content=T("操作穿透")};
@@ -76,7 +77,8 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         var failed=0;
         foreach(var key in new[]{(1,0x41u),(2,0x44u),(3,0x53u),(4,0x51u),(5,0x4Bu)})if(!_overlay.RegisterShortcut(key.Item1,0x0002|0x0001,key.Item2))failed++;
         _hotkeyRegistrationFailed=failed>0;if(failed>0)_status.Text=T("部分快捷鍵被其他程式占用，請使用控制列按鈕。");
-        _renderTimer.Tick+=(_,_)=>{if(!IsActive)return;RememberExternalFocus();try{UpdateScreenEraser();if(_dirty||_laser.Samples.Count>0)Render();}catch(Exception e){_renderTimer.Stop();_overlay.Hide();_status.Text=T("螢幕繪圖已停止：")+e.Message;}};
+        _renderTimer.Tick+=(_,_)=>{if(!IsActive)return;try{UpdateScreenEraser();if(_dirty||_laser.Samples.Count>0)Render();}catch(Exception e){_renderTimer.Stop();_overlay.Hide();_status.Text=T("螢幕繪圖已停止：")+e.Message;}};
+        _focusRememberTimer.Tick+=(_,_)=>{if(IsActive)RememberExternalFocus();};
         _saveTimer.Tick+=async(_,_)=>{_saveTimer.Stop();if(!_owner.AutoSaveEnabled||_stopping||!IsActive)return;if(_start is not null||_textDraft is not null||_session.HasTransaction){_saveTimer.Start();return;}await SaveAsync();};
         AppWindow.Hide();
     }
@@ -90,7 +92,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             _session.Open(doc);CreateTarget();await _renderer.LoadImagesAsync(_target!,doc.Objects);
             IsActive=true;_laser.Clear();_owner.AppWindow.Hide();RememberExternalFocus();_overlay.Show(true);SetDrawing(true);Render();
             ResizeChrome();RefreshButtons();
-            PositionChrome();AppWindow.Show();Activate();_renderTimer.Start();
+            PositionChrome();AppWindow.Show();Activate();_renderTimer.Start();_focusRememberTimer.Start();
         }
         catch(Exception e){_sessionLease?.Dispose();_sessionLease=null;IsActive=false;_overlay.Hide();_owner.AppWindow.Show();_owner.Activate();throw new InvalidOperationException("無法開啟螢幕畫布："+e.Message,e);}
     }
@@ -108,6 +110,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     private bool _hotkeyRegistrationFailed;
     private void SetDrawing(bool value)
     {
+        if(!value)RememberExternalFocus();
         FinishScreenText();CancelGesture();_drawing=value;_overlay.SetDrawing(value);_overlay.SetManipulationCursor(null,null);UpdateScreenEraser();RefreshMode();
         _status.Text=value?T("作畫中 · 右鍵物件可編輯"):T("操作中 · Ctrl+Alt+D 繼續作畫");
         RefreshMode();ResizeChrome();PositionChrome();
@@ -124,8 +127,14 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         UpdateScreenShapeCursor(p);
         if(input.Kind=="move"&&_start is null&&_tool=="eraser"){UpdateScreenEraser();return;}
         if(input.Kind=="right"){FinishScreenText();ScreenRightClick(p);return;}
-        if(input.Kind=="double"){FinishScreenText();if(_tool=="select"&&_session.Hit(p,6) is {IsLocked:not true,Type:"text" or "sticky"} text)BeginScreenText(p,text);return;}
-        if(input.Kind=="down"){FinishScreenText();if(_tool=="text"){BeginScreenText(p);return;}}
+        if(input.Kind=="double")
+        {
+            FinishScreenText();var hit=_tool=="select"?_session.Hit(p,6):null;
+            if(hit is {IsLocked:not true,Type:"tape"}){_session.Begin();hit.IsRevealed=hit.IsRevealed!=true;_session.Commit();Changed();}
+            else if(hit is {IsLocked:not true,Type:"text" or "sticky"})BeginScreenText(p,hit);
+            return;
+        }
+        if(input.Kind=="down"){FinishScreenText();if(_tool is "text" or "sticky"){BeginScreenText(p,type:_tool);return;}}
         if(_preview is not null)DamagePreview();
         if(_tool=="curve")
         {
@@ -141,6 +150,27 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         if(_tool=="laser")
         {
             if(input.Kind=="up")_laser.EndTrail();else _laser.Add(p,Now);_dirty=true;return;
+        }
+        if(_tool=="lasso")
+        {
+            if(input.Kind=="down")
+            {
+                DamageSelectedObjects();_start=_last=p;_points.Clear();_points.Add(p);
+                _marqueeSelection=input.Shift?_session.SelectedIds.ToArray():[];
+                if(!input.Shift)_session.SelectedId=null;
+                _dirty=_fullDamage=true;return;
+            }
+            if(_start is null||input.Kind is not("move" or "up"))return;
+            if(_last is not null&&Math.Pow(p.X-_last.X,2)+Math.Pow(p.Y-_last.Y,2)>=4)_points.Add(p);
+            _last=p;
+            if(input.Kind=="up")
+            {
+                DamageSelectedObjects();
+                if(_points.Count>=3)_session.SetSelection(_session.VisibleObjects.Where(o=>LassoSelection.Intersects(o,_points)).Select(o=>o.Id).Concat(_marqueeSelection));
+                _points.Clear();_start=_last=null;_marqueeSelection=[];RefreshScreenStyleButtons();Changed();
+            }
+            else _dirty=true;
+            return;
         }
         if(input.Kind=="move"&&_last is not null&&p.X==_last.X&&p.Y==_last.Y)return;
         var regionalSelection=input.Kind is "move" or "up"&&_start is not null&&_tool=="select"&&!_marquee;
@@ -162,7 +192,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
                 RefreshScreenStyleButtons();_manipulation=_session.SelectedIds.Count==1&&_session.Selected is { } o?DocumentCodec.Clone(o):null;
             }
             else if(_tool=="eraser")_session.Erase(p,_eraserSize*_dpiScale/2,_eraserWhole);
-            else if(ScreenShapeTools.Contains(_tool))_preview=Styled(new BoardObject{Type=_tool,X=p.X,Y=p.Y,Width=1,Height=1});
+            else if(ScreenShapeTools.Contains(_tool)||_tool=="tape")_preview=Styled(new BoardObject{Type=_tool,X=p.X,Y=p.Y,Width=1,Height=1});
         }
         else if(_start is not null&&input.Kind is "move" or "up")
         {
@@ -214,7 +244,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         _overlay.SetManipulationCursor(selected,handle);
     }
     private BoardObject Styled(BoardObject item)
-    {item.StrokeColor=_color;if(item.Type is "line" or "arrow")item.Extension=_screenExtension;item.StrokeWidth=_width*_dpiScale;item.Opacity=_tool=="highlighter"?_opacity*.4:_opacity;item.LineStyle=_dash;if(item.Type is "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star")item.FillColor=_fill;return item;}
+    {item.StrokeColor=_color;if(item.Type is "line" or "arrow")item.Extension=_screenExtension;item.StrokeWidth=_width*_dpiScale;item.Opacity=_tool=="highlighter"?_opacity*.4:_opacity;item.LineStyle=_dash;if(item.Type is "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star")item.FillColor=_fill;if(item.Type=="tape"){item.StrokeColor=item.FillColor="#F59E0B";item.IsRevealed=false;}return item;}
     private static double Now=>Stopwatch.GetTimestamp()/(double)Stopwatch.Frequency;
     private void DamageStrokeTail(bool entire=false)
     {
@@ -272,7 +302,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             if(_benchmarkFullFrames){ds.Clear(blank);_renderer.Prune(_session.Document.Objects);_renderer.RenderObjects(ds,_session.VisibleObjects,_viewport,_overlay.Width,_overlay.Height);}
             using var clip=ds.CreateLayer(1,region);
             if(_preview is not null)_renderer.RenderPreview(ds,_preview,_viewport,_overlay.Width,_overlay.Height);
-            if(_points.Count>0&&_tool is "pen" or "highlighter" or "paint")_renderer.RenderLiveStroke(ds,_points,_viewport,_color,_width*_dpiScale,_tool=="highlighter"?_opacity*.4:_opacity,_dash);
+            if(_points.Count>0&&_tool is "pen" or "highlighter" or "paint" or "lasso")_renderer.RenderLiveStroke(ds,_points,_viewport,_tool=="lasso"?"#39735A":_color,_tool=="lasso"?1:_width*_dpiScale,_tool=="highlighter"?_opacity*.4:_opacity,_tool=="lasso"?"dashed":_dash);
             if(_tool=="select")foreach(var selected in _session.SelectedObjects)_renderer.RenderSelection(ds,selected,_viewport,_session.SelectedIds.Count==1);
             _renderer.RenderLaser(ds,_laser,_viewport,Now,_dpiScale);
             if(_screenEraserPointer is { } eraser)_renderer.RenderHover(ds,eraser,true,_eraserSize*_dpiScale,_viewport);
@@ -366,26 +396,26 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     }
     public async Task<bool> StopAsync()
     {
-        if(!IsActive)return true;if(_stopping)return false;_stopping=true;
+        if(!IsActive)return true;if(_stopping)return false;RememberExternalFocus();_stopping=true;
         var originalContent=Content;var originalSize=AppWindow.Size;
         var ring=new ProgressRing{IsActive=true,Width=30,Height=30};
         try
         {
-            _saveTimer.Stop();_renderTimer.Stop();_dockTimer.Stop();_chromeFlyout?.Hide();
+            _saveTimer.Stop();_renderTimer.Stop();_focusRememberTimer.Stop();_dockTimer.Stop();_chromeFlyout?.Hide();
             _captureCancellation?.Cancel();FinishScreenText();CancelGesture();
             // Replace only the chrome while the native annotation session is frozen.
             Content=new Border{Background=ChromeBrush(255,247,250,246),Padding=new Thickness(12),CornerRadius=new CornerRadius(16),Child=new StackPanel{FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,Orientation=Orientation.Horizontal,Spacing=12,Children={ring,new TextBlock{Text=T("正在儲存…"),VerticalAlignment=VerticalAlignment.Center}}}};
             AppWindow.Resize(new SizeInt32((int)(320*_dpiScale),(int)(72*_dpiScale)));AppWindow.Show();Activate();await Task.Delay(32);
             if(!await SaveAsync())return false;
             if(_session.IsDirty){_status.Text=T("尚有變更");return false;}
-            IsActive=false;_renderTimer.Stop();_saveTimer.Stop();_dockTimer.Stop();await SaveChromePreferencesAsync();_overlay.Hide();AppWindow.Hide();_laser.Clear();_target?.Dispose();_target=null;_committed?.Dispose();_committed=null;_renderer.ClearCache();_sessionLease?.Dispose();_sessionLease=null;
+            IsActive=false;_renderTimer.Stop();_focusRememberTimer.Stop();_saveTimer.Stop();_dockTimer.Stop();await SaveChromePreferencesAsync();_overlay.Hide();AppWindow.Hide();_laser.Clear();_target?.Dispose();_target=null;_committed?.Dispose();_committed=null;_renderer.ClearCache();_sessionLease?.Dispose();_sessionLease=null;
             _owner.AppWindow.Show();_owner.Activate();return true;
         }
         catch(Exception error){_status.Text=T("註記保存失敗，內容仍保留：")+error.Message;return false;}
-        finally{ring.IsActive=false;Content=originalContent;AppWindow.Resize(originalSize);_stopping=false;if(IsActive){_renderTimer.Start();ApplySavingPreferences();RefreshMode();ShowChromeFlyout(new Flyout{Content=new TextBlock{Text=_status.Text,TextWrapping=TextWrapping.Wrap,MaxWidth=300}},_closeButton);}}
+        finally{ring.IsActive=false;Content=originalContent;AppWindow.Resize(originalSize);_stopping=false;if(IsActive){_renderTimer.Start();_focusRememberTimer.Start();ApplySavingPreferences();RefreshMode();ShowChromeFlyout(new Flyout{Content=new TextBlock{Text=_status.Text,TextWrapping=TextWrapping.Wrap,MaxWidth=300}},_closeButton);}}
     }
     public void Dispose()
     {
-        if(_disposed)return;FinishScreenText();_disposed=true;_captureCancellation?.Cancel();_renderTimer.Stop();_saveTimer.Stop();_styleCommitTimer.Stop();_dockTimer.Stop();_target?.Dispose();_committed?.Dispose();_renderer.Dispose();_sessionLease?.Dispose();_sessionLease=null;_overlay.Dispose();Close();
+        if(_disposed)return;FinishScreenText();_disposed=true;_captureCancellation?.Cancel();_renderTimer.Stop();_focusRememberTimer.Stop();_saveTimer.Stop();_styleCommitTimer.Stop();_dockTimer.Stop();_target?.Dispose();_committed?.Dispose();_renderer.Dispose();_sessionLease?.Dispose();_sessionLease=null;_overlay.Dispose();Close();
     }
 }
