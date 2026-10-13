@@ -93,3 +93,7 @@ ML六檔依實際HeiBan.deps.json的Microsoft.WindowsAppSDK.ML／Microsoft.Windo
 - 文案／架構／問題／現況與私人精簡交接更新是本批交付。**WT-01–04与WR減重尚未實作**，兩種工具列目前UI尚未改。手冊因UI本批未改而未重生；後續實作時同步十語操作说明。
 - 更新索引的第一份多檔patch因猜Windows README標題為HeiBan Windows而驗證失敗，確認所有部分未套用後，讀實際標題「黑板 · Windows 原生版」重做，未覆蓋既有紀錄。
 - 未執行：build、封裝、App、tests、WACK、功能／效能／硬體驗收、母語校閱、Store登入／上傳／提交／發布、Release／進版、舊檔清理。已發布／送審產物、作品與歷史不刪。
+
+## 7. 交付與GitHub同步
+
+公開分析提交c764d6551f2a16d0c988353cbbdf5c169853edf8（9檔358新增）已push退出0，ls-remote核同當時HEAD，status只有原.vscode/。私人必要摘要／產品review欄位分庫提交推送並核同遠端、工作區乾淨，不把私人產品資訊放公開庫。這次只有分析、規格与原包只讀量測；兩種工具列與SDK減重實作仍待下一批，沒有新試用包或功能／性能驗收。
