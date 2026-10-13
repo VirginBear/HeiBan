@@ -1,5 +1,13 @@
 # Windows 目前開發狀態
 
+## 2026-10-13 — 工具列一致性第一批實作（未驗收）
+
+依使用者「GO」開始 WT 工作：新增Core `ToolbarContentPolicy`，螢幕畫布讀一般畫布同一份 `Settings/toolbar.json`，支援工具依一般偏好顯示／隱藏與排序；screen host capability policy 排除圖釘與視角鎖定，不影響物件鎖定。screen也有自己的「更多→自訂工具列」，只呈現已接妥的共同工具，保留各自WinUI控制項、桌面輸入與文件session。
+
+螢幕畫布原四個形狀按鈕併成一般畫布同樣的九形狀選單，補上三角形／四邊形／菱形／五角形／星形拖曳預覽與填色。十語使用手冊來源與生成HTML同步描述偏好與形狀入口。此為WT-01／WT-03部分工作，**不代表全部工具列一致**：尺規、貼紙／匯圖、圓規、計算機、計時器、更多命令及面板仍待session-aware接線與差異檢視；共享筆刷／擦除／雷射面板及版面完整對齊也未完成。
+
+本批只做來源與手冊產生器工作；`python windows/scripts/Build-UserGuides.py`退出0，回報十語各25章／55段。未執行build、測試、啟動App、封裝、Store操作或效能量測；所以程式編譯、主／screen互動、偏好失敗復原、十語RTL、DPI／多螢幕均未驗收。版號及原有候選／商店產物不變。詳[第一批實作日誌](TOOLBAR_ALIGNMENT_2026-10-13.zh-TW.md)。
+
 ## 2026-10-13 — Mac最新来源／工具與體積原機分析
 
 公開main從148d427 fast-forward至3f39f1d（6筆），原.vscode/保留。Windows兩canvas已共用Core／renderer与ToolbarUi factory，screen仍11工具硬編碼、另一份設定／圖層UI，缺尺／圓規／計算機／計時器／完整形狀等接線。使用者要求一般catalog為準，screen省圖釘／視角導航，已列[WT-01–04規格與瘦身順序](TOOLBAR_AND_SIZE_REVIEW_2026-10-13.zh-TW.md)；本批只分析，尚未改UI。

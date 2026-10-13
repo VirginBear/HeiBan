@@ -11,8 +11,8 @@ internal static class ToolbarUi
 {
     internal static readonly (string Key, string Label)[] ScreenTools =
     [
-        ("select", "選取"), ("pen", "畫筆"), ("highlighter", "螢光筆"), ("curve", "曲線"),
-        ("line", "直線"), ("arrow", "箭頭"), ("rect", "矩形"), ("circle", "圓形"),
+        ("select", "選取"), ("pen", "畫筆"), ("highlighter", "螢光筆"), ("curve", "曲線"), ("paint", "油漆筆刷"),
+        ("shapes", "圖形：直線、箭頭、矩形、圓與多邊形"),
         ("text", "文字（T）"), ("eraser", "橡皮擦：再次點擊開啟設定"), ("laser", "雷射：再次點擊開啟設定")
     ];
 

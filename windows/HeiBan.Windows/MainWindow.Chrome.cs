@@ -746,6 +746,17 @@ public partial class MainWindow
         BuildChrome();
     }
 
+    internal async Task SaveToolbarPreferencesAsync(ToolbarPreferences preferences)
+    {
+        // Screen canvas shares the settings file. Update the hidden owner in-memory too, or its
+        // next toolbar rebuild could overwrite a choice just made in the screen session.
+        var updated=new ToolbarPreferences{DockSide=preferences.DockSide,VisibleTools=[..preferences.VisibleTools],HiddenTools=[..preferences.HiddenTools]};
+        updated.Normalize();
+        await ToolbarPreferencesStore.SaveAsync(_storage.DataDirectory,updated);
+        _toolbarPrefs=updated;
+        BuildChrome();
+    }
+
     private void AddPalette(StackPanel panel, Action<string> set)
     {
         foreach (var color in Palette)

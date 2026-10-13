@@ -1,6 +1,6 @@
 # 黑板 · Windows 原生版
 
-2026-10-13：[一般／螢幕工具列統一與Windows瘦身本機分析](docs/TOOLBAR_AND_SIZE_REVIEW_2026-10-13.zh-TW.md)。已同步Mac來源，確認Store ML載荷及工具接線差異；WT-01–04／WR待實作，本批不改UI／版本／套件。
+2026-10-13：[一般／螢幕工具列統一與Windows瘦身本機分析](docs/TOOLBAR_AND_SIZE_REVIEW_2026-10-13.zh-TW.md)。WT-01／WT-03第一批已改偏好過濾、形狀入口與十語手冊；程式／App未驗收，其餘WT工作與WR減重待續。未改版本／套件。
 
 ## 2026-10-13 Windows版本減重分析計劃
 

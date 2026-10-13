@@ -17,12 +17,16 @@ namespace HeiBan.Windows.ScreenAnnotation;
 /// <summary>One independent annotation session over the live desktop; the host board is never its storage.</summary>
 internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
 {
+    private static readonly HashSet<string> ScreenShapeTools=["line","arrow","rect","circle","triangle","quadrilateral","diamond","pentagon","star"];
+    private static readonly HashSet<string> ScreenToolbarSupported=["select","pen","curve","highlighter","paint","eraser","shapes","text","screenshot","brush","dash","undo","redo","laser","layers"];
     private readonly MainWindow _owner;
     private readonly NativeOverlayWindow _overlay=new();
     private readonly EditorSession _session=new();
     private readonly Direct2DCanvasRenderer _renderer=new();
     private readonly ViewportTransform _viewport=new();
     private readonly LaserPointerEngine _laser;
+    // The screen host reads the same user toolbar file as the board, then applies host filtering without rewriting that preference.
+    private readonly ToolbarPreferences _toolbarPreferences;
     private nint _lastExternal;
     private double _dpiScale=1;
     private FileStream? _sessionLease;
@@ -53,7 +57,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     public bool IsActive {get;private set;}
     public ScreenAnnotationWindow(MainWindow owner,string dataDirectory,Func<Task> requestStart,LaserPointerEngine laser)
     {
-        _owner=owner;_requestStart=requestStart;_laser=laser;
+        _owner=owner;_requestStart=requestStart;_laser=laser;_toolbarPreferences=ToolbarPreferencesStore.Load(dataDirectory);
         _recoveryPath=Path.Combine(dataDirectory,"ScreenAnnotations","session.heiban");
         Title=T("我的螢幕就是我的畫布");
         InitializeChrome();
@@ -158,7 +162,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
                 RefreshScreenStyleButtons();_manipulation=_session.SelectedIds.Count==1&&_session.Selected is { } o?DocumentCodec.Clone(o):null;
             }
             else if(_tool=="eraser")_session.Erase(p,_eraserSize*_dpiScale/2,_eraserWhole);
-            else if(_tool is "line" or "arrow" or "rect" or "circle")_preview=Styled(new BoardObject{Type=_tool,X=p.X,Y=p.Y,Width=1,Height=1});
+            else if(ScreenShapeTools.Contains(_tool))_preview=Styled(new BoardObject{Type=_tool,X=p.X,Y=p.Y,Width=1,Height=1});
         }
         else if(_start is not null&&input.Kind is "move" or "up")
         {
@@ -210,7 +214,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         _overlay.SetManipulationCursor(selected,handle);
     }
     private BoardObject Styled(BoardObject item)
-    {item.StrokeColor=_color;if(item.Type is "line" or "arrow")item.Extension=_screenExtension;item.StrokeWidth=_width*_dpiScale;item.Opacity=_tool=="highlighter"?_opacity*.4:_opacity;item.LineStyle=_dash;if(item.Type is "rect" or "circle")item.FillColor=_fill;return item;}
+    {item.StrokeColor=_color;if(item.Type is "line" or "arrow")item.Extension=_screenExtension;item.StrokeWidth=_width*_dpiScale;item.Opacity=_tool=="highlighter"?_opacity*.4:_opacity;item.LineStyle=_dash;if(item.Type is "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star")item.FillColor=_fill;return item;}
     private static double Now=>Stopwatch.GetTimestamp()/(double)Stopwatch.Frequency;
     private void DamageStrokeTail(bool entire=false)
     {

@@ -1,5 +1,11 @@
 # Windows 問題與排解紀錄
 
+## 2026-10-13 — 工具列差距：第一批已修正共用設定與形狀入口，主問題仍開啟
+
+使用者授權開始WT工作後，screen開始載入一般`toolbar.json`，`ToolbarContentPolicy`共用順序／顯隱並排除pins／viewLock；screen自訂選單只列已具handler的共同工具。四個獨立形狀按鈕改成九種形狀選單，screen preview／fill支援多邊形。這處理了工具次序來源、部分工具重複UI，以及多邊形無入口的明確原因。
+
+尚未解決：screen沒有主畫布的尺規、貼紙與圖片匯入、圓規、計算機／計時器、完整手勢（含自由套索及停筆轉直線），面板也不是同一實作；主工具列可見而screen不支援的項目仍要以能力矩陣完成，不得只新增圖示。來源目前沒有build／測試授權，因此編譯與操作結果未知。追蹤[第一批日誌](TOOLBAR_ALIGNMENT_2026-10-13.zh-TW.md)與[原始差異規格](TOOLBAR_AND_SIZE_REVIEW_2026-10-13.zh-TW.md)。
+
 ## 2026-10-13 — screen工具清單與一般畫布差距
 
 使用者指出只應差圖釘／zoom。確認原因：一般ToolbarPreferences動態完整catalog與形狀選單，screen仍11工具硬編碼及独立brush／layers／更多；OnPointer只建4種基本形狀，未接一般尺／圓規／多種命令與停筆直線。共同renderer／EditorSession及button factory不等於完整操作共用。

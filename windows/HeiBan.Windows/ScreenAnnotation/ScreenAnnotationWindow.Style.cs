@@ -20,7 +20,7 @@ internal sealed partial class ScreenAnnotationWindow
     private void EditScreenStyle(Action<BoardObject> apply,bool fillOnly=false)
     {
         if(StyleSelection is null)return;
-        var targets=_session.SelectedObjects.Where(o=>o.IsLocked!=true&&(!fillOnly||o.Type is "rect" or "circle" or "triangle" or "quadrilateral" or "arc" or "sticky")).ToArray();
+        var targets=_session.SelectedObjects.Where(o=>o.IsLocked!=true&&(!fillOnly||o.Type is "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star" or "arc" or "sticky")).ToArray();
         if(targets.Length==0)return;
         if(!_styleEditing){_session.Begin();_styleEditing=true;}
         foreach(var o in targets)apply(o);
@@ -39,7 +39,7 @@ internal sealed partial class ScreenAnnotationWindow
     private void SetScreenFill(string fill)
     {
         if(StyleSelection is not null)EditScreenStyle(o=>{o.FillColor=fill;o.FillGradientStart=null;o.FillGradientEnd=null;},true);
-        else{_fill=fill;if(_preview?.Type is "rect" or "circle")_preview.FillColor=fill;RefreshScreenStyleButtons();_dirty=true;}
+        else{_fill=fill;if(_preview?.Type is "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star")_preview.FillColor=fill;RefreshScreenStyleButtons();_dirty=true;}
     }
     private void RefreshScreenStyleButtons()
     {
@@ -50,7 +50,7 @@ internal sealed partial class ScreenAnnotationWindow
         if(_fillButton is null)return;
         var fill=selected?.FillColor??_fill;
         _fillButton.Content=new Ellipse{Width=18,Height=18,Fill=fill is "none" or "transparent"?ChromeBrush(0,0,0,0):new SolidColorBrush(Direct2DCanvasRenderer.HexToColor(fill)),Stroke=ChromeBrush(255,65,98,81),StrokeThickness=2};
-        _fillButton.IsEnabled=selected?.IsLocked!=true&&(selected?.Type??_tool) is "rect" or "circle" or "triangle" or "quadrilateral" or "sticky" or "arc";
+        _fillButton.IsEnabled=selected?.IsLocked!=true&&(selected?.Type??_tool) is "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star" or "sticky" or "arc";
         _dashButton.IsEnabled=selected?.IsLocked!=true&&(selected?.Type??_tool) is not("text" or "image" or "sticky" or "eraser" or "laser");
         ToolTipService.SetToolTip(_fillButton,fill=="none"?T("填滿：無填滿"):T("填滿：")+fill);
     }

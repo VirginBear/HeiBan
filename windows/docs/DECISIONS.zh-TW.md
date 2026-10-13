@@ -1,5 +1,9 @@
 # Windows 開發決策
 
+## 2026-10-13 — 工具列共用先保留偏好schema與宿主邊界
+
+依使用者GO，新增純Core `ToolbarContentPolicy`，一般與螢幕畫布讀相同`toolbar.json`順序／顯隱，不更改schema；screen policy排除pins與viewLock，物件鎖定仍留screen context menu。每個Window自行建立controls，screen自訂只展示目前已有handler的共同工具。此批不把不完整功能先放進catalog；沒有建置／測試前不宣稱工具齊全。下一階段需為尺規、圖片匯入、圓規、計算機、計時器與共享設定UI建立session-aware adapters，再擴充能力集合。
+
 ## 2026-10-13 — 下一批工具catalog以一般畫布為準（規格，尚未實作）
 
 使用者要求screen與一般工具一致，screen省圖釘與圖面zoom。共同catalog／設定UI／命令描述，依一般偏好計算顯隱／排序；screen固定桌面座標省視角導航，物件鎖定仍保留。screen穿透／退出／DPI／保存owner各自管理，同一XAML元素不跨parent重用。尺／圓規／計算機等需真實接線才完成，不只放圖示。

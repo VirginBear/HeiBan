@@ -40,12 +40,23 @@ internal sealed partial class ScreenAnnotationWindow
         _chromeStart=new StackPanel{Orientation=orientation,Spacing=4,VerticalAlignment=VerticalAlignment.Center,HorizontalAlignment=HorizontalAlignment.Center};
         _chromeStart.Children.Add(_chromeGrip);_chromeStart.Children.Add(_mode);RefreshMode();
         _chromeTools=new ToolbarFlowPanel{Orientation=orientation,Spacing=4,VerticalAlignment=vertical?VerticalAlignment.Top:VerticalAlignment.Center,HorizontalAlignment=vertical?HorizontalAlignment.Center:HorizontalAlignment.Left};
-        foreach(var button in _buttons.Values)_chromeTools.Children.Add(button);
-        
-        foreach(var button in _chromeActions)_chromeTools.Children.Add(button);
+        // Apply the same saved catalog order as the main canvas. Screen-only controls remain
+        // local to this host and are appended; pins and viewport navigation are filtered by policy.
+        var ordered=new List<Button>();
+        foreach(var key in ToolbarContentPolicy.VisibleTools(_toolbarPreferences,screenCanvas:true))
+        {
+            if(!ScreenToolbarSupported.Contains(key))continue;
+            if(_buttons.TryGetValue(key,out var toolButton))ordered.Add(toolButton);
+            else if(_chromeActions.FirstOrDefault(button=>button.Tag as string==key) is { } actionButton)ordered.Add(actionButton);
+        }
+        // Screen-specific content not part of the shared toolbar catalog stays available at the edge.
+        foreach(var button in _buttons.Where(pair=>!ToolbarPreferences.AllDefaultTools.Contains(pair.Key)).Select(pair=>pair.Value)
+                    .Concat(_chromeActions.Where(button=>button.Tag is null||!ToolbarPreferences.AllDefaultTools.Contains((string)button.Tag))))
+            if(!ordered.Contains(button))ordered.Add(button);
+        foreach(var button in ordered)_chromeTools.Children.Add(button);
         if(!vertical&&!_collapsed)_chromeTools.Children.Add(_moreButton);
         _chromeEnd=new StackPanel{Orientation=orientation,Spacing=4,VerticalAlignment=VerticalAlignment.Center,HorizontalAlignment=HorizontalAlignment.Center};
-        _chromeEnd.Children.Add(_brushButton);_chromeEnd.Children.Add(_dashButton);_chromeEnd.Children.Add(_fillButton);
+        _chromeEnd.Children.Add(_fillButton);
         _chromeEnd.Children.Add(_clearButton);if(vertical||_collapsed)_chromeEnd.Children.Add(_moreButton);_chromeEnd.Children.Add(_closeButton);
         _chromeToolHost=new Border{Child=_chromeTools,Visibility=_collapsed?Visibility.Collapsed:Visibility.Visible,MinWidth=0,MinHeight=0};
         var root=new Grid{Padding=new Thickness(vertical?8:12),ColumnSpacing=6,RowSpacing=6,RequestedTheme=ElementTheme.Light};

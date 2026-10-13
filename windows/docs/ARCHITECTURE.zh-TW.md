@@ -1,5 +1,11 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-13 — 共用偏好政策與螢幕宿主（第一批實作）
+
+`ToolbarContentPolicy`在Core讀取已正規化的`ToolbarPreferences`，依宿主回傳相同順序的visible／hidden清單；screen只排除`pins`、`viewLock`。偏好檔格式不變，策略本身不保存／改寫設定；螢幕畫布自訂入口只可修改已接妥的共同工具，成功才重建screen chrome，保存失敗復原記憶體清單。兩個宿主仍建立獨立XAML controls，螢幕DPI、桌面穿透、文件session／Undo／保存owner不變。
+
+`ToolbarUi.ScreenTools`將四個獨立基本形狀格收成與主畫布一致的形狀選單；screen pointer adapter使用Core既有shape renderer支援多邊形，並將填色政策擴展至多邊形。此批只抽出偏好宿主篩選和落實形狀操作，不等同其餘toolbar controls／panels共用；完整能力矩陣仍以[WT-01–04工作清單](TOOLBAR_AND_SIZE_REVIEW_2026-10-13.zh-TW.md)為準。
+
 ## 2026-10-13 — 工具共用的現況與下一批規格
 
 ToolbarUi現在是button／label／RTL／dash共享factory，ScreenTools仍獨立11工具清單；一般ToolbarPreferences／MainWindow.BuildChrome与screen InitializeChrome／OnPointer分別建UI與接手勢，Core／renderer共用不代表所有工具面板／命令同源。

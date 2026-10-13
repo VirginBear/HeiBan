@@ -1,5 +1,13 @@
 # Windows 開發日誌
 
+## 2026-10-13 — 工具列一致性第一批實作（未驗收）
+
+使用者對`TOOLBAR_AND_SIZE_REVIEW_2026-10-13.zh-TW.md`明確「GO」。開工HEAD `d3935ef6790046bf8e8d9150735580e315b22130`，`git status --short`只有先存未追蹤`.vscode/`；保留。新增`ToolbarContentPolicy`，screen讀一般工具偏好並只按已接妥的共同工具顯隱／排序，排除圖釘／視角鎖定。一般與screen各自建立XAML、session、座標及Undo仍分離。screen把4個基本圖形按鈕收為9形狀選單，補多邊形拖曳及填色；十語手冊來源同步更新。
+
+命令／結果：`Get-Content`／`rg`讀Core偏好、主／screen chrome、輸入與手冊契約；一次以不存在的分析文件標題套patch失敗，無檔案變更，依實際標題重新套用；`python windows/scripts/Build-UserGuides.py`退出0，輸出十語各25章／55段。Git提醒txt會正規化CRLF/LF，手冊來源實際修改各1行；生成器同步十HTML、zh-TW相容入口及manifest hash。這些只確認文件生成契約，非程式編譯或測試。
+
+**WT-01／WT-03部分實作，WT-02／WT-04與其餘WT-03仍待完成**，詳[工作狀態表](TOOLBAR_AND_SIZE_REVIEW_2026-10-13.zh-TW.md)與[日誌](TOOLBAR_ALIGNMENT_2026-10-13.zh-TW.md)。尚未實際確認C#可編譯；本批未執行build、測試、App、封裝、Store／Release、版本變更、效能／硬體操作。正式發行與候選產物不變。
+
 ## 2026-10-13 — 工具列統一與原機瘦身理解
 
 依使用者兩項分析要求，開工148d427只原.vscode/，fetch0/6後ff到3f39f1d。讀新Mac交接与平台現況／架構／問題／減重計畫；舊graphify導航、實際來源判斷，兩宿主catalog／手勢／面板仍不同，列WT-01–04完整接線與驗收規格，未標為已實作。
