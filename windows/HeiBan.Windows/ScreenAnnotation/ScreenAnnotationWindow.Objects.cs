@@ -67,7 +67,23 @@ internal sealed partial class ScreenAnnotationWindow
         }
         catch(Exception e){_session.Cancel();_status.Text=T("貼上未完成：")+e.Message;Changed();}
     }
-    private void DeleteScreenSelection(){CancelGesture();_session.DeleteSelected();Changed();}
+    private void FocusScreenChrome()
+    {
+        if(!IsActive||_stopping||!_drawing||_textInput is not null)return;
+        var handle=WinRT.Interop.WindowNative.GetWindowHandle(this);
+        if(NativeOverlayWindow.CurrentForeground!=handle)Activate();
+        _mode.Focus(FocusState.Programmatic);
+    }
+    private void Screen_KeyDown(object sender,Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
+    {
+        if(e.Handled||!IsActive||_stopping||!_drawing||_textInput is not null)return;
+        if(e.OriginalSource is TextBox or NumberBox or RichEditBox)return;
+        if(e.Key is global::Windows.System.VirtualKey.Delete or global::Windows.System.VirtualKey.Back)
+        {
+            if(_session.Selected is {IsLocked:not true}){DeleteScreenSelection();e.Handled=true;}
+        }
+    }
+    private void DeleteScreenSelection(){DamageSelectedObjects();CancelGesture();_session.DeleteSelected();RefreshScreenStyleButtons();Changed();}
     private void ChangeScreenLayer(bool front)
     {if(_session.Selected is not {IsLocked:not true} o)return;CancelGesture();_session.Begin();o.ZIndex=front?_session.Document.Objects.Max(item=>item.ZIndex)+1:_session.Document.Objects.Min(item=>item.ZIndex)-1;_session.Commit();Changed();}
     private void ClearScreenObjects()

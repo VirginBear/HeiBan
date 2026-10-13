@@ -45,6 +45,7 @@ public partial class MainWindow
         var pin=_pinNameEpoch==_session.DocumentEpoch?_session.Document.Board.Pins?.FirstOrDefault(p=>p.Id==id):null;
         var name=editor.Text.Trim();
         if(commit&&pin is not null&&name.Length>0&&pin.Name!=name){_session.Begin();pin.Name=name;_session.Commit();RefreshEditor();}
+        FocusCanvasSurface();
     }
 
     private void BeginWindowSelection(InkPoint start,bool additive)

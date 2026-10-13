@@ -586,10 +586,11 @@ if (!File.Exists(guideFile))
 }
 Check(File.Exists(guideFile), "HeiBanUserGuide.html exists in Assets directory");
 var guideHtml = File.ReadAllText(guideFile);
-Check(guideHtml.Contains("黑板 · Windows 使用手冊"), "User guide contains Windows title");
+Check(guideHtml.Contains("HeiBan 黑板 · 使用說明") && guideHtml.Contains("Windows · 離線手冊"), "User guide contains Windows title");
 Check(guideHtml.Contains("Win+Shift+S"), "User guide documents Win+Shift+S screenshot shortcut");
 Check(guideHtml.Contains("Ctrl+S"), "User guide documents Ctrl+S shortcut");
-Check(guideHtml.Contains("圓規：準備 → 鎖定 → 畫弧"), "User guide documents compass two-stage process");
+Check(guideHtml.Contains("圓規：準備、鎖定、畫弧"), "User guide documents compass two-stage process");
+Check(guideHtml.Contains("Delete"), "User guide documents Delete object shortcut");
 
 // 10. 計算機浮點捨入與優先級驗證 (W-N03)
 parenCalc.Clear();

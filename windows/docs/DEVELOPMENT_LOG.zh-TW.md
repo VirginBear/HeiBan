@@ -1,5 +1,11 @@
 # Windows 開發日誌
 
+## 2026-10-13 — 操作優化免安裝試用包交付（待實機）
+
+使用者要求先實際測試目前工作。保留既有試用包／資料及 Store bundle，新標籤 `optimization-2026-10-13-r1` 產生本機 x64 免安裝包。執行 `dotnet run --project windows/HeiBan.Windows.Core.Tests/HeiBan.Windows.Core.Tests.csproj -c Release`（透過 `windows/.build/tools/dotnet/dotnet.exe`）通過：2325 checks。執行 x64 Release self-contained `dotnet publish` 成功，0 warning／0 error。接著以 PowerShell 7 執行 `windows/HeiBan.Windows/Packaging/Package-PortableTrial.ps1 -Runtime win-x64 -Label optimization-2026-10-13-r1` 成功，App與Updater publish、payload inventory、空白Data及ZIP完成；產物131,764,163 bytes，SHA256 `e9f1ab87616a84f7ea1c30ddd469b86c2d14e56c6ee6e5000ce7ff334460c580`。封裝紀錄 `.build/portable-trial-b69b341301ea49bd996919f4766adb1a/`。Store bundle封裝前後SHA一致（`D7A49B63D88FA880B1A97B0C307361AD2CFBC9B3D58786048887093D7204EA7B`）。
+
+排解：第一次以 Windows PowerShell 5.1 呼叫封裝腳本時，Git pathspec 的引號萬用字元觸發 parser error，沒有產生或改寫試用檔；改由 PowerShell 7 執行同一工作區腳本後成功。手動 `dotnet publish` 曾輸出至忽略目錄 `.build/manual-trial-check` 作為先行編譯確認。未執行封裝後App啟動、手動操作、WACK或Store提交；等使用者實機回報後再處理下一批。
+
 ## 2026-10-13 — screen近直線停筆吸附接線（待驗收）
 
 為補齊一般畫布已有的停筆一秒近直線轉線，將幾何資格判斷抽到Core，WindowsInkCoordinator與screen共用；screen保留native輸入點、DPI換算與session transaction，持筆時每100ms檢查，閒置一秒且形狀符合才顯示端點預覽，放開提交一條線。同步更新十語screen手冊。未build／測試／啟動App／實機驗收；完整實際命令、局限與其餘待辦見[優化批次紀錄](WINDOWS_OPTIMIZATION_BATCH_2026-10-13.zh-TW.md)。

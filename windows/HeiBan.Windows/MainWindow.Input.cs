@@ -86,6 +86,7 @@ public partial class MainWindow
     {
         FinishPinRename();
         if(_editor is not null)FinishText();
+        FocusCanvasSurface();
         var p=e.GetCurrentPoint(CanvasSurface);var screen=new Vector2((float)p.Position.X,(float)p.Position.Y);
         if(p.Properties.IsRightButtonPressed){if(_rulerEnabled&&(RulerHit(screen)||RulerRotationHit(screen)))ShowRulerSettings(CanvasSurface,new Point(screen.X,screen.Y));else ShowContext(screen);e.Handled=true;return;}
         if(p.PointerDeviceType==PointerDeviceType.Touch)return;
@@ -423,7 +424,7 @@ public partial class MainWindow
             var existing=isNew?null:_session.PageObjects.FirstOrDefault(o=>o.Id==draft.Id&&o.IsLocked!=true);
             if(isNew||existing is not null){if(draft.Text!=input.Text)draft.RichTextSpans=null;draft.Text=input.Text;TextStyles.GrowHeight(draft);_session.Begin();if(isNew)_session.Add(draft);else _session.Document.Objects[_session.Document.Objects.IndexOf(existing!)]=draft;_session.Commit();RefreshEditor();}
         }
-        InvalidateCanvas();
+        FocusCanvasSurface();InvalidateCanvas();
     }
     private void CancelScreenshotCapture(string reason)
     {

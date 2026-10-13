@@ -66,7 +66,10 @@ internal sealed partial class ScreenAnnotationWindow
         _clearButton=ActionButton("delete",T("一鍵清空所有螢幕註記 · Ctrl+Alt+K · 可復原"),ClearScreenObjects);
         _closeButton=ActionButton("close",T("結束螢幕畫布 · Ctrl+Alt+Q"),async()=>await StopAsync());
         _moreButton=ChromeButton("more",T("螢幕畫布更多設定"));_moreButton.Click+=(_,_)=>ShowScreenMenu(_moreButton);
-        Content=new Border{Language=Localization.Strings.Language,RequestedTheme=ElementTheme.Light,CornerRadius=new CornerRadius(16),Background=ChromeBrush(150,247,250,246),BorderBrush=ChromeBrush(55,92,123,108),BorderThickness=new Thickness(1)};
+        var content=new Border{Language=Localization.Strings.Language,RequestedTheme=ElementTheme.Light,CornerRadius=new CornerRadius(16),Background=ChromeBrush(150,247,250,246),BorderBrush=ChromeBrush(55,92,123,108),BorderThickness=new Thickness(1)};
+        content.KeyDown+=Screen_KeyDown;
+        content.Loaded+=(_,_)=>{if(VisualTreeHelper.GetParent(content) is UIElement rootHost){rootHost.KeyDown-=Screen_KeyDown;rootHost.KeyDown+=Screen_KeyDown;}};
+        Content=content;
         InitializeChromeDocking();SystemBackdrop=new DesktopAcrylicBackdrop();
     }
     private static Button ActionButton(string icon,string label,Action action,string? key=null){var button=ChromeButton(icon,label);button.Tag=key;button.Click+=(_,_)=>action();return button;}

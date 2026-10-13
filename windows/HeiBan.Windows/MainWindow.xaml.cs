@@ -72,6 +72,7 @@ public partial class MainWindow : Window
         _dock=_toolbarPrefs.DockSide;
         App.StartupStage="載入主視窗 XAML";
         InitializeComponent();
+        Root.Loaded+=(_,_)=>{if(VisualTreeHelper.GetParent(Root) is UIElement rootHost){rootHost.KeyDown-=Root_KeyDown;rootHost.KeyDown+=Root_KeyDown;}};
         InitializeLibraryChrome();BuildChrome();InitializeTeachingTools();InitializeDeferredWork();
         ApplyLanguageChrome();
         App.StartupStage="設定主視窗";
@@ -153,7 +154,7 @@ public partial class MainWindow : Window
         TitleBox.Text=doc.Board.Title;_viewport.Zoom=1;_viewport.X=doc.Board.CanvasMode=="infinite"?0:80;_viewport.Y=80;
         if(doc.Board.CanvasMode=="notebook" && (doc.Board.Pages?.Count??0)==0)
         {doc.Board.Pages=[new BoardPage()];doc.Board.ActivePageId=doc.Board.Pages[0].Id;}
-        RefreshEditor(); await _renderer.LoadImagesAsync(CanvasSurface,doc.Objects);
+        RefreshEditor();FocusCanvasSurface();DispatcherQueue?.TryEnqueue(FocusCanvasSurface); await _renderer.LoadImagesAsync(CanvasSurface,doc.Objects);
     }
     private void RefreshEditor()
     {
@@ -351,10 +352,15 @@ public partial class MainWindow : Window
         if(_session.Selected is not { } o)return;var order=_session.VisibleObjects.OrderBy(x=>x.ZIndex).ToList();var i=order.IndexOf(o);var next=i+direction;if(next<0||next>=order.Count)return;
         _session.Begin();(order[i],order[next])=(order[next],order[i]);for(var j=0;j<order.Count;j++)order[j].ZIndex=j;_session.Commit();RefreshEditor();
     }
-    private void Lock_Click(object sender,RoutedEventArgs e){if(_session.Selected is not { } o)return;var locked=o.IsLocked!=true;_session.Begin();foreach(var item in _session.SelectedObjects)item.IsLocked=locked;_session.Commit();RefreshEditor();}
-    private void Delete_Click(object sender,RoutedEventArgs e){CommitPropertyEdit();_session.DeleteSelected();RefreshEditor();}
-    private void Undo_Click(object sender,RoutedEventArgs e){CommitPropertyEdit();FinishText();_session.Undo();RefreshEditor();}
-    private void Redo_Click(object sender,RoutedEventArgs e){CommitPropertyEdit();FinishText();_session.Redo();RefreshEditor();}
+    private void FocusCanvasSurface()
+    {
+        if(!_workspaceOpen||_editor is not null||_pinNameEditor is not null)return;
+        CanvasSurface.Focus(FocusState.Programmatic);
+    }
+    private void Lock_Click(object sender,RoutedEventArgs e){if(_session.Selected is not { } o)return;var locked=o.IsLocked!=true;_session.Begin();foreach(var item in _session.SelectedObjects)item.IsLocked=locked;_session.Commit();RefreshEditor();FocusCanvasSurface();}
+    private void Delete_Click(object sender,RoutedEventArgs e){FinishPinRename();if(_editor is not null)FinishText();CommitPropertyEdit();_session.DeleteSelected();RefreshEditor();FocusCanvasSurface();}
+    private void Undo_Click(object sender,RoutedEventArgs e){CommitPropertyEdit();FinishText();_session.Undo();RefreshEditor();FocusCanvasSurface();}
+    private void Redo_Click(object sender,RoutedEventArgs e){CommitPropertyEdit();FinishText();_session.Redo();RefreshEditor();FocusCanvasSurface();}
     private void Dock_Click(object sender,RoutedEventArgs e)
     {
         var menu=new MenuFlyout();foreach(var side in new[]{"上方","左側","下方","右側"})
@@ -395,10 +401,17 @@ public partial class MainWindow : Window
         _session.Begin();_session.Document.Board.ActivePageId=pages[i].Id;_session.SelectedId=null;_session.Commit();RefreshEditor();}
     private void Root_KeyDown(object sender,KeyRoutedEventArgs e)
     {
+        if(e.Handled)return;
         if(_preparingClose||_saveBoundaryBusy){e.Handled=true;return;}
-        if(e.OriginalSource is TextBox or NumberBox || _editor is not null)return;
+        if(e.OriginalSource is TextBox or NumberBox or RichEditBox || _editor is not null || _pinNameEditor is not null)return;
         var ctrl=Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control).HasFlag(global::Windows.UI.Core.CoreVirtualKeyStates.Down);
-        if(_gesture&&(ctrl||e.Key==VirtualKey.Delete))CancelGesture();
+        if(!_workspaceOpen)
+        {
+            if(ctrl&&e.Key==VirtualKey.N){New_Click(sender,e);e.Handled=true;}
+            return;
+        }
+        // Mac keyboards label VirtualKey.Back as Delete; accept both Delete and Backspace when no text editor is active.
+        if(_gesture&&(ctrl||e.Key is VirtualKey.Delete or VirtualKey.Back))CancelGesture();
         if(ctrl)
         {
             if(e.Key==VirtualKey.N){New_Click(sender,e);e.Handled=true;}
@@ -407,8 +420,9 @@ public partial class MainWindow : Window
             if(e.Key==VirtualKey.C){CopySelected();e.Handled=true;}if(e.Key==VirtualKey.V){PasteObject();e.Handled=true;}
         }
         else switch(e.Key)
-        {case VirtualKey.Delete:Delete_Click(sender,e);e.Handled=true;break;
-         case VirtualKey.Escape:if(_readingMode){_readingMode=false;UpdateReadingModeUI();}if(_screenshotCoordinator.HasActiveSession){CancelScreenshotCapture("使用者按下 Esc");StatusText.Text=T("已取消截圖");}CancelGesture();FinishText();_polygon.Clear();ActivateTool("select");break;
-         case VirtualKey.V:ActivateTool("select");break;case VirtualKey.P:ActivateTool("pen");break;case VirtualKey.E:ActivateTool("eraser");break;case VirtualKey.T:ActivateTool("text");break;}
+        {case VirtualKey.Delete:
+         case VirtualKey.Back:Delete_Click(sender,e);e.Handled=true;break;
+         case VirtualKey.Escape:if(_readingMode){_readingMode=false;UpdateReadingModeUI();}if(_screenshotCoordinator.HasActiveSession){CancelScreenshotCapture("使用者按下 Esc");StatusText.Text=T("已取消截圖");}CancelGesture();FinishText();_polygon.Clear();ActivateTool("select");e.Handled=true;break;
+         case VirtualKey.V:ActivateTool("select");e.Handled=true;break;case VirtualKey.P:ActivateTool("pen");e.Handled=true;break;case VirtualKey.E:ActivateTool("eraser");e.Handled=true;break;case VirtualKey.T:ActivateTool("text");e.Handled=true;break;}
     }
 }

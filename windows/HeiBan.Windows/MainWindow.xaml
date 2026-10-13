@@ -77,7 +77,7 @@
 
     <Grid x:Name="DrawingArea" SizeChanged="DrawingArea_SizeChanged" AllowDrop="True" DragOver="DrawingArea_DragOver" Drop="DrawingArea_Drop">
      <views:CursorCanvasHost x:Name="CanvasCursorHost">
-     <canvas:CanvasControl x:Name="CanvasSurface" Draw="CanvasSurface_Draw" CreateResources="CanvasSurface_CreateResources"
+     <canvas:CanvasControl x:Name="CanvasSurface" IsTabStop="True" UseSystemFocusVisuals="False" Draw="CanvasSurface_Draw" CreateResources="CanvasSurface_CreateResources"
       PointerPressed="CanvasSurface_PointerPressed" PointerMoved="CanvasSurface_PointerMoved" PointerReleased="CanvasSurface_PointerReleased"
       PointerCanceled="CanvasSurface_PointerCanceled" PointerCaptureLost="CanvasSurface_PointerCanceled" PointerExited="CanvasSurface_PointerExited" PointerWheelChanged="CanvasSurface_PointerWheelChanged" DoubleTapped="CanvasSurface_DoubleTapped"/>
      </views:CursorCanvasHost>

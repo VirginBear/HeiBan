@@ -1,5 +1,18 @@
 # Windows 問題與排解紀錄
 
+## 2026-10-13 — 試用封裝腳本的PowerShell 5.1解析差異（已繞過）
+
+症狀：以Windows PowerShell 5.1呼叫`Package-PortableTrial.ps1`時，`git ls-files`路徑規格中的單引號萬用字元造成ParserError。原因可定位為該腳本語法在目前PowerShell 5.1 parser下不相容。當次命令在腳本開始前中止，沒有寫入試用輸出；改以PowerShell 7執行同一工作區腳本後，試用包成功產生。此紀錄保留相容性症狀，尚未修改腳本或承諾Windows PowerShell 5.1支援。
+
+## 2026-10-13 — Windows 畫布選取物件後按 Delete／Backspace 無法刪除（已修復並更新本機 x64 測試版）
+
+症狀：使用者於 Windows 本機測試時發現選取畫布物件後按 `Delete` 無法刪除，且懷疑與 Mac 鍵盤設計差異有關。
+確認原因：
+1. **WinUI 3 焦點鏈與輸入框焦點殘留**：`MainWindow.xaml` 的 `CanvasSurface`（`CanvasControl`）原設 `IsTabStop="False"` 且 `CanvasSurface_PointerPressed` 設 `e.Handled = true`。當開啟作品隱藏 `HomePanel` 或重繪 `SelectionBarTools` 時，WinUI 3 將焦點移至 `Root` 外層的內部 `RootScrollViewer`，導致鍵盤 `KeyDown` 事件未經過 `<Grid x:Name="Root" KeyDown="Root_KeyDown">`；此外若先點擊過 `Inspector` 的 `NumberBox`／`TextBox` 再點畫布選取物件，焦點仍留在輸入框而被 `e.OriginalSource is TextBox or NumberBox` 擋下。
+2. **Mac 鍵盤與筆電 `Delete`／`Backspace` 鍵碼差異**：Mac 鍵盤上的 `Delete` 鍵在 Windows 送出的是 `VirtualKey.Back`（`Backspace`），而 `Root_KeyDown` 原僅判斷 `VirtualKey.Delete`。
+3. **螢幕畫布未綁定鍵盤刪除**：`ScreenAnnotationWindow` 僅右鍵選單提供刪除，未註冊 `KeyDown` 處理 `Delete`／`Back`。
+排解：`CanvasSurface` 啟用 `IsTabStop="True" UseSystemFocusVisuals="False"` 並在點擊畫布、開啟作品、結束文字／圖釘編輯及工具列操作時呼叫 `FocusCanvasSurface()`；`Root.Loaded` 將 `Root_KeyDown` 同步掛載於外層 `RootScrollViewer`；主畫布與螢幕畫布同時支援 `VirtualKey.Delete` 與 `VirtualKey.Back`（排除文字編輯狀態）。Core 2325 項測試與 x64 Release publish 通過，已更新本機 x64 測試執行檔。
+
 ## 2026-10-13 — screen補上停筆一秒轉直線（來源接線、待驗收）
 
 主畫布已有近直線幾何辨識與停筆計時，screen原本只保留自由筆跡。新增Core共用近直線判定，screen在持筆期間每100ms觀察native overlay點列；最後一次超過12 DIP的移動後，符合長度／彎曲容差且停住滿一秒才將活動預覽端點化，放開後才提交一筆line物件。取消、完成與Dispose停timer。未build／測試／實機，DPI、滑鼠與筆裝置結果尚待驗證；尺規／圖片匯入／圓規等差異仍在。

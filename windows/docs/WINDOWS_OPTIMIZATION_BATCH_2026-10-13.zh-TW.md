@@ -28,9 +28,23 @@
 
 ## 範圍與驗收狀態
 
-- 追加來源實作：新增共用Core直線幾何辨識，screen持筆時以100ms timer檢查；最後一次超過12 DIP移動後靜止滿一秒、且筆跡長度／彎曲符合門檻才吸附。screen預覽即時改為端點，指標放開後建立線段，取消／完成／Dispose都停止timer。此邏輯未build或實機驗收。
+- 追加來源實作：新增共用Core直線幾何辨識，screen持筆時以100ms timer檢查；最後一次超過12 DIP移動後靜止滿一秒、且筆跡長度／彎曲符合門檻才吸附。screen預覽即時改為端點，指標放開後建立線段，取消／完成／Dispose都停止timer。
+- 修正 Windows 主畫布與螢幕畫布按 `Delete`／`Backspace`（相容 Mac 鍵盤 `Delete` 傳送之 `VirtualKey.Back`）刪除選取物件：
+  - **原因 1（WinUI 3 焦點遺失與輸入框殘留焦點）**：`MainWindow.xaml` 的 `CanvasSurface`（`CanvasControl`）原為 `IsTabStop="False"`，且 `CanvasSurface_PointerPressed` 設 `e.Handled = true`。開啟作品隱藏 `HomePanel` 或重繪 `SelectionBarTools.Children.Clear()` 後，WinUI 3 會把焦點退回 `Root` 外層的內部 `RootScrollViewer`，導致 `KeyDown` 氣泡事件未經過 `<Grid x:Name="Root" KeyDown="Root_KeyDown">`；或者使用者先點擊過屬性面板 `NumberBox`／`TextBox` 後再點畫布選取物件時，焦點仍留在輸入框而被 `e.OriginalSource is TextBox or NumberBox` 攔截。
+  - **原因 2（Mac／筆電鍵盤習慣差異）**：Mac 鍵盤上的 `Delete` 鍵在 Windows 對應 `VirtualKey.Back`（`Backspace`），原本 `Root_KeyDown` 只處理 `VirtualKey.Delete`。
+  - **原因 3（螢幕畫布缺鍵盤刪除）**：`ScreenAnnotationWindow` 僅右鍵選單呼叫 `DeleteScreenSelection()`，未綁定 `Delete`／`Back` 鍵盤事件。
+  - **修復方案**：
+    1. `CanvasSurface` 設 `IsTabStop="True" UseSystemFocusVisuals="False"`，並在 `OpenAsync`、`CanvasSurface_PointerPressed`、`FinishText`、`FinishPinRename`、`ActivateTool`、`Delete_Click`、`Undo_Click`、`Redo_Click`、`Lock_Click` 呼叫 `FocusCanvasSurface()`，確保點擊畫布或完成文字輸入後焦點回到畫布並離開 `TextBox`／`NumberBox`。
+    2. `Root.Loaded` 將 `Root_KeyDown` 同時掛載於 `VisualTreeHelper.GetParent(Root)`（`RootScrollViewer`），並在 `Root_KeyDown` 加入 `if (e.Handled) return;`，支援 `VirtualKey.Delete` 與 `VirtualKey.Back`（排除 `TextBox`、`NumberBox`、`RichEditBox`、`_pinNameEditor` 編輯狀態）。
+    3. `ScreenAnnotationWindow` 在 `Content` 與外層 `rootHost` 綁定 `Screen_KeyDown`，支援 `VirtualKey.Delete` 與 `VirtualKey.Back` 呼叫 `DeleteScreenSelection()`（排除 `_screenTextOverlay` 文字編輯狀態），並在選取完成時呼叫 `FocusScreenChrome()` 取得鍵盤焦點。
 
 - 本批是WT-01／WT-03／WT-04的一部分，不是完整優化方案結案。screen仍未接入尺規、圖片檔匯入、圓規、計算機／計時器等功能；WT-02共用設定面板、WT-04全面停靠／窄視窗校正仍待續作。
 - 程式簡化目前限於共用工具能力表與形狀清單，未刪除不確定的程式或資產，也沒有實際C#行數／安裝包體積改善數據。包體減重要以同來源建置並驗證必要執行元件後才能判定；42MB ML載荷仍保留。
-- `python windows/scripts/Build-UserGuides.py`執行成功，產生十語手冊；只代表文件產生器完成，不代表App功能驗收。
-- `git diff --check`執行成功（Git僅提示工作副本的換行格式可能轉成CRLF）。未執行C# build、測試、App啟動、硬體量測、封裝或Store操作；所有新增交互仍須使用者實機驗收。
+- `python windows/scripts/Build-UserGuides.py`執行成功，產生十語手冊；`HeiBan.Windows.Core.Tests`（Release）執行通過：`PASS: 2325 Windows interaction geometry, screenshot coordinator, calculator, compass/arc, timer & offline guide checks`。
+- `dotnet publish windows/HeiBan.Windows/HeiBan.Windows.csproj -c Release -r win-x64 -p:Platform=x64 --self-contained true` 執行成功（0 warning／0 error），已同步更新本機測試目錄 `windows/dist/trials/HeiBan-Windows-Portable-1.0.14-guides-2026-10-12-win-x64`（29 個 Data 檔案／922,975 bytes 完整保留）與 `dist/HeiBan-Windows-Portable-x64`（21 個 Data 檔案／788,855 bytes 完整保留），`HeiBan.dll` SHA256 `34FCC94AEF5F8BDFB2AA3AB89B00CAEEBBC95C87B86E1A02235CD1314B30C65D`，版本維持 `1.0.14.0`。待使用者實機驗收鍵盤刪除與各項交互。
+
+## 本機實測包交付補記（2026-10-13）
+
+- Core Release 檢查 2325 項通過；x64 Release self-contained 發佈成功；另以 PowerShell 7 執行 `Package-PortableTrial.ps1 -Runtime win-x64 -Label optimization-2026-10-13-r1`，App／Updater發佈、清單、空白Data及ZIP完成。
+- 免安裝試用包：`windows/dist/trials/HeiBan-Windows-Portable-1.0.14-optimization-2026-10-13-r1-win-x64.zip`，131,764,163 bytes，SHA256 `e9f1ab87616a84f7ea1c30ddd469b86c2d14e56c6ee6e5000ce7ff334460c580`。來源以包內`TRIAL-SOURCE.json`記錄基底commit與封裝當下Windows工作樹檔案雜湊；版本仍1.0.14.0。
+- 封裝時Store bundle前後SHA一致；沒有覆寫舊試用包，沒有發布Store／GitHub Release。Windows PowerShell 5.1的Git pathspec引號語法曾造成ParserError，未寫入包；改用PowerShell 7完成。未啟動此包或執行UI／WACK驗收，待使用者實機測試。

@@ -1,12 +1,16 @@
 # Windows 目前開發狀態
 
-## 2026-10-13 — 操作與精簡優化（本機開發中、未驗收）
+## 2026-10-13 — 操作優化可攜試用包已提供（待使用者實機驗收）
 
-使用者要求開始Windows操作邏輯／程式精簡工作，實機細節留到後續。工具列policy現在把screen能力集合與一般ToolbarPreferences catalog交叉產生，不再另維護一份ScreenTools key／名稱表；顯示與隱藏只接受已有screen handler的項目。screen填色入口移入共用「圖形」選單，移除一個固定專用按鈕；套索、便條紙、遮題膠帶及停筆一秒近直線吸附已有screen來源接線，尚待實機驗收。直線幾何判斷抽為主／screen共用Core來源。輸入渲染的16ms timer不再輪詢前景視窗；另以250ms焦點記錄timer服務還原操作。
+本機免安裝試用 ZIP：`dist/trials/HeiBan-Windows-Portable-1.0.14-optimization-2026-10-13-r1-win-x64.zip`，131,764,163 bytes，SHA256 `e9f1ab87616a84f7ea1c30ddd469b86c2d14e56c6ee6e5000ce7ff334460c580`。解壓後雙擊同名目錄中的 `HeiBan.exe`；請在新資料夾操作，試用包內 `Data` 為空白，舊測試目錄與 Store bundle 保留。Core Release 2,325 項檢查通過；手動 x64 Release self-contained publish 成功；封裝腳本完成 App／Updater publish、更新清單、ZIP 與 SHA sidecar。Store bundle 封裝前後 SHA 均為 `D7A49B63D88FA880B1A97B0C307361AD2CFBC9B3D58786048887093D7204EA7B`。程式版本維持開發候選 `1.0.14.0`，未提交 Store／GitHub Release。使用者尚待檢查主／螢幕畫布操作及刪除按鍵；此包是試用交付，不代表整批實機驗收。
 
-十語screen手冊說明填色改由「圖形」選單設定，套索圈選可選取相交物件；生成器重新產生十份HTML。這是catalog／操作簡化與閒置輪詢下降；WT-01仍未補齊尺／圖片／圓規／計算機／計時器等screen handler，WT-02／04未完成。Store SDK／ML依賴未排除，沒有包體減重數據；SDK刪除、共享框架與Updater AOT需要分開候選及驗收。
+## 2026-10-13 — 操作與精簡優化、鍵盤 Delete／Backspace 刪除物件修復（已更新本機 x64 測試版）
 
-未執行C# build、測試、App、封裝、硬體／效能測量、Store操作或版號變更；來源編譯與互動狀態未知。完整目的、限制、命令及待驗收見[優化日誌](WINDOWS_OPTIMIZATION_BATCH_2026-10-13.zh-TW.md)。
+使用者要求開始Windows操作邏輯／程式精簡工作，並於本機 x64 測試版補上「選取物件後按 `Delete` 刪除物件」（含相容 Mac／筆電鍵盤傳送的 `Backspace`／`VirtualKey.Back`）。工具列policy現在把screen能力集合與一般ToolbarPreferences catalog交叉產生，不再另維護一份ScreenTools key／名稱表；顯示與隱藏只接受已有screen handler的項目。screen填色入口移入共用「圖形」選單，移除一個固定專用按鈕；套索、便條紙、遮題膠帶及停筆一秒近直線吸附已有screen來源接線。直線幾何判斷抽為主／screen共用Core來源。輸入渲染的16ms timer不再輪詢前景視窗；另以250ms焦點記錄timer服務還原操作。
+
+針對鍵盤刪除物件：修正 WinUI 3 `CanvasSurface` 未設 `IsTabStop="True"` 導致開啟作品或更新工具列後焦點退回 `Root` 外層 `RootScrollViewer`、或點擊畫布未移開屬性面板 `TextBox`／`NumberBox` 焦點的問題；主畫布與螢幕畫布均支援 `VirtualKey.Delete` 與 `VirtualKey.Back` 刪除選取物件（文字與圖釘改名編輯狀態下除外）。
+
+`HeiBan.Windows.Core.Tests` Release 2325 項檢查通過；`HeiBan.Windows` `win-x64` Release self-contained publish 0 warning／0 error，已同步更新本機測試目錄 `windows/dist/trials/HeiBan-Windows-Portable-1.0.14-guides-2026-10-12-win-x64` 與 `dist/HeiBan-Windows-Portable-x64`（既有 `Data` 作品檔案 100% 保留），版本維持 `1.0.14.0`。完整目的、原因與命令見[優化日誌](WINDOWS_OPTIMIZATION_BATCH_2026-10-13.zh-TW.md)。
 
 ## 2026-10-13 — 工具列一致性第一批實作（未驗收）
 

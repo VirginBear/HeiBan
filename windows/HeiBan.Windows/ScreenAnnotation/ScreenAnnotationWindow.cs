@@ -178,6 +178,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
                 DamageSelectedObjects();
                 if(_points.Count>=3)_session.SetSelection(_session.VisibleObjects.Where(o=>LassoSelection.Intersects(o,_points)).Select(o=>o.Id).Concat(_marqueeSelection));
                 _points.Clear();_start=_last=null;_marqueeSelection=[];RefreshScreenStyleButtons();Changed();
+                if(_session.Selected is not null)FocusScreenChrome();
             }
             else _dirty=true;
             return;
@@ -249,6 +250,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
                 else _session.Add(Styled(new BoardObject{Type=_tool=="pen"?"stroke":_tool,X=bounds.MinX,Y=bounds.MinY,Width=bounds.Width,Height=bounds.Height,Points=JsonSerializer.Serialize(_points,DocumentCodec.Options)}));
             }
             _straightenTimer.Stop();_penHoldAnchor=null;_screenPenStraight=false;_session.Commit();if(_marquee)DamageSelectedObjects();var committedDamage=_damage;RefreshScreenStyleButtons();_marquee=false;_points.Clear();_start=_last=null;_preview=null;_handle=null;_renderer.ResetLive();Changed();
+            if(_tool=="select"&&_session.Selected is not null)FocusScreenChrome();
             if(partialCommit){_fullDamage=false;_damage=previewCommit?committedDamage:strokeDamage;}
         }
         if(_tool is "pen" or "highlighter" or "paint"){if(input.Kind!="up")DamageStrokeTail();}

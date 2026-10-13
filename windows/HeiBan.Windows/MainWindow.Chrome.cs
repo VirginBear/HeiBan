@@ -793,6 +793,7 @@ public partial class MainWindow
         RefreshProperties();
         RefreshChrome();
         RefreshSelectionBar();
+        FocusCanvasSurface();
         InvalidateCanvas(false);
     }
 
