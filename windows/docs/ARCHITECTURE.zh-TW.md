@@ -1,5 +1,11 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-13 — 工具共用的現況與下一批規格
+
+ToolbarUi現在是button／label／RTL／dash共享factory，ScreenTools仍獨立11工具清單；一般ToolbarPreferences／MainWindow.BuildChrome与screen InitializeChrome／OnPointer分別建UI與接手勢，Core／renderer共用不代表所有工具面板／命令同源。
+
+下批以一般catalog及顯隱排序為準，screen省圖釘／視角導航；共用UI／幾何／命令描述，各宿主建立自己的控制項与session adapter，native desktop px／DIP／world、穿透、damage及保存／Undo owner保留边界。此為規格而非新interface已實作；详[差異与WT分批](TOOLBAR_AND_SIZE_REVIEW_2026-10-13.zh-TW.md)。
+
 ## 2026-10-12 — 十語離線手冊與同版開發候選隔離
 
 Documentation/Guides各語txt使用7meta＋25穩定section ID契約；Build-UserGuides.py產生Assets/Guides十HTML與SHA manifest、舊zh-TW HTML相容入口。單一模板內嵌CSS／JS，所有文本escape，無外部資源；zh-CN由Windows NLS生成、ar RTL與bdi隔離。MainWindow首頁及作品共用OpenUserGuideAsync，開啟時用Strings.Language；缺檔fallback，手冊內切語不改App偏好。普通.NET build只複製已生成Assets，不執行Python。生成／原稿／封裝byte核對不等於實機或母語驗收。

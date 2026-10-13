@@ -1,5 +1,11 @@
 # Windows 目前開發狀態
 
+## 2026-10-13 — Mac最新来源／工具與體積原機分析
+
+公開main從148d427 fast-forward至3f39f1d（6筆），原.vscode/保留。Windows兩canvas已共用Core／renderer与ToolbarUi factory，screen仍11工具硬編碼、另一份設定／圖層UI，缺尺／圓規／計算機／計時器／完整形狀等接線。使用者要求一般catalog為準，screen省圖釘／視角導航，已列[WT-01–04規格與瘦身順序](TOOLBAR_AND_SIZE_REVIEW_2026-10-13.zh-TW.md)；本批只分析，尚未改UI。
+
+原guides Store包只讀拆解且SHA核同：x64 ML六檔41,995,768bytes／壓縮17,537,365；ARM64 42,225,720／17,119,480，無Updater／Data／PDB。[本機JSON](STORE_PAYLOAD_REVIEW_2026-10-13.json)。ML存在已確認，安全移除／確定省量未確認；WT／WR待實作，1.0.14仍未核准metadata。本批未build／App／tests／封裝／進版／Store或清理成品。
+
 ## 2026-10-13 — Store減重分析與Windows端接手計劃
 
 已完成[Windows版本減重分析計劃報告書](WINDOWS_SIZE_REDUCTION_PLAN_2026-10-13.zh-TW.md)及[基準JSON](PACKAGE_SIZE_BASELINE_2026-10-13.json)。最新guides商店候選ARM64 MSIX95.55MB／x64 98.12MB來自原Windows封裝紀錄，本Mac沒有MSIX重新拆解。Store已排除Updater，該優化對商店新增節省0MB；優先評估SDK必要元件引用，另比較SDK共享框架／.NET仍自包含。Portable參考ML42.23MB／壓縮16.78MB不代表MSIX保證可省。

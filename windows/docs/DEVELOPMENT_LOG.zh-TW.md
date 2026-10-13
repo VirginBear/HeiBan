@@ -1,5 +1,13 @@
 # Windows 開發日誌
 
+## 2026-10-13 — 工具列統一與原機瘦身理解
+
+依使用者兩項分析要求，開工148d427只原.vscode/，fetch0/6後ff到3f39f1d。讀新Mac交接与平台現況／架構／問題／減重計畫；舊graphify導航、實際來源判斷，兩宿主catalog／手勢／面板仍不同，列WT-01–04完整接線與驗收規格，未標為已實作。
+
+原guides bundle只讀拆解退出0、兩MSIX及bundle SHA核同；ML兩包各6檔，x6441.996MB解壓／17.537MB壓縮、ARM6442.226／17.119MB，沒有Updater／Data／PDB。補原減重計畫的原機證據，保留MacPortable量測界線，UI維護／SDK包體／繪圖性能各自列順序。搜尋大.build索引中止、猜partial檔名及rg萬用路徑失敗、README標題猜錯導致整批patch原子失敗皆更正，詳[本批日誌](TOOLBAR_AND_SIZE_REVIEW_2026-10-13.zh-TW.md)。
+
+新增分析與payload JSON，更新狀態／架構／決策／問題／索引，私人只存精簡交接。未實作WT／WR，未build／tests／App／封裝／清理／進版／Store，手冊無本批UI變更所以未重生。Git同步完成後接續記錄。
+
 ## 2026-10-13 — Windows Store減重計劃交接
 
 使用者將於Windows端評估、開發與測試，要求報告及目前紀錄推送GitHub。本批完成Windows減重計劃／基準JSON及來源／可行性／量測界線，補狀態／問題／決策與README入口；没有程式實作／進版／build／tests／App／WACK／Store操作。Mac交接文檔亦補齊，公開main同步；私人遠端及既有發行tag不變。[本批交接日誌](SIZE_PLAN_HANDOFF_2026-10-13.zh-TW.md)保存起始變更與最終同步結果。

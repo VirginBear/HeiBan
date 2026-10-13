@@ -2,6 +2,8 @@
 
 日期：2026-10-13。狀態：分析與開發計劃完成，減重實作／新候選／驗收尚未進行。
 
+Windows原機補充：已取回Mac最新交接並只讀拆解既有Store MSIX，確認ML載荷存在，詳[工具共用／體積本機分析](TOOLBAR_AND_SIZE_REVIEW_2026-10-13.zh-TW.md)及下方Store補充。WT-01–04工具對齊另列，不把共用UI當成減重／性能驗收。
+
 主要對象：Microsoft Store MSIX版；官網安裝版及離線免安裝版另列。使用者將在Windows電腦評估、開發與測試。本報告不構成正式進版或Store提交授權。
 
 ## 1. 結論與推薦
@@ -32,6 +34,10 @@ Store打包早已排除Updater，對現有商店包再優化Updater的節省為0
 [原封裝與雜湊](GUIDES_STORE_ARTIFACT_2026-10-12.json)、[原靜態檢視](GUIDES_STORE_INSPECTION_2026-10-12.json)。本Mac沒有這三份MSIX二進位，大小與排除檢查來自已追蹤的Windows紀錄，尚未重新拆解商店包。
 
 Store與App Installer只選對應CPU架構；bundle大小不代表每位用戶下載兩份。官方MSIX／bundle大小上限25GB，現有包遠低於該項限制；大小合規不代表全部認證通過。見[官方需求](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/app-package-requirements?pivots=store-installer-msix)與[架構配送](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/deploy-overview)。
+
+### 3.1a Windows原機Store靜態量測補充（2026-10-13）
+
+本機讀既有guides bundle，bundle及兩MSIX SHA核同原紀錄。ML／Tensors依各HeiBan.deps.json runtime/native資產定位，兩架構各6檔；x64解壓41,995,768bytes／壓縮entry17,537,365bytes，ARM64解壓42,225,720bytes／壓縮entry17,119,480bytes。兩包無獨立Updater／Data／PDB。[完整JSON](STORE_PAYLOAD_REVIEW_2026-10-13.json)。這是補充原Store靜態量測，未建新BASE／A／B，未證明ML可移除，未執行App／功能驗收。下方仍保留Mac端Portable原始參考，壓縮數字不可混用。
 
 ### 3.2 實際量測：ARM64免安裝開發試用包
 

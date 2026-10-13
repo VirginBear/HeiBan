@@ -1,5 +1,7 @@
 # 黑板 · Windows 原生版
 
+2026-10-13：[一般／螢幕工具列統一與Windows瘦身本機分析](docs/TOOLBAR_AND_SIZE_REVIEW_2026-10-13.zh-TW.md)。已同步Mac來源，確認Store ML載荷及工具接線差異；WT-01–04／WR待實作，本批不改UI／版本／套件。
+
 ## 2026-10-13 Windows版本減重分析計劃
 
 Windows端接手先讀[減重分析計劃報告書](docs/WINDOWS_SIZE_REDUCTION_PLAN_2026-10-13.zh-TW.md)與[基準數據](docs/PACKAGE_SIZE_BASELINE_2026-10-13.json)。Store包已排除獨立Updater；優先比較必要SDK元件與共享SDK框架。方案尚未實作／測試／提交，不提高正式版號；同版候選使用獨立DevelopmentLabel。Windows原機作品／安裝包／工具不會隨Git同步。

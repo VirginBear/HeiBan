@@ -1,5 +1,11 @@
 # Windows 開發決策
 
+## 2026-10-13 — 下一批工具catalog以一般畫布為準（規格，尚未實作）
+
+使用者要求screen與一般工具一致，screen省圖釘與圖面zoom。共同catalog／設定UI／命令描述，依一般偏好計算顯隱／排序；screen固定桌面座標省視角導航，物件鎖定仍保留。screen穿透／退出／DPI／保存owner各自管理，同一XAML元素不跨parent重用。尺／圓規／計算機等需真實接線才完成，不只放圖示。
+
+目前仍factory共用＋不同清單；新spec非已交付架構，工具維護減重／SDK包體／性能分開證據，A／B候選政策維持。詳[WT工作清單與取捨](TOOLBAR_AND_SIZE_REVIEW_2026-10-13.zh-TW.md)。
+
 ## 2026-10-13 — Store減重採候選比較，尚未決定修改部署
 
 計劃採用同來源／同版號／同架構對照，BASE／A必要元件／B共享SDK分開，A與B成功後才另評估C。Store已無Updater，U方案僅官網／免安裝。保留C#／WinUI／Win2D與WebView2 PDF，.NET保持自包含作保守比較；正式變更仍須Windows端實作及安裝／功能／WACK證據，未採納A或B為已交付架構。

@@ -1,5 +1,11 @@
 # Windows 問題與排解紀錄
 
+## 2026-10-13 — screen工具清單與一般畫布差距
+
+使用者指出只應差圖釘／zoom。確認原因：一般ToolbarPreferences動態完整catalog與形狀選單，screen仍11工具硬編碼及独立brush／layers／更多；OnPointer只建4種基本形狀，未接一般尺／圓規／多種命令與停筆直線。共同renderer／EditorSession及button factory不等於完整操作共用。
+
+本批只調查與列WT-01–04，問題尚未修復／驗收。只複製圖示不足，需共用能力描述／session命令、native adapter及設定；跨DPI／多螢幕／文字／Undo待驗收。搜尋大.build耗時中止，猜不存在partial檔名改rg --files，字面萬用路徑os123改目录／-g，README標題錯使整批patch未套用後依真標題重做。詳[日誌](TOOLBAR_AND_SIZE_REVIEW_2026-10-13.zh-TW.md)。
+
 ## 2026-10-13 — 免安裝包體分析不可直接當Store減重結論
 
 症狀：先前通用分析以Updater82.83MB作優先候選，但使用者實際關心Store。原因：混用Portable與MSIX發行管道；Store腳本與原payloadChecks已排除Updater，優化helper新增商店節省0MB。更正：在減重報告分開比較主App相依與官網更新程式，Portable ML載荷僅作參考，不當MSIX確定減少量；待Windows端以同來源兩CPU成品拆解核對。

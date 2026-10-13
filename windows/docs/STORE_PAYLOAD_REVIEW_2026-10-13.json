@@ -1,0 +1,223 @@
+{
+  "date": "2026-10-13",
+  "scope": "Read-only inspection of existing guides-2026-10-12 candidate; no optimization, build or app execution",
+  "units": "bytes; compressedEntryBytes excludes ZIP headers and packaging overhead",
+  "sourceCommit": "1ab7018b24e4fc06f354ac8d968207de8d0c7770",
+  "bundle": {
+    "relativePath": "windows/dist/store/candidates/guides-2026-10-12/HeiBan-Store-1.0.14.0-x64-arm64.msixbundle",
+    "bytes": 193675520,
+    "sha256": "8dc919c47c69585a114cc9c8d1ddf20c1126e08b5524ca73009c8e85b396d666"
+  },
+  "packages": [
+    {
+      "file": "HeiBan-Store-1.0.14.0-x64.msix",
+      "archiveBytes": 98120539,
+      "sha256": "0d0f883d2109e06d8ec6f556cfb056ff3e44cccfd4bbd845ffc98efa8c8532fe",
+      "fileCount": 575,
+      "payloadBytes": 248073400,
+      "compressedEntryBytes": 98008781,
+      "noStandaloneUpdaterDataOrPdb": true,
+      "mlLibraryNamesFromDeps": [
+        "Microsoft.Windows.AI.MachineLearning/2.1.74",
+        "Microsoft.WindowsAppSDK.ML/2.1.94",
+        "System.Numerics.Tensors/9.0.0"
+      ],
+      "mlPayload": {
+        "fileCount": 6,
+        "bytes": 41995768,
+        "compressedEntryBytes": 17537365,
+        "files": [
+          {
+            "name": "System.Numerics.Tensors.dll",
+            "bytes": 410936,
+            "compressedEntryBytes": 119606
+          },
+          {
+            "name": "Microsoft.Windows.AI.MachineLearning.dll",
+            "bytes": 903464,
+            "compressedEntryBytes": 416962
+          },
+          {
+            "name": "Microsoft.Windows.AI.MachineLearning.Projection.dll",
+            "bytes": 84232,
+            "compressedEntryBytes": 32231
+          },
+          {
+            "name": "DirectML.dll",
+            "bytes": 18700224,
+            "compressedEntryBytes": 9514151
+          },
+          {
+            "name": "onnxruntime.dll",
+            "bytes": 21659280,
+            "compressedEntryBytes": 7360275
+          },
+          {
+            "name": "Microsoft.ML.OnnxRuntime.dll",
+            "bytes": 237632,
+            "compressedEntryBytes": 94140
+          }
+        ]
+      },
+      "largestFiles": [
+        {
+          "name": "Microsoft.Windows.SDK.NET.dll",
+          "bytes": 26341408,
+          "compressedEntryBytes": 6599825
+        },
+        {
+          "name": "onnxruntime.dll",
+          "bytes": 21659280,
+          "compressedEntryBytes": 7360275
+        },
+        {
+          "name": "DirectML.dll",
+          "bytes": 18700224,
+          "compressedEntryBytes": 9514151
+        },
+        {
+          "name": "System.Private.CoreLib.dll",
+          "bytes": 16033576,
+          "compressedEntryBytes": 6728944
+        },
+        {
+          "name": "Microsoft.ui.xaml.dll",
+          "bytes": 15324472,
+          "compressedEntryBytes": 5924009
+        },
+        {
+          "name": "System.Private.Xml.dll",
+          "bytes": 7788328,
+          "compressedEntryBytes": 3482587
+        },
+        {
+          "name": "Microsoft.WinUI.dll",
+          "bytes": 7336760,
+          "compressedEntryBytes": 1844396
+        },
+        {
+          "name": "Microsoft.UI.Xaml.Controls.dll",
+          "bytes": 6943032,
+          "compressedEntryBytes": 2767012
+        },
+        {
+          "name": "coreclr.dll",
+          "bytes": 4614992,
+          "compressedEntryBytes": 2345476
+        },
+        {
+          "name": "Microsoft.Asg.SemanticIndex.AiFabric.Compatibility.dll",
+          "bytes": 3949872,
+          "compressedEntryBytes": 1476748
+        }
+      ],
+      "appExecuted": false,
+      "optimizationSavingsMeasured": false
+    },
+    {
+      "file": "HeiBan-Store-1.0.14.0-arm64.msix",
+      "archiveBytes": 95552946,
+      "sha256": "a437e10c11dcfeb32de1f557378be9b68a50e9cf2a7ad3526f58bc990899a856",
+      "fileCount": 571,
+      "payloadBytes": 264702480,
+      "compressedEntryBytes": 95441896,
+      "noStandaloneUpdaterDataOrPdb": true,
+      "mlLibraryNamesFromDeps": [
+        "Microsoft.Windows.AI.MachineLearning/2.1.74",
+        "Microsoft.WindowsAppSDK.ML/2.1.94",
+        "System.Numerics.Tensors/9.0.0"
+      ],
+      "mlPayload": {
+        "fileCount": 6,
+        "bytes": 42225720,
+        "compressedEntryBytes": 17119480,
+        "files": [
+          {
+            "name": "System.Numerics.Tensors.dll",
+            "bytes": 410936,
+            "compressedEntryBytes": 119606
+          },
+          {
+            "name": "Microsoft.Windows.AI.MachineLearning.Projection.dll",
+            "bytes": 84232,
+            "compressedEntryBytes": 32231
+          },
+          {
+            "name": "Microsoft.ML.OnnxRuntime.dll",
+            "bytes": 237632,
+            "compressedEntryBytes": 94140
+          },
+          {
+            "name": "DirectML.dll",
+            "bytes": 18616640,
+            "compressedEntryBytes": 9385726
+          },
+          {
+            "name": "onnxruntime.dll",
+            "bytes": 21854440,
+            "compressedEntryBytes": 7068352
+          },
+          {
+            "name": "Microsoft.Windows.AI.MachineLearning.dll",
+            "bytes": 1021840,
+            "compressedEntryBytes": 419425
+          }
+        ]
+      },
+      "largestFiles": [
+        {
+          "name": "Microsoft.Windows.SDK.NET.dll",
+          "bytes": 26341408,
+          "compressedEntryBytes": 6599825
+        },
+        {
+          "name": "onnxruntime.dll",
+          "bytes": 21854440,
+          "compressedEntryBytes": 7068352
+        },
+        {
+          "name": "DirectML.dll",
+          "bytes": 18616640,
+          "compressedEntryBytes": 9385726
+        },
+        {
+          "name": "System.Private.CoreLib.dll",
+          "bytes": 17729320,
+          "compressedEntryBytes": 6431977
+        },
+        {
+          "name": "Microsoft.ui.xaml.dll",
+          "bytes": 16903480,
+          "compressedEntryBytes": 5782719
+        },
+        {
+          "name": "Microsoft.UI.Xaml.Controls.dll",
+          "bytes": 9352504,
+          "compressedEntryBytes": 3076254
+        },
+        {
+          "name": "System.Private.Xml.dll",
+          "bytes": 9021224,
+          "compressedEntryBytes": 3329716
+        },
+        {
+          "name": "Microsoft.WinUI.dll",
+          "bytes": 7336760,
+          "compressedEntryBytes": 1844396
+        },
+        {
+          "name": "coreclr.dll",
+          "bytes": 5382952,
+          "compressedEntryBytes": 2315763
+        },
+        {
+          "name": "System.Linq.Expressions.dll",
+          "bytes": 4658984,
+          "compressedEntryBytes": 1051026
+        }
+      ],
+      "appExecuted": false,
+      "optimizationSavingsMeasured": false
+    }
+  ]
+}
