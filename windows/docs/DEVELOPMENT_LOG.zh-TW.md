@@ -8,6 +8,8 @@
 
 **WT-01／WT-03部分實作，WT-02／WT-04與其餘WT-03仍待完成**，詳[工作狀態表](TOOLBAR_AND_SIZE_REVIEW_2026-10-13.zh-TW.md)與[日誌](TOOLBAR_ALIGNMENT_2026-10-13.zh-TW.md)。尚未實際確認C#可編譯；本批未執行build、測試、App、封裝、Store／Release、版本變更、效能／硬體操作。正式發行與候選產物不變。
 
+公開Windows來源commit `0b6b79a6f8417345f97e7dfce3fbcd72a9d66b6b`已push，ls-remote核同；status只原有`.vscode/`。私人交接commit `253913a2a06a74c7515fcbcffaa583d18bc5d8a2`已push、遠端核同、工作樹乾淨；GitHub `isPrivate=true`。私人庫未改產品身分／套件／價格JSON。
+
 ## 2026-10-13 — 工具列統一與原機瘦身理解
 
 依使用者兩項分析要求，開工148d427只原.vscode/，fetch0/6後ff到3f39f1d。讀新Mac交接与平台現況／架構／問題／減重計畫；舊graphify導航、實際來源判斷，兩宿主catalog／手勢／面板仍不同，列WT-01–04完整接線與驗收規格，未標為已實作。

@@ -26,3 +26,4 @@
 - 第一版程式層級共用不會直接產生可量化MSIX減重或FPS收益；WR減重方案仍只分析，沒有改依賴。
 - 命令：`python windows/scripts/Build-UserGuides.py`退出0，報告十語25章55段；`git diff --check`沒有空白錯誤，Git輸出僅有換行正規化提示。這不代表C# build或App／互動驗證。
 - 未執行build、tests、App、封裝、Store／Release、效能量測、版本遞增或刪除產物。故編譯與操作狀態未知，WT-01／03為局部source work，WT-02／04待完成。
+- GitHub：Windows來源實作commit `0b6b79a6f8417345f97e7dfce3fbcd72a9d66b6b`已push至公開`main`；`git ls-remote origin refs/heads/main`相同；工作樹僅留下預先存在的未追蹤`.vscode/`。私人交接已另外記錄並同步；私人repo持續保持PRIVATE。
