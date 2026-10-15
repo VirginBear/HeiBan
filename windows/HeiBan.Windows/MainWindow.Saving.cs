@@ -50,7 +50,8 @@ public partial class MainWindow
         var message = new TextBlock { Text = _savingPreferenceError is null ? "" : T("儲存設定讀取失敗，暫以自動存檔關閉使用。") + "\n" + _savingPreferenceError, TextWrapping = TextWrapping.Wrap };
         var panel = new StackPanel { Spacing = 16, MaxWidth = 440 };
         var toolbarFormat=new ComboBox{Header=T("工具列格式"),ItemsSource=new[]{T("只有圖示"),T("圖示與文字（分頁）")},SelectedIndex=_toolbarPrefs.DisplayMode=="labels"?1:0,HorizontalAlignment=HorizontalAlignment.Stretch};
-        panel.Children.Add(toolbarFormat);panel.Children.Add(automatic);
+        var boardEraser=new ToggleSwitch{Header=T("顯示板擦"),IsOn=_toolbarPrefs.BoardEraserVisible,OnContent=T("開啟"),OffContent=T("關閉")};
+        panel.Children.Add(toolbarFormat);panel.Children.Add(boardEraser);panel.Children.Add(automatic);
         panel.Children.Add(new TextBlock { Text = T("預設關閉。關閉時不定期儲存作品；回到首頁、切換作品或正常退出時儲存。Ctrl+S 仍可隨時儲存。"), TextWrapping = TextWrapping.Wrap });
         panel.Children.Add(new TextBlock { Text = T("開啟後沿用定期存檔：一般畫布約每 15 秒，螢幕畫布停止修改約 1 秒後儲存。"), TextWrapping = TextWrapping.Wrap });
         panel.Children.Add(new TextBlock { Text = T("正常退出時顯示儲存動畫，完成後才關閉。未手動儲存的變更，在當機、斷電或強制結束時可能遺失。"), TextWrapping = TextWrapping.Wrap });
@@ -62,8 +63,8 @@ public partial class MainWindow
             try
             {
                 await SetAutoSaveEnabledAsync(automatic.IsOn);
-                var format=toolbarFormat.SelectedIndex==1?"labels":"icons";var previous=_toolbarPrefs.DisplayMode;_toolbarPrefs.DisplayMode=format;
-                try{await ToolbarPreferencesStore.SaveAsync(_storage.DataDirectory,_toolbarPrefs);}catch{_toolbarPrefs.DisplayMode=previous;throw;}
+                var format=toolbarFormat.SelectedIndex==1?"labels":"icons";var previous=_toolbarPrefs.DisplayMode;var previousEraser=_toolbarPrefs.BoardEraserVisible;_toolbarPrefs.DisplayMode=format;_toolbarPrefs.BoardEraserVisible=boardEraser.IsOn;
+                try{await ToolbarPreferencesStore.SaveAsync(_storage.DataDirectory,_toolbarPrefs);}catch{_toolbarPrefs.DisplayMode=previous;_toolbarPrefs.BoardEraserVisible=previousEraser;throw;}
                 BuildChrome();args.Cancel = false;
             }
             catch (Exception error) { message.Text = T("儲存設定未保存，請確認資料夾可寫入。") + "\n" + error.Message; }
@@ -104,7 +105,7 @@ public partial class MainWindow
         {
             // Allow an animation frame before cloning; IO/encoding already runs off the UI thread.
             await Task.Delay(32);
-            FinishText(); CommitPropertyEdit(); if (_gesture) CancelGesture();
+            FinishText(); CommitPropertyEdit(); if (_gesture) CancelGesture();CancelBoardEraser();
             if (_workspaceOpen && _session.IsDirty && !await SaveAsync()) return false;
             await FlushPendingThumbnailAsync();
             return !_workspaceOpen || !_session.IsDirty;

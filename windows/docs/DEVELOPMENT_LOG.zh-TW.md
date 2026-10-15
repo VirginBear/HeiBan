@@ -1,5 +1,9 @@
 # Windows 開發日誌
 
+## 2026-10-15 — 畫布八項修整批次
+
+起點main 1af9075乾淨，公開與私人fetch均0/0，私人isPrivate=true。建立本批日誌後才修改Windows。完成來源：單行工具組、常用自訂、幾何磁鐵及中心式起點、生成矩形板擦、圖片化匯入告知、圖釘新增優先與縮圖、固定紙白綠色主題；十語624key與25章62段說明同步。r1 FontWeights失敗保留原因，r2 23.37秒、r3 24.07秒x64 build均0warning／0error。隔離示範視窗觀察單排及卡片，未跑本批自動化測試、不沿用前批2334數字。後續新包、Data接續／保全清理及同步證據見[本批日誌](CANVAS_UI_REFINEMENT_2026-10-15.zh-TW.md)；維持候選1.0.14.0，無Store／Release。
+
 ## 2026-10-15 — 文件交換、磁鐵與繪圖流程
 
 試用交付：乾淨來源cc85296執行`Package-PortableTrial.ps1 -Runtime win-x64 -Label drawing-2026-10-15-r1`成功；131955475bytes／SHA256 `41f0d1bc11707b447e279ca1dbb4c0c2324fdace676a3e23de3793ea1794ef6a`。zip CRC／572payload／157source／10語4圖／x64／空Data核同，最終可攜EXE實際開啟／正常關閉。資料接續13檔34859bytes全SHA核同；Clear-ObsoleteTrials退出0、清舊兩trial釋放901658688bytes，43Data＋18修改檔先備份5509863bytes，Store原SHA不變。source／artifact／cleanup各JSON及失敗KeyError／排解保完整日誌；只有本機二進位、來源與精簡必要證據同步GitHub。

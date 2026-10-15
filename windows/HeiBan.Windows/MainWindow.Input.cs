@@ -79,6 +79,7 @@ public partial class MainWindow
             using var format=new Microsoft.Graphics.Canvas.Text.CanvasTextFormat{FontSize=14};
             ds.DrawText(pin.Name,(float)p.X+16,(float)p.Y,Direct2DCanvasRenderer.HexToColor(pin.TextColor??"#397056"),format);
         }
+        if(_boardEraserDraft is not null)ds.DrawRectangle(new Rect(_boardEraserLast.X-BoardEraserWidth/2,_boardEraserLast.Y-BoardEraserHeight/2,BoardEraserWidth,BoardEraserHeight),Direct2DCanvasRenderer.HexToColor("#39735A"),2);
         if(_rulerEnabled)DrawRuler(ds);
         if(_compass.IsEnabled)_renderer.RenderCompass(ds,_compass,_viewport);
         if(_hover&&_editor is null&&_tool is "pen" or "highlighter" or "paint" or "eraser")
@@ -96,6 +97,7 @@ public partial class MainWindow
         CommitPropertyEdit();
         if(_rulerEnabled&&RulerAngleHit(screen)&&!p.Properties.IsMiddleButtonPressed){ShowRulerSettings(CanvasSurface,new Point(screen.X,screen.Y));e.Handled=true;return;}
         if(IsDrawingTool(_tool))BeginDrawingWorkflow();
+        else if(_compass.IsEnabled)EnsureMagnetIndex(force:true);
         _pointerId=p.PointerId;_lastScreen=_mouse=screen;_start=_lastWorld=_viewport.ScreenToWorld(screen.X,screen.Y);
         if(IsDrawingTool(_tool))_start=_lastWorld=SnapDrawingPoint(_start!);
         _panning=p.Properties.IsMiddleButtonPressed || KeyIsDown(VirtualKey.Space) || _readingMode;
@@ -199,6 +201,7 @@ public partial class MainWindow
     {
         var p=e.GetCurrentPoint(CanvasSurface);_mouse=new((float)p.Position.X,(float)p.Position.Y);_hover=true;
         UpdateShapeCursor();
+        if(!_gesture&&IsDrawingTool(_tool)){EnsureMagnetIndex();SnapDrawingPoint(_viewport.ScreenToWorld(_mouse.X,_mouse.Y));InvalidateCanvas(false);}
         if(_tool=="laser"){_laser.Add(_viewport.ScreenToWorld(_mouse.X,_mouse.Y),LaserNow);InvalidateCanvas(false);return;}
         if(_tool=="lasso"&&_gesture){var lp=_viewport.ScreenToWorld(_mouse.X,_mouse.Y);if(_lasso.Count==0||Math.Sqrt(Math.Pow(lp.X-_lasso[^1].X,2)+Math.Pow(lp.Y-_lasso[^1].Y,2))>2/_viewport.Zoom)_lasso.Add(lp);InvalidateCanvas(false);return;}
         if(!_gesture||p.PointerId!=_pointerId)
@@ -206,7 +209,7 @@ public partial class MainWindow
             if(_lineAnchor is not null&&_preview is not null)ObjectHandles.SetEndpoints(_preview,_lineAnchor,ConstrainLine(_lineAnchor,SnapDrawingPoint(_viewport.ScreenToWorld(_mouse.X,_mouse.Y))));
             if(_polygon.Count>0||_lineAnchor is not null||(_hover&&_editor is null&&_tool is "pen" or "highlighter" or "paint" or "eraser"))InvalidateCanvas(false);return;
         }
-        var world=_viewport.ScreenToWorld(_mouse.X,_mouse.Y);if(IsDrawingTool(_tool))world=SnapDrawingPoint(world);var delta=_mouse-_lastScreen;
+        var world=_viewport.ScreenToWorld(_mouse.X,_mouse.Y);if(IsDrawingTool(_tool)||_compassCenterMoving)world=SnapDrawingPoint(world);var delta=_mouse-_lastScreen;
         if(_panning){if(!_viewLocked){_viewport.X+=delta.X;_viewport.Y+=delta.Y;}}
         else if(_rulerMoving)_rulerCenter+=delta;
         else if(_rulerRotating)RotateRuler(_mouse);
@@ -366,7 +369,7 @@ public partial class MainWindow
     {
         if(_preview is null||_start is null)return;
         if(_preview.Type is "line" or "arrow")ObjectHandles.SetEndpoints(_preview,_lineAnchor??_start,ConstrainLine(_lineAnchor??_start,world));
-        else{_preview.X=Math.Min(_start.X,world.X);_preview.Y=Math.Min(_start.Y,world.Y);_preview.Width=Math.Max(1,Math.Abs(world.X-_start.X));_preview.Height=Math.Max(1,Math.Abs(world.Y-_start.Y));}
+        else ShapeConstruction.Drag(_preview,_start,world);
     }
     private static InkPoint ConstrainLine(InkPoint anchor,InkPoint point)=>KeyIsDown(VirtualKey.Shift)?ObjectHandles.ConstrainOrthogonal(anchor,point):point;
     private void ResetGesture(){HideHUD();_renderer.ResetLive();_gesture=_panning=_rulerMoving=_rulerRotating=_rulerPivotMoving=_shapeGesture=_lineCompleting=_marquee=false;_compassCenterMoving=_compassCenterMoved=_compassRadiusMoving=_compassPencilMoving=false;_objectHandle=null;_manipulationStart=null;_movingPin=null;_snapEdge=null;_ink.Projection=null;_ink.PointTransform=null;_magnetTarget=null;if(_hover)UpdateShapeCursor();else ResetShapeCursor();}
@@ -390,10 +393,10 @@ public partial class MainWindow
     }
     private void ResetShapeCursor()
     {var dpi=(uint)Math.Round((Root.XamlRoot?.RasterizationScale??1)*96);_shapeCursor.Update(null,null,dpi);CanvasCursorHost.SetNativeCursor(_shapeCursor.Current,dpi);}
-    private void CanvasSurface_PointerExited(object sender,PointerRoutedEventArgs e){HideHUD();_hover=false;if(!_gesture)ResetShapeCursor();InvalidateCanvas(false);}
+    private void CanvasSurface_PointerExited(object sender,PointerRoutedEventArgs e){HideHUD();_hover=false;if(!_gesture){_magnetTarget=null;ResetShapeCursor();}InvalidateCanvas(false);}
     private void CanvasSurface_PointerWheelChanged(object sender,PointerRoutedEventArgs e)
     {
-        if(_editor is not null||_gesture||_viewLocked)return;
+        if(_editor is not null||_gesture||_viewLocked||_boardEraserDraft is not null)return;
         var p=e.GetCurrentPoint(CanvasSurface);
         if(p.Properties.IsHorizontalMouseWheel)_viewport.X+=p.Properties.MouseWheelDelta;
         else _viewport.ZoomAt(p.Position.X,p.Position.Y,p.Properties.MouseWheelDelta);
@@ -751,7 +754,7 @@ public partial class MainWindow
                 Grid.SetColumn(deleteBtn, 3);
                 row.Children.Add(deleteBtn);
 
-                listContainer.Children.Add(row);
+                listContainer.Children.Add(new Border{Child=row,Padding=new Thickness(10),CornerRadius=new CornerRadius(12),Background=Brush("#F0F4EC"),BorderBrush=Brush("#DFE6D9"),BorderThickness=new Thickness(1)});
             }
         }
 
@@ -759,12 +762,10 @@ public partial class MainWindow
         RenderPins();
 
         var contentPanel = new StackPanel { Spacing = 12, Width = 380 };
+        contentPanel.Children.Add(new Border{CornerRadius=new CornerRadius(14),Background=Brush("#EAF1E4"),Padding=new Thickness(14),Child=new StackPanel{Spacing=8,Children={new TextBlock{Text=T("在目前視野新增圖釘："),FontWeight=Microsoft.UI.Text.FontWeights.SemiBold},newPinBox}}});
         contentPanel.Children.Add(new TextBlock { Text = T("搜尋或跳轉至圖釘視野"), FontSize = 12, Foreground = Brush("#68756C") });
         contentPanel.Children.Add(searchBox);
         contentPanel.Children.Add(scroll);
-        contentPanel.Children.Add(new Border { Height = 1, Background = Brush("#D4DBD1"), Margin = new Thickness(0, 4, 0, 4) });
-        contentPanel.Children.Add(new TextBlock { Text = T("在目前視野新增圖釘："), FontSize = 12, Foreground = Brush("#68756C") });
-        contentPanel.Children.Add(newPinBox);
 
         dialog = new ContentDialog
         {FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,
@@ -775,6 +776,7 @@ public partial class MainWindow
             XamlRoot = Root.XamlRoot
         };
 
+        dialog.Opened+=(_,_)=>newPinBox.Focus(FocusState.Programmatic);
         if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
 
         var world = _viewport.ScreenToWorld(CanvasSurface.ActualWidth / 2, CanvasSurface.ActualHeight / 2);

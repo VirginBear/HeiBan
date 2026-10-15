@@ -46,7 +46,14 @@ internal static partial class ToolbarUi
         if (flyout is MenuFlyout menu) menu.MenuFlyoutPresenterStyle = new Style
         {
             TargetType = typeof(MenuFlyoutPresenter),
-            Setters = { new Setter(FrameworkElement.FlowDirectionProperty, direction) }
+            Setters = {
+                new Setter(FrameworkElement.FlowDirectionProperty, direction),
+                new Setter(FrameworkElement.RequestedThemeProperty,ElementTheme.Light),
+                new Setter(Control.BackgroundProperty,new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255,250,251,247))),
+                new Setter(Control.ForegroundProperty,new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255,38,55,47))),
+                new Setter(Control.BorderBrushProperty,new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255,213,222,208))),
+                new Setter(Control.CornerRadiusProperty,new CornerRadius(16)),
+                new Setter(Control.PaddingProperty,new Thickness(8)) }
         };
     }
 

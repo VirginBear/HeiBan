@@ -1,5 +1,5 @@
 <Application
-    x:Class="HeiBan.Windows.App"
+    x:Class="HeiBan.Windows.App" RequestedTheme="Light"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Application.Resources>
@@ -12,6 +12,69 @@
             <SolidColorBrush x:Key="AccentFillColorSecondaryBrush" Color="#4C866B"/>
             <SolidColorBrush x:Key="AccentFillColorTertiaryBrush" Color="#639B7F"/>
             <SolidColorBrush x:Key="AccentTextFillColorPrimaryBrush" Color="#285541"/>
+            <!-- Fixed HeiBan paper/sage palette for app-owned surfaces, including popup roots. -->
+            <SolidColorBrush x:Key="ApplicationPageBackgroundThemeBrush" Color="#FAFBF8"/>
+            <SolidColorBrush x:Key="TextFillColorPrimaryBrush" Color="#26372F"/>
+            <SolidColorBrush x:Key="TextFillColorSecondaryBrush" Color="#65746A"/>
+            <SolidColorBrush x:Key="ControlFillColorDefaultBrush" Color="#F4F7F1"/>
+            <SolidColorBrush x:Key="ControlFillColorSecondaryBrush" Color="#EAF0E5"/>
+            <SolidColorBrush x:Key="ControlFillColorTertiaryBrush" Color="#DFE8DA"/>
+            <SolidColorBrush x:Key="ControlStrokeColorDefaultBrush" Color="#D5DED0"/>
+            <SolidColorBrush x:Key="ContentDialogBackground" Color="#FAFBF7"/>
+            <SolidColorBrush x:Key="ContentDialogTopOverlay" Color="#FAFBF7"/>
+            <SolidColorBrush x:Key="ContentDialogSmokeFill" Color="#6626372F"/>
+            <SolidColorBrush x:Key="FlyoutBackground" Color="#FAFBF7"/>
+            <SolidColorBrush x:Key="MenuFlyoutPresenterBackground" Color="#FAFBF7"/>
+            <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPointerOver" Color="#E5EEDF"/>
+            <SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="#39735A"/>
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillChecked" Color="#39735A"/>
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPointerOver" Color="#39735A"/>
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPressed" Color="#39735A"/>
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeChecked" Color="#39735A"/>
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedPointerOver" Color="#39735A"/>
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedPressed" Color="#39735A"/>
+            <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#39735A"/>
+            <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="#39735A"/>
+            <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="#39735A"/>
+            <SolidColorBrush x:Key="SliderThumbBackground" Color="#39735A"/>
+            <SolidColorBrush x:Key="SliderThumbBackgroundPointerOver" Color="#39735A"/>
+            <SolidColorBrush x:Key="SliderThumbBackgroundPressed" Color="#39735A"/>
+            <SolidColorBrush x:Key="SliderTrackValueFill" Color="#39735A"/>
+            <SolidColorBrush x:Key="SliderTrackValueFillPointerOver" Color="#39735A"/>
+            <SolidColorBrush x:Key="SliderTrackValueFillPressed" Color="#39735A"/>
+            <SolidColorBrush x:Key="RadioButtonOuterEllipseFillChecked" Color="#39735A"/>
+            <SolidColorBrush x:Key="RadioButtonOuterEllipseFillCheckedPointerOver" Color="#39735A"/>
+            <SolidColorBrush x:Key="RadioButtonOuterEllipseFillCheckedPressed" Color="#39735A"/>
+            <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#39735A"/>
+            <SolidColorBrush x:Key="ComboBoxBorderBrushFocused" Color="#39735A"/>
+            <SolidColorBrush x:Key="ToggleButtonBackgroundChecked" Color="#39735A"/>
+            <SolidColorBrush x:Key="ToggleButtonBackgroundCheckedPointerOver" Color="#39735A"/>
+            <SolidColorBrush x:Key="ToggleButtonBackgroundCheckedPressed" Color="#39735A"/>
+            <CornerRadius x:Key="ControlCornerRadius">10</CornerRadius>
+            <CornerRadius x:Key="OverlayCornerRadius">18</CornerRadius>
+            <CornerRadius x:Key="ContentDialogCornerRadius">22</CornerRadius>
+            <Style TargetType="ContentDialog">
+                <Setter Property="RequestedTheme" Value="Light"/>
+                <Setter Property="Background" Value="#FAFBF7"/>
+                <Setter Property="Foreground" Value="#26372F"/>
+                <Setter Property="BorderBrush" Value="#D5DED0"/>
+                <Setter Property="CornerRadius" Value="22"/>
+            </Style>
+            <Style TargetType="FlyoutPresenter">
+                <Setter Property="RequestedTheme" Value="Light"/>
+                <Setter Property="Background" Value="#FAFBF7"/>
+                <Setter Property="BorderBrush" Value="#D5DED0"/>
+                <Setter Property="CornerRadius" Value="18"/>
+                <Setter Property="Padding" Value="16"/>
+            </Style>
+            <Style TargetType="MenuFlyoutPresenter">
+                <Setter Property="RequestedTheme" Value="Light"/>
+                <Setter Property="Background" Value="#FAFBF7"/>
+                <Setter Property="Foreground" Value="#26372F"/>
+                <Setter Property="BorderBrush" Value="#D5DED0"/>
+                <Setter Property="CornerRadius" Value="16"/>
+                <Setter Property="Padding" Value="8"/>
+            </Style>
             <Style x:Key="ToolButtonStyle" TargetType="Button">
                 <Setter Property="Width" Value="32"/><Setter Property="Height" Value="32"/>
                 <Setter Property="Padding" Value="4"/><Setter Property="Background" Value="Transparent"/>

@@ -12,16 +12,7 @@ public sealed class MagnetSnapIndex
         _radius=double.IsFinite(radius)&&radius>0?radius:10;
         foreach(var item in objects.Where(o=>o.IsVisible!=false))
         {
-            IEnumerable<InkPoint> points;
-            if(item.Type is "line" or "arrow")points=[ObjectHandles.Endpoint(item,0),ObjectHandles.Endpoint(item,1)];
-            else if(item.ParsedPoints.Count>0)points=item.ParsedPoints.Select(p=>ObjectHandles.ToWorld(item,p));
-            else if(item.Type=="rect")points=ObjectHandles.Outline(item);
-            else if(item.Type is "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star")
-            {
-                var count=item.Type=="triangle"?3:item.Type=="pentagon"?5:item.Type=="star"?10:4;
-                points=Enumerable.Range(0,count).Select(i=>{var angle=-Math.PI/2+i*2*Math.PI/count;var radius=item.Type=="star"&&i%2==1?.45:1;return ObjectHandles.ToWorld(item,new(item.X+item.Width/2+Math.Cos(angle)*item.Width/2*radius,item.Y+item.Height/2+Math.Sin(angle)*item.Height/2*radius));});
-            }
-            else continue;
+            var points=ReferencePoints(item);
             foreach(var p in points)
             {
                 if(!double.IsFinite(p.X)||!double.IsFinite(p.Y))continue;
@@ -29,6 +20,38 @@ public sealed class MagnetSnapIndex
                 bucket.Add(new(p.X,p.Y));
             }
         }
+    }
+    /// <summary>Geometric references are independent of editable handles, including locked shapes.</summary>
+    public static IEnumerable<InkPoint> ReferencePoints(BoardObject item)
+    {
+        static InkPoint Middle(InkPoint a,InkPoint b)=>new((a.X+b.X)/2,(a.Y+b.Y)/2);
+        if(item.Type is "line" or "arrow")
+        {
+            var a=ObjectHandles.Endpoint(item,0);var b=ObjectHandles.Endpoint(item,1);
+            yield return a;yield return Middle(a,b);yield return b;yield break;
+        }
+        if(item.Type is "circle" or "arc")
+        {
+            var center=ObjectHandles.Center(item);yield return center;
+            var rx=item.Type=="arc"?item.ArcRadius??item.Width/2:item.Width/2;
+            var ry=item.Type=="arc"?rx:item.Height/2;
+            foreach(var (x,y) in new[]{(0d,-1d),(1d,0d),(0d,1d),(-1d,0d)})
+                yield return ObjectHandles.ToWorld(item,new(center.X+x*rx,center.Y+y*ry));
+            if(item.Type=="arc")foreach(var angle in new[]{item.ArcStartAngle??0,(item.ArcStartAngle??0)+(item.ArcSweepAngle??360)})
+                yield return ObjectHandles.ToWorld(item,new(center.X+rx*Math.Cos(angle*Math.PI/180),center.Y+rx*Math.Sin(angle*Math.PI/180)));
+            yield break;
+        }
+        var polygon=item.Type is "rect" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star";
+        var points=item.ParsedPoints.Select(p=>ObjectHandles.ToWorld(item,p)).ToArray();
+        if(item.Type=="rect")points=ObjectHandles.Outline(item).ToArray();
+        else if(polygon&&points.Length==0)
+        {
+            var count=item.Type=="triangle"?3:item.Type=="pentagon"?5:item.Type=="star"?10:4;
+            points=Enumerable.Range(0,count).Select(i=>{var angle=-Math.PI/2+i*2*Math.PI/count;var radius=item.Type=="star"&&i%2==1?.45:1;return ObjectHandles.ToWorld(item,new(item.X+item.Width/2+Math.Cos(angle)*item.Width/2*radius,item.Y+item.Height/2+Math.Sin(angle)*item.Height/2*radius));}).ToArray();
+        }
+        foreach(var point in points)yield return point;
+        if(polygon&&points.Length>1)for(var i=0;i<points.Length;i++)yield return Middle(points[i],points[(i+1)%points.Length]);
+        if(item.Type=="rect")yield return ObjectHandles.Center(item);
     }
     private (long X,long Y) Cell(InkPoint p)=>((long)Math.Floor(p.X/_radius),(long)Math.Floor(p.Y/_radius));
     public InkPoint Snap(InkPoint point,out bool snapped)

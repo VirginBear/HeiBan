@@ -82,7 +82,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         var failed=0;
         foreach(var key in new[]{(1,0x41u),(2,0x44u),(3,0x53u),(4,0x51u),(5,0x4Bu)})if(!_overlay.RegisterShortcut(key.Item1,0x0002|0x0001,key.Item2))failed++;
         _hotkeyRegistrationFailed=failed>0;if(failed>0)_status.Text=T("部分快捷鍵被其他程式占用，請使用控制列按鈕。");
-        _renderTimer.Tick+=(_,_)=>{if(!IsActive)return;try{UpdateScreenEraser();if(_dirty||_laser.Samples.Count>0)Render();}catch(Exception e){_renderTimer.Stop();_overlay.Hide();_status.Text=T("螢幕繪圖已停止：")+e.Message;}};
+        _renderTimer.Tick+=(_,_)=>{if(!IsActive)return;try{UpdateScreenEraser();UpdateScreenMagnetHover();if(_dirty||_laser.Samples.Count>0)Render();}catch(Exception e){_renderTimer.Stop();_overlay.Hide();_status.Text=T("螢幕繪圖已停止：")+e.Message;}};
         _focusRememberTimer.Tick+=(_,_)=>{if(IsActive)RememberExternalFocus();};
         _straightenTimer.Tick+=(_,_)=>
         {
@@ -137,7 +137,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         var p=new InkPoint(input.X,input.Y,1);
         if(IsMagnetDrawingTool(_tool))
         {
-            if(input.Kind=="down")_screenMagnetIndex=_toolbarPreferences.MagnetEnabled?new MagnetSnapIndex(_session.VisibleObjects,10*_dpiScale):null;
+            EnsureScreenMagnetIndex();
             if(_toolbarPreferences.MagnetEnabled&&_screenMagnetIndex is not null)p=_screenMagnetIndex.Snap(p,out _);
         }
         UpdateScreenShapeCursor(p);
@@ -227,7 +227,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             else if(_preview is not null)
             {
                 if(_tool is "line" or "arrow")ObjectHandles.SetEndpoints(_preview,_start,input.Shift?ObjectHandles.ConstrainOrthogonal(_start,p):p);
-                else {_preview.X=Math.Min(_start.X,p.X);_preview.Y=Math.Min(_start.Y,p.Y);_preview.Width=Math.Max(1,Math.Abs(p.X-_start.X));_preview.Height=Math.Max(1,Math.Abs(p.Y-_start.Y));if(_marquee){_preview.LineStyle=p.X<_start.X?"dashed":"solid";_preview.StrokeColor=p.X<_start.X?"#39735A":"#3976C4";}}
+                else {ShapeConstruction.Drag(_preview,_start,p);if(_marquee){_preview.LineStyle=p.X<_start.X?"dashed":"solid";_preview.StrokeColor=p.X<_start.X?"#39735A":"#3976C4";}}
             }
             else if(_tool is "pen" or "highlighter" or "paint")
             {
@@ -312,7 +312,10 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             var right=Math.Min(_overlay.Width,Math.Ceiling(cursor.X+radius));var bottom=Math.Min(_overlay.Height,Math.Ceiling(cursor.Y+radius));
             if(right>left&&bottom>top)eraserDamage=new(left,top,right-left,bottom-top);
         }
-        foreach(var bounds in new[]{_lastLaserDamage,laserDamage,_lastEraserDamage,eraserDamage})if(bounds is { } rect)
+        global::Windows.Foundation.Rect? magnetDamage=null;
+        if(_screenMagnetTarget is { } snap)
+        {var left=Math.Max(0,Math.Floor(snap.X-10*_dpiScale));var top=Math.Max(0,Math.Floor(snap.Y-10*_dpiScale));var right=Math.Min(_overlay.Width,Math.Ceiling(snap.X+10*_dpiScale));var bottom=Math.Min(_overlay.Height,Math.Ceiling(snap.Y+10*_dpiScale));if(right>left&&bottom>top)magnetDamage=new(left,top,right-left,bottom-top);}
+        foreach(var bounds in new[]{_lastLaserDamage,laserDamage,_lastEraserDamage,eraserDamage,_lastMagnetDamage,magnetDamage})if(bounds is { } rect)
         {
             if(_damage is { } old){var left=Math.Min(old.Left,rect.Left);var top=Math.Min(old.Top,rect.Top);_damage=new(left,top,Math.Max(old.Right,rect.Right)-left,Math.Max(old.Bottom,rect.Bottom)-top);}
             else _damage=rect;
@@ -341,11 +344,12 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             }
             if(_tool=="select")foreach(var selected in _session.SelectedObjects)_renderer.RenderSelection(ds,selected,_viewport,_session.SelectedIds.Count==1);
             _renderer.RenderLaser(ds,_laser,_viewport,Now,_dpiScale);
+            if(_screenMagnetTarget is { } target)ds.DrawCircle((float)target.X,(float)target.Y,(float)(7*_dpiScale),Direct2DCanvasRenderer.HexToColor("#10B981"),2);
             if(_screenEraserPointer is { } eraser)_renderer.RenderHover(ds,eraser,true,_eraserSize*_dpiScale,_viewport);
         }
         var x=(int)region.X;var y=(int)region.Y;var width=(int)region.Width;var height=(int)region.Height;
         var pixels=_target.GetPixelBytes(x,y,width,height);_overlay.Present(pixels,x,y,width,height);_presentedBytes+=pixels.Length;_renderedFrames++;
-        _dirty=false;_fullDamage=false;_damage=null;_lastLaserDamage=laserDamage;_lastEraserDamage=eraserDamage;
+        _dirty=false;_fullDamage=false;_damage=null;_lastLaserDamage=laserDamage;_lastEraserDamage=eraserDamage;_lastMagnetDamage=magnetDamage;
     }
     public void ApplySavingPreferences(){_saveTimer.Stop();if(_owner.AutoSaveEnabled&&IsActive&&!_stopping&&_session.IsDirty)_saveTimer.Start();}
     private void Changed(){_dirty=_fullDamage=_committedDirty=true;RefreshScreenLayers();ApplySavingPreferences();}

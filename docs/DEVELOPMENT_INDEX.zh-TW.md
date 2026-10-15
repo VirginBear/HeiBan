@@ -20,6 +20,8 @@
 
 ## Windows端減重評估接手
 
+- [2026-10-15 八項畫布操作與一致外觀](../windows/docs/CANVAS_UI_REFINEMENT_2026-10-15.zh-TW.md)：單排分組、常用自訂、起點／幾何磁鐵、生成板擦、匯入告知、圖釘與固定主題；驗收與試用檔依日誌。
+
 - [2026-10-15 繪圖／文件交換批次](../windows/docs/DRAWING_WORKFLOW_2026-10-15.zh-TW.md)：PDF／PowerPoint頁面匯入、多頁PDF匯出、磁鐵、連續繪圖、雙擊詳細屬性、圖文分頁工具列與實機圖手冊；驗證與試用包以該日誌為準。
 
 - [Windows操作／精簡優化本機批次（待實機）](../windows/docs/WINDOWS_OPTIMIZATION_BATCH_2026-10-13.zh-TW.md)：screen catalog去重、填色入口收整、焦點輪詢降頻；未build／測試，包體減重尚未驗證。

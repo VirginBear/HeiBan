@@ -143,4 +143,28 @@ public sealed class EditorSession
             }
         }
     }
+    public void EraseRectangle(InkPoint center,double width,double height,bool wholeObject)
+    {
+        var left=center.X-width/2;var right=center.X+width/2;var top=center.Y-height/2;var bottom=center.Y+height/2;
+        foreach(var item in VisibleObjects.Where(o=>o.IsLocked!=true&&o.IsErasable).ToArray())
+        {
+            if(!wholeObject&&item.Type is not("stroke" or "pen" or "highlighter" or "paint"))continue;
+            if(!RectangularEraser.Intersects(item,left,top,right,bottom))continue;
+            if(wholeObject||item.ParsedPoints.Count==0){Document.Objects.Remove(item);continue;}
+            // Bake the old rotation into points before computing fragment bounds. Leaving
+            // rotation on each fragment would rotate it around a different center.
+            var world=item.ParsedPoints.Select(p=>{var copy=DocumentCodec.Clone(p);var at=ObjectHandles.ToWorld(item,p);copy.X=at.X;copy.Y=at.Y;return copy;}).ToArray();
+            var pad=item.StrokeWidth/2;
+            var fragments=RectangularEraser.Split(world,left-pad,top-pad,right+pad,bottom+pad);
+            if(fragments.Count==1&&fragments[0].Count==world.Length&&fragments[0].Zip(world).All(pair=>pair.First.X==pair.Second.X&&pair.First.Y==pair.Second.Y))continue;
+            var index=Document.Objects.IndexOf(item);Document.Objects.RemoveAt(index);
+            foreach(var fragment in fragments)
+            {
+                var copy=DocumentCodec.Clone(item);copy.Id=Guid.NewGuid().ToString();copy.Rotation=0;
+                copy.Points=JsonSerializer.Serialize(fragment,DocumentCodec.Options);
+                var bounds=VectorMath.ComputeBoundingBox(fragment,item.StrokeWidth);copy.X=bounds.MinX;copy.Y=bounds.MinY;copy.Width=bounds.Width;copy.Height=bounds.Height;
+                Document.Objects.Insert(index++,copy);
+            }
+        }
+    }
 }

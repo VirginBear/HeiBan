@@ -99,6 +99,20 @@ internal sealed partial class ScreenAnnotationWindow
         Command("全選",()=>{foreach(var tool in ToolbarContentPolicy.ScreenCanvasTools)_toolbarPreferences.ShowTool(tool);});
         Command("預設",()=>_toolbarPreferences.ResetToDefault());
         Command("只有圖示",()=>_toolbarPreferences.DisplayMode="icons");Command("圖示與文字（分頁）",()=>_toolbarPreferences.DisplayMode="labels");
+        var common=new MenuFlyoutSubItem{Text=T("常用")};
+        foreach(var key in ToolbarContentPolicy.ScreenCanvasTools.Where(key=>key!="select"))
+        {
+            var favorite=new ToggleMenuFlyoutItem{Text=T(ToolbarPreferences.ToolNames.GetValueOrDefault(key,key)),IsChecked=_toolbarPreferences.CommonTools.Contains(key)};
+            favorite.Click+=async(_,_)=>
+            {
+                var oldCommon=_toolbarPreferences.CommonTools.ToList();var oldVisible=_toolbarPreferences.VisibleTools.ToList();var oldHidden=_toolbarPreferences.HiddenTools.ToList();
+                if(favorite.IsChecked){_toolbarPreferences.CommonTools.Add(key);_toolbarPreferences.ShowTool(key);}else _toolbarPreferences.CommonTools.Remove(key);
+                try{await _owner.SaveToolbarPreferencesAsync(_toolbarPreferences);RebuildChromeLayout();ResizeChrome();PositionChrome();RefreshButtons();}
+                catch(Exception error){_toolbarPreferences.CommonTools=oldCommon;_toolbarPreferences.VisibleTools=oldVisible;_toolbarPreferences.HiddenTools=oldHidden;favorite.IsChecked=oldCommon.Contains(key);_status.Text=error.Message;}
+            };
+            common.Items.Add(favorite);
+        }
+        submenu.Items.Add(common);
         submenu.Items.Add(new MenuFlyoutSeparator());
         foreach(var key in ToolbarContentPolicy.VisibleTools(_toolbarPreferences,screenCanvas:true).Concat(ToolbarContentPolicy.HiddenTools(_toolbarPreferences,screenCanvas:true)))
         {

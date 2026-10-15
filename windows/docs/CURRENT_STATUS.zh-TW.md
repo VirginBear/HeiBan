@@ -1,5 +1,11 @@
 # Windows 目前開發狀態
 
+## 2026-10-15 — 八項畫布實測修整（新試用封裝準備中，未正式進版）
+
+圖文工具列改單排／單列，按工作區延伸，窄視窗用工具組箭頭；選取常駐。常用分頁可在自訂卡片中勾選，screen自訂亦有共用常用偏好。磁鐵含起點hover提示與完整形狀參考點；圓／菱形／五角／星形改中心拖曳，兩宿主共用建構幾何。一般畫布新增生成木質板擦、矩形擦除／一筆Undo／設定顯隱。PDF／簡報匯入增加醒目圖片化限制說明；圖釘先新增再搜尋，清單以實際配色繪製。全App固定紙白／綠色，不隨Windows亮暗主題；OS選檔器仍由系統控制。
+
+十語UI624key、手冊25章62段；四張舊批實機圖保留並明示排版差異。r2及r3 x64 Release build成功（0warning／0error），隔離視窗觀察單排、板擦、自訂卡片；未跑本批自動化測試或硬體完整回歸，板擦擦除／Undo、第一點實際吸附、4K／左右停靠／十語母語仍待驗收。新ZIP與接續／清理結果待本批日誌補記；1.0.14.0仍為開發候選，舊版2334checks不當本批通過數字。[本批完整紀錄](CANVAS_UI_REFINEMENT_2026-10-15.zh-TW.md)。
+
 ## 2026-10-15 — 文件交換與繪圖九項需求（來源及本機針對性驗證完成，待使用者試用）
 
 最新x64試用包：`dist/trials/HeiBan-Windows-Portable-1.0.14-drawing-2026-10-15-r1-win-x64.zip`，131,955,475 bytes，SHA256 `41f0d1bc11707b447e279ca1dbb4c0c2324fdace676a3e23de3793ea1794ef6a`，來源`cc852963a8ea3d7bda629a806c33940e9842562a`乾淨工作樹。完整解壓後執行HeiBan.exe；原機同名解壓目錄已接續最近optimization試用Data13檔／34859bytes，逐檔SHA相同，ZIP仍為空白Data。App／Updater publish成功；579 ZIP項、572payload／157source SHA、兩EXE x64、10語／4圖全部核同，最終可攜EXE隔離啟動及正常關閉成功。舊兩份未發布試用已清理901658688bytes，43個Data檔與18個修改過檔案先保存至`dist/trial-data-backups/20261015-075635-9700515c`並核SHA；Store1.0.12 bundle前後原SHA一致。[封裝](DRAWING_WORKFLOW_PORTABLE_ARTIFACT_2026-10-15.json)／[檢視](DRAWING_WORKFLOW_PORTABLE_INSPECTION_2026-10-15.json)／[接續](DRAWING_WORKFLOW_DATA_HANDOFF_2026-10-15.json)／[清理](DRAWING_WORKFLOW_TRIAL_CLEANUP_2026-10-15.json)。下方舊試用路徑是歷史，相關舊runtime已清除，作品與必要修改檔仍保留。

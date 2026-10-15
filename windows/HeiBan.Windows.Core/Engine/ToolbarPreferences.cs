@@ -12,6 +12,8 @@ public sealed class ToolbarPreferences
     public List<string> HiddenTools { get; set; } = [];
     public string DisplayMode { get; set; } = "icons";
     public bool MagnetEnabled { get; set; }
+    public bool BoardEraserVisible { get; set; } = true;
+    public List<string> CommonTools { get; set; } = ["pen","highlighter","eraser","undo","redo","magnet"];
     [System.Text.Json.Serialization.JsonExtensionData] public Dictionary<string,JsonElement>? ExtraFields { get; set; }
 
     public static readonly string[] StreamlinedTools =
@@ -71,6 +73,7 @@ public sealed class ToolbarPreferences
         }
 
         var allKnown = AllDefaultTools.ToHashSet();
+        CommonTools = (CommonTools ?? ["pen","highlighter","eraser","undo","redo","magnet"]).Where(t=>allKnown.Contains(t)&&t is not("select" or "extension")).Distinct().ToList();
         VisibleTools ??= [];
         HiddenTools ??= [];
 
@@ -97,6 +100,7 @@ public sealed class ToolbarPreferences
     public void ResetToDefault()
     {
         DisplayMode="icons";MagnetEnabled=false;
+        CommonTools=["pen","highlighter","eraser","undo","redo","magnet"];
         DockSide = "上方";
         VisibleTools = [.. StreamlinedTools];
         HiddenTools = [.. AllDefaultTools.Except(StreamlinedTools)];

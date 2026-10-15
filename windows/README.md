@@ -1,5 +1,9 @@
 # 黑板 · Windows 原生版
 
+## 2026-10-15 畫布操作與一致外觀修整
+
+新增一般畫布生成木質板擦、單排圖文工具組／可自訂常用、完整幾何磁鐵與中心式圖形起點、匯入圖片化說明、圖釘新增優先與固定品牌淺色。維持1.0.14開發候選；新版試用交付與未驗收項見[階段紀錄](docs/CANVAS_UI_REFINEMENT_2026-10-15.zh-TW.md)，不代表正式商店更新。
+
 2026-10-15：[繪圖與文件交換開發批次](docs/DRAWING_WORKFLOW_2026-10-15.zh-TW.md)。新增PDF頁面匯入、依本機桌面PowerPoint轉換PPT/PPTX、多頁PDF匯出、磁鐵、連續繪圖、雙擊詳細屬性、圖示／圖文分頁工具列及四張實機圖的十語手冊。PDF／簡報頁面匯入為可註記圖片；動畫、原元素編輯與缺字型相容性有明確限制，詳[交換契約](docs/DOCUMENT_EXCHANGE_2026-10-15.zh-TW.md)。版號沿用1.0.14開發候選，試用產物及實際驗證見目前狀態。
 
 最新本機免安裝：`dist/trials/HeiBan-Windows-Portable-1.0.14-drawing-2026-10-15-r1-win-x64.zip`（131955475bytes）。解壓至新資料夾啟動HeiBan.exe；原機同名解壓版接續最近試用Data，ZIP本身無作品。舊未發布trials已清理並保留資料備份；以[最新狀態與SHA](docs/CURRENT_STATUS.zh-TW.md)為準，以下舊路徑／數字是歷史。

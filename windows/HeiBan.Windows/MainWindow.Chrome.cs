@@ -665,6 +665,7 @@ public partial class MainWindow
             .ToList();
 
         var visibleSet = new HashSet<string>(_toolbarPrefs.VisibleTools);
+        var commonSet = new HashSet<string>(_toolbarPrefs.CommonTools);
         var displayMode=_toolbarPrefs.DisplayMode;
         var panel = new StackPanel { Spacing = 6 };
 
@@ -679,10 +680,11 @@ public partial class MainWindow
                 grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
                 grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
                 var cb = new CheckBox
                 {
-                    Content = T(ToolbarPreferences.ToolNames.GetValueOrDefault(key, key)),
+                    Content = new StackPanel{Orientation=Orientation.Horizontal,Spacing=10,Children={ToolIcons.Create(key),new TextBlock{Text=T(ToolbarPreferences.ToolNames.GetValueOrDefault(key,key)),MaxWidth=160,TextWrapping=TextWrapping.Wrap,VerticalAlignment=VerticalAlignment.Center}}},
                     IsEnabled=key!="select",IsChecked = key=="select"||visibleSet.Contains(key)
                 };
                 cb.Checked += (_, _) => visibleSet.Add(key);
@@ -696,7 +698,11 @@ public partial class MainWindow
                     (allKeys[idx - 1], allKeys[idx]) = (allKeys[idx], allKeys[idx - 1]);
                     RebuildList();
                 };
-                Grid.SetColumn(upBtn, 1);
+                var common=new CheckBox{Content=T("常用"),IsChecked=commonSet.Contains(key),IsEnabled=key!="select",MinWidth=72};
+                common.Checked+=(_,_)=>{commonSet.Add(key);visibleSet.Add(key);cb.IsChecked=true;};
+                common.Unchecked+=(_,_)=>commonSet.Remove(key);
+                Grid.SetColumn(common,1);grid.Children.Add(common);
+                Grid.SetColumn(upBtn, 2);
                 grid.Children.Add(upBtn);
 
                 var downBtn = new Button { Content = "↓", Padding = new Thickness(6, 2, 6, 2), IsEnabled = idx < allKeys.Count - 1 };
@@ -705,10 +711,10 @@ public partial class MainWindow
                     (allKeys[idx + 1], allKeys[idx]) = (allKeys[idx], allKeys[idx + 1]);
                     RebuildList();
                 };
-                Grid.SetColumn(downBtn, 2);
+                Grid.SetColumn(downBtn, 3);
                 grid.Children.Add(downBtn);
 
-                panel.Children.Add(grid);
+                panel.Children.Add(new Border{Background=Brush("#F0F4EC"),BorderBrush=Brush("#DFE6D9"),BorderThickness=new Thickness(1),CornerRadius=new CornerRadius(12),Padding=new Thickness(10,4,10,4),Child=grid});
             }
         }
 
@@ -717,8 +723,8 @@ public partial class MainWindow
         var scroll = new ScrollViewer { Content = panel, MaxHeight = 360, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
         var dialog = new ContentDialog
         {FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,
-            Title = T("自訂工具列（勾選顯示，↑↓ 調整順序）"),
-            Content = new StackPanel{Spacing=10,Children={CustomizeToolbarHeader(visibleSet,allKeys,RebuildList,displayMode,value=>displayMode=value),scroll}},
+            Title = T("自訂工具列"),
+            Content = new StackPanel{Spacing=10,Children={CustomizeToolbarHeader(visibleSet,allKeys,RebuildList,displayMode,value=>displayMode=value,()=>{commonSet.Clear();commonSet.UnionWith(new ToolbarPreferences().CommonTools);}),new TextBlock{Text=T("左側勾選顯示工具，勾選「常用」加入常用分頁；選取工具會持續顯示。"),TextWrapping=TextWrapping.Wrap,FontSize=12,Foreground=Brush("#65746A")},scroll}},
             PrimaryButtonText = T("儲存"),
             CloseButtonText = T("取消"),
             XamlRoot = Root.XamlRoot
@@ -738,6 +744,7 @@ public partial class MainWindow
         if (newVisible.Count == 0) newVisible.Add("select");
 
         _toolbarPrefs.DisplayMode=displayMode;
+        _toolbarPrefs.CommonTools=allKeys.Where(commonSet.Contains).ToList();
         _toolbarPrefs.VisibleTools = newVisible;
         _toolbarPrefs.HiddenTools = newHidden;
         await ToolbarPreferencesStore.SaveAsync(_storage.DataDirectory, _toolbarPrefs);
@@ -755,7 +762,7 @@ public partial class MainWindow
     {
         // Screen canvas shares the settings file. Update the hidden owner in-memory too, or its
         // next toolbar rebuild could overwrite a choice just made in the screen session.
-        var updated=new ToolbarPreferences{DockSide=preferences.DockSide,DisplayMode=preferences.DisplayMode,MagnetEnabled=preferences.MagnetEnabled,ExtraFields=preferences.ExtraFields,VisibleTools=[..preferences.VisibleTools],HiddenTools=[..preferences.HiddenTools]};
+        var updated=new ToolbarPreferences{DockSide=preferences.DockSide,DisplayMode=preferences.DisplayMode,MagnetEnabled=preferences.MagnetEnabled,BoardEraserVisible=preferences.BoardEraserVisible,CommonTools=[..preferences.CommonTools],ExtraFields=preferences.ExtraFields,VisibleTools=[..preferences.VisibleTools],HiddenTools=[..preferences.HiddenTools]};
         updated.Normalize();
         await ToolbarPreferencesStore.SaveAsync(_storage.DataDirectory,updated);
         _toolbarPrefs=updated;
@@ -813,6 +820,7 @@ public partial class MainWindow
 
     private void RefreshChrome()
     {
+        RefreshBoardEraser();
         foreach (var (key, b) in _toolButtons)
         {
             ToolbarUi.LabelMode(b,key,_toolbarPrefs.DisplayMode=="labels",40);

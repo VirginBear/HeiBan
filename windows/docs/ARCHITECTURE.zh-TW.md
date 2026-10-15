@@ -1,5 +1,15 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-15 — 單行分頁與板擦草稿邊界
+
+ToolbarUi.Presentation共用分類／可自訂CommonTools投影；選取在分頁外。ToolbarFlowPanel.SingleRun依可用DIP選一組工具，兩端箭頭切組，版面事件只更新RunLength；保留清根前Detach及主呈現快取，避免巢狀按鈕重掛。toolbar.json新增CommonTools及BoardEraserVisible，既有設定預設常用六項／顯示板擦，未知欄位保留。
+
+MagnetSnapIndex.ReferencePoints輸出幾何參考，不取可編輯handles，因此鎖定仍參考；index以文件epoch／generation／頁面／縮放或DPI快取，hover與pointer-down同一規則。ShapeConstruction.Drag共用中心式圖形與角起點矩形建構，既有永久物件不遷移。screen依dirty bounds清除前一／本次吸附提示，不每幀重建索引。
+
+MainWindow.BoardEraser只擁有畫面DIP位置與手勢草稿EditorSession；草稿RenderMainScene取代顯示來源，正式session直到放開才替換Objects並一筆Commit。矩形尺寸依viewport.Zoom換world，移動以重疊取樣避免跳空。RectangularEraser以線段／矩形交點切斷筆跡，片段烘焙旋轉、保留Z／未知物件及點欄位；物件模式不以包圍圓冒充矩形。Esc／捕捉遺失取消，保存邊界取消未完成草稿。只對原IsErasable型別生效，局部模式不改圖片像素，screen仍圓形工具擦除。未增加作品JSON欄位。
+
+App RequestedTheme固定Light；語意brush及popup presenters統一紙白／綠色，主窗不再使用會受OS影響的Mica。保留系統檔案選擇器的OS外觀。使用說明亦固定亮色。
+
 ## 2026-10-15 — 文件頁面交換、磁鐵與工具列呈現
 
 `DocumentImportService`將Windows PDF逐頁呈現為既有notebook image物件，PPT／PPTX使用可選的本機PowerPoint COM STA轉PDF，之後進入相同管線；UI持有頁面範圍、進度、取消與作品提交邊界。上限200頁／100MB渲染圖片，全部成功後才保存；頁面圖片與原文件元素的可編輯性分開。WebView2 PDF列印可逐BoardPage分頁，仍使用既有SVG與source attachment，沒有新第三方runtime依賴。詳[交換契約](DOCUMENT_EXCHANGE_2026-10-15.zh-TW.md)。

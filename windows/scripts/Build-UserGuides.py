@@ -58,7 +58,7 @@ def simplify(value):
     return result
 
 CSS = '''
-:root{color-scheme:light dark;--bg:#f8faf8;--paper:#fff;--fg:#1c3029;--muted:#586e64;--line:#dce6df;--accent:#236249}
+:root{color-scheme:light;--bg:#f8faf8;--paper:#fff;--fg:#1c3029;--muted:#586e64;--line:#dce6df;--accent:#236249}
 *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-block-start:1.5rem}
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.8 system-ui,"Segoe UI",sans-serif}
 header{padding:2rem max(1.5rem,calc((100vw - 1320px)/2));background:var(--paper);border-block-end:1px solid var(--line)}
@@ -77,7 +77,6 @@ figure{margin:1rem 0}figure img{display:block;width:100%;height:auto;border:1px 
 #empty{padding:1rem;color:var(--muted)}footer{padding:1rem 0 2rem;color:var(--muted);font-size:.9rem}
 [hidden]{display:none!important}a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 @media(max-width:800px){.layout{grid-template-columns:1fr;gap:1rem;margin:1rem auto}aside{position:static;max-height:18rem}section{padding:1rem 1.2rem}header{padding:1.5rem}}
-@media(prefers-color-scheme:dark){:root{--bg:#14231d;--paper:#1b2d24;--fg:#e4eee7;--muted:#b4c8bb;--line:#344d3d;--accent:#9fd4b6}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 @media print{header .controls,aside{display:none}.layout{display:block;max-width:none;margin:0;padding:0}section{break-inside:avoid;border:0;border-block-end:1px solid #ccc;border-radius:0}body,section,header{background:white;color:black}section[hidden]{display:block!important}}
 '''
@@ -109,16 +108,16 @@ def prose(value):
 
 SCREENSHOTS={'workspace':'toolbar-labeled.jpg','shapes':'triangle-preview.jpg','selection':'object-properties.jpg','files':'pdf-pages.jpg'}
 CAPTIONS={
-    'zh-TW':'實際 Windows 程式畫面，使用示範作品及正體中文介面；按鈕文字會隨介面語言切換。',
-    'zh-CN':'实际 Windows 程序画面，使用示例作品和繁体中文界面；按钮文字随界面语言切换。',
-    'en':'Actual Windows app with a sample work and Traditional Chinese UI. Button labels follow your interface language.',
-    'ja':'サンプル作品を使った実際のWindows画面（繁体字中国語）です。ボタン名は設定言語に切り替わります。',
-    'ko':'예제 작품을 사용한 실제 Windows 앱 화면입니다(번체 중국어). 버튼 이름은 인터페이스 언어에 따라 바뀝니다.',
-    'es':'Pantalla real de Windows con un ejemplo y la interfaz en chino tradicional. Los botones siguen el idioma elegido.',
-    'fr':'Écran réel de l’application Windows avec un exemple en chinois traditionnel. Les boutons suivent la langue de l’interface.',
-    'de':'Tatsächliche Windows-App mit einem Beispiel und traditionell chinesischer Oberfläche. Schaltflächen folgen Ihrer Sprache.',
-    'pt-BR':'Tela real do aplicativo Windows com um exemplo em chinês tradicional. Os botões seguem o idioma da interface.',
-    'ar':'صورة فعلية لتطبيق Windows مع عمل تجريبي وواجهة بالصينية التقليدية. تتبع أسماء الأزرار لغة الواجهة المختارة.'}
+    'zh-TW':'實際 Windows 程式畫面，使用示範作品及正體中文介面；按鈕文字會隨介面語言切換。 部分截圖來自前一試用版；本批工具列排列請以目前程式及文字說明為準。',
+    'zh-CN':'实际 Windows 程序画面，使用示例作品和繁体中文界面；按钮文字随界面语言切换。 部分截图来自上一试用版；本批工具栏布局请以当前程序及文字说明为准。',
+    'en':'Actual Windows app with a sample work and Traditional Chinese UI. Button labels follow your interface language. Some images show the preceding trial; refer to the current app and text for the revised toolbar layout.',
+    'ja':'サンプル作品を使った実際のWindows画面（繁体字中国語）です。ボタン名は設定言語に切り替わります。 一部は前の試用版の画面です。変更後のツール配置は現在のアプリと説明を参照してください。',
+    'ko':'예제 작품을 사용한 실제 Windows 앱 화면입니다(번체 중국어). 버튼 이름은 인터페이스 언어에 따라 바뀝니다. 일부 이미지는 이전 체험판입니다. 바뀐 도구 배치는 현재 앱과 설명을 참고하세요.',
+    'es':'Pantalla real de Windows con un ejemplo y la interfaz en chino tradicional. Los botones siguen el idioma elegido. Algunas imágenes corresponden a la prueba anterior; consulta la aplicación y el texto para la nueva barra.',
+    'fr':'Écran réel de l’application Windows avec un exemple en chinois traditionnel. Les boutons suivent la langue de l’interface. Certaines images proviennent de l’essai précédent ; consultez l’application et le texte pour la nouvelle disposition.',
+    'de':'Tatsächliche Windows-App mit einem Beispiel und traditionell chinesischer Oberfläche. Schaltflächen folgen Ihrer Sprache. Einige Bilder stammen aus dem vorherigen Teststand; für die neue Werkzeuganordnung gelten die aktuelle App und der Text.',
+    'pt-BR':'Tela real do aplicativo Windows com um exemplo em chinês tradicional. Os botões seguem o idioma da interface. Algumas imagens são da versão de teste anterior; consulte o aplicativo atual e o texto para a nova barra.',
+    'ar':'صورة فعلية لتطبيق Windows مع عمل تجريبي وواجهة بالصينية التقليدية. تتبع أسماء الأزرار لغة الواجهة المختارة. بعض الصور من النسخة التجريبية السابقة؛ راجع التطبيق الحالي والنص لتخطيط الشريط المعدّل.'}
 
 def render(code,rows,legacy=False):
     metadata={key:html.escape(rows[key][0],quote=True) for key in META}

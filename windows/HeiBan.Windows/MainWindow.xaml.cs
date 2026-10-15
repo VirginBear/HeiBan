@@ -76,7 +76,7 @@ public partial class MainWindow : Window
         InitializeLibraryChrome();BuildChrome();InitializeTeachingTools();InitializeDeferredWork();
         ApplyLanguageChrome();
         App.StartupStage="設定主視窗";
-        ExtendsContentIntoTitleBar=true;SetTitleBar(AppTitleBar);SystemBackdrop=new MicaBackdrop();
+        ExtendsContentIntoTitleBar=true;SetTitleBar(AppTitleBar);SystemBackdrop=null;
         AppWindow.TitleBar.ButtonForegroundColor=Direct2DCanvasRenderer.HexToColor("#26372F");
         AppWindow.TitleBar.ButtonBackgroundColor=global::Windows.UI.Color.FromArgb(0,0,0,0);
         AppWindow.TitleBar.ButtonHoverBackgroundColor=Direct2DCanvasRenderer.HexToColor("#DCEBDD");
@@ -88,7 +88,7 @@ public partial class MainWindow : Window
         PortableBadge.Visibility=_storage.IsPortableMode?Visibility.Visible:Visibility.Collapsed;
         _updates=new Updating.GitHubUpdateService(_storage.IsPortableMode);
         _renderer.ResourcesChanged+=()=>InvalidateCanvas();
-        _autosave.Tick+=async(_,_)=>{if(AutoSaveEnabled&&!_preparingClose&&!_saveBoundaryBusy&&_workspaceOpen&&_session.IsDirty&&_editor is null&&!_gesture&&!_propertyEditing&&_saveGate.CurrentCount>0)await SaveAsync(deferThumbnail:true);};
+        _autosave.Tick+=async(_,_)=>{if(AutoSaveEnabled&&!_preparingClose&&!_saveBoundaryBusy&&_workspaceOpen&&_session.IsDirty&&_editor is null&&!_gesture&&_boardEraserDraft is null&&!_propertyEditing&&_saveGate.CurrentCount>0)await SaveAsync(deferThumbnail:true);};
         ApplySavingPreferences();
         _screenshotWatchTimer.Tick+=async(_,_)=>await OnScreenshotWatchTickAsync();
         AppWindow.Closing+=async(_,e)=>
@@ -375,6 +375,7 @@ public partial class MainWindow : Window
     private string _dock="上方";
     private void DrawingArea_SizeChanged(object sender,SizeChangedEventArgs e)
     {
+        RefreshBoardEraser();
         if(Tools is null)return;
         var floating=_toolbarTranslation.X!=0||_toolbarTranslation.Y!=0;
         var offset=new Point(_toolbarTranslation.X,_toolbarTranslation.Y);
@@ -409,6 +410,7 @@ public partial class MainWindow : Window
     private void Root_KeyDown(object sender,KeyRoutedEventArgs e)
     {
         if(e.Handled)return;
+        if(_boardEraserDraft is not null){if(e.Key==VirtualKey.Escape)CancelBoardEraser();e.Handled=true;return;}
         if(_preparingClose||_saveBoundaryBusy){e.Handled=true;return;}
         if(e.OriginalSource is TextBox or NumberBox or RichEditBox || _editor is not null || _pinNameEditor is not null)return;
         var ctrl=Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control).HasFlag(global::Windows.UI.Core.CoreVirtualKeyStates.Down);

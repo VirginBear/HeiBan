@@ -14,6 +14,7 @@ internal sealed partial class ScreenAnnotationWindow
 {
     private sealed class ChromePreferences
     {public string Dock {get;set;}="top";public double Position {get;set;}=.5;public bool Collapsed {get;set;}}
+    private ToolbarFlowPanel? _labeledScreenFlow;
     private string _chromeDock="top";
     private double _chromePosition=.5;
     private PointInt32? _requestedChromePosition;
@@ -56,7 +57,7 @@ internal sealed partial class ScreenAnnotationWindow
         foreach(var button in _buttons.Where(pair=>!ToolbarPreferences.AllDefaultTools.Contains(pair.Key)).Select(pair=>pair.Value)
                     .Concat(_chromeActions.Where(button=>button.Tag is null||!ToolbarPreferences.AllDefaultTools.Contains((string)button.Tag))))
             if(!ordered.Contains(button))ordered.Add(button);
-        ToolbarUi.Arrange(_chromeTools,ordered.Select(b=>(b.Tag as string??"palette",b)),_toolbarPreferences.DisplayMode=="labels",vertical,_toolbarPage,p=>{_toolbarPage=p;DispatcherQueue.TryEnqueue(()=>{ResizeChrome();PositionChrome();});},32);
+        _labeledScreenFlow=ToolbarUi.Arrange(_chromeTools,ordered.Select(b=>(b.Tag as string??"palette",b)),_toolbarPreferences.DisplayMode=="labels",vertical,_toolbarPage,p=>{_toolbarPage=p;DispatcherQueue.TryEnqueue(()=>{ResizeChrome();PositionChrome();});},32,_toolbarPreferences.CommonTools);
         if(!vertical&&!_collapsed)_chromeTools.Children.Add(_moreButton);
         _chromeEnd=new StackPanel{Orientation=orientation,Spacing=4,VerticalAlignment=VerticalAlignment.Center,HorizontalAlignment=HorizontalAlignment.Center};
         _chromeEnd.Children.Add(_clearButton);if(vertical||_collapsed)_chromeEnd.Children.Add(_moreButton);_chromeEnd.Children.Add(_closeButton);
@@ -75,6 +76,7 @@ internal sealed partial class ScreenAnnotationWindow
         _chromeStart.Measure(unbounded);_chromeEnd.Measure(unbounded);
         var workWidth=Math.Max(1,available.Width/_dpiScale-24);var workHeight=Math.Max(1,available.Height/_dpiScale-24);
         _chromeTools.RunLength=VerticalChrome?Math.Max(32,workHeight-_chromeStart.DesiredSize.Height-_chromeEnd.DesiredSize.Height-30):Math.Max(32,workWidth-_chromeStart.DesiredSize.Width-_chromeEnd.DesiredSize.Width-38);
+        if(_labeledScreenFlow is { } labeled){labeled.RunLength=VerticalChrome?Math.Max(72,workHeight-_chromeStart.DesiredSize.Height-_chromeEnd.DesiredSize.Height-320):Math.Max(84,workWidth-_chromeStart.DesiredSize.Width-_chromeEnd.DesiredSize.Width-220);labeled.InvalidateMeasure();}
         _chromeTools.InvalidateMeasure();_chromeTools.Measure(unbounded);
         var start=_chromeStart.DesiredSize;var tools=_collapsed?new global::Windows.Foundation.Size():_chromeTools.DesiredSize;var end=_chromeEnd.DesiredSize;
         var desiredWidth=VerticalChrome?Math.Max(76,Math.Max(start.Width,Math.Max(tools.Width,end.Width))+32):start.Width+tools.Width+end.Width+38;

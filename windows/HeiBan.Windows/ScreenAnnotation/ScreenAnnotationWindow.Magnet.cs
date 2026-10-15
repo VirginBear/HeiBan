@@ -3,6 +3,31 @@ namespace HeiBan.Windows.ScreenAnnotation;
 internal sealed partial class ScreenAnnotationWindow
 {
     private MagnetSnapIndex? _screenMagnetIndex;
+    private double _screenMagnetScale;
+    private long _screenMagnetGeneration=-1,_screenMagnetEpoch=-1;
+    private HeiBan.Windows.Models.InkPoint? _screenMagnetTarget;
+    private global::Windows.Foundation.Rect? _lastMagnetDamage;
+    private void EnsureScreenMagnetIndex()
+    {
+        if(!_toolbarPreferences.MagnetEnabled){_screenMagnetIndex=null;return;}
+        if(_screenMagnetIndex is not null&&_screenMagnetGeneration==_session.Generation&&_screenMagnetEpoch==_session.DocumentEpoch&&_screenMagnetScale==_dpiScale)return;
+        _screenMagnetIndex=new MagnetSnapIndex(_session.VisibleObjects,10*_dpiScale);_screenMagnetGeneration=_session.Generation;_screenMagnetEpoch=_session.DocumentEpoch;_screenMagnetScale=_dpiScale;
+    }
+    private void UpdateScreenMagnetHover()
+    {
+        HeiBan.Windows.Models.InkPoint? target=null;
+        if(_drawing&&_toolbarPreferences.MagnetEnabled&&IsMagnetDrawingTool(_tool)&&_chromeFlyout is null&&_captureCancellation is null)
+        {
+            var cursor=NativeOverlayWindow.CurrentPointer;var chrome=AppWindow.Position;var size=AppWindow.Size;
+            if(!(cursor.X>=chrome.X&&cursor.X<chrome.X+size.Width&&cursor.Y>=chrome.Y&&cursor.Y<chrome.Y+size.Height))
+            {
+                EnsureScreenMagnetIndex();var point=new HeiBan.Windows.Models.InkPoint(cursor.X-_overlay.Left,cursor.Y-_overlay.Top);
+                if(_screenMagnetIndex is not null){var snapped=_screenMagnetIndex.Snap(point,out var found);if(found)target=snapped;}
+            }
+        }
+        if(target?.X==_screenMagnetTarget?.X&&target?.Y==_screenMagnetTarget?.Y)return;
+        _screenMagnetTarget=target;_dirty=true;
+    }
     private static bool IsMagnetDrawingTool(string tool)=>tool is "pen" or "highlighter" or "paint" or "curve" or "line" or "arrow" or "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star";
     private async void ToggleScreenMagnet()
     {

@@ -11,7 +11,8 @@ internal static partial class ToolbarUi
     private static readonly (string Key,string Label)[] Pages=[("common","常用"),("drawing","繪圖"),("insert","插入"),("organize","管理")];
     private static string PageFor(string key)=>key switch
     {
-        "select" or "pen" or "highlighter" or "eraser" or "undo" or "redo" or "magnet"=>"common",
+        "select" or "undo" or "redo"=>"organize",
+        "pen" or "highlighter" or "eraser" or "magnet"=>"drawing",
         "brush" or "curve" or "paint" or "ruler" or "shapes" or "compass" or "dash"=>"drawing",
         "sticky" or "text" or "image" or "screenshot" or "tape" or "calculator" or "timer"=>"insert",
         _=>"organize"
@@ -39,7 +40,7 @@ internal static partial class ToolbarUi
         foreach(var button in buttons)
             if((button.Parent??VisualTreeHelper.GetParent(button)) is Panel parent)parent.Children.Remove(button);
     }
-    internal static ToolbarFlowPanel? Arrange(Panel host,IEnumerable<(string Key,Button Button)> source,bool labels,bool vertical,string activePage,Action<string> changePage,double iconSize)
+    internal static ToolbarFlowPanel? Arrange(Panel host,IEnumerable<(string Key,Button Button)> source,bool labels,bool vertical,string activePage,Action<string> changePage,double iconSize,IReadOnlyCollection<string>? commonTools=null)
     {
         var buttons=source.ToArray();
         // Detach from their former page before reparenting on dock/language/preference changes.
@@ -51,18 +52,24 @@ internal static partial class ToolbarUi
         if(buttons.FirstOrDefault(b=>b.Key=="select").Button is { } select)shell.Children.Add(select);
         var body=new StackPanel{Spacing=4};
         var tabs=new StackPanel{Orientation=vertical?Orientation.Vertical:Orientation.Horizontal,Spacing=3};
-        var flow=new ToolbarFlowPanel{Orientation=vertical?Orientation.Vertical:Orientation.Horizontal,RunLength=vertical?360:540,Spacing=3};
+        var flow=new ToolbarFlowPanel{Orientation=vertical?Orientation.Vertical:Orientation.Horizontal,RunLength=vertical?600:900,Spacing=3,SingleRun=true};
         var tabButtons=new Dictionary<string,Button>();
         void Show(string page)
         {
-            flow.Children.Clear();
-            foreach(var (key,button) in buttons.Where(b=>b.Key is not("select" or "more")&&PageFor(b.Key)==page))flow.Children.Add(button);
+            flow.Children.Clear();flow.PageOffset=0;
+            foreach(var (key,button) in buttons.Where(b=>b.Key is not("select" or "more")&&(page=="common"?(commonTools?.Contains(b.Key)??PageFor(b.Key)=="common"):PageFor(b.Key)==page)))flow.Children.Add(button);
             foreach(var pair in tabButtons)pair.Value.Background=new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(pair.Key==page?(byte)45:(byte)0,57,115,90));
             changePage(page);
         }
         foreach(var (key,label) in Pages)
         {var tab=new Button{Content=T(label),Padding=new Thickness(9,4,9,4),FontSize=12};tab.Click+=(_,_)=>Show(key);tabs.Children.Add(tab);tabButtons[key]=tab;}
-        body.Children.Add(tabs);body.Children.Add(flow);shell.Children.Add(body);
+        var strip=new StackPanel{Orientation=vertical?Orientation.Vertical:Orientation.Horizontal,Spacing=3};
+        var previous=new Button{Content=vertical?"⌃":"‹",Width=24,Height=32,Padding=new Thickness(0),VerticalAlignment=VerticalAlignment.Center};
+        var next=new Button{Content=vertical?"⌄":"›",Width=24,Height=32,Padding=new Thickness(0),VerticalAlignment=VerticalAlignment.Center};
+        Label(previous,T("上一組工具"));Label(next,T("下一組工具"));previous.Click+=(_,_)=>flow.NextPage(-1);next.Click+=(_,_)=>flow.NextPage(1);
+        flow.PageAvailabilityChanged=(canPrevious,canNext)=>{previous.IsEnabled=canPrevious;next.IsEnabled=canNext;};
+        strip.Children.Add(previous);strip.Children.Add(flow);strip.Children.Add(next);
+        body.Children.Add(tabs);body.Children.Add(strip);shell.Children.Add(body);
         if(buttons.FirstOrDefault(b=>b.Key=="more").Button is { } more)shell.Children.Add(more);
         host.Children.Add(shell);Show(Pages.Any(p=>p.Key==activePage)?activePage:"common");
         return flow;
