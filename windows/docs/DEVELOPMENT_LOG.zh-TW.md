@@ -1,5 +1,9 @@
 # Windows 開發日誌
 
+## 2026-10-15 — 俯視磁吸板擦修正
+
+使用者指出前批斜角圖是商品視角，應像板擦磁吸平貼板面。重新以未附參考圖的imagegen生成俯視原創素材；替換PNG、BoardEraserGeometry共用輪廓與XAML比例，九份手冊來源／十語HTML同步。alpha只讀抽取，不以程式改圖。`python windows/scripts/Build-UserGuides.py`退出0，十語各25章62段。測試／App未執行；封裝及接續結果將記本批日誌。既有YouTube未提交文件保留，不納入本批提交。[紀錄及提示](TOP_DOWN_BOARD_ERASER_2026-10-15.zh-TW.md)。
+
 ## 2026-10-15 — 原創斜角板擦試用交付
 
 來源509c4bbfa2f4cb0e9d4bfadc987676d38074e7b6、eraser-2026-10-15-r2 x64免安裝完成，ZIP133752265bytes／SHA256 653c7885d6edf823cb4c528ca048857ac14b7bd8ca89bfa3734787a18d31e5d7。App／Updater publish及CRC／573payload／162source SHA核同；最終EXE／本批自動化測試未執行。接續27個Data檔24341106bytes，備份後清舊試用916077320bytes，Store不變。純文字生成原創紙白／霧綠圖，斜擦面18點共用提示及裁切；未保存參考照片。[完整日誌](ANGLED_BOARD_ERASER_2026-10-15.zh-TW.md)。

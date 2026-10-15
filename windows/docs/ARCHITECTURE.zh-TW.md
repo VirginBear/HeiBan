@@ -1,5 +1,9 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-15 — 俯視板擦單一輪廓
+
+本節覆寫前批透視校準：BoardEraser.png為1599×984俯視透明原創，顯示160×98.461538DIP。BoardEraserGeometry只持有12點alpha凸輪廓，CanGrab正規化判定與ContactAt畫面DIP共用同一組點；沒有felt透視偏移。抓取偏移、每5DIP取樣、DIP至world轉換、draft／取消／一筆Undo與EraserFootprint半平面裁切沿用。文件格式不變。
+
 ## 2026-10-15 — 斜角原創板擦的共用接觸面
 
 EraserFootprint持有凸多邊形半平面，統一Contains、線段Clip及局部筆跡Split；RectangularEraser原矩形入口委派同一裁切實作，物件幾何交點沿用共用路徑，不另寫旋轉版擦除。EditorSession.EraseFootprint保留鎖定／IsErasable、Z順序、未知點欄位及旋轉烘焙。面積以相對首點差值求方向，避免infinite大世界座標相消。

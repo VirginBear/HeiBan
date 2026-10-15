@@ -1,5 +1,9 @@
 # Windows 目前開發狀態
 
+## 2026-10-15 — 俯視磁吸板擦（封裝中，待實測）
+
+依使用者視角更正，以imagegen純文字原創生成平貼板面的紙白／霧綠板擦。只有板面內約20度斜放，沒有商品側視／felt側層。1599×984透明PNG等比顯示160×98.461538DIP；抓取、提示與擦除共用12點alpha凸輪廓，取消前批透視偏移。維持1.0.14開發候選；十語手冊已更新。未執行App或本批測試，擦拭／Undo／DPI待使用者實機驗收。[本批日誌](TOP_DOWN_BOARD_ERASER_2026-10-15.zh-TW.md)。
+
 ## 2026-10-15 — 原創斜角板擦（x64試用完成，待實測）
 
 本機最新：`dist/trials/HeiBan-Windows-Portable-1.0.14-eraser-2026-10-15-r2-win-x64.zip`，133,752,265 bytes，SHA256 `653c7885d6edf823cb4c528ca048857ac14b7bd8ca89bfa3734787a18d31e5d7`，來源`509c4bbfa2f4cb0e9d4bfadc987676d38074e7b6`。同名資料夾HeiBan.exe可直接試用，接續27檔／24,341,106 bytes，逐SHA相同；ZIP無作品。App／Updater publish成功，CRC／573payload／162source SHA及x64核對成功；最終EXE未啟動，擦除／Undo／DPI待使用者測試。舊canvas-ui及未交付eraser-r1在保全Data後清理916,077,320bytes，備份`dist/trial-data-backups/20261015-142945-46188019`，Store原SHA保持。[封裝](ANGLED_ERASER_PORTABLE_ARTIFACT_2026-10-15.json)／[檢視](ANGLED_ERASER_PORTABLE_INSPECTION_2026-10-15.json)／[接續](ANGLED_ERASER_DATA_HANDOFF_2026-10-15.json)／[清理](ANGLED_ERASER_TRIAL_CLEANUP_2026-10-15.json)。
