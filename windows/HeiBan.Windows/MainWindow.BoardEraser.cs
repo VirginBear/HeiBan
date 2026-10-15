@@ -11,19 +11,23 @@ public partial class MainWindow
 {
     private EditorSession? _boardEraserDraft;
     private Point _boardEraserLast;
+    private Point _boardEraserGripOffset;
     private uint _boardEraserPointer;
     private bool _boardEraserWhole;
-    private const double BoardEraserWidth=132,BoardEraserHeight=40;
     private void RefreshBoardEraser()
     {
         if(BoardEraserDock is null)return;
+        BoardEraserDock.Width=BoardEraserGeometry.DisplayWidth;BoardEraserDock.Height=BoardEraserGeometry.DisplayHeight;
         BoardEraserDock.Visibility=_toolbarPrefs.BoardEraserVisible?Visibility.Visible:Visibility.Collapsed;
         if(_boardEraserDraft is null)
-        {Canvas.SetLeft(BoardEraserDock,Math.Max(0,DrawingArea.ActualWidth-164));Canvas.SetTop(BoardEraserDock,Math.Max(0,DrawingArea.ActualHeight-110));}
+        {Canvas.SetLeft(BoardEraserDock,Math.Max(0,DrawingArea.ActualWidth-BoardEraserGeometry.DisplayWidth-20));Canvas.SetTop(BoardEraserDock,Math.Max(0,DrawingArea.ActualHeight-BoardEraserGeometry.DisplayHeight-40));}
     }
     private void BoardEraser_Pressed(object sender,PointerRoutedEventArgs e)
     {
         var pointer=e.GetCurrentPoint(DrawingArea);if(!pointer.Properties.IsLeftButtonPressed||_readingMode)return;
+        var grip=e.GetCurrentPoint(BoardEraserDock).Position;
+        if(!BoardEraserGeometry.CanGrab(grip.X,grip.Y))return;
+        _boardEraserGripOffset=grip;
         FinishText();CommitPropertyEdit();if(_gesture)CancelGesture();_polygon.Clear();_preview=null;_lineAnchor=null;
         _session.SelectedId=null;_objectDetailsId=null;SelectionBar.Visibility=Visibility.Collapsed;Inspector.Visibility=Visibility.Collapsed;
         // The main document and its undo history stay untouched during pointer movement.
@@ -34,11 +38,14 @@ public partial class MainWindow
         MoveBoardEraser(pointer.Position);EraseBoardEraserAt(pointer.Position);e.Handled=true;
     }
     private void MoveBoardEraser(Point point)
-    {Canvas.SetLeft(BoardEraserDock,point.X-72);Canvas.SetTop(BoardEraserDock,point.Y-30);}
+    {Canvas.SetLeft(BoardEraserDock,point.X-_boardEraserGripOffset.X);Canvas.SetTop(BoardEraserDock,point.Y-_boardEraserGripOffset.Y);}
+    private InkPoint[] BoardEraserContact(Point pointer)=>BoardEraserGeometry.ContactAt(pointer.X-_boardEraserGripOffset.X,pointer.Y-_boardEraserGripOffset.Y);
     private void EraseBoardEraserAt(Point point)
     {
-        var world=_viewport.ScreenToWorld(point.X,point.Y);
-        _boardEraserDraft?.EraseRectangle(world,BoardEraserWidth/_viewport.Zoom,BoardEraserHeight/_viewport.Zoom,_boardEraserWhole);
+        // Image, outline and contact share screen DIP coordinates; only the contact
+        // corners cross into the document's world space. There is no bounding-box erase.
+        var world=BoardEraserContact(point).Select(p=>_viewport.ScreenToWorld(p.X,p.Y));
+        _boardEraserDraft?.EraseFootprint(new EraserFootprint(world),_boardEraserWhole);
         InvalidateCanvas();
     }
     private void BoardEraser_Moved(object sender,PointerRoutedEventArgs e)
@@ -46,7 +53,7 @@ public partial class MainWindow
         if(_boardEraserDraft is null||e.Pointer.PointerId!=_boardEraserPointer)return;
         var point=e.GetCurrentPoint(DrawingArea).Position;
         var distance=Math.Sqrt(Math.Pow(point.X-_boardEraserLast.X,2)+Math.Pow(point.Y-_boardEraserLast.Y,2));
-        var steps=Math.Max(1,(int)Math.Ceiling(distance/(BoardEraserHeight/4)));
+        var steps=Math.Max(1,(int)Math.Ceiling(distance/BoardEraserGeometry.SweepStep));
         for(var i=1;i<=steps;i++)EraseBoardEraserAt(new(_boardEraserLast.X+(point.X-_boardEraserLast.X)*i/steps,_boardEraserLast.Y+(point.Y-_boardEraserLast.Y)*i/steps));
         MoveBoardEraser(point);_boardEraserLast=point;e.Handled=true;
     }

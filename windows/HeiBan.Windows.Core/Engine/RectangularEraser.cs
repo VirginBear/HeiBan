@@ -1,48 +1,16 @@
 using HeiBan.Windows.Models;
 namespace HeiBan.Windows.Engine;
 
-/// <summary>Axis-aligned world footprint. Hosts convert their screen rectangle once per sample.</summary>
+/// <summary>Shared object geometry intersection; the rectangle API delegates to the same convex clipping.</summary>
 public static class RectangularEraser
 {
-    private static bool Clip(InkPoint a,InkPoint b,double left,double top,double right,double bottom,out double enter,out double exit)
-    {
-        double low=0,high=1;var dx=b.X-a.X;var dy=b.Y-a.Y;
-        bool Edge(double p,double q)
-        {
-            if(Math.Abs(p)<1e-12)return q>=0;
-            var t=q/p;if(p<0){if(t>high)return false;low=Math.Max(low,t);}else{if(t<low)return false;high=Math.Min(high,t);}return true;
-        }
-        var hit=Edge(-dx,a.X-left)&&Edge(dx,right-a.X)&&Edge(-dy,a.Y-top)&&Edge(dy,bottom-a.Y);
-        enter=low;exit=high;return hit;
-    }
-    private static InkPoint At(InkPoint a,InkPoint b,double t)
-    {
-        var result=DocumentCodec.Clone(t<.5?a:b);
-        result.X=a.X+(b.X-a.X)*t;result.Y=a.Y+(b.Y-a.Y)*t;result.Pressure=a.Pressure+(b.Pressure-a.Pressure)*t;
-        if(a.TiltX is { } ax&&b.TiltX is { } bx)result.TiltX=ax+(bx-ax)*t;
-        if(a.TiltY is { } ay&&b.TiltY is { } by)result.TiltY=ay+(by-ay)*t;
-        return result;
-    }
     public static List<List<InkPoint>> Split(IReadOnlyList<InkPoint> points,double left,double top,double right,double bottom)
-    {
-        List<List<InkPoint>> result=[];List<InkPoint> current=[];
-        void End(){if(current.Count>0)result.Add(current);current=[];}
-        bool Inside(InkPoint p)=>p.X>=left&&p.X<=right&&p.Y>=top&&p.Y<=bottom;
-        if(points.Count==1){if(!Inside(points[0]))result.Add([points[0]]);return result;}
-        for(var i=1;i<points.Count;i++)
-        {
-            var a=points[i-1];var b=points[i];
-            if(!Clip(a,b,left,top,right,bottom,out var enter,out var exit))
-            {if(current.Count==0)current.Add(a);current.Add(b);continue;}
-            if(enter>1e-10){if(current.Count==0)current.Add(a);current.Add(At(a,b,enter));}
-            End();
-            if(exit<1-1e-10){current.Add(At(a,b,exit));current.Add(b);}
-        }
-        End();return result;
-    }
+        =>EraserFootprint.Rectangle(left,top,right,bottom).Split(points);
     public static bool Intersects(BoardObject item,double left,double top,double right,double bottom)
+        =>Intersects(item,EraserFootprint.Rectangle(left,top,right,bottom));
+    public static bool Intersects(BoardObject item,EraserFootprint footprint)
     {
-        var pad=item.StrokeWidth/2;left-=pad;right+=pad;top-=pad;bottom+=pad;
+        var pad=item.StrokeWidth/2;
         var paths=new List<IReadOnlyList<InkPoint>>();var closed=false;
         if(item.Type is "line" or "arrow")
         {
@@ -69,11 +37,11 @@ public static class RectangularEraser
         else{paths.Add(ObjectHandles.Outline(item));closed=true;}
         foreach(var path in paths)
         {
-            if(path.Any(p=>p.X>=left&&p.X<=right&&p.Y>=top&&p.Y<=bottom))return true;
-            for(var i=1;i<path.Count;i++)if(Clip(path[i-1],path[i],left,top,right,bottom,out _,out _))return true;
-            if(closed&&path.Count>1&&Clip(path[^1],path[0],left,top,right,bottom,out _,out _))return true;
+            if(path.Any(p=>footprint.Contains(p,pad)))return true;
+            for(var i=1;i<path.Count;i++)if(footprint.Clip(path[i-1],path[i],pad,out _,out _))return true;
+            if(closed&&path.Count>1&&footprint.Clip(path[^1],path[0],pad,out _,out _))return true;
         }
         // The footprint may lie fully inside a filled shape, image or text box.
-        return new[]{new InkPoint(left,top),new InkPoint(right,top),new InkPoint(right,bottom),new InkPoint(left,bottom),new InkPoint((left+right)/2,(top+bottom)/2)}.Any(p=>VectorMath.IsPointInObject(p,item,0));
+        return footprint.Corners.Append(footprint.Center).Any(p=>VectorMath.IsPointInObject(p,item,0));
     }
 }

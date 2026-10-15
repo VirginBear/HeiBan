@@ -1,5 +1,9 @@
 # Windows 開發日誌
 
+## 2026-10-15 — 原創斜角板擦批次
+
+開工公開08fb332乾淨，兩庫fetch0/0、私人PRIVATE=true。建立日誌，先生成斜角白塑膠版；使用者進一步指定符合自有風格後，改未附參考圖片的紙白／霧綠原創圖。共用凸裁切／18點felt接觸面／保留抓取位置、十語手冊同步，無作品格式改變。中途x64 build56.91秒0warning／0error；最終Portable結果／資料接續及清理於[本批日誌](ANGLED_BOARD_ERASER_2026-10-15.zh-TW.md)追加。本批沒有自動化測試，候選版本不提高。
+
 ## 2026-10-15 — 畫布修整最終試用與資料保全
 
 最終來源3000bef，免安裝canvas-ui-2026-10-15-r2成功，134453996bytes／SHA256 0bd34217700cdf4ddcf761c7d7faeca5ed1433614be0f52aa3b754baa9420422。573payload／160source SHA、ZIP CRC／x64／十語／透明素材核同。27個Data檔24372320bytes逐SHA接續；清drawing及r1前已保全同批Data，清理912420485bytes，Store原SHA不變。最終包EXE未執行、本批自動化測試未執行，交由使用者實機驗收；App預覽／編譯與成品完整性檢視分開。[完整紀錄](CANVAS_UI_REFINEMENT_2026-10-15.zh-TW.md)。

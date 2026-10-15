@@ -47,80 +47,80 @@
       "file": "zh-TW.html",
       "sections": 25,
       "paragraphs": 62,
-      "bytes": 27124,
-      "sha256": "d1e41a6e51cca6e3a2be85dab6f1b7a846fbcc974a501289a8cfcf2c1c4a8128"
+      "bytes": 27154,
+      "sha256": "3c93c96cf1015b588d0f642b9b7e589436b86603e7bff7b7172c8fb3c4c18f35"
     },
     {
       "language": "zh-CN",
       "file": "zh-CN.html",
       "sections": 25,
       "paragraphs": 62,
-      "bytes": 27112,
-      "sha256": "6ebe75ca6623d0773c1e5b2683657fe71084445cfe2a6fc05c8f35caf78be1b1"
+      "bytes": 27142,
+      "sha256": "f857f999631d99259e03fcb30473e3c66728bc61186289df5780636a31c3f0bb"
     },
     {
       "language": "en",
       "file": "en.html",
       "sections": 25,
       "paragraphs": 62,
-      "bytes": 31666,
-      "sha256": "81e21fbc6592ed8efca3ff9ab6cc17c747b7217003f1c6ec63a58ed136736b70"
+      "bytes": 31710,
+      "sha256": "bc40ee3570267c359e29c923c80a3f41e247ad1728ef37e65958b4a08f71dfc2"
     },
     {
       "language": "ja",
       "file": "ja.html",
       "sections": 25,
       "paragraphs": 62,
-      "bytes": 34259,
-      "sha256": "e66ded1eeeddfac9506a0c926ae51e4a76d3e3b40a55762c1afc5abd1ffec8a6"
+      "bytes": 34328,
+      "sha256": "b2ad6d4a1eda8162c20f05580d692bb0806d52d4a3a2a2962d658ea4fddde06b"
     },
     {
       "language": "ko",
       "file": "ko.html",
       "sections": 25,
       "paragraphs": 62,
-      "bytes": 32541,
-      "sha256": "7d4cb453b8dc5a0c809bb019d1e5edbaa0f215736aae1531a31187b73e44d584"
+      "bytes": 32605,
+      "sha256": "7252f88e06090f9bd5e0528851e716d53ee018f5e8266e9bfad277fcf6cb5d92"
     },
     {
       "language": "es",
       "file": "es.html",
       "sections": 25,
       "paragraphs": 62,
-      "bytes": 30252,
-      "sha256": "71343870b3ef222cdd28d72313933b212b47209b6ab140eeae8e3513530dc42c"
+      "bytes": 30299,
+      "sha256": "aa0cebb47fd78cd8c610ac108bcbdf1893172ea986f27cf8aedb0fc67c071801"
     },
     {
       "language": "fr",
       "file": "fr.html",
       "sections": 25,
       "paragraphs": 62,
-      "bytes": 30581,
-      "sha256": "aae7211eda3493c4975cefa11861fda781a7917d6c64ccbcb89504261a8fb8a1"
+      "bytes": 30634,
+      "sha256": "7a83ef6751131a190ef592d697063dff097c1dd40126321cc6752eccccfce4bb"
     },
     {
       "language": "de",
       "file": "de.html",
       "sections": 25,
       "paragraphs": 62,
-      "bytes": 29357,
-      "sha256": "d5cbb22f11d9f0165e6e2e60d8be3ede39543660b05f59bc4208e3e4ab44c5b8"
+      "bytes": 29409,
+      "sha256": "e2dd18a25dde2a258c76c848e28a0c9901bf34ae5d0d068bc91bd1d18ec819b9"
     },
     {
       "language": "pt-BR",
       "file": "pt-BR.html",
       "sections": 25,
       "paragraphs": 62,
-      "bytes": 28004,
-      "sha256": "84734e3e35e908b5b0149229d789b27749562e7211e30faf643d9d54906175f6"
+      "bytes": 28050,
+      "sha256": "df130b5c6d6e8ddbd0022a5684ba15a03d9142eef0cee179fc86757bb131695b"
     },
     {
       "language": "ar",
       "file": "ar.html",
       "sections": 25,
       "paragraphs": 62,
-      "bytes": 37851,
-      "sha256": "edd8dc5b0b138a7508298cda1236bd8a8d5cd3cbfcfdfcf83686ec49c93da730"
+      "bytes": 37963,
+      "sha256": "c81ac432db1fa7de793e1361094239fcd6385d04794ae9fe3f012af125360334"
     }
   ],
   "screenshots": [

@@ -1,5 +1,11 @@
 # Windows 目前開發狀態
 
+## 2026-10-15 — 原創斜角板擦（新試用封裝準備中）
+
+依使用者最新要求，以未附參考圖片的imagegen文字生成取代商用外觀相似版；紙白外殼、霧綠握柄／底線、深灰felt，原始照片沒有入專案。新圖長邊約向右上20度，擦除使用同方向的18點圓角接觸面，不是水平矩形或正包圍框；160×106.67DIP圖框等比顯示，拖曳保留抓取位置、透明角不啟動。物件及局部筆跡、草稿／取消／一筆Undo契約延續。十語手冊同步，作品JSON不改。[本批紀錄與生成提示](ANGLED_BOARD_ERASER_2026-10-15.zh-TW.md)。
+
+目前中途build成功0warning／0error，屬最終原創圖覆寫前；最終結果以本批Portable publish為準。未執行本批自動化測試／App／硬體驗收，候選仍1.0.14.0，待使用者實測擦面／游標接觸位置。
+
 ## 2026-10-15 — 八項畫布實測修整（x64試用已交付，待使用者驗收）
 
 最新本機試用：`dist/trials/HeiBan-Windows-Portable-1.0.14-canvas-ui-2026-10-15-r2-win-x64.zip`，134,453,996 bytes，SHA256 `0bd34217700cdf4ddcf761c7d7faeca5ed1433614be0f52aa3b754baa9420422`，來源 `3000bef3f589ee3cce22732e970e959c00d28c1e`。同名資料夾可直接執行HeiBan.exe，已接續上一版27個資料檔／24,372,320 bytes，逐檔SHA相同；ZIP仍空Data。App／Updater publish成功；ZIP CRC、573payload／160source SHA、兩EXE x64、十語與透明板擦資源核同。舊drawing及本批r1已在備份27個Data檔後清理912,420,485 bytes；備份在`dist/trial-data-backups/20261015-090554-21b70b56`，Store1.0.12原SHA保持。[封裝](CANVAS_UI_PORTABLE_ARTIFACT_2026-10-15.json)／[檢視](CANVAS_UI_PORTABLE_INSPECTION_2026-10-15.json)／[接續](CANVAS_UI_DATA_HANDOFF_2026-10-15.json)／[清理](CANVAS_UI_TRIAL_CLEANUP_2026-10-15.json)。

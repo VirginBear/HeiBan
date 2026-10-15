@@ -1,5 +1,11 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-15 — 斜角原創板擦的共用接觸面
+
+EraserFootprint持有凸多邊形半平面，統一Contains、線段Clip及局部筆跡Split；RectangularEraser原矩形入口委派同一裁切實作，物件幾何交點沿用共用路徑，不另寫旋轉版擦除。EditorSession.EraseFootprint保留鎖定／IsErasable、Z順序、未知點欄位及旋轉烘焙。面積以相對首點差值求方向，避免infinite大世界座標相消。
+
+BoardEraserGeometry是最終1536×1024 PNG的校準：畫面框160×106.666667DIP，18點斜圓角felt接觸面、17點alpha抓取輪廓。兩者只存幾何不改圖；圖片本身已斜放，不重複RotateTransform。主窗綠框／world擦除取同一ContactAt；滑鼠抓取偏移維持圖面位置，每5DIP重疊取樣。手勢仍只改draft，release一筆Commit，cancel丟draft；永久文件schema不變。
+
 ## 2026-10-15 — 單行分頁與板擦草稿邊界
 
 ToolbarUi.Presentation共用分類／可自訂CommonTools投影；選取在分頁外。ToolbarFlowPanel.SingleRun依可用DIP選一組工具，兩端箭頭切組，版面事件只更新RunLength；保留清根前Detach及主呈現快取，避免巢狀按鈕重掛。toolbar.json新增CommonTools及BoardEraserVisible，既有設定預設常用六項／顯示板擦，未知欄位保留。

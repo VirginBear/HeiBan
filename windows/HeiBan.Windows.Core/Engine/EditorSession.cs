@@ -145,17 +145,20 @@ public sealed class EditorSession
     }
     public void EraseRectangle(InkPoint center,double width,double height,bool wholeObject)
     {
-        var left=center.X-width/2;var right=center.X+width/2;var top=center.Y-height/2;var bottom=center.Y+height/2;
+        EraseFootprint(EraserFootprint.Rectangle(center.X-width/2,center.Y-height/2,center.X+width/2,center.Y+height/2),wholeObject);
+    }
+    public void EraseFootprint(EraserFootprint footprint,bool wholeObject)
+    {
         foreach(var item in VisibleObjects.Where(o=>o.IsLocked!=true&&o.IsErasable).ToArray())
         {
             if(!wholeObject&&item.Type is not("stroke" or "pen" or "highlighter" or "paint"))continue;
-            if(!RectangularEraser.Intersects(item,left,top,right,bottom))continue;
+            if(!RectangularEraser.Intersects(item,footprint))continue;
             if(wholeObject||item.ParsedPoints.Count==0){Document.Objects.Remove(item);continue;}
             // Bake the old rotation into points before computing fragment bounds. Leaving
             // rotation on each fragment would rotate it around a different center.
             var world=item.ParsedPoints.Select(p=>{var copy=DocumentCodec.Clone(p);var at=ObjectHandles.ToWorld(item,p);copy.X=at.X;copy.Y=at.Y;return copy;}).ToArray();
             var pad=item.StrokeWidth/2;
-            var fragments=RectangularEraser.Split(world,left-pad,top-pad,right+pad,bottom+pad);
+            var fragments=footprint.Split(world,pad);
             if(fragments.Count==1&&fragments[0].Count==world.Length&&fragments[0].Zip(world).All(pair=>pair.First.X==pair.Second.X&&pair.First.Y==pair.Second.Y))continue;
             var index=Document.Objects.IndexOf(item);Document.Objects.RemoveAt(index);
             foreach(var fragment in fragments)

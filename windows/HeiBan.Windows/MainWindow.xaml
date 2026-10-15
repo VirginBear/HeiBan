@@ -103,7 +103,7 @@
      </Border>
      <Button x:Name="InspectorBookmark" Click="Properties_Click" HorizontalAlignment="Right" VerticalAlignment="Center" CornerRadius="12,0,0,12" Background="#FCFCFA" BorderBrush="#D4DBD1" Padding="9,14" loc:Ui.ToolTip="展開屬性檢查器"/>
      <Canvas x:Name="BoardEraserOverlay">
-      <Border x:Name="BoardEraserDock" Width="144" Height="60" Background="Transparent" PointerPressed="BoardEraser_Pressed" PointerMoved="BoardEraser_Moved" PointerReleased="BoardEraser_Released" PointerCanceled="BoardEraser_Canceled" PointerCaptureLost="BoardEraser_Canceled" RightTapped="BoardEraser_RightTapped" loc:Ui.ToolTip="拖曳板擦擦除；右鍵調整模式或隱藏">
+      <Border x:Name="BoardEraserDock" Width="160" Height="106.666667" Background="Transparent" PointerPressed="BoardEraser_Pressed" PointerMoved="BoardEraser_Moved" PointerReleased="BoardEraser_Released" PointerCanceled="BoardEraser_Canceled" PointerCaptureLost="BoardEraser_Canceled" RightTapped="BoardEraser_RightTapped" loc:Ui.ToolTip="拖曳板擦擦除；右鍵調整模式或隱藏">
        <Image Source="Assets/BoardEraser.png" Stretch="Uniform" IsHitTestVisible="False"/>
       </Border>
      </Canvas>

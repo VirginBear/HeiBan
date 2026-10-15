@@ -79,7 +79,8 @@ public partial class MainWindow
             using var format=new Microsoft.Graphics.Canvas.Text.CanvasTextFormat{FontSize=14};
             ds.DrawText(pin.Name,(float)p.X+16,(float)p.Y,Direct2DCanvasRenderer.HexToColor(pin.TextColor??"#397056"),format);
         }
-        if(_boardEraserDraft is not null)ds.DrawRectangle(new Rect(_boardEraserLast.X-BoardEraserWidth/2,_boardEraserLast.Y-BoardEraserHeight/2,BoardEraserWidth,BoardEraserHeight),Direct2DCanvasRenderer.HexToColor("#39735A"),2);
+        if(_boardEraserDraft is not null)
+        {var contact=BoardEraserContact(_boardEraserLast);for(var i=0;i<contact.Length;i++){var a=contact[i];var b=contact[(i+1)%contact.Length];ds.DrawLine((float)a.X,(float)a.Y,(float)b.X,(float)b.Y,Direct2DCanvasRenderer.HexToColor("#39735A"),2);}}
         if(_rulerEnabled)DrawRuler(ds);
         if(_compass.IsEnabled)_renderer.RenderCompass(ds,_compass,_viewport);
         if(_hover&&_editor is null&&_tool is "pen" or "highlighter" or "paint" or "eraser")
