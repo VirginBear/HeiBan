@@ -1,6 +1,8 @@
 param([ValidateSet('Debug','Release')][string]$Configuration='Release',[string]$DotnetPath='dotnet',
-      [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$')][string]$DevelopmentLabel)
+      [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$')][string]$DevelopmentLabel,
+      [switch]$FormalVersionApproved)
 $ErrorActionPreference='Stop'
+if($FormalVersionApproved -and $DevelopmentLabel){throw 'Approved Store packages and development labels must be recorded separately.'}
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
 $project=Join-Path $PSScriptRoot '..\HeiBan.Windows.csproj'
@@ -130,7 +132,7 @@ foreach($path in ($sourcePaths | Sort-Object -Unique)){
     }
 }
 $sourceHead=& git -C (Split-Path $root -Parent) rev-parse HEAD
-$report=[ordered]@{schema=1;identity=$identity;configuration=$Configuration;developmentLabel=$DevelopmentLabel;formalVersionApproved=$false;signed=$false;storeSubmitted=$false;sourceGitHead=$sourceHead;sourceSnapshot=$sourceHashes;payloadChecks=$payloadChecks;bundleIdentityAndArchitecturesMatched=$true;bundlePackageBytesMatched=$true;artifacts=@()}
+$report=[ordered]@{schema=1;identity=$identity;configuration=$Configuration;developmentLabel=$DevelopmentLabel;formalVersionApproved=[bool]$FormalVersionApproved;signed=$false;storeSubmitted=$false;sourceGitHead=$sourceHead;sourceSnapshot=$sourceHashes;payloadChecks=$payloadChecks;bundleIdentityAndArchitecturesMatched=$true;bundlePackageBytesMatched=$true;artifacts=@()}
 foreach($artifact in $artifacts){
     $hash=(Get-FileHash -LiteralPath $artifact.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
     "$hash  $($artifact.Name)" | Set-Content -LiteralPath ($artifact.FullName+'.sha256') -Encoding ASCII
