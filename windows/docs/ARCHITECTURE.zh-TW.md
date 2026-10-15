@@ -1,5 +1,9 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-15 — 更多板擦入口與左高右低鏡像（封裝中）
+
+工具列更多新增「顯示板擦」勾選項，保存偏好、失敗還原；右鍵隱藏共用保存入口。保留原創PNG，僅Image中心ScaleX=-1呈現左高右低；共用12點輪廓x→1-x，抓取／提示／擦除同步。十語手冊重新產生25章62段，版本仍1.0.14候選。未執行App／實作測試，待使用者實測。[本批日誌](BOARD_ERASER_ENTRY_MIRROR_2026-10-15.zh-TW.md)。
+
 ## 2026-10-15 — 俯視板擦單一輪廓
 
 本節覆寫前批透視校準：BoardEraser.png為1599×984俯視透明原創，顯示160×98.461538DIP。BoardEraserGeometry只持有12點alpha凸輪廓，CanGrab正規化判定與ContactAt畫面DIP共用同一組點；沒有felt透視偏移。抓取偏移、每5DIP取樣、DIP至world轉換、draft／取消／一筆Undo與EraserFootprint半平面裁切沿用。文件格式不變。

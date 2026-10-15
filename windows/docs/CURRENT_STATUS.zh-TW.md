@@ -1,5 +1,9 @@
 # Windows 目前開發狀態
 
+## 2026-10-15 — 更多板擦入口與左高右低鏡像（封裝中）
+
+工具列更多新增「顯示板擦」勾選項，保存偏好、失敗還原；右鍵隱藏共用保存入口。保留原創PNG，僅Image中心ScaleX=-1呈現左高右低；共用12點輪廓x→1-x，抓取／提示／擦除同步。十語手冊重新產生25章62段，版本仍1.0.14候選。未執行App／實作測試，待使用者實測。[本批日誌](BOARD_ERASER_ENTRY_MIRROR_2026-10-15.zh-TW.md)。
+
 ## 2026-10-15 — 俯視磁吸板擦（x64試用完成，待實測）
 
 依使用者視角更正，以imagegen純文字原創生成平貼板面的紙白／霧綠板擦。只有板面內約20度斜放，沒有商品側視／felt側層。1599×984透明PNG等比顯示160×98.461538DIP；抓取、提示與擦除共用12點alpha凸輪廓，取消前批透視偏移。維持1.0.14開發候選；十語手冊已更新。本機試用：`dist/trials/HeiBan-Windows-Portable-1.0.14-topdown-eraser-2026-10-15-r1-win-x64.zip`，132,585,397 bytes，SHA256 `4a48953a76c3bfa325c81b228f5884901c07e2a2b7aeb9c4e557ff9257deeb39`，來源`c239aba975a4d3a69f13f025827f675648583d55`。App／Updater publish退出0，ZIP CRC／573payload與162source SHA、兩EXE x64及十語手冊核同。27個Data檔／24,341,106 bytes逐SHA接續，ZIP無作品；舊eraser-r2保全資料到`dist/trial-data-backups/20261015-144432-6d9ba42e`後清理457,311,935bytes，Store1.0.12 SHA保持。最終EXE／自動化實作測試未執行，擦拭／Undo／DPI待使用者驗收。未執行App或本批測試，擦拭／Undo／DPI待使用者實機驗收。[本批日誌](TOP_DOWN_BOARD_ERASER_2026-10-15.zh-TW.md)。

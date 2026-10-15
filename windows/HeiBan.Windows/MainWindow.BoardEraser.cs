@@ -14,6 +14,19 @@ public partial class MainWindow
     private Point _boardEraserGripOffset;
     private uint _boardEraserPointer;
     private bool _boardEraserWhole;
+    private async Task SetBoardEraserVisibleAsync(bool visible)
+    {
+        var previous=_toolbarPrefs.BoardEraserVisible;
+        if(previous==visible)return;
+        _toolbarPrefs.BoardEraserVisible=visible;
+        try
+        {
+            await ToolbarPreferencesStore.SaveAsync(_storage.DataDirectory,_toolbarPrefs);
+            if(!visible)CancelBoardEraser();
+        }
+        catch(Exception ex){_toolbarPrefs.BoardEraserVisible=previous;await Error(ex);}
+        finally{RefreshBoardEraser();}
+    }
     private void RefreshBoardEraser()
     {
         if(BoardEraserDock is null)return;
@@ -73,7 +86,7 @@ public partial class MainWindow
         var menu=new MenuFlyout();
         foreach(var (label,index) in new[]{("物件擦除（筆畫與圖形）",0),("局部擦除（只擦筆跡）",1)})
         {var item=new ToggleMenuFlyoutItem{Text=T(label),IsChecked=EraserModeBox.SelectedIndex==index};item.Click+=(_,_)=>EraserModeBox.SelectedIndex=index;menu.Items.Add(item);}
-        var hide=new MenuFlyoutItem{Text=T("隱藏板擦")};hide.Click+=async(_,_)=>{_toolbarPrefs.BoardEraserVisible=false;try{await ToolbarPreferencesStore.SaveAsync(_storage.DataDirectory,_toolbarPrefs);RefreshBoardEraser();}catch(Exception ex){_toolbarPrefs.BoardEraserVisible=true;await Error(ex);}};menu.Items.Add(hide);
+        var hide=new MenuFlyoutItem{Text=T("隱藏板擦")};hide.Click+=async(_,_)=>await SetBoardEraserVisibleAsync(false);menu.Items.Add(hide);
         ShowExclusiveFlyout(menu,BoardEraserDock);e.Handled=true;
     }
 }

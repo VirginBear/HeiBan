@@ -20,6 +20,8 @@
 
 ## Windows端減重評估接手
 
+- [2026-10-15 板擦更多入口與鏡像](../windows/docs/BOARD_ERASER_ENTRY_MIRROR_2026-10-15.zh-TW.md)：保留原圖、左高右低顯示與共用接觸面，最新試用依Windows狀態。
+
 - [2026-10-15 原創斜角板擦](../windows/docs/ANGLED_BOARD_ERASER_2026-10-15.zh-TW.md)：紙白／霧綠生成素材、隨斜擦面的輪廓擦除與抓取位置，覆寫前批木質正矩形板擦。
 
 - [2026-10-15 八項畫布操作與一致外觀](../windows/docs/CANVAS_UI_REFINEMENT_2026-10-15.zh-TW.md)：單排分組、常用自訂、起點／幾何磁鐵、生成板擦、匯入告知、圖釘與固定主題；驗收與試用檔依日誌。
