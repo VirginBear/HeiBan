@@ -21,7 +21,7 @@ public partial class MainWindow
             if(presentation)
             {
                 if(!DocumentImportService.PowerPointAvailable)throw new InvalidOperationException(T("匯入 PPT/PPTX 需要安裝桌面版 PowerPoint。也可以先轉為 PDF 再匯入。"));
-                if(await new ContentDialog{Title=T("以圖片頁面匯入"),Content=DocumentImageNotice(),PrimaryButtonText=T("繼續"),CloseButtonText=T("取消"),XamlRoot=Root.XamlRoot}.ShowAsync()!=ContentDialogResult.Primary)return null;
+                if(await new ContentDialog{Title=T("以圖片頁面匯入"),Content=DocumentImageNotice(),PrimaryButtonText=T("匯入"),CloseButtonText=T("取消"),XamlRoot=Root.XamlRoot}.ShowAsync()!=ContentDialogResult.Primary)return null;
                 busy=new ContentDialog{Title=T("轉換簡報"),Content=new StackPanel{Spacing=12,Children={new ProgressRing{IsActive=true},new TextBlock{Text=T("正在透過 PowerPoint 轉成靜態頁面。動畫、影片與可編輯投影片元素不會保留。"),TextWrapping=TextWrapping.Wrap}}},XamlRoot=Root.XamlRoot};
                 var shown=busy.ShowAsync();await DocumentImportService.ConvertPresentationAsync(path,temporary);busy.Hide();await shown;busy=null;
             }
