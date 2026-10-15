@@ -1,5 +1,11 @@
 # Windows 問題與排解紀錄
 
+## 2026-10-15 — 繪圖流程、三角形預覽及巢狀工具列排解
+
+主畫布線／形狀提交會明寫切回select，selected一出現就建立快速列；改持續繪圖及明確雙擊ID開詳細。三角形暫態同時誤用CurvePreview及平滑筆跡renderer，兩層均改成多邊形折線，永久物件格式不變。
+
+新增labels後主示範啟動出現WinUI fail-fast（0xc000027b）；隔離UnhandledException記錄0x800F1000定位SizeChanged內重掛Select。只改Parent查詢仍失敗，加入呈現快取與重入守護，尺寸事件只量測後解決。screen四邊原生檢查再揭露清根後巢狀按鈕尚屬舊面板，以及工具無Tag被分組為palette；改清根前拆下所有工具、補Tag後，四邊labels／三點三角形／連續矩形／磁鐵原生檢查全過。舊錯誤檔保留，最終結果另有時間與screen欄位可區分。磁鐵、PDF圖片頁、Office需求與未驗收邊界見[本批日誌](DRAWING_WORKFLOW_2026-10-15.zh-TW.md)。
+
 ## 2026-10-13 — 試用封裝腳本的PowerShell 5.1解析差異（已繞過）
 
 症狀：以Windows PowerShell 5.1呼叫`Package-PortableTrial.ps1`時，`git ls-files`路徑規格中的單引號萬用字元造成ParserError。原因可定位為該腳本語法在目前PowerShell 5.1 parser下不相容。當次命令在腳本開始前中止，沒有寫入試用輸出；改以PowerShell 7執行同一工作區腳本後，試用包成功產生。此紀錄保留相容性症狀，尚未修改腳本或承諾Windows PowerShell 5.1支援。

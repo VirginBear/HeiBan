@@ -231,6 +231,18 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
         }
         b.EndFigure(closed?CanvasFigureLoop.Closed:CanvasFigureLoop.Open);return CanvasGeometry.CreatePath(b);
     }
+    public void RenderPolyline(CanvasDrawingSession ds,IReadOnlyList<InkPoint> points,ViewportTransform vp,string color,double width,double opacity,string lineStyle="solid")
+    {
+        if(points.Count<2)return;
+        var previous=ds.Transform;
+        try
+        {
+            ds.Transform=Matrix3x2.CreateScale((float)vp.Zoom)*Matrix3x2.CreateTranslation((float)vp.X,(float)vp.Y);
+            using var geometry=Path(ds,points,false,false);
+            if(geometry is not null)ds.DrawGeometry(geometry,HexToColor(color,(float)opacity),(float)width,StrokeStyle(lineStyle));
+        }
+        finally{ds.Transform=previous;}
+    }
     public void RenderLiveStroke(CanvasDrawingSession ds,IReadOnlyList<InkPoint> points,ViewportTransform vp,string color,double width,double opacity,string lineStyle="solid")
     {
         if(points.Count==0)return;

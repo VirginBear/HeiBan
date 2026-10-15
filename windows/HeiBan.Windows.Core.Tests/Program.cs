@@ -917,6 +917,21 @@ if(args.Length==2&&args[0]=="--export-fixtures")
     Directory.CreateDirectory(args[1]);File.WriteAllText(Path.Combine(args[1],"parity-demo.heiban"),DocumentCodec.Encode(exportDoc));File.WriteAllText(Path.Combine(args[1],"parity-demo.svg"),svg);File.WriteAllText(Path.Combine(args[1],"parity-demo.html"),html);
 }
 
+// Magnet tests cover document coordinates, visibility, rotation, boundaries and input metadata.
+var magnetLine=new BoardObject{Type="line",X1=-20,Y1=-20,X2=200,Y2=200};
+var magnetIndex=new MagnetSnapIndex(new[]{magnetLine,new BoardObject{Type="rect",X=50,Y=50,Width=20,Height=20,Rotation=90,IsLocked=true},new BoardObject{Type="line",X1=300,Y1=300,X2=400,Y2=400,IsVisible=false}},10);
+var magnetic=magnetIndex.Snap(new(-15,-18,.4){TiltX=12,TiltY=-3},out var magnetHit);
+Check(magnetHit&&magnetic.X==-20&&magnetic.Y==-20,"Magnet resolves negative grid coordinates");
+Check(magnetic.Pressure==.4&&magnetic.TiltX==12&&magnetic.TiltY==-3,"Magnet preserves pressure and tilt");
+var distant=new InkPoint(1000,1000);Check(ReferenceEquals(magnetIndex.Snap(distant,out var distantHit),distant)&&!distantHit,"Magnet does not move distant input");
+magnetIndex.Snap(new(301,301),out var hiddenMagnet);Check(!hiddenMagnet,"Hidden objects do not attract drawing");
+var rotatedMagnetic=magnetIndex.Snap(new(69,51),out var magnetRotatedHit);Check(magnetRotatedHit&&Math.Abs(rotatedMagnetic.X-70)<.001&&Math.Abs(rotatedMagnetic.Y-50)<.001,"Locked rotated shapes retain drawable magnet vertices");
+var modePreferences=new ToolbarPreferences{DisplayMode="labels",VisibleTools=["pen"],HiddenTools=["select"]};modePreferences.Normalize();Check(modePreferences.DisplayMode=="labels"&&modePreferences.VisibleTools[0]=="select"&&!modePreferences.HiddenTools.Contains("select"),"Selection stays visible with custom labeled toolbar");
+modePreferences.HideTool("select");Check(modePreferences.VisibleTools.Contains("select"),"Selection cannot be hidden");
+modePreferences.DisplayMode="future-mode";modePreferences.Normalize();Check(modePreferences.DisplayMode=="icons","Unknown toolbar presentation uses safe icon default");
+var printPagesDoc=new HeiBanDocument{Board=new BoardMetadata{CanvasMode="notebook",Pages=[new(){Id="p1"},new(){Id="p2",Index=1}]},Objects=[new(){Type="text",Text="First",PageId="p1"},new(){Type="text",Text="Second",PageId="p2"}]};
+var printedPages=BoardExporter.Html(printPagesDoc,[],new(0,0,595,842),true,printPagesDoc.Board.Pages.Select(p=>printPagesDoc.Objects.Where(o=>o.PageId==p.Id)));
+Check(System.Text.RegularExpressions.Regex.Matches(printedPages,"<svg ").Count==2&&printedPages.Contains("break-after:page"),"Printable multi-page output retains two separate pages");
 Console.WriteLine($"PASS: {checks} Windows interaction geometry, screenshot coordinator, calculator, compass/arc, timer & offline guide checks");
 
 

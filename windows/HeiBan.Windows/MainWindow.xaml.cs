@@ -93,7 +93,7 @@ public partial class MainWindow : Window
         _screenshotWatchTimer.Tick+=async(_,_)=>await OnScreenshotWatchTickAsync();
         AppWindow.Closing+=async(_,e)=>
         {
-            if(_closing)return;e.Cancel=true;if(_preparingClose||_saveBoundaryBusy)return;_preparingClose=true;
+            if(_closing)return;e.Cancel=true;if(_documentImporting||_preparingClose||_saveBoundaryBusy)return;_preparingClose=true;
             try
             {
                 _autosave.Stop();_thumbnailTimer.Stop();_activeFlyout?.Hide();ShowSavingOverlay(true);
@@ -117,9 +117,13 @@ public partial class MainWindow : Window
     public async void InitializeAsync(string? file)
     {
         try { if(file is null)await RefreshLibrary();else await OpenAsync(await _storage.ImportAsync(file));
+            var guideView=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--guide-view=",StringComparison.Ordinal));
+            var workflow=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--drawing-workflow-output=",StringComparison.Ordinal));
             var validation=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--validation-output=",StringComparison.Ordinal));
             var performance=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--performance-output=",StringComparison.Ordinal));
-            if(performance is not null)await RunPerformanceBatchAsync(performance[21..]);
+            if(guideView is not null)ConfigureGuideView(guideView[13..]);
+            else if(workflow is not null)await RunDrawingWorkflowChecksAsync(workflow[26..]);
+            else if(performance is not null)await RunPerformanceBatchAsync(performance[21..]);
             else if(validation is not null)await RunNativeValidationAsync(validation[20..]);
             else {if(Environment.GetCommandLineArgs().Contains("--screen-canvas"))await StartScreenAnnotationAsync();_updates?.Start();} }
         catch(Exception e){await Error(e);}
@@ -154,7 +158,7 @@ public partial class MainWindow : Window
         TitleBox.Text=doc.Board.Title;_viewport.Zoom=1;_viewport.X=doc.Board.CanvasMode=="infinite"?0:80;_viewport.Y=80;
         if(doc.Board.CanvasMode=="notebook" && (doc.Board.Pages?.Count??0)==0)
         {doc.Board.Pages=[new BoardPage()];doc.Board.ActivePageId=doc.Board.Pages[0].Id;}
-        RefreshEditor();FocusCanvasSurface();DispatcherQueue?.TryEnqueue(FocusCanvasSurface); await _renderer.LoadImagesAsync(CanvasSurface,doc.Objects);
+        _objectDetailsId=null;Inspector.Visibility=Visibility.Collapsed;RefreshEditor();FocusCanvasSurface();DispatcherQueue?.TryEnqueue(FocusCanvasSurface); await _renderer.LoadImagesAsync(CanvasSurface,doc.Objects);
     }
     private void RefreshEditor()
     {
@@ -263,12 +267,14 @@ public partial class MainWindow : Window
     }
     private async void Import_Click(object sender,RoutedEventArgs e)
     {
+        if(_documentImporting||_preparingClose||_saveBoundaryBusy)return;
         CancelScreenshotCapture("匯入作品");
         try
         {
             var picker=new FileOpenPicker();WinRT.Interop.InitializeWithWindow.Initialize(picker,WinRT.Interop.WindowNative.GetWindowHandle(this));
-            picker.FileTypeFilter.Add(".json");picker.FileTypeFilter.Add(".heiban");var file=await picker.PickSingleFileAsync();if(file is null)return;
-            var imported=await _storage.ImportAsync(file.Path);
+            foreach(var extension in new[]{".json",".heiban",".pdf",".pptx",".ppt"})picker.FileTypeFilter.Add(extension);var file=await picker.PickSingleFileAsync();if(file is null)return;
+            var imported=file.FileType.ToLowerInvariant() is ".pdf" or ".pptx" or ".ppt"?await ImportExternalDocumentAsync(file.Path):await _storage.ImportAsync(file.Path);
+            if(imported is null)return;
             if(_preparingClose||_saveBoundaryBusy)return;
             if(_workspaceOpen&&!await SaveBeforeLeavingAsync())return;
             // Import a new local identity; do not overwrite an existing board with an imported snapshot.
@@ -344,7 +350,7 @@ public partial class MainWindow : Window
         _session.Begin();selected.Name=name;_session.Commit();RefreshEditor();
     }
     private void Select(BoardObject? o)
-    {CommitPropertyEdit();_session.SelectedId=o?.Id;SyncLayerSelection();RefreshProperties();InvalidateCanvas(false);}
+    {CommitPropertyEdit();if(_session.SelectedId!=o?.Id){_objectDetailsId=null;Inspector.Visibility=Visibility.Collapsed;}_session.SelectedId=o?.Id;SyncLayerSelection();RefreshProperties();InvalidateCanvas(false);}
     private void Raise_Click(object sender,RoutedEventArgs e)=>OrderSelected(1);
     private void Lower_Click(object sender,RoutedEventArgs e)=>OrderSelected(-1);
     private void OrderSelected(int direction)
@@ -378,8 +384,8 @@ public partial class MainWindow : Window
     }
     private void SetDock(string side)
     {
-        _dock=side;_toolbarPrefs.DockSide=side;_toolbarTranslation.X=_toolbarTranslation.Y=0;
-        _ = ToolbarPreferencesStore.SaveAsync(_storage.DataDirectory,_toolbarPrefs);
+        var changed=_toolbarPrefs.DockSide!=side;_dock=side;_toolbarPrefs.DockSide=side;_toolbarTranslation.X=_toolbarTranslation.Y=0;
+        if(changed)_=SaveToolbarDockAsync();
         ShowWorkspaceHeader(WorkspaceHeader.Visibility==Visibility.Visible);
         var vertical=side is "左側" or "右側";Tools.Orientation=ToolShell.Orientation=vertical?Orientation.Vertical:Orientation.Horizontal;
         ToolbarGrip.Width=vertical?40:24;ToolbarGrip.Height=vertical?20:40;
@@ -389,6 +395,7 @@ public partial class MainWindow : Window
         ToolScroll.HorizontalScrollBarVisibility=vertical?ScrollBarVisibility.Disabled:ScrollBarVisibility.Auto;
         ToolScroll.VerticalScrollBarVisibility=vertical?ScrollBarVisibility.Auto:ScrollBarVisibility.Disabled;
         ToolScroll.HorizontalScrollMode=vertical?ScrollMode.Disabled:ScrollMode.Enabled;ToolScroll.VerticalScrollMode=vertical?ScrollMode.Enabled:ScrollMode.Disabled;
+        ArrangeMainToolbar();
         foreach(var d in _toolDividers){d.Width=vertical?22:1;d.Height=vertical?1:22;}
         SetInspectorDock(_inspectorDock);
     }

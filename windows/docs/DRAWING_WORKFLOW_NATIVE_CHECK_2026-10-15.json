@@ -1,0 +1,14 @@
+{
+  "success": true,
+  "pdfImportedPages": 2,
+  "pdfExportedPages": 2,
+  "presentationConverted": true,
+  "screen": {
+    "threePointTriangle": true,
+    "continuousShapes": true,
+    "magnet": true,
+    "labeledFourSideLayout": true,
+    "hardwarePointer": "Not executed"
+  },
+  "hardwarePointer": "Pending user test"
+}

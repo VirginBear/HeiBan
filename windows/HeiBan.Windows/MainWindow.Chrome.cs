@@ -396,6 +396,8 @@ public partial class MainWindow
                 case "laser" or "tape" or "lasso":
                     Tool(key,key=="laser"?T("雷射：再次點擊開啟設定"):T(ToolbarPreferences.ToolNames[key]),key);break;
                 case "extension": break; // 延伸屬性改由線段設定提供；保留舊偏好欄位。
+                case "magnet":
+                    var magnet=IconButton("magnet",T("磁鐵"),ToggleMagnet,"magnet");_toolButtons[key]=magnet;Tools.Children.Add(magnet);break;
                 case "layers":
                     var layers=IconButton("layers",T("物件圖層"),()=>Layers_Click(this,new RoutedEventArgs()),"layers");
                     _toolButtons[key]=layers;Tools.Children.Add(layers);break;
@@ -599,6 +601,7 @@ public partial class MainWindow
     {
         switch (key)
         {
+            case "magnet": ToggleMagnet();break;
             case "laser": if(_tool=="laser")ShowLaserSettings(GetToolAnchor(key));else ActivateTool(key);break;
             case "tape" or "lasso" or "select" or "pen" or "curve" or "highlighter" or "paint" or "sticky" or "text" or "star":
                 ActivateTool(key);
@@ -662,6 +665,7 @@ public partial class MainWindow
             .ToList();
 
         var visibleSet = new HashSet<string>(_toolbarPrefs.VisibleTools);
+        var displayMode=_toolbarPrefs.DisplayMode;
         var panel = new StackPanel { Spacing = 6 };
 
         void RebuildList()
@@ -679,7 +683,7 @@ public partial class MainWindow
                 var cb = new CheckBox
                 {
                     Content = T(ToolbarPreferences.ToolNames.GetValueOrDefault(key, key)),
-                    IsChecked = visibleSet.Contains(key)
+                    IsEnabled=key!="select",IsChecked = key=="select"||visibleSet.Contains(key)
                 };
                 cb.Checked += (_, _) => visibleSet.Add(key);
                 cb.Unchecked += (_, _) => visibleSet.Remove(key);
@@ -714,7 +718,7 @@ public partial class MainWindow
         var dialog = new ContentDialog
         {FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,
             Title = T("自訂工具列（勾選顯示，↑↓ 調整順序）"),
-            Content = scroll,
+            Content = new StackPanel{Spacing=10,Children={CustomizeToolbarHeader(visibleSet,allKeys,RebuildList,displayMode,value=>displayMode=value),scroll}},
             PrimaryButtonText = T("儲存"),
             CloseButtonText = T("取消"),
             XamlRoot = Root.XamlRoot
@@ -733,6 +737,7 @@ public partial class MainWindow
 
         if (newVisible.Count == 0) newVisible.Add("select");
 
+        _toolbarPrefs.DisplayMode=displayMode;
         _toolbarPrefs.VisibleTools = newVisible;
         _toolbarPrefs.HiddenTools = newHidden;
         await ToolbarPreferencesStore.SaveAsync(_storage.DataDirectory, _toolbarPrefs);
@@ -750,7 +755,7 @@ public partial class MainWindow
     {
         // Screen canvas shares the settings file. Update the hidden owner in-memory too, or its
         // next toolbar rebuild could overwrite a choice just made in the screen session.
-        var updated=new ToolbarPreferences{DockSide=preferences.DockSide,VisibleTools=[..preferences.VisibleTools],HiddenTools=[..preferences.HiddenTools]};
+        var updated=new ToolbarPreferences{DockSide=preferences.DockSide,DisplayMode=preferences.DisplayMode,MagnetEnabled=preferences.MagnetEnabled,ExtraFields=preferences.ExtraFields,VisibleTools=[..preferences.VisibleTools],HiddenTools=[..preferences.HiddenTools]};
         updated.Normalize();
         await ToolbarPreferencesStore.SaveAsync(_storage.DataDirectory,updated);
         _toolbarPrefs=updated;
@@ -782,7 +787,7 @@ public partial class MainWindow
         var color=CurrentStyle.Color;var dash=CurrentStyle.Dash;
         CancelGesture();
         _polygon.Clear();
-        _session.SelectedId = null;
+        _session.SelectedId = null;_objectDetailsId=null;
         _tool = tool;
         if (tool is not ("select" or "eraser"))
         {
@@ -810,7 +815,8 @@ public partial class MainWindow
     {
         foreach (var (key, b) in _toolButtons)
         {
-            var active = (key=="layers"&&LayersPanel.Visibility==Visibility.Visible) || key == _tool || (key == "ruler" && _rulerEnabled) || (key == "compass" && _compass.IsEnabled) || (key == "shapes" && _tool is "line" or "arrow" or "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star");
+            ToolbarUi.LabelMode(b,key,_toolbarPrefs.DisplayMode=="labels",40);
+            var active = (key=="magnet"&&_toolbarPrefs.MagnetEnabled) || (key=="layers"&&LayersPanel.Visibility==Visibility.Visible) || key == _tool || (key == "ruler" && _rulerEnabled) || (key == "compass" && _compass.IsEnabled) || (key == "shapes" && _tool is "line" or "arrow" or "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star");
             b.Background = Brush(active ? "#DCEBDD" : "#FCFCFA");
         }
         CanvasFormatText.Text = _session.Document.Board.CanvasMode switch { "notebook" => T("筆記本"), "fixed" => T("有邊界黑板"), _ => T("無邊界筆記") };
@@ -1065,7 +1071,7 @@ public partial class MainWindow
     {
         if (SelectionBar is null || SelectionBarTools is null) return;
         var selected = _session.Selected;
-        if (selected is null || !_workspaceOpen)
+        if (selected is null || !_workspaceOpen || _objectDetailsId!=selected.Id)
         {
             _selectionBarSignature = null;_selectionBarObject=null;_selectionBarUpdates.Clear();
             SelectionBar.Visibility = Visibility.Collapsed;

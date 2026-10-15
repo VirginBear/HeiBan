@@ -1,5 +1,11 @@
 # Windows 目前開發狀態
 
+## 2026-10-15 — 文件交換與繪圖九項需求（來源及本機針對性驗證完成，待使用者試用）
+
+PDF／PPTX／PPT可由首頁匯入為鎖定圖片筆記頁，PDF不需Office，簡報需本機桌面PowerPoint；一次最多200頁／100MB渲染圖片。筆記PDF新增全部頁面選項。磁鐵共用Core索引；主／螢幕畫布保留繪圖工具，三點三角形用直線預覽。建立／單擊只顯示控制點，主畫布詳細列以雙擊開啟。工具列有icons及四頁圖文模式、選取常駐、自訂全選／預設、改版圓規圖示；十語UI616key及手冊25章60段／四張實機圖。
+
+本輪Core Release2334項通過、x64 Release build0warning／0error；Windows原生兩頁PDF匯入／序列化／兩頁PDF匯出、兩張PPTX轉換，及screen四邊圖文排版／三點三角形／連續形狀／磁鐵成功。主畫布以computer-use實際單擊／雙擊與兩次矩形拖畫確認。Poppler檢視PDF兩頁內容與頁序；十語四圖連結及manifest SHA核對通過。曾發生主／screen巢狀工具列重掛XAML錯誤，已依堆疊修正並重跑成功，失敗歷程保留。仍需使用者實際簡報、PPT舊格式、字型／加密、觸控筆、混合DPI／多螢幕、RTL與完整回歸；未做WACK、MSIX封裝、Store／Release或正式進版。免安裝包交付證據接續更新。[日誌](DRAWING_WORKFLOW_2026-10-15.zh-TW.md)／[交換與設定契約](DOCUMENT_EXCHANGE_2026-10-15.zh-TW.md)。
+
 ## 2026-10-13 — 操作優化可攜試用包已提供（待使用者實機驗收）
 
 本機免安裝試用 ZIP：`dist/trials/HeiBan-Windows-Portable-1.0.14-optimization-2026-10-13-r1-win-x64.zip`，131,764,163 bytes，SHA256 `e9f1ab87616a84f7ea1c30ddd469b86c2d14e56c6ee6e5000ce7ff334460c580`。解壓後雙擊同名目錄中的 `HeiBan.exe`；請在新資料夾操作，試用包內 `Data` 為空白，舊測試目錄與 Store bundle 保留。Core Release 2,325 項檢查通過；手動 x64 Release self-contained publish 成功；封裝腳本完成 App／Updater publish、更新清單、ZIP 與 SHA sidecar。Store bundle 封裝前後 SHA 均為 `D7A49B63D88FA880B1A97B0C307361AD2CFBC9B3D58786048887093D7204EA7B`。程式版本維持開發候選 `1.0.14.0`，未提交 Store／GitHub Release。使用者尚待檢查主／螢幕畫布操作及刪除按鍵；此包是試用交付，不代表整批實機驗收。

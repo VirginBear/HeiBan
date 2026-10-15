@@ -15,7 +15,9 @@ public partial class MainWindow
         if(_exporting)return;FinishText();CommitPropertyEdit();if(_gesture)CancelGesture();
         var boardId=_session.Document.Board.Id;
         var scope=new ComboBox{Header=T("匯出範圍"),ItemsSource=new[]{T("目前頁面／全部內容"),T("選取物件"),T("目前視野")},SelectedIndex=0,MinWidth=250};
-        var result=await new ContentDialog{FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,Title=T("匯出作品"),Content=scope,PrimaryButtonText=T("選擇格式及位置"),CloseButtonText=T("取消"),XamlRoot=Root.XamlRoot}.ShowAsync();
+        var allPdf=new CheckBox{Content=T("PDF 匯出全部頁面"),IsChecked=_session.Document.Board.CanvasMode=="notebook",Visibility=_session.Document.Board.CanvasMode=="notebook"?Visibility.Visible:Visibility.Collapsed};
+        var options=new StackPanel{Spacing=12};options.Children.Add(scope);options.Children.Add(allPdf);
+        var result=await new ContentDialog{FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,Title=T("匯出作品"),Content=options,PrimaryButtonText=T("選擇格式及位置"),CloseButtonText=T("取消"),XamlRoot=Root.XamlRoot}.ShowAsync();
         if(result!=ContentDialogResult.Primary||boardId!=_session.Document.Board.Id)return;
         var doc=DocumentCodec.Clone(_session.Document);var selectedIds=_session.SelectedIds.ToHashSet();
         var objects=doc.Objects.Where(o=>o.IsVisible!=false&&(doc.Board.CanvasMode!="notebook"||o.PageId is null||o.PageId==doc.Board.ActivePageId)&&(scope.SelectedIndex!=1||selectedIds.Contains(o.Id))).ToArray();
@@ -41,7 +43,7 @@ public partial class MainWindow
                     }break;
                 case ".svg":await DocumentSessionManager.WriteAtomicAsync(file.Path,BoardExporter.Svg(doc,objects,area));break;
                 case ".html":await DocumentSessionManager.WriteAtomicAsync(file.Path,BoardExporter.Html(doc,objects,area));break;
-                case ".pdf":await ExportPdfAsync(doc,objects,area,file.Path);break;
+                case ".pdf":await ExportPdfAsync(doc,objects,area,file.Path,allPdf.IsChecked==true&&scope.SelectedIndex==0);break;
                 default:await DocumentSessionManager.WriteAtomicAsync(file.Path,DocumentCodec.Encode(doc));break;
             }
             StatusText.Text=T("已匯出：")+file.Name;
@@ -49,14 +51,15 @@ public partial class MainWindow
         catch(Exception ex){await Error(ex);}
         finally{_exporting=false;}
     }
-    private async Task ExportPdfAsync(HeiBanDocument doc,IEnumerable<BoardObject> objects,ExportArea area,string destination)
+    private async Task ExportPdfAsync(HeiBanDocument doc,IEnumerable<BoardObject> objects,ExportArea area,string destination,bool allPages=false)
     {
         var path=Path.Combine(Path.GetTempPath(),"HeiBan-export-"+Guid.NewGuid().ToString("N")+".html");
         var temporaryPdf=Path.Combine(Path.GetTempPath(),"HeiBan-export-"+Guid.NewGuid().ToString("N")+".pdf");
         var view=new WebView2{Width=1,Height=1,Opacity=0,IsHitTestVisible=false};Root.Children.Add(view);
         try
         {
-            await File.WriteAllTextAsync(path,BoardExporter.Html(doc,objects,area,true),new UTF8Encoding(false));
+            var pages=allPages&&doc.Board.CanvasMode=="notebook"?doc.Board.Pages?.OrderBy(p=>p.Index).Select(page=>doc.Objects.Where(o=>o.IsVisible!=false&&(o.PageId is null||o.PageId==page.Id))):null;
+            await File.WriteAllTextAsync(path,BoardExporter.Html(doc,objects,area,true,pages),new UTF8Encoding(false));
             await view.EnsureCoreWebView2Async().AsTask().WaitAsync(TimeSpan.FromSeconds(30));
             view.CoreWebView2.Settings.AreDefaultContextMenusEnabled=false;view.CoreWebView2.Settings.IsScriptEnabled=false;
             var loaded=new TaskCompletionSource<bool>();

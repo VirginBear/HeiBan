@@ -40,6 +40,7 @@ internal sealed partial class ScreenAnnotationWindow
     private Button _dashButton=null!,_brushButton=null!,_clearButton=null!,_closeButton=null!,_moreButton=null!;
     private readonly List<Button> _chromeActions=[];
     private bool _collapsed;
+    private string _toolbarPage="common";
     private static SolidColorBrush ChromeBrush(byte alpha,byte r,byte g,byte b)=>new(Color.FromArgb(alpha,r,g,b));
     private static Button ChromeButton(string icon,string label)
     {
@@ -54,14 +55,14 @@ internal sealed partial class ScreenAnnotationWindow
         ToolTipService.SetToolTip(_chromeGrip,T("拖曳到螢幕上下左右；放開後停靠"));ExtendsContentIntoTitleBar=true;SetTitleBar(_chromeGrip);
         _mode.Height=32;_mode.MinWidth=_mode.MinHeight=0;_mode.Padding=new Thickness(3);_mode.BorderThickness=new Thickness(0);_mode.CornerRadius=new CornerRadius(6);_mode.Background=ChromeBrush(0,0,0,0);_mode.Click+=(_,_)=>SetDrawing(!_drawing);
         foreach(var pair in ToolbarUi.ScreenTools.Where(pair=>pair.Key is not("undo" or "redo" or "screenshot" or "layers" or "brush" or "dash")))
-        {var key=pair.Key;var button=ChromeButton(key,T(pair.Label));button.Click+=(_,_)=>{if(key=="shapes")ShowScreenShapes();else ChooseScreenTool(key);};_buttons[key]=button;}
+        {var key=pair.Key;var button=ChromeButton(key,T(pair.Label));button.Tag=key;button.Click+=(_,_)=>{if(key=="shapes")ShowScreenShapes();else if(key=="magnet")ToggleScreenMagnet();else ChooseScreenTool(key);};_buttons[key]=button;}
         _chromeActions.Add(ActionButton("undo",T("復原這個螢幕的註記"),async()=>await UndoScreenAsync(false),"undo"));
         _chromeActions.Add(ActionButton("redo",T("重做"),async()=>await UndoScreenAsync(true),"redo"));
         _chromeActions.Add(ActionButton("screenshot",T("截圖加入螢幕畫布 · Ctrl+Alt+S"),async()=>await CaptureAsync(),"screenshot"));
         _chromeActions.Add(ActionButton("layers",T("物件圖層：選取、排序與顯示"),ShowScreenLayers,"layers"));
         _paletteButton=ActionButton("palette",T("調色盤：色票與自訂色輪"),ShowScreenPalette);_chromeActions.Add(_paletteButton);
-        _dashButton=ChromeButton("dash-solid",T("線條樣式"));_dashButton.Click+=(_,_)=>ShowScreenLineStyles();_buttons["dash"]=_dashButton;
-        _brushButton=ChromeButton("pen",T("顏色、粗細與透明度"));_brushButton.Click+=(_,_)=>ShowBrushSettings();_buttons["brush"]=_brushButton;
+        _dashButton=ChromeButton("dash-solid",T("線條樣式"));_dashButton.Tag="dash";_dashButton.Click+=(_,_)=>ShowScreenLineStyles();_buttons["dash"]=_dashButton;
+        _brushButton=ChromeButton("pen",T("顏色、粗細與透明度"));_brushButton.Tag="brush";_brushButton.Click+=(_,_)=>ShowBrushSettings();_buttons["brush"]=_brushButton;
         _styleCommitTimer.Tick+=(_,_)=>CommitScreenStyle();
         _clearButton=ActionButton("delete",T("一鍵清空所有螢幕註記 · Ctrl+Alt+K · 可復原"),ClearScreenObjects);
         _closeButton=ActionButton("close",T("結束螢幕畫布 · Ctrl+Alt+Q"),async()=>await StopAsync());
@@ -94,9 +95,14 @@ internal sealed partial class ScreenAnnotationWindow
     private MenuFlyoutSubItem ScreenToolbarCustomization()
     {
         var submenu=new MenuFlyoutSubItem{Text=T("自訂工具列")};
+        void Command(string label,Action apply){var item=new MenuFlyoutItem{Text=T(label)};item.Click+=async(_,_)=>{apply();try{await _owner.SaveToolbarPreferencesAsync(_toolbarPreferences);RebuildChromeLayout();ResizeChrome();PositionChrome();RefreshButtons();}catch(Exception error){_status.Text=error.Message;}};submenu.Items.Add(item);}
+        Command("全選",()=>{foreach(var tool in ToolbarContentPolicy.ScreenCanvasTools)_toolbarPreferences.ShowTool(tool);});
+        Command("預設",()=>_toolbarPreferences.ResetToDefault());
+        Command("只有圖示",()=>_toolbarPreferences.DisplayMode="icons");Command("圖示與文字（分頁）",()=>_toolbarPreferences.DisplayMode="labels");
+        submenu.Items.Add(new MenuFlyoutSeparator());
         foreach(var key in ToolbarContentPolicy.VisibleTools(_toolbarPreferences,screenCanvas:true).Concat(ToolbarContentPolicy.HiddenTools(_toolbarPreferences,screenCanvas:true)))
         {
-            var item=new ToggleMenuFlyoutItem{Text=T(ToolbarPreferences.ToolNames.GetValueOrDefault(key,key)),IsChecked=_toolbarPreferences.VisibleTools.Contains(key)};
+            var item=new ToggleMenuFlyoutItem{Text=T(ToolbarPreferences.ToolNames.GetValueOrDefault(key,key)),IsEnabled=key!="select",IsChecked=_toolbarPreferences.VisibleTools.Contains(key)};
             item.Click+=async(_,_)=>
             {
                 var previousVisible=_toolbarPreferences.VisibleTools.ToList();var previousHidden=_toolbarPreferences.HiddenTools.ToList();

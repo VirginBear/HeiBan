@@ -12,6 +12,13 @@ public partial class App : Application
         DebugSettings.IsXamlResourceReferenceTracingEnabled=true;
         DebugSettings.XamlResourceReferenceFailed+=(_,e)=>_resourceErrors.Add(e.Message);
         InitializeComponent();
+        UnhandledException+=(_,error)=>
+        {
+            // Opt-in diagnostics belong to the synthetic test data root, never the user's work library.
+            var diagnosticRoot=Environment.GetEnvironmentVariable("HEIBAN_WINDOWS_DATA_DIRECTORY");
+            if(string.IsNullOrWhiteSpace(diagnosticRoot))return;
+            try{Directory.CreateDirectory(diagnosticRoot);File.WriteAllText(Path.Combine(diagnosticRoot,"last-ui-error.txt"),error.Exception.ToString());}catch{ }
+        };
     }
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {

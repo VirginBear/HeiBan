@@ -1,5 +1,13 @@
 # Windows 開發日誌
 
+## 2026-10-15 — 文件交換、磁鐵與繪圖流程
+
+由乾淨38634bb開始，完成本批九項Windows需求，沿用1.0.14候選、不更動其他平台。新增PDF圖片頁匯入、PowerPoint COM STA唯讀轉換、全部頁PDF列印；共用磁鐵格索引與圖文工具列分頁；建立／單擊不彈詳細列、雙擊開啟，保留繪圖工具；修正三角形兩層曲線預覽來源、全選／預設與圓規圖示。工具列偏好保留未知欄位、選取常駐、寫入序列化；SizeChanged只量測，不反覆存偏好／重掛控制項。
+
+實際命令及結果：`Build-LocalizationCatalogs.py`十語616key／missing0；`Build-UserGuides.py`十語25章60段、四張實機JPEG共231547bytes；HTMLParser／manifest核對40個圖片引用及每頁／圖片SHA通過。Core Release2334checks通過；數輪x64 Release build0warning／0error。隔離`--drawing-workflow-output`原生檢查最終JSON成功，兩頁PDF匯入與重新匯出、PPTX兩頁PowerPoint轉換、screen四邊labels／triangle／continuous shapes／magnet。Poppler兩頁轉PNG並目視檢查。computer-use實際主視窗單擊／雙擊／兩矩形連續拖畫成功；手冊截圖使用示範資料，無使用者作品。
+
+失敗與排解：Core檢查區域變數重名CS0136已修；初始隱藏視窗與即時UI狀態延遲改用可見隔離視窗／重新觀察。主與screen巢狀控制項重掛曾產生0x800F1000，初次Parent修正不足；以堆疊定位後加主呈現快取、screen在清舊根前拆子按鈕，並補screen key Tag。最終重跑成功，沒有抹除舊失敗檔或引用其前一輪成功JSON。本機試用封裝及Git同步接續日誌；MSIX／WACK／Store、完整硬體／PPT舊格式／母語回歸未執行，正式進版未核准。[完整日誌與待驗收](DRAWING_WORKFLOW_2026-10-15.zh-TW.md)。
+
 ## 2026-10-13 — 操作優化免安裝試用包交付（待實機）
 
 使用者要求先實際測試目前工作。保留既有試用包／資料及 Store bundle，新標籤 `optimization-2026-10-13-r1` 產生本機 x64 免安裝包。執行 `dotnet run --project windows/HeiBan.Windows.Core.Tests/HeiBan.Windows.Core.Tests.csproj -c Release`（透過 `windows/.build/tools/dotnet/dotnet.exe`）通過：2325 checks。執行 x64 Release self-contained `dotnet publish` 成功，0 warning／0 error。接著以 PowerShell 7 執行 `windows/HeiBan.Windows/Packaging/Package-PortableTrial.ps1 -Runtime win-x64 -Label optimization-2026-10-13-r1` 成功，App與Updater publish、payload inventory、空白Data及ZIP完成；產物131,764,163 bytes，SHA256 `e9f1ab87616a84f7ea1c30ddd469b86c2d14e56c6ee6e5000ce7ff334460c580`。封裝紀錄 `.build/portable-trial-b69b341301ea49bd996919f4766adb1a/`。Store bundle封裝前後SHA一致（`D7A49B63D88FA880B1A97B0C307361AD2CFBC9B3D58786048887093D7204EA7B`）。

@@ -1,5 +1,13 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-15 — 文件頁面交換、磁鐵與工具列呈現
+
+`DocumentImportService`將Windows PDF逐頁呈現為既有notebook image物件，PPT／PPTX使用可選的本機PowerPoint COM STA轉PDF，之後進入相同管線；UI持有頁面範圍、進度、取消與作品提交邊界。上限200頁／100MB渲染圖片，全部成功後才保存；頁面圖片與原文件元素的可編輯性分開。WebView2 PDF列印可逐BoardPage分頁，仍使用既有SVG與source attachment，沒有新第三方runtime依賴。詳[交換契約](DOCUMENT_EXCHANGE_2026-10-15.zh-TW.md)。
+
+`MagnetSnapIndex`是Core手勢快照，依screen-DIP門檻換成world／desktop像素建立格索引，pointer查鄰格，不寫既有物件。兩宿主自行管理開關、座標、Undo與預覽。`WindowsInkCoordinator.PointTransform`與尺規Projection分離，尺規優先，停筆直線辨識仍可和磁鐵共存。
+
+`ToolbarUi.Presentation`只共用分頁／圖文組裝，各宿主保有自己的Button／session。toolbar.json保存icons／labels與磁鐵開關、保留未知欄位；Select不可隱藏且不進分頁。一般畫布用明確雙擊ID控制詳細列，建立物件與單擊不開詳細；draw tools提交後保持原tool。多邊形暫態使用不平滑RenderPolyline，不借用自由筆跡cubic path。
+
 ## 2026-10-13 — 工具列能力來自共用catalog；輸入與渲染節拍分離
 
 近直線幾何判斷抽為Core StraightStrokeRecognizer，由一般畫布WindowsInkCoordinator及screen host共用。一般畫布仍由coordinator累積Ink樣本／hold時間；screen host只在持筆期間以100ms timer檢查native overlay點列，須靜止一秒並依DPI換算screen-DIP閾值，辨識成功只替換即時預覽點，收手時才在該screen session加入line object。timer隨手勢取消／完成／視窗Dispose關閉；兩host的座標輸入與交易owner不共享。

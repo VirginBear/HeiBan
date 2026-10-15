@@ -62,9 +62,12 @@ public partial class MainWindow
             if(_ink.IsDrawing)_renderer.RenderLiveStroke(ds,_ink.ActiveStrokePoints,_viewport,_strokeColor,EffectiveWidth,_opacity,CurrentStyle.Dash);
             if(_polygon.Count>0)
             {
-                var preview=CurvePreview.Points(_polygon,_viewport.ScreenToWorld(_mouse.X,_mouse.Y));
-                _renderer.RenderLiveStroke(ds,preview,_viewport,_strokeColor,_strokeWidth,_opacity,CurrentStyle.Dash);
+                var cursor=SnapDrawingPoint(_viewport.ScreenToWorld(_mouse.X,_mouse.Y));
+                var preview=_tool=="curve"?CurvePreview.Points(_polygon,cursor):_polygon.Concat(new[]{cursor}).ToArray();
+                if(_tool=="curve")_renderer.RenderLiveStroke(ds,preview,_viewport,_strokeColor,_strokeWidth,_opacity,CurrentStyle.Dash);
+                else _renderer.RenderPolyline(ds,preview,_viewport,_strokeColor,_strokeWidth,_opacity,CurrentStyle.Dash);
             }
+            if(_magnetTarget is { } snap){var at=_viewport.WorldToScreen(snap.X,snap.Y);ds.DrawCircle((float)at.X,(float)at.Y,7,Direct2DCanvasRenderer.HexToColor("#10B981"),2);}
             foreach(var selected in _session.SelectedObjects)_renderer.RenderSelection(ds,selected,_viewport,_session.SelectedIds.Count==1);
             if(_lasso.Count>1)_renderer.RenderLiveStroke(ds,_lasso,_viewport,"#39735A",1/_viewport.Zoom,.8);
             _renderer.RenderLaser(ds,_laser,_viewport,LaserNow);
@@ -92,7 +95,9 @@ public partial class MainWindow
         if(p.PointerDeviceType==PointerDeviceType.Touch)return;
         CommitPropertyEdit();
         if(_rulerEnabled&&RulerAngleHit(screen)&&!p.Properties.IsMiddleButtonPressed){ShowRulerSettings(CanvasSurface,new Point(screen.X,screen.Y));e.Handled=true;return;}
+        if(IsDrawingTool(_tool))BeginDrawingWorkflow();
         _pointerId=p.PointerId;_lastScreen=_mouse=screen;_start=_lastWorld=_viewport.ScreenToWorld(screen.X,screen.Y);
+        if(IsDrawingTool(_tool))_start=_lastWorld=SnapDrawingPoint(_start!);
         _panning=p.Properties.IsMiddleButtonPressed || KeyIsDown(VirtualKey.Space) || _readingMode;
         _gesture=true;CanvasSurface.CapturePointer(e.Pointer);
         if(_tool=="laser"){_panning=false;_laser.Add(_start,LaserNow);InvalidateCanvas();e.Handled=true;return;}
@@ -142,12 +147,13 @@ public partial class MainWindow
             {
                 _session.Begin();var box=VectorMath.ComputeBoundingBox(_tool=="curve"?CurvePreview.Flatten(_polygon):_polygon,_strokeWidth);
                 _session.Add(Styled(new BoardObject{Type=_tool,X=box.MinX,Y=box.MinY,Width=box.Width,Height=box.Height,Points=JsonSerializer.Serialize(_polygon,DocumentCodec.Options)}));
-                _session.Commit();_polygon.Clear();_tool="select";ResetGesture();CanvasSurface.ReleasePointerCaptures();RefreshEditor();
+                _session.Commit();_polygon.Clear();ResetGesture();CanvasSurface.ReleasePointerCaptures();RefreshEditor();
             }
         }
         else if(_tool is "pen" or "highlighter" or "paint")
         {
-            LatchRuler(screen);_ink.Projection=_snapEdge is null?null:ProjectOnRuler;
+            LatchRuler(screen);_ink.Projection=_snapEdge is not null?ProjectOnRuler:null;
+            _ink.PointTransform=_toolbarPrefs.MagnetEnabled?SnapDrawingPoint:null;
             _ink.ProcessPointerDown(p,_viewport);
         }
         else if(_tool=="eraser"){_session.Begin();Erase(_start);}
@@ -197,10 +203,10 @@ public partial class MainWindow
         if(_tool=="lasso"&&_gesture){var lp=_viewport.ScreenToWorld(_mouse.X,_mouse.Y);if(_lasso.Count==0||Math.Sqrt(Math.Pow(lp.X-_lasso[^1].X,2)+Math.Pow(lp.Y-_lasso[^1].Y,2))>2/_viewport.Zoom)_lasso.Add(lp);InvalidateCanvas(false);return;}
         if(!_gesture||p.PointerId!=_pointerId)
         {
-            if(_lineAnchor is not null&&_preview is not null)ObjectHandles.SetEndpoints(_preview,_lineAnchor,ConstrainLine(_lineAnchor,_viewport.ScreenToWorld(_mouse.X,_mouse.Y)));
+            if(_lineAnchor is not null&&_preview is not null)ObjectHandles.SetEndpoints(_preview,_lineAnchor,ConstrainLine(_lineAnchor,SnapDrawingPoint(_viewport.ScreenToWorld(_mouse.X,_mouse.Y))));
             if(_polygon.Count>0||_lineAnchor is not null||(_hover&&_editor is null&&_tool is "pen" or "highlighter" or "paint" or "eraser"))InvalidateCanvas(false);return;
         }
-        var world=_viewport.ScreenToWorld(_mouse.X,_mouse.Y);var delta=_mouse-_lastScreen;
+        var world=_viewport.ScreenToWorld(_mouse.X,_mouse.Y);if(IsDrawingTool(_tool))world=SnapDrawingPoint(world);var delta=_mouse-_lastScreen;
         if(_panning){if(!_viewLocked){_viewport.X+=delta.X;_viewport.Y+=delta.Y;}}
         else if(_rulerMoving)_rulerCenter+=delta;
         else if(_rulerRotating)RotateRuler(_mouse);
@@ -324,8 +330,6 @@ public partial class MainWindow
                     _session.SelectedId=arcObj.Id;
                     _session.Commit();
                     _compass.Prepare();
-                    _compass.IsEnabled=false;
-                    _tool="select";
                     RefreshEditor();
                     StatusText.Text=F($"已生成圓弧（半徑 {_compass.Radius:0.#}pt，掃角 {_compass.SweepAngle:0.#}°）");
                 }
@@ -348,11 +352,11 @@ public partial class MainWindow
         }
         else if(_shapeGesture&&_preview is not null)
         {
-            var end=e.GetCurrentPoint(CanvasSurface).Position;var world=_viewport.ScreenToWorld(end.X,end.Y);UpdateShapePreview(world);
+            var end=e.GetCurrentPoint(CanvasSurface).Position;var world=_viewport.ScreenToWorld(end.X,end.Y);UpdateShapePreview(SnapDrawingPoint(world));
             var line=_preview.Type is "line" or "arrow";
             var enough=line?Math.Sqrt(_preview.Width*_preview.Width+_preview.Height*_preview.Height)*_viewport.Zoom>3:Math.Max(_preview.Width,_preview.Height)*_viewport.Zoom>3;
             if(enough&&(!line||_lineCompleting||_start is not null&&Math.Sqrt(Math.Pow(world.X-_start.X,2)+Math.Pow(world.Y-_start.Y,2))*_viewport.Zoom>3))
-            {_session.Begin();_session.Add(_preview);_preview=null;_lineAnchor=null;_tool="select";}
+            {_session.Begin();_session.Add(_preview);_preview=null;_lineAnchor=null;}
             else if(!line){_preview=null;}
         }
         _session.Commit();ResetGesture();CanvasSurface.ReleasePointerCaptures();RefreshEditor();e.Handled=true;
@@ -365,7 +369,7 @@ public partial class MainWindow
         else{_preview.X=Math.Min(_start.X,world.X);_preview.Y=Math.Min(_start.Y,world.Y);_preview.Width=Math.Max(1,Math.Abs(world.X-_start.X));_preview.Height=Math.Max(1,Math.Abs(world.Y-_start.Y));}
     }
     private static InkPoint ConstrainLine(InkPoint anchor,InkPoint point)=>KeyIsDown(VirtualKey.Shift)?ObjectHandles.ConstrainOrthogonal(anchor,point):point;
-    private void ResetGesture(){HideHUD();_renderer.ResetLive();_gesture=_panning=_rulerMoving=_rulerRotating=_rulerPivotMoving=_shapeGesture=_lineCompleting=_marquee=false;_compassCenterMoving=_compassCenterMoved=_compassRadiusMoving=_compassPencilMoving=false;_objectHandle=null;_manipulationStart=null;_movingPin=null;_snapEdge=null;_ink.Projection=null;if(_hover)UpdateShapeCursor();else ResetShapeCursor();}
+    private void ResetGesture(){HideHUD();_renderer.ResetLive();_gesture=_panning=_rulerMoving=_rulerRotating=_rulerPivotMoving=_shapeGesture=_lineCompleting=_marquee=false;_compassCenterMoving=_compassCenterMoved=_compassRadiusMoving=_compassPencilMoving=false;_objectHandle=null;_manipulationStart=null;_movingPin=null;_snapEdge=null;_ink.Projection=null;_ink.PointTransform=null;_magnetTarget=null;if(_hover)UpdateShapeCursor();else ResetShapeCursor();}
     private void CancelGesture(){var changed=_session.HasTransaction;_lasso.Clear();_laser.Clear();HideHUD();_ink.Cancel();_session.Cancel();_preview=null;_lineAnchor=null;_compass.Prepare();ResetGesture();CanvasSurface.ReleasePointerCaptures();if(changed)RefreshProperties();InvalidateCanvas(changed);}
     private void CanvasSurface_PointerCanceled(object sender,PointerRoutedEventArgs e){HideHUD();if(_gesture)CancelGesture();}
     private void UpdateShapeCursor()
@@ -396,7 +400,7 @@ public partial class MainWindow
         ZoomText.Text=$"{_viewport.Zoom:P0}";RefreshProperties();InvalidateCanvas();e.Handled=true;
     }
     private void CanvasSurface_DoubleTapped(object sender,DoubleTappedRoutedEventArgs e)
-    {var p=e.GetPosition(CanvasSurface);if(PinAt(new((float)p.X,(float)p.Y)) is { } pin){CancelGesture();StartPinRename(pin);e.Handled=true;return;}var o=_session.Hit(_viewport.ScreenToWorld(p.X,p.Y),6/_viewport.Zoom);if(o?.Type=="tape"&&o.IsLocked!=true){_session.Begin();o.IsRevealed=o.IsRevealed!=true;_session.Commit();RefreshEditor();e.Handled=true;}else if(o?.Type is "text" or "sticky" && o.IsLocked!=true){StartText(o);e.Handled=true;}}
+    {var p=e.GetPosition(CanvasSurface);if(PinAt(new((float)p.X,(float)p.Y)) is { } pin){CancelGesture();StartPinRename(pin);e.Handled=true;return;}var o=_session.Hit(_viewport.ScreenToWorld(p.X,p.Y),6/_viewport.Zoom);if(o?.Type=="tape"&&o.IsLocked!=true){_session.Begin();o.IsRevealed=o.IsRevealed!=true;_session.Commit();RefreshEditor();e.Handled=true;}else if(o is {IsLocked:not true}){CancelGesture();_tool="select";_polygon.Clear();_session.SelectedId=o.Id;_objectDetailsId=o.Id;Inspector.Visibility=Visibility.Visible;RefreshEditor();if(o.Type is "text" or "sticky")StartText(o);e.Handled=true;}}
     private bool _editingNew;
     private string? _editingBoard,_editingPage;
     private void StartText(BoardObject o,bool isNew=false)

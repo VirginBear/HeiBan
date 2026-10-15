@@ -10,10 +10,13 @@ public sealed class ToolbarPreferences
     public string DockSide { get; set; } = "上方";
     public List<string> VisibleTools { get; set; } = [];
     public List<string> HiddenTools { get; set; } = [];
+    public string DisplayMode { get; set; } = "icons";
+    public bool MagnetEnabled { get; set; }
+    [System.Text.Json.Serialization.JsonExtensionData] public Dictionary<string,JsonElement>? ExtraFields { get; set; }
 
     public static readonly string[] StreamlinedTools =
     [
-        "select", "pen", "highlighter", "eraser", "ruler", "shapes", "layers", "undo", "redo"
+        "select", "pen", "highlighter", "eraser", "ruler", "shapes", "magnet", "layers", "undo", "redo"
     ];
 
     public static readonly string[] AllDefaultTools =
@@ -21,7 +24,7 @@ public sealed class ToolbarPreferences
         "select", "pen", "curve", "highlighter", "paint", "eraser",
         "ruler", "shapes", "sticky", "text", "screenshot", "image",
         "brush", "dash", "pins", "calculator", "timer", "compass",
-        "undo", "redo", "dock", "laser", "tape", "lasso", "extension", "clearAll", "viewLock", "layers"
+        "undo", "redo", "dock", "laser", "tape", "lasso", "extension", "clearAll", "viewLock", "layers", "magnet"
     ];
 
     public static readonly Dictionary<string, string> ToolNames = new()
@@ -49,6 +52,7 @@ public sealed class ToolbarPreferences
         ["laser"]="雷射", ["tape"]="遮題膠帶", ["lasso"]="套索多選", ["extension"]="延伸直線", ["clearAll"]="清除本頁", ["viewLock"]="鎖定視角",
         ["layers"] = "物件圖層",
         ["dock"] = "停靠位置"
+        ,["magnet"] = "磁鐵"
     };
 
     public static ToolbarPreferences CreateDefault() => new()
@@ -60,6 +64,7 @@ public sealed class ToolbarPreferences
 
     public void Normalize()
     {
+        if(DisplayMode is not("icons" or "labels"))DisplayMode="icons";
         if (DockSide is not ("上方" or "左側" or "下方" or "右側"))
         {
             DockSide = "上方";
@@ -71,6 +76,9 @@ public sealed class ToolbarPreferences
 
         // One-time discovery: old preferences lack layers in both lists. A later explicit hide remains respected.
         if(!VisibleTools.Contains("layers")&&!HiddenTools.Contains("layers"))VisibleTools.Add("layers");
+        if(!VisibleTools.Contains("magnet")&&!HiddenTools.Contains("magnet"))VisibleTools.Add("magnet");
+        HiddenTools.RemoveAll(t=>t=="select");
+        VisibleTools.RemoveAll(t=>t=="select");VisibleTools.Insert(0,"select");
         var seen = new HashSet<string>();
         VisibleTools = VisibleTools.Where(t => allKnown.Contains(t) && seen.Add(t)).ToList();
         HiddenTools = HiddenTools.Where(t => allKnown.Contains(t) && seen.Add(t)).ToList();
@@ -88,6 +96,7 @@ public sealed class ToolbarPreferences
 
     public void ResetToDefault()
     {
+        DisplayMode="icons";MagnetEnabled=false;
         DockSide = "上方";
         VisibleTools = [.. StreamlinedTools];
         HiddenTools = [.. AllDefaultTools.Except(StreamlinedTools)];
@@ -111,6 +120,7 @@ public sealed class ToolbarPreferences
 
     public void HideTool(string toolKey)
     {
+        if(toolKey=="select")return;
         if (VisibleTools.Remove(toolKey))
         {
             if (!HiddenTools.Contains(toolKey))
@@ -135,6 +145,7 @@ public sealed class ToolbarPreferences
 /// </summary>
 public static class ToolbarPreferencesStore
 {
+    private static readonly SemaphoreSlim SaveGate=new(1,1);
     public static string GetPreferencesPath(string dataDirectory) =>
         Path.Combine(dataDirectory, "Settings", "toolbar.json");
 
@@ -179,6 +190,9 @@ public static class ToolbarPreferencesStore
         var path = GetPreferencesPath(dataDirectory);
         preferences.Normalize();
         var json = JsonSerializer.Serialize(preferences, DocumentCodec.Options);
-        await DocumentSessionManager.WriteAtomicAsync(path, json);
+        // Main/screen/dock commands can arrive while a previous atomic replacement is still pending.
+        await SaveGate.WaitAsync();
+        try{await DocumentSessionManager.WriteAtomicAsync(path,json);}
+        finally{SaveGate.Release();}
     }
 }

@@ -73,6 +73,7 @@ nav a:hover,nav a:focus-visible{background:var(--line);color:var(--accent)}
 section{background:var(--paper);padding:1.5rem 2rem;margin-block-end:1.4rem;border:1px solid var(--line);border-radius:1rem}
 h2{margin:0 0 .8rem;font-size:1.35rem;line-height:1.5}h2 span{color:var(--accent);margin-inline-end:.65rem;font-size:.95rem;font-variant-numeric:tabular-nums}
 p{margin:.6rem 0;overflow-wrap:anywhere}bdi{unicode-bidi:isolate}kbd{font: .9em ui-monospace,monospace;border:1px solid var(--line);border-radius:.25rem;padding:0 .2rem;white-space:nowrap}
+figure{margin:1rem 0}figure img{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:.7rem}figcaption{font-size:.85rem;color:var(--muted);margin-block-start:.4rem}
 #empty{padding:1rem;color:var(--muted)}footer{padding:1rem 0 2rem;color:var(--muted);font-size:.9rem}
 [hidden]{display:none!important}a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 @media(max-width:800px){.layout{grid-template-columns:1fr;gap:1rem;margin:1rem auto}aside{position:static;max-height:18rem}section{padding:1rem 1.2rem}header{padding:1.5rem}}
@@ -106,6 +107,19 @@ def prose(value):
     return ''.join(f'<bdi dir="ltr">{html.escape(part)}</bdi>' if TOKEN.fullmatch(part)
                    else html.escape(part) for part in TOKEN.split(value))
 
+SCREENSHOTS={'workspace':'toolbar-labeled.jpg','shapes':'triangle-preview.jpg','selection':'object-properties.jpg','files':'pdf-pages.jpg'}
+CAPTIONS={
+    'zh-TW':'實際 Windows 程式畫面，使用示範作品及正體中文介面；按鈕文字會隨介面語言切換。',
+    'zh-CN':'实际 Windows 程序画面，使用示例作品和繁体中文界面；按钮文字随界面语言切换。',
+    'en':'Actual Windows app with a sample work and Traditional Chinese UI. Button labels follow your interface language.',
+    'ja':'サンプル作品を使った実際のWindows画面（繁体字中国語）です。ボタン名は設定言語に切り替わります。',
+    'ko':'예제 작품을 사용한 실제 Windows 앱 화면입니다(번체 중국어). 버튼 이름은 인터페이스 언어에 따라 바뀝니다.',
+    'es':'Pantalla real de Windows con un ejemplo y la interfaz en chino tradicional. Los botones siguen el idioma elegido.',
+    'fr':'Écran réel de l’application Windows avec un exemple en chinois traditionnel. Les boutons suivent la langue de l’interface.',
+    'de':'Tatsächliche Windows-App mit einem Beispiel und traditionell chinesischer Oberfläche. Schaltflächen folgen Ihrer Sprache.',
+    'pt-BR':'Tela real do aplicativo Windows com um exemplo em chinês tradicional. Os botões seguem o idioma da interface.',
+    'ar':'صورة فعلية لتطبيق Windows مع عمل تجريبي وواجهة بالصينية التقليدية. تتبع أسماء الأزرار لغة الواجهة المختارة.'}
+
 def render(code,rows,legacy=False):
     metadata={key:html.escape(rows[key][0],quote=True) for key in META}
     direction='rtl' if code=='ar' else 'ltr'
@@ -113,9 +127,15 @@ def render(code,rows,legacy=False):
                      f'{" selected" if lang==code else ""}>{name}</option>' for lang,name in LANGUAGES.items())
     navigation=''.join(f'<a href="#{key}">{number:02} · {html.escape(rows[key][0])}</a>'
                        for number,key in enumerate(SECTIONS,1))
-    sections=''.join(f'<section id="{key}"><h2><span dir="ltr">{number:02}</span>{html.escape(rows[key][0])}</h2>'
-                     +''.join(f'<p>{prose(p)}</p>' for p in rows[key][1:])+'</section>'
-                     for number,key in enumerate(SECTIONS,1))
+    def section(number,key):
+        figure=''
+        if key in SCREENSHOTS:
+            filename=SCREENSHOTS[key]
+            if not (TARGET/'images'/filename).is_file():raise ValueError(f'Missing real app screenshot: {filename}')
+            image_path=('Guides/' if legacy else '')+'images/'+filename
+            figure=f'<figure><a href="{image_path}"><img src="{image_path}" alt="{html.escape(rows[key][0],quote=True)}" loading="lazy"></a><figcaption>{html.escape(CAPTIONS[code])}</figcaption></figure>'
+        return f'<section id="{key}"><h2><span dir="ltr">{number:02}</span>{html.escape(rows[key][0])}</h2>'+''.join(f'<p>{prose(p)}</p>' for p in rows[key][1:])+figure+'</section>'
+    sections=''.join(section(number,key) for number,key in enumerate(SECTIONS,1))
     return f'''<!doctype html>
 <html lang="{code}" dir="{direction}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{metadata['title']}</title><style>{CSS}</style></head>
 <body><header><h1>{metadata['title']}</h1><p>{metadata['subtitle']}</p><div class="controls"><input id="search" type="search" aria-label="{metadata['search']}" placeholder="{metadata['search']}"><label>{metadata['languageLabel']}<select id="guide-language" aria-label="{metadata['languageLabel']}" dir="ltr">{options}</select></label></div></header>
@@ -127,6 +147,7 @@ catalogs['zh-CN']={key:[simplify(value) for value in values] for key,values in c
 TARGET.mkdir(exist_ok=True,parents=True)
 manifest={'schema':1,'defaultLanguage':'zh-TW','sections':SECTIONS,'languageCodes':list(LANGUAGES),
           'scope':'Bundled offline help, not app execution or native-language review','pages':[]}
+manifest['screenshots']=[{'file':'images/'+name,'sha256':hashlib.sha256((TARGET/'images'/name).read_bytes()).hexdigest()} for name in SCREENSHOTS.values()]
 for code in LANGUAGES:
     data=render(code,catalogs[code]).encode('utf-8')
     (TARGET/f'{code}.html').write_bytes(data)

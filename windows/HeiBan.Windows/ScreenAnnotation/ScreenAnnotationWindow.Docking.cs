@@ -33,6 +33,9 @@ internal sealed partial class ScreenAnnotationWindow
     }
     private void RebuildChromeLayout()
     {
+        // Labeled pages nest buttons below the old root. Detach while that tree is still
+        // attached; clearing the root first hides Parent before the XAML collection releases ownership.
+        ToolbarUi.DetachButtons(_buttons.Values.Concat(_chromeActions));
         // The middle wraps to additional rows/columns; fixed commands remain at either end.
         if(_chromeToolHost is not null)_chromeToolHost.Child=null;
         _chromeStart?.Children.Clear();_chromeEnd?.Children.Clear();_chromeTools?.Children.Clear();
@@ -53,7 +56,7 @@ internal sealed partial class ScreenAnnotationWindow
         foreach(var button in _buttons.Where(pair=>!ToolbarPreferences.AllDefaultTools.Contains(pair.Key)).Select(pair=>pair.Value)
                     .Concat(_chromeActions.Where(button=>button.Tag is null||!ToolbarPreferences.AllDefaultTools.Contains((string)button.Tag))))
             if(!ordered.Contains(button))ordered.Add(button);
-        foreach(var button in ordered)_chromeTools.Children.Add(button);
+        ToolbarUi.Arrange(_chromeTools,ordered.Select(b=>(b.Tag as string??"palette",b)),_toolbarPreferences.DisplayMode=="labels",vertical,_toolbarPage,p=>{_toolbarPage=p;DispatcherQueue.TryEnqueue(()=>{ResizeChrome();PositionChrome();});},32);
         if(!vertical&&!_collapsed)_chromeTools.Children.Add(_moreButton);
         _chromeEnd=new StackPanel{Orientation=orientation,Spacing=4,VerticalAlignment=VerticalAlignment.Center,HorizontalAlignment=HorizontalAlignment.Center};
         _chromeEnd.Children.Add(_clearButton);if(vertical||_collapsed)_chromeEnd.Children.Add(_moreButton);_chromeEnd.Children.Add(_closeButton);

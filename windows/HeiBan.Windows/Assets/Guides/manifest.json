@@ -46,81 +46,99 @@
       "language": "zh-TW",
       "file": "zh-TW.html",
       "sections": 25,
-      "paragraphs": 55,
-      "bytes": 22771,
-      "sha256": "b690786aac16e5841781a2544564210c3de78a36756b054a0fc8186a2cad2a0e"
+      "paragraphs": 60,
+      "bytes": 25619,
+      "sha256": "a86f8229a74b79f473576a596da2ea5488c65e9d59da6d9f43237beb4d80ee25"
     },
     {
       "language": "zh-CN",
       "file": "zh-CN.html",
       "sections": 25,
-      "paragraphs": 55,
-      "bytes": 22771,
-      "sha256": "36df13521dc9ad698d8ee141fb2439f86c4e522a97ed19335efa568dcd69254f"
+      "paragraphs": 60,
+      "bytes": 25607,
+      "sha256": "271ae0fa1f9a165b027e882c815c1c637d6c26e48ced41e82c71830e1eef9966"
     },
     {
       "language": "en",
       "file": "en.html",
       "sections": 25,
-      "paragraphs": 55,
-      "bytes": 27008,
-      "sha256": "a31ac4665f553edc343e226807b8e9be8b0be6e539766f39f4c1d607f59e77b3"
+      "paragraphs": 60,
+      "bytes": 30000,
+      "sha256": "d0becfaa8141e3d22595c828e9d61a304538851e4baada424de81fe72e6cdd14"
     },
     {
       "language": "ja",
       "file": "ja.html",
       "sections": 25,
-      "paragraphs": 55,
-      "bytes": 28830,
-      "sha256": "54580510853f44761eba0857c96744d5df99f3245975f994f6ef52993d20774d"
+      "paragraphs": 60,
+      "bytes": 32402,
+      "sha256": "13fbfa59ad69d14e719d9dfc7964b615782ad91c7c00f76d61b07b4a19135a1f"
     },
     {
       "language": "ko",
       "file": "ko.html",
       "sections": 25,
-      "paragraphs": 55,
-      "bytes": 27167,
-      "sha256": "fe28c4102e1cf35708c03b2f5bb76e0e8450b18eb35799f3ac9ab9e1eaf2f4ec"
+      "paragraphs": 60,
+      "bytes": 30645,
+      "sha256": "9ce6beca0b53160cbf2dbd239fe722459ac09e425d6283e894a552a42e143293"
     },
     {
       "language": "es",
       "file": "es.html",
       "sections": 25,
-      "paragraphs": 55,
-      "bytes": 25405,
-      "sha256": "0f049cb3be85c3fb6745aea3ac66a9dded6b9077ca275a7d16fb6f90a317ed4f"
+      "paragraphs": 60,
+      "bytes": 28563,
+      "sha256": "065e08ed5fbc45a376365465587a15c338501ef56350dbe93bf8066fe84591da"
     },
     {
       "language": "fr",
       "file": "fr.html",
       "sections": 25,
-      "paragraphs": 55,
-      "bytes": 25545,
-      "sha256": "abf10e6a674910274ffbd7a408baa94b5d8e15b26dd8905141ec670f955ae55f"
+      "paragraphs": 60,
+      "bytes": 28835,
+      "sha256": "d21710c3b19358663ed007614aa5009f75961326af85ae744f059a3841a45174"
     },
     {
       "language": "de",
       "file": "de.html",
       "sections": 25,
-      "paragraphs": 55,
-      "bytes": 24413,
-      "sha256": "447e502039fd494b3bcbb26cfe87620e4c2b4e85fd8c3634ef172ede8e39a01f"
+      "paragraphs": 60,
+      "bytes": 27639,
+      "sha256": "0beb8517afb76d0aca8e5ff278710b034648d8aa727df16710b853f7c738394d"
     },
     {
       "language": "pt-BR",
       "file": "pt-BR.html",
       "sections": 25,
-      "paragraphs": 55,
-      "bytes": 23335,
-      "sha256": "30040cc848621e7d296447814e00bc947d199de1c4f912a53fb3e8872661df36"
+      "paragraphs": 60,
+      "bytes": 26368,
+      "sha256": "918c7c01076eb534ac7609acf6b9c060a82e3b2c5e08176847144669b3b77286"
     },
     {
       "language": "ar",
       "file": "ar.html",
       "sections": 25,
-      "paragraphs": 55,
-      "bytes": 31125,
-      "sha256": "2d7a0966636412e816c62350b6a1199db400a7809672283ddff3bf72a130a6e3"
+      "paragraphs": 60,
+      "bytes": 35396,
+      "sha256": "f92a6aafc34ffa37c3a194ff6c54b3587e5de6e28aef73310bc2fdd89a8cae54"
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "images/toolbar-labeled.jpg",
+      "sha256": "774f189057277eca2e19b1d71f59faf5aca1716cd48fffdc824554797c9425a1"
+    },
+    {
+      "file": "images/triangle-preview.jpg",
+      "sha256": "849b9d2ad7b474f8ea23ba16a663f386fbae31de0000c28cb7e1f5ce9abf81d9"
+    },
+    {
+      "file": "images/object-properties.jpg",
+      "sha256": "f2373fb3f7dbc8e24a2c201b4ba758dd354eed051615b76af5f2907e1ba0cfb2"
+    },
+    {
+      "file": "images/pdf-pages.jpg",
+      "sha256": "6fd072d896e2a592339ad8804936568030138de8123787217bbde7a3cd9982e8"
     }
   ]
 }

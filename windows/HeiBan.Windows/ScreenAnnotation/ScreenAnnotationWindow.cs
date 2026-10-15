@@ -25,7 +25,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     private readonly ViewportTransform _viewport=new();
     private readonly LaserPointerEngine _laser;
     // The screen host reads the same user toolbar file as the board, then applies host filtering without rewriting that preference.
-    private readonly ToolbarPreferences _toolbarPreferences;
+    private ToolbarPreferences _toolbarPreferences;
     private nint _lastExternal;
     private double _dpiScale=1;
     private FileStream? _sessionLease;
@@ -95,6 +95,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     public async Task StartAsync()
     {
         if(IsActive){AppWindow.Show();Activate();return;}
+        _toolbarPreferences=ToolbarPreferencesStore.Load(Path.GetDirectoryName(Path.GetDirectoryName(_recoveryPath))!);RebuildChromeLayout();
         try
         {
             Directory.CreateDirectory(Path.GetDirectoryName(_recoveryPath)!);_sessionLease=new FileStream(_recoveryPath+".lock",FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
@@ -129,32 +130,39 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     private void RememberExternalFocus()
     {var current=NativeOverlayWindow.CurrentForeground;if(current!=0&&current!=_overlay.Handle&&current!=WinRT.Interop.WindowNative.GetWindowHandle(this)&&current!=WinRT.Interop.WindowNative.GetWindowHandle(_owner))_lastExternal=current;}
     private void RefreshButtons()
-    {foreach(var pair in _buttons)pair.Value.Background=new SolidColorBrush(pair.Key==_tool?Color.FromArgb(70,116,156,141):Color.FromArgb(0,0,0,0));RefreshScreenStyleButtons();}
+    {foreach(var pair in _buttons)pair.Value.Background=new SolidColorBrush(pair.Key==_tool?Color.FromArgb(70,116,156,141):Color.FromArgb(0,0,0,0));RefreshScreenStyleButtons();foreach(var pair in _buttons){ToolbarUi.LabelMode(pair.Value,pair.Key,_toolbarPreferences.DisplayMode=="labels",32);if(pair.Key=="magnet")pair.Value.Background=ChromeBrush(_toolbarPreferences.MagnetEnabled?(byte)70:(byte)0,116,156,141);}}
     private void OnPointer(NativeOverlayWindow.PointerEvent input)
     {
         if(!IsActive||_stopping||_captureCancellation is not null)return;
         var p=new InkPoint(input.X,input.Y,1);
+        if(IsMagnetDrawingTool(_tool))
+        {
+            if(input.Kind=="down")_screenMagnetIndex=_toolbarPreferences.MagnetEnabled?new MagnetSnapIndex(_session.VisibleObjects,10*_dpiScale):null;
+            if(_toolbarPreferences.MagnetEnabled&&_screenMagnetIndex is not null)p=_screenMagnetIndex.Snap(p,out _);
+        }
         UpdateScreenShapeCursor(p);
         if(input.Kind=="move"&&_start is null&&_tool=="eraser"){UpdateScreenEraser();return;}
         if(input.Kind=="right"){FinishScreenText();ScreenRightClick(p);return;}
         if(input.Kind=="double")
         {
-            FinishScreenText();var hit=_tool=="select"?_session.Hit(p,6):null;
+            FinishScreenText();var hit=_session.Hit(p,6);
             if(hit is {IsLocked:not true,Type:"tape"}){_session.Begin();hit.IsRevealed=hit.IsRevealed!=true;_session.Commit();Changed();}
             else if(hit is {IsLocked:not true,Type:"text" or "sticky"})BeginScreenText(p,hit);
+            else if(hit is {IsLocked:not true}){CancelGesture();_tool="select";_session.SelectedId=hit.Id;RefreshButtons();Changed();ShowBrushSettings();}
             return;
         }
         if(input.Kind=="down"){FinishScreenText();if(_tool is "text" or "sticky"){BeginScreenText(p,type:_tool);return;}}
         if(_preview is not null)DamagePreview();
-        if(_tool=="curve")
+        if(_tool is "curve" or "triangle" or "quadrilateral")
         {
             if(input.Kind=="down")_curveAnchors.Add(p);
             if(_curveAnchors.Count==0)return;
-            _preview??=new BoardObject{Type="curve"};Styled(_preview);
-            var points=_curveAnchors.Count==3?_curveAnchors.ToArray():CurvePreview.Points(_curveAnchors,p);
-            var bounds=VectorMath.ComputeBoundingBox(CurvePreview.Flatten(points),_width*_dpiScale);
+            _preview??=new BoardObject{Type=_tool};Styled(_preview);
+            var needed=_tool=="quadrilateral"?4:3;
+            var points=_curveAnchors.Count==needed?_curveAnchors.ToArray():_tool=="curve"?CurvePreview.Points(_curveAnchors,p):_curveAnchors.Concat(new[]{p}).ToArray();
+            var bounds=VectorMath.ComputeBoundingBox(_tool=="curve"?CurvePreview.Flatten(points):points,_width*_dpiScale);
             _preview.X=bounds.MinX;_preview.Y=bounds.MinY;_preview.Width=bounds.Width;_preview.Height=bounds.Height;_preview.Points=JsonSerializer.Serialize(points,DocumentCodec.Options);
-            if(_curveAnchors.Count==3){_session.Begin();_session.Add(_preview);_session.Commit();_preview=null;_curveAnchors.Clear();Changed();}
+            if(_curveAnchors.Count==needed){_session.Begin();_session.Add(_preview);_session.Commit();_preview=null;_curveAnchors.Clear();Changed();}
             DamagePreview();_dirty=true;return;
         }
         if(_tool=="laser")

@@ -1,6 +1,6 @@
 # HeiBan 開發紀錄入口
 
-更新：2026-10-13。歷史計畫、實作與驗收是三種不同狀態。
+更新：2026-10-15。歷史計畫、實作與驗收是三種不同狀態。
 
 ## Mac維護與目前交付
 
@@ -19,6 +19,8 @@
 - [使用手冊](../macos/docs/USER_GUIDE.zh-TW.html)
 
 ## Windows端減重評估接手
+
+- [2026-10-15 繪圖／文件交換批次](../windows/docs/DRAWING_WORKFLOW_2026-10-15.zh-TW.md)：PDF／PowerPoint頁面匯入、多頁PDF匯出、磁鐵、連續繪圖、雙擊詳細屬性、圖文分頁工具列與實機圖手冊；驗證與試用包以該日誌為準。
 
 - [Windows操作／精簡優化本機批次（待實機）](../windows/docs/WINDOWS_OPTIMIZATION_BATCH_2026-10-13.zh-TW.md)：screen catalog去重、填色入口收整、焦點輪詢降頻；未build／測試，包體減重尚未驗證。
 - [工具列一致性第一批實作日誌（未驗收）](../windows/docs/TOOLBAR_ALIGNMENT_2026-10-13.zh-TW.md)：共用偏好政策、形狀選單及十語手冊已落源碼；其他工具及面板仍待接線。

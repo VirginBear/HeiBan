@@ -8,7 +8,7 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 namespace HeiBan.Windows.Views;
 
 /// <summary>Shared chrome construction; each host owns its controls, coordinates and edit transactions.</summary>
-internal static class ToolbarUi
+internal static partial class ToolbarUi
 {
     internal static readonly (string Key, string Label)[] ShapeTools =
     [
