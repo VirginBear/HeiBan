@@ -1,0 +1,23 @@
+{
+  "success": true,
+  "label": "topdown-eraser-2026-10-15-r1",
+  "sourceCommit": "c239aba975a4d3a69f13f025827f675648583d55",
+  "zipBytes": 132585397,
+  "zipSha256": "4a48953a76c3bfa325c81b228f5884901c07e2a2b7aeb9c4e557ff9257deeb39",
+  "zipCrcValid": true,
+  "payloadFilesVerified": 573,
+  "sourceFilesVerified": 162,
+  "zipUserDataFiles": 0,
+  "exeArchitecture": "x64",
+  "languages": 10,
+  "guideSections": 25,
+  "guideParagraphs": 62,
+  "uiSourceKeys": 624,
+  "boardEraserAlpha": true,
+  "originalAssetGeneratedWithoutReference": true,
+  "contactVertices": 12,
+  "strictOverheadView": true,
+  "appExecuted": false,
+  "implementationTestsExecuted": false,
+  "hardwareAcceptance": "pending user test"
+}
