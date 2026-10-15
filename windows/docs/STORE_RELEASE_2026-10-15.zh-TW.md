@@ -18,3 +18,6 @@
 使用者詢問隱私文字：檢視DocumentImportService、ExportPdfAsync、PdfDocumentAttachment、BoardExporter與GitHubUpdateService，新增Windows專用隱私原則，包含PDF／HTML完整原稿分享風險，沒有改文件契約。Microsoft範例短網址讀取失敗，改讀官方MSIX support-info隱私章；可直接提供文字，沒有保證認證。
 障礙：第一次讀取新JSON未指定UTF-8，Windows cp950解碼失敗，發生在任何文件修改之前；補encoding=utf-8重跑。本機source commit先push成功，後補交付文件。查找曾誤用不存在的DocumentExchange／Exporting路徑，改rg定位DocumentImport及Engine後取得實際證據。
 未執行App、實作測試、WACK、Store安裝／升級／卸載及完整網路量測；歷史數字不套用。本機作品／trial及Store歷史保留，既有YouTube內容未納本批提交。
+
+## 使用者回報送審結果
+使用者提供Partner Center概觀截圖：Submission 3上次修改2026/10/15，產品更新為認證中；流程中提交已完成、目前停在預先處理，認證與發佈尚未完成，設定通過後立即開始發佈。Store目前狀態顯示Submission 2（上次修改2026/10/12）仍可取得。截圖未展開套件，不含Submission 3實際版號或SHA；本批準備1.0.15.0的事實與已上傳套件byte查證分開。 完整狀態見STORE_SUBMISSION_STATUS_2026-10-15.zh-TW.md。

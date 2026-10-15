@@ -1,5 +1,9 @@
 # Windows 開發日誌
 
+## 2026-10-15 — Submission 3已提交，預先處理中
+
+使用者提供Partner Center概觀截圖：Submission 3上次修改2026/10/15，產品更新為認證中；流程中提交已完成、目前停在預先處理，認證與發佈尚未完成，設定通過後立即開始發佈。Store目前狀態顯示Submission 2（上次修改2026/10/12）仍可取得。截圖未展開套件，不含Submission 3實際版號或SHA；本批準備1.0.15.0的事實與已上傳套件byte查證分開。 [狀態紀錄](STORE_SUBMISSION_STATUS_2026-10-15.zh-TW.md)。本批只更新文件，未執行App／測試／封裝或後台操作。
+
 ## 2026-10-15 — 商店套件完成與隱私文字更新
 
 商店包`dist/store/HeiBan-Store-1.0.15.0-x64-arm64.msixbundle`已完成，195664137bytes／SHA256 `a889482ff3aa171569ce415fc285340b26742528af4306a3e0a0e3d6fa07eb96`；來源`ceed5f96a7241a9561380b4f3cfb596718fba317`。x64／ARM64分別61.69／51.11秒，均0warning／0error。218來源SHA、ZIP CRC、身分／架構、十語手冊與板擦資源核同；原12份Store套件SHA不變。使用者接手Partner Center，助手未上傳／送審／發布。本批App／實作測試／WACK未執行。 隱私文字已更新，明列本機轉換及PDF／HTML保留完整原稿（含其他頁面、隱藏物件）；目前畫面／選取匯出範圍不限制內嵌原稿，僅分享可見內容請用PNG。沒有改動既有匯出格式。
