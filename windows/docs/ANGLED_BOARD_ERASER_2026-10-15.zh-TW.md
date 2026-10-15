@@ -25,3 +25,13 @@ Use case: product-mockup. Create a BRAND NEW ORIGINAL UI asset for HeiBan, an el
 - python Build-UserGuides.py：10語25章62段，退出0；git diff --check退出0（僅換行轉換提醒）。讀PNG的Pillow操作只有尺寸／alpha／數值輪廓分析，沒有裁切、去背、轉色或重繪圖檔。
 - 半平面邊法向量每個接觸面預算一次，筆跡逐線段命中不重做平方根；實際性能未量測。
 - 本批自動化測試／App／實機擦拭／Undo／DPI驗收未執行；後續交由使用者試用。正式版號與Store不動。
+- 封裝前發現本批進行期間另有不屬此任務的未追蹤文件產生，被廣域git add誤納；尚未push，已僅移出索引並修正本批自有未推commit，原檔保留為未追蹤、不讀內容、不刪除。後續只stage明確本批路徑。首包記到修正前來源，不當最終交付，改新label重新封裝，保留如實來源證據。
+- 成品靜態檢視第一次在封裝ZIP尚未完成、artifact.json未產生時執行，FileNotFoundError即停止，沒有讀取半成品或假定成功；等封裝完成再重跑同一檢視。這是操作時序，不是App執行失敗。
+
+## 最終交付
+- 最終來源509c4bbfa2f4cb0e9d4bfadc987676d38074e7b6；Package-PortableTrial.ps1 -Runtime win-x64 -Label eraser-2026-10-15-r2退出0，App及Updater publish完成，無warning／error輸出。原創素材160×106.67DIP、斜圓角18點，原矩形API委派共用半平面裁切。
+- ZIP 133752265bytes，SHA256 653c7885d6edf823cb4c528ca048857ac14b7bd8ca89bfa3734787a18d31e5d7。CRC、573payload／162source逐SHA、App／helper x64、十語手冊與透明PNG核同；ZIP無Data檔。靜態檢視在等待artifact產生後重跑成功；清理JSON也曾過早複製、未存在即停止，等清理命令完成後才正式複製，不捏造完成狀態。
+- 最新canvas-ui資料27檔／24341106bytes已在未運行、目的空Data、無reparse情況逐SHA接續。使用者在前批交付後的修改保留，不沿用之前24372320bytes當本批數字；不列作品名稱或內容。
+- Clear-ObsoleteTrials -KeepTrial HeiBan-Windows-Portable-1.0.14-eraser-2026-10-15-r2-win-x64退出0；先保全Data，再清canvas-ui及未交付eraser-r1。釋放916077320bytes，保留24341106bytes於dist/trial-data-backups/20261015-142945-46188019；Store1.0.12前後SHA相同。舊備份及正式產物保留。
+- 本批沒有執行自動化測試、最終App啟動／實機擦拭、Undo或混合DPI驗收。保持1.0.14開發候選，無Store／Release／正式進版。
+- 本批進行中產生的其他任務未追蹤文件完整保留，最終只提交本批明確路徑；跨平台程式與資源未改。

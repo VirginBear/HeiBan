@@ -1,10 +1,12 @@
 # Windows 目前開發狀態
 
-## 2026-10-15 — 原創斜角板擦（新試用封裝準備中）
+## 2026-10-15 — 原創斜角板擦（x64試用完成，待實測）
+
+本機最新：`dist/trials/HeiBan-Windows-Portable-1.0.14-eraser-2026-10-15-r2-win-x64.zip`，133,752,265 bytes，SHA256 `653c7885d6edf823cb4c528ca048857ac14b7bd8ca89bfa3734787a18d31e5d7`，來源`509c4bbfa2f4cb0e9d4bfadc987676d38074e7b6`。同名資料夾HeiBan.exe可直接試用，接續27檔／24,341,106 bytes，逐SHA相同；ZIP無作品。App／Updater publish成功，CRC／573payload／162source SHA及x64核對成功；最終EXE未啟動，擦除／Undo／DPI待使用者測試。舊canvas-ui及未交付eraser-r1在保全Data後清理916,077,320bytes，備份`dist/trial-data-backups/20261015-142945-46188019`，Store原SHA保持。[封裝](ANGLED_ERASER_PORTABLE_ARTIFACT_2026-10-15.json)／[檢視](ANGLED_ERASER_PORTABLE_INSPECTION_2026-10-15.json)／[接續](ANGLED_ERASER_DATA_HANDOFF_2026-10-15.json)／[清理](ANGLED_ERASER_TRIAL_CLEANUP_2026-10-15.json)。
 
 依使用者最新要求，以未附參考圖片的imagegen文字生成取代商用外觀相似版；紙白外殼、霧綠握柄／底線、深灰felt，原始照片沒有入專案。新圖長邊約向右上20度，擦除使用同方向的18點圓角接觸面，不是水平矩形或正包圍框；160×106.67DIP圖框等比顯示，拖曳保留抓取位置、透明角不啟動。物件及局部筆跡、草稿／取消／一筆Undo契約延續。十語手冊同步，作品JSON不改。[本批紀錄與生成提示](ANGLED_BOARD_ERASER_2026-10-15.zh-TW.md)。
 
-目前中途build成功0warning／0error，屬最終原創圖覆寫前；最終結果以本批Portable publish為準。未執行本批自動化測試／App／硬體驗收，候選仍1.0.14.0，待使用者實測擦面／游標接觸位置。
+中途build成功0warning／0error，最終原創來源的Portable App／Updater publish亦成功；未執行本批自動化測試／App／硬體驗收，候選仍1.0.14.0，待使用者實測擦面／游標接觸位置。
 
 ## 2026-10-15 — 八項畫布實測修整（x64試用已交付，待使用者驗收）
 

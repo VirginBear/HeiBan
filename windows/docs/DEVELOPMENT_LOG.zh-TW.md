@@ -1,5 +1,9 @@
 # Windows 開發日誌
 
+## 2026-10-15 — 原創斜角板擦試用交付
+
+來源509c4bbfa2f4cb0e9d4bfadc987676d38074e7b6、eraser-2026-10-15-r2 x64免安裝完成，ZIP133752265bytes／SHA256 653c7885d6edf823cb4c528ca048857ac14b7bd8ca89bfa3734787a18d31e5d7。App／Updater publish及CRC／573payload／162source SHA核同；最終EXE／本批自動化測試未執行。接續27個Data檔24341106bytes，備份後清舊試用916077320bytes，Store不變。純文字生成原創紙白／霧綠圖，斜擦面18點共用提示及裁切；未保存參考照片。[完整日誌](ANGLED_BOARD_ERASER_2026-10-15.zh-TW.md)。
+
 ## 2026-10-15 — 原創斜角板擦批次
 
 開工公開08fb332乾淨，兩庫fetch0/0、私人PRIVATE=true。建立日誌，先生成斜角白塑膠版；使用者進一步指定符合自有風格後，改未附參考圖片的紙白／霧綠原創圖。共用凸裁切／18點felt接觸面／保留抓取位置、十語手冊同步，無作品格式改變。中途x64 build56.91秒0warning／0error；最終Portable結果／資料接續及清理於[本批日誌](ANGLED_BOARD_ERASER_2026-10-15.zh-TW.md)追加。本批沒有自動化測試，候選版本不提高。
