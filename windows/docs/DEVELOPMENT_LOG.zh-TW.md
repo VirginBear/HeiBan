@@ -1,5 +1,9 @@
 # Windows 開發日誌
 
+## 2026-10-15 — 畫布修整最終試用與資料保全
+
+最終來源3000bef，免安裝canvas-ui-2026-10-15-r2成功，134453996bytes／SHA256 0bd34217700cdf4ddcf761c7d7faeca5ed1433614be0f52aa3b754baa9420422。573payload／160source SHA、ZIP CRC／x64／十語／透明素材核同。27個Data檔24372320bytes逐SHA接續；清drawing及r1前已保全同批Data，清理912420485bytes，Store原SHA不變。最終包EXE未執行、本批自動化測試未執行，交由使用者實機驗收；App預覽／編譯與成品完整性檢視分開。[完整紀錄](CANVAS_UI_REFINEMENT_2026-10-15.zh-TW.md)。
+
 ## 2026-10-15 — 畫布八項修整批次
 
 起點main 1af9075乾淨，公開與私人fetch均0/0，私人isPrivate=true。建立本批日誌後才修改Windows。完成來源：單行工具組、常用自訂、幾何磁鐵及中心式起點、生成矩形板擦、圖片化匯入告知、圖釘新增優先與縮圖、固定紙白綠色主題；十語624key與25章62段說明同步。r1 FontWeights失敗保留原因，r2 23.37秒、r3 24.07秒x64 build均0warning／0error。隔離示範視窗觀察單排及卡片，未跑本批自動化測試、不沿用前批2334數字。後續新包、Data接續／保全清理及同步證據見[本批日誌](CANVAS_UI_REFINEMENT_2026-10-15.zh-TW.md)；維持候選1.0.14.0，無Store／Release。

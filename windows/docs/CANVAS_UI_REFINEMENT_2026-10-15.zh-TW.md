@@ -33,3 +33,11 @@
 ## 封裝與交接
 準備以獨立 canvas-ui-2026-10-15-r1 label封裝，不覆寫舊試用；成品及資料保全證據於成功後追加。
 - r1免安裝封裝成功（App／Updater publish及ZIP），但交付前來源檢視發現PPT告知的「繼續」沒有既有catalog key；改用已完整翻譯的「匯入」，不新增不必要同義字串。r1不當最終交付；以新source commit及canvas-ui-2026-10-15-r2重新封裝，避免重寫r1來源證據。
+
+### 最終交付證據
+- 最終來源3000bef3f589ee3cce22732e970e959c00d28c1e；主要實作d66164c465cde23d8b95edc60995b040c800df4f。Package-PortableTrial.ps1 -Runtime win-x64 -Label canvas-ui-2026-10-15-r2退出0，App及Updater publish無warning／error輸出。
+- ZIP134,453,996 bytes，SHA256 0bd34217700cdf4ddcf761c7d7faeca5ed1433614be0f52aa3b754baa9420422。副檔SHA、ZIP CRC、573個payload與160個source逐SHA核同；App／helper為x64，十語頁／固定亮色及板擦RGBA alpha0–255核同。這是成品靜態檢視，未當作擦除／吸附功能測試。
+- 最終成品EXE未啟動；r2／r3隔離UI觀察屬本批開發來源的預覽，不偽稱已完成最終包實機驗收。提供使用者直接測試，保留所有未驗收清單。
+- 舊drawing的Data已累積27檔24,372,320 bytes，接續新資料夾前確認兩份試用未運行、目的Data空白及無reparse points；逐檔SHA匹配。ZIP無Data檔，不含作品，公開JSON不列作品檔名或內容。
+- Clear-ObsoleteTrials.ps1 -KeepTrial HeiBan-Windows-Portable-1.0.14-canvas-ui-2026-10-15-r2-win-x64退出0。先核已發布資產及路徑、備份並逐SHA確認27個Data檔，才清drawing與未交付r1的runtime／ZIP／sidecar。釋放912,420,485 bytes，保留24,372,320 bytes於dist/trial-data-backups/20261015-090554-21b70b56。既有備份、Store與正式發行保留，Store1.0.12前後SHA d7a49b63d88fa880b1a97b0c307361ad2cfbc9b3d58786048887093d7204ea7b相同。
+- Git diff／cached --check退出0，只有Git換行轉換提醒。正式版號仍1.0.14.0開發候選；未做Store提交／GitHub Release／ARM64／WACK。兩庫push與遠端核對接續記錄。

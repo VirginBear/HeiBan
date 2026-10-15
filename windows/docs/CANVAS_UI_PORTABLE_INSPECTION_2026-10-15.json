@@ -1,0 +1,19 @@
+{
+  "success": true,
+  "label": "canvas-ui-2026-10-15-r2",
+  "sourceCommit": "3000bef3f589ee3cce22732e970e959c00d28c1e",
+  "zipBytes": 134453996,
+  "zipSha256": "0bd34217700cdf4ddcf761c7d7faeca5ed1433614be0f52aa3b754baa9420422",
+  "zipCrcValid": true,
+  "payloadFilesVerified": 573,
+  "sourceFilesVerified": 160,
+  "zipUserDataFiles": 0,
+  "exeArchitecture": "x64",
+  "languages": 10,
+  "guideSections": 25,
+  "guideParagraphs": 62,
+  "uiSourceKeys": 624,
+  "boardEraserAlpha": true,
+  "implementationTestsExecuted": false,
+  "hardwareAcceptance": "pending user test"
+}

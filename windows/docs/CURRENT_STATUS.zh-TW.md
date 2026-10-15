@@ -1,10 +1,12 @@
 # Windows 目前開發狀態
 
-## 2026-10-15 — 八項畫布實測修整（新試用封裝準備中，未正式進版）
+## 2026-10-15 — 八項畫布實測修整（x64試用已交付，待使用者驗收）
+
+最新本機試用：`dist/trials/HeiBan-Windows-Portable-1.0.14-canvas-ui-2026-10-15-r2-win-x64.zip`，134,453,996 bytes，SHA256 `0bd34217700cdf4ddcf761c7d7faeca5ed1433614be0f52aa3b754baa9420422`，來源 `3000bef3f589ee3cce22732e970e959c00d28c1e`。同名資料夾可直接執行HeiBan.exe，已接續上一版27個資料檔／24,372,320 bytes，逐檔SHA相同；ZIP仍空Data。App／Updater publish成功；ZIP CRC、573payload／160source SHA、兩EXE x64、十語與透明板擦資源核同。舊drawing及本批r1已在備份27個Data檔後清理912,420,485 bytes；備份在`dist/trial-data-backups/20261015-090554-21b70b56`，Store1.0.12原SHA保持。[封裝](CANVAS_UI_PORTABLE_ARTIFACT_2026-10-15.json)／[檢視](CANVAS_UI_PORTABLE_INSPECTION_2026-10-15.json)／[接續](CANVAS_UI_DATA_HANDOFF_2026-10-15.json)／[清理](CANVAS_UI_TRIAL_CLEANUP_2026-10-15.json)。
 
 圖文工具列改單排／單列，按工作區延伸，窄視窗用工具組箭頭；選取常駐。常用分頁可在自訂卡片中勾選，screen自訂亦有共用常用偏好。磁鐵含起點hover提示與完整形狀參考點；圓／菱形／五角／星形改中心拖曳，兩宿主共用建構幾何。一般畫布新增生成木質板擦、矩形擦除／一筆Undo／設定顯隱。PDF／簡報匯入增加醒目圖片化限制說明；圖釘先新增再搜尋，清單以實際配色繪製。全App固定紙白／綠色，不隨Windows亮暗主題；OS選檔器仍由系統控制。
 
-十語UI624key、手冊25章62段；四張舊批實機圖保留並明示排版差異。r2及r3 x64 Release build成功（0warning／0error），隔離視窗觀察單排、板擦、自訂卡片；未跑本批自動化測試或硬體完整回歸，板擦擦除／Undo、第一點實際吸附、4K／左右停靠／十語母語仍待驗收。新ZIP與接續／清理結果待本批日誌補記；1.0.14.0仍為開發候選，舊版2334checks不當本批通過數字。[本批完整紀錄](CANVAS_UI_REFINEMENT_2026-10-15.zh-TW.md)。
+十語UI624key、手冊25章62段；四張舊批實機圖保留並明示排版差異。r2及r3 x64 Release build成功（0warning／0error），隔離視窗觀察單排、板擦、自訂卡片；未跑本批自動化測試或硬體完整回歸，板擦擦除／Undo、第一點實際吸附、4K／左右停靠／十語母語仍待驗收。最終Portable已完成來源及內容核對，未啟動此最終ZIP的EXE或跑本批自動化測試；1.0.14.0仍為開發候選，舊版2334checks不當本批通過數字。[本批完整紀錄](CANVAS_UI_REFINEMENT_2026-10-15.zh-TW.md)。
 
 ## 2026-10-15 — 文件交換與繪圖九項需求（來源及本機針對性驗證完成，待使用者試用）
 
