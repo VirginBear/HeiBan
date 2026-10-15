@@ -2,6 +2,10 @@
 
 更新：2026-10-09。適用於此儲存庫的原生公開預覽下載；Web 原型另見下方。
 
+## Windows 目前商店更新
+
+Windows 1.0.15提交使用的隱私文字見[2026-10-15版](windows/docs/PRIVACY_POLICY_2026-10-15.zh-TW.md)，包含本機PDF／PowerPoint轉換、匯出內嵌完整原稿、更新與診斷說明。本次不改Mac或Web行為。
+
 ## Mac 與 Windows 原生版
 
 作品主要保存在本機。Mac 位於 `~/Library/Application Support/HeiBan/`；Windows 安裝版位於 `%LOCALAPPDATA%\HeiBan\Windows\`，免安裝版位於程式資料夾 `Data/`。開發隔離環境變數可改變位置，因此它們不是每台電腦的絕對路徑保證。

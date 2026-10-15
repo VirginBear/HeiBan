@@ -1,0 +1,46 @@
+{
+  "success": true,
+  "version": "1.0.15.0",
+  "sourceCommit": "ceed5f96a7241a9561380b4f3cfb596718fba317",
+  "sourceFilesVerified": 218,
+  "existingStoreArtifactsPreserved": 12,
+  "formalVersionApproved": true,
+  "packageChecks": [
+    {
+      "architecture": "x64",
+      "zipCrc": true,
+      "tenGuidesMatched": true,
+      "eraserAssetMatched": true,
+      "noUserDataOrUpdater": true,
+      "nativeArchitectureMatched": true
+    },
+    {
+      "architecture": "arm64",
+      "zipCrc": true,
+      "tenGuidesMatched": true,
+      "eraserAssetMatched": true,
+      "noUserDataOrUpdater": true,
+      "nativeArchitectureMatched": true
+    }
+  ],
+  "bundleIdentityAndArchitecturesMatched": true,
+  "bundlePackageBytesMatched": true,
+  "builds": {
+    "x64": {
+      "warnings": 0,
+      "errors": 0,
+      "duration": "00:01:01.69"
+    },
+    "arm64": {
+      "warnings": 0,
+      "errors": 0,
+      "duration": "00:00:51.11"
+    }
+  },
+  "testsExecuted": false,
+  "appExecuted": false,
+  "wackExecuted": false,
+  "storeUploadedByAgent": false,
+  "storeSubmittedByAgent": false,
+  "userNowOperatesPartnerCenter": true
+}
