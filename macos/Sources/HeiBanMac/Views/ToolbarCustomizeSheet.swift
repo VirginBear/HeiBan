@@ -34,6 +34,9 @@ struct ToolbarCustomizeSheet: View {
             HStack {
                 Text(L10n.t("自訂工具列")).font(.headline)
                 Spacer()
+                Button(L10n.t("全選")) {
+                    for id in allOrderedKeys { engine.setToolbarItemHidden(id:id,hidden:false) }
+                }.buttonStyle(.bordered).controlSize(.small)
                 Button(L10n.t("恢復預設")) {
                     engine.resetToolbarPreferences()
                 }
@@ -46,6 +49,11 @@ struct ToolbarCustomizeSheet: View {
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
+            Picker(L10n.t("工具列格式"),selection:Binding(get:{engine.toolbarPreferences.displayMode},set:{engine.toolbarPreferences.displayMode=$0;engine.saveToolbarPreferences()})) {
+                Text(L10n.t("只有圖示")).tag("icons")
+                Text(L10n.t("圖示與文字（分頁）")).tag("labels")
+            }
+            Text(L10n.t("常用欄可獨立勾選；選取工具固定顯示")).font(.caption).foregroundStyle(.secondary)
             ScrollView {
                 VStack(spacing: 6) {
                     ForEach(Array(allOrderedKeys.enumerated()), id: \.element) { index, id in
@@ -59,10 +67,20 @@ struct ToolbarCustomizeSheet: View {
                                     }
                                 ))
                                 .labelsHidden()
+                                .disabled(id=="select")
+                                if id != "select" {
+                                    Toggle(L10n.t("常用"),isOn:Binding(get:{engine.toolbarPreferences.commonItemIds.contains(id)},set:{ value in
+                                        if value { engine.toolbarPreferences.commonItemIds.append(id);engine.toolbarPreferences.setItemHidden(id:id,hidden:false) }
+                                        else { engine.toolbarPreferences.commonItemIds.removeAll { $0==id } }
+                                        engine.toolbarPreferences.normalize();engine.saveToolbarPreferences()
+                                    })).toggleStyle(.checkbox).font(.caption)
+                                }
 
-                                Image(systemName: def.icon)
-                                    .frame(width: 22)
-                                    .foregroundColor(.accentColor)
+                                Group {
+                                    if id=="magnet" { HeiBanMagnetIcon() }
+                                    else if id=="compass" { HeiBanCompassIcon() }
+                                    else { Image(systemName:def.icon) }
+                                }.frame(width:22).foregroundColor(.accentColor)
 
                                 Text(L10n.t(def.displayName))
                                     .font(.system(size: 13))
@@ -108,6 +126,6 @@ struct ToolbarCustomizeSheet: View {
             }
         }
         .padding(20)
-        .frame(width: 380)
+        .frame(width: 440)
     }
 }

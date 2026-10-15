@@ -336,3 +336,9 @@ M21 獨立複核補充（2026-10-11）：f960c78 下完整 runner 1559/1559、Re
 2026-10-13，狀態：文件已更正，最終功能回歸仍待完成。維護README仍引10/11並稱螢幕沒有圖層；M28／M32的較早狀態與檔案定位未顯示M37取代。已新增MAC_DEVELOPMENT_HANDOFF現況表、補歷史失效／證據邊界，更新README與Antigravity入口，保留舊症狀及SHA。
 
 防止再犯：現在結論用來源commit／二進位SHA與實際批次定位；來源實作、核心檢查、局部UI與整體回歸分列。舊核心數字不可改寫成最新全部通過，文件整理不重編App或改版號。本批未重現App故障、未執行tests；連結／數據及Git同步另記日誌03。
+
+## M40 — Windows1.0.15新增操作未同步至Mac
+
+2026-10-16，來源移植進行中；完整操作未驗收。Mac原1.0.13缺磁鐵、圖文分頁與Common、板擦、真正外部PDF圖片頁及多頁匯出；圖形預設單次選取、快速列自動出現也與Windows最新需求不同。改由原生共同幾何／policy／文件adapter接線，版本依使用者新授權對齊1.0.15。Windows早期2334等檢查不沿用為Mac本批證據。
+
+排解：首輪Mac文件adapter誤用fitToContent及緊接enum值的==.造成編譯錯誤，改既有fitNavigationView與運算子空白；第二輪Release56.58秒成功。第三輪發現ToolbarPreferences新增未知欄位不是Sendable，確認AnyCodableValue全為遞迴值型別後新增正式Sendable，不用unchecked迴避。板擦最初計畫用remove／insert複合命令，來源複核發現appendInZOrder會改legacy pageId=nil，已改明確replaceObjects交易。未執行故障重現／UI測試；最終編譯結果另記本日01。

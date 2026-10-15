@@ -2815,13 +2815,13 @@ do {
 
     // 26.5 關於資訊與更新日誌真實性 (A22 & MAC-SYNC-02)
     assertEqual(AboutInfo.appName, "HeiBan 黑板", "App 名稱相符")
-    assertEqual(AboutInfo.appVersion, "1.0.13", "真版本號為 1.0.13 (對齊 Release.json 與 App plist)")
-    assertEqual(AboutInfo.buildNumber, "20261011.1", "組建編號存在且為 20261011.1")
+    assertEqual(AboutInfo.appVersion, "1.0.15", "真版本號為 1.0.15 (對齊 Release.json 與 App plist)")
+    assertEqual(AboutInfo.buildNumber, "20261016.1", "組建編號存在且為 20261016.1")
     assertEqual(AboutInfo.engineVersion.contains("HeiBan Blackboard Vector Engine"), true, "引擎核心資訊明確")
     assertEqual(AboutInfo.feedbackUrl, "https://github.com/VirginBear/HeiBan/issues", "意見回覆入口指向真實倉庫 VirginBear/HeiBan/issues")
     assertEqual(AboutInfo.changelog.count >= 2, true, "更新日誌至少涵蓋 2 個版本紀錄")
-    assertEqual(AboutInfo.changelog[0].version, "1.0.13", "最新更新日誌對應 1.0.13 正式版")
-    assertEqual(AboutInfo.changelog[0].highlights.count >= 3, true, "1.0.13 重點更新項目豐富詳盡")
+    assertEqual(AboutInfo.changelog[0].version, "1.0.15", "最新更新日誌對應 1.0.15 正式版")
+    assertEqual(AboutInfo.changelog[0].highlights.count >= 3, true, "1.0.15 重點更新項目豐富詳盡")
 }
 
 // ==============================================================================
@@ -4178,27 +4178,28 @@ print("\n[測試 42] ProDrafts 錄影檢討：V01–V06 工具列自訂、選取
 do {
     // 42.1 V01: ToolbarPreferences Customization (對齊 MAC-TB-01 精簡預設)
     var prefs = ToolbarPreferences()
-    assertEqual(prefs.activeItemIds.count, 8, "預設精簡工具列包含 8 個項目")
-    assertEqual(prefs.hiddenItemIds.count, ToolbarPreferences.allDefinitions.count - 8, "預設其餘 18 項收納至隱藏清單 (更多)")
-    assertEqual(prefs.visibleItemIds.count, 8, "預設可見工具數量為 8")
+    assertEqual(prefs.activeItemIds.count, 9, "預設精簡工具列包含 9 個項目 (含磁鐵)")
+    assertEqual(prefs.hiddenItemIds.count, ToolbarPreferences.allDefinitions.count - 9, "預設其餘 18 項收納至隱藏清單 (更多)")
+    assertEqual(prefs.visibleItemIds.count, 9, "預設可見工具數量為 9")
 
     prefs.setItemHidden(id: "ruler", hidden: true)
     assertTrue(prefs.hiddenItemIds.contains("ruler"), "隱藏螢幕尺後進入 hiddenItemIds")
-    assertEqual(prefs.visibleItemIds.count, 7, "隱藏 1 個工具後可見項目為 7")
+    assertEqual(prefs.visibleItemIds.count, 8, "隱藏 1 個工具後可見項目為 8")
     assertTrue(!prefs.visibleItemIds.contains("ruler"), "visibleItemIds 不含已隱藏之 ruler")
     assertTrue(prefs.hiddenItems.contains(where: { $0.id == "ruler" }), "hiddenItems 正確包含尺規定義")
 
-    prefs.moveItem(id: "eraser", to: 0)
-    assertEqual(prefs.activeItemIds.first, "eraser", "移動橡皮擦至第 0 位成功")
+    prefs.moveItem(id: "eraser", to: 1)
+    assertEqual(prefs.activeItemIds[1], "eraser", "移動橡皮擦至第 1 位成功 (第 0 位固定為 select)")
 
     let encoded = try! JSONEncoder().encode(prefs)
     let decoded = try! JSONDecoder().decode(ToolbarPreferences.self, from: encoded)
-    assertEqual(decoded.activeItemIds.first, "eraser", "反序列化保留自訂排序")
+    assertEqual(decoded.activeItemIds[1], "eraser", "反序列化保留自訂排序")
+    assertEqual(decoded.activeItemIds.first, "select", "選取工具固定保留於首位")
     assertTrue(decoded.hiddenItemIds.contains("ruler"), "反序列化保留隱藏項目")
 
     prefs.resetToDefaults()
-    assertEqual(prefs.activeItemIds.count, 8, "重設後恢復 8 個精簡工具")
-    assertEqual(prefs.hiddenItemIds.count, ToolbarPreferences.allDefinitions.count - 8, "重設後隱藏清單收納其餘 18 項")
+    assertEqual(prefs.activeItemIds.count, 9, "重設後恢復 9 個精簡工具")
+    assertEqual(prefs.hiddenItemIds.count, ToolbarPreferences.allDefinitions.count - 9, "重設後隱藏清單收納其餘 18 項")
     assertEqual(prefs.activeItemIds.first, "select", "重設後首位恢復為 select")
 
     // 42.2 V02: SelectionQuickActionCoordinator
@@ -5162,12 +5163,12 @@ do {
 
     // 46.5 MAC-SYNC-02: 版本對齊、真實 Build、問題回報入口與更新日誌
     assertEqual(AboutInfo.appName, "HeiBan 黑板", "版本資訊：App 名稱相符")
-    assertEqual(AboutInfo.appVersion, "1.0.13", "版本對齊：核心版本號真實對齊 1.0.13")
-    assertEqual(AboutInfo.buildNumber, "20261011.1", "版本對齊：組建編號真實對齊 20261011.1")
+    assertEqual(AboutInfo.appVersion, "1.0.15", "版本對齊：核心版本號真實對齊 1.0.15")
+    assertEqual(AboutInfo.buildNumber, "20261016.1", "版本對齊：組建編號真實對齊 20261016.1")
     assertEqual(AboutInfo.feedbackUrl, "https://github.com/VirginBear/HeiBan/issues", "回報入口：指向 VirginBear/HeiBan/issues")
-    assertEqual(AboutInfo.changelog[0].version, "1.0.13", "更新日誌：最新紀錄為 1.0.13 正式版")
-    assertEqual(AboutInfo.changelog[0].releaseDate, "2026-10-11", "更新日誌：發布日期為 2026-10-11")
-    assertTrue(AboutInfo.changelog[0].highlights.count >= 3, "更新日誌：1.0.13 涵蓋導覽自動隱藏、圖層拖曳與首頁螢幕畫布入口")
+    assertEqual(AboutInfo.changelog[0].version, "1.0.15", "更新日誌：最新紀錄為 1.0.15 正式版")
+    assertEqual(AboutInfo.changelog[0].releaseDate, "2026-10-16", "更新日誌：發布日期為 2026-10-16")
+    assertTrue(AboutInfo.changelog[0].highlights.count >= 3, "更新日誌：1.0.15 涵蓋磁鐵吸附、中心建構、板擦與 PDF 增量原稿")
 
     // 46.6 舊版圖釘座標相容性探針 (missing / null / false / true 語意保全)
     let legacyCases: [(name: String, flag: String, expected: Point)] = [
@@ -5223,16 +5224,16 @@ do {
 // -------------------------------------------------------------------------
 print("\n[測試 47] MAC-TB-01 ~ MAC-TB-03: 精簡主工具列、偏好遷移、教學工具 catalog 與真實儲存狀態機 (立靶驗收)")
 do {
-    // 47.1 MAC-TB-01: 精簡工具列項目常數與全新預設 (8項核心工具)
+    // 47.1 MAC-TB-01: 精簡工具列項目常數與全新預設 (9項核心工具，含磁鐵)
     let streamlined = ToolbarPreferences.streamlinedItemIds
-    assertEqual(streamlined, ["select", "pen", "highlighter", "eraser", "ruler", "shapes", "layers", "undoRedo"], "精簡列：精確包含 8 項常用工具")
+    assertEqual(streamlined, ["select", "pen", "highlighter", "eraser", "ruler", "shapes", "magnet", "layers", "undoRedo"], "精簡列：精確包含 9 項常用工具 (含磁鐵)")
 
     let defaultPrefs = ToolbarPreferences.createDefault()
-    assertEqual(defaultPrefs.visibleItemIds, streamlined, "全新預設：visibleItemIds 預設為 8 個精簡工具")
-    assertEqual(defaultPrefs.activeItemIds, streamlined, "全新預設：activeItemIds 預設為 8 個精簡工具")
-    assertEqual(defaultPrefs.hiddenItemIds.count, ToolbarPreferences.allDefinitions.count - 8, "全新預設：其餘 18 項工具收納於 hiddenItemIds (更多)")
+    assertEqual(defaultPrefs.visibleItemIds, streamlined, "全新預設：visibleItemIds 預設為 9 個精簡工具")
+    assertEqual(defaultPrefs.activeItemIds, streamlined, "全新預設：activeItemIds 預設為 9 個精簡工具")
+    assertEqual(defaultPrefs.hiddenItemIds.count, ToolbarPreferences.allDefinitions.count - 9, "全新預設：其餘 18 項工具收納於 hiddenItemIds (更多)")
     assertTrue(Set(defaultPrefs.activeItemIds).isDisjoint(with: Set(defaultPrefs.hiddenItemIds)), "全新預設：active 與 hidden 彼此互斥無重複")
-    assertEqual(Set(defaultPrefs.activeItemIds).union(Set(defaultPrefs.hiddenItemIds)), Set(ToolbarPreferences.allDefinitions.map(\.id)), "全新預設：聯集完整覆蓋全 catalog 26 項工具")
+    assertEqual(Set(defaultPrefs.activeItemIds).union(Set(defaultPrefs.hiddenItemIds)), Set(ToolbarPreferences.allDefinitions.map(\.id)), "全新預設：聯集完整覆蓋全 catalog 27 項工具")
 
     // 47.2 MAC-TB-01: 偏好遷移 (Normalize)
     // 情境 A：舊版 21 項全開配置（缺少 layers、缺少 pins/compass/calculator/timer/viewLock、包含舊 lineExtension）
@@ -5284,8 +5285,8 @@ do {
     // 情境 D：重設回預設
     var modifiedPrefs = ToolbarPreferences(activeItemIds: ["eraser"], hiddenItemIds: ["select"])
     modifiedPrefs.resetToDefaults()
-    assertEqual(modifiedPrefs.visibleItemIds, streamlined, "重設預設：恢復為 8 項精簡列")
-    assertEqual(modifiedPrefs.hiddenItemIds.count, ToolbarPreferences.allDefinitions.count - 8, "重設預設：其餘項目收納進 hidden")
+    assertEqual(modifiedPrefs.visibleItemIds, streamlined, "重設預設：恢復為 9 項精簡列")
+    assertEqual(modifiedPrefs.hiddenItemIds.count, ToolbarPreferences.allDefinitions.count - 9, "重設預設：其餘項目收納進 hidden")
 
     // 47.3 MAC-TB-02: 圖層及教學工具 catalog 與 BoardEngine 統一命令
     let catalogIds = ToolbarPreferences.allDefinitions.map(\.id)
@@ -5409,7 +5410,7 @@ do {
     assertEqual(AutoSaveFrequency.manual.rawValue, 0.0, "存檔頻率：手動為 0.0 秒")
 
     let defaultSettings = AppSettings()
-    assertEqual(defaultSettings.autoSaveEnabled, true, "預設偏好：自動存檔預設啟用")
+    assertEqual(defaultSettings.autoSaveEnabled, false, "預設偏好：新使用者自動存檔預設關閉 (對齊 Windows 1.0.15)")
     assertEqual(defaultSettings.autoSaveFrequency, .standard, "預設偏好：自動存檔頻率預設為標準")
 
     // 舊版設定包含 manual 頻率但無 autoSaveEnabled 時無損遷移為關閉狀態
@@ -5419,6 +5420,14 @@ do {
     let migratedSettings = try! JSONDecoder().decode(AppSettings.self, from: legacyManualJSON)
     assertEqual(migratedSettings.autoSaveEnabled, false, "偏好遷移：舊 manual 頻率自動無損轉為 autoSaveEnabled=false")
     assertEqual(migratedSettings.autoSaveFrequency, .manual, "偏好遷移：維持 manual 標記")
+
+    // 舊版設定包含 standard 頻率但無 autoSaveEnabled 時無損遷移為開啟狀態
+    let legacyStdJSON = """
+    {"autoSaveFrequency":15,"appTheme":"blackboard","defaultCanvasMode":"infinite"}
+    """.data(using: .utf8)!
+    let migratedStdSettings = try! JSONDecoder().decode(AppSettings.self, from: legacyStdJSON)
+    assertEqual(migratedStdSettings.autoSaveEnabled, true, "偏好遷移：舊 standard 頻率自動無損轉為 autoSaveEnabled=true")
+    assertEqual(migratedStdSettings.autoSaveFrequency, .standard, "偏好遷移：維持 standard 頻率")
 
     // 48.2 MAC-TB-04: 螢幕工具列自適應排布、無捲軸換行/列與多顯示器邊界保全
     // 橫向寬螢幕（寬度 1200）：工具區單列排布
@@ -5731,6 +5740,161 @@ do {
     for invalid in ["1..0.13", "+1.0.13", "1.0.13-", "1.0"] {
         assertEqual(MacReleaseVersion(invalid), nil, "不合法版本不觸發更新：\(invalid)")
     }
+}
+
+// ==============================================================================
+// 測試 50: 1.0.15 Windows 同步：磁鐵吸附、停筆直線、原創板擦、PDF 增量原稿與分頁常駐選取 (立靶驗收)
+// ==============================================================================
+print("\n[測試 50] 1.0.15 Windows 同步：磁鐵吸附、停筆直線、原創板擦、PDF 增量原稿與分頁常駐選取 (立靶驗收)")
+do {
+    // 50.1 磁鐵參考點與空間索引 (DrawingReferenceGeometry & MagnetSnapIndex)
+    let rectObj = BoardObject(id: "snap_rect", type: "rect", x: 100, y: 100, width: 80, height: 60)
+    let rectRefs = DrawingReferenceGeometry.references(rectObj)
+    assertTrue(rectRefs.contains(Point(x: 100, y: 100)), "磁鐵參考點：矩形包含左上角頂點 (100, 100)")
+    assertTrue(rectRefs.contains(Point(x: 180, y: 160)), "磁鐵參考點：矩形包含右下角頂點 (180, 160)")
+    assertTrue(rectRefs.contains(Point(x: 140, y: 100)), "磁鐵參考點：矩形包含頂邊中點 (140, 100)")
+    assertTrue(rectRefs.contains(Point(x: 140, y: 130)), "磁鐵參考點：矩形包含中心點 (140, 130)")
+
+    let circleObj = BoardObject(id: "snap_circle", type: "circle", x: 200, y: 200, width: 100, height: 100)
+    let circleRefs = DrawingReferenceGeometry.references(circleObj)
+    assertTrue(circleRefs.contains(Point(x: 250, y: 250)), "磁鐵參考點：圓形包含中心點 (250, 250)")
+    assertTrue(circleRefs.contains(Point(x: 250, y: 200)), "磁鐵參考點：圓形包含頂點 (250, 200)")
+
+    let snapIndex = MagnetSnapIndex(objects: [rectObj, circleObj], radius: 10)
+    // 靠近頂點 (102, 102) -> 吸附至 (100, 100)
+    let snappedNear = snapIndex.snap(Point(x: 102, y: 102))
+    assertEqual(snappedNear, Point(x: 100, y: 100), "磁鐵吸附：接近參考點 (102, 102) 成功吸附至頂點 (100, 100)")
+    // 遠離 (150, 150) -> 不吸附
+    let snappedFar = snapIndex.snap(Point(x: 150, y: 150))
+    assertEqual(snappedFar, nil, "磁鐵吸附：遠離參考點不觸發吸附")
+
+    // 隱藏物件排除吸附
+    var hiddenObj = BoardObject(id: "snap_hidden", type: "rect", x: 500, y: 500, width: 80, height: 60)
+    hiddenObj.isVisible = false
+    let hiddenIndex = MagnetSnapIndex(objects: [hiddenObj], radius: 10)
+    assertEqual(hiddenIndex.snap(Point(x: 501, y: 501)), nil, "磁鐵吸附：隱藏物件嚴格排除吸附")
+
+    // 鎖定物件允許參照吸附
+    var lockedObj = BoardObject(id: "snap_locked", type: "rect", x: 600, y: 600, width: 80, height: 60)
+    lockedObj.isLocked = true
+    let lockedIndex = MagnetSnapIndex(objects: [lockedObj], radius: 10)
+    assertEqual(lockedIndex.snap(Point(x: 601, y: 601)), Point(x: 600, y: 600), "磁鐵吸附：鎖定物件可作為參考點吸附")
+
+    // 50.2 停筆近直線識別 (StraightStrokeRecognizer)
+    let straightPoints = [
+        Point(x: 10, y: 10), Point(x: 30, y: 10.2), Point(x: 50, y: 9.8),
+        Point(x: 70, y: 10.1), Point(x: 90, y: 10)
+    ]
+    assertTrue(StraightStrokeRecognizer.isEligible(straightPoints, zoom: 1.0), "近直線辨識：微小手抖近直線判定為 true")
+
+    let curvedPoints = [
+        Point(x: 10, y: 10), Point(x: 30, y: 35), Point(x: 50, y: 50),
+        Point(x: 70, y: 30), Point(x: 90, y: 10)
+    ]
+    assertFalse(StraightStrokeRecognizer.isEligible(curvedPoints, zoom: 1.0), "近直線辨識：明顯彎曲筆跡判定為 false")
+
+    let shortPoints = [Point(x: 0, y: 0), Point(x: 2, y: 0), Point(x: 4, y: 0), Point(x: 6, y: 0), Point(x: 8, y: 0)]
+    assertFalse(StraightStrokeRecognizer.isEligible(shortPoints, zoom: 1.0), "近直線辨識：長度過短 (小於 24 pt) 判定為 false")
+
+    // 50.3 原創磁吸板擦 (BoardEraser & ConvexEraserFootprint)
+    assertEqual(BoardEraserGeometry.outline.count, 12, "原創板擦：輪廓包含 12 個凸多邊形頂點")
+    assertTrue(BoardEraserGeometry.canGrab(Point(x: 80, y: 49)), "原創板擦：中心握把位置可被抓取")
+    assertFalse(BoardEraserGeometry.canGrab(Point(x: -10, y: -10)), "原創板擦：邊界外部不可被抓取")
+
+    let footprint = ConvexEraserFootprint(BoardEraserGeometry.outline)
+    assertTrue(footprint.contains(Point(x: 80, y: 49)), "板擦凸輪廓：內部點包含判定為 true")
+    assertFalse(footprint.contains(Point(x: 300, y: 300)), "板擦凸輪廓：外部點包含判定為 false")
+
+    // 板擦線段裁剪
+    let clipped = footprint.clip(Point(x: 0, y: 49), Point(x: 160, y: 49), padding: 0)
+    assertTrue(clipped != nil, "板擦線段裁剪：穿過板擦之線段回傳裁剪交點")
+
+    // 板擦引擎互動、物件豁免與 Undo 復原
+    let eraserEngine = BoardEngine()
+    let strokeToErase = BoardObject(
+        id: "stroke_erase_1", type: "stroke", x: 50, y: 40, width: 60, height: 20,
+        points: "[{\"x\":50,\"y\":49},{\"x\":110,\"y\":49}]", strokeWidth: 4
+    )
+    let protectedText = BoardObject(id: "text_prot", type: "text", x: 80, y: 45, width: 40, height: 20, text: "豁免文字")
+    let protectedSticky = BoardObject(id: "sticky_prot", type: "sticky", x: 80, y: 45, width: 40, height: 20)
+    let protectedImage = BoardObject(id: "img_prot", type: "image", x: 80, y: 45, width: 40, height: 20)
+    var protectedLocked = BoardObject(id: "locked_stroke", type: "stroke", x: 50, y: 40, width: 60, height: 20,
+        points: "[{\"x\":50,\"y\":49},{\"x\":110,\"y\":49}]", strokeWidth: 4)
+    protectedLocked.isLocked = true
+    let otherPageStroke = BoardObject(id: "other_page_stroke", type: "stroke", x: 50, y: 40, width: 60, height: 20,
+        points: "[{\"x\":50,\"y\":49},{\"x\":110,\"y\":49}]", pageId: "page_2")
+
+    eraserEngine.board.canvasMode = .notebook
+    eraserEngine.board.pages = [BoardPage(id: "page_1", title: "第 1 頁"), BoardPage(id: "page_2", title: "第 2 頁")]
+    eraserEngine.board.activePageId = "page_1"
+    eraserEngine.objects = [strokeToErase, protectedText, protectedSticky, protectedImage, protectedLocked, otherPageStroke]
+    eraserEngine.showingHome = false
+    eraserEngine.viewport = ViewportTransform(x: 0, y: 0, zoom: 1.0)
+    eraserEngine.eraserMode = .object
+
+    // 執行板擦抓取與移動擦除
+    eraserEngine.beginBoardEraser(at: Point(x: 80, y: 49), grip: Point(x: 80, y: 49))
+    eraserEngine.moveBoardEraser(to: Point(x: 80, y: 49))
+    eraserEngine.finishBoardEraser()
+
+    // 驗證：可擦除筆跡被消除，但保護物件完好無損
+    assertFalse(eraserEngine.objects.contains(where: { $0.id == "stroke_erase_1" }), "板擦保護：一般筆跡成功被擦除")
+    assertTrue(eraserEngine.objects.contains(where: { $0.id == "text_prot" }), "板擦保護：文字物件嚴格受保護不被擦除")
+    assertTrue(eraserEngine.objects.contains(where: { $0.id == "sticky_prot" }), "板擦保護：便條紙嚴格受保護不被擦除")
+    assertTrue(eraserEngine.objects.contains(where: { $0.id == "img_prot" }), "板擦保護：圖片物件嚴格受保護不被擦除")
+    assertTrue(eraserEngine.objects.contains(where: { $0.id == "locked_stroke" }), "板擦保護：鎖定物件嚴格受保護不被擦除")
+    assertTrue(eraserEngine.objects.contains(where: { $0.id == "other_page_stroke" }), "板擦保護：其他頁面物件嚴格受保護不被擦除")
+
+    // 驗證 Undo 復原
+    eraserEngine.undo()
+    assertTrue(eraserEngine.objects.contains(where: { $0.id == "stroke_erase_1" }), "板擦復原：Undo 一筆完美還原被擦除之筆跡")
+    assertEqual(eraserEngine.objects.count, 6, "板擦復原：全數 6 個物件完整復原")
+
+    // 50.4 PDF 增量可編輯原稿嵌入與恢復 (PDFEditableAttachment & BoardImporter)
+    let dummyPDFContent = "%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n2 0 obj\n<< /Type /Pages /Kids [] /Count 0 >>\nendobj\nxref\n0 3\n0000000000 65535 f \n0000000009 00000 n \n0000000058 00000 n \ntrailer\n<< /Size 3 /Root 1 0 R >>\nstartxref\n115\n%%EOF\n"
+    let dummyPDFData = Data(dummyPDFContent.utf8)
+    let testDocToEmbed = HeiBanDocument(
+        board: HeiBanBoard(id: "board_embed_test", title: "PDF 原稿嵌入驗收", boardTheme: .blackboard),
+        objects: [
+            BoardObject(id: "embedded_obj_1", type: "rect", x: 10, y: 20, width: 100, height: 80, strokeColor: "#39B9DC"),
+            BoardObject(id: "embedded_obj_2", type: "text", x: 120, y: 50, width: 200, height: 40, text: "可編輯原稿文字")
+        ]
+    )
+
+    let augmentedPDFData = try! PDFEditableAttachment.append(to: dummyPDFData, document: testDocToEmbed)
+    assertTrue(augmentedPDFData.count > dummyPDFData.count, "PDF 原稿嵌入：增量更新資料寫入成功")
+    let augmentedString = String(decoding: augmentedPDFData, as: UTF8.self)
+    assertTrue(augmentedString.contains("%HeiBanDocumentJSON-START%"), "PDF 原稿嵌入：包含 HeiBanDocumentJSON-START 標記")
+    assertTrue(augmentedString.contains("%HeiBanDocumentJSON-END%"), "PDF 原稿嵌入：包含 HeiBanDocumentJSON-END 標記")
+
+    // 驗證 BoardImporter.importPDF 完整往返解碼恢復
+    let importedPDFResult = try! BoardImporter.importPDF(data: augmentedPDFData)
+    assertEqual(importedPDFResult.canRestoreOriginalObjects, true, "PDF 原稿恢復：成功識別可編輯原稿")
+    assertEqual(importedPDFResult.document?.board.title, "PDF 原稿嵌入驗收", "PDF 原稿恢復：黑板標題 100% 吻合")
+    assertEqual(importedPDFResult.document?.objects.count, 2, "PDF 原稿恢復：物件數量 100% 吻合")
+    assertEqual(importedPDFResult.document?.objects[0].strokeColor, "#39B9DC", "PDF 原稿恢復：物件屬性完美保留")
+    assertEqual(importedPDFResult.document?.objects[1].text, "可編輯原稿文字", "PDF 原稿恢復：文字內容完整無損")
+
+    // 50.5 工具列分頁模式、常用自訂與常駐選取
+    var tabPrefs = ToolbarPreferences()
+    assertEqual(tabPrefs.displayMode, "icons", "工具列模式：預設為純圖示 icons")
+    tabPrefs.displayMode = "labels"
+    assertEqual(tabPrefs.displayMode, "labels", "工具列模式：成功切換為圖文分頁 labels")
+
+    // 常用工具清單自訂
+    assertTrue(tabPrefs.commonItemIds.contains("magnet"), "常用工具：預設包含磁鐵 magnet")
+    assertTrue(tabPrefs.commonItemIds.contains("pen"), "常用工具：預設包含鋼筆 pen")
+    tabPrefs.commonItemIds = ["pen", "eraser"]
+    assertEqual(tabPrefs.commonItemIds, ["pen", "eraser"], "常用工具：支援使用者自訂")
+
+    // 選取工具不可隱藏與位置固若金湯
+    tabPrefs.setItemHidden(id: "select", hidden: true)
+    assertFalse(tabPrefs.hiddenItemIds.contains("select"), "常駐選取：select 絕對不可被加入 hiddenItemIds")
+    assertEqual(tabPrefs.activeItemIds.first, "select", "常駐選取：select 永遠固定於第 0 位")
+
+    // 試圖移動其他項目至第 0 位被攔截保全
+    tabPrefs.moveItem(id: "pen", to: 0)
+    assertEqual(tabPrefs.activeItemIds.first, "select", "選取防禦：moveItem 無法搶奪第 0 位 select")
 }
 
 print("\n==================================================")

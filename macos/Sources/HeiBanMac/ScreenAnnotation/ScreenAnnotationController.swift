@@ -396,12 +396,24 @@ final class ScreenAnnotationController: ObservableObject {
         }
     }
 
+    private func controlsFrame(dock:AnnotationToolbarDock,on screen:NSScreen) -> NSRect {
+        guard !controlsCollapsed,activeEngine.toolbarPreferences.displayMode=="labels" else {
+            return AnnotationToolbarLayout.frame(for:dock,position:controlsPosition,collapsed:controlsCollapsed,on:screen,itemCount:ToolbarContentPolicy.screenItemCount(activeEngine.toolbarPreferences))
+        }
+        let area=AnnotationToolbarLayout.availableFrame(on:screen)
+        let size=dock.isVertical ? NSSize(width:min(160,area.width),height:min(660,area.height)) : NSSize(width:min(1100,area.width),height:min(136,area.height))
+        let fraction=max(0,min(1,controlsPosition))
+        var origin=area.origin
+        if dock.isVertical { origin.y += (area.height-size.height)*fraction;if dock == .right { origin.x=area.maxX-size.width } }
+        else { origin.x += (area.width-size.width)*fraction;if dock == .top { origin.y=area.maxY-size.height } }
+        return NSRect(origin:origin,size:size)
+    }
+
     private func showControls() {
         guard let screen = NSScreen.screens.first(where: { displayID(for: $0) == controlsDisplayID })
             ?? NSScreen.screens.first(where: { $0.frame.contains(NSEvent.mouseLocation) }) ?? NSScreen.main
         else { return }
-        let frame = AnnotationToolbarLayout.frame(
-            for: controlsDock, position: controlsPosition, collapsed: controlsCollapsed, on: screen, itemCount: ToolbarContentPolicy.screenItemCount(activeEngine.toolbarPreferences))
+        let frame = controlsFrame(dock:controlsDock,on:screen)
         controlsSize = frame.size
         for session in sessions { session.engine.toolbarDock = controlsDock.rawValue }
         let panel = AnnotationControlsPanel(
@@ -482,7 +494,7 @@ final class ScreenAnnotationController: ObservableObject {
             let screen = NSScreen.screens.first(where: { $0.frame.contains(point) }) ?? controls?.screen else { return }
         let dock = AnnotationToolbarLayout.nearestDock(to: point, on: screen, current: controlsDock)
         let available = AnnotationToolbarLayout.availableFrame(on: screen)
-        let size = AnnotationToolbarLayout.size(for: dock, on: screen, itemCount: ToolbarContentPolicy.screenItemCount(activeEngine.toolbarPreferences))
+        let size = controlsFrame(dock:dock,on:screen).size
         controlsPosition = AnnotationToolbarLayout.position(forDrop: point, dock: dock, availableFrame: available, size: size)
         placeControls(dock: dock, on: screen)
         if let id = displayID(for: screen) { selectDisplay(id) }
@@ -493,8 +505,7 @@ final class ScreenAnnotationController: ObservableObject {
         controlsDock = dock
         // 僅更新螢幕 engine 的排版資料，不能呼叫會改一般畫布偏好的 setToolbarDock。
         for session in sessions { session.engine.toolbarDock = dock.rawValue }
-        let frame = AnnotationToolbarLayout.frame(
-            for: dock, position: controlsPosition, collapsed: controlsCollapsed, on: screen, itemCount: ToolbarContentPolicy.screenItemCount(activeEngine.toolbarPreferences))
+        let frame = controlsFrame(dock:dock,on:screen)
         controlsSize = frame.size
         panel.setFrame(frame, display: true, animate: false)
         controlsDisplayID = displayID(for: screen)

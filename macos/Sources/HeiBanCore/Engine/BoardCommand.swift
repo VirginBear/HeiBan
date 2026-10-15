@@ -8,6 +8,8 @@ public enum BoardCommand: Equatable {
     case removeObjects([BoardObject])
     /// In-place modification of objects (transform/move, style change, text edit, lock, visibility, rename)
     case modifyObjects(before: [BoardObject], after: [BoardObject])
+    /// Snapshot replacement for one board-eraser gesture; preserves legacy page IDs and metadata.
+    case replaceObjects(before: [BoardObject], after: [BoardObject])
     /// Layer reordering (bring forward/backward, bring to front/back, drag reorder)
     case reorderObjects(before: [BoardObject], after: [BoardObject])
     /// Canvas metadata change (title, theme, background, grid style)

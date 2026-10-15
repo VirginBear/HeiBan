@@ -1,0 +1,99 @@
+{
+  "language": "en",
+  "title": "HeiBan · User guide",
+  "search": "Search the guide",
+  "languageLabel": "Guide language",
+  "sections": [
+    {
+      "id": "language",
+      "title": "Interface and guide language",
+      "paragraphs": [
+        "Choose the interface language in Account & Settings. Help opens in that language; changing the language selector here changes only this guide. Names and text in your work are not translated."
+      ]
+    },
+    {
+      "id": "start",
+      "title": "Getting started",
+      "paragraphs": [
+        "Use + on Home to create a notebook, an infinite canvas or a bounded board. Choose title, size and background. Open a work from its card. Home offers search, favorites, multi-select and Trash. New settings default to auto-save OFF; previous saved choices remain."
+      ]
+    },
+    {
+      "id": "navigate",
+      "title": "Pan, zoom and view lock",
+      "paragraphs": [
+        "The mouse wheel zooms around the pointer. Hold the middle button or Space and drag to pan. A trackpad uses two fingers to pan and a pinch to zoom. Editing text consumes its own scrolling. Reading mode and View lock help prevent accidental changes. Double-click the blank title bar to enlarge/restore the window, or use ⌘⌥0."
+      ]
+    },
+    {
+      "id": "workspace",
+      "title": "Navigation and toolbars",
+      "paragraphs": [
+        "Drag the grip to dock on any side. More → Customize toolbar offers icons only or labeled Common, Draw, Insert and Organize pages. Selection stays visible. Arrows switch groups when space is short. Show/hide, order, Select all, Defaults and separate Common checkboxes are available. Hidden tools remain accessible in More. Drag the Properties tab to dock its panel."
+      ]
+    },
+    {
+      "id": "brush",
+      "title": "Pen and brush choices",
+      "paragraphs": [
+        "The color circle opens brush presets, color, Hex, recent colors, width and opacity. With a selection it changes applicable object styles; without a selection it sets future strokes. The size preview follows canvas zoom. Hold a nearly straight pen stroke still for one second to straighten it. Laser settings are beside Laser; its transient trail is not saved."
+      ]
+    },
+    {
+      "id": "shapes",
+      "title": "Lines, arrows, shapes and curves",
+      "paragraphs": [
+        "Drawing tools stay active after creation. Drag rectangles from a corner; draw circles, diamonds, pentagons and stars from their center. Click three triangle vertices or four quadrilateral vertices; previews use straight segments. Curve draws an editable arc-like stroke. Magnet snaps the starting point and later points to visible geometry within about 10 screen points. References include vertices, edge midpoints, rectangle centers, line ends/midpoints, and circle/arc centers and cardinal points. Locked shapes can be references; hidden ones cannot."
+      ]
+    },
+    {
+      "id": "selection",
+      "title": "Selection and transformations",
+      "paragraphs": [
+        "Choose Selection to move objects or adjust resize, rotation, A/B endpoints and polygon vertices. Hold Shift to add selection. Single-click shows handles; double-click opens detailed Properties and the quick bar. Layers supports renaming, visibility, locking, ordering and native drag previews with insertion indicators. One drag commits one undo step. Locked objects are protected."
+      ]
+    },
+    {
+      "id": "text",
+      "title": "Text and sticky notes",
+      "paragraphs": [
+        "T and Sticky insert an editable text object. Type in place; Finish or ⌘Enter commits. Double-click existing text to edit it. Right-click text boxes to adjust font size and color, including multiple selected text boxes. Shape styles include fill/gradient, fill opacity, stroke/dash patterns and arrow dimensions. Editing text does not zoom the canvas."
+      ]
+    },
+    {
+      "id": "eraser",
+      "title": "Eraser",
+      "paragraphs": [
+        "Eraser has object and partial ink modes with a size preview before pressing. Images, text, sticky notes and locked objects are protected. On a normal canvas, drag the original angled board eraser; its mirrored contact hull follows the picture, not its rectangular bounds. Right-click for modes or Hide; More → Show board eraser restores it. A drag is one undo step; Esc cancels. Partial erase cuts vector ink, not image pixels."
+      ]
+    },
+    {
+      "id": "ruler",
+      "title": "Ruler",
+      "paragraphs": [
+        "Move the ruler by its body, rotate its handle and type an angle to one decimal place. Adaptive colors work on light and dark boards. For Compass, first place the center and starting point; click the center to arm it, then drag the tip to draw. Calculator and Countdown are separate movable panels. Tape conceals content; Lasso selects a region. Pins store named views and use the same chosen color on the canvas and list."
+      ]
+    },
+    {
+      "id": "screen",
+      "title": "Screen canvas",
+      "paragraphs": [
+        "Home → Screen canvas opens a transparent annotation layer over other apps. ⌘⌥⇧D switches drawing/click-through, ⌘⌥⇧S saves a screenshot and ⌘⌥⇧X exits. Its toolbar shares normal tools and preferences, excluding pins and view navigation. Dock it on any side; clear and exit remain separate. Clear keeps the layer open and can be undone. T supports text. Secure system screens are not guaranteed to be covered."
+      ]
+    },
+    {
+      "id": "files",
+      "title": "Saving, data and export",
+      "paragraphs": [
+        "Paste screenshots/web images with ⌘V or drag images in. Import accepts native .heiban/JSON, PDF and PPT/PPTX/Keynote presentations. Slides use an installed Keynote and Automation permission to convert a temporary copy to PDF; your original/open slides are not changed. You may export PDF yourself instead. Select a page range, at most 200 pages and 100 MB of rendered images; Cancel commits nothing. External documents become locked image pages, losing editable elements/animation/video. PDF export offers current/all notebook pages and embeds the complete editable source, including hidden objects and other pages. Use PNG for visible-only sharing. Keep .heiban for continued editing; normal exit waits for saving."
+      ]
+    },
+    {
+      "id": "status",
+      "title": "Scope and known limits",
+      "paragraphs": [
+        "Mac 1.0.15 uses native SwiftUI/AppKit. These changes have been compiled, but this batch has not run interactive or automated acceptance. Keynote fonts/compatibility, long translated labels, multiple displays and real pen devices need practical review. Google/cloud collaboration and structured mind-map/table/formula prototypes are not complete delivered features. A package version is not proof of full Windows/Mac parity."
+      ]
+    }
+  ]
+}

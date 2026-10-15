@@ -147,7 +147,7 @@ public final class BoardExporter {
         let pdfData = NSMutableData()
         var mediaBox = CGRect(origin: .zero, size: paperSize)
 
-        var auxInfo: [CFString: Any] = [
+        let auxInfo: [CFString: Any] = [
             kCGPDFContextCreator: "HeiBan Blackboard Vector Engine",
             kCGPDFContextAuthor: "HeiBan",
             kCGPDFContextSubject: "HeiBan Document"
@@ -252,19 +252,7 @@ public final class BoardExporter {
         context.endPage()
         context.closePDF()
 
-        if embedEditableData {
-            let docJSONData = try HeiBanDocumentCodec.encode(document)
-            let base64Doc = docJSONData.base64EncodedString()
-            let markerStart = "\n%HeiBanDocumentJSON-START%\n"
-            let markerEnd = "\n%HeiBanDocumentJSON-END%\n"
-            if let startData = markerStart.data(using: .utf8),
-               let bodyData = base64Doc.data(using: .utf8),
-               let endData = markerEnd.data(using: .utf8) {
-                pdfData.append(startData)
-                pdfData.append(bodyData)
-                pdfData.append(endData)
-            }
-        }
+        if embedEditableData { return try PDFEditableAttachment.append(to:pdfData as Data,document:document) }
 
         return pdfData as Data
     }

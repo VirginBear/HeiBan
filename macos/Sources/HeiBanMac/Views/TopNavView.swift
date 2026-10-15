@@ -437,8 +437,7 @@ struct PinManagerPopover: View {
                                     engine.jumpToPin(pin)
                                     if !engine.viewportLocked { isPresented = false }
                                 } label: {
-                                    HeiBanPinIcon().frame(width: 20, height: 20)
-                                        .foregroundStyle(Color(hex: pin.effectiveColor))
+                                    HeiBanPinIcon(color:pin.effectiveColor).frame(width: 20, height: 20)
                                 }
                                 .buttonStyle(.plain)
                                 .disabled(engine.viewportLocked)

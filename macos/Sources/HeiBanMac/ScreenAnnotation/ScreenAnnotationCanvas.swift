@@ -21,6 +21,7 @@ struct ScreenAnnotationCanvas: View {
                     RulerOverlayView(engine: engine, appearance: RulerAppearance(
                         backgroundColor: "#ffffff", customInk: rulerColorMode == "custom" ? rulerLabelColor : nil))
                 }
+                MagnetTargetOverlay(state:engine.drawingAssist,viewport:engine.viewport).zIndex(18)
                 SelectionQuickActionBar(engine: engine)
                 AlignmentGuidesOverlayView(engine: engine)
                 if engine.currentTool == .lasso { LassoOverlayView(engine: engine) }

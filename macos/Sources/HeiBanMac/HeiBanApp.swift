@@ -31,10 +31,12 @@ struct HeiBanApp: App {
         WindowGroup {
             MainWindowView(engine: engine)
                 .preferredColorScheme(.light)
+                .tint(Color(hex:"#39735a"))
                 .task { await MacUpdateService.shared.checkOnLaunch() }
                 .onAppear {
                     NSApplication.shared.applicationIconImage = HeiBanBrand.appIcon
                     screenCanvas.registerShortcuts()
+                    MacDocumentExchange.shared.attach(to:engine)
                     appDelegate.persistBeforeQuit = { completion in
                         screenCanvas.prepareForTermination { screensSaved in
                             guard screensSaved else { completion(false); return }
@@ -43,7 +45,8 @@ struct HeiBanApp: App {
                     }
                 }
                 .onOpenURL { url in
-                    guard url.isFileURL, ["heiban", "json"].contains(url.pathExtension.lowercased()) else { return }
+                    guard url.isFileURL, ["heiban", "json", "pdf", "ppt", "pptx", "key"].contains(url.pathExtension.lowercased()) else { return }
+                    MacDocumentExchange.shared.attach(to:engine)
                     do { try engine.load(from: url) }
                     catch { engine.showTemporaryStatus("開啟失敗：\(error.localizedDescription)") }
                 }
@@ -115,11 +118,17 @@ private final class HeiBanAppDelegate: NSObject, NSApplicationDelegate {
     var persistBeforeQuit: ((@escaping (Bool) -> Void) -> Void)?
     private var terminationInProgress = false
     private var terminationEventMonitor: Any?
+    private var terminationPanel: NSPanel?
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         guard let persistBeforeQuit else { return .terminateNow }
         guard !terminationInProgress else { return .terminateCancel }
         terminationInProgress = true
+        let panel=NSPanel(contentRect:NSRect(x:0,y:0,width:300,height:100),styleMask:[.titled,.nonactivatingPanel],backing:.buffered,defer:false)
+        panel.title=L10n.t("儲存中…");panel.isReleasedWhenClosed=false
+        let spinner=NSProgressIndicator(frame:NSRect(x:24,y:38,width:24,height:24));spinner.style = .spinning;spinner.startAnimation(nil)
+        let label=NSTextField(labelWithString:L10n.t("正在保存作品，完成後離開…"));label.frame=NSRect(x:62,y:36,width:220,height:28)
+        panel.contentView?.addSubview(spinner);panel.contentView?.addSubview(label);panel.center();panel.orderFrontRegardless();terminationPanel=panel
         terminationEventMonitor = NSEvent.addLocalMonitorForEvents(
             matching: [.keyDown, .keyUp, .leftMouseDown, .leftMouseUp, .leftMouseDragged,
                        .rightMouseDown, .rightMouseUp, .rightMouseDragged,
@@ -131,6 +140,7 @@ private final class HeiBanAppDelegate: NSObject, NSApplicationDelegate {
             DispatchQueue.main.async {
                 guard let self else { return }
                 self.terminationInProgress = false
+                self.terminationPanel?.close();self.terminationPanel=nil
                 if let monitor = self.terminationEventMonitor {
                     NSEvent.removeMonitor(monitor)
                     self.terminationEventMonitor = nil

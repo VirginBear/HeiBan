@@ -85,10 +85,10 @@ public struct ChangelogEntry: Codable, Equatable, Identifiable {
 public struct AboutInfo: Equatable {
     public static let appName = "HeiBan 黑板"
     public static var appVersion: String {
-        (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "1.0.13"
+        (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "1.0.15"
     }
     public static var buildNumber: String {
-        (Bundle.main.infoDictionary?["CFBundleVersion"] as? String) ?? "20261011.1"
+        (Bundle.main.infoDictionary?["CFBundleVersion"] as? String) ?? "20261016.1"
     }
     public static let engineVersion = "HeiBan Blackboard Vector Engine 1.0"
     public static let copyright = "© 2026 HeiBan Team. All rights reserved."
@@ -96,6 +96,11 @@ public struct AboutInfo: Equatable {
     public static let supportEmail = "support@heiban.app"
 
     public static let changelog: [ChangelogEntry] = [
+        ChangelogEntry(version: "1.0.15", releaseDate: "2026-10-16", highlights: [
+            "同步 Windows：磁鐵參考點、中心式圖形與連續繪圖，雙擊開詳細調整",
+            "圖示／圖文分頁、常用工具自訂與常駐選取；原創可拖曳磁吸板擦",
+            "PDF多頁匯入與匯出、簡報轉PDF；新設定預設關閉自動存檔"
+        ]),
         ChangelogEntry(version: "1.0.13", releaseDate: "2026-10-11", highlights: [
             "編輯／閱讀畫布右上導覽列靠近才顯示，支援固定顯示；選單與設定開啟時保持可用",
             "圖層握把原生拖曳：跟隨預覽、來源淡化及上下插入提示，放下一次復原",
@@ -181,7 +186,7 @@ public struct AppSettings: Codable, Equatable {
         self.defaultFontFamily = defaultFontFamily
         self.defaultFontSize = defaultFontSize
         self.autoSaveFrequency = autoSaveFrequency
-        self.autoSaveEnabled = autoSaveEnabled ?? (autoSaveFrequency != .manual)
+        self.autoSaveEnabled = autoSaveEnabled ?? false
         self.defaultToolbarDock = defaultToolbarDock
         self.showCanvasGrid = showCanvasGrid
         self.isHapticFeedbackEnabled = isHapticFeedbackEnabled

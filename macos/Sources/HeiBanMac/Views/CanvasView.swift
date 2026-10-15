@@ -65,6 +65,8 @@ public struct CanvasView: View {
                     ))
                 }
 
+                MagnetTargetOverlay(state:engine.drawingAssist,viewport:engine.viewport).zIndex(18)
+                BoardEraserOverlay(engine:engine,size:geo.size).zIndex(19)
                 PinMarkerOverlayView(engine: engine)
 
                 if !engine.readingMode {
@@ -187,7 +189,7 @@ private struct PinMarkerOverlayView: View {
             let pinColor = Color(hex: pin.effectiveColor)
             let textColor = Color(hex: pin.effectiveTextColor)
             VStack(spacing: 2) {
-                HeiBanPinIcon()
+                HeiBanPinIcon(color:pin.effectiveColor)
                     .frame(width: 32, height: 32)
                     .foregroundStyle(pinColor)
                     .padding(4)

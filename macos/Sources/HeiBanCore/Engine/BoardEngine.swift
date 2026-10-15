@@ -36,7 +36,19 @@ public class BoardEngine: ObservableObject {
         return ToolbarPreferences.createDefault()
     }()
     @Published public var board: BoardMetadata
-    @Published public var objects: [BoardObject] = []
+    @Published public var objects: [BoardObject] = [] { didSet { drawingGeometryRevision &+= 1 } }
+    var drawingGeometryRevision: UInt64 = 0
+    var magnetIndex: MagnetSnapIndex?
+    var magnetIndexRevision: UInt64?
+    var magnetIndexPage: String?
+    var magnetIndexZoom: Double = 0
+    public let drawingAssist = DrawingAssistState()
+    public let boardEraser = BoardEraserState()
+    var boardEraserOriginal: [BoardObject]?
+    var boardEraserContext: String?
+    @Published public var showsObjectDetails = false
+    public var documentImportHandler: ((URL) -> Void)?
+    public var pdfExportHandler: (() -> Void)?
     @Published public var selectedIds: Set<String> = []
     @Published public var marqueeRect: CGRect? = nil
     @Published public var activeTransformHandle: TransformHandle? = nil
@@ -145,7 +157,7 @@ public class BoardEngine: ObservableObject {
     @Published public var activeBrushKind: BrushKind = .pen
     @Published public var lassoMode: LassoMode = .freeform
     @Published public var lassoFilter: LassoFilter = .all
-    @Published public var selectAfterShapeCreation: Bool = true
+    @Published public var selectAfterShapeCreation: Bool = false
     @Published public var shapeRecognitionEnabled: Bool = true
     @Published public var autoFillShapes: Bool = false
     @Published public var showWorldRuler: Bool = false
@@ -879,7 +891,7 @@ public class BoardEngine: ObservableObject {
             if polygonDraftCursorPoint != nil { polygonDraftCursorPoint = nil }
             return
         }
-        polygonDraftCursorPoint = VectorMath.screenToWorld(screenPoint, viewport: viewport)
+        polygonDraftCursorPoint = VectorMath.screenToWorld(snapDrawingScreenPoint(screenPoint), viewport: viewport)
     }
 
     public func endPolygonVertexDrag(objectID: String) {
@@ -894,6 +906,9 @@ public class BoardEngine: ObservableObject {
     public var isPointerGestureActive: Bool { pointerGesture != .idle }
 
     public func beginPointerGesture(at screenPoint: Point, isShift: Bool = false, clickCount: Int = 1) {
+        let drawing = [ToolType.pen, .curve, .highlighter, .paint, .triangle, .quadrilateral, .rect, .circle, .diamond, .star, .line, .arrow, .roundedRect, .polygon, .connector].contains(currentTool)
+        if drawing { showsObjectDetails = false; showInspector = false; selectedIds.removeAll() }
+        let screenPoint = drawing ? snapDrawingScreenPoint(screenPoint) : screenPoint
         guard pointerGesture == .idle else { return }
         pointerGestureStart = screenPoint
         if self.isShiftHeld != isShift { self.isShiftHeld = isShift }
@@ -941,6 +956,15 @@ public class BoardEngine: ObservableObject {
                 })
             {
                 beginEditingText(object: textObject)
+                return
+            }
+
+            if clickCount >= 2, let hit = currentPageObjects.reversed().first(where: {
+                $0.isVisible != false && $0.isLocked != true && VectorMath.isPointNearObject(point: worldPoint, object: $0, threshold: 8 / viewport.zoom)
+            }) {
+                selectObjectOnCanvas(id: hit.id)
+                showsObjectDetails = true
+                showInspector = true
                 return
             }
 
@@ -1234,12 +1258,16 @@ public class BoardEngine: ObservableObject {
             strokePreview.shapeObject = nil
         }
 
+        drawingAssist.target = nil
         pointerGesture = .idle
         pointerGestureStart = nil
         endPanGesture()
     }
 
     public func cancelTransientInteraction() {
+        cancelBoardEraser()
+        showsObjectDetails = false
+        drawingAssist.target = nil
         holdTimer?.invalidate()
         holdTimer = nil
         pointerGesture = .idle
@@ -1271,6 +1299,9 @@ public class BoardEngine: ObservableObject {
 
     /// Selects a tool. If the specified tool is already active, toggles back to .select (A05, A11).
     public func selectTool(_ tool: ToolType) {
+        finishBoardEraser()
+        showsObjectDetails = false
+        drawingAssist.target = nil
         if tool != .laser || currentTool == .laser { laserEngine.cleanupOnDeactivate() }
         closeAllTransientPanels()
         readingMode = false
@@ -1385,11 +1416,12 @@ public class BoardEngine: ObservableObject {
     private func updateShapePreview(at screenPoint: Point) {
         guard let startScreen = pointerGestureStart else { return }
         let start = VectorMath.screenToWorld(startScreen, viewport: viewport)
-        let end = VectorMath.screenToWorld(screenPoint, viewport: viewport)
-        let minX = min(start.x, end.x)
-        let minY = min(start.y, end.y)
-        let width = max(1, abs(end.x - start.x))
-        let height = max(1, abs(end.y - start.y))
+        let end = VectorMath.screenToWorld(snapDrawingScreenPoint(screenPoint), viewport: viewport)
+        let centered = [ToolType.circle, .diamond, .polygon, .star].contains(currentTool)
+        let minX = centered ? start.x - abs(end.x - start.x) : min(start.x, end.x)
+        let minY = centered ? start.y - abs(end.y - start.y) : min(start.y, end.y)
+        let width = max(1, abs(end.x - start.x) * (centered ? 2 : 1))
+        let height = max(1, abs(end.y - start.y) * (centered ? 2 : 1))
         let line = currentTool == .line || currentTool == .arrow || currentTool == .connector
 
         let cornerRadius: Double? = currentTool == .roundedRect ? 16.0 : nil
@@ -1477,7 +1509,7 @@ public class BoardEngine: ObservableObject {
                     objects[i] = updated
                 }
             }
-        case .reorderObjects(let before, let after):
+        case .reorderObjects(let before, let after), .replaceObjects(let before, let after):
             let target = isUndo ? before : after
             objects = target
         case .updateCanvas(let before, let after):

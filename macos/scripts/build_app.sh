@@ -92,6 +92,8 @@ cat << EOF > "$APP_DIR/Contents/Info.plist"
     </dict></array>
     <key>LSMinimumSystemVersion</key>
     <string>14.0</string>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>黑板使用 Keynote 將你選擇的簡報轉為可註記的 PDF 圖片頁，不修改原始簡報。</string>
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>NSSupportsAutomaticGraphicsSwitching</key>

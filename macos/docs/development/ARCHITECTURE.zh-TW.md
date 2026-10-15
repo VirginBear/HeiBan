@@ -1,6 +1,6 @@
 # Mac 實際架構與維護邊界
 
-更新：2026-10-13。這份文件描述現況，未建立不存在的 Storage／Metal 模組。
+更新：2026-10-16。這份文件描述現況，未建立不存在的 Storage／Metal 模組。
 
 ## 套件與職責
 
@@ -86,3 +86,12 @@ LayerPanelView 持有當前拖曳 ID、作品／頁 ID 及目標上下側；Laye
 ## 開發快取與公開包
 
 macos/.build是可重新產生的SDK模組／中間檔／建置產品，沒有作品或不可替代來源；最新macos/dist/HeiBan.app包含自身執行檔與Resources，不依賴這份快取。沒有編譯工作執行時才清理；清理後先保留已簽章成品，避免單純公開封裝就重新編譯產生大量快取。scripts/package_public_release.py的Mac分支只讀已建App、授權與手冊，產DMG／ZIP及雜湊，不修改Windows包或作品庫。發行tag連結來源commit，開發日誌區分前批編譯／局部操作與此次發布，不把發布視為全功能驗收。
+
+## 1.0.15 Windows同步的新增邊界（2026-10-16）
+
+- DrawingReferenceGeometry.swift／DrawingAssistState／MagnetSnapIndex：共同形狀參考，按revision／頁／zoom快取的空間格查詢；不移動被吸附的原物件。
+- BoardEraser.swift／DrawingAssistOverlays.swift：Core凸輪廓切段＋單手勢快照／replaceObjects，Mac原生抓取及同一鏡像素材。保存快照排除尚未提交擦除，放開後一次落盤／Undo；取消不增加歷史。
+- MacDocumentExchange：Mac平台PDFKit／Keynote／ImageRenderer，通過BoardEngine.documentImportHandler／pdfExportHandler接既有入口。Core不持有NSPanel／PDFKit／AppleScript；Keynote只操作自己的臨時簡報，無COM或Office依賴。
+- PDFEditableAttachment：符合PDF交叉索引的增量stream，沿舊Mac／Windows可發現的base64原稿標記；不更改.heiban契約。多頁PDF及原稿皆在本機產生，完整原稿分享限制見隱私文字。
+- 工具列icons／labels及Common偏好由ToolbarPreferences／ToolbarContentPolicy共用；labels單排／單列，四頁及組頁只為暫態UI。螢幕尺寸按labels與icons分流，clear／close在中段之外。
+- 手冊單一正體中文21章來源保持generate_user_guide.py，其餘語言的Mac原生操作總覽由Documentation/Guides＋generate_localized_guides.py生成，Guide視窗依L10n載入資源，頁內語言選擇不改App偏好。

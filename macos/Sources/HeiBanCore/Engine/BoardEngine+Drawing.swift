@@ -25,7 +25,7 @@ extension BoardEngine {
                 ruler.enabled
                 ? VectorMath.snapToRulerEdge(screenPt: screenPt, ruler: ruler).screenPt : screenPt
         }
-        let worldPt = VectorMath.screenToWorld(snappedScreen, viewport: viewport)
+        let worldPt = VectorMath.screenToWorld(rulerStrokeEdge == nil ? snapDrawingScreenPoint(snappedScreen) : snappedScreen, viewport: viewport)
         holdStartScreenPoint = screenPt
         strokePreview.begin(with: worldPt)
     }
@@ -41,7 +41,7 @@ extension BoardEngine {
                 ? VectorMath.snapToRulerEdge(screenPt: screenPt, ruler: ruler, stopSnappingBeyondEnds: false)
                     .screenPt : screenPt
         }
-        let worldPt = VectorMath.screenToWorld(snappedScreen, viewport: viewport)
+        let worldPt = VectorMath.screenToWorld(rulerStrokeEdge == nil ? snapDrawingScreenPoint(snappedScreen) : snappedScreen, viewport: viewport)
         if let last = strokePreview.points.last,
             hypot(worldPt.x - last.x, worldPt.y - last.y) * viewport.zoom < 0.25
         {
@@ -81,6 +81,8 @@ extension BoardEngine {
     public func checkGoodnotesShapeSnap() {
         guard strokePreview.points.count >= 5 else { return }
         if let shape = ShapeRecognizer.recognize(points: strokePreview.points) {
+            // Match Windows' screen-space straightness check; an open arc must not become a line.
+            if shape.type == "line" && !StraightStrokeRecognizer.isEligible(strokePreview.points,zoom:viewport.zoom) { return }
             strokePreview.snappedShape = shape
         }
     }
@@ -351,7 +353,7 @@ extension BoardEngine {
         [
             "stroke", "pen", "highlighter", "paint", "curve", "rect", "circle", "ellipse", "triangle",
             "quadrilateral", "diamond", "star", "line", "arrow", "arc", "rounded_rect", "polygon",
-            "connector",
+            "connector", "pentagon",
         ].contains(type)
     }
 

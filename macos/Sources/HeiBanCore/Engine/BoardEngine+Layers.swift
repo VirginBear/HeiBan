@@ -198,6 +198,7 @@ extension BoardEngine {
     }
 
     public func selectObjectOnCanvas(id: String) {
+        showsObjectDetails = false
         guard let obj = objects.first(where: { $0.id == id }) else { return }
         guard obj.isLocked != true, obj.isVisible != false else { return }
         if let gid = obj.groupId, !gid.isEmpty {

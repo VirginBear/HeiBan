@@ -4,6 +4,8 @@
 
 ## Mac維護與目前交付
 
+- [Windows1.0.15 → Mac1.0.15同步開發／功能與限制](../macos/docs/development/WINDOWS_SYNC_REVIEW_2026-10-16.zh-TW.md)。本機版本與編譯／封裝證據依當日日誌，公開舊Release另列。
+
 - [Mac開發進度、排錯與交接總表](../macos/docs/development/MAC_DEVELOPMENT_HANDOFF_2026-10-13.zh-TW.md)
 - [Mac 1.0.13公開與快取清理](../macos/docs/development/RELEASE_2026-10-13.zh-TW.md)
 - [維護文件總覽](../macos/docs/development/README.zh-TW.md)

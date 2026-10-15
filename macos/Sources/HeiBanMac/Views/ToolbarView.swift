@@ -22,6 +22,9 @@ public struct ToolbarView: View {
 
     private var vertical: Bool { engine.isToolbarVertical }
     private var panelSize: CGSize {
+        if engine.toolbarPreferences.displayMode == "labels" {
+            return vertical ? CGSize(width:160,height:min(660,max(200,windowSize.height-88))) : CGSize(width:min(1120,max(260,windowSize.width-32)),height:116)
+        }
         // The handle stays outside the scroll area; only tools overflow in small windows.
         if vertical {
             return CGSize(width: 72, height: min(verticalLength + 44, max(100, windowSize.height - 88)))
@@ -63,16 +66,18 @@ public struct ToolbarView: View {
                             translation = .zero
                             dropTarget = nil
                         })
-                ScrollView(vertical ? .vertical : .horizontal) {
-                    ToolbarToolsView(engine: engine)
-                        .fixedSize(horizontal: !vertical, vertical: vertical)
-                        .background(GeometryReader { geometry in
-                            Color.clear
-                                .onAppear { recordContentSize(geometry.size) }
-                                .onChange(of: geometry.size) { _, size in recordContentSize(size) }
-                        })
+                if engine.toolbarPreferences.displayMode == "labels" {
+                    ToolbarToolsView(engine:engine,availableLength:vertical ? panelSize.height-48 : panelSize.width-64)
+                } else {
+                    ScrollView(vertical ? .vertical : .horizontal) {
+                        ToolbarToolsView(engine: engine)
+                            .fixedSize(horizontal: !vertical, vertical: vertical)
+                            .background(GeometryReader { geometry in
+                                Color.clear.onAppear { recordContentSize(geometry.size) }
+                                    .onChange(of: geometry.size) { _, size in recordContentSize(size) }
+                            })
+                    }.scrollIndicators(.automatic)
                 }
-                .scrollIndicators(.automatic)
             }
             .padding(8)
             .frame(width: panelSize.width, height: panelSize.height)
@@ -118,12 +123,16 @@ struct ToolbarToolsView: View {
 
     let screenController: ScreenAnnotationController?
     let columns: Int?
+    let availableLength: CGFloat
+    @ViewState private var activePage = "common"
+    @ViewState private var pageOffset = 0
 
-    init(engine: BoardEngine, screenController: ScreenAnnotationController? = nil, columns: Int? = nil) {
+    init(engine: BoardEngine, screenController: ScreenAnnotationController? = nil, columns: Int? = nil, availableLength: CGFloat = 600) {
         self.engine = engine
         self.laser = engine.laserEngine
         self.screenController = screenController
         self.columns = columns
+        self.availableLength = availableLength
     }
 
     private var vertical: Bool { screenController?.controlsDock.isVertical ?? engine.isToolbarVertical }
@@ -139,7 +148,8 @@ struct ToolbarToolsView: View {
 
     var body: some View {
         Group {
-            if let columns {
+            if engine.toolbarPreferences.displayMode == "labels" { labeledTools }
+            else if let columns {
                 LazyVGrid(columns: Array(repeating: GridItem(.fixed(32), spacing: 4), count: columns), spacing: 4) {
                     items
                 }
@@ -164,7 +174,51 @@ struct ToolbarToolsView: View {
         .onChange(of: engine.showColorPopover) { _, show in if show && !visibleIDs.contains("color") { showMorePopover = true } }
         .onChange(of: engine.showShapesPopover) { _, show in if show && !visibleIDs.contains("shapes") { showMorePopover = true } }
         .onChange(of: engine.showEraserPopover) { _, show in if show && !visibleIDs.contains("eraser") { showMorePopover = true } }
-        .onChange(of: engine.toolbarPreferences) { _, _ in screenController?.toolbarPreferencesChanged() }
+        .onChange(of: engine.toolbarPreferences) { _, _ in pageOffset=0;screenController?.toolbarPreferencesChanged() }
+        .onChange(of: availableLength) { _, _ in pageOffset=0 }
+    }
+
+    private var pageCapacity: Int { max(1,Int((availableLength-(vertical ? 144 : 132))/(vertical ? 54 : 78))) }
+    private var labeledTools: some View {
+        let ids=ToolbarContentPolicy.pageIDs(engine.toolbarPreferences,screen:screenController != nil,page:activePage)
+        let offset=min(pageOffset,max(0,((ids.count-1)/pageCapacity)*pageCapacity))
+        let shown=Array(ids.dropFirst(offset).prefix(pageCapacity))
+        let shell=vertical ? AnyLayout(VStackLayout(spacing:4)) : AnyLayout(HStackLayout(spacing:6))
+        return shell {
+            renderToolItem(id:"select") // Always reachable, including empty/custom pages.
+            VStack(spacing:4) {
+                if vertical || availableLength<480 {
+                    Picker(L10n.t("工具分頁"),selection:$activePage) {
+                        ForEach(Array(ToolbarContentPolicy.pages.enumerated()),id:\.element) { i,id in Text(L10n.t(ToolbarContentPolicy.pageTitles[i])).tag(id) }
+                    }.labelsHidden().frame(width:116)
+                } else {
+                    HStack(spacing:4) {
+                        ForEach(Array(ToolbarContentPolicy.pages.enumerated()),id:\.element) { i,id in
+                            Button(L10n.t(ToolbarContentPolicy.pageTitles[i])) { activePage=id }
+                                .buttonStyle(.plain).padding(.horizontal,10).padding(.vertical,3)
+                                .background(activePage==id ? Color.accentColor.opacity(0.16) : Color.clear,in:Capsule())
+                        }
+                    }.font(.system(size:11))
+                }
+                let row=vertical ? AnyLayout(VStackLayout(spacing:2)) : AnyLayout(HStackLayout(spacing:4))
+                row {
+                    Button { pageOffset=max(0,offset-pageCapacity) } label: { Image(systemName:vertical ? "chevron.up" : "chevron.left").frame(width:18,height:22) }
+                        .disabled(offset==0).help(L10n.t("上一組工具"))
+                    ForEach(shown,id:\.self) { id in
+                        let item=ToolbarPreferences.allDefinitions.first { $0.id == (id=="undo" || id=="redo" ? "undoRedo" : id) }
+                        let tile=vertical ? AnyLayout(HStackLayout(spacing:5)) : AnyLayout(VStackLayout(spacing:2))
+                        tile {
+                            renderToolItem(id:id)
+                            Text(L10n.t(item?.displayName ?? id)).font(.system(size:10)).lineLimit(2).multilineTextAlignment(.center)
+                        }.frame(width:vertical ? 116 : 72,height:vertical ? 48 : 58)
+                    }
+                    if shown.isEmpty { Text(L10n.t("由自訂工具列加入常用工具")).font(.caption2).frame(width:72) }
+                    Button { pageOffset=offset+pageCapacity } label: { Image(systemName:vertical ? "chevron.down" : "chevron.right").frame(width:18,height:22) }
+                        .disabled(offset+pageCapacity>=ids.count).help(L10n.t("下一組工具"))
+                }
+            }
+            moreButton
+        }.onChange(of:activePage) { _,_ in pageOffset=0 }
     }
 
     @ViewBuilder private var items: some View {
@@ -188,6 +242,13 @@ struct ToolbarToolsView: View {
                         }
                     }
                     Divider()
+                    Picker(L10n.t("工具列格式"), selection:Binding(get:{engine.toolbarPreferences.displayMode},set:{engine.toolbarPreferences.displayMode=$0;engine.saveToolbarPreferences()})) {
+                        Text(L10n.t("只有圖示")).tag("icons")
+                        Text(L10n.t("圖示與文字（分頁）")).tag("labels")
+                    }
+                    if screenController == nil {
+                        Toggle(L10n.t("顯示板擦"),isOn:Binding(get:{engine.toolbarPreferences.boardEraserVisible},set:{engine.setBoardEraserVisible($0)}))
+                    }
                     Button(L10n.t("自訂工具列…")) {
                         showMorePopover = false
                         DispatchQueue.main.async { showCustomizeSheet = true }
@@ -231,6 +292,8 @@ struct ToolbarToolsView: View {
     @ViewBuilder
     private func renderToolItem(id: String) -> some View {
         switch id {
+        case "magnet":
+            ToolButton(icon:"heiban.magnet",tooltip:"磁鐵",isSelected:engine.toolbarPreferences.magnetEnabled) { engine.toggleMagnet() }
         case "select":
             ToolButton(
                 icon: "cursorarrow",
@@ -613,7 +676,9 @@ struct ToolButton: View {
                 if let glyph {
                     Text(glyph).font(.system(size: 19, weight: .medium, design: .serif))
                 } else {
-                    Image(systemName: icon).font(.system(size: 15))
+                    if icon == "circle.circle" { HeiBanCompassIcon() }
+                    else if icon == "heiban.magnet" { HeiBanMagnetIcon() }
+                    else { Image(systemName: icon).font(.system(size: 15)) }
                 }
             }
                 .foregroundColor(isSelected ? Color.accentColor : Color.primary)

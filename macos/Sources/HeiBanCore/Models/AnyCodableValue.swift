@@ -2,7 +2,8 @@ import Foundation
 
 /// A type-erased Codable value representing arbitrary JSON values,
 /// used to preserve unknown fields without data loss across document roundtrips.
-public enum AnyCodableValue: Codable, Equatable, Hashable {
+// JSON is a recursively value-typed tree; snapshots may cross the serial persistence boundary.
+public enum AnyCodableValue: Codable, Equatable, Hashable, Sendable {
     case string(String)
     case int(Int)
     case double(Double)
