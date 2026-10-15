@@ -1,0 +1,14 @@
+{
+  "success": true,
+  "sourceCommit": "cc852963a8ea3d7bda629a806c33940e9842562a",
+  "sha256": "41f0d1bc11707b447e279ca1dbb4c0c2324fdace676a3e23de3793ea1794ef6a",
+  "bytes": 131955475,
+  "archiveEntries": 579,
+  "payloadFilesVerified": 572,
+  "sourceFilesVerified": 157,
+  "guideLanguages": 10,
+  "screenshotsVerified": 4,
+  "userDataFilesInZip": 0,
+  "architecture": "x64",
+  "scope": "Static payload verification; native workflow results recorded separately"
+}

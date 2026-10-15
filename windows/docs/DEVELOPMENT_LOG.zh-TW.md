@@ -2,6 +2,8 @@
 
 ## 2026-10-15 — 文件交換、磁鐵與繪圖流程
 
+試用交付：乾淨來源cc85296執行`Package-PortableTrial.ps1 -Runtime win-x64 -Label drawing-2026-10-15-r1`成功；131955475bytes／SHA256 `41f0d1bc11707b447e279ca1dbb4c0c2324fdace676a3e23de3793ea1794ef6a`。zip CRC／572payload／157source／10語4圖／x64／空Data核同，最終可攜EXE實際開啟／正常關閉。資料接續13檔34859bytes全SHA核同；Clear-ObsoleteTrials退出0、清舊兩trial釋放901658688bytes，43Data＋18修改檔先備份5509863bytes，Store原SHA不變。source／artifact／cleanup各JSON及失敗KeyError／排解保完整日誌；只有本機二進位、來源與精簡必要證據同步GitHub。
+
 由乾淨38634bb開始，完成本批九項Windows需求，沿用1.0.14候選、不更動其他平台。新增PDF圖片頁匯入、PowerPoint COM STA唯讀轉換、全部頁PDF列印；共用磁鐵格索引與圖文工具列分頁；建立／單擊不彈詳細列、雙擊開啟，保留繪圖工具；修正三角形兩層曲線預覽來源、全選／預設與圓規圖示。工具列偏好保留未知欄位、選取常駐、寫入序列化；SizeChanged只量測，不反覆存偏好／重掛控制項。
 
 實際命令及結果：`Build-LocalizationCatalogs.py`十語616key／missing0；`Build-UserGuides.py`十語25章60段、四張實機JPEG共231547bytes；HTMLParser／manifest核對40個圖片引用及每頁／圖片SHA通過。Core Release2334checks通過；數輪x64 Release build0warning／0error。隔離`--drawing-workflow-output`原生檢查最終JSON成功，兩頁PDF匯入與重新匯出、PPTX兩頁PowerPoint轉換、screen四邊labels／triangle／continuous shapes／magnet。Poppler兩頁轉PNG並目視檢查。computer-use實際主視窗單擊／雙擊／兩矩形連續拖畫成功；手冊截圖使用示範資料，無使用者作品。

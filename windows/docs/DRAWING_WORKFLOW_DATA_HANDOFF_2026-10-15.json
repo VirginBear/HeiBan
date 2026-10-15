@@ -1,0 +1,9 @@
+{
+  "success": true,
+  "sourceTrial": "optimization-2026-10-13-r1",
+  "targetTrial": "drawing-2026-10-15-r1",
+  "files": 13,
+  "bytes": 34859,
+  "allHashesMatch": true,
+  "zipStillHasNoUserData": true
+}

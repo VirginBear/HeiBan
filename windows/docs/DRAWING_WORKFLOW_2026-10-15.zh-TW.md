@@ -33,3 +33,10 @@
 - Core Release：2334checks通過；最終x64 build21.57秒，0warning／0error。原生最終執行資料根`native-final-data-r2`，2026-10-15本機結果更新至15:47:55（台灣），success=true且screen的threePointTriangle／continuousShapes／magnet／labeledFourSideLayout皆true。前輪workflow-error.txt仍是歷史失敗，不因保留而當成最終失敗或改寫。
 - 未驗收：使用者真實PPT/PPTX（字型、圖表、外部連結、加密、舊版.ppt）、原生PDF密碼輸入、手寫筆／觸控、DPI／多螢幕、RTL母語與完整回歸。UI頁面範圍／取消及自訂全選／預設持久化仍需實際操作回報。WACK／MSIX候選／Store／GitHub Release未執行。
 - 使用者可用獨立標籤免安裝包實測；維持1.0.14.0候選。變更不含新增NuGet相依，手冊四圖增加約232KB原始載荷。實際ZIP大小／SHA與來源commit在封裝成功後接續。
+
+## 試用包、資料與空間（已完成）
+
+- 來源提交`cc852963a8ea3d7bda629a806c33940e9842562a`後，乾淨工作樹執行PowerShell7的`Package-PortableTrial.ps1 -Runtime win-x64 -Label drawing-2026-10-15-r1`退出0，App／Updater publish成功、log無warning/error。證據`.build/portable-trial-0dc651046bc34f5c83e67b407d880a53`。
+- ZIP131955475bytes（較10/13上一ZIP增加191312bytes），SHA256 `41f0d1bc11707b447e279ca1dbb4c0c2324fdace676a3e23de3793ea1794ef6a`。zipfile.testzip／全payload SHA／所有source SHA／x64 PE／10語與4圖manifest／空Data通過：579archive、572payload、157source。檢視腳本首次誤用inventory的`files`小寫產生KeyError，依實際`Files`契約改正後通過，沒有改包以配合檢查。最終可攜EXE另以隔離資料及示範作品啟動，實際新UI可見、正常關閉，未把示範寫進ZIP或使用者Data。
+- 先接續最近optimization試用Data13檔34859bytes至新解壓版，逐檔SHA核同；ZIP維持乾淨Data。確認舊試用無HeiBan程序後，依既有使用者清理授權執行`Clear-ObsoleteTrials.ps1 -KeepTrial HeiBan-Windows-Portable-1.0.14-drawing-2026-10-15-r1-win-x64`退出0。清除guides／optimization舊runtime及ZIP／sidecar，釋放901658688bytes；先保存43個Data檔與18個修改過檔案共5509863bytes至`dist/trial-data-backups/20261015-075635-9700515c`並核SHA，沒有合併不同作品庫。既有備份／正式發行／Store保留，Store1.0.12 SHA前後為`d7a49b63d88fa880b1a97b0c307361ad2cfbc9b3d58786048887093d7204ea7b`。
+- trials現只保留本批新資料夾、ZIP與SHA。手冊四張JPEG是示範作品畫面、隨來源同步；App／ZIP沒有上傳GitHub Release。未進正式版／提交Store；WR減重與先前未完成WT項目不因本批新功能完成而自動標完成。
