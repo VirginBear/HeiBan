@@ -1,0 +1,9 @@
+{
+  "success": true,
+  "sourceTrial": "HeiBan-Windows-Portable-1.0.14-topdown-eraser-2026-10-15-r1-win-x64",
+  "targetTrial": "HeiBan-Windows-Portable-1.0.14-eraser-entry-2026-10-15-r1-win-x64",
+  "files": 27,
+  "bytes": 24345830,
+  "allHashesMatch": true,
+  "zipStillHasNoUserData": true
+}

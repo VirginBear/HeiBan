@@ -1,8 +1,8 @@
 # Windows 開發日誌
 
-## 2026-10-15 — 更多板擦入口與左高右低鏡像（封裝中）
+## 2026-10-15 — 更多板擦入口與左高右低鏡像（x64試用完成）
 
-工具列更多新增「顯示板擦」勾選項，保存偏好、失敗還原；右鍵隱藏共用保存入口。保留原創PNG，僅Image中心ScaleX=-1呈現左高右低；共用12點輪廓x→1-x，抓取／提示／擦除同步。十語手冊重新產生25章62段，版本仍1.0.14候選。未執行App／實作測試，待使用者實測。[本批日誌](BOARD_ERASER_ENTRY_MIRROR_2026-10-15.zh-TW.md)。
+工具列更多新增「顯示板擦」勾選項，保存偏好、失敗還原；右鍵隱藏共用保存入口。保留原創PNG，僅Image中心ScaleX=-1呈現左高右低；共用12點輪廓x→1-x，抓取／提示／擦除同步。十語手冊重新產生25章62段，版本仍1.0.14候選。本機試用`dist/trials/HeiBan-Windows-Portable-1.0.14-eraser-entry-2026-10-15-r1-win-x64.zip`，132586851bytes／SHA256 `2cf8988e499f0c404ceda37445c2607e5866c55d0c6f445155408a65fe29785a`，來源`b2f9c3d7abe7a0726971a7ed53ca187893f3d51b`。App／Updater publish退出0，ZIP CRC／573payload／162source SHA、兩EXE x64及十語核同。使用者已正常保存關閉，確認無HeiBan程序後接續27個Data檔／24345830bytes，逐SHA相同；ZIP空Data。舊試用已備份到`dist/trial-data-backups/20261015-145134-a33251e2`後清理455068005bytes；Store1.0.12 SHA保持。最終EXE及實作測試未執行，待使用者實機驗收。[本批日誌](BOARD_ERASER_ENTRY_MIRROR_2026-10-15.zh-TW.md)。
 
 ## 2026-10-15 — 俯視磁吸板擦修正
 
