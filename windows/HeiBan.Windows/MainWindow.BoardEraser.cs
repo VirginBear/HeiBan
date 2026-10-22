@@ -1,4 +1,5 @@
 using HeiBan.Windows.Engine;
+using HeiBan.Windows.Diagnostics;
 using HeiBan.Windows.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -15,6 +16,14 @@ public partial class MainWindow
     private uint _boardEraserPointer;
     private bool _boardEraserWhole;
     private bool _boardEraserTransformApplied;
+    private readonly DispatcherTimer _boardEraserTimer=new(){Interval=TimeSpan.FromMilliseconds(16)};
+    private readonly List<InkPoint> _boardEraserPending=[];
+    private BoardEraserWork? _boardEraserWorking;
+    private Task? _boardEraserWorkTask,_boardEraserCompletion;
+    private bool _boardEraserFinishing;
+    private long _boardEraserEpoch,_boardEraserBaseGeneration,_boardEraserDocumentEpoch;
+    private readonly Microsoft.UI.Xaml.Media.TranslateTransform _boardEraserTranslation=new();
+    private double _boardEraserDockX,_boardEraserDockY;
     private async Task SetBoardEraserVisibleAsync(bool visible)
     {
         var previous=_toolbarPrefs.BoardEraserVisible;
@@ -49,50 +58,99 @@ public partial class MainWindow
     }
     private void BoardEraser_Pressed(object sender,PointerRoutedEventArgs e)
     {
+        if(_boardEraserDraft is not null)return;
         var pointer=e.GetCurrentPoint(DrawingArea);if(!pointer.Properties.IsLeftButtonPressed||_readingMode)return;
         var grip=e.GetCurrentPoint(BoardEraserDock).Position;
         if(!BoardEraserGeometry.CanGrab(grip.X,grip.Y))return;
         _boardEraserGripOffset=grip;
+        _boardEraserDockX=Canvas.GetLeft(BoardEraserDock);_boardEraserDockY=Canvas.GetTop(BoardEraserDock);
+        BoardEraserDock.RenderTransform=_boardEraserTranslation;
         FinishText();CommitPropertyEdit();if(_gesture)CancelGesture();_polygon.Clear();_preview=null;_lineAnchor=null;
         _session.SelectedId=null;_objectDetailsId=null;SelectionBar.Visibility=Visibility.Collapsed;Inspector.Visibility=Visibility.Collapsed;
         // The main document and its undo history stay untouched during pointer movement.
         // Only the draft is rendered; release installs its object list in one transaction.
         _boardEraserDraft=new EditorSession();_boardEraserDraft.Open(DocumentCodec.Clone(_session.Document));
         _boardEraserWhole=EraserModeBox.SelectedIndex==0;_boardEraserPointer=pointer.PointerId;_boardEraserLast=pointer.Position;
+        _boardEraserEpoch++;_boardEraserBaseGeneration=_session.Generation;_boardEraserDocumentEpoch=_session.DocumentEpoch;
+        _boardEraserWorking=new BoardEraserWork(DocumentCodec.Clone(_session.Document),
+            new ViewportTransform{X=_viewport.X,Y=_viewport.Y,Zoom=_viewport.Zoom},grip.X,grip.Y,_boardEraserWhole);
+        _boardEraserPending.Clear();_boardEraserWorkTask=_boardEraserCompletion=null;_boardEraserFinishing=false;
         BoardEraserDock.CapturePointer(e.Pointer);BoardEraserDock.Opacity=.78;
-        MoveBoardEraser(pointer.Position);EraseBoardEraserAt(pointer.Position);e.Handled=true;
+        MoveBoardEraser(pointer.Position);QueueBoardEraserPoint(pointer.Position);_boardEraserTimer.Start();e.Handled=true;
     }
     private void MoveBoardEraser(Point point)
-    {Canvas.SetLeft(BoardEraserDock,point.X-_boardEraserGripOffset.X);Canvas.SetTop(BoardEraserDock,point.Y-_boardEraserGripOffset.Y);}
+    {_boardEraserTranslation.X=point.X-_boardEraserGripOffset.X-_boardEraserDockX;_boardEraserTranslation.Y=point.Y-_boardEraserGripOffset.Y-_boardEraserDockY;}
     private InkPoint[] BoardEraserContact(Point pointer)=>BoardEraserGeometry.ContactAt(pointer.X-_boardEraserGripOffset.X,pointer.Y-_boardEraserGripOffset.Y);
-    private void EraseBoardEraserAt(Point point)
+    private void QueueBoardEraserPoint(Point point)
     {
-        // Image, outline and contact share screen DIP coordinates; only the contact
-        // corners cross into the document's world space. There is no bounding-box erase.
-        var world=BoardEraserContact(point).Select(p=>_viewport.ScreenToWorld(p.X,p.Y));
-        _boardEraserDraft?.EraseFootprint(new EraserFootprint(world),_boardEraserWhole);
-        InvalidateCanvas();
+        _boardEraserPending.Add(new(point.X,point.Y));
+        InvalidateCanvas(false);
+    }
+    private void PumpBoardEraser()
+    {
+        if(_boardEraserWorking is null||_boardEraserFinishing||_boardEraserPending.Count==0||_boardEraserWorkTask?.IsCompleted==false)return;
+        _boardEraserWorkTask=ApplyBoardEraserBatchAsync();
+    }
+    private async Task ApplyBoardEraserBatchAsync()
+    {
+        var working=_boardEraserWorking;if(working is null||_boardEraserPending.Count==0)return;
+        var epoch=_boardEraserEpoch;var points=_boardEraserPending.ToArray();_boardEraserPending.Clear();
+        try
+        {
+            var snapshot=await Task.Run(()=>working.Apply(points));
+            if(epoch!=_boardEraserEpoch||_boardEraserDraft is null||snapshot is null)return;
+            _boardEraserDraft.Open(snapshot);
+            _renderer.Prune(snapshot.Objects);InvalidateCanvas();
+        }
+        catch(Exception error)
+        {
+            if(epoch==_boardEraserEpoch){CancelBoardEraser();await Error(error);}
+        }
     }
     private void BoardEraser_Moved(object sender,PointerRoutedEventArgs e)
     {
-        if(_boardEraserDraft is null||e.Pointer.PointerId!=_boardEraserPointer)return;
+        using var trace=InputLatencyTrace.Measure(InputStage.EraserMove);
+        if(_boardEraserDraft is null||_boardEraserFinishing||e.Pointer.PointerId!=_boardEraserPointer)return;
         var point=e.GetCurrentPoint(DrawingArea).Position;
-        var distance=Math.Sqrt(Math.Pow(point.X-_boardEraserLast.X,2)+Math.Pow(point.Y-_boardEraserLast.Y,2));
-        var steps=Math.Max(1,(int)Math.Ceiling(distance/BoardEraserGeometry.SweepStep));
-        for(var i=1;i<=steps;i++)EraseBoardEraserAt(new(_boardEraserLast.X+(point.X-_boardEraserLast.X)*i/steps,_boardEraserLast.Y+(point.Y-_boardEraserLast.Y)*i/steps));
+        QueueBoardEraserPoint(point);
         MoveBoardEraser(point);_boardEraserLast=point;e.Handled=true;
     }
-    private void BoardEraser_Released(object sender,PointerRoutedEventArgs e)
+    private async void BoardEraser_Released(object sender,PointerRoutedEventArgs e)
     {
-        if(_boardEraserDraft is null||e.Pointer.PointerId!=_boardEraserPointer)return;
-        BoardEraser_Moved(sender,e);var draft=_boardEraserDraft;_boardEraserDraft=null;
-        _session.Begin();_session.Document.Objects=draft.Document.Objects;_session.Commit();
-        BoardEraserDock.ReleasePointerCaptures();BoardEraserDock.Opacity=1;RefreshBoardEraser();RefreshEditor();e.Handled=true;
+        if(_boardEraserDraft is null||_boardEraserFinishing||e.Pointer.PointerId!=_boardEraserPointer)return;
+        BoardEraser_Moved(sender,e);e.Handled=true;await CompleteBoardEraserAsync();
+    }
+    private Task CompleteBoardEraserAsync()=>_boardEraserCompletion??=CompleteBoardEraserCoreAsync();
+    private async Task CompleteBoardEraserCoreAsync()
+    {
+        if(_boardEraserDraft is null)return;
+        var epoch=_boardEraserEpoch;var working=_boardEraserWorking;
+        _boardEraserFinishing=true;_boardEraserTimer.Stop();
+        try
+        {
+            if(_boardEraserWorkTask is { } running)await running;
+            while(epoch==_boardEraserEpoch&&_boardEraserPending.Count>0)await ApplyBoardEraserBatchAsync();
+            if(epoch!=_boardEraserEpoch||_boardEraserDraft is null)return;
+            if(working?.Changed==true&&_session.Generation==_boardEraserBaseGeneration&&_session.DocumentEpoch==_boardEraserDocumentEpoch)
+            {
+                using var trace=InputLatencyTrace.Measure(InputStage.EraserCommit);
+                _session.Begin();_session.Document.Objects=_boardEraserDraft.Document.Objects;_session.Commit();
+            }
+        }
+        finally
+        {
+            if(epoch==_boardEraserEpoch)
+            {
+                _boardEraserDraft=null;_boardEraserWorking=null;_boardEraserPending.Clear();
+                _boardEraserTranslation.X=_boardEraserTranslation.Y=0;
+                BoardEraserDock.ReleasePointerCaptures();_boardEraserFinishing=false;BoardEraserDock.Opacity=1;RefreshBoardEraser();RefreshEditor();
+            }
+        }
     }
     private void BoardEraser_Canceled(object sender,PointerRoutedEventArgs e)
-    {CancelBoardEraser();}
+    {if(!_boardEraserFinishing)CancelBoardEraser();}
     private void CancelBoardEraser()
-    {if(_boardEraserDraft is null)return;_boardEraserDraft=null;BoardEraserDock.ReleasePointerCaptures();BoardEraserDock.Opacity=1;RefreshBoardEraser();InvalidateCanvas();}
+    {if(_boardEraserDraft is null)return;_boardEraserEpoch++;_boardEraserTimer.Stop();_boardEraserWorking?.Cancel();_boardEraserWorking=null;_boardEraserDraft=null;_boardEraserPending.Clear();_boardEraserFinishing=false;_boardEraserTranslation.X=_boardEraserTranslation.Y=0;BoardEraserDock.ReleasePointerCaptures();BoardEraserDock.Opacity=1;RefreshBoardEraser();InvalidateCanvas();}
     private void BoardEraser_RightTapped(object sender,RightTappedRoutedEventArgs e)
     {
         var menu=new MenuFlyout();

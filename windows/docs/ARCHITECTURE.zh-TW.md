@@ -1,5 +1,9 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-22 — 真實採樣、轉角與板擦卡頓（開發候選）
+
+BoardEraserWork獨佔EditorSession與viewport拷貝，單一Task.Run順序處理原5DIP路徑；UI只收隔離document快照，epoch／generation拒絕舊結果。主document放開且flush後才提交一筆Undo，保存／退出等待已釋放手勢，取消不提交；UI只TranslateTransform及路徑佇列。RectangularEraser保守bounds＋精確contact，open ink免填色corner fallback。trace schema2補worker耗時與程序GC pause。 [本批日誌](ERASER_AND_INPUT_QUEUE_2026-10-22.zh-TW.md)。
+
 ## 2026-10-22 — 畫筆與工具切換停頓追查（待實機採樣）
 
 Direct2DCanvasRenderer.WetInk：單一viewport尺寸GPU raster依document操作reset／DPI／viewport／色寬key重用，穩定cubic64段追加、末段預覽；alpha只合成一次，opaque略過layer，虛線維持舊path。GPU資源只在resize／device change／ClearCache／Dispose時換；pin CanvasTextLayout cache最多256項。MagnetSnapIndex.Add只供已提交append，hosts匹配generation／epoch／page／zoom，其他操作full rebuild。InputLatencyTrace預設關閉、固定ring且不記內容。 [本批日誌](INK_LATENCY_2026-10-22.zh-TW.md)。

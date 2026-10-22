@@ -167,26 +167,36 @@ public sealed class EditorSession
         EraseFootprint(EraserFootprint.Rectangle(center.X-width/2,center.Y-height/2,center.X+width/2,center.Y+height/2),wholeObject);
     }
     public void EraseFootprint(EraserFootprint footprint,bool wholeObject)
+        =>EraseFootprintChanged(footprint,wholeObject);
+    public bool EraseFootprintChanged(EraserFootprint footprint,bool wholeObject)
     {
-        foreach(var item in VisibleObjects.Where(o=>o.IsLocked!=true&&o.IsErasable).ToArray())
+        var changed=false;
+        // Walk backward so newly inserted fragments are skipped in this contact.
+        // Avoid allocating a full eligible-object array for each swept sample.
+        for(var objectIndex=Document.Objects.Count-1;objectIndex>=0;objectIndex--)
         {
+            var item=Document.Objects[objectIndex];
+            if(item.IsVisible==false||item.IsLocked==true||!item.IsErasable||
+                Document.Board.CanvasMode=="notebook"&&item.PageId is not null&&item.PageId!=Document.Board.ActivePageId)continue;
             if(!wholeObject&&item.Type is not("stroke" or "pen" or "highlighter" or "paint"))continue;
             if(!RectangularEraser.Intersects(item,footprint))continue;
-            if(wholeObject||item.ParsedPoints.Count==0){Document.Objects.Remove(item);continue;}
+            if(wholeObject||item.ParsedPoints.Count==0){Document.Objects.RemoveAt(objectIndex);changed=true;continue;}
             // Bake the old rotation into points before computing fragment bounds. Leaving
             // rotation on each fragment would rotate it around a different center.
-            var world=item.ParsedPoints.Select(p=>{var copy=DocumentCodec.Clone(p);var at=ObjectHandles.ToWorld(item,p);copy.X=at.X;copy.Y=at.Y;return copy;}).ToArray();
+            IReadOnlyList<InkPoint> world=item.Rotation==0?item.ParsedPoints:
+                item.ParsedPoints.Select(p=>{var copy=DocumentCodec.Clone(p);var at=ObjectHandles.ToWorld(item,p);copy.X=at.X;copy.Y=at.Y;return copy;}).ToArray();
             var pad=item.StrokeWidth/2;
             var fragments=footprint.Split(world,pad);
-            if(fragments.Count==1&&fragments[0].Count==world.Length&&fragments[0].Zip(world).All(pair=>pair.First.X==pair.Second.X&&pair.First.Y==pair.Second.Y))continue;
-            var index=Document.Objects.IndexOf(item);Document.Objects.RemoveAt(index);
+            if(fragments.Count==1&&fragments[0].Count==world.Count&&fragments[0].Zip(world).All(pair=>pair.First.X==pair.Second.X&&pair.First.Y==pair.Second.Y))continue;
+            var index=objectIndex;Document.Objects.RemoveAt(index);changed=true;
             foreach(var fragment in fragments)
             {
                 var copy=DocumentCodec.Clone(item);copy.Id=Guid.NewGuid().ToString();copy.Rotation=0;
-                copy.Points=JsonSerializer.Serialize(fragment,DocumentCodec.Options);
+                copy.SetOwnedInkPoints(fragment);
                 var bounds=VectorMath.ComputeBoundingBox(fragment,item.StrokeWidth);copy.X=bounds.MinX;copy.Y=bounds.MinY;copy.Width=bounds.Width;copy.Height=bounds.Height;
                 Document.Objects.Insert(index++,copy);
             }
         }
+        return changed;
     }
 }

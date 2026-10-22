@@ -99,6 +99,7 @@ public partial class MainWindow : Window
                 _autosave.Stop();_thumbnailTimer.Stop();_activeFlyout?.Hide();ShowSavingOverlay(true);
                 await Task.Delay(32);
                 CancelScreenshotCapture("視窗關閉");FinishText();CommitPropertyEdit();if(_gesture)CancelGesture();
+                if(_boardEraserFinishing)await CompleteBoardEraserAsync();else CancelBoardEraser();
                 await SaveTeachingSettingsAsync();
                 if(_screenAnnotation?.IsActive==true&&!await _screenAnnotation.StopAsync())return;
                 if(_workspaceOpen&&_session.IsDirty&&!await SaveAsync())return;
@@ -113,7 +114,7 @@ public partial class MainWindow : Window
             catch(Exception error){await Error(error);}
             finally{if(!_closing){ShowSavingOverlay(false);_preparingClose=false;ApplySavingPreferences();}}
         };
-        Closed+=(_,_)=>{_inputLatencyHeartbeat?.Stop();_layerPreview?.End();CanvasCursorHost.ReleaseCursor();_shapeCursor.Dispose();_updates?.Dispose();_autosave.Stop();_thumbnailTimer.Stop();_inkUiTimer.Stop();_searchTimer.Stop();_teachingSaveTimer.Stop();CancelScreenshotCapture("視窗關閉");_timerTickTimer?.Stop();_laserTimer.Stop();_propertyCommitTimer.Stop();_headerHideTimer.Stop();ClearScene();CanvasSurface.RemoveFromVisualTree();_renderer.Dispose();_screenAnnotation?.Dispose();};
+        Closed+=(_,_)=>{_boardEraserTimer.Stop();_boardEraserWorking?.Cancel();_inputLatencyHeartbeat?.Stop();_layerPreview?.End();CanvasCursorHost.ReleaseCursor();_shapeCursor.Dispose();_updates?.Dispose();_autosave.Stop();_thumbnailTimer.Stop();_inkUiTimer.Stop();_searchTimer.Stop();_teachingSaveTimer.Stop();CancelScreenshotCapture("視窗關閉");_timerTickTimer?.Stop();_laserTimer.Stop();_propertyCommitTimer.Stop();_headerHideTimer.Stop();ClearScene();CanvasSurface.RemoveFromVisualTree();_renderer.Dispose();_screenAnnotation?.Dispose();};
         App.StartupStage="顯示首頁";
         try { EnsureScreenAnnotation(); } catch(Exception e) { StatusText.Text=T("螢幕畫布初始化失敗：")+e.Message; }
     }
@@ -180,6 +181,7 @@ public partial class MainWindow : Window
     }
     private async Task<bool> SaveAsync(bool deferThumbnail=false)
     {
+        if(_boardEraserFinishing)await CompleteBoardEraserAsync();
         CommitPropertyEdit();
         await _saveGate.WaitAsync();
         try

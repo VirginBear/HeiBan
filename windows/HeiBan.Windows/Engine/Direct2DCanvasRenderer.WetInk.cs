@@ -1,5 +1,7 @@
 using System.Numerics;
 using HeiBan.Windows.Models;
+using HeiBan.Windows.Diagnostics;
+using Microsoft.Graphics.Canvas.Geometry;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Text;
 using global::Windows.Foundation;
@@ -14,12 +16,16 @@ public sealed partial class Direct2DCanvasRenderer
     private WetView _wetView;
     private InkPoint? _wetFirst;
     private int _wetStableEnd,_wetCount;
+    private CanvasGeometry? _wetTail;
+    private int _wetTailCount;
+    private void ClearWetTail(){_wetTail?.Dispose();_wetTail=null;_wetTailCount=0;}
     private double _wetMinX,_wetMinY,_wetMaxX,_wetMaxY,_wetMaxStep;
     private readonly Dictionary<string,(string Name,CanvasTextLayout Layout)> _pinLabels=[];
 
     private void ClearWetResources()
     {
         _wetRaster?.Dispose();_wetRaster=null;_wetFirst=null;
+        ClearWetTail();
         foreach(var entry in _pinLabels.Values)entry.Layout.Dispose();_pinLabels.Clear();
     }
 
@@ -48,6 +54,7 @@ public sealed partial class Direct2DCanvasRenderer
     public void RenderWetInk(CanvasDrawingSession ds,IReadOnlyList<InkPoint> points,ViewportTransform vp,
         string color,double width,double opacity,string lineStyle,Size surfaceSize)
     {
+        using var trace=InputLatencyTrace.Measure(InputStage.WetInkRender);
         if(points.Count<3||lineStyle!="solid"||surfaceSize.Width<=0||surfaceSize.Height<=0)
         {_wetFirst=null;RenderLiveStroke(ds,points,vp,color,width,opacity,lineStyle);return;}
         var key=new WetView(vp.X,vp.Y,vp.Zoom,surfaceSize.Width,surfaceSize.Height,ds.Dpi,color,width);
@@ -61,6 +68,7 @@ public sealed partial class Direct2DCanvasRenderer
         var ink=HexToColor(color);var alpha=(float)(Math.Clamp(opacity,0,1)*ink.A/255d);ink.A=255;
         if(reset)
         {
+            ClearWetTail();
             _wetFirst=points[0];_wetStableEnd=_wetCount=0;
             _wetMaxStep=0;
             _wetMinX=_wetMaxX=points[0].X;_wetMinY=_wetMaxY=points[0].Y;
@@ -99,8 +107,9 @@ public sealed partial class Direct2DCanvasRenderer
             using var layer=alpha<.99999f?ds.CreateLayer(alpha,new Rect(left,top,right-left,bottom-top)):null;
             ds.DrawImage(_wetRaster);
             ds.Transform=view;
-            using var tail=SegmentPath(ds,points,_wetStableEnd+1,points.Count-1);
-            ds.DrawGeometry(tail,ink,(float)width,StrokeStyle("solid"));
+            if(_wetTail is null||_wetTailCount!=points.Count)
+            {ClearWetTail();_wetTail=SegmentPath(ds,points,_wetStableEnd+1,points.Count-1);_wetTailCount=points.Count;}
+            ds.DrawGeometry(_wetTail,ink,(float)width,StrokeStyle("solid"));
         }
         finally{ds.Transform=old;}
     }

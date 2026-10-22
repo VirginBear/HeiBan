@@ -105,7 +105,8 @@ public partial class MainWindow
         {
             // Allow an animation frame before cloning; IO/encoding already runs off the UI thread.
             await Task.Delay(32);
-            FinishText(); CommitPropertyEdit(); if (_gesture) CancelGesture();CancelBoardEraser();
+            FinishText(); CommitPropertyEdit(); if (_gesture) CancelGesture();
+            if(_boardEraserFinishing)await CompleteBoardEraserAsync();else CancelBoardEraser();
             if (_workspaceOpen && _session.IsDirty && !await SaveAsync()) return false;
             await FlushPendingThumbnailAsync();
             return !_workspaceOpen || !_session.IsDirty;

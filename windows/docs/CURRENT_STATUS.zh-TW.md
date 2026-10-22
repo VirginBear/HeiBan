@@ -1,5 +1,9 @@
 # Windows 目前開發狀態
 
+## 2026-10-22 — 真實採樣、轉角與板擦卡頓（開發候選）
+
+收到使用者151.18秒真實採樣：UI心跳P95=113.21ms／max673.92ms，GC0/1/2=828/292/93；未含板擦處理scope，不能由PointerMove快速就宣稱輸入正常。板擦改16ms背景順序批次、TranslateTransform移動、隔離snapshot發布，放開等待最後批次一筆Undo；取消與舊epoch拒收。擦除保守排除與低配置判斷；畫布合併Invalidate、筆跡暫停尾段cache。新trace補板擦／wet／重建及GC實際pause。未永久合併同樣式筆畫，保留編輯語義；仍1.0.15待封裝與實機。 [本批日誌](ERASER_AND_INPUT_QUEUE_2026-10-22.zh-TW.md)。
+
 ## 2026-10-22 — 畫筆與工具切換停頓追查（x64試用完成，待實機採樣）
 
 使用者回報拖曳畫線與工具切換仍頓，本批追查UI／繪圖資源路徑並修正：solid wet ink改重用單張viewport GPU raster、只追加64段穩定片段；磁鐵只追加新筆參考點；新筆避免JSON立即反解析；圖釘視野裁切與layout cache；導航圖示狀態快取。新增明確手動啟用的本機耗時採樣入口。仍1.0.15，未正式進版；中途x64 build 39.59秒0warning0error，x64 ink-latency-2026-10-22-r2封裝完成，132774049bytes／SHA256 `335dfec93f44b37f66ca983d997925e09911a867ae124febc5ebaea7eed785af`，585payload／178source SHA核同；52檔24767375bytes作品設定核同接續，原資料另備份。附手動Capture-InputLatency.cmd，尚未啟動App或實機採樣，不宣稱性能達標。 [本批日誌](INK_LATENCY_2026-10-22.zh-TW.md)。

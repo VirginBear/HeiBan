@@ -10,6 +10,7 @@ public static class RectangularEraser
         =>Intersects(item,EraserFootprint.Rectangle(left,top,right,bottom));
     public static bool Intersects(BoardObject item,EraserFootprint footprint)
     {
+        if(!MayIntersect(item,footprint))return false;
         var pad=item.StrokeWidth/2;
         var paths=new List<IReadOnlyList<InkPoint>>();var closed=false;
         if(item.Type is "line" or "arrow")
@@ -27,8 +28,12 @@ public static class RectangularEraser
             var start=item.Type=="arc"?item.ArcStartAngle??0:0;var sweep=item.Type=="arc"?item.ArcSweepAngle??360:360;
             paths.Add(Enumerable.Range(0,129).Select(i=>{var angle=(start+sweep*i/128)*Math.PI/180;return ObjectHandles.ToWorld(item,new(center.X+rx*Math.Cos(angle),center.Y+ry*Math.Sin(angle)));}).ToArray());
         }
-        else if(item.ParsedPoints.Count>0)
-        {paths.Add(CurvePreview.ForObject(item).Points.Select(p=>ObjectHandles.ToWorld(item,p)).ToArray());closed=item.Type is "triangle" or "quadrilateral";}
+        else if(item.Type is not("circle" or "arc")&&item.ParsedPoints.Count>0)
+        {
+            var points=CurvePreview.ForObject(item).Points;
+            paths.Add(item.Rotation==0?points:points.Select(p=>ObjectHandles.ToWorld(item,p)).ToArray());
+            closed=item.Type is "triangle" or "quadrilateral";
+        }
         else if(item.Type is "diamond" or "pentagon" or "star" or "triangle" or "quadrilateral")
         {
             var count=item.Type=="triangle"?3:item.Type=="pentagon"?5:item.Type=="star"?10:4;
@@ -41,7 +46,38 @@ public static class RectangularEraser
             for(var i=1;i<path.Count;i++)if(footprint.Clip(path[i-1],path[i],pad,out _,out _))return true;
             if(closed&&path.Count>1&&footprint.Clip(path[^1],path[0],pad,out _,out _))return true;
         }
+        // Open ink has no filled interior. Testing every footprint corner with
+        // IsPointInObject would walk the same complete stroke up to 13 more times.
+        if(item.Type is "stroke" or "pen" or "highlighter" or "paint" or "curve")return false;
         // The footprint may lie fully inside a filled shape, image or text box.
         return footprint.Corners.Append(footprint.Center).Any(p=>VectorMath.IsPointInObject(p,item,0));
+    }
+
+    public static bool MayIntersect(BoardObject item,EraserFootprint footprint)
+    {
+        if(item.Type is "line" or "arrow"&&item.Extension is "start" or "end" or "both")return true;
+        // Use actual endpoints / cached curve bounds for imported works whose
+        // metadata bounds may be stale. This is only a conservative rejection.
+        var width=Math.Abs(item.Width);var height=Math.Abs(item.Height);
+        var radius=Math.Sqrt(width*width+height*height)/2+Math.Abs(item.StrokeWidth)+4;
+        var centerX=item.X+item.Width/2;var centerY=item.Y+item.Height/2;
+        if(item.Type is "line" or "arrow")
+        {
+            var a=ObjectHandles.Endpoint(item,0);var b=ObjectHandles.Endpoint(item,1);
+            centerX=(a.X+b.X)/2;centerY=(a.Y+b.Y)/2;
+            radius=Math.Sqrt((a.X-b.X)*(a.X-b.X)+(a.Y-b.Y)*(a.Y-b.Y))/2+Math.Abs(item.StrokeWidth)+4;
+        }
+        else if(item.ParsedPoints.Count>0)
+        {
+            var bounds=CurvePreview.ForObject(item).Bounds;var center=ObjectHandles.ToWorld(item,new(bounds.MidX,bounds.MidY));
+            centerX=center.X;centerY=center.Y;radius=Math.Sqrt(bounds.Width*bounds.Width+bounds.Height*bounds.Height)/2+Math.Abs(item.StrokeWidth)+4;
+        }
+        if(item.Type=="arrow")radius+=Math.Max(item.ArrowHeadLength??16,item.ArrowHeadWidth??10);
+        if(item.Type=="arc")radius=Math.Max(radius,Math.Abs(item.ArcRadius??0)*2+Math.Abs(item.StrokeWidth)+4);
+        foreach(var corner in footprint.Corners)
+            if(corner.X>=centerX-radius&&corner.X<=centerX+radius&&corner.Y>=centerY-radius&&corner.Y<=centerY+radius)return true;
+        var left=double.PositiveInfinity;var top=double.PositiveInfinity;var right=double.NegativeInfinity;var bottom=double.NegativeInfinity;
+        foreach(var corner in footprint.Corners){left=Math.Min(left,corner.X);right=Math.Max(right,corner.X);top=Math.Min(top,corner.Y);bottom=Math.Max(bottom,corner.Y);}
+        return right>=centerX-radius&&left<=centerX+radius&&bottom>=centerY-radius&&top<=centerY+radius;
     }
 }

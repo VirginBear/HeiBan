@@ -11,6 +11,7 @@ public partial class MainWindow
 {
     private CanvasRenderTarget? _scene;
     private bool _sceneDirty=true;
+    private bool _canvasInvalidated;
     private readonly record struct SceneKey(HeiBanDocument Document,long Generation,string? Page,double X,double Y,double Zoom,float Width,float Height,float Dpi);
     private SceneKey _sceneKey;
     private long _sceneBuilds;
@@ -25,11 +26,13 @@ public partial class MainWindow
     private void InvalidateCanvas(bool sceneChanged=true)
     {
         if(sceneChanged)_sceneDirty=true;
+        if(_canvasInvalidated)return;
+        _canvasInvalidated=true;
         UpdateSaveStatusLight(StatusText.Text);
         CanvasSurface.Invalidate();
     }
     private void ClearScene()
-    {_scene?.Dispose();_scene=null;_sceneDirty=true;_pendingInkScene.Clear();}
+    {_scene?.Dispose();_scene=null;_sceneDirty=true;_canvasInvalidated=false;_pendingInkScene.Clear();}
     private void RenderMainScene(CanvasControl surface,CanvasDrawingSession ds,float width,float height)
     {
         using var trace=InputLatencyTrace.Measure(InputStage.SceneRender);
@@ -40,6 +43,7 @@ public partial class MainWindow
         {ClearScene();_scene=new CanvasRenderTarget(surface,width,height,surface.Dpi);}
         if(_sceneDirty||key!=_sceneKey)
         {
+            using var rebuildTrace=InputLatencyTrace.Measure(InputStage.SceneRebuild);
             // An appended stroke has the highest Z index. Reuse the committed bitmap
             // only if document, viewport, page, DPI and the exact generation chain match.
             // Any edit, undo, erase or resource/layout change takes the full render path.
@@ -90,6 +94,7 @@ public partial class MainWindow
     private readonly Dictionary<string,long> _thumbnailRevisions=[];
     private void InitializeDeferredWork()
     {
+        _boardEraserTimer.Tick+=(_,_)=>PumpBoardEraser();
         _inkUiTimer.Tick+=(_,_)=>
         {
             _inkUiTimer.Stop();

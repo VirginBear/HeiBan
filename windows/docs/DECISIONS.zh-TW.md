@@ -1,5 +1,9 @@
 # Windows 開發決策
 
+## 2026-10-22 — 真實採樣、轉角與板擦卡頓（開發候選）
+
+同筆刷／色／粗細可作顯示處理分批，現有主scene已共同快取完成筆畫。本批不永久合併原稿或新增群組schema，保留逐筆Undo／選取／局部擦除。優先消除全掃重算與UI同步擦除，轉角與GC因果依數值再判斷。原始數值採樣存私人repo，公開只有不含作品資料的基準與SHA；未知JSON欄位／既有作品不更動。 [本批日誌](ERASER_AND_INPUT_QUEUE_2026-10-22.zh-TW.md)。
+
 ## 2026-10-22 — 畫筆與工具切換停頓追查（待實機採樣）
 
 不把UWP InkCanvas／InkPresenter直接當WinUI3替換件。本批先消除已確認的hot-path重複工作與提供手動本機採樣；若數據仍指CanvasControl排程或screen readback，再規劃CanvasSwapChainPanel／HWND合成，不在未量測時整套更換渲染引擎。文件JSON格式不改；新筆SetCompletedInkPoints持有深拷貝點列與相同serialized points，snapshot未知欄位保留。 [本批日誌](INK_LATENCY_2026-10-22.zh-TW.md)。

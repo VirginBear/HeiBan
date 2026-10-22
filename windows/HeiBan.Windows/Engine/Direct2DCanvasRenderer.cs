@@ -22,7 +22,7 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
     private InkPoint? _liveFirst;
     private int _liveEnd;
     public void ResetLive()
-    {foreach(var geometry in _liveBlocks)geometry.Dispose();_liveBlocks.Clear();_liveEnd=0;_liveFirst=null;_wetFirst=null;}
+    {foreach(var geometry in _liveBlocks)geometry.Dispose();_liveBlocks.Clear();_liveEnd=0;_liveFirst=null;_wetFirst=null;ClearWetTail();}
     public event Action? ResourcesChanged;
     public static Color HexToColor(string? hex, float opacity=1)
     {

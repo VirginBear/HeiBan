@@ -54,6 +54,7 @@ public partial class MainWindow
     private void CanvasSurface_Draw(CanvasControl sender,CanvasDrawEventArgs e)
     {
         using var trace=InputLatencyTrace.Measure(InputStage.CanvasDraw);
+        _canvasInvalidated=false;UpdateSaveStatusLight(StatusText.Text);
         var ds=e.DrawingSession;var w=(float)sender.ActualWidth;var h=(float)sender.ActualHeight;
         RenderMainScene(sender,ds,w,h);
         var board=_session.Document.Board;
@@ -91,6 +92,7 @@ public partial class MainWindow
     private void CanvasSurface_PointerPressed(object sender,PointerRoutedEventArgs e)
     {
         using var trace=InputLatencyTrace.Measure(InputStage.PointerDown);
+        if(_boardEraserDraft is not null){e.Handled=true;return;}
         FinishPinRename();
         if(_editor is not null)FinishText();
         FocusCanvasSurface();

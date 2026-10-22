@@ -189,6 +189,13 @@ public sealed class BoardObject
         // the serialized contract and render cache together, avoiding an
         // immediate JSON parse of the points we have just collected.
         var owned=points.Select(point=>point.Snapshot()).ToList();
+        SetOwnedInkPoints(owned);
+    }
+    internal void SetOwnedInkPoints(List<InkPoint> owned)
+    {
+        // Eraser fragments are new lists already owned by the isolated session.
+        // Transfer them without another per-point clone; snapshots retain only
+        // the immutable JSON and never expose this list to the render/UI owner.
         var encoded=JsonSerializer.Serialize(owned,Engine.DocumentCodec.Options);
         Points=encoded;_parsedPoints=owned;
     }

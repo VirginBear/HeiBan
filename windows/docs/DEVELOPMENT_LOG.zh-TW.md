@@ -1,5 +1,9 @@
 # Windows 開發日誌
 
+## 2026-10-22 — 真實採樣、轉角與板擦卡頓（開發候選）
+
+先讀真實採樣並記錄限制，再查板擦每5DIP全掃／逐點複製／多重命中判斷和XAML Canvas.Left/Top。調整順序背景worker，只發布隔離snapshot；候選bounds取真端點／curve cache含旋轉，開放筆跡不做13次內部填色測試，倒序擦除避免ToArray，新碎片owned點列避免重複clone。未自動執行測試。中途x64 build36.53秒0warning0error。 [本批日誌](ERASER_AND_INPUT_QUEUE_2026-10-22.zh-TW.md)。
+
 ## 2026-10-22 — 畫筆與工具切換停頓追查（x64試用完成，待實機採樣）
 
 前批全開指南後使用者實測仍卡，補充拖著畫線也卡。依Microsoft Direct2D／Win2D官方資料比對：自有UI指標收集器非InkPresenter，XAML UI與繪圖同執行緒。找出預覽整筆幾何重送、圖釘每幀文字建銷、磁鐵每筆全量重建、Points序列化立刻反解析及導覽圖示重建等可確認成本；逐項減少並附可選數值採樣，未以建置代替實際性能證據。 [本批日誌](INK_LATENCY_2026-10-22.zh-TW.md)。
