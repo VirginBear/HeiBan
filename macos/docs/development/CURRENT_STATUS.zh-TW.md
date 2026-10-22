@@ -1,5 +1,9 @@
 # Mac 目前開發狀態
 
+## 2026-10-23 — GitHub 開發來源已同步
+
+依使用者授權，Mac **1.0.16 / 20261023.2**來源、資源、十語指南與開發文件已推送至 [VirginBear/HeiBan main](https://github.com/VirginBear/HeiBan/tree/main/macos)。來源提交 [26ea834](https://github.com/VirginBear/HeiBan/commit/26ea834)及前兩筆Mac提交已上傳，git ls-remote核對成功；本段與推送證據另以文件提交保存。本批沒有發布新的DMG／ZIP或改Windows；下方實作與待驗收狀態保留。詳[同步日誌04](logs/2026-10-23/04.zh-TW.md)。
+
 ## 2026-10-23 — 工具列／雷射／板擦補齊，待實機操作驗收
 
 Mac產品 **1.0.16**，最新本機build **20261023.2**，成品 `macos/dist/HeiBan.app`。
