@@ -1,5 +1,9 @@
 # Windows 開發決策
 
+## 2026-10-22 — 使用者核准Store 1.0.16.0（封裝中）
+
+使用者明確核准本次Windows 1.0.16／1.0.16.0進版。僅提高產品／套件版本，保持Store產品身分、免費政策與runFullTrust模型；正式封裝核同不等於Store已認證或發布。舊商店包保留，提交由使用者接續。版號核准僅適用此批，後續仍依進版政策。 [本批日誌](STORE_RELEASE_1.0.16_2026-10-22.zh-TW.md)。
+
 ## 2026-10-22 — 常用清除、圖示與圓形橡皮擦（x64試用完成，待實機）
 
 兩種圓形橡皮擦共用CircularEraserGesture處理批次／preview／完成，UIhost僅負責座標、timer與一筆Undo；沿用板擦worker，避免重新建立一套幾何擦除引擎。主資料只在釋放且flush後變更，generation／epoch不符拒收；取消丟棄preview。維持現有圓形範圍與partial/whole模式，未知物件／sample欄位保存，無文件schema遷移。常用追加一次即可，之後使用者移除仍尊重。 [本批日誌](ERASER_TOOLBAR_ALIGNMENT_2026-10-22.zh-TW.md)。

@@ -1,5 +1,9 @@
 # Windows 開發日誌
 
+## 2026-10-22 — 使用者核准Store 1.0.16.0（封裝中）
+
+開工保留三份平台文件18行YouTube原未提交內容及三份YouTube新文件。先查1.0.15.0舊包、manifest／StoreIdentity／csproj，依專案規則取得使用者明確版號確認後才改1.0.16／1.0.16.0。建立舊產物SHA快照，十語指南status同步新版；準備十語版本說明，使用既有Package-Store.ps1正式雙架構封裝入口。 [本批日誌](STORE_RELEASE_1.0.16_2026-10-22.zh-TW.md)。
+
 ## 2026-10-22 — 常用清除、圖示與圓形橡皮擦（x64試用完成，待實機）
 
 本批查三條獨立路徑：清除本頁未列DefaultCommonTools；screen shapes用填色PathIcon而main用描邊UIElement；圓擦除仍在每次move同步全掃／局部切割及重畫。共用圖形工廠、常用migration及CircularEraserGesture，worker沿用BoardEraserWork圓形模式；核心倒序遍歷、owned fragment、cut span／純數值中點；新切點保留未知欄位與tilt。實作與未驗收見日誌。 [本批日誌](ERASER_TOOLBAR_ALIGNMENT_2026-10-22.zh-TW.md)。
