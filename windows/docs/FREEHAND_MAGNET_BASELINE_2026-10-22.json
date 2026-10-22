@@ -1,0 +1,185 @@
+{
+  "sourceSha256": "b9ffa9b4e0c9bf437b37ed3a21d3d1f7c042fc231578e39af8e1c7e320dabd9e",
+  "sourceCandidate": "eraser-input-queue-2026-10-22-r1",
+  "userOperated": true,
+  "controlledComparison": false,
+  "report": {
+    "schema": 2,
+    "scope": "Real user CPU handler/drawing submission durations; nested stages overlap. Not GPU execution or end-to-end input/display latency. UI heartbeat includes OS scheduling and inactive periods. EraserApply runs on a worker thread.",
+    "recordedUtc": "2026-10-22T12:44:40.4881126Z",
+    "elapsedSeconds": 112.4804205,
+    "processWorkingSetBytes": 334606336,
+    "collections": [
+      78,
+      63,
+      47
+    ],
+    "totalManagedAllocatedBytes": 400923048,
+    "gcPauseMs": 451.108,
+    "lastGcHeapBytes": 98515816,
+    "lastGcFragmentedBytes": 24207264,
+    "lastGcPromotedBytes": 74308552,
+    "stages": [
+      {
+        "stage": "PointerDown",
+        "count": 42,
+        "retained": 42,
+        "p50Ms": 0.1304,
+        "p95Ms": 4.1259,
+        "p99Ms": 9.1087,
+        "maxMs": 9.1087,
+        "totalAllocatedBytes": 281192
+      },
+      {
+        "stage": "PointerMove",
+        "count": 39495,
+        "retained": 2048,
+        "p50Ms": 0.0601,
+        "p95Ms": 0.1189,
+        "p99Ms": 0.1525,
+        "maxMs": 21.1852,
+        "totalAllocatedBytes": 39299776
+      },
+      {
+        "stage": "InkCommit",
+        "count": 44,
+        "retained": 44,
+        "p50Ms": 0.743,
+        "p95Ms": 5.2702,
+        "p99Ms": 28.4127,
+        "maxMs": 28.4127,
+        "totalAllocatedBytes": 6893616
+      },
+      {
+        "stage": "CanvasDraw",
+        "count": 3607,
+        "retained": 2048,
+        "p50Ms": 0.0575,
+        "p95Ms": 0.4479,
+        "p99Ms": 4.198,
+        "maxMs": 35.8549,
+        "totalAllocatedBytes": 18477464
+      },
+      {
+        "stage": "SceneRender",
+        "count": 3607,
+        "retained": 2048,
+        "p50Ms": 0.0095,
+        "p95Ms": 0.0123,
+        "p99Ms": 3.5178,
+        "maxMs": 35.3669,
+        "totalAllocatedBytes": 11458952
+      },
+      {
+        "stage": "MagnetRebuild",
+        "count": 7,
+        "retained": 7,
+        "p50Ms": 0.2396,
+        "p95Ms": 2.8125,
+        "p99Ms": 2.8125,
+        "maxMs": 2.8125,
+        "totalAllocatedBytes": 11512
+      },
+      {
+        "stage": "ToolSwitch",
+        "count": 13,
+        "retained": 13,
+        "p50Ms": 0.4415,
+        "p95Ms": 2.0095,
+        "p99Ms": 2.0095,
+        "maxMs": 2.0095,
+        "totalAllocatedBytes": 377648
+      },
+      {
+        "stage": "BrushPanel",
+        "count": 1,
+        "retained": 1,
+        "p50Ms": 16.1779,
+        "p95Ms": 16.1779,
+        "p99Ms": 16.1779,
+        "maxMs": 16.1779,
+        "totalAllocatedBytes": 143672
+      },
+      {
+        "stage": "LayersRefresh",
+        "count": 43,
+        "retained": 43,
+        "p50Ms": 0.002,
+        "p95Ms": 0.0047,
+        "p99Ms": 0.0951,
+        "maxMs": 0.0951,
+        "totalAllocatedBytes": 0
+      },
+      {
+        "stage": "UiHeartbeat",
+        "count": 2736,
+        "retained": 2048,
+        "p50Ms": 34.6604,
+        "p95Ms": 50.548,
+        "p99Ms": 57.8076,
+        "maxMs": 205.9376,
+        "totalAllocatedBytes": 0
+      },
+      {
+        "stage": "ScreenRender",
+        "count": 0,
+        "retained": 0,
+        "p50Ms": 0,
+        "p95Ms": 0,
+        "p99Ms": 0,
+        "maxMs": 0,
+        "totalAllocatedBytes": 0
+      },
+      {
+        "stage": "EraserMove",
+        "count": 5078,
+        "retained": 2048,
+        "p50Ms": 0.0254,
+        "p95Ms": 0.0587,
+        "p99Ms": 0.0819,
+        "maxMs": 0.171,
+        "totalAllocatedBytes": 2075160
+      },
+      {
+        "stage": "EraserApply",
+        "count": 162,
+        "retained": 162,
+        "p50Ms": 0.4452,
+        "p95Ms": 10.732,
+        "p99Ms": 25.4549,
+        "maxMs": 45.4643,
+        "totalAllocatedBytes": 60923056
+      },
+      {
+        "stage": "EraserCommit",
+        "count": 4,
+        "retained": 4,
+        "p50Ms": 0.0869,
+        "p95Ms": 0.2161,
+        "p99Ms": 0.2161,
+        "maxMs": 0.2161,
+        "totalAllocatedBytes": 143408
+      },
+      {
+        "stage": "SceneRebuild",
+        "count": 112,
+        "retained": 112,
+        "p50Ms": 3.2781,
+        "p95Ms": 18.0075,
+        "p99Ms": 33.9712,
+        "maxMs": 35.3549,
+        "totalAllocatedBytes": 11457728
+      },
+      {
+        "stage": "WetInkRender",
+        "count": 1369,
+        "retained": 1369,
+        "p50Ms": 0.0568,
+        "p95Ms": 0.4176,
+        "p99Ms": 0.5301,
+        "maxMs": 9.7776,
+        "totalAllocatedBytes": 1702120
+      }
+    ]
+  }
+}

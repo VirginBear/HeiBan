@@ -1,5 +1,9 @@
 # Windows 開發日誌
 
+## 2026-10-22 — 自由筆跨越舊筆跡凸凹（候選製作中）
+
+使用者完成schema2採樣，回報反應改善但跨舊筆跡凸凹。查得magnetEnabled=true及兩畫布每個自由筆取樣都改座標。限制磁鐵於幾何建構，移除WindowsInkCoordinator.PointTransform唯一吸附用途與全部呼叫／重設，兩入口同步、自由筆索引延後建立。保留幾何首點、圓規與尺規／停筆直線功能；更新既有screen驗證入口的磁鐵對象為line，未新增／執行測試。 [本批日誌](FREEHAND_MAGNET_2026-10-22.zh-TW.md)。
+
 ## 2026-10-22 — 真實採樣、轉角與板擦卡頓（x64試用完成，待再採樣）
 
 先讀真實採樣並記錄限制，再查板擦每5DIP全掃／逐點複製／多重命中判斷和XAML Canvas.Left/Top。調整順序背景worker，只發布隔離snapshot；候選bounds取真端點／curve cache含旋轉，開放筆跡不做13次內部填色測試，倒序擦除避免ToArray，新碎片owned點列避免重複clone。未自動執行測試。中途x64 build36.53秒0warning0error。 [本批日誌](ERASER_AND_INPUT_QUEUE_2026-10-22.zh-TW.md)。

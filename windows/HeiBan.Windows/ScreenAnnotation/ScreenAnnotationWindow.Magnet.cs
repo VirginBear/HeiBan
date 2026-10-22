@@ -35,7 +35,7 @@ internal sealed partial class ScreenAnnotationWindow
         if(target?.X==_screenMagnetTarget?.X&&target?.Y==_screenMagnetTarget?.Y)return;
         _screenMagnetTarget=target;_dirty=true;
     }
-    private static bool IsMagnetDrawingTool(string tool)=>tool is "pen" or "highlighter" or "paint" or "curve" or "line" or "arrow" or "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star";
+    private static bool IsMagnetDrawingTool(string tool)=>MagnetSnapIndex.SupportsConstructionTool(tool);
     private async void ToggleScreenMagnet()
     {
         var previous=_toolbarPreferences.MagnetEnabled;_toolbarPreferences.MagnetEnabled=!previous;

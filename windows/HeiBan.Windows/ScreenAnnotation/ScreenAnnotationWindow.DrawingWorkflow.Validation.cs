@@ -17,8 +17,8 @@ internal sealed partial class ScreenAnnotationWindow
             for(var index=0;index<2;index++){OnPointer(new("down",600+index*100,200));OnPointer(new("move",670+index*100,270));OnPointer(new("up",670+index*100,270));}
             if(_session.Document.Objects.Count!=before+2||_tool!="rect")throw new InvalidOperationException("Screen continuous rectangles failed.");
             _session.Begin();_session.Add(new BoardObject{Type="line",X1=50,Y1=50,X2=80,Y2=80,X=50,Y=50,Width=30,Height=30});_session.Commit();
-            _toolbarPreferences.MagnetEnabled=true;ChooseScreenTool("pen");OnPointer(new("down",54,52));OnPointer(new("move",150,120));OnPointer(new("up",160,130));
-            if(_session.Selected?.ParsedPoints.FirstOrDefault() is not {X:50,Y:50})throw new InvalidOperationException("Screen magnet input did not snap.");
+            _toolbarPreferences.MagnetEnabled=true;ChooseScreenTool("line");OnPointer(new("down",54,52));OnPointer(new("move",150,120));OnPointer(new("up",160,130));
+            if(_session.Document.Objects.LastOrDefault() is not {Type:"line",X1:50,Y1:50})throw new InvalidOperationException("Screen construction anchor did not snap.");
             Render();return new{threePointTriangle=true,continuousShapes=true,magnet=true,labeledFourSideLayout=true,hardwarePointer="Not executed"};
         }
         finally{await StopAsync();}

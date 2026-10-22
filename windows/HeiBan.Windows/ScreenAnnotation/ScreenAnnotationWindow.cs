@@ -135,6 +135,8 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     {
         if(!IsActive||_stopping||_captureCancellation is not null)return;
         var p=new InkPoint(input.X,input.Y,1);
+        if(input.Kind=="down"&&_tool is "pen" or "highlighter" or "paint")
+        {_screenMagnetIndex=null;_screenMagnetTarget=null;} // No snap lookup or stale reference index during freehand ink.
         if(IsMagnetDrawingTool(_tool))
         {
             EnsureScreenMagnetIndex();

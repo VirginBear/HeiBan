@@ -70,7 +70,7 @@ public partial class MainWindow
                 if(_tool=="curve")_renderer.RenderLiveStroke(ds,preview,_viewport,_strokeColor,_strokeWidth,_opacity,CurrentStyle.Dash);
                 else _renderer.RenderPolyline(ds,preview,_viewport,_strokeColor,_strokeWidth,_opacity,CurrentStyle.Dash);
             }
-            if(_magnetTarget is { } snap){var at=_viewport.WorldToScreen(snap.X,snap.Y);ds.DrawCircle((float)at.X,(float)at.Y,7,Direct2DCanvasRenderer.HexToColor("#10B981"),2);}
+            if((MagnetSnapIndex.SupportsConstructionTool(_tool)||_compassCenterMoving)&&_magnetTarget is { } snap){var at=_viewport.WorldToScreen(snap.X,snap.Y);ds.DrawCircle((float)at.X,(float)at.Y,7,Direct2DCanvasRenderer.HexToColor("#10B981"),2);}
             foreach(var selected in _session.SelectedObjects)_renderer.RenderSelection(ds,selected,_viewport,_session.SelectedIds.Count==1);
             if(_lasso.Count>1)_renderer.RenderLiveStroke(ds,_lasso,_viewport,"#39735A",1/_viewport.Zoom,.8);
             _renderer.RenderLaser(ds,_laser,_viewport,LaserNow);
@@ -104,7 +104,7 @@ public partial class MainWindow
         if(IsDrawingTool(_tool))BeginDrawingWorkflow();
         else if(_compass.IsEnabled)EnsureMagnetIndex(force:true);
         _pointerId=p.PointerId;_lastScreen=_mouse=screen;_start=_lastWorld=_viewport.ScreenToWorld(screen.X,screen.Y);
-        if(IsDrawingTool(_tool))_start=_lastWorld=SnapDrawingPoint(_start!);
+        if(MagnetSnapIndex.SupportsConstructionTool(_tool))_start=_lastWorld=SnapDrawingPoint(_start!);
         _panning=p.Properties.IsMiddleButtonPressed || KeyIsDown(VirtualKey.Space) || _readingMode;
         _gesture=true;CanvasSurface.CapturePointer(e.Pointer);
         if(_tool=="laser"){_panning=false;_laser.Add(_start,LaserNow);InvalidateCanvas();e.Handled=true;return;}
@@ -160,7 +160,6 @@ public partial class MainWindow
         else if(_tool is "pen" or "highlighter" or "paint")
         {
             LatchRuler(screen);_ink.Projection=_snapEdge is not null?ProjectOnRuler:null;
-            _ink.PointTransform=_toolbarPrefs.MagnetEnabled?SnapDrawingPoint:null;
             _ink.ProcessPointerDown(p,_viewport);
         }
         else if(_tool=="eraser"){_session.Begin();Erase(_start);}
@@ -207,7 +206,7 @@ public partial class MainWindow
         using var trace=InputLatencyTrace.Measure(InputStage.PointerMove);
         var p=e.GetCurrentPoint(CanvasSurface);_mouse=new((float)p.Position.X,(float)p.Position.Y);_hover=true;
         UpdateShapeCursor();
-        if(!_gesture&&IsDrawingTool(_tool)){EnsureMagnetIndex();SnapDrawingPoint(_viewport.ScreenToWorld(_mouse.X,_mouse.Y));InvalidateCanvas(false);}
+        if(!_gesture&&MagnetSnapIndex.SupportsConstructionTool(_tool)){EnsureMagnetIndex();SnapDrawingPoint(_viewport.ScreenToWorld(_mouse.X,_mouse.Y));InvalidateCanvas(false);}
         if(_tool=="laser"){_laser.Add(_viewport.ScreenToWorld(_mouse.X,_mouse.Y),LaserNow);InvalidateCanvas(false);return;}
         if(_tool=="lasso"&&_gesture){var lp=_viewport.ScreenToWorld(_mouse.X,_mouse.Y);if(_lasso.Count==0||Math.Sqrt(Math.Pow(lp.X-_lasso[^1].X,2)+Math.Pow(lp.Y-_lasso[^1].Y,2))>2/_viewport.Zoom)_lasso.Add(lp);InvalidateCanvas(false);return;}
         if(!_gesture||p.PointerId!=_pointerId)
@@ -215,7 +214,7 @@ public partial class MainWindow
             if(_lineAnchor is not null&&_preview is not null)ObjectHandles.SetEndpoints(_preview,_lineAnchor,ConstrainLine(_lineAnchor,SnapDrawingPoint(_viewport.ScreenToWorld(_mouse.X,_mouse.Y))));
             if(_polygon.Count>0||_lineAnchor is not null||(_hover&&_editor is null&&_tool is "pen" or "highlighter" or "paint" or "eraser"))InvalidateCanvas(false);return;
         }
-        var world=_viewport.ScreenToWorld(_mouse.X,_mouse.Y);if(IsDrawingTool(_tool)||_compassCenterMoving)world=SnapDrawingPoint(world);var delta=_mouse-_lastScreen;
+        var world=_viewport.ScreenToWorld(_mouse.X,_mouse.Y);if(MagnetSnapIndex.SupportsConstructionTool(_tool)||_compassCenterMoving)world=SnapDrawingPoint(world);var delta=_mouse-_lastScreen;
         if(_panning){if(!_viewLocked){_viewport.X+=delta.X;_viewport.Y+=delta.Y;}}
         else if(_rulerMoving)_rulerCenter+=delta;
         else if(_rulerRotating)RotateRuler(_mouse);
@@ -382,7 +381,7 @@ public partial class MainWindow
         else ShapeConstruction.Drag(_preview,_start,world);
     }
     private static InkPoint ConstrainLine(InkPoint anchor,InkPoint point)=>KeyIsDown(VirtualKey.Shift)?ObjectHandles.ConstrainOrthogonal(anchor,point):point;
-    private void ResetGesture(){HideHUD();_renderer.ResetLive();_gesture=_panning=_rulerMoving=_rulerRotating=_rulerPivotMoving=_shapeGesture=_lineCompleting=_marquee=false;_compassCenterMoving=_compassCenterMoved=_compassRadiusMoving=_compassPencilMoving=false;_objectHandle=null;_manipulationStart=null;_movingPin=null;_snapEdge=null;_ink.Projection=null;_ink.PointTransform=null;_magnetTarget=null;if(_hover)UpdateShapeCursor();else ResetShapeCursor();}
+    private void ResetGesture(){HideHUD();_renderer.ResetLive();_gesture=_panning=_rulerMoving=_rulerRotating=_rulerPivotMoving=_shapeGesture=_lineCompleting=_marquee=false;_compassCenterMoving=_compassCenterMoved=_compassRadiusMoving=_compassPencilMoving=false;_objectHandle=null;_manipulationStart=null;_movingPin=null;_snapEdge=null;_ink.Projection=null;_magnetTarget=null;if(_hover)UpdateShapeCursor();else ResetShapeCursor();}
     private void CancelGesture(){var changed=_session.HasTransaction;_lasso.Clear();_laser.Clear();HideHUD();_ink.Cancel();_session.Cancel();_preview=null;_lineAnchor=null;_compass.Prepare();ResetGesture();CanvasSurface.ReleasePointerCaptures();if(changed)RefreshProperties();InvalidateCanvas(changed);}
     private void CanvasSurface_PointerCanceled(object sender,PointerRoutedEventArgs e){HideHUD();if(_gesture)CancelGesture();}
     private void UpdateShapeCursor()

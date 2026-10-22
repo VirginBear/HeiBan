@@ -5,6 +5,9 @@ namespace HeiBan.Windows.Engine;
 /// <summary>A gesture-local spatial index; querying never changes document points or undo history.</summary>
 public sealed class MagnetSnapIndex
 {
+    // Both hosts use the same boundary: construction anchors may snap, but
+    // freehand samples must not be pulled toward an existing stroke mid-gesture.
+    public static bool SupportsConstructionTool(string tool)=>tool is "curve" or "line" or "arrow" or "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star";
     private readonly Dictionary<(long X,long Y),List<InkPoint>> _cells=[];
     private readonly double _radius;
     public MagnetSnapIndex(IEnumerable<BoardObject> objects,double radius)

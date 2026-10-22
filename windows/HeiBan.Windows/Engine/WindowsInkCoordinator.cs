@@ -14,7 +14,6 @@ public sealed class WindowsInkCoordinator
     private bool _straight;
     private static double Now=>System.Diagnostics.Stopwatch.GetTimestamp()/(double)System.Diagnostics.Stopwatch.Frequency;
     public Func<InkPoint, InkPoint>? Projection { get; set; }
-    public Func<InkPoint,InkPoint>? PointTransform { get; set; }
     public bool IsDrawing { get; private set; }
     public bool IsStraight=>_straight;
     public IReadOnlyList<InkPoint> ActiveStrokePoints => _straight&&_points.Count>1?new[]{_points[0],_points[^1]}:_points;
@@ -56,7 +55,6 @@ public sealed class WindowsInkCoordinator
         {_holdAnchor=world;_holdSince=Now;_straight=false;}
         if (_points.Count > 0 && Math.Abs(world.X-_points[^1].X)+Math.Abs(world.Y-_points[^1].Y)<0.001) return;
         if (Projection is not null) world = Projection(world);
-        else if(PointTransform is not null)world=PointTransform(world);
         _points.Add(world);
     }
     public IReadOnlyList<InkPoint> Finish(PointerPoint point, ViewportTransform viewport)

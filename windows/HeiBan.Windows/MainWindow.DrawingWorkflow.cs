@@ -37,11 +37,12 @@ public partial class MainWindow
     {
         _objectDetailsId=null;Inspector.Visibility=Visibility.Collapsed;SelectionBar.Visibility=Visibility.Collapsed;
         _session.SelectedId=null;_magnetTarget=null;
-        EnsureMagnetIndex();
+        if(MagnetSnapIndex.SupportsConstructionTool(_tool)||_compass.IsEnabled)EnsureMagnetIndex();
+        else _magnetIndex=null; // Freehand needs no reference index; rebuild lazily for the next construction tool.
     }
     private InkPoint SnapDrawingPoint(InkPoint point)
     {
-        if(_magnetIndex is null||!_toolbarPrefs.MagnetEnabled){_magnetTarget=null;return point;}
+        if(_magnetIndex is null||!_toolbarPrefs.MagnetEnabled||(!MagnetSnapIndex.SupportsConstructionTool(_tool)&&!_compassCenterMoving)){_magnetTarget=null;return point;}
         var result=_magnetIndex.Snap(point,out var snapped);_magnetTarget=snapped?result:null;return result;
     }
     private void ArrangeMainToolbar()
