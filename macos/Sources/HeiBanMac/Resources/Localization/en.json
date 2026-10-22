@@ -342,6 +342,7 @@
   "建立": "Create",
   "建立副本": "Create copy",
   "建立功能示範黑板": "Create demo board",
+  "建立新的操作指南練習": "Create a new guide exercise",
   "建立日期": "Date created",
   "形狀填色": "Fill",
   "復原": "Undo",
@@ -494,6 +495,7 @@
   "本機已存": "Saved locally",
   "本機自動存檔頻率": "Local autosave interval",
   "本機開發版較新，保留目前版本": "Local development build is newer; keeping this version",
+  "板擦": "Board eraser",
   "柔和": "Soft",
   "柔黑": "Ink black",
   "格式": "Format",
@@ -559,6 +561,7 @@
   "無填滿": "No fill",
   "無填色": "No fill",
   "無法完成操作": "Unable to complete the action",
+  "無法開啟操作指南": "Unable to open the guide",
   "無相符的圖釘": "No matching pins",
   "無邊界筆記": "Infinite note",
   "無限延伸畫布": "Infinite note",
@@ -945,7 +948,5 @@
   "點狀": "Dots",
   "點線": "Dotted",
   "＋ 插入內容與輔助工具": "Insert content and helpers",
-  "𝄞 五線譜 (Staff)": "Music staff",
-  "建立新的操作指南練習": "Create a new guide exercise",
-  "無法開啟操作指南": "Unable to open the guide"
+  "𝄞 五線譜 (Staff)": "Music staff"
 }

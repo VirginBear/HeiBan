@@ -4,6 +4,8 @@
 此索引由 `macos/scripts/new_dev_entry.py` 生成；實際內容由開發者填寫。
 歷史變更摘要及曾遇問題另見 [ISSUE_HISTORY](ISSUE_HISTORY.zh-TW.md)。
 
+- [2026-10-23 · 推送 Mac 1.0.16 開發來源與手冊至 GitHub](logs/2026-10-23/04.zh-TW.md)
+- [2026-10-23 · 工具列左錨點、雙畫布外觀、連續雷射與板擦入口](logs/2026-10-23/03.zh-TW.md)
 - [2026-10-23 · 修正 Mac 教學保護、圓擦交易與共用工具設定入口](logs/2026-10-23/02.zh-TW.md)
 - [2026-10-23 · 核對 Antigravity 1.0.16 進度與 Mac 操作邏輯差異](logs/2026-10-23/01.zh-TW.md)
 - [2026-10-22 · 全面審視 Mac 專案健康度並同步 Windows 1.0.16 更新](logs/2026-10-22/01.zh-TW.md)

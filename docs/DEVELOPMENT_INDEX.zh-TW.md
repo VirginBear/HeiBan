@@ -4,6 +4,8 @@
 
 ## Mac維護與目前交付
 
+- [2026-10-23 工具列／雷射／板擦修整](../macos/docs/development/logs/2026-10-23/03.zh-TW.md)：繪圖頁左錨點、雙畫布外觀及尺寸共用、連續雷射、兩畫布板擦；1.0.16同版build20261023.2。Windows雷射只留交接。
+
 - [2026-10-23 Mac操作修整實作](../macos/docs/development/logs/2026-10-23/02.zh-TW.md)：教學練習防覆寫／十語Mac資產可重建、圓擦隔離交易／交點裁剪、單一工具設定host與命令；1.0.16同版build20261023.1，操作驗收另列。
 
 - [2026-10-23 Antigravity進度與Mac操作邏輯核對](../macos/docs/development/ANTIGRAVITY_PROGRESS_REVIEW_2026-10-23.zh-TW.md)：本機與GitHub為1.0.16；指南內容／保護／Git資產、隱藏設定入口及圓擦交易仍有缺口。Mac優先操作一致性，Windows性能留原平台。

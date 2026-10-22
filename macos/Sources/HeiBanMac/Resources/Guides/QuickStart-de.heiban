@@ -930,7 +930,7 @@
       "createdAt": "2026-10-23T00:00:00Z",
       "updatedAt": "2026-10-23T00:00:00Z",
       "isLocked": false,
-      "text": "Den Griff an eine der vier Kanten ziehen. Mehr → Werkzeugleiste anpassen bietet Symbole oder Häufig, Zeichnen, Einfügen und Verwalten. Auswahl bleibt sichtbar; Pfeile wechseln bei Platzmangel die Gruppe. Anzeige, Reihenfolge, Alle, Standard und Häufig sind separat wählbar. Versteckte Werkzeuge bleiben unter Mehr. Auch der Eigenschaften-Reiter lässt sich versetzen.",
+      "text": "Den Griff an eine der vier Kanten ziehen. Mehr → Werkzeugleiste anpassen bietet Symbole oder Häufig, Zeichnen, Einfügen und Verwalten. Auswahl bleibt sichtbar; Pfeile wechseln bei Platzmangel die Gruppe. Anzeige, Reihenfolge, Alle, Standard und Häufig sind separat wählbar. Versteckte Werkzeuge bleiben unter Mehr. Auch der Eigenschaften-Reiter lässt sich versetzen.\nDie horizontale Leiste steht anhand der Breite der Zeichnen-Seite etwas links der Mitte und behält beim Seitenwechsel ihre linke Kante. Beide Zeichenflächen teilen Seiten, Gestaltung und Scrollen.",
       "fontSize": 20,
       "fontFamily": "PingFang TC",
       "align": "left"
@@ -1538,7 +1538,7 @@
       "createdAt": "2026-10-23T00:00:00Z",
       "updatedAt": "2026-10-23T00:00:00Z",
       "isLocked": false,
-      "text": "Der Radierer löscht Objekte oder Strichteile und zeigt vorher seine Reichweite. Bilder, Text, Notizen und gesperrte Objekte bleiben geschützt. Der schräge Tafelschwamm auf der normalen Fläche folgt der gespiegelten Bildkontur. Rechtsklick für Modus/Ausblenden; Mehr zeigt ihn erneut. Ein Ziehen ist ein Rückgängig-Schritt, Esc bricht ab. Teilradieren schneidet Vektoren, keine Bildpixel.\nBeim Öffnen bleibt Ihre Übung erhalten. Eine neue Übung erstellt ein eigenes Werk und behält das alte. Radieren zeigt beim Ziehen eine Vorschau und wird beim Loslassen als ein Rückgängig-Schritt übernommen. Esc sowie Werkzeug- oder Werkwechsel verwerfen unfertiges Radieren.",
+      "text": "Der Radierer löscht Objekte oder Strichteile und zeigt vorher seine Reichweite. Bilder, Text, Notizen und gesperrte Objekte bleiben geschützt. Der schräge Tafelschwamm auf der normalen Fläche folgt der gespiegelten Bildkontur. Rechtsklick für Modus/Ausblenden; Mehr zeigt ihn erneut. Ein Ziehen ist ein Rückgängig-Schritt, Esc bricht ab. Teilradieren schneidet Vektoren, keine Bildpixel.\nBeim Öffnen bleibt Ihre Übung erhalten. Eine neue Übung erstellt ein eigenes Werk und behält das alte. Radieren zeigt beim Ziehen eine Vorschau und wird beim Loslassen als ein Rückgängig-Schritt übernommen. Esc sowie Werkzeug- oder Werkwechsel verwerfen unfertiges Radieren.\nZeichnen → Tafelwischer zeigt oder verbirgt den physischen Wischer. Der Schalter steht auch in den Radierer-Einstellungen und unter Mehr. Auf beiden Zeichenflächen lässt er sich ziehen.",
       "fontSize": 20,
       "fontFamily": "PingFang TC",
       "align": "left"
@@ -1842,7 +1842,7 @@
       "createdAt": "2026-10-23T00:00:00Z",
       "updatedAt": "2026-10-23T00:00:00Z",
       "isLocked": false,
-      "text": "Der Farbkreis öffnet Pinsel, Farbe, Hex, letzte Farben, Breite und Deckkraft. Bei Auswahl werden passende Objektstile geändert, sonst künftige Striche. Die Vorschau folgt dem Zoom. Einen fast geraden Strich eine Sekunde still halten richtet ihn gerade. Lasereinstellungen liegen am Laserknopf; seine Spur wird nicht gespeichert.",
+      "text": "Der Farbkreis öffnet Pinsel, Farbe, Hex, letzte Farben, Breite und Deckkraft. Bei Auswahl werden passende Objektstile geändert, sonst künftige Striche. Die Vorschau folgt dem Zoom. Einen fast geraden Strich eine Sekunde still halten richtet ihn gerade. Lasereinstellungen liegen am Laserknopf; seine Spur wird nicht gespeichert.\nDer Laser verwendet eine durchgehende geglättete Kontur und weiches Leuchten. Punktgröße, Spurbreite und Ausblendzeit bleiben getrennt einstellbar.",
       "fontSize": 20,
       "fontFamily": "PingFang TC",
       "align": "left"
@@ -2248,7 +2248,7 @@
       "createdAt": "2026-10-23T00:00:00Z",
       "updatedAt": "2026-10-23T00:00:00Z",
       "isLocked": false,
-      "text": "Die Bildschirmfläche startet auf der Startseite als transparente Ebene über anderen Apps. ⌘⌥⇧D wechselt Zeichnen/Durchklicken, ⌘⌥⇧S erstellt einen Screenshot, ⌘⌥⇧X beendet. Werkzeuge und Einstellungen werden geteilt, außer Pins und Ansichtsnavigation. Vierseitig andockbar. Leeren lässt die Ebene offen und ist rückgängig; T fügt Text ein. Geschützte Systemansichten sind nicht garantiert.",
+      "text": "Die Bildschirmfläche startet auf der Startseite als transparente Ebene über anderen Apps. ⌘⌥⇧D wechselt Zeichnen/Durchklicken, ⌘⌥⇧S erstellt einen Screenshot, ⌘⌥⇧X beendet. Werkzeuge und Einstellungen werden geteilt, außer Pins und Ansichtsnavigation. Vierseitig andockbar. Leeren lässt die Ebene offen und ist rückgängig; T fügt Text ein. Geschützte Systemansichten sind nicht garantiert.\nDie Bildschirmleiste übernimmt Aussehen und seitengerechte Größe der normalen Leiste; Zeichnen/Durchklicken und Beenden kommen hinzu. Seitlich ist sie vertikal; Symbole scrollen bei Platzmangel.",
       "fontSize": 20,
       "fontFamily": "PingFang TC",
       "align": "left"

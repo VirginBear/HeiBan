@@ -22,6 +22,7 @@ struct ScreenAnnotationCanvas: View {
                         backgroundColor: "#ffffff", customInk: rulerColorMode == "custom" ? rulerLabelColor : nil))
                 }
                 MagnetTargetOverlay(state:engine.drawingAssist,viewport:engine.viewport).zIndex(18)
+                BoardEraserOverlay(engine: engine, size: geometry.size, onInteraction: onInteraction).zIndex(19)
                 SelectionQuickActionBar(engine: engine)
                 AlignmentGuidesOverlayView(engine: engine)
                 if engine.currentTool == .lasso { LassoOverlayView(engine: engine) }

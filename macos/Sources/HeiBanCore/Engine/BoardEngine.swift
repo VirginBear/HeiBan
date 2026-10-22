@@ -611,7 +611,7 @@ public class BoardEngine: ObservableObject {
                 : CGPoint(x: clamped.x - panelSize.width / 2, y: clamped.y)
             let baseOrigin = isToolbarVertical
                 ? CGPoint(x: windowSize.width / 2, y: 76.0)
-                : CGPoint(x: 16.0, y: windowSize.height - 48.0)
+                : CGPoint(x: ToolbarContentPolicy.horizontalAnchor(preferences: toolbarPreferences, windowSize: windowSize), y: windowSize.height - 48.0)
             toolbarOffset = CGSize(
                 width: leftOrTopEdge.x - baseOrigin.x,
                 height: leftOrTopEdge.y - baseOrigin.y)
@@ -642,17 +642,17 @@ public class BoardEngine: ObservableObject {
             posX = windowSize.width - size.width / 2 - 12 + toolbarOffset.width
             posY = max(76.0, topClearance) + size.height / 2 + toolbarOffset.height
         case "top":
-            posX = 16.0 + size.width / 2 + toolbarOffset.width
+            posX = ToolbarContentPolicy.horizontalAnchor(preferences: toolbarPreferences, windowSize: windowSize) + size.width / 2 + toolbarOffset.width
             posY = topClearance + size.height / 2 + toolbarOffset.height
         case "bottom":
-            posX = 16.0 + size.width / 2 + toolbarOffset.width
+            posX = ToolbarContentPolicy.horizontalAnchor(preferences: toolbarPreferences, windowSize: windowSize) + size.width / 2 + toolbarOffset.width
             posY = windowSize.height - size.height / 2 - 16.0 + toolbarOffset.height
         default:  // floating
             if isToolbarVertical {
                 posX = windowSize.width / 2 + toolbarOffset.width
                 posY = 76.0 + size.height / 2 + toolbarOffset.height
             } else {
-                posX = 16.0 + size.width / 2 + toolbarOffset.width
+                posX = ToolbarContentPolicy.horizontalAnchor(preferences: toolbarPreferences, windowSize: windowSize) + size.width / 2 + toolbarOffset.width
                 posY = windowSize.height - 48.0 + toolbarOffset.height
             }
         }
@@ -686,7 +686,7 @@ public class BoardEngine: ObservableObject {
                 toolbarOffset = CGSize(width: clamped.x - windowSize.width / 2, height: topEdge - 76.0)
             } else {
                 let leftEdge = clamped.x - size.width / 2
-                toolbarOffset = CGSize(width: leftEdge - 16.0, height: clamped.y - (windowSize.height - 48.0))
+                toolbarOffset = CGSize(width: leftEdge - ToolbarContentPolicy.horizontalAnchor(preferences: toolbarPreferences, windowSize: windowSize), height: clamped.y - (windowSize.height - 48.0))
             }
         }
     }

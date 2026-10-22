@@ -17,7 +17,7 @@ public enum AnnotationToolbarDock: String, CaseIterable, Codable {
 }
 
 /// 舊佈局呼叫者的預設格數；正式工具內容只由 ToolbarPreferences / ToolbarContentPolicy 定義。
-/// 當前螢幕控制器一律傳入 itemCount，不依賴這些相容預設。
+/// 正式展開控制列走 ToolbarContentPolicy；這裡保留收合尺寸及舊呼叫者相容幾何。
 public enum AnnotationToolbarCatalog {
     public static let horizontalItemCount = 17
     public static let verticalItemCount = 16

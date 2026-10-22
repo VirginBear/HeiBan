@@ -25,7 +25,7 @@
     },
     {
       "title": "Navigation et barres d'outils",
-      "body": "Glissez la poignée vers un des quatre côtés. Plus → Personnaliser propose icônes seules ou onglets Favoris, Dessin, Insertion et Gestion. Sélection reste visible ; des flèches changent de groupe si nécessaire. Affichage, ordre, Tout sélectionner, Défauts et Favoris sont indépendants. Les outils masqués restent dans Plus. L’onglet Propriétés est aussi déplaçable."
+      "body": "Glissez la poignée vers un des quatre côtés. Plus → Personnaliser propose icônes seules ou onglets Favoris, Dessin, Insertion et Gestion. Sélection reste visible ; des flèches changent de groupe si nécessaire. Affichage, ordre, Tout sélectionner, Défauts et Favoris sont indépendants. Les outils masqués restent dans Plus. L’onglet Propriétés est aussi déplaçable.\nLa barre horizontale est placée légèrement à gauche du centre selon la largeur de Dessin et conserve son bord gauche lors du changement de page. Les deux canevas partagent pages, style et défilement."
     },
     {
       "title": "Stylo et pinceaux",
@@ -49,7 +49,7 @@
     },
     {
       "title": "Gomme",
-      "body": "La gomme efface l’objet ou une partie du trait et montre sa portée avant le clic. Images, texte, notes et objets verrouillés sont protégés. Sur la toile normale, l’effaceur incliné suit le contour miroir de l’image. Clic droit pour mode/masquage ; Plus le réaffiche. Un glissement vaut une annulation ; Esc annule. L’effacement partiel coupe les vecteurs, pas les pixels des images.\nOuvrir le guide conserve votre exercice. Un nouvel exercice crée une œuvre distincte sans modifier l’ancienne. La gomme affiche un aperçu pendant le glissement puis valide une seule étape d’annulation au relâchement. Échap ou changer d’outil ou d’œuvre annule l’effacement inachevé."
+      "body": "La gomme efface l’objet ou une partie du trait et montre sa portée avant le clic. Images, texte, notes et objets verrouillés sont protégés. Sur la toile normale, l’effaceur incliné suit le contour miroir de l’image. Clic droit pour mode/masquage ; Plus le réaffiche. Un glissement vaut une annulation ; Esc annule. L’effacement partiel coupe les vecteurs, pas les pixels des images.\nOuvrir le guide conserve votre exercice. Un nouvel exercice crée une œuvre distincte sans modifier l’ancienne. La gomme affiche un aperçu pendant le glissement puis valide une seule étape d’annulation au relâchement. Échap ou changer d’outil ou d’œuvre annule l’effacement inachevé.\nDessin → Brosse à tableau affiche ou masque la brosse physique. Le réglage est aussi dans les options de gomme et Plus. Faites-la glisser sur les deux canevas."
     },
     {
       "title": "Règle",
@@ -61,7 +61,7 @@
     },
     {
       "title": "Pointeur laser",
-      "body": "Le cercle de couleur ouvre pinceau, couleur, Hex, couleurs récentes, épaisseur et opacité. Une sélection modifie ses styles compatibles ; sinon les prochains traits. L’aperçu suit le zoom. Immobilisez un trait presque droit une seconde pour le redresser. Le laser se règle sur son bouton et sa trace n’est pas enregistrée."
+      "body": "Le cercle de couleur ouvre pinceau, couleur, Hex, couleurs récentes, épaisseur et opacité. Une sélection modifie ses styles compatibles ; sinon les prochains traits. L’aperçu suit le zoom. Immobilisez un trait presque droit une seconde pour le redresser. Le laser se règle sur son bouton et sa trace n’est pas enregistrée.\nLe laser utilise un contour continu et lissé avec une lueur douce. Taille du point, largeur de trace et durée restent réglables séparément."
     },
     {
       "title": "Calculatrice et minuterie",
@@ -77,7 +77,7 @@
     },
     {
       "title": "Canevas d'écran",
-      "body": "La toile d’écran d’Accueil ajoute une couche transparente sur les autres apps. ⌘⌥⇧D alterne dessin/clics traversants, ⌘⌥⇧S capture, ⌘⌥⇧X termine. Outils et réglages sont partagés sauf épingles et navigation. Placement sur quatre côtés. Effacer garde la couche ouverte et reste annulable ; T saisit du texte. Les écrans système protégés ne sont pas garantis."
+      "body": "La toile d’écran d’Accueil ajoute une couche transparente sur les autres apps. ⌘⌥⇧D alterne dessin/clics traversants, ⌘⌥⇧S capture, ⌘⌥⇧X termine. Outils et réglages sont partagés sauf épingles et navigation. Placement sur quatre côtés. Effacer garde la couche ouverte et reste annulable ; T saisit du texte. Les écrans système protégés ne sont pas garantis.\nLa barre d’écran reprend l’apparence et la taille par page de la barre normale, avec les commandes dessin/interactions et quitter. Sur les côtés elle est verticale ; les icônes défilent si nécessaire."
     },
     {
       "title": "Enregistrement, données et export",

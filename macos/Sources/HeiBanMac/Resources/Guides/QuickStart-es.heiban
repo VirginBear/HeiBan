@@ -930,7 +930,7 @@
       "createdAt": "2026-10-23T00:00:00Z",
       "updatedAt": "2026-10-23T00:00:00Z",
       "isLocked": false,
-      "text": "Arrastre el asa a cualquier lado. Más → Personalizar barra ofrece iconos o pestañas Frecuentes, Dibujar, Insertar y Organizar. Selección permanece visible; las flechas cambian grupos cuando falta espacio. Puede mostrar, ordenar, seleccionar todo, restablecer y elegir Frecuentes por separado. Las herramientas ocultas siguen en Más. También puede mover la pestaña Propiedades.",
+      "text": "Arrastre el asa a cualquier lado. Más → Personalizar barra ofrece iconos o pestañas Frecuentes, Dibujar, Insertar y Organizar. Selección permanece visible; las flechas cambian grupos cuando falta espacio. Puede mostrar, ordenar, seleccionar todo, restablecer y elegir Frecuentes por separado. Las herramientas ocultas siguen en Más. También puede mover la pestaña Propiedades.\nLa barra horizontal se coloca un poco a la izquierda del centro según el ancho de Dibujar y conserva el borde izquierdo al cambiar de página. Ambos lienzos comparten páginas, estilo y desplazamiento.",
       "fontSize": 20,
       "fontFamily": "PingFang TC",
       "align": "left"
@@ -1538,7 +1538,7 @@
       "createdAt": "2026-10-23T00:00:00Z",
       "updatedAt": "2026-10-23T00:00:00Z",
       "isLocked": false,
-      "text": "Borrador ofrece objeto o parte del trazo, con alcance antes de pulsar. Imágenes, texto, notas y objetos bloqueados se protegen. En el lienzo normal, el borrador inclinado sigue la silueta reflejada de su imagen. Clic derecho cambia modo u oculta; Más lo vuelve a mostrar. Un arrastre es un deshacer; Esc cancela. El borrado parcial corta vectores, no píxeles de imágenes.\nAbrir la guía conserva tu ejercicio. Crear uno nuevo genera otra obra y mantiene la anterior. El borrado se previsualiza al arrastrar y se confirma al soltar en un solo paso de deshacer. Esc o cambiar herramienta u obra cancela el borrado pendiente.",
+      "text": "Borrador ofrece objeto o parte del trazo, con alcance antes de pulsar. Imágenes, texto, notas y objetos bloqueados se protegen. En el lienzo normal, el borrador inclinado sigue la silueta reflejada de su imagen. Clic derecho cambia modo u oculta; Más lo vuelve a mostrar. Un arrastre es un deshacer; Esc cancela. El borrado parcial corta vectores, no píxeles de imágenes.\nAbrir la guía conserva tu ejercicio. Crear uno nuevo genera otra obra y mantiene la anterior. El borrado se previsualiza al arrastrar y se confirma al soltar en un solo paso de deshacer. Esc o cambiar herramienta u obra cancela el borrado pendiente.\nDibujar → Borrador de pizarra muestra u oculta el borrador físico. También está en los ajustes de borrado y Más. Arrástralo en ambos lienzos.",
       "fontSize": 20,
       "fontFamily": "PingFang TC",
       "align": "left"
@@ -1842,7 +1842,7 @@
       "createdAt": "2026-10-23T00:00:00Z",
       "updatedAt": "2026-10-23T00:00:00Z",
       "isLocked": false,
-      "text": "El círculo de color abre pincel, color, Hex, recientes, grosor y opacidad. Con selección cambia estilos compatibles; sin selección configura trazos futuros. La muestra sigue el zoom. Mantenga un trazo casi recto quieto un segundo para enderezarlo. El láser se configura desde su botón y su rastro no se guarda.",
+      "text": "El círculo de color abre pincel, color, Hex, recientes, grosor y opacidad. Con selección cambia estilos compatibles; sin selección configura trazos futuros. La muestra sigue el zoom. Mantenga un trazo casi recto quieto un segundo para enderezarlo. El láser se configura desde su botón y su rastro no se guarda.\nEl láser usa un contorno continuo y suave con resplandor. El tamaño del punto, el ancho del rastro y la duración se ajustan por separado.",
       "fontSize": 20,
       "fontFamily": "PingFang TC",
       "align": "left"
@@ -2248,7 +2248,7 @@
       "createdAt": "2026-10-23T00:00:00Z",
       "updatedAt": "2026-10-23T00:00:00Z",
       "isLocked": false,
-      "text": "Lienzo de pantalla en Inicio abre una capa transparente sobre otras apps. ⌘⌥⇧D alterna dibujo/paso de clics, ⌘⌥⇧S captura y ⌘⌥⇧X sale. Comparte herramientas y preferencias, excepto pines y navegación de vista. Acóplelo en cualquier lado. Vaciar no cierra y admite deshacer; T escribe. No se garantiza cubrir pantallas protegidas del sistema.",
+      "text": "Lienzo de pantalla en Inicio abre una capa transparente sobre otras apps. ⌘⌥⇧D alterna dibujo/paso de clics, ⌘⌥⇧S captura y ⌘⌥⇧X sale. Comparte herramientas y preferencias, excepto pines y navegación de vista. Acóplelo en cualquier lado. Vaciar no cierra y admite deshacer; T escribe. No se garantiza cubrir pantallas protegidas del sistema.\nLa barra de pantalla adopta la apariencia y el tamaño por página de la barra normal, con controles adicionales de dibujo/interacción y salida. En los laterales se dispone verticalmente; los iconos se desplazan si falta espacio.",
       "fontSize": 20,
       "fontFamily": "PingFang TC",
       "align": "left"

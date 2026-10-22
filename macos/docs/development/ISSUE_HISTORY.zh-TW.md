@@ -379,3 +379,12 @@ M21 獨立複核補充（2026-10-11）：f960c78 下完整 runner 1559/1559、Re
 ## M45 — LocalBoardLibrary expectedRevision目前未執行CAS
 
 2026-10-23，審視指南建立邊界時發現：saveToFile接受expectedRevision但實際只比較磁碟revision是否高於incoming，沒有使用expectedRevision。這批指南不依賴該參數，以自身flock及存在檢查拒絕覆寫；沒有修改庫的公共修訂語義或既有作品。一般庫多程序／多文件CAS仍待獨立設計與驗收，不因本批指南安全處理而標完成。
+
+
+## M46 — 左錨點貼左、螢幕工具列異形、雷射分段與板擦不可達
+
+2026-10-23，來源已修、待實機。左錨點固定x=16導致貼左；改繪圖頁偏左置中計算並同步反算。螢幕獨立1100×136與material、分頁宿主不同步；改共用尺寸／外殼及controller.controlsPage，僅增加穿透／退出按鈕。純圖示同普通畫布以捲動處理溢出。
+
+Mac雷射24級透明度分桶、round cap逐段發光產生珠狀交界；改連續平滑輪廓、柔光與徑向光點。板擦既有PNG已存在，沒有證據證明圖本身損壞；可確認入口隱蔽且螢幕未掛疊層，現補可見catalog與共用疊層，明確URL載入PNG避免依賴名稱查找。
+
+本輪第一次編譯因移除Undo分拆時連帶移掉definition→id映射，Overflow型別錯誤；補map(\.id)後封裝成功。未把編譯當實際操作驗收；仍有NSParagraphStyle Sendable／工具鏈搜尋路徑舊警告。Windows逐段DrawLine僅完成來源核對與[交接](WINDOWS_LASER_HANDOFF_2026-10-23.zh-TW.md)，沒有修改或執行Windows。

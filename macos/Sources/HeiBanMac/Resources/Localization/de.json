@@ -342,6 +342,7 @@
   "建立": "Erstellen",
   "建立副本": "Kopie erstellen",
   "建立功能示範黑板": "Demotafel erstellen",
+  "建立新的操作指南練習": "Neue Anleitungsübung erstellen",
   "建立日期": "Erstellungsdatum",
   "形狀填色": "Füllung",
   "復原": "Rückgängig",
@@ -494,6 +495,7 @@
   "本機已存": "Lokal gespeichert",
   "本機自動存檔頻率": "Intervall für lokales automatisches Speichern",
   "本機開發版較新，保留目前版本": "Lokale Entwicklungsversion ist neuer und wird beibehalten",
+  "板擦": "Tafelwischer",
   "柔和": "Sanft",
   "柔黑": "Tintenschwarz",
   "格式": "Format",
@@ -559,6 +561,7 @@
   "無填滿": "Keine Füllung",
   "無填色": "Keine Füllung",
   "無法完成操作": "Aktion konnte nicht abgeschlossen werden",
+  "無法開啟操作指南": "Anleitung kann nicht geöffnet werden",
   "無相符的圖釘": "Keine passenden Markierungen",
   "無邊界筆記": "Unbegrenzte Notiz",
   "無限延伸畫布": "Unbegrenzte Notiz",
@@ -945,7 +948,5 @@
   "點狀": "Punkte",
   "點線": "Gepunktet",
   "＋ 插入內容與輔助工具": "Inhalte und Hilfsmittel einfügen",
-  "𝄞 五線譜 (Staff)": "Notenlinien",
-  "建立新的操作指南練習": "Neue Anleitungsübung erstellen",
-  "無法開啟操作指南": "Anleitung kann nicht geöffnet werden"
+  "𝄞 五線譜 (Staff)": "Notenlinien"
 }

@@ -25,7 +25,7 @@
     },
     {
       "title": "Navigation and toolbars",
-      "body": "Drag the grip to dock on any side. More → Customize toolbar offers icons only or labeled Common, Draw, Insert and Organize pages. Selection stays visible. Arrows switch groups when space is short. Show/hide, order, Select all, Defaults and separate Common checkboxes are available. Hidden tools remain accessible in More. Drag the Properties tab to dock its panel."
+      "body": "Drag the grip to dock on any side. More → Customize toolbar offers icons only or labeled Common, Draw, Insert and Organize pages. Selection stays visible. Arrows switch groups when space is short. Show/hide, order, Select all, Defaults and separate Common checkboxes are available. Hidden tools remain accessible in More. Drag the Properties tab to dock its panel.\nThe horizontal toolbar uses the Draw page width to sit slightly left of center; changing pages keeps its left edge fixed. Both canvases share pages, styling and scrolling."
     },
     {
       "title": "Pen and brush choices",
@@ -49,7 +49,7 @@
     },
     {
       "title": "Eraser",
-      "body": "Eraser has object and partial ink modes with a size preview before pressing. Images, text, sticky notes and locked objects are protected. On a normal canvas, drag the original angled board eraser; its mirrored contact hull follows the picture, not its rectangular bounds. Right-click for modes or Hide; More → Show board eraser restores it. A drag is one undo step; Esc cancels. Partial erase cuts vector ink, not image pixels.\nOpening the guide keeps your exercise. Create a new guide exercise makes a separate work and keeps the old one. Erasing previews until release, then commits one undo step. Esc, changing tools or switching works cancels unfinished erasing."
+      "body": "Eraser has object and partial ink modes with a size preview before pressing. Images, text, sticky notes and locked objects are protected. On a normal canvas, drag the original angled board eraser; its mirrored contact hull follows the picture, not its rectangular bounds. Right-click for modes or Hide; More → Show board eraser restores it. A drag is one undo step; Esc cancels. Partial erase cuts vector ink, not image pixels.\nOpening the guide keeps your exercise. Create a new guide exercise makes a separate work and keeps the old one. Erasing previews until release, then commits one undo step. Esc, changing tools or switching works cancels unfinished erasing.\nDraw → Board eraser shows or hides the physical eraser. Eraser settings and More also provide the switch. Drag it on either ordinary or screen canvas."
     },
     {
       "title": "Ruler",
@@ -61,7 +61,7 @@
     },
     {
       "title": "Laser pointer",
-      "body": "The color circle opens brush presets, color, Hex, recent colors, width and opacity. With a selection it changes applicable object styles; without a selection it sets future strokes. The size preview follows canvas zoom. Hold a nearly straight pen stroke still for one second to straighten it. Laser settings are beside Laser; its transient trail is not saved."
+      "body": "The color circle opens brush presets, color, Hex, recent colors, width and opacity. With a selection it changes applicable object styles; without a selection it sets future strokes. The size preview follows canvas zoom. Hold a nearly straight pen stroke still for one second to straighten it. Laser settings are beside Laser; its transient trail is not saved.\nThe laser trail uses a continuous smooth outline and soft glow. Point size, trail width and fade duration remain separately adjustable."
     },
     {
       "title": "Calculator and timer",
@@ -77,7 +77,7 @@
     },
     {
       "title": "Screen canvas",
-      "body": "Home → Screen canvas opens a transparent annotation layer over other apps. ⌘⌥⇧D switches drawing/click-through, ⌘⌥⇧S saves a screenshot and ⌘⌥⇧X exits. Its toolbar shares normal tools and preferences, excluding pins and view navigation. Dock it on any side; clear and exit remain separate. Clear keeps the layer open and can be undone. T supports text. Secure system screens are not guaranteed to be covered."
+      "body": "Home → Screen canvas opens a transparent annotation layer over other apps. ⌘⌥⇧D switches drawing/click-through, ⌘⌥⇧S saves a screenshot and ⌘⌥⇧X exits. Its toolbar shares normal tools and preferences, excluding pins and view navigation. Dock it on any side; clear and exit remain separate. Clear keeps the layer open and can be undone. T supports text. Secure system screens are not guaranteed to be covered.\nThe screen toolbar uses the ordinary toolbar appearance and page-dependent size, with extra draw/pass-through and exit buttons. Labeled pages stack on the sides; icons scroll when space is short."
     },
     {
       "title": "Saving, data and export",

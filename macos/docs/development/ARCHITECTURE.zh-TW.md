@@ -123,3 +123,11 @@ QuickStart由HomeView讀取Mac bundle，再寫本機library與marker；目前資
 - 螢幕展開改用catalog清空及固定退出，收合仍有兩者；horizontalFixedWidth改174pt，對應移除重複清空的38pt。四邊／長語言的實際互動尚未驗收。
 
 以上是來源實作；不以編譯代替UI／故障注入／性能驗收。參見ADR-M30–32及本日誌02。
+
+
+## 2026-10-23 工具列與雷射／板擦補齊（日誌03）
+
+- ToolbarContentPolicy統一繪圖頁水平參考、尺寸、分組；一般BoardEngine保存offset，螢幕Controller保存dock/fraction與active page，兩者座標系仍分開。螢幕不再固定1100×136；外觀沿用ToolbarPanelSurface，UndoRedo不再被螢幕限定拆成另一套catalog。
+- LaserTrailGeometry只做唯讀螢幕座標幾何。LaserOverlayView以Timeline讀暫態樣本，按手勢畫連續柔光，不產生BoardObject。
+- BoardEraserArtwork共用工具圖示與畫布圖片，以資源URL快取載入；BoardEraserOverlay同時掛普通與螢幕畫布，仍沿用BoardEraserState預覽及既有放開提交交易。
+- 舊AnnotationToolbarLayout展開幾何保留為相容API／歷史runner依賴；目前螢幕展開走共用policy，收合仍用其尺寸。尚未移除不影響產品的相容入口。

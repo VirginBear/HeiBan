@@ -88,6 +88,7 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
         ToolbarItemDefinition(id: "highlighter", displayName: "螢光筆", icon: "highlighter"),
         ToolbarItemDefinition(id: "paint", displayName: "油漆筆刷", icon: "paintbrush.pointed.fill"),
         ToolbarItemDefinition(id: "eraser", displayName: "橡皮擦", icon: "eraser.fill"),
+        ToolbarItemDefinition(id: "boardEraser", displayName: "板擦", icon: "eraser"),
         ToolbarItemDefinition(id: "ruler", displayName: "螢幕尺", icon: "ruler.fill"),
         ToolbarItemDefinition(id: "shapes", displayName: "幾何圖形", icon: "square.on.circle"),
         ToolbarItemDefinition(id: "sticky", displayName: "便條紙", icon: "note.text"),
@@ -154,6 +155,7 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
     }
 
     public mutating func normalize() {
+        let discoverBoardEraser = !activeItemIds.contains("boardEraser") && !hiddenItemIds.contains("boardEraser")
         let allKnown = Set(Self.allDefinitions.map(\.id))
         var activeSeen = Set<String>()
         var hiddenSeen = Set<String>()
@@ -179,7 +181,7 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
 
         // 其餘新增工具收納進 hiddenItemIds (更多)，避免破壞使用者既有配置
         for def in Self.allDefinitions {
-            if !activeSeen.contains(def.id) && !hiddenSeen.contains(def.id) {
+            if def.id != "boardEraser", !activeSeen.contains(def.id) && !hiddenSeen.contains(def.id) {
                 hiddenItemIds.append(def.id)
                 hiddenSeen.insert(def.id)
             }
@@ -187,7 +189,7 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
 
         // Upgrade untouched earlier streamlined defaults once; preserve custom order or explicit hidden choices.
         if defaultToolsRevision < 1 {
-            let expectedHidden = Set(Self.allItemIds).subtracting(Self.streamlinedItemIds)
+            let expectedHidden = Set(Self.allItemIds.filter { $0 != "boardEraser" }).subtracting(Self.streamlinedItemIds)
             if activeItemIds == Self.streamlinedItemIds
                 && hiddenItemIds.count == expectedHidden.count
                 && Set(hiddenItemIds) == expectedHidden
@@ -212,6 +214,10 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
                 commonItemIds.append("clearAll")
             }
             defaultCommonRevision = 1
+        }
+        // 首次提供板擦入口放在橡皮擦旁；日後明確隱藏仍尊重使用者設定。
+        if discoverBoardEraser && !activeItemIds.contains("boardEraser") {
+            activeItemIds.insert("boardEraser", at: (activeItemIds.firstIndex(of: "eraser") ?? 0) + 1)
         }
     }
 

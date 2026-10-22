@@ -342,6 +342,7 @@
   "建立": "Criar",
   "建立副本": "Criar cópia",
   "建立功能示範黑板": "Criar quadro de demonstração",
+  "建立新的操作指南練習": "Criar um novo exercício do guia",
   "建立日期": "Data de criação",
   "形狀填色": "Preenchimento",
   "復原": "Desfazer",
@@ -494,6 +495,7 @@
   "本機已存": "Salvo localmente",
   "本機自動存檔頻率": "Intervalo de salvamento automático local",
   "本機開發版較新，保留目前版本": "A versão local é mais recente e será mantida",
+  "板擦": "Apagador de quadro",
   "柔和": "Suave",
   "柔黑": "Preto-tinta",
   "格式": "Formato",
@@ -559,6 +561,7 @@
   "無填滿": "Sem preenchimento",
   "無填色": "Sem preenchimento",
   "無法完成操作": "Não foi possível concluir a ação",
+  "無法開啟操作指南": "Não foi possível abrir o guia",
   "無相符的圖釘": "Nenhum marcador encontrado",
   "無邊界筆記": "Nota infinita",
   "無限延伸畫布": "Nota infinita",
@@ -945,7 +948,5 @@
   "點狀": "Pontos",
   "點線": "Pontilhada",
   "＋ 插入內容與輔助工具": "Inserir conteúdo e auxiliares",
-  "𝄞 五線譜 (Staff)": "Pauta musical",
-  "建立新的操作指南練習": "Criar um novo exercício do guia",
-  "無法開啟操作指南": "Não foi possível abrir o guia"
+  "𝄞 五線譜 (Staff)": "Pauta musical"
 }

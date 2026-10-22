@@ -342,6 +342,7 @@
   "建立": "Crear",
   "建立副本": "Crear copia",
   "建立功能示範黑板": "Crear tablero de demostración",
+  "建立新的操作指南練習": "Crear un nuevo ejercicio de guía",
   "建立日期": "Fecha de creación",
   "形狀填色": "Relleno",
   "復原": "Deshacer",
@@ -494,6 +495,7 @@
   "本機已存": "Guardado localmente",
   "本機自動存檔頻率": "Intervalo de guardado automático local",
   "本機開發版較新，保留目前版本": "La versión local es más reciente; se conserva",
+  "板擦": "Borrador de pizarra",
   "柔和": "Suave",
   "柔黑": "Negro tinta",
   "格式": "Formato",
@@ -559,6 +561,7 @@
   "無填滿": "Sin relleno",
   "無填色": "Sin relleno",
   "無法完成操作": "No se pudo completar la acción",
+  "無法開啟操作指南": "No se pudo abrir la guía",
   "無相符的圖釘": "No hay marcadores coincidentes",
   "無邊界筆記": "Nota infinita",
   "無限延伸畫布": "Nota infinita",
@@ -945,7 +948,5 @@
   "點狀": "Puntos",
   "點線": "Punteada",
   "＋ 插入內容與輔助工具": "Insertar contenido y ayudas",
-  "𝄞 五線譜 (Staff)": "Pentagrama",
-  "建立新的操作指南練習": "Crear un nuevo ejercicio de guía",
-  "無法開啟操作指南": "No se pudo abrir la guía"
+  "𝄞 五線譜 (Staff)": "Pentagrama"
 }

@@ -8,8 +8,6 @@ public struct ToolbarView: View {
     @ObservedObject var engine: BoardEngine
     let windowSize: CGSize
     let topClearance: CGFloat
-    @ViewState private var horizontalLength: CGFloat = 900
-    @ViewState private var verticalLength: CGFloat = 760
     @ViewState private var activePage: String = "common"
     @ViewState private var dragOrigin: CGPoint?
     @ViewState private var translation = CGSize.zero
@@ -23,19 +21,8 @@ public struct ToolbarView: View {
 
     private var vertical: Bool { engine.isToolbarVertical }
     private var panelSize: CGSize {
-        if engine.toolbarPreferences.displayMode == "labels" {
-            return ToolbarContentPolicy.panelSize(
-                preferences: engine.toolbarPreferences,
-                page: activePage,
-                vertical: vertical,
-                windowSize: windowSize
-            )
-        }
-        // The handle stays outside the scroll area; only tools overflow in small windows.
-        if vertical {
-            return CGSize(width: 72, height: min(verticalLength + 44, max(100, windowSize.height - 88)))
-        }
-        return CGSize(width: min(horizontalLength + 48, max(100, windowSize.width - 32)), height: 64)
+        ToolbarContentPolicy.panelSize(preferences: engine.toolbarPreferences,
+            page: activePage, vertical: vertical, windowSize: windowSize)
     }
     private var center: CGPoint {
         let resting = engine.toolbarPosition(in: windowSize, panelSize: panelSize, topClearance: topClearance)
@@ -93,21 +80,12 @@ public struct ToolbarView: View {
                     ScrollView(vertical ? .vertical : .horizontal) {
                         ToolbarToolsView(engine: engine)
                             .fixedSize(horizontal: !vertical, vertical: vertical)
-                            .background(
-                                GeometryReader { geometry in
-                                    Color.clear.onAppear { recordContentSize(geometry.size) }
-                                        .onChange(of: geometry.size) { _, size in recordContentSize(size) }
-                                })
                     }.scrollIndicators(.automatic)
                 }
             }
             .padding(8)
             .frame(width: panelSize.width, height: panelSize.height, alignment: vertical ? .top : .leading)
-            .background(
-                Color(nsColor: .windowBackgroundColor).opacity(0.98), in: RoundedRectangle(cornerRadius: 16)
-            )
-            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.primary.opacity(0.12), lineWidth: 1))
-            .shadow(color: .black.opacity(0.18), radius: 12, y: 4)
+            .modifier(ToolbarPanelSurface())
             .position(center)
             .animation(dragOrigin == nil ? .easeOut(duration: 0.16) : nil, value: topClearance)
 
@@ -143,10 +121,7 @@ public struct ToolbarView: View {
         .onChange(of: panelSize) { _, size in engine.toolbarLayoutSize = size }
         .onChange(of: windowSize) { _, size in engine.repositionPanelsIfNeeded(windowSize: size) }
     }
-    private func recordContentSize(_ size: CGSize) {
-        guard size.width > 0, size.height > 0 else { return }
-        if vertical { verticalLength = size.height } else { horizontalLength = size.width }
-    }
+
 }
 
 struct ToolbarToolsView: View {
@@ -216,7 +191,7 @@ struct ToolbarToolsView: View {
             engine.toolbarPreferences, screen: screenController != nil, page: activePage)
     }
     private var toolsAvailableLength: CGFloat {
-        max(ToolbarContentPolicy.horizontalTileWidth, availableLength - (vertical ? 148 : 136))
+        max(ToolbarContentPolicy.horizontalTileWidth, availableLength - (vertical ? 148 : 140))
     }
     private var pageCapacity: Int {
         ToolbarContentPolicy.pageCapacity(
@@ -240,7 +215,7 @@ struct ToolbarToolsView: View {
     private var overflowIDs: [String] {
         ToolbarPreferences.allDefinitions
             .filter { ToolbarContentPolicy.isAvailable($0.id, screen: screenController != nil) }
-            .flatMap { screenController != nil && $0.id == "undoRedo" ? ["undo", "redo"] : [$0.id] }
+            .map(\.id)
             .filter { !renderedIDs.contains($0) }
     }
 
@@ -474,6 +449,9 @@ struct ToolbarToolsView: View {
         case "eraser":
             if engine.currentTool != .eraser { selectTool(.eraser) }
             presentSettings(.eraser)
+        case "boardEraser":
+            screenController?.setDrawing(true)
+            engine.setBoardEraserVisible(!engine.toolbarPreferences.boardEraserVisible)
         case "ruler":
             screenController?.setDrawing(true)
             engine.ruler.enabled.toggle()
@@ -548,13 +526,11 @@ struct ToolbarToolsView: View {
                         Text(L10n.t("只有圖示")).tag("icons")
                         Text(L10n.t("圖示與文字（分頁）")).tag("labels")
                     }
-                    if screenController == nil {
-                        Toggle(
-                            L10n.t("顯示板擦"),
-                            isOn: Binding(
-                                get: { engine.toolbarPreferences.boardEraserVisible },
-                                set: { engine.setBoardEraserVisible($0) }))
-                    }
+                    Toggle(
+                        L10n.t("顯示板擦"),
+                        isOn: Binding(
+                            get: { engine.toolbarPreferences.boardEraserVisible },
+                            set: { engine.setBoardEraserVisible($0) }))
                     Button(L10n.t("自訂工具列…")) {
                         showMorePopover = false
                         DispatchQueue.main.async { showCustomizeSheet = true }
@@ -693,7 +669,9 @@ struct ToolbarToolsView: View {
     }
 
     @ViewBuilder private func toolGlyph(_ id: String) -> some View {
-        if id == "magnet" {
+        if id == "boardEraser" {
+            BoardEraserArtwork().frame(width: 28, height: 20)
+        } else if id == "magnet" {
             HeiBanMagnetIcon().frame(width: 18, height: 18)
         } else if id == "pins" {
             HeiBanPinIcon().frame(width: 18, height: 18)
@@ -726,6 +704,7 @@ struct ToolbarToolsView: View {
     private func toolSelected(_ id: String) -> Bool {
         if let tool = drawingTool(id) { return engine.currentTool == tool }
         switch id {
+        case "boardEraser": return engine.toolbarPreferences.boardEraserVisible
         case "eraser": return engine.currentTool == .eraser
         case "laser": return engine.currentTool == .laser || laser.isEnabled
         case "ruler": return engine.ruler.enabled
@@ -773,6 +752,12 @@ struct ToolbarToolsView: View {
         case .eraser:
             VStack(alignment: .leading, spacing: 12) {
                 Text(L10n.t("橡皮擦")).font(.headline)
+                Toggle(L10n.t("顯示板擦"), isOn: Binding(
+                    get: { engine.toolbarPreferences.boardEraserVisible },
+                    set: {
+                        screenController?.setDrawing(true)
+                        engine.setBoardEraserVisible($0)
+                    }))
                 Picker(L10n.t("模式"), selection: $engine.eraserMode) {
                     Text(L10n.t("物件擦除")).tag(EraserMode.object)
                     Text(L10n.t("像素擦除")).tag(EraserMode.pixel)
@@ -979,5 +964,16 @@ struct ToolButton: View {
         .accessibilityLabel(L10n.t(tooltip))
         .accessibilityValue(L10n.t(isSelected ? "已啟用" : "未啟用"))
         .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : [.isButton])
+    }
+}
+
+/// 兩種畫布共用同一外殼；工具列尺寸由 Core policy 決定，NSPanel 只負責停靠。
+struct ToolbarPanelSurface: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .background(Color(nsColor: .windowBackgroundColor).opacity(0.98),
+                        in: RoundedRectangle(cornerRadius: 16))
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.primary.opacity(0.12), lineWidth: 1))
+            .shadow(color: .black.opacity(0.18), radius: 12, y: 4)
     }
 }

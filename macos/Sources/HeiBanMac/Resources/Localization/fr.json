@@ -342,6 +342,7 @@
   "建立": "Créer",
   "建立副本": "Créer une copie",
   "建立功能示範黑板": "Créer un tableau de démonstration",
+  "建立新的操作指南練習": "Créer un nouvel exercice du guide",
   "建立日期": "Date de création",
   "形狀填色": "Remplissage",
   "復原": "Annuler",
@@ -494,6 +495,7 @@
   "本機已存": "Enregistré localement",
   "本機自動存檔頻率": "Intervalle d’enregistrement automatique local",
   "本機開發版較新，保留目前版本": "La version locale est plus récente ; elle est conservée",
+  "板擦": "Brosse à tableau",
   "柔和": "Doux",
   "柔黑": "Noir d'encre",
   "格式": "Format",
@@ -559,6 +561,7 @@
   "無填滿": "Sans remplissage",
   "無填色": "Sans remplissage",
   "無法完成操作": "Impossible de terminer l'action",
+  "無法開啟操作指南": "Impossible d’ouvrir le guide",
   "無相符的圖釘": "Aucun repère correspondant",
   "無邊界筆記": "Note infinie",
   "無限延伸畫布": "Note infinie",
@@ -945,7 +948,5 @@
   "點狀": "Points",
   "點線": "Pointillés",
   "＋ 插入內容與輔助工具": "Insérer du contenu et des outils",
-  "𝄞 五線譜 (Staff)": "Portée musicale",
-  "建立新的操作指南練習": "Créer un nouvel exercice du guide",
-  "無法開啟操作指南": "Impossible d’ouvrir le guide"
+  "𝄞 五線譜 (Staff)": "Portée musicale"
 }

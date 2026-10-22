@@ -197,3 +197,16 @@ hiddenTitleBar在本機未執行頂端雙擊縮放；保留現有簡潔介面，
 2026-10-23，採用，取代ADR-M29的More重複元件錨點方案。Core BoardToolSettings描述低頻設定呈現，engine.presentedToolSettings為唯一狀態；舊三個show*Popover改相容computed別名。closeAllTransientPanels及工具切換能同步收起設定。ToolbarToolsView root只有一個工具設定popover，色彩／形狀／圓擦／雷射／尺規共用；顯示偏好或分組不決定設定可達性。More先關再開設定，避免原生視窗尺寸競爭。
 
 performToolAction是圖示、圖文Button與More的唯一動作路由；dock是完整Menu，Undo／Redo為兩個獨立可用性／熱區，不以外層tap包住內層Button。螢幕展開清空走catalog／More，固定尾端只留退出；收合維持清空／退出。偏好格式與作品schema不改；一般／螢幕沿用同組元件。
+
+
+## ADR-M33 — 繪圖頁參考錨點與雙畫布共用工具列外殼
+
+2026-10-23，採用。ToolbarContentPolicy.horizontalAnchor以繪圖頁panelSize計算偏左置中基準（中央左移24pt，最小16pt）；BoardEngine定位、浮動拖曳反算及resize共用此基準，當前頁面只決定寬度。既有使用者offset仍保留；靠邊命令可重設offset。邊界空間不足時仍需夾限，不保證超寬面板的左緣永遠不動。
+
+ToolbarPanelSurface提供共用背景、圓角、邊線與陰影；ToolbarToolsView提供兩種畫布相同的分頁、命令與UndoRedo結構。螢幕controller持有controlsPage，使用同一panelSize加必要操作／退出的80pt，依繪圖頁寬度固定左邊或上邊，純圖示溢出用ScrollView。只有螢幕視窗停靠／穿透屬Mac NSPanel；沒有將原生視窗生命週期塞入Core或普通畫布。
+
+## ADR-M34 — 雷射連續輪廓及板擦共用可見入口
+
+2026-10-23，採用。雷射先按startsNewTrail分手勢，再以凸包內二次曲線平滑、有界細分、時間漸細輪廓、整條柔光／色彩／白芯渲染，光點用徑向漸層；不再以24級透明度分段端帽。每來源段最多24個細分，引擎仍最多500點；沒有實測FPS承諾，也不宣稱為逐像素沿路徑alpha漸層。
+
+新增boardEraser catalog命令，繪圖頁／More／橡皮擦設定共用顯示偏好；第一次發現入口補在圓擦旁，已明確隱藏者保留。BoardEraserArtwork以Bundle URL一次載入原創PNG，另有缺資源視覺備援。普通與螢幕畫布使用同一BoardEraserOverlay與隔離交易；螢幕點板擦先通知顯示器啟用，確保控制列Undo對準同一引擎。作品格式、既有練習與Windows來源不改。
