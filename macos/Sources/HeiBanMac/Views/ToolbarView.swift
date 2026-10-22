@@ -1,6 +1,6 @@
-import SwiftUI
 import AppKit
 import HeiBanCore
+import SwiftUI
 
 // Keep drag updates local: moving the toolbar must not redraw the canvas engine.
 public struct ToolbarView: View {
@@ -57,41 +57,55 @@ public struct ToolbarView: View {
                     .contentShape(Rectangle())
                     .accessibilityLabel(L10n.t("移動工具列"))
                     .help(L10n.t("拖曳到左右邊緣直排，上下邊緣橫排；在畫布內放開可浮動"))
-                    .gesture(DragGesture(minimumDistance: 2, coordinateSpace: .named("HeiBan.workspace"))
-                        .onChanged { value in
-                            if dragOrigin == nil { dragOrigin = engine.toolbarPosition(in: windowSize, panelSize: panelSize, topClearance: topClearance) }
-                            translation = value.translation
-                            dropTarget = engine.toolbarDropTarget(at: value.location, in: windowSize)
-                        }
-                        .onEnded { value in
-                            let origin = dragOrigin ?? engine.toolbarPosition(in: windowSize, panelSize: panelSize, topClearance: topClearance)
-                            let destination = CGPoint(x: origin.x + value.translation.width, y: origin.y + value.translation.height)
-                            engine.placeToolbar(center: destination, dropPoint: value.location,
-                                                windowSize: windowSize, panelSize: panelSize)
-                            dragOrigin = nil
-                            translation = .zero
-                            dropTarget = nil
-                        })
+                    .gesture(
+                        DragGesture(minimumDistance: 2, coordinateSpace: .named("HeiBan.workspace"))
+                            .onChanged { value in
+                                if dragOrigin == nil {
+                                    dragOrigin = engine.toolbarPosition(
+                                        in: windowSize, panelSize: panelSize, topClearance: topClearance)
+                                }
+                                translation = value.translation
+                                dropTarget = engine.toolbarDropTarget(at: value.location, in: windowSize)
+                            }
+                            .onEnded { value in
+                                let origin =
+                                    dragOrigin
+                                    ?? engine.toolbarPosition(
+                                        in: windowSize, panelSize: panelSize, topClearance: topClearance)
+                                let destination = CGPoint(
+                                    x: origin.x + value.translation.width,
+                                    y: origin.y + value.translation.height)
+                                engine.placeToolbar(
+                                    center: destination, dropPoint: value.location,
+                                    windowSize: windowSize, panelSize: panelSize)
+                                dragOrigin = nil
+                                translation = .zero
+                                dropTarget = nil
+                            })
                 if engine.toolbarPreferences.displayMode == "labels" {
                     ToolbarToolsView(
                         engine: engine,
-                        availableLength: vertical ? max(120, windowSize.height - 88) : max(280, windowSize.width - 32),
+                        availableLength: vertical
+                            ? max(120, windowSize.height - 88) : max(280, windowSize.width - 32),
                         externalActivePage: $activePage
                     )
                 } else {
                     ScrollView(vertical ? .vertical : .horizontal) {
                         ToolbarToolsView(engine: engine)
                             .fixedSize(horizontal: !vertical, vertical: vertical)
-                            .background(GeometryReader { geometry in
-                                Color.clear.onAppear { recordContentSize(geometry.size) }
-                                    .onChange(of: geometry.size) { _, size in recordContentSize(size) }
-                            })
+                            .background(
+                                GeometryReader { geometry in
+                                    Color.clear.onAppear { recordContentSize(geometry.size) }
+                                        .onChange(of: geometry.size) { _, size in recordContentSize(size) }
+                                })
                     }.scrollIndicators(.automatic)
                 }
             }
             .padding(8)
             .frame(width: panelSize.width, height: panelSize.height, alignment: vertical ? .top : .leading)
-            .background(Color(nsColor: .windowBackgroundColor).opacity(0.98), in: RoundedRectangle(cornerRadius: 16))
+            .background(
+                Color(nsColor: .windowBackgroundColor).opacity(0.98), in: RoundedRectangle(cornerRadius: 16)
+            )
             .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.primary.opacity(0.12), lineWidth: 1))
             .shadow(color: .black.opacity(0.18), radius: 12, y: 4)
             .position(center)
@@ -101,12 +115,25 @@ public struct ToolbarView: View {
                 let isSide = target == "left" || target == "right"
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color.accentColor.opacity(0.12))
-                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.accentColor.opacity(0.65), lineWidth: 2))
-                    .frame(width: isSide ? 76 : min(windowSize.width - 32, 480),
-                           height: isSide ? min(windowSize.height - 88, 360) : 64)
-                    .overlay(Text(L10n.t(isSide ? "直排" : "橫排")).font(.caption.bold()).foregroundStyle(Color.accentColor))
-                    .position(x: target == "left" ? 46 : target == "right" ? windowSize.width - 46 : windowSize.width / 2,
-                              y: target == "top" ? topClearance + 32 : target == "bottom" ? windowSize.height - 40 : (windowSize.height + 56) / 2)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12).stroke(
+                            Color.accentColor.opacity(0.65), lineWidth: 2)
+                    )
+                    .frame(
+                        width: isSide ? 76 : min(windowSize.width - 32, 480),
+                        height: isSide ? min(windowSize.height - 88, 360) : 64
+                    )
+                    .overlay(
+                        Text(L10n.t(isSide ? "直排" : "橫排")).font(.caption.bold()).foregroundStyle(
+                            Color.accentColor)
+                    )
+                    .position(
+                        x: target == "left"
+                            ? 46 : target == "right" ? windowSize.width - 46 : windowSize.width / 2,
+                        y: target == "top"
+                            ? topClearance + 32
+                            : target == "bottom" ? windowSize.height - 40 : (windowSize.height + 56) / 2
+                    )
                     .allowsHitTesting(false)
             }
         }
@@ -126,10 +153,11 @@ struct ToolbarToolsView: View {
     @ObservedObject private var language = L10n.shared
     @ObservedObject var engine: BoardEngine
     @ObservedObject var laser: LaserPointerEngine
-    @ViewState private var showLaserSettings = false
-    @ViewState private var showRulerSettings = false
+    private var activeSettings: ToolSettings? {
+        get { engine.presentedToolSettings }
+        nonmutating set { engine.presentedToolSettings = newValue }
+    }
     @ViewState private var showMorePopover = false
-    @ViewState private var requestedSettingsID: String?
     @ViewState private var showCustomizeSheet = false
 
     let screenController: ScreenAnnotationController?
@@ -173,8 +201,7 @@ struct ToolbarToolsView: View {
         engine.showColorPopover = false
         engine.showShapesPopover = false
         engine.showEraserPopover = false
-        showLaserSettings = false
-        showRulerSettings = false
+        activeSettings = nil
         showMorePopover = false
     }
 
@@ -185,7 +212,8 @@ struct ToolbarToolsView: View {
     }
     private var usesLabels: Bool { engine.toolbarPreferences.displayMode == "labels" }
     private var pageIDs: [String] {
-        ToolbarContentPolicy.pageIDs(engine.toolbarPreferences, screen: screenController != nil, page: activePage)
+        ToolbarContentPolicy.pageIDs(
+            engine.toolbarPreferences, screen: screenController != nil, page: activePage)
     }
     private var toolsAvailableLength: CGFloat {
         max(ToolbarContentPolicy.horizontalTileWidth, availableLength - (vertical ? 148 : 136))
@@ -207,34 +235,27 @@ struct ToolbarToolsView: View {
         Array(pageIDs.dropFirst(currentPageOffset).prefix(pageCapacity))
     }
     private var renderedIDs: [String] { usesLabels ? ["select"] + shownPageIDs : visibleIDs }
+    private typealias ToolSettings = BoardToolSettings
+
     private var overflowIDs: [String] {
-        let candidates = ToolbarPreferences.allDefinitions
+        ToolbarPreferences.allDefinitions
             .filter { ToolbarContentPolicy.isAvailable($0.id, screen: screenController != nil) }
-            .flatMap { item in
-                screenController != nil && item.id == "undoRedo" ? ["undo", "redo"] : [item.id]
-            }
-        let overflow = candidates.filter { !renderedIDs.contains($0) }
-        guard let requestedSettingsID, overflow.contains(requestedSettingsID) else { return overflow }
-        return [requestedSettingsID] + overflow.filter { $0 != requestedSettingsID }
+            .flatMap { screenController != nil && $0.id == "undoRedo" ? ["undo", "redo"] : [$0.id] }
+            .filter { !renderedIDs.contains($0) }
     }
-    private func revealSettings(_ id: String) {
-        guard !renderedIDs.contains(id) else { return }
-        if usesLabels {
-            let targetPage = ToolbarContentPolicy.page(for: id)
-            if ToolbarContentPolicy.pages.contains(targetPage),
-               ToolbarContentPolicy.pageIDs(engine.toolbarPreferences, screen: screenController != nil, page: targetPage).contains(id) {
-                if let externalActivePage {
-                    externalActivePage.wrappedValue = targetPage
-                } else {
-                    internalActivePage = targetPage
-                }
-                pageOffset = 0
-                return
-            }
+
+    private func presentSettings(_ settings: ToolSettings) {
+        // 設定只有這一個host，不依賴工具是否在目前分頁／組或被隱藏。
+        // 等More關閉後才開新面板，避免兩個NSPopover同時爭用原生視窗。
+        let wasShowingMore = showMorePopover
+        showMorePopover = false
+        if wasShowingMore {
+            DispatchQueue.main.async { activeSettings = settings }
+        } else {
+            activeSettings = settings
         }
-        requestedSettingsID = id
-        showMorePopover = true
     }
+
     private func toolTitle(_ id: String) -> String {
         if id == "undo" { return "復原" }
         if id == "redo" { return "重做" }
@@ -243,34 +264,46 @@ struct ToolbarToolsView: View {
 
     var body: some View {
         Group {
-            if engine.toolbarPreferences.displayMode == "labels" { labeledTools }
-            else if let columns {
-                LazyVGrid(columns: Array(repeating: GridItem(.fixed(32), spacing: 4), count: columns), spacing: 4) {
+            if engine.toolbarPreferences.displayMode == "labels" {
+                labeledTools
+            } else if let columns {
+                LazyVGrid(
+                    columns: Array(repeating: GridItem(.fixed(32), spacing: 4), count: columns), spacing: 4
+                ) {
                     items
                 }
             } else {
-                let layout = vertical ? AnyLayout(VStackLayout(spacing: 4)) : AnyLayout(HStackLayout(spacing: 6))
+                let layout =
+                    vertical ? AnyLayout(VStackLayout(spacing: 4)) : AnyLayout(HStackLayout(spacing: 6))
                 layout { items }
             }
         }
         .onAppear {
             if let data = UserDefaults.standard.data(forKey: "HeiBan.toolbarPreferences"),
-               let preferences = try? JSONDecoder().decode(ToolbarPreferences.self, from: data),
-               preferences != engine.toolbarPreferences {
+                let preferences = try? JSONDecoder().decode(ToolbarPreferences.self, from: data),
+                preferences != engine.toolbarPreferences
+            {
                 engine.toolbarPreferences = preferences
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("HeiBan.toolbarPreferencesChanged"))) { notification in
+        .onReceive(
+            NotificationCenter.default.publisher(for: Notification.Name("HeiBan.toolbarPreferencesChanged"))
+        ) { notification in
             guard let source = notification.object as? BoardEngine, source !== engine,
-                  source.toolbarPreferences != engine.toolbarPreferences else { return }
+                source.toolbarPreferences != engine.toolbarPreferences
+            else { return }
             engine.toolbarPreferences = source.toolbarPreferences
         }
-        .onChange(of: engine.showColorPopover) { _, show in if show { revealSettings("color") } }
-        .onChange(of: engine.showShapesPopover) { _, show in if show { revealSettings("shapes") } }
-        .onChange(of: engine.showEraserPopover) { _, show in if show { revealSettings("eraser") } }
-        .onChange(of: engine.toolbarPreferences) { _, _ in pageOffset = 0; screenController?.toolbarPreferencesChanged() }
+        .onChange(of: engine.toolbarPreferences) { _, _ in
+            pageOffset = 0
+            screenController?.toolbarPreferencesChanged()
+        }
         .onChange(of: availableLength) { _, _ in pageOffset = 0 }
-        .onChange(of: showMorePopover) { _, show in if !show { requestedSettingsID = nil } }
+        .popover(
+            item: Binding(get: { activeSettings }, set: { activeSettings = $0 }), arrowEdge: settingsArrowEdge
+        ) { settings in
+            settingsContent(settings)
+        }
     }
 
     private var labeledTools: some View {
@@ -310,7 +343,10 @@ struct ToolbarToolsView: View {
                             .foregroundStyle(isSelected ? Color.accentColor : Color.primary)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 4)
-                            .background(isSelected ? Color.accentColor.opacity(0.18) : Color.primary.opacity(0.05), in: Capsule())
+                            .background(
+                                isSelected ? Color.accentColor.opacity(0.18) : Color.primary.opacity(0.05),
+                                in: Capsule()
+                            )
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
@@ -321,12 +357,15 @@ struct ToolbarToolsView: View {
     }
 
     private var pageTools: some View {
-        let row = vertical
+        let row =
+            vertical
             ? AnyLayout(VStackLayout(spacing: ToolbarContentPolicy.verticalTileSpacing))
             : AnyLayout(HStackLayout(spacing: ToolbarContentPolicy.horizontalTileSpacing))
         return row {
             if needsPaging {
-                Button { pageOffset = max(0, currentPageOffset - pageCapacity) } label: {
+                Button {
+                    pageOffset = max(0, currentPageOffset - pageCapacity)
+                } label: {
                     Image(systemName: vertical ? "chevron.up" : "chevron.left")
                         .frame(width: 20, height: 26)
                         .contentShape(Rectangle())
@@ -345,7 +384,9 @@ struct ToolbarToolsView: View {
                     .frame(width: vertical ? 120 : 140, height: vertical ? 44 : 58, alignment: .leading)
             }
             if needsPaging {
-                Button { pageOffset = currentPageOffset + pageCapacity } label: {
+                Button {
+                    pageOffset = currentPageOffset + pageCapacity
+                } label: {
                     Image(systemName: vertical ? "chevron.down" : "chevron.right")
                         .frame(width: 20, height: 26)
                         .contentShape(Rectangle())
@@ -357,15 +398,38 @@ struct ToolbarToolsView: View {
         }
     }
 
-    private func labeledToolTile(id: String) -> some View {
+    @ViewBuilder private func labeledToolTile(id: String) -> some View {
+        if id == "dock" {
+            Menu {
+                dockActions
+            } label: {
+                toolTileLabel(id: id)
+            }
+            .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+        } else if id == "undoRedo" {
+            HStack(spacing: 2) {
+                historyTile(id: "undo")
+                historyTile(id: "redo")
+            }.frame(
+                width: vertical ? 124 : ToolbarContentPolicy.horizontalTileWidth,
+                height: vertical ? ToolbarContentPolicy.verticalTileHeight : 58)
+        } else {
+            Button {
+                performToolAction(id)
+            } label: {
+                toolTileLabel(id: id)
+            }
+            .buttonStyle(.plain).disabled(toolDisabled(id))
+            .contextMenu { toolContextMenu(id) }
+        }
+    }
+
+    private func toolTileLabel(id: String) -> some View {
         let tile = vertical ? AnyLayout(HStackLayout(spacing: 6)) : AnyLayout(VStackLayout(spacing: 2))
         return tile {
-            renderToolItem(id: id)
-            Text(L10n.t(toolTitle(id)))
-                .font(.system(size: 10))
-                .lineLimit(2)
+            toolGlyph(id).frame(width: 28, height: 28)
+            Text(L10n.t(toolTitle(id))).font(.system(size: 10)).lineLimit(2)
                 .multilineTextAlignment(vertical ? .leading : .center)
-                .allowsHitTesting(false)
             if vertical { Spacer(minLength: 0) }
         }
         .padding(.horizontal, vertical ? 6 : 2)
@@ -373,48 +437,69 @@ struct ToolbarToolsView: View {
             width: vertical ? 124 : (id == "select" ? 48 : ToolbarContentPolicy.horizontalTileWidth),
             height: vertical ? ToolbarContentPolicy.verticalTileHeight : 58
         )
+        .background(
+            toolSelected(id) ? Color.accentColor.opacity(0.16) : Color.clear,
+            in: RoundedRectangle(cornerRadius: 7)
+        )
         .contentShape(Rectangle())
-        .onTapGesture {
-            triggerToolTileTap(id: id)
-        }
     }
 
-    private func triggerToolTileTap(id: String) {
+    private func historyTile(id: String) -> some View {
+        Button {
+            performToolAction(id)
+        } label: {
+            VStack(spacing: 3) {
+                toolGlyph(id).frame(width: 20, height: 20)
+                Text(L10n.t(toolTitle(id))).font(.system(size: 9)).lineLimit(1)
+            }.frame(maxWidth: .infinity).frame(height: 40).contentShape(Rectangle())
+        }.buttonStyle(.plain).disabled(toolDisabled(id))
+            .help(L10n.t(toolTitle(id))).accessibilityLabel(L10n.t(toolTitle(id)))
+    }
+
+    private func drawingTool(_ id: String) -> ToolType? {
+        [
+            "select": ToolType.select, "pen": .pen, "curve": .curve, "highlighter": .highlighter,
+            "paint": .paint, "sticky": .sticky, "text": .text, "tape": .tape, "lasso": .lasso,
+        ][id]
+    }
+
+    /// 圖示、整塊圖文磚及More只有這份命令路由；設定呈現與操作命令分開。
+    private func performToolAction(_ id: String) {
+        if let tool = drawingTool(id) {
+            selectTool(tool)
+            return
+        }
         switch id {
         case "magnet": engine.toggleMagnet()
-        case "select": selectTool(.select)
-        case "pen": selectTool(.pen)
-        case "curve": selectTool(.curve)
-        case "highlighter": selectTool(.highlighter)
-        case "paint": selectTool(.paint)
         case "eraser":
             if engine.currentTool != .eraser { selectTool(.eraser) }
-            engine.showEraserPopover = true
+            presentSettings(.eraser)
         case "ruler":
             screenController?.setDrawing(true)
             engine.ruler.enabled.toggle()
-            engine.showTemporaryStatus(engine.ruler.enabled ? "已啟用螢幕尺" : "已關閉螢幕尺")
         case "shapes":
             screenController?.setDrawing(true)
-            engine.showShapesPopover.toggle()
-        case "sticky": selectTool(.sticky)
-        case "text": selectTool(.text)
+            presentSettings(.shapes)
         case "laser":
             if engine.currentTool == .laser {
-                showLaserSettings = true
+                presentSettings(.laser)
             } else {
                 selectTool(.laser)
                 engine.laserEngine.isEnabled = true
             }
-        case "tape": selectTool(.tape)
-        case "lasso": selectTool(.lasso)
         case "screenshot": captureScreenshot()
         case "image": importImage()
-        case "color": engine.showColorPopover.toggle()
-        case "lineStyle": engine.activeLineStyle = (engine.activeLineStyle == "solid") ? "dashed" : "solid"
+        case "color": presentSettings(.color)
+        case "lineStyle":
+            let style = engine.selectedLineStyle.valueOrNil ?? engine.activeLineStyle
+            let next = style == "solid" ? "dashed" : "solid"
+            if engine.selectedIds.isEmpty {
+                engine.activeLineStyle = next
+            } else {
+                engine.setSelectedLineStyle(next)
+            }
         case "layers":
             screenController?.setDrawing(true)
-            if screenController != nil { showMorePopover = false }
             engine.toggleLayerPanel()
         case "pins": engine.togglePinManager()
         case "compass":
@@ -430,7 +515,7 @@ struct ToolbarToolsView: View {
         case "undo": if engine.canUndo { engine.undo() }
         case "redo": if engine.canRedo { engine.redo() }
         case "clearAll": clearCanvas()
-        default: break
+        default: break  // dock及undoRedo由完整Menu／獨立歷史按鈕提供語義。
         }
     }
 
@@ -451,12 +536,24 @@ struct ToolbarToolsView: View {
                         overflowToolRow(id: id)
                     }
                     Divider()
-                    Picker(L10n.t("工具列格式"), selection:Binding(get:{engine.toolbarPreferences.displayMode},set:{engine.toolbarPreferences.displayMode=$0;engine.saveToolbarPreferences()})) {
+                    Picker(
+                        L10n.t("工具列格式"),
+                        selection: Binding(
+                            get: { engine.toolbarPreferences.displayMode },
+                            set: {
+                                engine.toolbarPreferences.displayMode = $0
+                                engine.saveToolbarPreferences()
+                            })
+                    ) {
                         Text(L10n.t("只有圖示")).tag("icons")
                         Text(L10n.t("圖示與文字（分頁）")).tag("labels")
                     }
                     if screenController == nil {
-                        Toggle(L10n.t("顯示板擦"),isOn:Binding(get:{engine.toolbarPreferences.boardEraserVisible},set:{engine.setBoardEraserVisible($0)}))
+                        Toggle(
+                            L10n.t("顯示板擦"),
+                            isOn: Binding(
+                                get: { engine.toolbarPreferences.boardEraserVisible },
+                                set: { engine.setBoardEraserVisible($0) }))
                     }
                     Button(L10n.t("自訂工具列…")) {
                         showMorePopover = false
@@ -466,10 +563,16 @@ struct ToolbarToolsView: View {
                         Divider()
                         Menu(L10n.t("工具列位置")) {
                             ForEach(AnnotationToolbarDock.allCases, id: \.rawValue) { edge in
-                                Button(L10n.t(edge.title)) { showMorePopover = false; controller.setControlsDock(edge) }
+                                Button(L10n.t(edge.title)) {
+                                    showMorePopover = false
+                                    controller.setControlsDock(edge)
+                                }
                             }
                         }
-                        Button(L10n.t("收合工具列")) { showMorePopover = false; controller.setControlsCollapsed(true) }
+                        Button(L10n.t("收合工具列")) {
+                            showMorePopover = false
+                            controller.setControlsCollapsed(true)
+                        }
                         Button(L10n.t("儲存可編輯註記 .heiban…")) { controller.saveEditable() }
                         Button(L10n.t("使用手冊")) { controller.showUserGuide() }
                         Text(controller.message).font(.caption2).foregroundStyle(.secondary)
@@ -477,82 +580,59 @@ struct ToolbarToolsView: View {
                 }.padding(12)
             }.frame(width: 260).frame(maxHeight: 480)
         }
-        .popover(isPresented: Binding(get: { screenController != nil && engine.showLayerPanel },
-                                      set: { if screenController != nil { engine.showLayerPanel = $0 } }),
-                 arrowEdge: settingsArrowEdge) {
+        .popover(
+            isPresented: Binding(
+                get: { screenController != nil && engine.showLayerPanel },
+                set: { if screenController != nil { engine.showLayerPanel = $0 } }),
+            arrowEdge: settingsArrowEdge
+        ) {
             LayerPanelView(engine: engine).frame(width: 280, height: 440)
         }
         // NSPanel 內使用 popover，避免 sheet 搶走透明畫布的鍵盤／視窗生命週期。
         .popover(isPresented: $showCustomizeSheet, arrowEdge: settingsArrowEdge) {
-            ToolbarCustomizeSheet(engine: engine, isPresented: $showCustomizeSheet,
-                                  screenContext: screenController != nil)
+            ToolbarCustomizeSheet(
+                engine: engine, isPresented: $showCustomizeSheet,
+                screenContext: screenController != nil)
         }
     }
 
-    @ViewBuilder
-    private func overflowToolRow(id: String) -> some View {
+    @ViewBuilder private func overflowToolRow(id: String) -> some View {
         if id == "dock" {
             Menu {
-                Button(L10n.t("靠左 · 直向")) { showMorePopover = false; dock("left") }
-                Button(L10n.t("靠右 · 直向")) { showMorePopover = false; dock("right") }
-                Button(L10n.t("靠上 · 橫向")) { showMorePopover = false; dock("top") }
-                Button(L10n.t("靠下 · 橫向")) { showMorePopover = false; dock("bottom") }
+                dockActions
             } label: {
-                HStack(spacing: 10) {
-                    Image(systemName: "rectangle.3.group").frame(width: 24, height: 24)
-                    Text(L10n.t(toolTitle(id))).font(.system(size: 13))
-                    Spacer()
-                }
-            }
-            .buttonStyle(.plain)
+                overflowLabel(id)
+            }.buttonStyle(.plain)
         } else if id == "undoRedo" {
-            HStack(spacing: 10) {
+            HStack {
                 undoButton
                 redoButton
-                Text(L10n.t(toolTitle(id))).font(.system(size: 13))
+                Text(L10n.t(toolTitle(id)))
                 Spacer()
             }
         } else {
-            let def = ToolbarPreferences.allDefinitions.first { $0.id == id }
             Button {
-                showMorePopover = false
-                DispatchQueue.main.async {
-                    if ["color", "shapes", "eraser", "laser", "ruler"].contains(id), usesLabels {
-                        let targetPage = ToolbarContentPolicy.page(for: id)
-                        if ToolbarContentPolicy.pages.contains(targetPage) {
-                            if let externalActivePage {
-                                externalActivePage.wrappedValue = targetPage
-                            } else {
-                                internalActivePage = targetPage
-                            }
-                        }
-                    }
-                    triggerToolTileTap(id: id)
+                // 一般命令先關More；設定命令自行等原生popover退出再呈現。
+                if ["color", "shapes", "eraser"].contains(id) {
+                    performToolAction(id)
+                } else {
+                    showMorePopover = false
+                    DispatchQueue.main.async { performToolAction(id) }
                 }
             } label: {
-                HStack(spacing: 10) {
-                    Group {
-                        if id == "magnet" { HeiBanMagnetIcon() }
-                        else if id == "compass" { HeiBanCompassIcon() }
-                        else if id == "pins" { HeiBanPinIcon().frame(width: 16, height: 16) }
-                        else if id == "color" {
-                            Circle()
-                                .fill(Color(hex: laser.isEnabled ? laser.color : (engine.selectedStrokeColor.valueOrNil ?? engine.activeColor)))
-                                .frame(width: 18, height: 18)
-                                .overlay(Circle().stroke(.secondary, lineWidth: 1))
-                        } else {
-                            Image(systemName: def?.icon ?? "circle")
-                        }
-                    }
-                    .frame(width: 24, height: 24)
-                    Text(L10n.t(toolTitle(id))).font(.system(size: 13))
-                    Spacer()
-                }
-                .padding(.vertical, 2)
-                .contentShape(Rectangle())
+                overflowLabel(id)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.plain).disabled(toolDisabled(id))
+            .contextMenu { toolContextMenu(id) }
         }
+    }
+
+    private func overflowLabel(_ id: String) -> some View {
+        HStack(spacing: 10) {
+            toolGlyph(id).frame(width: 24, height: 24)
+            Text(L10n.t(toolTitle(id))).font(.system(size: 13))
+            Spacer()
+        }.contentShape(Rectangle())
     }
 
     private var settingsArrowEdge: Edge {
@@ -564,321 +644,191 @@ struct ToolbarToolsView: View {
         }
     }
 
-    @ViewBuilder
-    private func renderToolItem(id: String) -> some View {
-        switch id {
-        case "magnet":
-            ToolButton(icon:"heiban.magnet",tooltip:"磁鐵",isSelected:engine.toolbarPreferences.magnetEnabled) { engine.toggleMagnet() }
-        case "select":
-            ToolButton(
-                icon: "cursorarrow",
-                tooltip: screenController == nil ? "選取 / 平移 (Space + 拖曳)" : "選取",
-                isSelected: engine.currentTool == .select
-            ) {
-                selectTool(.select)
-            }
-        case "pen":
-            ToolButton(
-                icon: "pencil",
-                tooltip: "鋼筆 / 向量筆 (停頓自動轉幾何圖形)",
-                isSelected: engine.currentTool == .pen
-            ) {
-                selectTool(.pen)
-            }
-        case "curve":
-            ToolButton(
-                icon: "point.topleft.down.to.point.bottomright.curvepath",
-                tooltip: "曲線筆：描出弧線後可拖曳控制點微調",
-                isSelected: engine.currentTool == .curve
-            ) {
-                selectTool(.curve)
-            }
-        case "highlighter":
-            ToolButton(
-                icon: "highlighter",
-                tooltip: "螢光筆",
-                isSelected: engine.currentTool == .highlighter
-            ) {
-                selectTool(.highlighter)
-            }
-        case "paint":
-            ToolButton(
-                icon: "paintbrush.pointed.fill",
-                tooltip: "油漆筆刷（大面積著色）",
-                isSelected: engine.currentTool == .paint
-            ) {
-                selectTool(.paint)
-            }
-        case "eraser":
-            ToolButton(
-                icon: "eraser.fill",
-                tooltip: "橡皮擦（點按此工具設定模式與大小）",
-                isSelected: engine.currentTool == .eraser
-            ) {
-                if engine.currentTool != .eraser { selectTool(.eraser) }
-                engine.showEraserPopover = true
-            }
-            .popover(isPresented: $engine.showEraserPopover, arrowEdge: settingsArrowEdge) {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text(L10n.t("橡皮擦")).font(.headline)
-                    Picker(L10n.t("模式"), selection: $engine.eraserMode) {
-                        Text(L10n.t("物件擦除")).tag(EraserMode.object)
-                        Text(L10n.t("像素擦除")).tag(EraserMode.pixel)
-                    }
-                    .pickerStyle(.segmented)
-                    Text(engine.eraserMode == .object ? "擦除筆畫或幾何圖形" : "只擦除筆畫上的局部區域")
-                        .font(.caption).foregroundStyle(.secondary)
-                    HStack {
-                        Text(L10n.t("大小"))
-                        Slider(value: $engine.eraserSize, in: 4...120, step: 2)
-                        Text("\(Int(engine.eraserSize)) pt").monospacedDigit().frame(width: 46, alignment: .trailing)
-                    }
-                    .font(.caption)
-                }
-                .padding(16)
-                .frame(width: 300)
-            }
-        case "ruler":
-            ToolButton(
-                icon: "ruler.fill",
-                tooltip: "螢幕尺（點角度數字或右鍵開啟尺規設定）",
-                isSelected: engine.ruler.enabled
-            ) {
-                screenController?.setDrawing(true)
-                engine.ruler.enabled.toggle()
-                engine.showTemporaryStatus(engine.ruler.enabled ? "已啟用螢幕尺" : "已關閉螢幕尺")
-            }
-            .contextMenu {
-                Button(L10n.t("尺規角度與配色…")) { showRulerSettings = true }
-            }
-            .popover(isPresented: $showRulerSettings, arrowEdge: settingsArrowEdge) {
-                RulerSettingsView(engine: engine)
-            }
-        case "shapes":
-            Button {
-                screenController?.setDrawing(true)
-                engine.showShapesPopover.toggle()
-            } label: {
-                Image(systemName: "square.on.circle")
-                    .font(.system(size: 15))
-                    .foregroundColor([ToolType.rect, ToolType.roundedRect, ToolType.circle, ToolType.triangle, ToolType.polygon, ToolType.quadrilateral, ToolType.diamond, ToolType.star, ToolType.line, ToolType.arrow, ToolType.connector].contains(engine.currentTool) ? Color.accentColor : Color.primary)
-                    .frame(width: 32, height: 32)
-                    .background(engine.showShapesPopover ? Color.accentColor.opacity(0.2) : Color.clear, in: RoundedRectangle(cornerRadius: 6))
-            }
-            .buttonStyle(.plain)
-            .popover(isPresented: $engine.showShapesPopover, arrowEdge: settingsArrowEdge) {
-                ShapesMenuView(engine: engine, isPresented: $engine.showShapesPopover, onSelect: selectTool)
-            }
-        case "sticky":
-            ToolButton(
-                icon: "note.text",
-                tooltip: "便條紙",
-                isSelected: engine.currentTool == .sticky
-            ) {
-                selectTool(.sticky)
-            }
-        case "text":
-            ToolButton(
-                icon: "textformat",
-                tooltip: "文字（T）",
-                isSelected: engine.currentTool == .text,
-                glyph: "T"
-            ) {
-                selectTool(.text)
-            }
-        case "laser":
-            ToolButton(
-                icon: "rays",
-                tooltip: "雷射筆：移動即有尾跡，再點一次開啟設定",
-                isSelected: engine.currentTool == .laser || engine.laserEngine.isEnabled
-            ) {
-                if engine.currentTool == .laser {
-                    showLaserSettings = true
-                } else {
-                    selectTool(.laser)
-                    engine.laserEngine.isEnabled = true
-                }
-            }
-            .popover(isPresented: $showLaserSettings, arrowEdge: settingsArrowEdge) {
-                LaserSettingsView(laser: engine.laserEngine)
-            }
-            .contextMenu {
-                Button(L10n.t("雷射筆設定…")) { showLaserSettings = true }
-                Button(L10n.t("停止雷射筆")) { selectTool(.select) }
-            }
-        case "tape":
-            ToolButton(
-                icon: "eye.slash",
-                tooltip: "遮題膠帶（點擊切換遮蔽/揭示）",
-                isSelected: engine.currentTool == .tape
-            ) {
-                selectTool(.tape)
-            }
-        case "lasso":
-            ToolButton(
-                icon: "lasso",
-                tooltip: "套索工具（自由圈選或矩形選取）",
-                isSelected: engine.currentTool == .lasso
-            ) {
-                selectTool(.lasso)
-            }
-        case "screenshot":
-            ToolButton(
-                icon: "camera.viewfinder",
-                tooltip: screenController == nil ? "螢幕截圖並置入 (Mac 原生截圖)" : "截圖並儲存 PNG · ⌘⌥⇧S",
-                isSelected: false
-            ) {
-                captureScreenshot()
-            }
-        case "image":
-            ToolButton(
-                icon: "photo.badge.plus",
-                tooltip: "選擇圖片匯入；也可把桌面截圖或圖片檔直接拖到畫布",
-                isSelected: false
-            ) {
-                importImage()
-            }
-        case "color":
-            Button { engine.showColorPopover.toggle() } label: {
-                Circle().fill(Color(hex: laser.isEnabled ? laser.color : (engine.selectedStrokeColor.valueOrNil ?? engine.activeColor))).frame(width: 24, height: 24)
-                    .overlay(Circle().stroke(.secondary, lineWidth: 1)).frame(width: 32, height: 32)
-            }.buttonStyle(.plain).help(laser.isEnabled ? "雷射筆顏色與光點大小" : "筆刷顏色、粗細與透明度")
-            .popover(isPresented: $engine.showColorPopover, arrowEdge: settingsArrowEdge) {
-                if laser.isEnabled {
-                    LaserSettingsView(laser: laser)
-                } else {
-                    ToolbarBrushSettings(engine: engine)
-                }
-            }
-        case "lineStyle":
-            Button {
-                engine.activeLineStyle = (engine.activeLineStyle == "solid") ? "dashed" : "solid"
-            } label: {
-                Image(systemName: engine.activeLineStyle == "dashed" ? "ellipsis" : "minus")
-                    .font(.system(size: 14, weight: .bold))
-                    .frame(width: 28, height: 28)
-                    .background(engine.activeLineStyle == "dashed" ? Color.accentColor.opacity(0.2) : Color.clear, in: RoundedRectangle(cornerRadius: 6))
-            }
-            .buttonStyle(.plain)
-            .help(engine.activeLineStyle == "dashed" ? "虛線模式" : "實線模式")
-        case "layers":
-            ToolButton(
-                icon: "square.3.layers.3d",
-                tooltip: "物件圖層 (M)",
-                isSelected: engine.showLayerPanel
-            ) {
-                screenController?.setDrawing(true)
-                if screenController != nil { showMorePopover = false }
-                engine.toggleLayerPanel()
-            }
-        case "pins":
-            Button {
-                engine.togglePinManager()
-            } label: {
-                HeiBanPinIcon()
-                    .frame(width: 18, height: 18)
-                    .foregroundStyle(engine.showPinManager ? Color.accentColor : Color.primary)
-                    .frame(width: 32, height: 32)
-                    .background(engine.showPinManager ? Color.accentColor.opacity(0.22) : Color.clear, in: RoundedRectangle(cornerRadius: 6))
-            }
-            .buttonStyle(.plain)
-            .help(L10n.t("圖釘視角導航"))
-            .accessibilityLabel(L10n.t("圖釘視角導航"))
-            .accessibilityValue(engine.showPinManager ? "已啟用" : "未啟用")
-            .accessibilityAddTraits(engine.showPinManager ? [.isSelected, .isButton] : [.isButton])
-        case "compass":
-            ToolButton(
-                icon: "circle.circle",
-                tooltip: "圓規（再次點擊關閉）",
-                isSelected: engine.compassEngine.isEnabled
-            ) {
-                screenController?.setDrawing(true)
-                engine.toggleCompass()
-            }
-        case "calculator":
-            ToolButton(
-                icon: "plus.forwardslash.minus",
-                tooltip: "計算機（再次點擊關閉）",
-                isSelected: engine.calculator.isVisible
-            ) {
-                screenController?.setDrawing(true)
-                engine.toggleCalculator()
-            }
-        case "timer":
-            ToolButton(
-                icon: "timer",
-                tooltip: "計時器（再次點擊關閉）",
-                isSelected: engine.timerCoordinator.isVisible
-            ) {
-                screenController?.setDrawing(true)
-                engine.toggleTimer()
-            }
-        case "viewLock":
-            ToolButton(
-                icon: engine.viewportLocked ? "lock.fill" : "lock.open",
-                tooltip: engine.viewportLocked ? "鎖定視角：已鎖定畫布縮放與平移" : "鎖定視角：點擊鎖定畫布",
-                isSelected: engine.viewportLocked
-            ) {
-                engine.toggleViewportLock()
-            }
-        case "undoRedo":
-            let layout = vertical ? AnyLayout(VStackLayout(spacing: 4)) : AnyLayout(HStackLayout(spacing: 4))
-            layout { undoButton; redoButton }
-        case "undo": undoButton
-        case "redo": redoButton
-        case "dock":
+    @ViewBuilder private func renderToolItem(id: String) -> some View {
+        if id == "dock" {
             Menu {
-                Button(L10n.t("靠左 · 直向")) { dock("left") }
-                Button(L10n.t("靠右 · 直向")) { dock("right") }
-                Button(L10n.t("靠上 · 橫向")) { dock("top") }
-                Button(L10n.t("靠下 · 橫向")) { dock("bottom") }
+                dockActions
             } label: {
-                MenuDisclosureLabel(L10n.t("工具列停靠位置")) { Image(systemName: "rectangle.3.group").font(.system(size: 16)) }
+                toolGlyph(id).frame(width: 32, height: 32)
             }
-            .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize().help(L10n.t("工具列停靠位置"))
-        case "clearAll":
+            .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+        } else if id == "undoRedo" {
+            let layout = vertical ? AnyLayout(VStackLayout(spacing: 4)) : AnyLayout(HStackLayout(spacing: 4))
+            layout {
+                undoButton
+                redoButton
+            }
+        } else {
             Button {
-                clearCanvas()
+                performToolAction(id)
             } label: {
-                Image(systemName: "trash")
-                    .foregroundColor(.red.opacity(0.8))
-                    .frame(width: 28, height: 28)
+                toolGlyph(id).frame(width: 32, height: 32)
+                    .background(
+                        toolSelected(id) ? Color.accentColor.opacity(0.2) : Color.clear,
+                        in: RoundedRectangle(cornerRadius: 6)
+                    )
+                    .contentShape(Rectangle())
+            }.buttonStyle(.plain).disabled(toolDisabled(id)).help(L10n.t(toolTitle(id)))
+                .contextMenu { toolContextMenu(id) }
+        }
+    }
+
+    @ViewBuilder private var dockActions: some View {
+        Button(L10n.t("靠左 · 直向")) {
+            showMorePopover = false
+            dock("left")
+        }
+        Button(L10n.t("靠右 · 直向")) {
+            showMorePopover = false
+            dock("right")
+        }
+        Button(L10n.t("靠上 · 橫向")) {
+            showMorePopover = false
+            dock("top")
+        }
+        Button(L10n.t("靠下 · 橫向")) {
+            showMorePopover = false
+            dock("bottom")
+        }
+    }
+
+    @ViewBuilder private func toolGlyph(_ id: String) -> some View {
+        if id == "magnet" {
+            HeiBanMagnetIcon().frame(width: 18, height: 18)
+        } else if id == "pins" {
+            HeiBanPinIcon().frame(width: 18, height: 18)
+        } else if id == "compass" {
+            HeiBanCompassIcon().frame(width: 18, height: 18)
+        } else if id == "text" {
+            Text("T").font(.system(size: 20, weight: .medium, design: .serif))
+        } else if id == "lineStyle" {
+            Image(systemName: (engine.selectedLineStyle.valueOrNil ?? engine.activeLineStyle) == "solid" ? "minus" : "ellipsis")
+                .font(.system(size: 16, weight: .bold))
+        } else if id == "color" {
+            Circle().fill(
+                Color(
+                    hex: laser.isEnabled
+                        ? laser.color : (engine.selectedStrokeColor.valueOrNil ?? engine.activeColor))
+            )
+            .frame(width: 24, height: 24).overlay(Circle().stroke(.secondary, lineWidth: 1))
+        } else {
+            let icon =
+                id == "undo"
+                ? "arrow.uturn.backward"
+                : id == "redo"
+                    ? "arrow.uturn.forward"
+                    : ToolbarPreferences.allDefinitions.first { $0.id == id }?.icon ?? "questionmark"
+            Image(systemName: icon).font(.system(size: 16))
+                .foregroundStyle(id == "clearAll" ? Color.red : Color.primary)
+        }
+    }
+
+    private func toolSelected(_ id: String) -> Bool {
+        if let tool = drawingTool(id) { return engine.currentTool == tool }
+        switch id {
+        case "eraser": return engine.currentTool == .eraser
+        case "laser": return engine.currentTool == .laser || laser.isEnabled
+        case "ruler": return engine.ruler.enabled
+        case "magnet": return engine.toolbarPreferences.magnetEnabled
+        case "shapes": return activeSettings == .shapes
+        case "color": return activeSettings == .color
+        case "layers": return engine.showLayerPanel
+        case "pins": return engine.showPinManager
+        case "compass": return engine.compassEngine.isEnabled
+        case "calculator": return engine.calculator.isVisible
+        case "timer": return engine.timerCoordinator.isVisible
+        case "viewLock": return engine.viewportLocked
+        case "lineStyle": return (engine.selectedLineStyle.valueOrNil ?? engine.activeLineStyle) != "solid"
+        default: return false
+        }
+    }
+    private func toolDisabled(_ id: String) -> Bool {
+        (id == "undo" && !engine.canUndo) || (id == "redo" && !engine.canRedo)
+    }
+
+    @ViewBuilder private func toolContextMenu(_ id: String) -> some View {
+        if id == "ruler" { Button(L10n.t("尺規角度與配色…")) { presentSettings(.ruler) } }
+        if id == "laser" {
+            Button(L10n.t("雷射筆設定…")) { presentSettings(.laser) }
+            Button(L10n.t("停止雷射筆")) { selectTool(.select) }
+        }
+    }
+
+    @ViewBuilder private func settingsContent(_ settings: ToolSettings) -> some View {
+        switch settings {
+        case .color:
+            if laser.isEnabled {
+                LaserSettingsView(laser: laser)
+            } else {
+                ToolbarBrushSettings(engine: engine)
             }
-            .buttonStyle(.plain)
-            .help(L10n.t("清空黑板"))
-        default:
-            EmptyView()
+        case .shapes:
+            ShapesMenuView(
+                engine: engine,
+                isPresented: Binding(
+                    get: { activeSettings == .shapes }, set: { if !$0 { activeSettings = nil } }),
+                onSelect: selectTool)
+        case .laser: LaserSettingsView(laser: laser)
+        case .ruler: RulerSettingsView(engine: engine)
+        case .eraser:
+            VStack(alignment: .leading, spacing: 12) {
+                Text(L10n.t("橡皮擦")).font(.headline)
+                Picker(L10n.t("模式"), selection: $engine.eraserMode) {
+                    Text(L10n.t("物件擦除")).tag(EraserMode.object)
+                    Text(L10n.t("像素擦除")).tag(EraserMode.pixel)
+                }.pickerStyle(.segmented)
+                Text(L10n.t(engine.eraserMode == .object ? "擦除筆畫或幾何圖形" : "只擦除筆畫上的局部區域"))
+                    .font(.caption).foregroundStyle(.secondary)
+                HStack {
+                    Text(L10n.t("大小"))
+                    Slider(value: $engine.eraserSize, in: 4...120, step: 2)
+                    Text("\(Int(engine.eraserSize)) pt").monospacedDigit().frame(
+                        width: 46, alignment: .trailing)
+                }.font(.caption)
+            }.padding(16).frame(width: 300)
         }
     }
 
     private var undoButton: some View {
-        ToolButton(icon: "arrow.uturn.backward", tooltip: "復原 (Cmd+Z)", isSelected: false, action: engine.undo)
-            .disabled(!engine.canUndo)
+        ToolButton(
+            icon: "arrow.uturn.backward", tooltip: "復原 (Cmd+Z)", isSelected: false,
+            action: { performToolAction("undo") }
+        )
+        .disabled(!engine.canUndo)
     }
     private var redoButton: some View {
-        ToolButton(icon: "arrow.uturn.forward", tooltip: "重做 (Cmd+Shift+Z)", isSelected: false, action: engine.redo)
-            .disabled(!engine.canRedo)
+        ToolButton(
+            icon: "arrow.uturn.forward", tooltip: "重做 (Cmd+Shift+Z)", isSelected: false,
+            action: { performToolAction("redo") }
+        )
+        .disabled(!engine.canRedo)
     }
     private func selectTool(_ tool: ToolType) {
-        if let controller = screenController { controller.selectTool(tool) }
-        else { engine.selectTool(tool) }
+        if let controller = screenController { controller.selectTool(tool) } else { engine.selectTool(tool) }
     }
     private func captureScreenshot() {
-        if let controller = screenController { controller.captureScreen() }
-        else { engine.captureScreenAndPaste() }
+        if let controller = screenController {
+            controller.captureScreen()
+        } else {
+            engine.captureScreenAndPaste()
+        }
     }
     private func importImage() {
-        if let controller = screenController { controller.importImage() }
-        else { engine.importImageFromFilePrompt() }
+        if let controller = screenController {
+            controller.importImage()
+        } else {
+            engine.importImageFromFilePrompt()
+        }
     }
     private func clearCanvas() {
-        if let controller = screenController { controller.clearAnnotations() }
-        else { engine.clearAll() }
+        if let controller = screenController { controller.clearAnnotations() } else { engine.clearAll() }
     }
     private func dock(_ edge: String) {
         if let controller = screenController, let dock = AnnotationToolbarDock(rawValue: edge) {
             controller.setControlsDock(dock)
-        } else { engine.setToolbarDock(edge) }
+        } else {
+            engine.setToolbarDock(edge)
+        }
     }
 }
 
@@ -936,12 +886,15 @@ struct ShapesMenuView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 6)
                         .background(
-                            engine.currentTool == type ? Color.accentColor.opacity(0.18) : Color.primary.opacity(0.04),
+                            engine.currentTool == type
+                                ? Color.accentColor.opacity(0.18) : Color.primary.opacity(0.04),
                             in: RoundedRectangle(cornerRadius: 8)
                         )
                         .overlay(
                             RoundedRectangle(cornerRadius: 8)
-                                .stroke(engine.currentTool == type ? Color.accentColor : Color.primary.opacity(0.12), lineWidth: 1)
+                                .stroke(
+                                    engine.currentTool == type
+                                        ? Color.accentColor : Color.primary.opacity(0.12), lineWidth: 1)
                         )
                     }
                     .buttonStyle(.plain)
@@ -1004,15 +957,22 @@ struct ToolButton: View {
                 if let glyph {
                     Text(glyph).font(.system(size: 19, weight: .medium, design: .serif))
                 } else {
-                    if icon == "circle.circle" { HeiBanCompassIcon() }
-                    else if icon == "heiban.magnet" { HeiBanMagnetIcon() }
-                    else { Image(systemName: icon).font(.system(size: 15)) }
+                    if icon == "circle.circle" {
+                        HeiBanCompassIcon()
+                    } else if icon == "heiban.magnet" {
+                        HeiBanMagnetIcon()
+                    } else {
+                        Image(systemName: icon).font(.system(size: 15))
+                    }
                 }
             }
-                .foregroundColor(isSelected ? Color.accentColor : Color.primary)
-                .frame(width: 32, height: 32)
-                .background(isSelected ? Color.accentColor.opacity(0.22) : Color.clear, in: RoundedRectangle(cornerRadius: 6))
-                .contentShape(Rectangle())
+            .foregroundColor(isSelected ? Color.accentColor : Color.primary)
+            .frame(width: 32, height: 32)
+            .background(
+                isSelected ? Color.accentColor.opacity(0.22) : Color.clear,
+                in: RoundedRectangle(cornerRadius: 6)
+            )
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .help(L10n.t(tooltip))

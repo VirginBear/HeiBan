@@ -138,6 +138,7 @@ struct HomeView: View {
             Menu {
                 Button(L10n.t("使用手冊")) { HeiBanUserGuide.shared.show() }
                 Button(L10n.t("操作說明 · 全工具指南")) { openQuickStartGuideBoard() }
+                Button(L10n.t("建立新的操作指南練習")) { openQuickStartGuideBoard(fresh: true) }
                 Button(L10n.t("我的螢幕就是我的畫布")) { ScreenAnnotationController.shared.start() }
                 Divider()
                 Button(L10n.t("建立功能示範黑板")) { engine.loadShowcaseBoard() }
@@ -202,40 +203,34 @@ struct HomeView: View {
         return date?.formatted(date: .abbreviated, time: .shortened) ?? "本機儲存"
     }
 
-    private func quickStartGuideDocument() -> HeiBanDocument? {
-        let code = language.code
-        let url = Bundle.module.url(forResource: "QuickStart-\(code)", withExtension: "heiban", subdirectory: "Guides")
+    private func quickStartGuideDocument() throws -> HeiBanDocument {
+        let url = Bundle.module.url(forResource: "QuickStart-\(language.code)", withExtension: "heiban", subdirectory: "Guides")
             ?? Bundle.module.url(forResource: "QuickStart-zh-TW", withExtension: "heiban", subdirectory: "Guides")
-        guard let url, let data = try? Data(contentsOf: url) else { return nil }
-        return try? HeiBanDocumentCodec.decode(from: data)
+        guard let url else { throw CocoaError(.fileNoSuchFile) }
+        return try HeiBanDocumentCodec.decode(from: Data(contentsOf: url))
     }
 
     private func ensureQuickStartOnFirstLaunch() {
-        let boardId = "heiban-windows-quickstart-v2"
-        let baseDir = BoardEngine.library.directory.deletingLastPathComponent()
-        let settingsDir = baseDir.appendingPathComponent("Settings", isDirectory: true)
-        let markerURL = settingsDir.appendingPathComponent("quickstart-v2.json")
-        guard !FileManager.default.fileExists(atPath: markerURL.path) else { return }
-        try? FileManager.default.createDirectory(at: settingsDir, withIntermediateDirectories: true)
-        if !FileManager.default.fileExists(atPath: BoardEngine.library.fileURL(id: boardId).path),
-           var doc = quickStartGuideDocument() {
-            let now = ISO8601DateFormatter().string(from: Date())
-            doc.board.createdAt = now
-            doc.board.updatedAt = now
-            try? BoardEngine.library.save(doc)
-        }
-        let markerData = #"{"schema":2,"boardId":"heiban-windows-quickstart-v2"}"#.data(using: .utf8)
-        try? markerData?.write(to: markerURL, options: .atomic)
+        do {
+            try QuickStartGuideStore(library: BoardEngine.library).installOnFirstLaunch(template: quickStartGuideDocument)
+        } catch { guideError(error) }
     }
 
-    private func openQuickStartGuideBoard() {
-        guard var doc = quickStartGuideDocument() else { return }
-        let now = ISO8601DateFormatter().string(from: Date())
-        doc.board.updatedAt = now
-        try? BoardEngine.library.save(doc)
-        engine.refreshLibrary()
-        engine.openLibraryBoard(doc.board.id)
+    private func openQuickStartGuideBoard(fresh: Bool = false) {
+        guard engine.saveBeforeLeaving() else { return }
+        do {
+            let store = QuickStartGuideStore(library: BoardEngine.library)
+            let id = try fresh ? store.createFresh(template: quickStartGuideDocument)
+                : store.openOrCreate(template: quickStartGuideDocument)
+            engine.refreshLibrary()
+            engine.openLibraryBoard(id)
+        } catch { guideError(error) }
     }
+
+    private func guideError(_ error: Error) {
+        engine.showTemporaryStatus("\(L10n.t("無法開啟操作指南"))：\(error.localizedDescription)")
+    }
+
 }
 
 struct AdvancedBoardSheet: View {

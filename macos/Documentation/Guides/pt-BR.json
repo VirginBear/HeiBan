@@ -15,7 +15,8 @@
       "id": "start",
       "title": "Primeiros passos",
       "paragraphs": [
-        "Use + no Início para criar caderno, tela infinita ou quadro limitado; escolha título, tamanho e fundo. Abra pelo cartão e organize com busca, favoritos, seleção múltipla e Lixeira. Novas configurações deixam o salvamento automático DESLIGADO; as escolhas anteriores são mantidas."
+        "Use + no Início para criar caderno, tela infinita ou quadro limitado; escolha título, tamanho e fundo. Abra pelo cartão e organize com busca, favoritos, seleção múltipla e Lixeira. Novas configurações deixam o salvamento automático DESLIGADO; as escolhas anteriores são mantidas.",
+        "Abrir o guia mantém seu exercício. Criar um novo exercício gera outro trabalho e preserva o anterior."
       ]
     },
     {
@@ -64,7 +65,8 @@
       "id": "eraser",
       "title": "Borracha",
       "paragraphs": [
-        "Borracha apaga objeto ou parte do traço com alcance visível antes de pressionar. Imagens, texto, notas e objetos bloqueados são protegidos. No quadro normal, o apagador inclinado segue a silhueta espelhada da imagem. Clique direito muda modo ou oculta; Mais o mostra novamente. Um arrasto é um desfazer; Esc cancela. A remoção parcial corta vetores, não pixels de imagens."
+        "Borracha apaga objeto ou parte do traço com alcance visível antes de pressionar. Imagens, texto, notas e objetos bloqueados são protegidos. No quadro normal, o apagador inclinado segue a silhueta espelhada da imagem. Clique direito muda modo ou oculta; Mais o mostra novamente. Um arrasto é um desfazer; Esc cancela. A remoção parcial corta vetores, não pixels de imagens.",
+        "A borracha mostra uma prévia ao arrastar e confirma uma etapa de desfazer ao soltar. Esc ou trocar ferramenta ou trabalho cancela o apagamento pendente."
       ]
     },
     {
@@ -92,7 +94,7 @@
       "id": "status",
       "title": "Escopo e limitações",
       "paragraphs": [
-        "Mac 1.0.15 usa SwiftUI/AppKit nativos. Foi compilado, mas esta etapa não executou testes automáticos nem interativos. Slides, traduções longas, monitores e canetas reais exigem avaliação. Google/nuvem, colaboração e protótipos estruturados não são recursos completos entregues. O mesmo número de versão não comprova paridade total."
+        "Mac 1.0.16 usa SwiftUI/AppKit nativos. Foi compilado, mas esta etapa não executou testes automáticos nem interativos. Slides, traduções longas, monitores e canetas reais exigem avaliação. Google/nuvem, colaboração e protótipos estruturados não são recursos completos entregues. O mesmo número de versão não comprova paridade total."
       ]
     }
   ]

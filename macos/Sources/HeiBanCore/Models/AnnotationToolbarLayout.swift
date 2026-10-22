@@ -66,7 +66,7 @@ public struct AnnotationToolbarLayout {
 
     /// 握把＋模式 92，清空＋退出 70，分隔線 2，組間距 24，外內距 24。
     /// 中段依共用偏好計算數量，每格 32 pt／4 pt 間距；退出固定在中段之外。
-    public static let horizontalFixedWidth: CGFloat = 212
+    public static let horizontalFixedWidth: CGFloat = 174
     public static func horizontalColumns(width: CGFloat, itemCount: Int = AnnotationToolbarCatalog.horizontalItemCount) -> Int {
         max(1, min(max(1, itemCount), Int((max(32, width - horizontalFixedWidth) + 4) / 36)))
     }

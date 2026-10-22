@@ -9,7 +9,10 @@ struct NativePointerSurface: NSViewRepresentable {
     var screenAnnotation = false
     func makeNSView(context: Context) -> PointerView { let view = PointerView(engine: engine, onInteraction: onInteraction); view.screenAnnotation = screenAnnotation; return view }
     func updateNSView(_ view: PointerView, context: Context) { view.engine = engine; view.onInteraction = onInteraction; view.screenAnnotation = screenAnnotation }
-    static func dismantleNSView(_ view: PointerView, coordinator: ()) { view.engine.holdTimer?.invalidate() }
+    static func dismantleNSView(_ view: PointerView, coordinator: ()) {
+        view.engine.holdTimer?.invalidate()
+        view.engine.cancelEraserSwipe()
+    }
 
     // 螢幕註記覆寫空白區域／首點命中，仍共用同一套筆畫、選取與鍵盤路由。
     class PointerView: NSView {

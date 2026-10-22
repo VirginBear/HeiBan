@@ -294,6 +294,8 @@ final class ScreenAnnotationController: ObservableObject {
     /// 暫停、換工具、保存及截圖共同收束文字草稿，先結束原生組字。
     /// 不把未提交文字只留在 editor；停止後仍沿用既有 .heiban 恢復檔。
     private func commitTextDrafts() {
+        // 未放開的圓擦不屬於作品；截圖、保存、切換模式前捨棄預覽。
+        for session in sessions { session.engine.cancelEraserSwipe() }
         for session in sessions where session.engine.showInlineTextEditor {
             (session.panel.firstResponder as? NSTextView)?.unmarkText()
             session.engine.commitInlineTextEntry()

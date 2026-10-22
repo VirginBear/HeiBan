@@ -348,7 +348,7 @@ struct CanvasObjectsLayer: View {
     @ViewState<BoardObject?> private var shape: BoardObject?
 
     var body: some View {
-        BoardEraserObjectsLayer(engine: engine, state: engine.boardEraser,
+        BoardEraserObjectsLayer(engine: engine, state: engine.boardEraser, circular: engine.circularEraser,
                                 offset: offset, endpoint: endpoint, shape: shape)
             .onReceive(engine.strokePreview.$selectionOffset.removeDuplicates()) { offset = $0 }
             .onReceive(engine.strokePreview.$lineEndpoint.removeDuplicates()) { endpoint = $0 }
@@ -360,6 +360,7 @@ struct CanvasObjectsLayer: View {
 private struct BoardEraserObjectsLayer: View {
     @ObservedObject var engine: BoardEngine
     @ObservedObject var state: BoardEraserState
+    @ObservedObject var circular: CircularEraserState
     let offset: CGSize
     let endpoint: LineEndpointPreview?
     let shape: BoardObject?
@@ -367,6 +368,6 @@ private struct BoardEraserObjectsLayer: View {
     var body: some View {
         CanvasObjectsView(engine: engine, selectionOffset: offset, lineEndpoint: endpoint,
                           shapeObject: shape,
-                          objects: state.previewObjects?.filter { engine.isObjectOnCurrentPage($0) })
+                          objects: (circular.previewObjects ?? state.previewObjects)?.filter { engine.isObjectOnCurrentPage($0) })
     }
 }

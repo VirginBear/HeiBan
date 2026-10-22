@@ -268,136 +268,86 @@ extension BoardEngine {
         )
     }
 
-    // MARK: - Eraser Engine (A04 & A24 & A14)
+    // MARK: - Eraser transaction
     public func beginEraserSwipe() {
+        finishBoardEraser()
+        resetCircularEraserState()
+        circularEraser.original = objects
+        circularEraser.previewObjects = objects
+        circularEraser.boardID = board.id
+        circularEraser.pageID = activePageId
+        circularEraser.revision = drawingGeometryRevision
         isEraserSwipeActive = true
-        lastEraserScreenPoint = nil
-        activeEraserDeletedObjects.removeAll(keepingCapacity: true)
-        activeEraserInsertedObjects.removeAll(keepingCapacity: true)
+    }
+
+    private var circularEraserSessionIsCurrent: Bool {
+        circularEraser.boardID == board.id && circularEraser.pageID == activePageId
+            && circularEraser.revision == drawingGeometryRevision
     }
 
     public func eraseAt(screenPt: Point) {
-        let hitThreshold = CanvasToolMetrics.eraserWorldRadius(
-            screenDiameter: eraserSize, zoom: viewport.zoom)
-        let startPt = (isEraserSwipeActive || pointerGesture == .erasing) ? (lastEraserScreenPoint ?? screenPt) : screenPt
-        let steps = max(1, Int(ceil(hypot(screenPt.x - startPt.x, screenPt.y - startPt.y) / 5.0)))
-        if isEraserSwipeActive || pointerGesture == .erasing {
-            lastEraserScreenPoint = screenPt
-        }
-
+        guard screenPt.x.isFinite, screenPt.y.isFinite else { return }
+        let implicitGesture = !isEraserSwipeActive
+        if implicitGesture { beginEraserSwipe() }
+        guard circularEraserSessionIsCurrent else { cancelEraserSwipe(); return }
+        let radius = CanvasToolMetrics.eraserWorldRadius(screenDiameter: eraserSize, zoom: viewport.zoom)
+        let start = circularEraser.lastScreenPoint ?? screenPt
+        let steps = max(1, Int(ceil(hypot(screenPt.x-start.x, screenPt.y-start.y)/5)))
+        var draft = circularEraser.previewObjects ?? objects
         for step in 1...steps {
-            let t = Double(step) / Double(steps)
-            let sampleScreen = Point(
-                x: startPt.x + (screenPt.x - startPt.x) * t,
-                y: startPt.y + (screenPt.y - startPt.y) * t
-            )
-            let worldPt = VectorMath.screenToWorld(sampleScreen, viewport: viewport)
-            eraseAtWorldSample(worldPt: worldPt, hitThreshold: hitThreshold)
-        }
-    }
-
-    private func eraseAtWorldSample(worldPt: Point, hitThreshold: Double) {
-        if eraserMode == .object {
-            var newlyDeleted: [BoardObject] = []
-            objects.removeAll { obj in
-                // A24: Locked and hidden objects must not be erased
-                if obj.isLocked == true || obj.isVisible == false { return false }
-                if isNotebook && !isObjectOnCurrentPage(obj) { return false }
-                guard Self.isEraserEligible(obj.type) else { return false }
-                if VectorMath.isPointNearObject(point: worldPt, object: obj, threshold: hitThreshold) {
-                    newlyDeleted.append(obj)
-                    return true
+            let t = Double(step)/Double(steps)
+            let world = VectorMath.screenToWorld(
+                Point(x: start.x+(screenPt.x-start.x)*t, y: start.y+(screenPt.y-start.y)*t), viewport: viewport)
+            draft = draft.flatMap { item -> [BoardObject] in
+                guard isObjectOnCurrentPage(item), item.isLocked != true, item.isVisible != false,
+                      Self.isEraserEligible(item.type) else { return [item] }
+                if eraserMode == .object {
+                    return VectorMath.isPointNearObject(point: world, object: item, threshold: radius) ? [] : [item]
                 }
-                return false
-            }
-
-            if !newlyDeleted.isEmpty {
-                let delIds = Set(newlyDeleted.map(\.id))
-                selectedIds.subtract(delIds)
-                activeEraserDeletedObjects.append(contentsOf: newlyDeleted)
-                if !isEraserSwipeActive && pointerGesture != .erasing {
-                    endEraserSwipe()
+                guard ["stroke", "highlighter", "paint", "curve"].contains(item.type) else { return [item] }
+                // 未旋轉的筆跡才可直接用儲存的bounds做保守排除。
+                if item.rotation == 0 && item.type != "curve" {
+                    let margin = radius + max(2, item.strokeWidth)
+                    if world.x < item.x-margin || world.x > item.x+item.width+margin
+                        || world.y < item.y-margin || world.y > item.y+item.height+margin { return [item] }
                 }
-            }
-        } else {
-            // Partial / Vector Splitting mode (W16, A14) via EraserToolEngine
-            var toRemoveIds = Set<String>()
-            var newlySplitSegments: [BoardObject] = []
-
-            for obj in objects {
-                if obj.isLocked == true || obj.isVisible == false { continue }
-                if isNotebook && !isObjectOnCurrentPage(obj) { continue }
-
-                if obj.type == "stroke" || obj.type == "highlighter" || obj.type == "paint"
-                    || obj.type == "curve"
-                {
-                    let margin = hitThreshold + max(2.0, obj.strokeWidth)
-                    if obj.type != "curve" {
-                        if worldPt.x < obj.x - margin || worldPt.x > obj.x + obj.width + margin
-                            || worldPt.y < obj.y - margin || worldPt.y > obj.y + obj.height + margin
-                        {
-                            continue
-                        }
-                    }
-                    let segments = EraserToolEngine.sliceStroke(
-                        object: obj, eraserCenter: worldPt, eraserRadius: hitThreshold)
-                    if segments != [obj] {
-                        toRemoveIds.insert(obj.id)
-                        if let insIdx = activeEraserInsertedObjects.firstIndex(where: { $0.id == obj.id }) {
-                            activeEraserInsertedObjects.remove(at: insIdx)
-                        } else {
-                            activeEraserDeletedObjects.append(obj)
-                        }
-
-                        for segment in segments {
-                            newlySplitSegments.append(segment)
-                            activeEraserInsertedObjects.append(segment)
-                        }
-                    }
-                }
-            }
-
-            if !toRemoveIds.isEmpty || !newlySplitSegments.isEmpty {
-                objects.removeAll { toRemoveIds.contains($0.id) }
-                selectedIds.subtract(toRemoveIds)
-                for seg in newlySplitSegments {
-                    appendInZOrder(seg)
-                }
-
-                if !isEraserSwipeActive && pointerGesture != .erasing {
-                    endEraserSwipe()
-                }
+                return EraserToolEngine.sliceStroke(object: item, eraserCenter: world, eraserRadius: radius)
             }
         }
+        if draft != circularEraser.previewObjects { circularEraser.previewObjects = draft }
+        circularEraser.lastScreenPoint = screenPt
+        if implicitGesture { endEraserSwipe() }
     }
 
     public static func isEraserEligible(_ type: String) -> Bool {
-        [
-            "stroke", "pen", "highlighter", "paint", "curve", "rect", "circle", "ellipse", "triangle",
-            "quadrilateral", "diamond", "star", "line", "arrow", "arc", "rounded_rect", "polygon",
-            "connector", "pentagon",
-        ].contains(type)
+        ["stroke", "pen", "highlighter", "paint", "curve", "rect", "circle", "ellipse", "triangle",
+         "quadrilateral", "diamond", "star", "line", "arrow", "arc", "rounded_rect", "polygon",
+         "connector", "pentagon"].contains(type)
     }
 
     public func endEraserSwipe() {
-        isEraserSwipeActive = false
-        lastEraserScreenPoint = nil
-        var commands: [BoardCommand] = []
-        if !activeEraserDeletedObjects.isEmpty {
-            commands.append(.removeObjects(activeEraserDeletedObjects))
-        }
-        if !activeEraserInsertedObjects.isEmpty {
-            commands.append(.insertObjects(activeEraserInsertedObjects))
-        }
+        guard let before = circularEraser.original else { return }
+        let after = circularEraserSessionIsCurrent ? circularEraser.previewObjects : nil
+        cancelEraserSwipe()
+        guard let after, before != after else { return }
+        objects = after
+        selectedIds.formIntersection(Set(after.map(\.id)))
+        transactionManager.push(.replaceObjects(before: before, after: after))
+        scheduleAutosave()
+    }
 
-        if commands.count == 1 {
-            transactionManager.push(commands[0])
-            scheduleAutosave()
-        } else if commands.count > 1 {
-            transactionManager.push(.composite(commands))
-            scheduleAutosave()
-        }
-        activeEraserDeletedObjects.removeAll(keepingCapacity: true)
-        activeEraserInsertedObjects.removeAll(keepingCapacity: true)
+    public func cancelEraserSwipe() {
+        resetCircularEraserState()
+        clearCircularEraserPointerGesture()
+    }
+
+    private func resetCircularEraserState() {
+        circularEraser.previewObjects = nil
+        circularEraser.original = nil
+        circularEraser.boardID = nil
+        circularEraser.pageID = nil
+        circularEraser.revision = nil
+        circularEraser.lastScreenPoint = nil
+        if isEraserSwipeActive { isEraserSwipeActive = false }
     }
 }

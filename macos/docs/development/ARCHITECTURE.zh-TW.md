@@ -1,6 +1,6 @@
 # Mac 實際架構與維護邊界
 
-更新：2026-10-17。這份文件描述現況，未建立不存在的 Storage／Metal 模組。
+更新：2026-10-23。這份文件描述現況，未建立不存在的 Storage／Metal 模組。
 
 ## 套件與職責
 
@@ -104,3 +104,22 @@ macos/.build是可重新產生的SDK模組／中間檔／建置產品，沒有�
 普通保存的generation在每次已提交編輯推進，先標記尚未保存，才決定是否排自動寫入；關閉自動保存不會保留過期的「已儲存」。排程執行及完成回報都核對generation，但已開始的串行磁碟寫入仍可能完成。同步／非同步離開作品均提交文字與板擦後取值型別快照；不是保存所有未完成筆畫的通用交易機制。
 
 圖文工具列以shownPageIDs作實際渲染清單；More補齊目前未渲染工具，螢幕Undo／Redo同樣展開為共用元件。設定請求依renderedIDs決定是否先開More，不再誤用包含其他頁工具的visibleIDs。中段ScrollView有明確可用尺寸，常駐入口在捲動區之外；沒有新增第二套命令catalog或作品設定。
+
+
+## 1.0.16來源現況與10/23審視邊界
+
+10/22工具列改為按分頁工具數緊湊佈局，取消圖文中段ScrollView；More不再重複渲染設定popover元件，改輕量命令列，筆刷預覽固定尺寸。這取代上段1.0.15的中段捲動／More同元件描述，但隱藏設定缺穩定host及第二套trigger switch仍待處理，不能宣稱已完成單一命令來源。
+
+QuickStart由HomeView讀取Mac bundle，再寫本機library與marker；目前資產沒有進Git、內容仍是Windows限定操作，且手動開啟會先寫同ID範本。這是需修正的現況，不是正式採用的跨平台指南架構。圓形橡皮擦仍沿同步永久objects修改及放開復原交易，與BoardEraser獨立預覽是不同路徑；取消與稀疏線段裁剪尚有差距。
+
+使用者要求Mac優先操作一致性，Windows性能問題留原平台量測；沒有採用Windows worker／GPU實作作Mac新架構。具體證據與接續順序見[10/23核對報告](ANTIGRAVITY_PROGRESS_REVIEW_2026-10-23.zh-TW.md)。
+
+
+## 2026-10-23 L01–06實作
+
+- QuickStartGuideStore屬Mac Guide adapter，管理供應範本、現有練習、新ID及marker；不在HomeView重複寫入同ID範本。Mac十語JSON→generate_quickstart_guides.py→QuickStart-*.heiban／quickstart-manifest.json，建置可再生且供應檔進Git；使用者Library不參與生成。
+- CircularEraserState獨立高頻預覽；BoardEngine+Drawing只在正常放開替換永久陣列，取消不回寫舊文件。EraserToolEngine做圓與線段裁剪及旋轉烘焙，Point保留擴充欄位。與實體板擦共用渲染出口，但不混用grip／pointer工具狀態。
+- BoardToolSettings／presentedToolSettings統一設定呈現；ToolbarToolsView一個穩定popover host，render／圖文／More共用performToolAction。舊showColor／Eraser／Shapes API是相容別名，不是第二份呈現旗標。
+- 螢幕展開改用catalog清空及固定退出，收合仍有兩者；horizontalFixedWidth改174pt，對應移除重複清空的38pt。四邊／長語言的實際互動尚未驗收。
+
+以上是來源實作；不以編譯代替UI／故障注入／性能驗收。參見ADR-M30–32及本日誌02。

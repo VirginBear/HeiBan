@@ -15,7 +15,8 @@
       "id": "start",
       "title": "Erste Schritte",
       "paragraphs": [
-        "Mit + auf der Startseite erstellen Sie Notizbuch, unendliche Zeichenfläche oder begrenzte Tafel und wählen Name, Größe und Hintergrund. Karten öffnen Werke; Suche, Favoriten, Mehrfachauswahl und Papierkorb ordnen sie. Neue Einstellungen haben automatisches Speichern AUS; vorhandene Entscheidungen bleiben erhalten."
+        "Mit + auf der Startseite erstellen Sie Notizbuch, unendliche Zeichenfläche oder begrenzte Tafel und wählen Name, Größe und Hintergrund. Karten öffnen Werke; Suche, Favoriten, Mehrfachauswahl und Papierkorb ordnen sie. Neue Einstellungen haben automatisches Speichern AUS; vorhandene Entscheidungen bleiben erhalten.",
+        "Beim Öffnen bleibt Ihre Übung erhalten. Eine neue Übung erstellt ein eigenes Werk und behält das alte."
       ]
     },
     {
@@ -64,7 +65,8 @@
       "id": "eraser",
       "title": "Radierer",
       "paragraphs": [
-        "Der Radierer löscht Objekte oder Strichteile und zeigt vorher seine Reichweite. Bilder, Text, Notizen und gesperrte Objekte bleiben geschützt. Der schräge Tafelschwamm auf der normalen Fläche folgt der gespiegelten Bildkontur. Rechtsklick für Modus/Ausblenden; Mehr zeigt ihn erneut. Ein Ziehen ist ein Rückgängig-Schritt, Esc bricht ab. Teilradieren schneidet Vektoren, keine Bildpixel."
+        "Der Radierer löscht Objekte oder Strichteile und zeigt vorher seine Reichweite. Bilder, Text, Notizen und gesperrte Objekte bleiben geschützt. Der schräge Tafelschwamm auf der normalen Fläche folgt der gespiegelten Bildkontur. Rechtsklick für Modus/Ausblenden; Mehr zeigt ihn erneut. Ein Ziehen ist ein Rückgängig-Schritt, Esc bricht ab. Teilradieren schneidet Vektoren, keine Bildpixel.",
+        "Radieren zeigt beim Ziehen eine Vorschau und wird beim Loslassen als ein Rückgängig-Schritt übernommen. Esc sowie Werkzeug- oder Werkwechsel verwerfen unfertiges Radieren."
       ]
     },
     {
@@ -92,7 +94,7 @@
       "id": "status",
       "title": "Umfang und Grenzen",
       "paragraphs": [
-        "Mac 1.0.15 nutzt natives SwiftUI/AppKit. Kompiliert, aber dieser Arbeitsblock hat keine automatischen oder interaktiven Tests ausgeführt. Folien, lange Übersetzungen, mehrere Displays und echte Stifte müssen geprüft werden. Google/Cloud, Zusammenarbeit und strukturierte Prototypen sind nicht vollständig ausgeliefert. Gleiche Versionsnummer bedeutet keine nachgewiesene vollständige Funktionsgleichheit."
+        "Mac 1.0.16 nutzt natives SwiftUI/AppKit. Kompiliert, aber dieser Arbeitsblock hat keine automatischen oder interaktiven Tests ausgeführt. Folien, lange Übersetzungen, mehrere Displays und echte Stifte müssen geprüft werden. Google/Cloud, Zusammenarbeit und strukturierte Prototypen sind nicht vollständig ausgeliefert. Gleiche Versionsnummer bedeutet keine nachgewiesene vollständige Funktionsgleichheit."
       ]
     }
   ]

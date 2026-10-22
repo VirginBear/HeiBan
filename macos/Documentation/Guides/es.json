@@ -15,7 +15,8 @@
       "id": "start",
       "title": "Primeros pasos",
       "paragraphs": [
-        "Use + en Inicio para crear un cuaderno, lienzo infinito o pizarra limitada; elija título, tamaño y fondo. Abra una tarjeta y organice con búsqueda, favoritos, selección múltiple y Papelera. Los ajustes nuevos desactivan el guardado automático; se conservan las preferencias anteriores."
+        "Use + en Inicio para crear un cuaderno, lienzo infinito o pizarra limitada; elija título, tamaño y fondo. Abra una tarjeta y organice con búsqueda, favoritos, selección múltiple y Papelera. Los ajustes nuevos desactivan el guardado automático; se conservan las preferencias anteriores.",
+        "Abrir la guía conserva tu ejercicio. Crear uno nuevo genera otra obra y mantiene la anterior."
       ]
     },
     {
@@ -64,7 +65,8 @@
       "id": "eraser",
       "title": "Borrador",
       "paragraphs": [
-        "Borrador ofrece objeto o parte del trazo, con alcance antes de pulsar. Imágenes, texto, notas y objetos bloqueados se protegen. En el lienzo normal, el borrador inclinado sigue la silueta reflejada de su imagen. Clic derecho cambia modo u oculta; Más lo vuelve a mostrar. Un arrastre es un deshacer; Esc cancela. El borrado parcial corta vectores, no píxeles de imágenes."
+        "Borrador ofrece objeto o parte del trazo, con alcance antes de pulsar. Imágenes, texto, notas y objetos bloqueados se protegen. En el lienzo normal, el borrador inclinado sigue la silueta reflejada de su imagen. Clic derecho cambia modo u oculta; Más lo vuelve a mostrar. Un arrastre es un deshacer; Esc cancela. El borrado parcial corta vectores, no píxeles de imágenes.",
+        "El borrado se previsualiza al arrastrar y se confirma al soltar en un solo paso de deshacer. Esc o cambiar herramienta u obra cancela el borrado pendiente."
       ]
     },
     {
@@ -92,7 +94,7 @@
       "id": "status",
       "title": "Alcance y límites",
       "paragraphs": [
-        "Mac 1.0.15 usa SwiftUI/AppKit nativos. Se compiló, pero no se hicieron pruebas automáticas ni interactivas de esta tanda. Revise fuentes y compatibilidad de diapositivas, traducciones largas, monitores y lápices reales. Google/nube, colaboración y prototipos de notas estructuradas no son funciones entregadas completas. Compartir versión no demuestra paridad total."
+        "Mac 1.0.16 usa SwiftUI/AppKit nativos. Se compiló, pero no se hicieron pruebas automáticas ni interactivas de esta tanda. Revise fuentes y compatibilidad de diapositivas, traducciones largas, monitores y lápices reales. Google/nube, colaboración y prototipos de notas estructuradas no son funciones entregadas completas. Compartir versión no demuestra paridad total."
       ]
     }
   ]

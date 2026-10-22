@@ -15,7 +15,8 @@
       "id": "start",
       "title": "Getting started",
       "paragraphs": [
-        "Use + on Home to create a notebook, an infinite canvas or a bounded board. Choose title, size and background. Open a work from its card. Home offers search, favorites, multi-select and Trash. New settings default to auto-save OFF; previous saved choices remain."
+        "Use + on Home to create a notebook, an infinite canvas or a bounded board. Choose title, size and background. Open a work from its card. Home offers search, favorites, multi-select and Trash. New settings default to auto-save OFF; previous saved choices remain.",
+        "Opening the guide keeps your exercise. Create a new guide exercise makes a separate work and keeps the old one."
       ]
     },
     {
@@ -64,7 +65,8 @@
       "id": "eraser",
       "title": "Eraser",
       "paragraphs": [
-        "Eraser has object and partial ink modes with a size preview before pressing. Images, text, sticky notes and locked objects are protected. On a normal canvas, drag the original angled board eraser; its mirrored contact hull follows the picture, not its rectangular bounds. Right-click for modes or Hide; More → Show board eraser restores it. A drag is one undo step; Esc cancels. Partial erase cuts vector ink, not image pixels."
+        "Eraser has object and partial ink modes with a size preview before pressing. Images, text, sticky notes and locked objects are protected. On a normal canvas, drag the original angled board eraser; its mirrored contact hull follows the picture, not its rectangular bounds. Right-click for modes or Hide; More → Show board eraser restores it. A drag is one undo step; Esc cancels. Partial erase cuts vector ink, not image pixels.",
+        "Erasing previews until release, then commits one undo step. Esc, changing tools or switching works cancels unfinished erasing."
       ]
     },
     {
@@ -92,7 +94,7 @@
       "id": "status",
       "title": "Scope and known limits",
       "paragraphs": [
-        "Mac 1.0.15 uses native SwiftUI/AppKit. These changes have been compiled, but this batch has not run interactive or automated acceptance. Keynote fonts/compatibility, long translated labels, multiple displays and real pen devices need practical review. Google/cloud collaboration and structured mind-map/table/formula prototypes are not complete delivered features. A package version is not proof of full Windows/Mac parity."
+        "Mac 1.0.16 uses native SwiftUI/AppKit. These changes have been compiled, but this batch has not run interactive or automated acceptance. Keynote fonts/compatibility, long translated labels, multiple displays and real pen devices need practical review. Google/cloud collaboration and structured mind-map/table/formula prototypes are not complete delivered features. A package version is not proof of full Windows/Mac parity."
       ]
     }
   ]

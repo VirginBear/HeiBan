@@ -180,3 +180,20 @@ hiddenTitleBar在本機未執行頂端雙擊縮放；保留現有簡潔介面，
 2026-10-17，採用。普通作品的已提交修改一律推進generation／未保存狀態，再決定是否排程；背景已開始寫入仍允許完成，但過期UI回報必須拒絕。同步與非同步離開都先提交文字／板擦；草稿狀態不加入Undo或改文件格式。螢幕保存仍由自己的owner負責。
 
 圖文工具列顯示工具不等於偏好中的所有visible工具；popover錨點與More互補清單必須以目前頁、目前組計算。More沿用同一renderToolItem，維持一般／螢幕命令一致；中段有尺寸及捲動邊界，固定選取／More留外面。保留目前四分頁及本機偏好格式，未新增文件欄位。
+
+
+## ADR-M30 — Mac指南v3供應資產與使用者練習分開
+
+2026-10-23，採用。Mac使用Documentation/QuickStart十語JSON及generate_quickstart_guides.py，產25章／128物件的獨立v3 .heiban供應資產與SHA manifest。限縮macos/.gitignore例外到資源目錄的QuickStart檔，來源／生成檔一併版本控制，build_app必經生成。程式不讀Windows目錄；舊v2作品／marker不改。一般開啟找現有v3練習；明確建立新練習才新ID，marker保存最近指南ID。首次安裝成功落盤後才寫marker；刪除不自動重生。建立以advisory flock及檔案／垃圾桶存在檢查保護，不依賴目前未落實的LocalBoardLibrary expectedRevision參數；不是宣稱整個作品庫已具跨程序CAS。
+
+## ADR-M31 — 圓形橡皮擦隔離預覽及世界座標切割
+
+2026-10-23，採用。CircularEraserState與實體BoardEraserState分開，兩者在同一小型render wrapper擇一讀取。圓擦取樣只改previewObjects，正常放開且作品／頁／永久geometry revision符合才replaceObjects一次；保留原陣列順序、舊pageId=nil與未知欄位，不用刪除再append破壞頁面。Esc／失焦／拆除／換工具／保存及切作品捨棄未放開圓擦，已放開手勢同步提交，沒有待flush背景工作。直接eraseAt呼叫仍提供單次隱含手勢以相容舊入口。
+
+局部擦除解線段與圓交點，旋轉筆跡先轉世界座標；曲線96段近似，不保證解析Bezier布林運算。交點壓力插值，擴充欄位沿用最近端點；Point v1編解碼保留未知欄位，hash只取已知值而Equatable保留全值比較。沒有更換.heiban v1或引入Windows worker；性能要另行量測。
+
+## ADR-M32 — 單一設定狀態／錨點與單一工具命令
+
+2026-10-23，採用，取代ADR-M29的More重複元件錨點方案。Core BoardToolSettings描述低頻設定呈現，engine.presentedToolSettings為唯一狀態；舊三個show*Popover改相容computed別名。closeAllTransientPanels及工具切換能同步收起設定。ToolbarToolsView root只有一個工具設定popover，色彩／形狀／圓擦／雷射／尺規共用；顯示偏好或分組不決定設定可達性。More先關再開設定，避免原生視窗尺寸競爭。
+
+performToolAction是圖示、圖文Button與More的唯一動作路由；dock是完整Menu，Undo／Redo為兩個獨立可用性／熱區，不以外層tap包住內層Button。螢幕展開清空走catalog／More，固定尾端只留退出；收合維持清空／退出。偏好格式與作品schema不改；一般／螢幕沿用同組元件。

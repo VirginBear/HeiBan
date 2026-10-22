@@ -1,10 +1,14 @@
 # HeiBan 開發紀錄入口
 
-更新：2026-10-22。歷史計畫、實作與驗收是三種不同狀態。
+更新：2026-10-23。歷史計畫、實作與驗收是三種不同狀態。
 
 ## Mac維護與目前交付
 
-- [2026-10-22 Windows 1.0.16 → Mac 1.0.16 同步與專案健康度審視](../macos/docs/development/logs/2026-10-22/01.zh-TW.md)：工具列預設全開與無損遷移、自由筆無磁鐵干擾、板擦 80% 幾何、十語無邊界指南與 1,858 項斷言通過。
+- [2026-10-23 Mac操作修整實作](../macos/docs/development/logs/2026-10-23/02.zh-TW.md)：教學練習防覆寫／十語Mac資產可重建、圓擦隔離交易／交點裁剪、單一工具設定host與命令；1.0.16同版build20261023.1，操作驗收另列。
+
+- [2026-10-23 Antigravity進度與Mac操作邏輯核對](../macos/docs/development/ANTIGRAVITY_PROGRESS_REVIEW_2026-10-23.zh-TW.md)：本機與GitHub為1.0.16；指南內容／保護／Git資產、隱藏設定入口及圓擦交易仍有缺口。Mac優先操作一致性，Windows性能留原平台。
+
+- [2026-10-22 Windows 1.0.16 → Mac 1.0.16 同步與專案健康度審視](../macos/docs/development/logs/2026-10-22/01.zh-TW.md)：工具列預設全開與無損遷移、自由筆無磁鐵干擾、板擦 80% 幾何、十語無邊界指南入口；前批日誌記載1,862項斷言通過，本輪未重跑，完整性限制以10/23核對為準。
 - [Windows1.0.15 → Mac1.0.15同步開發／功能與限制](../macos/docs/development/WINDOWS_SYNC_REVIEW_2026-10-16.zh-TW.md)。本機版本與編譯／封裝證據依當日日誌，公開舊Release另列。
 
 - [Mac開發進度、排錯與交接總表](../macos/docs/development/MAC_DEVELOPMENT_HANDOFF_2026-10-13.zh-TW.md)

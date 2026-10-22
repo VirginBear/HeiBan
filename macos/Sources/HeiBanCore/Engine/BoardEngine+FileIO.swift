@@ -4,6 +4,7 @@ import Foundation
 extension BoardEngine {
     // MARK: - 可編輯原稿（.heiban 與舊 JSON）
     public func exportToJsonData() throws -> Data {
+        cancelEraserSwipe()
         return try HeiBanDocumentCodec.encode(document, prettyPrinted: true)
     }
 

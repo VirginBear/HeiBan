@@ -142,10 +142,20 @@ public class BoardEngine: ObservableObject {
 
     @Published public var showPinManager: Bool = false
     @Published public var showInspector: Bool = false
-    @Published public var showEraserPopover: Bool = false
+    @Published public var presentedToolSettings: BoardToolSettings?
+    public var showEraserPopover: Bool {
+        get { presentedToolSettings == .eraser }
+        set { setToolSettings(.eraser, shown: newValue) }
+    }
     @Published public var showExportMenu: Bool = false
-    @Published public var showShapesPopover: Bool = false
-    @Published public var showColorPopover: Bool = false
+    public var showShapesPopover: Bool {
+        get { presentedToolSettings == .shapes }
+        set { setToolSettings(.shapes, shown: newValue) }
+    }
+    public var showColorPopover: Bool {
+        get { presentedToolSettings == .color }
+        set { setToolSettings(.color, shown: newValue) }
+    }
     @Published public var showPinPopover: Bool = false
     @Published public var showNoteInfoPopover: Bool = false
     @Published public var showInsertMenu: Bool = false
@@ -204,7 +214,7 @@ public class BoardEngine: ObservableObject {
     }
 
     public var hasUnsavedDraftOrChanges: Bool {
-        if hasUncommittedTextChanges || isBoardEraserActive { return true }
+        if hasUncommittedTextChanges || isBoardEraserActive || isEraserSwipeActive { return true }
         switch pointerGesture {
         case .stroke, .shape, .polygon, .erasing, .moveSelection, .transformSelection, .lineEndpoint:
             return true
@@ -395,29 +405,14 @@ public class BoardEngine: ObservableObject {
         saveToolbarPreferences()
     }
 
-    public func closeAllTransientPanels() {
-        showColorPopover = false
-        showEraserPopover = false
-        showShapesPopover = false
+    private func setToolSettings(_ settings: BoardToolSettings, shown: Bool) {
+        if shown { presentedToolSettings = settings }
+        else if presentedToolSettings == settings { presentedToolSettings = nil }
     }
-
-    public func openBrushSettings() {
-        showEraserPopover = false
-        showShapesPopover = false
-        showColorPopover = true
-    }
-
-    public func openEraserSettings() {
-        showColorPopover = false
-        showShapesPopover = false
-        showEraserPopover = true
-    }
-
-    public func openShapesSettings() {
-        showColorPopover = false
-        showEraserPopover = false
-        showShapesPopover = true
-    }
+    public func closeAllTransientPanels() { presentedToolSettings = nil }
+    public func openBrushSettings() { presentedToolSettings = .color }
+    public func openEraserSettings() { presentedToolSettings = .eraser }
+    public func openShapesSettings() { presentedToolSettings = .shapes }
     @Published public var showLayerPanel: Bool = false
     @Published public var editingLayerId: String? = nil
     @Published public var editingLayerName: String = ""
@@ -450,10 +445,8 @@ public class BoardEngine: ObservableObject {
     // 同一個手勢共用這些暫態狀態；internal 供 HeiBanCore 延伸檔使用，不對 Mac UI 公開。
     // Transaction Manager for Undo / Redo & Layers (A04 & A24)
     public let transactionManager = TransactionManager(maxCapacity: 50)
-    var activeEraserDeletedObjects: [BoardObject] = []
-    var activeEraserInsertedObjects: [BoardObject] = []
-    var isEraserSwipeActive: Bool = false
-    var lastEraserScreenPoint: Point? = nil
+    public let circularEraser = CircularEraserState()
+    @Published public internal(set) var isEraserSwipeActive = false
     private var previousPanTranslation = CGSize.zero
     private var previousRulerTranslation = CGSize.zero
     private var rulerDragStart: Point?
@@ -931,7 +924,7 @@ public class BoardEngine: ObservableObject {
         scheduleAutosave()
     }
 
-    public var isPointerGestureActive: Bool { pointerGesture != .idle || isBoardEraserActive }
+    public var isPointerGestureActive: Bool { pointerGesture != .idle || isBoardEraserActive || isEraserSwipeActive }
 
     public func beginPointerGesture(at screenPoint: Point, isShift: Bool = false, clickCount: Int = 1) {
         let drawing = [ToolType.pen, .curve, .highlighter, .paint, .triangle, .quadrilateral, .rect, .circle, .diamond, .star, .line, .arrow, .roundedRect, .polygon, .connector].contains(currentTool)
@@ -1293,7 +1286,13 @@ public class BoardEngine: ObservableObject {
         endPanGesture()
     }
 
+    // 指標路由的setter維持在主檔；工具延伸檔只能要求結束自己擁有的手勢。
+    func clearCircularEraserPointerGesture() {
+        if pointerGesture == .erasing { pointerGesture = .idle; pointerGestureStart = nil }
+    }
+
     public func cancelTransientInteraction() {
+        cancelEraserSwipe()
         cancelBoardEraser()
         showsObjectDetails = false
         drawingAssist.target = nil
@@ -1328,6 +1327,7 @@ public class BoardEngine: ObservableObject {
 
     /// Selects a tool. If the specified tool is already active, toggles back to .select (A05, A11).
     public func selectTool(_ tool: ToolType) {
+        cancelEraserSwipe()
         finishBoardEraser()
         showsObjectDetails = false
         drawingAssist.target = nil
@@ -1381,6 +1381,7 @@ public class BoardEngine: ObservableObject {
 
     /// Cleans up modifier states and transient gestures when window loses focus (A11).
     public func handleWindowBlur() {
+        cancelEraserSwipe()
         isHoldingSpace = false
         isShiftHeld = false
         laserEngine.clear()
@@ -1497,6 +1498,7 @@ public class BoardEngine: ObservableObject {
 
     // MARK: - Undo & Redo (A04)
     public func undo() {
+        cancelEraserSwipe()
         finishBoardEraser()
         guard let command = transactionManager.popUndo() else { return }
         apply(command: command, isUndo: true)
@@ -1505,6 +1507,7 @@ public class BoardEngine: ObservableObject {
     }
 
     public func redo() {
+        cancelEraserSwipe()
         finishBoardEraser()
         guard let command = transactionManager.popRedo() else { return }
         apply(command: command, isUndo: false)
@@ -1611,6 +1614,7 @@ public class BoardEngine: ObservableObject {
     }
 
     public func clearAll() {
+        cancelEraserSwipe()
         if isNotebook {
             let pageObjs = currentPageObjects
             guard !pageObjs.isEmpty else { return }

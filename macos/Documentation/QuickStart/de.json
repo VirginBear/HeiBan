@@ -1,0 +1,107 @@
+{
+  "language": "de",
+  "title": "Bedienungsanleitung · Alle Werkzeuge · Mac",
+  "intro": "Beim Öffnen bleibt Ihre Übung erhalten. Eine neue Übung erstellt ein eigenes Werk und behält das alte. Radieren zeigt beim Ziehen eine Vorschau und wird beim Loslassen als ein Rückgängig-Schritt übernommen. Esc sowie Werkzeug- oder Werkwechsel verwerfen unfertiges Radieren.",
+  "chapters": [
+    {
+      "title": "Sprache der Oberfläche und Hilfe",
+      "body": "Die Sprache wählen Sie unter Konto und Einstellungen. Die Hilfe öffnet darin; die Sprachwahl hier betrifft nur diesen Leitfaden. Werknamen und Texte werden nicht übersetzt."
+    },
+    {
+      "title": "Erste Schritte",
+      "body": "Mit + auf der Startseite erstellen Sie Notizbuch, unendliche Zeichenfläche oder begrenzte Tafel und wählen Name, Größe und Hintergrund. Karten öffnen Werke; Suche, Favoriten, Mehrfachauswahl und Papierkorb ordnen sie. Neue Einstellungen haben automatisches Speichern AUS; vorhandene Entscheidungen bleiben erhalten."
+    },
+    {
+      "title": "Startseite und Bibliothek",
+      "body": "Mit + auf der Startseite erstellen Sie Notizbuch, unendliche Zeichenfläche oder begrenzte Tafel und wählen Name, Größe und Hintergrund. Karten öffnen Werke; Suche, Favoriten, Mehrfachauswahl und Papierkorb ordnen sie. Neue Einstellungen haben automatisches Speichern AUS; vorhandene Entscheidungen bleiben erhalten."
+    },
+    {
+      "title": "Flächenarten und Seiten",
+      "body": "Mit + auf der Startseite erstellen Sie Notizbuch, unendliche Zeichenfläche oder begrenzte Tafel und wählen Name, Größe und Hintergrund. Karten öffnen Werke; Suche, Favoriten, Mehrfachauswahl und Papierkorb ordnen sie. Neue Einstellungen haben automatisches Speichern AUS; vorhandene Entscheidungen bleiben erhalten."
+    },
+    {
+      "title": "Verschieben, Zoom und Ansichtssperre",
+      "body": "Das Mausrad zoomt am Zeiger. Mittlere Taste oder Space gedrückt halten und ziehen verschiebt die Ansicht. Trackpad: zwei Finger und Zusammenziehen. Textscrollen bleibt im Editor. Lesen und Ansichtsperre verhindern Änderungen. Doppelklick auf die leere Titelleiste oder ⌘⌥0 vergrößert das Fenster und stellt es wieder her."
+    },
+    {
+      "title": "Navigation und Symbolleisten",
+      "body": "Den Griff an eine der vier Kanten ziehen. Mehr → Werkzeugleiste anpassen bietet Symbole oder Häufig, Zeichnen, Einfügen und Verwalten. Auswahl bleibt sichtbar; Pfeile wechseln bei Platzmangel die Gruppe. Anzeige, Reihenfolge, Alle, Standard und Häufig sind separat wählbar. Versteckte Werkzeuge bleiben unter Mehr. Auch der Eigenschaften-Reiter lässt sich versetzen."
+    },
+    {
+      "title": "Stift und Pinsel",
+      "body": "Der Farbkreis öffnet Pinsel, Farbe, Hex, letzte Farben, Breite und Deckkraft. Bei Auswahl werden passende Objektstile geändert, sonst künftige Striche. Die Vorschau folgt dem Zoom. Einen fast geraden Strich eine Sekunde still halten richtet ihn gerade. Lasereinstellungen liegen am Laserknopf; seine Spur wird nicht gespeichert."
+    },
+    {
+      "title": "Linien, Pfeile, Formen und Kurven",
+      "body": "Zeichenwerkzeuge bleiben nach dem Erstellen aktiv. Rechtecke von einer Ecke ziehen; Kreise, Rauten, Fünfecke und Sterne vom Zentrum. Drei Dreieckpunkte oder vier Viereckpunkte nacheinander klicken; die Vorschau bleibt gerade. Kurven sind später anpassbar. Magnet fängt Start und Folgepunkte an nahen Eckpunkten, Mittelpunkten und Zentren (etwa 10 Bildschirmpunkte). Versteckte Objekte sind ausgeschlossen; gesperrte Formen bleiben Referenzen."
+    },
+    {
+      "title": "Auswahl und Transformation",
+      "body": "Auswahl verschiebt und ändert Größe, Drehung, A/B-Enden und Eckpunkte. Shift ergänzt die Auswahl. Ein Klick zeigt Griffe, ein Doppelklick Details. Ebenen verwaltet Namen, Sichtbarkeit, Sperre und Reihenfolge mit Ziehvorschau und Einfügelinie. Ein Ziehen ergibt einen Rückgängig-Schritt."
+    },
+    {
+      "title": "Eigenschaften, Farben und Stile",
+      "body": "Der Farbkreis öffnet Pinsel, Farbe, Hex, letzte Farben, Breite und Deckkraft. Bei Auswahl werden passende Objektstile geändert, sonst künftige Striche. Die Vorschau folgt dem Zoom. Einen fast geraden Strich eine Sekunde still halten richtet ihn gerade. Lasereinstellungen liegen am Laserknopf; seine Spur wird nicht gespeichert."
+    },
+    {
+      "title": "Text und Haftnotizen",
+      "body": "T und Haftnotiz erlauben direkte Eingabe; Fertig oder ⌘Enter bestätigt. Bestehenden Text doppelklicken zum Bearbeiten. Rechtsklick ändert Textgröße und -farbe auch mehrerer Felder. Formen bieten Füllung, Verlauf, Deckkraft, Linienmuster und Pfeilgröße. Textscrollen zoomt die Zeichenfläche nicht."
+    },
+    {
+      "title": "Radierer",
+      "body": "Der Radierer löscht Objekte oder Strichteile und zeigt vorher seine Reichweite. Bilder, Text, Notizen und gesperrte Objekte bleiben geschützt. Der schräge Tafelschwamm auf der normalen Fläche folgt der gespiegelten Bildkontur. Rechtsklick für Modus/Ausblenden; Mehr zeigt ihn erneut. Ein Ziehen ist ein Rückgängig-Schritt, Esc bricht ab. Teilradieren schneidet Vektoren, keine Bildpixel.\nBeim Öffnen bleibt Ihre Übung erhalten. Eine neue Übung erstellt ein eigenes Werk und behält das alte. Radieren zeigt beim Ziehen eine Vorschau und wird beim Loslassen als ein Rückgängig-Schritt übernommen. Esc sowie Werkzeug- oder Werkwechsel verwerfen unfertiges Radieren."
+    },
+    {
+      "title": "Lineal",
+      "body": "Das Lineal am Körper verschieben, am Griff drehen und Winkel auf eine Dezimalstelle eingeben. Die Farbe passt sich an. Beim Zirkel Zentrum und Start vorbereiten, Zentrum klicken, dann Spitze ziehen. Rechner und Timer sind verschiebbar. Klebeband verdeckt Inhalte, Lasso wählt Bereiche. Pins speichern benannte Ansichten und zeigen dieselbe Farbe in Liste und Zeichenfläche."
+    },
+    {
+      "title": "Zirkel: vorbereiten, sperren, zeichnen",
+      "body": "Das Lineal am Körper verschieben, am Griff drehen und Winkel auf eine Dezimalstelle eingeben. Die Farbe passt sich an. Beim Zirkel Zentrum und Start vorbereiten, Zentrum klicken, dann Spitze ziehen. Rechner und Timer sind verschiebbar. Klebeband verdeckt Inhalte, Lasso wählt Bereiche. Pins speichern benannte Ansichten und zeigen dieselbe Farbe in Liste und Zeichenfläche."
+    },
+    {
+      "title": "Laserzeiger",
+      "body": "Der Farbkreis öffnet Pinsel, Farbe, Hex, letzte Farben, Breite und Deckkraft. Bei Auswahl werden passende Objektstile geändert, sonst künftige Striche. Die Vorschau folgt dem Zoom. Einen fast geraden Strich eine Sekunde still halten richtet ihn gerade. Lasereinstellungen liegen am Laserknopf; seine Spur wird nicht gespeichert."
+    },
+    {
+      "title": "Rechner und Timer",
+      "body": "Das Lineal am Körper verschieben, am Griff drehen und Winkel auf eine Dezimalstelle eingeben. Die Farbe passt sich an. Beim Zirkel Zentrum und Start vorbereiten, Zentrum klicken, dann Spitze ziehen. Rechner und Timer sind verschiebbar. Klebeband verdeckt Inhalte, Lasso wählt Bereiche. Pins speichern benannte Ansichten und zeigen dieselbe Farbe in Liste und Zeichenfläche."
+    },
+    {
+      "title": "Bilder, Aufnahme und Zuschneiden",
+      "body": "Bilder mit ⌘V einfügen oder hineinziehen. Import: .heiban/JSON, PDF und PPT/PPTX/Keynote. Folien benötigen Keynote und Automation-Erlaubnis; nur eine temporäre Kopie wird in PDF umgewandelt, das Original bleibt erhalten. PDF kann auch vorher selbst exportiert werden. Bereich bis 200 Seiten und 100 MB Bilder; Abbruch übernimmt nichts. Externe Dokumente werden gesperrte Bilder ohne bearbeitbare Elemente, Video oder Animation. PDF exportiert aktuelle/alle Seiten und enthält das ganze Original mit versteckten Objekten und weiteren Seiten. PNG teilt nur Sichtbares, .heiban bleibt bearbeitbar. Normales Beenden wartet auf Speichern."
+    },
+    {
+      "title": "Ansichtspins und Farben",
+      "body": "Das Lineal am Körper verschieben, am Griff drehen und Winkel auf eine Dezimalstelle eingeben. Die Farbe passt sich an. Beim Zirkel Zentrum und Start vorbereiten, Zentrum klicken, dann Spitze ziehen. Rechner und Timer sind verschiebbar. Klebeband verdeckt Inhalte, Lasso wählt Bereiche. Pins speichern benannte Ansichten und zeigen dieselbe Farbe in Liste und Zeichenfläche."
+    },
+    {
+      "title": "Bildschirmfläche",
+      "body": "Die Bildschirmfläche startet auf der Startseite als transparente Ebene über anderen Apps. ⌘⌥⇧D wechselt Zeichnen/Durchklicken, ⌘⌥⇧S erstellt einen Screenshot, ⌘⌥⇧X beendet. Werkzeuge und Einstellungen werden geteilt, außer Pins und Ansichtsnavigation. Vierseitig andockbar. Leeren lässt die Ebene offen und ist rückgängig; T fügt Text ein. Geschützte Systemansichten sind nicht garantiert."
+    },
+    {
+      "title": "Speichern, Daten, Export",
+      "body": "Mac-Werke liegen in ~/Library/Application Support/HeiBan/. Bewahren Sie .heiban zum Bearbeiten auf. Automatisches Speichern betrifft die lokale Sitzung; speichern Sie erneut eine Kopie, um die externe Datei zu aktualisieren.\nBilder mit ⌘V einfügen oder hineinziehen. Import: .heiban/JSON, PDF und PPT/PPTX/Keynote. Folien benötigen Keynote und Automation-Erlaubnis; nur eine temporäre Kopie wird in PDF umgewandelt, das Original bleibt erhalten. PDF kann auch vorher selbst exportiert werden. Bereich bis 200 Seiten und 100 MB Bilder; Abbruch übernimmt nichts. Externe Dokumente werden gesperrte Bilder ohne bearbeitbare Elemente, Video oder Animation. PDF exportiert aktuelle/alle Seiten und enthält das ganze Original mit versteckten Objekten und weiteren Seiten. PNG teilt nur Sichtbares, .heiban bleibt bearbeitbar. Normales Beenden wartet auf Speichern."
+    },
+    {
+      "title": "Tastenkürzel",
+      "body": "⌘S speichert; ⌘Z macht rückgängig; ⌘⇧Z wiederholt; ⌘C/⌘V kopiert/fügt ein; ⌘N erstellt ein Werk. Bildschirmleinwand: ⌘⌥⇧D zeichnen/bedienen, ⌘⌥⇧S Bildschirmfoto speichern, ⌘⌥⇧X beenden."
+    },
+    {
+      "title": "App-Updates",
+      "body": "Über HeiBan → GitHub-Updates prüft passende Mac-Versionen. Laden Sie die Version von der Release-Seite herunter und installieren Sie sie. Die App wird nicht im Hintergrund ersetzt."
+    },
+    {
+      "title": "Umfang und Grenzen",
+      "body": "Mac nutzt natives SwiftUI/AppKit. Kompiliert, aber dieser Arbeitsblock hat keine automatischen oder interaktiven Tests ausgeführt. Folien, lange Übersetzungen, mehrere Displays und echte Stifte müssen geprüft werden. Google/Cloud, Zusammenarbeit und strukturierte Prototypen sind nicht vollständig ausgeliefert. Gleiche Versionsnummer bedeutet keine nachgewiesene vollständige Funktionsgleichheit."
+    },
+    {
+      "title": "Hintergrund in der Praxis",
+      "body": "Mit + auf der Startseite erstellen Sie Notizbuch, unendliche Zeichenfläche oder begrenzte Tafel und wählen Name, Größe und Hintergrund. Karten öffnen Werke; Suche, Favoriten, Mehrfachauswahl und Papierkorb ordnen sie. Neue Einstellungen haben automatisches Speichern AUS; vorhandene Entscheidungen bleiben erhalten."
+    },
+    {
+      "title": "Ebenenreihenfolge und Rückmeldung",
+      "body": "Auswahl verschiebt und ändert Größe, Drehung, A/B-Enden und Eckpunkte. Shift ergänzt die Auswahl. Ein Klick zeigt Griffe, ein Doppelklick Details. Ebenen verwaltet Namen, Sichtbarkeit, Sperre und Reihenfolge mit Ziehvorschau und Einfügelinie. Ein Ziehen ergibt einen Rückgängig-Schritt."
+    }
+  ]
+}

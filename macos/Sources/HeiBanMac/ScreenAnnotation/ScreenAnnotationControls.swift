@@ -75,8 +75,8 @@ private struct ScreenAnnotationToolControls: View {
             sharedTools
                 .frame(width: max(32, controller.controlsSize.width - AnnotationToolbarLayout.horizontalFixedWidth))
             Divider().frame(width: 1, height: 22)
-            // 清空與退出在固定尾端，新增工具只增加中段列數，不能把退出推出 NSPanel。
-            HStack(spacing: 6) { clearButton; closeButton }.frame(width: 70)
+            // 展開時清空沿用共用catalog／More，退出固定尾端；收合仍保留清空。
+            closeButton.frame(width: 32)
         }
     }
 
@@ -112,13 +112,13 @@ private struct ScreenAnnotationToolControls: View {
             Divider()
             sharedTools
             Divider()
-            VStack(spacing: 4) { clearButton; closeButton }
+            closeButton
         }
     }
 
     // 共用一般畫布的圖示、排序、設定與更多入口；这里只負責螢幕視窗的固定命令。
     private var sharedTools: some View {
-        ToolbarToolsView(engine: engine, screenController: controller, columns: columns, availableLength: vertical ? controller.controlsSize.height-194 : controller.controlsSize.width-224)
+        ToolbarToolsView(engine: engine, screenController: controller, columns: columns, availableLength: vertical ? controller.controlsSize.height-156 : controller.controlsSize.width-186)
     }
 
     private func iconButton(_ icon: String, title: String, action: @escaping () -> Void) -> some View {

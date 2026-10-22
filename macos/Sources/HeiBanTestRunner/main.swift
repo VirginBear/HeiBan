@@ -6065,10 +6065,11 @@ do {
     assertEqual(manualSaveEngine.saveFeedbackState, .unsaved, "51.7 關閉自動存檔下新增物件後立即轉為 .unsaved")
 
     // 51.8 十語單頁無邊界操作指南作品可被完整解碼且包含 25 個章節圖釘
-    let quickStartPath = "/Users/bear/Desktop/Code/HeiBan/macos/Sources/HeiBanMac/Resources/Guides/QuickStart-zh-TW.heiban"
+    let quickStartPath = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+        .deletingLastPathComponent().appendingPathComponent("HeiBanMac/Resources/Guides/QuickStart-zh-TW.heiban").path
     let quickStartData = try! Data(contentsOf: URL(fileURLWithPath: quickStartPath))
     let quickStartDoc = try! HeiBanDocumentCodec.decode(from: quickStartData)
-    assertEqual(quickStartDoc.board.id, "heiban-windows-quickstart-v2", "51.8 操作指南作品：ID 對齊 heiban-windows-quickstart-v2")
+    assertEqual(quickStartDoc.board.id, "heiban-macos-quickstart-v3", "51.8 操作指南作品：Mac v3獨立指南")
     assertEqual(quickStartDoc.board.canvasMode, .infinite, "51.8 操作指南作品：單頁無邊界畫布 (.infinite)")
     assertEqual(quickStartDoc.board.pins?.count, 25, "51.8 操作指南作品：包含完整 25 個教學章節圖釘")
     assertTrue(quickStartDoc.objects.count > 100, "51.8 操作指南作品：包含豐富可實際擦除與編輯之練習物件")

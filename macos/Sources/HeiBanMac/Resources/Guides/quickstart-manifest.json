@@ -1,0 +1,86 @@
+{
+  "schema": 3,
+  "boardID": "heiban-macos-quickstart-v3",
+  "editions": [
+    {
+      "language": "ar",
+      "file": "QuickStart-ar.heiban",
+      "chapters": 25,
+      "objects": 128,
+      "bytes": 157422,
+      "sha256": "db2cfa33577f39a7f062110d0fad2e9e99a725170e2be057d6f8cb3d74d27c12"
+    },
+    {
+      "language": "de",
+      "file": "QuickStart-de.heiban",
+      "chapters": 25,
+      "objects": 128,
+      "bytes": 153603,
+      "sha256": "e0d9e7f7a7b7e17303825f6551550c0a9bbf850701117e740e96353eb6b23589"
+    },
+    {
+      "language": "en",
+      "file": "QuickStart-en.heiban",
+      "chapters": 25,
+      "objects": 128,
+      "bytes": 153910,
+      "sha256": "9b37af9a47230995e0c8e1badfc4d4fe001e7f665a695337446dbc40caa622b4"
+    },
+    {
+      "language": "es",
+      "file": "QuickStart-es.heiban",
+      "chapters": 25,
+      "objects": 128,
+      "bytes": 153278,
+      "sha256": "317910b7098282638203bc1bff212ea2cde9ce68e37f92bafdefb19fb1093191"
+    },
+    {
+      "language": "fr",
+      "file": "QuickStart-fr.heiban",
+      "chapters": 25,
+      "objects": 128,
+      "bytes": 153742,
+      "sha256": "ce45bb5aab3e710723c0b6e7017be2c923a7fe01f4619281a944e8d9326cb172"
+    },
+    {
+      "language": "ja",
+      "file": "QuickStart-ja.heiban",
+      "chapters": 25,
+      "objects": 128,
+      "bytes": 155054,
+      "sha256": "59eb553a69a778f7ed09f0c9ae9f2102729d9b6874d00f1b0d4930c931acf74f"
+    },
+    {
+      "language": "ko",
+      "file": "QuickStart-ko.heiban",
+      "chapters": 25,
+      "objects": 128,
+      "bytes": 154626,
+      "sha256": "d2c5a35c742e0e4dbd24cd049901431e406bf58438b1ed14b69335224bbad556"
+    },
+    {
+      "language": "pt-BR",
+      "file": "QuickStart-pt-BR.heiban",
+      "chapters": 25,
+      "objects": 128,
+      "bytes": 153133,
+      "sha256": "0bfed8d511837ebc51cb2808ff2721e0c195e2ae8ec9ba6ffcf784aadf1a637d"
+    },
+    {
+      "language": "zh-CN",
+      "file": "QuickStart-zh-CN.heiban",
+      "chapters": 25,
+      "objects": 128,
+      "bytes": 150721,
+      "sha256": "a9b6435b13f7527e84bdc4ba36299473c310e15d0148081960799e772dcc4684"
+    },
+    {
+      "language": "zh-TW",
+      "file": "QuickStart-zh-TW.heiban",
+      "chapters": 25,
+      "objects": 128,
+      "bytes": 170449,
+      "sha256": "e71d3885727d6ae88c629e70cb9b73667e0798a4d0da6eb5e64c53fd6a1b3873"
+    }
+  ]
+}

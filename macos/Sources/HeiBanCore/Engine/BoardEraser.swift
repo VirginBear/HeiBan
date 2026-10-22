@@ -131,6 +131,7 @@ extension BoardEngine {
     }
     public func beginBoardEraser(at pointer: Point, grip: Point) {
         guard !readingMode, !showingHome, BoardEraserGeometry.canGrab(grip) else { return }
+        cancelEraserSwipe()
         if inlineTextEditing { commitInlineTextEntry() }
         let previousTool = currentTool
         cancelTransientInteraction()

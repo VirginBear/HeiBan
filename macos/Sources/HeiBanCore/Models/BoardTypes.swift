@@ -317,6 +317,40 @@ public struct Point: Codable, Equatable, Hashable, Sendable {
     public var x: Double
     public var y: Double
     public var pressure: Double?
+    public var extraFields: [String: AnyCodableValue]? = nil
+
+    private enum CodingKeys: String, CodingKey, CaseIterable { case x, y, pressure }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        x = try c.decode(Double.self, forKey: .x)
+        y = try c.decode(Double.self, forKey: .y)
+        pressure = try c.decodeIfPresent(Double.self, forKey: .pressure)
+        let dynamic = try decoder.container(keyedBy: AnyCodingKey.self)
+        let known = Set(CodingKeys.allCases.map(\.stringValue))
+        var extra: [String: AnyCodableValue] = [:]
+        for key in dynamic.allKeys where !known.contains(key.stringValue) {
+            extra[key.stringValue] = try dynamic.decode(AnyCodableValue.self, forKey: key)
+        }
+        extraFields = extra.isEmpty ? nil : extra
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(x, forKey: .x)
+        try c.encode(y, forKey: .y)
+        try c.encodeIfPresent(pressure, forKey: .pressure)
+        var dynamic = encoder.container(keyedBy: AnyCodingKey.self)
+        let known = Set(CodingKeys.allCases.map(\.stringValue))
+        for (key, value) in extraFields ?? [:] where !known.contains(key) {
+            try dynamic.encode(value, forKey: AnyCodingKey(stringValue: key)!)
+        }
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        // 擴充值不必Hashable；相等點仍有相同hash，碰撞由完整Equatable分辨。
+        hasher.combine(x); hasher.combine(y); hasher.combine(pressure)
+    }
 
     public init(x: Double, y: Double, pressure: Double? = nil) {
         self.x = x

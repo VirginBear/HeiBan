@@ -14,6 +14,8 @@ assert re.fullmatch(r"[0-9]+(?:\.[0-9]+)*", release["build"])
 print(release["version"], release["build"])
 ' "$MACOS_DIR/Release.json")
 
+python3 "$SCRIPT_DIR/generate_quickstart_guides.py"
+
 swift "$SCRIPT_DIR/package_brand_icon.swift" "$MACOS_DIR"
 iconutil -c icns "$MACOS_DIR/assets/branding/HeiBan.iconset" -o "$MACOS_DIR/assets/AppIcon.icns"
 

@@ -90,6 +90,7 @@ extension BoardEngine {
 
     @discardableResult
     public func saveBeforeLeaving() -> Bool {
+        cancelEraserSwipe()
         finishBoardEraser()
         if inlineTextEditing { commitInlineTextEntry() }
         guard persistence.enabled else { return true }
@@ -130,6 +131,7 @@ extension BoardEngine {
     /// 正常結束應用程式時使用非同步保存，避免大作品的編碼／磁碟寫入凍結主執行緒。
     public func saveBeforeLeaving(completion: @escaping (Bool) -> Void) {
         dispatchPrecondition(condition: .onQueue(.main))
+        cancelEraserSwipe()
         finishBoardEraser()
         if inlineTextEditing { commitInlineTextEntry() }
         guard persistence.enabled else {
