@@ -1,6 +1,6 @@
 # Windows 開發決策
 
-## 2026-10-22 — 常用工具與完整無邊界指南（開發中）
+## 2026-10-22 — 常用工具與完整無邊界指南（x64試用完成，待實機）
 
 操作指南v2另用heiban-windows-quickstart-v2與quickstart-v2.json，保護前批v1可能已編輯的作品；刪除後marker保留而不重建。沿用文件既有infinite／page／pins欄位，無schema遷移，未知欄位仍由原codec保留。截圖非必要，本批採完整文字與原生可操作範例，未新增App截圖。 [本批日誌](TOOLBAR_GUIDE_2026-10-22.zh-TW.md)。
 

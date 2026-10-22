@@ -13,3 +13,10 @@
 - 調查輔助輸出首次cp950無法印阿拉伯文，明確PYTHONIOENCODING=utf-8後完成；一次rg字面萬用路徑error123改以目錄與-g過濾。
 
 - 第一輪portable封裝成功；靜態座標檢視發現章節圖釘放正文中，改放章節前留白，避免遮字，重新產生資源並以r2重新封裝。前一輪不交付。零內容文件換行修正只處理本批新增CRLF，原YouTube未提交18行保留。
+
+## 最終封裝與資料接續
+- `Package-PortableTrial.ps1 -Runtime win-x64 -Label toolbar-guide-2026-10-22-r1`成功；調整圖釘留白後以`-Label toolbar-guide-2026-10-22-r2`重新publish與封裝成功。最終來源cdd54758eb281bd71db4cb2b99152a913b5843c5；沿用1.0.15，沒有Store／Release或正式進版。
+- 最終ZIP 132760672bytes／SHA256 82aefc4b7410ff39127f36093a7a598879d09313f9f180061d116bc97f841334；靜態CRC、583payload與173source SHA、x64 PE、十語指南SHA符合。每語單頁infinite、25個章節圖釘、29項工具映射；ZIP使用者Data=0，詳TOOLBAR_GUIDE_PORTABLE_ARTIFACT／INSPECTION_2026-10-22.json。
+- `toolbar-guide-handoff.ps1`首次偵測舊版正在執行，正常停止，沒有複製或清理。使用者回覆「已儲存並關閉，接續作品」後重新確認程序未執行，接續38檔24479726bytes，全部SHA符合。v1範例及使用者修改原樣接續；v2由新版本首次啟動加入，不覆寫舊作品。
+- `Clear-ObsoleteTrials.ps1 -KeepTrial HeiBan-Windows-Portable-1.0.15-toolbar-guide-2026-10-22-r2-win-x64`完成；清理兩份舊試用runtime／ZIP，釋放911697865bytes、保留資料24479726bytes，備份位置與GitHub公開資產核對見TOOLBAR_GUIDE_TRIAL_CLEANUP_2026-10-22.json。原Store1.0.15.0 bundle SHA仍a889482ff3aa171569ce415fc285340b26742528af4306a3e0a0e3d6fa07eb96，沒有刪商店／公開發行。
+- 實際未執行：App／UI／實作測試／硬體與DPI驗收／新截圖／性能benchmark／Store上傳與發布。本批只生成資源、編譯封裝與檔案完整性核對；不聲稱指南排版或操作已完成實機驗收。待確認：新舊偏好遷移、自訂保留、兩畫布常用與圖文模式、v2首次出現與刪後不重建、無邊界全文閱讀／圖釘定位／練習物件。

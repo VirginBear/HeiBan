@@ -1,6 +1,6 @@
 # Windows 開發日誌
 
-## 2026-10-22 — 常用工具與完整無邊界指南（開發中）
+## 2026-10-22 — 常用工具與完整無邊界指南（x64試用完成，待實機）
 
 開工保留三份平台文件及三份YouTube新文件。查明預設icons、常用缺brush／dash、範例notebook三頁且手冊start仍說不建範例。新增偏好呈現revision、預設與還原採labels，常用補brush／dash；生成器改單頁infinite全手冊並核對runtime29項工具覆蓋。更新十語指南64段與v2一次性建立。 [本批日誌](TOOLBAR_GUIDE_2026-10-22.zh-TW.md)。
 

@@ -1,6 +1,6 @@
 # Windows 架構決策（2026-10-08）
 
-## 2026-10-22 — 常用工具與完整無邊界指南（開發中）
+## 2026-10-22 — 常用工具與完整無邊界指南（x64試用完成，待實機）
 
 ToolbarPreferences.DefaultPresentationRevision與工具顯隱revision分開：新建／reset採labels與DefaultCommonTools，僅舊原始常用配置遷移；主／螢幕偏好回傳包含revision。生成器對照runtime AllDefaultTools與分章映射，完整手冊轉text物件與可編輯幾何，不讀使用者資料；Board CanvasMode／CanvasPreset=infinite、單page、25個世界座標圖釘。 [本批日誌](TOOLBAR_GUIDE_2026-10-22.zh-TW.md)。
 

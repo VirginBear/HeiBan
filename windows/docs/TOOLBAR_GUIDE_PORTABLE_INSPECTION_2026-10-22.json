@@ -1,0 +1,23 @@
+{
+  "success": true,
+  "label": "toolbar-guide-2026-10-22-r2",
+  "sourceCommit": "cdd54758eb281bd71db4cb2b99152a913b5843c5",
+  "zipBytes": 132760672,
+  "zipSha256": "82aefc4b7410ff39127f36093a7a598879d09313f9f180061d116bc97f841334",
+  "zipCrcValid": true,
+  "payloadFilesVerified": 583,
+  "sourceFilesVerified": 173,
+  "zipUserDataFiles": 0,
+  "exeArchitecture": "x64",
+  "languages": 10,
+  "practiceDocuments": 10,
+  "practicePagesPerDocument": 1,
+  "practiceCanvasMode": "infinite",
+  "chaptersPerDocument": 25,
+  "toolbarToolsCovered": 29,
+  "boardEraserAlpha": true,
+  "boardEraserLengthScale": 0.8,
+  "appExecuted": false,
+  "implementationTestsExecuted": false,
+  "hardwareAcceptance": "pending user test"
+}
