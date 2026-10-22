@@ -1,0 +1,9 @@
+{
+  "success": true,
+  "sourceTrial": "HeiBan-Windows-Portable-1.0.15-ink-latency-2026-10-22-r2-win-x64",
+  "targetTrial": "HeiBan-Windows-Portable-1.0.15-eraser-input-queue-2026-10-22-r1-win-x64",
+  "files": 52,
+  "bytes": 24767438,
+  "allHashesMatch": true,
+  "zipStillHasNoUserData": true
+}

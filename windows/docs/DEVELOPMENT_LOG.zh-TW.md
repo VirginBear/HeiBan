@@ -1,6 +1,6 @@
 # Windows 開發日誌
 
-## 2026-10-22 — 真實採樣、轉角與板擦卡頓（開發候選）
+## 2026-10-22 — 真實採樣、轉角與板擦卡頓（x64試用完成，待再採樣）
 
 先讀真實採樣並記錄限制，再查板擦每5DIP全掃／逐點複製／多重命中判斷和XAML Canvas.Left/Top。調整順序背景worker，只發布隔離snapshot；候選bounds取真端點／curve cache含旋轉，開放筆跡不做13次內部填色測試，倒序擦除避免ToArray，新碎片owned點列避免重複clone。未自動執行測試。中途x64 build36.53秒0warning0error。 [本批日誌](ERASER_AND_INPUT_QUEUE_2026-10-22.zh-TW.md)。
 

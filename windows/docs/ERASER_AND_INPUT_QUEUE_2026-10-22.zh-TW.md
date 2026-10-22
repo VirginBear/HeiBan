@@ -22,3 +22,9 @@
 - 中途x64 Release build成功36.53秒，0warning0error；之後補有延伸線不作bounds拒絕、新碎片owned list避免再clone，最終封裝重新編譯，不把中途build當最終性能數字。
 - 官方參考：https://learn.microsoft.com/en-us/windows/apps/develop/performance/keep-ui-thread-responsive （輸入／版面共用UI thread、長工作移出）；https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.input.pointerpoint.timestamp （時間戳是boot microseconds，本批未以不同時基相減冒充端到端延遲）。
 - 不含名稱或內容的作品數量檢視只描述測試後保存狀態，使用者已清空的作品不能反推採樣期間筆畫數；未引用它作當時負載證明。
+
+## 最終封裝、資料與未驗收
+- `Package-PortableTrial.ps1 -Runtime win-x64 -Label eraser-input-queue-2026-10-22-r1`最終publish／封裝成功；來源8d79577e670942d133de4ffa2840c302443f63ed。ZIP132778376bytes／SHA25629b61b9c8c28d2863cfbb9fa28fbe8c5055f3f4495511fb828d5eda0e756a9fc。CRC、585payload／179source SHA、x64 PE、十語指南與採樣launcher核同，ZIP使用者Data=0；詳ERASER_INPUT_PORTABLE_ARTIFACT／INSPECTION_2026-10-22.json。
+- `eraser-input-handoff.ps1`確認同路徑新舊試用沒有執行，接續52檔24767438bytes，逐檔SHA符合，不改作品內容。`Clear-ObsoleteTrials.ps1 -KeepTrial HeiBan-Windows-Portable-1.0.15-eraser-input-queue-2026-10-22-r1-win-x64`先備份Data與未知檔再刪舊runtime／ZIP，釋放456336763bytes、保留24770261bytes（包含原數值採樣）；原始數值採樣也以SHA核同存PRIVATE repo。Store1.0.15.0原SHA仍a889482ff3aa171569ce415fc285340b26742528af4306a3e0a0e3d6fa07eb96，已發布歷史不刪。
+- 本批實際做了讀使用者既有採樣、碼路徑分析、編譯封裝、靜態檔案完整性及資料接續。未執行新版App／自動或實作測試／新實機採樣／GPU trace／DPI與Undo回歸驗收，沒有改善後性能數字。正式版號不變、沒有Store／Release。
+- 待使用者用同一Capture-InputLatency.cmd重現轉角／連續筆／板擦物件與局部模式、正常退出，再比較schema2；同時驗收快速放開、Esc、捕捉中斷、保存／離開邊界、Undo、跨頁與未知欄位保留。新增背景擦除的取消及完成邊界只經源碼檢視，未假稱已實機通過。

@@ -1,8 +1,8 @@
 # Windows 目前開發狀態
 
-## 2026-10-22 — 真實採樣、轉角與板擦卡頓（開發候選）
+## 2026-10-22 — 真實採樣、轉角與板擦卡頓（x64試用完成，待再採樣）
 
-收到使用者151.18秒真實採樣：UI心跳P95=113.21ms／max673.92ms，GC0/1/2=828/292/93；未含板擦處理scope，不能由PointerMove快速就宣稱輸入正常。板擦改16ms背景順序批次、TranslateTransform移動、隔離snapshot發布，放開等待最後批次一筆Undo；取消與舊epoch拒收。擦除保守排除與低配置判斷；畫布合併Invalidate、筆跡暫停尾段cache。新trace補板擦／wet／重建及GC實際pause。未永久合併同樣式筆畫，保留編輯語義；仍1.0.15待封裝與實機。 [本批日誌](ERASER_AND_INPUT_QUEUE_2026-10-22.zh-TW.md)。
+收到使用者151.18秒真實採樣：UI心跳P95=113.21ms／max673.92ms，GC0/1/2=828/292/93；未含板擦處理scope，不能由PointerMove快速就宣稱輸入正常。板擦改16ms背景順序批次、TranslateTransform移動、隔離snapshot發布，放開等待最後批次一筆Undo；取消與舊epoch拒收。擦除保守排除與低配置判斷；畫布合併Invalidate、筆跡暫停尾段cache。新trace補板擦／wet／重建及GC實際pause。未永久合併同樣式筆畫，保留編輯語義；仍1.0.15，eraser-input-queue-2026-10-22-r1 x64已封裝，132778376bytes／SHA256 `29b61b9c8c28d2863cfbb9fa28fbe8c5055f3f4495511fb828d5eda0e756a9fc`。585payload／179source SHA核同，52檔24767438bytes作品設定接續。新候選App／實作測試未執行，待用相同採樣入口確認實際改善。 [本批日誌](ERASER_AND_INPUT_QUEUE_2026-10-22.zh-TW.md)。
 
 ## 2026-10-22 — 畫筆與工具切換停頓追查（x64試用完成，待實機採樣）
 
