@@ -192,7 +192,7 @@ def practice_document(code, rows):
             y=text(' · '.join(translations.get(names[tool],names[tool]) for tool in tool_sections[key]),y,17,'#57816c')
         for paragraph in rows[key][1:]:y=text(paragraph,y)
         board['pins'].append({'id':f'quickstart-section-{key}','boardId':board['id'],
-                             'x':490,'y':chapter_y+200,'name':f'{number:02} · {rows[key][0]}',
+                             'x':490,'y':chapter_y-36,'name':f'{number:02} · {rows[key][0]}',
                              'zoom':1,'isWorldSpace':True,'color':'#5d9477','textColor':'#24533d'})
         if key in ('brush','eraser'):
             for i,color in enumerate(['#24533d','#4189c7','#d79126']):
