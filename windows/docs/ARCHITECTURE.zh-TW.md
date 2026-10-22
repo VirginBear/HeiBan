@@ -1,5 +1,9 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-22 — 工作列圖示粉色底板（候選製作中）
+
+AppIcon.png為不變來源；Generate-DesktopIcon.ps1生成14尺寸ICO供ApplicationIcon及AppWindow.SetIcon，96px以下DIB+alpha+AND mask、256px PNG。Generate-StoreAssets.ps1原9個scale PNG保持，再產42個targetsize變體；既有MSIX條件Content glob交由PRI收錄，portable不攜帶Store圖示。正式Store產物不覆寫。 [本批日誌](TASKBAR_ICON_2026-10-22.zh-TW.md)。
+
 ## 2026-10-22 — 自由筆跨越舊筆跡凸凹（x64試用完成，待實機）
 
 自由筆輸入只轉換畫布座標、保留壓力／傾角及明確尺規投影，不再經任意PointTransform吸附委派。MagnetSnapIndex.SupportsConstructionTool供主／螢幕入口與hover共用，僅幾何建構查詢；自由筆手勢釋放舊索引，下一次建構工具才依generation／page／zoom懶建。舊筆跡參考資料和永久物件契約不改。 [本批日誌](FREEHAND_MAGNET_2026-10-22.zh-TW.md)。

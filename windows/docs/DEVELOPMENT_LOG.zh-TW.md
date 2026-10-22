@@ -1,5 +1,9 @@
 # Windows 開發日誌
 
+## 2026-10-22 — 工作列圖示粉色底板（候選製作中）
+
+先解析原PNG／ICO及EXE RT_GROUP_ICON，均無可見粉色；ICO只有256px PNG一張。比對Microsoft官方Shell icon規格，缺targetsize/unplated會產生系統色板，與截圖相符但使用者截圖來源通道未核對。補Store三主題14尺寸、桌面ICO14尺寸DIB alpha／AND mask及256px PNG，僅轉換既有標誌格式／尺寸。未啟動App或執行測試。 [本批日誌](TASKBAR_ICON_2026-10-22.zh-TW.md)。
+
 ## 2026-10-22 — 自由筆跨越舊筆跡凸凹（x64試用完成，待實機）
 
 使用者完成schema2採樣，回報反應改善但跨舊筆跡凸凹。查得magnetEnabled=true及兩畫布每個自由筆取樣都改座標。限制磁鐵於幾何建構，移除WindowsInkCoordinator.PointTransform唯一吸附用途與全部呼叫／重設，兩入口同步、自由筆索引延後建立。保留幾何首點、圓規與尺規／停筆直線功能；更新既有screen驗證入口的磁鐵對象為line，未新增／執行測試。 [本批日誌](FREEHAND_MAGNET_2026-10-22.zh-TW.md)。

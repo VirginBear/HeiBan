@@ -1,0 +1,136 @@
+{
+  "sourceLogoSha256": "92b4c23d9dd7c1f4e90add4e1ecb90ffc5fec11e122f4607f4aeca1b5f114b3a",
+  "sourceLogoUnchanged": true,
+  "iconSha256": "aaba4e583c80c4e70d62e3d666495e7e67b5b0f3c8f2f630567c95ec14f51a16",
+  "icoFrames": [
+    {
+      "size": 16,
+      "alphaMin": 0,
+      "alphaMax": 255,
+      "transparentCorner": true,
+      "visiblePurplePixels": 0
+    },
+    {
+      "size": 20,
+      "alphaMin": 0,
+      "alphaMax": 255,
+      "transparentCorner": true,
+      "visiblePurplePixels": 0
+    },
+    {
+      "size": 24,
+      "alphaMin": 0,
+      "alphaMax": 255,
+      "transparentCorner": true,
+      "visiblePurplePixels": 0
+    },
+    {
+      "size": 30,
+      "alphaMin": 0,
+      "alphaMax": 255,
+      "transparentCorner": true,
+      "visiblePurplePixels": 0
+    },
+    {
+      "size": 32,
+      "alphaMin": 0,
+      "alphaMax": 255,
+      "transparentCorner": true,
+      "visiblePurplePixels": 0
+    },
+    {
+      "size": 36,
+      "alphaMin": 0,
+      "alphaMax": 255,
+      "transparentCorner": true,
+      "visiblePurplePixels": 0
+    },
+    {
+      "size": 40,
+      "alphaMin": 0,
+      "alphaMax": 255,
+      "transparentCorner": true,
+      "visiblePurplePixels": 0
+    },
+    {
+      "size": 48,
+      "alphaMin": 0,
+      "alphaMax": 255,
+      "transparentCorner": true,
+      "visiblePurplePixels": 0
+    },
+    {
+      "size": 60,
+      "alphaMin": 0,
+      "alphaMax": 255,
+      "transparentCorner": true,
+      "visiblePurplePixels": 0
+    },
+    {
+      "size": 64,
+      "alphaMin": 0,
+      "alphaMax": 255,
+      "transparentCorner": true,
+      "visiblePurplePixels": 0
+    },
+    {
+      "size": 72,
+      "alphaMin": 0,
+      "alphaMax": 255,
+      "transparentCorner": true,
+      "visiblePurplePixels": 0
+    },
+    {
+      "size": 80,
+      "alphaMin": 0,
+      "alphaMax": 255,
+      "transparentCorner": true,
+      "visiblePurplePixels": 0
+    },
+    {
+      "size": 96,
+      "alphaMin": 0,
+      "alphaMax": 255,
+      "transparentCorner": true,
+      "visiblePurplePixels": 0
+    },
+    {
+      "size": 256,
+      "alphaMin": 0,
+      "alphaMax": 255,
+      "transparentCorner": true,
+      "visiblePurplePixels": 0
+    }
+  ],
+  "storeTargetSizes": [
+    16,
+    20,
+    24,
+    30,
+    32,
+    36,
+    40,
+    48,
+    60,
+    64,
+    72,
+    80,
+    96,
+    256
+  ],
+  "storeTargetSizeFiles": 42,
+  "storeVariants": [
+    "default",
+    "unplated",
+    "lightunplated"
+  ],
+  "msixContentUsesExistingPngGlob": true,
+  "oldIcoFrames": 1,
+  "oldIcoOnlySize": 256,
+  "oldPngAndExeIconVisiblePurplePixels": 0,
+  "storeBackplateCause": "Confirmed missing unplated resource variants; matches Shell backplate documented behavior. Screenshot installation channel and live Shell result not independently verified.",
+  "appExecuted": false,
+  "implementationTestsExecuted": false,
+  "storePackageBuilt": false,
+  "shellAppearanceAcceptance": "pending user"
+}
