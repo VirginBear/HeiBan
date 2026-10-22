@@ -1,6 +1,6 @@
 # Windows 架構決策（2026-10-08）
 
-## 2026-10-22 — 工作列圖示粉色底板（候選製作中）
+## 2026-10-22 — 工作列圖示粉色底板（x64試用完成，待實機）
 
 AppIcon.png為不變來源；Generate-DesktopIcon.ps1生成14尺寸ICO供ApplicationIcon及AppWindow.SetIcon，96px以下DIB+alpha+AND mask、256px PNG。Generate-StoreAssets.ps1原9個scale PNG保持，再產42個targetsize變體；既有MSIX條件Content glob交由PRI收錄，portable不攜帶Store圖示。正式Store產物不覆寫。 [本批日誌](TASKBAR_ICON_2026-10-22.zh-TW.md)。
 

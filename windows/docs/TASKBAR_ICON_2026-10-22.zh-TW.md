@@ -16,3 +16,10 @@
 - 實際執行兩個PowerShell生成腳本與taskbar-icon-record.py，紀錄14 ICO frame／42 PNG尺寸、角落alpha=0、alpha範圍0–255、無可見粉紫。原PNG byte與HEAD符合。這是資源格式完整性檢查，未執行App／實作測試。
 - pefile模組本機不存在，未安裝依賴；改以小型唯讀PE資源目錄解析。Pillow舊inspect腳本getdata出deprecation warning，不影響讀取，正式數值紀錄用get_flattened_data。
 - 正在製作同系列x64候選；尚未建立Store新套件，既有已送審／發布包保留不變。商店通道需後續使用者核准提交更新才帶入。
+
+## 封裝與交付
+- `Package-PortableTrial.ps1 -Runtime win-x64 -Label taskbar-icon-2026-10-22-r1`完成x64 App／Updater publish及ZIP，來源13465850e71307ef06ee349b029201540f3dafa3。ZIP132859405bytes／SHA256 `b79c70162358c742cf217f7f6875e5da08a8656fd670b3c228cd2c160be85e8f`。`taskbar-icon-inspect.py`核CRC、585payload／180source SHA、x64 PE、十語指南、採樣入口及14 frame ICO；另解析新EXE確實含14透明frame、各尺寸可見粉紫像素0。
+- 使用固定SDK10.0.26100.8249的MakePRI createconfig／new／dump在隔離.build/taskbar-icon-pri完成資源索引；dump中TargetSize含14尺寸、AlternateForm含UNPLATED與LIGHTUNPLATED。這是資源編譯，沒有建立／上傳新的商店套件，也沒有實際Shell驗收。
+- 新舊App均未執行時，`taskbar-icon-handoff.ps1`接續52檔／24767478bytes、SHA全同；`Clear-ObsoleteTrials.ps1 -KeepTrial HeiBan-Windows-Portable-1.0.15-taskbar-icon-2026-10-22-r1-win-x64`保留資料24767478bytes至dist/trial-data-backups/20261022-130356-34f97f5f後清理舊未發布runtime／ZIP，釋放456368497bytes。Store1.0.15.0雜湊仍a889482ff3aa171569ce415fc285340b26742528af4306a3e0a0e3d6fa07eb96，已發布歷史保留。
+- App／自動或實作測試／工作列UI驗收未執行；未變更或清除使用者工作列釘選及系統icon cache。待使用者開新版確認；若來自Store安裝，unplated會隨下次核准Store更新生效。metadata1.0.15維持，不自行進版。
+- 此次僅圖示／封裝資源變更，使用手冊功能入口沒有改變，不重建十語指南或覆寫可編輯指南作品。

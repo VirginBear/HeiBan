@@ -1,0 +1,9 @@
+{
+  "success": true,
+  "sourceTrial": "HeiBan-Windows-Portable-1.0.15-freehand-magnet-2026-10-22-r1-win-x64",
+  "targetTrial": "HeiBan-Windows-Portable-1.0.15-taskbar-icon-2026-10-22-r1-win-x64",
+  "files": 52,
+  "bytes": 24767478,
+  "allHashesMatch": true,
+  "zipStillHasNoUserData": true
+}

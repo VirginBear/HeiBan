@@ -1,8 +1,8 @@
 # Windows 目前開發狀態
 
-## 2026-10-22 — 工作列圖示粉色底板（候選製作中）
+## 2026-10-22 — 工作列圖示粉色底板（x64試用完成，待實機）
 
-依截圖追查粉色方框；原PNG及既有EXE圖示沒有粉色、具透明度，但商店資源缺targetsize與深／淺色unplated變體。新增14尺寸×3變體共42個Store PNG，桌面ICO由單256px補為14尺寸、32bit alpha與小圖AND mask；原Logo PNG不改。Store來源已修，既有已發行MSIX未重建，須下次商店更新才帶入。正在封裝同系列1.0.15 x64試用，Shell外觀未實機驗收。 [本批日誌](TASKBAR_ICON_2026-10-22.zh-TW.md)。
+依截圖追查粉色方框；原PNG及既有EXE圖示沒有粉色、具透明度，但商店資源缺targetsize與深／淺色unplated變體。新增14尺寸×3變體共42個Store PNG，桌面ICO由單256px補為14尺寸、32bit alpha與小圖AND mask；原Logo PNG不改。Store來源已修，既有已發行MSIX未重建，須下次商店更新才帶入。同系列1.0.15／taskbar-icon-2026-10-22-r1 x64試用已封裝，ZIP132859405bytes／SHA256 `b79c70162358c742cf217f7f6875e5da08a8656fd670b3c228cd2c160be85e8f`；585payload／180source核同，52檔作品設定接續。SDK MakePRI可識別14尺寸及兩種unplated；Shell外觀未實機驗收。 [本批日誌](TASKBAR_ICON_2026-10-22.zh-TW.md)。
 
 ## 2026-10-22 — 自由筆跨越舊筆跡凸凹（x64試用完成，待實機）
 

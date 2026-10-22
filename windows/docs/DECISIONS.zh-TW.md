@@ -1,6 +1,6 @@
 # Windows 開發決策
 
-## 2026-10-22 — 工作列圖示粉色底板（候選製作中）
+## 2026-10-22 — 工作列圖示粉色底板（x64試用完成，待實機）
 
 保留原Logo與透明圓角，修正Shell資源宣告／變體；不把Shell底板誤當原圖去背而重畫品牌。Store以同一Square44x44Logo base name的targetsize/default/unplated/lightunplated資源提供，沿用既有PNG glob及manifest transparent。桌面ICO同原PNG衍生，保留32bit alpha與AND mask。沒有文件格式或使用者偏好遷移。 [本批日誌](TASKBAR_ICON_2026-10-22.zh-TW.md)。
 

@@ -132,5 +132,29 @@
   "appExecuted": false,
   "implementationTestsExecuted": false,
   "storePackageBuilt": false,
-  "shellAppearanceAcceptance": "pending user"
+  "shellAppearanceAcceptance": "pending user",
+  "makePriResourceBuildSuccess": true,
+  "makePriDumpTargetSizes": [
+    16,
+    20,
+    24,
+    30,
+    32,
+    36,
+    40,
+    48,
+    60,
+    64,
+    72,
+    80,
+    96,
+    256
+  ],
+  "makePriDumpAlternateForms": [
+    "LIGHTUNPLATED",
+    "UNPLATED"
+  ],
+  "makePriSdkVersion": "10.0.26100.8249",
+  "exeEmbeddedIconFrames": 14,
+  "exeEmbeddedVisiblePurplePixels": 0
 }
