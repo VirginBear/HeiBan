@@ -928,7 +928,7 @@ magnetIndex.Snap(new(301,301),out var hiddenMagnet);Check(!hiddenMagnet,"Hidden 
 var rotatedMagnetic=magnetIndex.Snap(new(69,51),out var magnetRotatedHit);Check(magnetRotatedHit&&Math.Abs(rotatedMagnetic.X-70)<.001&&Math.Abs(rotatedMagnetic.Y-50)<.001,"Locked rotated shapes retain drawable magnet vertices");
 var modePreferences=new ToolbarPreferences{DisplayMode="labels",VisibleTools=["pen"],HiddenTools=["select"]};modePreferences.Normalize();Check(modePreferences.DisplayMode=="labels"&&modePreferences.VisibleTools[0]=="select"&&!modePreferences.HiddenTools.Contains("select"),"Selection stays visible with custom labeled toolbar");
 modePreferences.HideTool("select");Check(modePreferences.VisibleTools.Contains("select"),"Selection cannot be hidden");
-modePreferences.DisplayMode="future-mode";modePreferences.Normalize();Check(modePreferences.DisplayMode=="icons","Unknown toolbar presentation uses safe icon default");
+modePreferences.DisplayMode="future-mode";modePreferences.Normalize();Check(modePreferences.DisplayMode=="labels","Unknown toolbar presentation uses labeled default");
 var printPagesDoc=new HeiBanDocument{Board=new BoardMetadata{CanvasMode="notebook",Pages=[new(){Id="p1"},new(){Id="p2",Index=1}]},Objects=[new(){Type="text",Text="First",PageId="p1"},new(){Type="text",Text="Second",PageId="p2"}]};
 var printedPages=BoardExporter.Html(printPagesDoc,[],new(0,0,595,842),true,printPagesDoc.Board.Pages.Select(p=>printPagesDoc.Objects.Where(o=>o.PageId==p.Id)));
 Check(System.Text.RegularExpressions.Regex.Matches(printedPages,"<svg ").Count==2&&printedPages.Contains("break-after:page"),"Printable multi-page output retains two separate pages");

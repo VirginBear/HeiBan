@@ -10,11 +10,13 @@ public sealed class ToolbarPreferences
     public string DockSide { get; set; } = "上方";
     public List<string> VisibleTools { get; set; } = [];
     public List<string> HiddenTools { get; set; } = [];
-    public string DisplayMode { get; set; } = "icons";
+    public string DisplayMode { get; set; } = "labels";
     public bool MagnetEnabled { get; set; }
     public bool BoardEraserVisible { get; set; } = true;
     public int DefaultToolsRevision { get; set; }
-    public List<string> CommonTools { get; set; } = ["pen","highlighter","eraser","undo","redo","magnet"];
+    public int DefaultPresentationRevision { get; set; }
+    public static readonly string[] DefaultCommonTools = ["pen","highlighter","eraser","brush","dash","undo","redo","magnet"];
+    public List<string> CommonTools { get; set; } = [.. DefaultCommonTools];
     [System.Text.Json.Serialization.JsonExtensionData] public Dictionary<string,JsonElement>? ExtraFields { get; set; }
 
     public static readonly string[] StreamlinedTools =
@@ -62,6 +64,7 @@ public sealed class ToolbarPreferences
     {
         DockSide = "上方",
         DefaultToolsRevision = 1,
+        DefaultPresentationRevision = 1,
         VisibleTools = [.. AllDefaultTools],
         HiddenTools = []
     };
@@ -77,14 +80,26 @@ public sealed class ToolbarPreferences
             {VisibleTools=[..AllDefaultTools];HiddenTools=[];}
             DefaultToolsRevision=1;
         }
-        if(DisplayMode is not("icons" or "labels"))DisplayMode="icons";
+        // Migrate only the former untouched presentation. Custom favorites and
+        // intentionally hidden tools remain user choices across an upgrade.
+        if(DefaultPresentationRevision<1)
+        {
+            if(CommonTools is not null&&CommonTools.SequenceEqual(new[]{"pen","highlighter","eraser","undo","redo","magnet"}))
+            {
+                CommonTools=[..DefaultCommonTools];
+                if(DisplayMode=="icons"&&VisibleTools is not null&&HiddenTools is not null&&
+                    VisibleTools.SequenceEqual(AllDefaultTools)&&HiddenTools.Count==0)DisplayMode="labels";
+            }
+            DefaultPresentationRevision=1;
+        }
+        if(DisplayMode is not("icons" or "labels"))DisplayMode="labels";
         if (DockSide is not ("上方" or "左側" or "下方" or "右側"))
         {
             DockSide = "上方";
         }
 
         var allKnown = AllDefaultTools.ToHashSet();
-        CommonTools = (CommonTools ?? ["pen","highlighter","eraser","undo","redo","magnet"]).Where(t=>allKnown.Contains(t)&&t is not("select" or "extension")).Distinct().ToList();
+        CommonTools = (CommonTools ?? [..DefaultCommonTools]).Where(t=>allKnown.Contains(t)&&t is not("select" or "extension")).Distinct().ToList();
         VisibleTools ??= [];
         HiddenTools ??= [];
 
@@ -111,8 +126,9 @@ public sealed class ToolbarPreferences
     public void ResetToDefault()
     {
         DefaultToolsRevision=1;
-        DisplayMode="icons";MagnetEnabled=false;
-        CommonTools=["pen","highlighter","eraser","undo","redo","magnet"];
+        DefaultPresentationRevision=1;
+        DisplayMode="labels";MagnetEnabled=false;
+        CommonTools=[..DefaultCommonTools];
         DockSide = "上方";
         VisibleTools = [.. AllDefaultTools];
         HiddenTools = [];

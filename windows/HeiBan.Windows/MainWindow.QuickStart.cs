@@ -8,8 +8,10 @@ public partial class MainWindow
     private async Task EnsureQuickStartAsync()
     {
         if(Environment.GetCommandLineArgs().Any(arg=>new[]{"--validation-output=","--performance-output=","--drawing-workflow-output=","--guide-view="}.Any(arg.StartsWith)))return;
-        const string id="heiban-windows-quickstart-v1";
-        var marker=Path.Combine(_storage.DataDirectory,"Settings","quickstart-v1.json");
+        // v2 is a separate supplied work: never replace a v1 exercise that the
+        // user may already have edited. Deleting v2 still leaves its marker.
+        const string id="heiban-windows-quickstart-v2";
+        var marker=Path.Combine(_storage.DataDirectory,"Settings","quickstart-v2.json");
         if(File.Exists(marker))return;
         // A stable board ID makes an interrupted first launch idempotent. The
         // marker prevents a deleted/trashed exercise from returning on each launch.
@@ -28,7 +30,7 @@ public partial class MainWindow
                 var now=DateTime.UtcNow.ToString("o");document.Board.CreatedAt=document.Board.UpdatedAt=document.ExportedAt=now;
                 await _storage.SaveAsync(document);
             }
-            await DocumentSessionManager.WriteAtomicAsync(marker,JsonSerializer.Serialize(new{schema=1,boardId=id},DocumentCodec.Options));
+            await DocumentSessionManager.WriteAtomicAsync(marker,JsonSerializer.Serialize(new{schema=2,boardId=id},DocumentCodec.Options));
         }
     }
 }

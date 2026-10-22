@@ -142,41 +142,70 @@ def render(code,rows,legacy=False):
 '''
 
 def practice_document(code, rows):
-    """Editable local examples reuse the translated guide, without user content."""
+    """One infinite editable note, with the complete manual and chapter pins.
+
+    Tool coverage is tied to the runtime catalog so a new tool cannot silently
+    disappear from the supplied guide. No user work or live app state is read.
+    """
     import math
-    titles={'zh-TW':'操作說明 · 工具練習','zh-CN':'操作说明 · 工具练习',
-            'en':'User guide · Practice canvas','ja':'操作ガイド · 練習用キャンバス',
-            'ko':'사용 설명 · 연습 캔버스','es':'Guía de uso · Lienzo de práctica',
-            'fr':'Mode d’emploi · Toile d’entraînement','de':'Bedienungsanleitung · Übungsfläche',
-            'pt-BR':'Guia de uso · Tela de prática','ar':'دليل الاستخدام · لوحة التدريب'}
-    pages=[{'id':f'quickstart-{i+1}','index':i,'title':rows[key][0]} for i,key in enumerate(['brush','shapes','eraser'])]
-    board={'id':'heiban-windows-quickstart-v1','title':titles[code],'ownerId':'local_user',
+    titles={'zh-TW': '操作說明 · 全工具指南', 'en': 'User guide · All tools', 'ja': '操作ガイド · 全ツール', 'ko': '사용 설명 · 모든 도구', 'es': 'Guía de uso · Todas las herramientas', 'fr': 'Mode d’emploi · Tous les outils', 'de': 'Bedienungsanleitung · Alle Werkzeuge', 'pt-BR': 'Guia de uso · Todas as ferramentas', 'ar': 'دليل الاستخدام · جميع الأدوات'}
+    titles['zh-CN']=simplify(titles['zh-TW'])
+    pages=[{'id':'quickstart-all-tools','index':0,'title':rows['title'][0]}]
+    board={'id':'heiban-windows-quickstart-v2','title':titles[code],'ownerId':'local_user',
            'backgroundColor':'#ffffff','gridColor':'#b9cec3','gridStyle':'dots','boardTheme':'whiteboard',
-           'canvasMode':'notebook','canvasPreset':'custom','canvasWidth':960,'canvasHeight':640,
-           'pages':pages,'activePageId':pages[0]['id'],'revision':1}
+           'canvasMode':'infinite','canvasPreset':'infinite',
+           'pages':pages,'activePageId':pages[0]['id'],'revision':1,'pins':[]}
+    translations=json.loads((ROOT/f'HeiBan.Windows/Localization/Catalogs/{code}.json').read_text(encoding='utf-8-sig'))
+    tool_source=(ROOT/'HeiBan.Windows.Core/Engine/ToolbarPreferences.cs').read_text(encoding='utf-8-sig')
+    names=dict(re.findall(r'\["([^"]+)"\]\s*=\s*"([^"]+)"',tool_source))
+    actual=set(re.findall(r'"([^"]+)"',re.search(r'AllDefaultTools\s*=\s*\[(.*?)\];',tool_source,re.S)[1]))
+    tool_sections={
+        'workspace':['dock'], 'navigate':['viewLock'],
+        'brush':['pen','highlighter','paint','brush','tape'],
+        'shapes':['shapes','curve','magnet'], 'selection':['select','lasso'],
+        'properties':['dash','extension'], 'text':['text','sticky'], 'eraser':['eraser'],
+        'ruler':['ruler'], 'compass':['compass'], 'laser':['laser'],
+        'utilities':['calculator','timer'], 'images':['image','screenshot'],
+        'pins':['pins'], 'shortcuts':['undo','redo','clearAll'], 'ux20':['layers']}
+    covered=[tool for tools in tool_sections.values() for tool in tools]
+    if set(covered)!=actual or len(covered)!=len(actual):raise ValueError('Practice guide tool coverage differs from runtime catalog')
     items=[]
-    def add(page, kind, x,y,w,h,**values):
-        item={'id':f'quickstart-{code}-{len(items)+1}','boardId':board['id'],'pageId':pages[page]['id'],
+    def add(kind, x,y,w,h,**values):
+        item={'id':f'quickstart-{code}-{len(items)+1}','boardId':board['id'],'pageId':pages[0]['id'],
               'type':kind,'x':x,'y':y,'width':w,'height':h,'zIndex':len(items),
               'strokeColor':'#24533d','strokeWidth':4,'fillColor':'none','opacity':1,'isLocked':False}
         item.update(values);items.append(item)
-    def text(page,section,y,title=False):
-        add(page,'text',32,y,890,64 if title else 140,text=rows[section][0 if title else 1],fontSize=26 if title else 17)
-    for page,key in enumerate(['brush','shapes','eraser']):text(page,key,24,True);text(page,key,92)
-    for i,color in enumerate(['#24533d','#4189c7','#d79126']):
-        pts=[{'x':64+j*10,'y':275+i*66+math.sin(j/4)*15,'pressure':1} for j in range(35)]
-        add(0,'stroke',60,255+i*66,355,42,points=json.dumps(pts,separators=(',',':')),strokeColor=color,strokeWidth=4+i*2)
-    add(0,'highlighter',500,294,340,24,points=json.dumps([{'x':510,'y':306},{'x':830,'y':306}]),strokeWidth=24,strokeColor='#d9b927',opacity=.45)
-    text(0,'selection',475)
-    add(1,'rect',70,276,170,110,fillColor='#dcebdd')
-    add(1,'circle',300,276,110,110,strokeColor='#4189c7')
-    add(1,'triangle',474,276,160,110,fillColor='#fff0ab',points=json.dumps([{'x':554,'y':276},{'x':474,'y':386},{'x':634,'y':386}]))
-    add(1,'arrow',690,280,150,100,x1=690,y1=380,x2=840,y2=280,strokeColor='#ba652b')
-    text(1,'properties',455)
-    for i in range(3):
-        pts=[{'x':80+j*10,'y':270+i*46+math.sin(j/3)*12,'pressure':1} for j in range(60)]
-        add(2,'stroke',76,250+i*46,600,34,points=json.dumps(pts,separators=(',',':')),strokeWidth=6,strokeColor=['#24533d','#4189c7','#ba652b'][i])
-    text(2,'shortcuts',455)
+    def text(value,y,size=18,color='#24533d'):
+        # Conservative allocation also covers wide CJK glyphs; text remains
+        # editable, with deliberate free space between chapters for practice.
+        height=max(48,math.ceil(len(value)/42)*30+20)
+        add('text',40,y,900,height,text=value,fontSize=size,strokeColor=color)
+        return y+height+12
+    y=text(titles[code],28,32)
+    y=text(rows['workspace'][-1],y)
+    y=text(' · '.join(f'{i:02} {rows[key][0]}' for i,key in enumerate(SECTIONS,1)),y,16)
+    for number,key in enumerate(SECTIONS,1):
+        y+=56
+        chapter_y=y
+        y=text(f'{number:02} · {rows[key][0]}',y,28)
+        if key in tool_sections:
+            y=text(' · '.join(translations.get(names[tool],names[tool]) for tool in tool_sections[key]),y,17,'#57816c')
+        for paragraph in rows[key][1:]:y=text(paragraph,y)
+        board['pins'].append({'id':f'quickstart-section-{key}','boardId':board['id'],
+                             'x':490,'y':chapter_y+200,'name':f'{number:02} · {rows[key][0]}',
+                             'zoom':1,'isWorldSpace':True,'color':'#5d9477','textColor':'#24533d'})
+        if key in ('brush','eraser'):
+            for i,color in enumerate(['#24533d','#4189c7','#d79126']):
+                pts=[{'x':70+j*10,'y':y+30+i*55+math.sin(j/4)*15,'pressure':1} for j in range(60)]
+                add('stroke',66,y+10+i*55,610,42,points=json.dumps(pts,separators=(',',':')),strokeColor=color,strokeWidth=4+i*2)
+            add('highlighter',700,y+38,160,20,points=json.dumps([{'x':710,'y':y+48},{'x':850,'y':y+48}]),strokeWidth=20,strokeColor='#d9b927',opacity=.45)
+            y+=240
+        elif key=='shapes':
+            add('rect',70,y+24,170,110,fillColor='#dcebdd')
+            add('circle',300,y+24,110,110,strokeColor='#4189c7')
+            add('triangle',474,y+24,160,110,fillColor='#fff0ab',points=json.dumps([{'x':554,'y':y+24},{'x':474,'y':y+134},{'x':634,'y':y+134}]))
+            add('arrow',690,y+24,150,100,x1=690,y1=y+124,x2=840,y2=y+24,strokeColor='#ba652b')
+            y+=210
     board['itemCount']=len(items)
     return {'schemaVersion':'1.0.0','version':'1.0','board':board,'objects':items}
 
@@ -190,7 +219,8 @@ manifest['practiceDocuments']=[]
 for code in LANGUAGES:
     practice=json.dumps(practice_document(code,catalogs[code]),ensure_ascii=False,indent=2).encode('utf-8')
     filename=f'QuickStart-{code}.heiban';(TARGET/filename).write_bytes(practice)
-    manifest['practiceDocuments'].append({'language':code,'file':filename,'bytes':len(practice),'sha256':hashlib.sha256(practice).hexdigest()})
+    manifest['practiceDocuments'].append({'language':code,'file':filename,'bytes':len(practice),'sha256':hashlib.sha256(practice).hexdigest(),
+                                         'canvasMode':'infinite','chapters':len(SECTIONS),'toolKeys':list(re.findall(r'"([^"]+)"',re.search(r'AllDefaultTools\s*=\s*\[(.*?)\];',(ROOT/'HeiBan.Windows.Core/Engine/ToolbarPreferences.cs').read_text(encoding='utf-8-sig'),re.S)[1]))})
     data=render(code,catalogs[code]).encode('utf-8')
     (TARGET/f'{code}.html').write_bytes(data)
     manifest['pages'].append({'language':code,'file':f'{code}.html','sections':len(SECTIONS),

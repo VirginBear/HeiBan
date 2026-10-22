@@ -1,5 +1,9 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-22 — 常用工具與完整無邊界指南（開發中）
+
+ToolbarPreferences.DefaultPresentationRevision與工具顯隱revision分開：新建／reset採labels與DefaultCommonTools，僅舊原始常用配置遷移；主／螢幕偏好回傳包含revision。生成器對照runtime AllDefaultTools與分章映射，完整手冊轉text物件與可編輯幾何，不讀使用者資料；Board CanvasMode／CanvasPreset=infinite、單page、25個世界座標圖釘。 [本批日誌](TOOLBAR_GUIDE_2026-10-22.zh-TW.md)。
+
 ## 2026-10-22 — 四項繪圖操作改善（開發中，未進版）
 
 工具列預設全開，完全未變更的舊精簡預設升級展開，自訂顯隱／順序保留；恢復預設亦全開。首次使用加入十語三頁可編輯「操作說明 · 工具練習」作品，以固定ID與marker避免重建或覆寫。畫筆／螢光筆／油漆筆刷完成不自動選取，V可選、雙擊開詳細。新增單物件ink Undo紀錄，減少逐筆全文件快照與UI刷新；主畫布可將新筆跡接入相同viewport的scene，其他操作完整重畫。板擦沿原斜長軸縮短20%、厚度／左高右低保持，hit path／擦面共用矩陣。十語指南同步，沿用1.0.15來源metadata的開發候選，不代表新正式進版或Store更新。中途x64 build 0warning0error／56.18秒；App、實作測試、性能與硬體驗收未執行。[本批日誌](DRAWING_FLOW_2026-10-22.zh-TW.md)。

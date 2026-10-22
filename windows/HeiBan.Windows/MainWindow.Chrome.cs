@@ -772,7 +772,7 @@ public partial class MainWindow
     {
         // Screen canvas shares the settings file. Update the hidden owner in-memory too, or its
         // next toolbar rebuild could overwrite a choice just made in the screen session.
-        var updated=new ToolbarPreferences{DockSide=preferences.DockSide,DisplayMode=preferences.DisplayMode,MagnetEnabled=preferences.MagnetEnabled,BoardEraserVisible=preferences.BoardEraserVisible,DefaultToolsRevision=preferences.DefaultToolsRevision,CommonTools=[..preferences.CommonTools],ExtraFields=preferences.ExtraFields,VisibleTools=[..preferences.VisibleTools],HiddenTools=[..preferences.HiddenTools]};
+        var updated=new ToolbarPreferences{DockSide=preferences.DockSide,DisplayMode=preferences.DisplayMode,MagnetEnabled=preferences.MagnetEnabled,BoardEraserVisible=preferences.BoardEraserVisible,DefaultToolsRevision=preferences.DefaultToolsRevision,DefaultPresentationRevision=preferences.DefaultPresentationRevision,CommonTools=[..preferences.CommonTools],ExtraFields=preferences.ExtraFields,VisibleTools=[..preferences.VisibleTools],HiddenTools=[..preferences.HiddenTools]};
         updated.Normalize();
         await ToolbarPreferencesStore.SaveAsync(_storage.DataDirectory,updated);
         _toolbarPrefs=updated;

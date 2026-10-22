@@ -22,6 +22,8 @@
 
 ## Windows端減重評估接手
 
+- [2026-10-22 常用工具與完整無邊界操作指南](../windows/docs/TOOLBAR_GUIDE_2026-10-22.zh-TW.md)：預設圖示與文字、全工具可操作指南；試用與驗收依日誌。
+
 - [2026-10-22 工具預設、操作範例與繪圖流暢度](../windows/docs/DRAWING_FLOW_2026-10-22.zh-TW.md)：新系列開發，未進版；試用與未驗收事項依日誌。
 
 - [2026-10-15 Microsoft Store更新](../windows/docs/STORE_RELEASE_2026-10-15.zh-TW.md)：使用者核准本系列更新，套件1.0.15.0；實際封裝／提交結果依日誌。
