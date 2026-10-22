@@ -1,6 +1,6 @@
 # Windows 問題與排解紀錄
 
-## 2026-10-22 — 畫筆與工具切換停頓追查（待實機採樣）
+## 2026-10-22 — 畫筆與工具切換停頓追查（x64試用完成，待實機採樣）
 
 症狀：畫線途中、放開／下一筆及切工具均停頓。可確認程式成本已修，尚無GC pause／CPU／GPU百分比或端到端延遲數字可歸因。圖釘舊指南25個即使畫外仍每幀new format／DrawText，現在裁切與cache。主畫布仍CanvasControl XAML排程；螢幕畫布仍CPU GetPixelBytes回讀，記為未解架構限制。 [本批日誌](INK_LATENCY_2026-10-22.zh-TW.md)。
 

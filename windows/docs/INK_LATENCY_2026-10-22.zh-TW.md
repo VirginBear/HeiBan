@@ -30,3 +30,11 @@
 - 試用包附Capture-InputLatency.cmd／Collect-InputLatency.ps1，只在使用者手動啟動此入口時量測真實操作；正常啟動HeiBan.exe不啟用採樣。已有同一路徑程式執行先停止採樣啟動；正常退出寫本機JSON。不自動執行本批尚未授權的實作測試。
 
 - 第一輪portable已封裝成功；交付前靜態檢視採樣啟動腳本，將互動採樣視窗明確設Normal（此入口由使用者手動點開，非背景服務），避免啟動可見性不確定；補採樣使用說明，重新以r2封裝。沒有啟動App或偽造採樣數字。
+
+## 最終結果與未驗收項
+- `Package-PortableTrial.ps1 -Runtime win-x64 -Label ink-latency-2026-10-22-r2`成功，重新publish App／Updater；來源61b6c53cef94206203eeaadbdb2f4fc35ce8d081。ZIP 132774049bytes／SHA256 335dfec93f44b37f66ca983d997925e09911a867ae124febc5ebaea7eed785af。
+- 靜態ZIP CRC、585payload／178source SHA、x64 PE、十語無邊界指南與兩個採樣launcher都核同；PowerShell交付副本使用UTF-8 BOM相容Windows PowerShell5.1，ZIP不含User Data。詳INK_LATENCY_PORTABLE_ARTIFACT／INSPECTION_2026-10-22.json。
+- `ink-latency-handoff.ps1`確認同路徑舊／新試用皆未執行，接續52檔24767375bytes，逐檔SHA符合；沒有合併Store資料或改作品內容。`Clear-ObsoleteTrials.ps1 -KeepTrial HeiBan-Windows-Portable-1.0.15-ink-latency-2026-10-22-r2-win-x64`完成，備份24767375bytes後清舊試用runtime／ZIP、釋放912629264bytes；備份位置見INK_LATENCY_TRIAL_CLEANUP_2026-10-22.json。Store1.0.15.0原SHA不變，已發布資產不刪。
+- 本批未執行App、自動／單元／整合測試、GPU trace、UI／硬體／DPI驗收或實際耗時採樣；沒有GC pause或P95數字。中途編譯與最終封裝不是性能通過證據。沒有新版本號、Store套件或Release。
+- 待使用者用Capture-InputLatency.cmd真實畫線／換工具、正常退出，再讀本機input-latency-*.json；同時觀察solid／半透明／虛線、直線吸附、縮放與跨頁／Undo後磁鐵、guide圖釘、選取及保存。若仍受UI排程或screen CPU readback限制，另規劃swapchain／native composition，不把CPU scope當GPU結果。
+- 調查輔助幾次rg字面萬用路徑error123及將PowerShell錯誤參數誤傳rg，後改實際目錄與-g；沒有因搜尋錯誤更動資料。原YouTube未提交內容仍保留。

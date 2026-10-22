@@ -1,0 +1,9 @@
+{
+  "success": true,
+  "sourceTrial": "HeiBan-Windows-Portable-1.0.15-toolbar-guide-2026-10-22-r2-win-x64",
+  "targetTrial": "HeiBan-Windows-Portable-1.0.15-ink-latency-2026-10-22-r2-win-x64",
+  "files": 52,
+  "bytes": 24767375,
+  "allHashesMatch": true,
+  "zipStillHasNoUserData": true
+}

@@ -1,8 +1,8 @@
 # Windows 目前開發狀態
 
-## 2026-10-22 — 畫筆與工具切換停頓追查（待實機採樣）
+## 2026-10-22 — 畫筆與工具切換停頓追查（x64試用完成，待實機採樣）
 
-使用者回報拖曳畫線與工具切換仍頓，本批追查UI／繪圖資源路徑並修正：solid wet ink改重用單張viewport GPU raster、只追加64段穩定片段；磁鐵只追加新筆參考點；新筆避免JSON立即反解析；圖釘視野裁切與layout cache；導航圖示狀態快取。新增明確手動啟用的本機耗時採樣入口。仍1.0.15，未正式進版；中途x64 build 39.59秒0warning0error，尚未實機採樣，不宣稱性能達標。 [本批日誌](INK_LATENCY_2026-10-22.zh-TW.md)。
+使用者回報拖曳畫線與工具切換仍頓，本批追查UI／繪圖資源路徑並修正：solid wet ink改重用單張viewport GPU raster、只追加64段穩定片段；磁鐵只追加新筆參考點；新筆避免JSON立即反解析；圖釘視野裁切與layout cache；導航圖示狀態快取。新增明確手動啟用的本機耗時採樣入口。仍1.0.15，未正式進版；中途x64 build 39.59秒0warning0error，x64 ink-latency-2026-10-22-r2封裝完成，132774049bytes／SHA256 `335dfec93f44b37f66ca983d997925e09911a867ae124febc5ebaea7eed785af`，585payload／178source SHA核同；52檔24767375bytes作品設定核同接續，原資料另備份。附手動Capture-InputLatency.cmd，尚未啟動App或實機採樣，不宣稱性能達標。 [本批日誌](INK_LATENCY_2026-10-22.zh-TW.md)。
 
 ## 2026-10-22 — 常用工具與完整無邊界指南（x64試用完成，待實機）
 
