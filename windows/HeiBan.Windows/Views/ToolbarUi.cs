@@ -69,4 +69,23 @@ internal static partial class ToolbarUi
         }
         return menu;
     }
+
+    internal static Flyout Shapes(Action<string> choose,Action? fill=null)
+    {
+        var grid=new Grid{ColumnSpacing=8,RowSpacing=8};
+        for(var i=0;i<3;i++){grid.ColumnDefinitions.Add(new(){Width=new GridLength(74)});grid.RowDefinitions.Add(new(){Height=GridLength.Auto});}
+        var body=new StackPanel{Spacing=8};body.Children.Add(grid);
+        var flyout=new Flyout{Content=body};var index=0;
+        foreach(var (key,label) in ShapeTools)
+        {
+            // Both hosts must use the stroked vector factory. PathIcon fills the
+            // same open paths, hiding lines/arrows and making polygons look solid.
+            var content=new StackPanel{Spacing=6,HorizontalAlignment=HorizontalAlignment.Center};
+            content.Children.Add(ToolIcons.Create(key));content.Children.Add(new TextBlock{Text=T(label),FontSize=12,HorizontalAlignment=HorizontalAlignment.Center});
+            var button=new Button{Content=content,Width=74,Padding=new Thickness(8),Background=new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255,252,252,250)),BorderBrush=new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255,212,219,209)),CornerRadius=new CornerRadius(8)};
+            button.Click+=(_,_)=>{flyout.Hide();choose(key);};Grid.SetRow(button,index/3);Grid.SetColumn(button,index++%3);grid.Children.Add(button);
+        }
+        if(fill is not null){var button=CreateButton("paint",T("填滿"),()=>{flyout.Hide();fill();});body.Children.Add(button);}
+        return flyout;
+    }
 }

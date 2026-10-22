@@ -1,5 +1,9 @@
 # Windows 開發日誌
 
+## 2026-10-22 — 常用清除、圖示與圓形橡皮擦（製作中）
+
+本批查三條獨立路徑：清除本頁未列DefaultCommonTools；screen shapes用填色PathIcon而main用描邊UIElement；圓擦除仍在每次move同步全掃／局部切割及重畫。共用圖形工廠、常用migration及CircularEraserGesture，worker沿用BoardEraserWork圓形模式；核心倒序遍歷、owned fragment、cut span／純數值中點；新切點保留未知欄位與tilt。實作與未驗收見日誌。 [本批日誌](ERASER_TOOLBAR_ALIGNMENT_2026-10-22.zh-TW.md)。
+
 ## 2026-10-22 — 工作列圖示粉色底板（x64試用完成，待實機）
 
 先解析原PNG／ICO及EXE RT_GROUP_ICON，均無可見粉色；ICO只有256px PNG一張。比對Microsoft官方Shell icon規格，缺targetsize/unplated會產生系統色板，與截圖相符但使用者截圖來源通道未核對。補Store三主題14尺寸、桌面ICO14尺寸DIB alpha／AND mask及256px PNG，僅轉換既有標誌格式／尺寸。未啟動App或執行測試。 [本批日誌](TASKBAR_ICON_2026-10-22.zh-TW.md)。

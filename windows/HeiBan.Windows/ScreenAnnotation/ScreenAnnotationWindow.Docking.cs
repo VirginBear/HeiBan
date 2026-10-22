@@ -49,6 +49,7 @@ internal sealed partial class ScreenAnnotationWindow
         var ordered=new List<Button>();
         foreach(var key in ToolbarContentPolicy.VisibleTools(_toolbarPreferences,screenCanvas:true))
         {
+            if(_collapsed&&key=="clearAll")continue; // The collapsed strip owns this same button at its edge.
             if(!ToolbarContentPolicy.IsAvailableOnScreen(key))continue;
             if(_buttons.TryGetValue(key,out var toolButton))ordered.Add(toolButton);
             else if(_chromeActions.FirstOrDefault(button=>button.Tag as string==key) is { } actionButton)ordered.Add(actionButton);
@@ -60,7 +61,7 @@ internal sealed partial class ScreenAnnotationWindow
         _labeledScreenFlow=ToolbarUi.Arrange(_chromeTools,ordered.Select(b=>(b.Tag as string??"palette",b)),_toolbarPreferences.DisplayMode=="labels",vertical,_toolbarPage,p=>{_toolbarPage=p;DispatcherQueue.TryEnqueue(()=>{ResizeChrome();PositionChrome();});},32,_toolbarPreferences.CommonTools);
         if(!vertical&&!_collapsed)_chromeTools.Children.Add(_moreButton);
         _chromeEnd=new StackPanel{Orientation=orientation,Spacing=4,VerticalAlignment=VerticalAlignment.Center,HorizontalAlignment=HorizontalAlignment.Center};
-        _chromeEnd.Children.Add(_clearButton);if(vertical||_collapsed)_chromeEnd.Children.Add(_moreButton);_chromeEnd.Children.Add(_closeButton);
+        if(_collapsed)_chromeEnd.Children.Add(_clearButton);if(vertical||_collapsed)_chromeEnd.Children.Add(_moreButton);_chromeEnd.Children.Add(_closeButton);
         _chromeToolHost=new Border{Child=_chromeTools,Visibility=_collapsed?Visibility.Collapsed:Visibility.Visible,MinWidth=0,MinHeight=0};
         var root=new Grid{Padding=new Thickness(vertical?8:12),ColumnSpacing=6,RowSpacing=6,RequestedTheme=ElementTheme.Light};
         if(vertical){root.RowDefinitions.Add(new(){Height=GridLength.Auto});root.RowDefinitions.Add(new(){Height=new GridLength(1,GridUnitType.Star)});root.RowDefinitions.Add(new(){Height=GridLength.Auto});Grid.SetRow(_chromeToolHost,1);Grid.SetRow(_chromeEnd,2);}

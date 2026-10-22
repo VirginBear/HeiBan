@@ -9,7 +9,7 @@ public static class ToolbarContentPolicy
     private static readonly HashSet<string> ScreenCanvasToolSet =
     [
         "select", "pen", "curve", "highlighter", "paint", "eraser", "shapes", "sticky", "text",
-        "screenshot", "brush", "dash", "undo", "redo", "laser", "layers", "lasso", "tape", "magnet"
+        "screenshot", "brush", "dash", "undo", "redo", "laser", "layers", "lasso", "tape", "magnet", "clearAll"
     ];
 
     public static IReadOnlyList<string> ScreenCanvasTools { get; } =

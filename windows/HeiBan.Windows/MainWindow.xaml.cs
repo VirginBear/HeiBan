@@ -99,6 +99,7 @@ public partial class MainWindow : Window
                 _autosave.Stop();_thumbnailTimer.Stop();_activeFlyout?.Hide();ShowSavingOverlay(true);
                 await Task.Delay(32);
                 CancelScreenshotCapture("視窗關閉");FinishText();CommitPropertyEdit();if(_gesture)CancelGesture();
+                if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();
                 if(_boardEraserFinishing)await CompleteBoardEraserAsync();else CancelBoardEraser();
                 await SaveTeachingSettingsAsync();
                 if(_screenAnnotation?.IsActive==true&&!await _screenAnnotation.StopAsync())return;
@@ -181,6 +182,7 @@ public partial class MainWindow : Window
     }
     private async Task<bool> SaveAsync(bool deferThumbnail=false)
     {
+        if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();
         if(_boardEraserFinishing)await CompleteBoardEraserAsync();
         CommitPropertyEdit();
         await _saveGate.WaitAsync();
@@ -370,8 +372,8 @@ public partial class MainWindow : Window
     }
     private void Lock_Click(object sender,RoutedEventArgs e){if(_session.Selected is not { } o)return;var locked=o.IsLocked!=true;_session.Begin();foreach(var item in _session.SelectedObjects)item.IsLocked=locked;_session.Commit();RefreshEditor();FocusCanvasSurface();}
     private void Delete_Click(object sender,RoutedEventArgs e){FinishPinRename();if(_editor is not null)FinishText();CommitPropertyEdit();_session.DeleteSelected();RefreshEditor();FocusCanvasSurface();}
-    private void Undo_Click(object sender,RoutedEventArgs e){CommitPropertyEdit();FinishText();_session.Undo();RefreshEditor();FocusCanvasSurface();}
-    private void Redo_Click(object sender,RoutedEventArgs e){CommitPropertyEdit();FinishText();_session.Redo();RefreshEditor();FocusCanvasSurface();}
+    private async void Undo_Click(object sender,RoutedEventArgs e){if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();CancelGesture();CommitPropertyEdit();FinishText();_session.Undo();RefreshEditor();FocusCanvasSurface();}
+    private async void Redo_Click(object sender,RoutedEventArgs e){if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();CancelGesture();CommitPropertyEdit();FinishText();_session.Redo();RefreshEditor();FocusCanvasSurface();}
     private void Dock_Click(object sender,RoutedEventArgs e)
     {
         var menu=new MenuFlyout();foreach(var side in new[]{"上方","左側","下方","右側"})

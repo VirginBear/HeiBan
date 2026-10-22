@@ -58,7 +58,7 @@ public partial class MainWindow
     }
     private void BoardEraser_Pressed(object sender,PointerRoutedEventArgs e)
     {
-        if(_boardEraserDraft is not null)return;
+        if(_boardEraserDraft is not null||_circularEraser is not null)return;
         var pointer=e.GetCurrentPoint(DrawingArea);if(!pointer.Properties.IsLeftButtonPressed||_readingMode)return;
         var grip=e.GetCurrentPoint(BoardEraserDock).Position;
         if(!BoardEraserGeometry.CanGrab(grip.X,grip.Y))return;

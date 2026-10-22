@@ -69,6 +69,7 @@ internal sealed partial class ScreenAnnotationWindow
     }
     private async Task UndoScreenAsync(bool redo)
     {
+        if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();
         FinishScreenText();CancelGesture();var ids=_session.SelectedIds.ToArray();if(redo)_session.Redo();else _session.Undo();_session.SetSelection(ids);
         if(_target is not null)await _renderer.LoadImagesAsync(_target,_session.VisibleObjects);RefreshButtons();Changed();
     }

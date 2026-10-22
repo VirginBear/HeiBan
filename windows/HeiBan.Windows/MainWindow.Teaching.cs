@@ -16,6 +16,7 @@ public partial class MainWindow
     }
     private async void ClearPage()
     {
+        if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();
         CommitPropertyEdit();FinishText();if(_gesture)CancelGesture();
         var board=_session.Document.Board.Id;var page=_session.Document.Board.ActivePageId;
         var result=await new ContentDialog{FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,Title=T("清除目前頁面？"),Content=T("可用復原恢復。其他頁面不受影響。"),PrimaryButtonText=T("清除"),CloseButtonText=T("取消"),XamlRoot=Root.XamlRoot}.ShowAsync();

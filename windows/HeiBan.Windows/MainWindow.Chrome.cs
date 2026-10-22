@@ -797,8 +797,9 @@ public partial class MainWindow
         }
     }
 
-    private void ActivateTool(string tool)
+    private async void ActivateTool(string tool)
     {
+        if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();
         using var trace=InputLatencyTrace.Measure(InputStage.ToolSwitch);
         _activeFlyout?.Hide();
         if(tool==_tool&&!_gesture&&_editor is null&&_polygon.Count==0&&_session.SelectedIds.Count==0)
@@ -961,25 +962,7 @@ public partial class MainWindow
     private void CommitPropertyEdit() { _propertyCommitTimer.Stop(); if (_propertyEditing) { _session.Commit(); _propertyEditing = false; } }
 
     private void ShowShapes(FrameworkElement anchor)
-    {
-        var grid = new Grid { ColumnSpacing = 8, RowSpacing = 8 };
-        for (var i = 0; i < 3; i++) grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(74) });
-        for (var i = 0; i < 3; i++) grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        var flyout = new Flyout { Content = grid };
-        var index = 0;
-        foreach (var (key, label) in ToolbarUi.ShapeTools)
-        {
-            var content = new StackPanel { Spacing = 6, HorizontalAlignment = HorizontalAlignment.Center };
-            content.Children.Add(ToolIcons.Create(key));
-            content.Children.Add(new TextBlock { Text = T(label), FontSize = 12, HorizontalAlignment = HorizontalAlignment.Center });
-            var button = new Button { Content = content, Width = 74, Padding = new Thickness(8), Background = Brush("#FCFCFA"), BorderBrush = Brush("#D4DBD1"), CornerRadius = new CornerRadius(8) };
-            button.Click += (_, _) => { flyout.Hide(); ActivateTool(key); };
-            Grid.SetRow(button, index / 3);
-            Grid.SetColumn(button, index++ % 3);
-            grid.Children.Add(button);
-        }
-        ShowExclusiveFlyout(flyout, anchor);
-    }
+        =>ShowExclusiveFlyout(ToolbarUi.Shapes(ActivateTool),anchor);
 
     private void ShowLineStyles(FrameworkElement anchor)
     {

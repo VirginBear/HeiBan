@@ -15,7 +15,8 @@ public sealed class ToolbarPreferences
     public bool BoardEraserVisible { get; set; } = true;
     public int DefaultToolsRevision { get; set; }
     public int DefaultPresentationRevision { get; set; }
-    public static readonly string[] DefaultCommonTools = ["pen","highlighter","eraser","brush","dash","undo","redo","magnet"];
+    public int DefaultCommonRevision { get; set; }
+    public static readonly string[] DefaultCommonTools = ["pen","highlighter","eraser","brush","dash","undo","redo","magnet","clearAll"];
     public List<string> CommonTools { get; set; } = [.. DefaultCommonTools];
     [System.Text.Json.Serialization.JsonExtensionData] public Dictionary<string,JsonElement>? ExtraFields { get; set; }
 
@@ -65,6 +66,7 @@ public sealed class ToolbarPreferences
         DockSide = "上方",
         DefaultToolsRevision = 1,
         DefaultPresentationRevision = 1,
+        DefaultCommonRevision = 1,
         VisibleTools = [.. AllDefaultTools],
         HiddenTools = []
     };
@@ -98,6 +100,14 @@ public sealed class ToolbarPreferences
             DockSide = "上方";
         }
 
+        // Introduce clear once, without replacing the user's other favorites.
+        // Removing it after this revision remains an explicit saved choice.
+        if(DefaultCommonRevision<1)
+        {
+            CommonTools??=[..DefaultCommonTools];
+            if(!CommonTools.Contains("clearAll"))CommonTools.Add("clearAll");
+            DefaultCommonRevision=1;
+        }
         var allKnown = AllDefaultTools.ToHashSet();
         CommonTools = (CommonTools ?? [..DefaultCommonTools]).Where(t=>allKnown.Contains(t)&&t is not("select" or "extension")).Distinct().ToList();
         VisibleTools ??= [];
@@ -127,6 +137,7 @@ public sealed class ToolbarPreferences
     {
         DefaultToolsRevision=1;
         DefaultPresentationRevision=1;
+        DefaultCommonRevision=1;
         DisplayMode="labels";MagnetEnabled=false;
         CommonTools=[..DefaultCommonTools];
         DockSide = "上方";

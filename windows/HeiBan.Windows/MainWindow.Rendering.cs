@@ -37,7 +37,7 @@ public partial class MainWindow
     {
         using var trace=InputLatencyTrace.Measure(InputStage.SceneRender);
         if(width<=0||height<=0)return;
-        var sceneSession=_boardEraserDraft??_session;
+        var sceneSession=_circularEraser?.Preview??_boardEraserDraft??_session;
         var key=new SceneKey(sceneSession.Document,sceneSession.Generation,sceneSession.Document.Board.ActivePageId,_viewport.X,_viewport.Y,_viewport.Zoom,width,height,surface.Dpi);
         if(_scene is null||_sceneKey.Width!=width||_sceneKey.Height!=height||_sceneKey.Dpi!=surface.Dpi)
         {ClearScene();_scene=new CanvasRenderTarget(surface,width,height,surface.Dpi);}

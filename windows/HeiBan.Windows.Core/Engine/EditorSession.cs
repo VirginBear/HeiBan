@@ -142,25 +142,32 @@ public sealed class EditorSession
         return null;
     }
     public void Erase(InkPoint center, double radius, bool wholeObject)
+        =>EraseChanged(center,radius,wholeObject);
+    public bool EraseChanged(InkPoint center,double radius,bool wholeObject)
     {
-        foreach (var o in VisibleObjects.Where(o => o.IsLocked != true && o.IsErasable).ToList())
+        var changed=false;
+        for(var objectIndex=Document.Objects.Count-1;objectIndex>=0;objectIndex--)
         {
+            var o=Document.Objects[objectIndex];
+            if(o.IsVisible==false||o.IsLocked==true||!o.IsErasable||Document.Board.CanvasMode=="notebook"&&o.PageId is not null&&o.PageId!=Document.Board.ActivePageId)continue;
             if (!wholeObject && o.Type is not ("stroke" or "pen" or "highlighter" or "paint")) continue;
             if (!VectorMath.IsPointInObject(center, o, radius)) continue;
-            if (wholeObject || o.ParsedPoints.Count == 0) { Document.Objects.Remove(o); continue; }
-            var fragments = StrokeGeometry.Erase(o.ParsedPoints, center, radius + o.StrokeWidth / 2);
-            if (fragments.Count == 1 && fragments[0].Count == o.ParsedPoints.Count &&
-                fragments[0].Zip(o.ParsedPoints).All(p => p.First.X == p.Second.X && p.First.Y == p.Second.Y)) continue;
-            Document.Objects.Remove(o);
+            if (wholeObject || o.ParsedPoints.Count == 0) { Document.Objects.RemoveAt(objectIndex);changed=true;continue; }
+            IReadOnlyList<InkPoint> world=o.Rotation==0?o.ParsedPoints:o.ParsedPoints.Select(p=>{var copy=p.Snapshot();var at=ObjectHandles.ToWorld(o,p);copy.X=at.X;copy.Y=at.Y;return copy;}).ToArray();
+            var fragments = StrokeGeometry.Erase(world, center, radius + o.StrokeWidth / 2);
+            if (fragments.Count == 1 && fragments[0].Count == world.Count &&
+                fragments[0].Zip(world).All(p => p.First.X == p.Second.X && p.First.Y == p.Second.Y)) continue;
+            Document.Objects.RemoveAt(objectIndex);changed=true;var index=objectIndex;
             foreach (var fragment in fragments)
             {
-                var copy = DocumentCodec.Clone(o); copy.Id = Guid.NewGuid().ToString();
-                copy.Points = JsonSerializer.Serialize(fragment, DocumentCodec.Options);
+                var copy = DocumentCodec.Clone(o); copy.Id = Guid.NewGuid().ToString();copy.Rotation=0;
+                copy.SetOwnedInkPoints(fragment);
                 var box = VectorMath.ComputeBoundingBox(fragment, o.StrokeWidth);
                 copy.X = box.MinX; copy.Y = box.MinY; copy.Width = box.Width; copy.Height = box.Height;
-                Document.Objects.Add(copy);
+                Document.Objects.Insert(index++,copy);
             }
         }
+        return changed;
     }
     public void EraseRectangle(InkPoint center,double width,double height,bool wholeObject)
     {

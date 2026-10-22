@@ -1,5 +1,9 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-22 — 常用清除、圖示與圓形橡皮擦（製作中）
+
+CircularEraserGesture在host UI thread收集world點、發16ms單worker Task.Run、收隔離Document快照供Preview EditorSession繪製；BoardEraserWork新增circle radius overload，以radius/2間距掃過連續路徑。EditorSession.EraseChanged回報是否有改動；無命中不發布重畫快照。兩host完成後檢generation／epoch才安裝Objects並提交一筆Undo。ToolbarUi.Shapes共用9格描邊工廠；clearAll入screen catalog並避免同一XAML按鈕多父項。 [本批日誌](ERASER_TOOLBAR_ALIGNMENT_2026-10-22.zh-TW.md)。
+
 ## 2026-10-22 — 工作列圖示粉色底板（x64試用完成，待實機）
 
 AppIcon.png為不變來源；Generate-DesktopIcon.ps1生成14尺寸ICO供ApplicationIcon及AppWindow.SetIcon，96px以下DIB+alpha+AND mask、256px PNG。Generate-StoreAssets.ps1原9個scale PNG保持，再產42個targetsize變體；既有MSIX條件Content glob交由PRI收錄，portable不攜帶Store圖示。正式Store產物不覆寫。 [本批日誌](TASKBAR_ICON_2026-10-22.zh-TW.md)。

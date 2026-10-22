@@ -16,7 +16,7 @@ internal sealed class NativeOverlayWindow : IDisposable
     private readonly nint _instance=GetModuleHandle(null);
     private readonly HeiBan.Windows.Views.ShapeCursor _shapeCursor=new();
     internal void SetManipulationCursor(HeiBan.Windows.Models.BoardObject? selected,HeiBan.Windows.Engine.ObjectHandles.Handle? handle)=>_shapeCursor.Update(selected,handle,(uint)Math.Round(DpiScale(_window)*96),32515);
-    private bool _drawing,_disposed;
+    private bool _drawing,_disposed,_pointerCaptured;
     public int Left { get; private set; }
     public int Top { get; private set; }
     public int Width { get; private set; }
@@ -98,13 +98,14 @@ internal sealed class NativeOverlayWindow : IDisposable
             if(message==0x0021)return new nint(3); // Never take the underlying app's keyboard focus.
             if(message==0x0084)return _drawing?new nint(1):new nint(-1);
             if(message==0x0010){Hide();return 0;}
+            if((message is 0x0215 or 0x001F)&&_pointerCaptured){_pointerCaptured=false;Pointer?.Invoke(new("cancel",0,0));}
             if(_drawing&&message is 0x0201 or 0x0200 or 0x0202 or 0x0205 or 0x0203)
             {
                 // Message coordinates belong to this sample; querying the current cursor can skip queued movement.
                 var coordinates=lParam.ToInt64();var p=new Point{X=(short)(coordinates&0xffff),Y=(short)((coordinates>>16)&0xffff)};
                 var kind=message switch {0x0201=>"down",0x0202=>"up",0x0205=>"right",0x0203=>"double",_=>"move"};
-                if(message==0x0201)SetCapture(hwnd);
-                if(message==0x0202)ReleaseCapture();
+                if(message==0x0201){_pointerCaptured=true;SetCapture(hwnd);}
+                if(message==0x0202){_pointerCaptured=false;ReleaseCapture();}
                 Pointer?.Invoke(new(kind,p.X,p.Y,(wParam&4)!=0));return 0;
             }
         }

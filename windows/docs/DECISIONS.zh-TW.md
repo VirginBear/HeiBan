@@ -1,5 +1,9 @@
 # Windows 開發決策
 
+## 2026-10-22 — 常用清除、圖示與圓形橡皮擦（製作中）
+
+兩種圓形橡皮擦共用CircularEraserGesture處理批次／preview／完成，UIhost僅負責座標、timer與一筆Undo；沿用板擦worker，避免重新建立一套幾何擦除引擎。主資料只在釋放且flush後變更，generation／epoch不符拒收；取消丟棄preview。維持現有圓形範圍與partial/whole模式，未知物件／sample欄位保存，無文件schema遷移。常用追加一次即可，之後使用者移除仍尊重。 [本批日誌](ERASER_TOOLBAR_ALIGNMENT_2026-10-22.zh-TW.md)。
+
 ## 2026-10-22 — 工作列圖示粉色底板（x64試用完成，待實機）
 
 保留原Logo與透明圓角，修正Shell資源宣告／變體；不把Shell底板誤當原圖去背而重畫品牌。Store以同一Square44x44Logo base name的targetsize/default/unplated/lightunplated資源提供，沿用既有PNG glob及manifest transparent。桌面ICO同原PNG衍生，保留32bit alpha與AND mask。沒有文件格式或使用者偏好遷移。 [本批日誌](TASKBAR_ICON_2026-10-22.zh-TW.md)。

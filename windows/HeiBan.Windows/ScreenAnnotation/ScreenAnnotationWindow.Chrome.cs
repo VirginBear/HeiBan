@@ -54,7 +54,7 @@ internal sealed partial class ScreenAnnotationWindow
         _chromeGrip.Children.Add(new TextBlock{Text="☰",FontSize=18,HorizontalAlignment=HorizontalAlignment.Center,VerticalAlignment=VerticalAlignment.Center,Foreground=ChromeBrush(255,62,81,69)});
         ToolTipService.SetToolTip(_chromeGrip,T("拖曳到螢幕上下左右；放開後停靠"));ExtendsContentIntoTitleBar=true;SetTitleBar(_chromeGrip);
         _mode.Height=32;_mode.MinWidth=_mode.MinHeight=0;_mode.Padding=new Thickness(3);_mode.BorderThickness=new Thickness(0);_mode.CornerRadius=new CornerRadius(6);_mode.Background=ChromeBrush(0,0,0,0);_mode.Click+=(_,_)=>SetDrawing(!_drawing);
-        foreach(var pair in ToolbarUi.ScreenTools.Where(pair=>pair.Key is not("undo" or "redo" or "screenshot" or "layers" or "brush" or "dash")))
+        foreach(var pair in ToolbarUi.ScreenTools.Where(pair=>pair.Key is not("undo" or "redo" or "screenshot" or "layers" or "brush" or "dash" or "clearAll")))
         {var key=pair.Key;var button=ChromeButton(key,T(pair.Label));button.Tag=key;button.Click+=(_,_)=>{if(key=="shapes")ShowScreenShapes();else if(key=="magnet")ToggleScreenMagnet();else ChooseScreenTool(key);};_buttons[key]=button;}
         _chromeActions.Add(ActionButton("undo",T("復原這個螢幕的註記"),async()=>await UndoScreenAsync(false),"undo"));
         _chromeActions.Add(ActionButton("redo",T("重做"),async()=>await UndoScreenAsync(true),"redo"));
@@ -64,7 +64,7 @@ internal sealed partial class ScreenAnnotationWindow
         _dashButton=ChromeButton("dash-solid",T("線條樣式"));_dashButton.Tag="dash";_dashButton.Click+=(_,_)=>ShowScreenLineStyles();_buttons["dash"]=_dashButton;
         _brushButton=ChromeButton("pen",T("顏色、粗細與透明度"));_brushButton.Tag="brush";_brushButton.Click+=(_,_)=>ShowBrushSettings();_buttons["brush"]=_brushButton;
         _styleCommitTimer.Tick+=(_,_)=>CommitScreenStyle();
-        _clearButton=ActionButton("delete",T("一鍵清空所有螢幕註記 · Ctrl+Alt+K · 可復原"),ClearScreenObjects);
+        _clearButton=ActionButton("delete",T("一鍵清空所有螢幕註記 · Ctrl+Alt+K · 可復原"),ClearScreenObjects,"clearAll");_buttons["clearAll"]=_clearButton;
         _closeButton=ActionButton("close",T("結束螢幕畫布 · Ctrl+Alt+Q"),async()=>await StopAsync());
         _moreButton=ChromeButton("more",T("螢幕畫布更多設定"));_moreButton.Click+=(_,_)=>ShowScreenMenu(_moreButton);
         var content=new Border{Language=Localization.Strings.Language,RequestedTheme=ElementTheme.Light,CornerRadius=new CornerRadius(16),Background=ChromeBrush(150,247,250,246),BorderBrush=ChromeBrush(55,92,123,108),BorderThickness=new Thickness(1)};
@@ -81,17 +81,8 @@ internal sealed partial class ScreenAnnotationWindow
         ShowChromeFlyout(menu,_dashButton);
     }
     private void ShowScreenShapes()
-    {
-        var menu=new MenuFlyout();
-        var fill=new MenuFlyoutItem{Text=T("填滿"),Icon=ToolIcons.CreateIcon("paint")};
-        fill.Click+=(_,_)=>ShowScreenFill(_buttons["shapes"]);menu.Items.Add(fill);menu.Items.Add(new MenuFlyoutSeparator());
-        foreach(var (key,label) in ToolbarUi.ShapeTools)
-        {
-            var item=new MenuFlyoutItem{Text=T(label),Icon=ToolIcons.CreateIcon(key)};
-            item.Click+=(_,_)=>ChooseScreenTool(key);menu.Items.Add(item);
-        }
-        ShowChromeFlyout(menu,_buttons["shapes"]);
-    }
+        =>ShowChromeFlyout(ToolbarUi.Shapes(ChooseScreenTool,()=>ShowScreenFill(_buttons["shapes"])),_buttons["shapes"]);
+
     private MenuFlyoutSubItem ScreenToolbarCustomization()
     {
         var submenu=new MenuFlyoutSubItem{Text=T("自訂工具列")};
@@ -165,8 +156,9 @@ internal sealed partial class ScreenAnnotationWindow
         foreach(var key in new[]{"SliderThumbBackground","SliderThumbBackgroundPointerOver","SliderThumbBackgroundPressed","SliderTrackValueFill","SliderTrackValueFillPointerOver","SliderTrackValueFillPressed","AccentFillColorDefaultBrush","SystemControlHighlightAccentBrush"})slider.Resources[key]=ChromeBrush(255,85,135,113);
         AutomationProperties.SetName(slider,label);return slider;
     }
-    private void ChooseScreenTool(string key)
+    private async void ChooseScreenTool(string key)
     {
+        if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();
         using var trace=global::HeiBan.Windows.Diagnostics.InputLatencyTrace.Measure(global::HeiBan.Windows.Diagnostics.InputStage.ToolSwitch);
         _chromeFlyout?.Hide();FinishScreenText();if(key==_tool&&key=="laser"){_ = LaserSettingsAsync();return;}if(key==_tool&&key=="eraser"){ShowEraserSettings();return;}
         var selectionVisuals=(_tool=="select"||key=="select")&&_session.SelectedIds.Count>0;
@@ -196,7 +188,7 @@ internal sealed partial class ScreenAnnotationWindow
         if(StyleSelection is not null){Item("select",T("選取物件：樣式、複製、刪除…"),()=>ShowChromeFlyout(CreateObjectMenu(),_moreButton));menu.Items.Add(new MenuFlyoutSeparator());}
         var automatic=new ToggleMenuFlyoutItem{Text=T("自動存檔"),IsChecked=_owner.AutoSaveEnabled};
         automatic.Click+=async(_,_)=>{automatic.IsEnabled=false;try{await _owner.SetAutoSaveEnabledAsync(automatic.IsChecked);}catch(Exception error){automatic.IsChecked=_owner.AutoSaveEnabled;_status.Text=T("儲存設定未保存，請確認資料夾可寫入。")+"\n"+error.Message;}finally{automatic.IsEnabled=true;}};menu.Items.Add(automatic);
-        Item("save",T("儲存註記"),async()=>{FinishScreenText();CancelGesture();if(await SaveAsync()){_status.Text=_session.IsDirty?T("尚有變更"):T("已儲存");RefreshMode();}});
+        Item("save",T("儲存註記"),async()=>{if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();FinishScreenText();CancelGesture();if(await SaveAsync()){_status.Text=_session.IsDirty?T("尚有變更"):T("已儲存");RefreshMode();}});
         var dockMenu=new MenuFlyoutSubItem{Text=T("工具列位置")};
         foreach(var pair in new[]{("top","上方"),("bottom","下方"),("left","左側"),("right","右側")}){var side=pair.Item1;var item=new MenuFlyoutItem{Text=T(pair.Item2)};item.Click+=(_,_)=>DockChrome(side);dockMenu.Items.Add(item);}menu.Items.Add(dockMenu);menu.Items.Add(new MenuFlyoutSeparator());
         Item("palette",T("調色盤"),ShowScreenPalette);

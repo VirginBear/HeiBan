@@ -86,8 +86,9 @@ internal sealed partial class ScreenAnnotationWindow
     private void DeleteScreenSelection(){DamageSelectedObjects();CancelGesture();_session.DeleteSelected();RefreshScreenStyleButtons();Changed();}
     private void ChangeScreenLayer(bool front)
     {if(_session.Selected is not {IsLocked:not true} o)return;CancelGesture();_session.Begin();o.ZIndex=front?_session.Document.Objects.Max(item=>item.ZIndex)+1:_session.Document.Objects.Min(item=>item.ZIndex)-1;_session.Commit();Changed();}
-    private void ClearScreenObjects()
+    private async void ClearScreenObjects()
     {
+        if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();
         if(!IsActive)return;FinishScreenText();_chromeFlyout?.Hide();CancelGesture();_session.Begin();_session.Document.Objects.Clear();_session.SelectedId=null;_session.Commit();_laser.Clear();Changed();_status.Text=T("已清除全部註記 · 可按復原恢復");
     }
     private object ValidateObjectCommands()

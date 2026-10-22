@@ -1,5 +1,9 @@
 # Windows 目前開發狀態
 
+## 2026-10-22 — 常用清除、圖示與圓形橡皮擦（製作中）
+
+清除本頁加入常用預設與一次性追加遷移，保留其他自訂；screen清除接入同一catalog，收合只用原按鈕。兩畫布共用九宮格描邊圖形選單，修screen PathIcon填色造成圖示差異。圓形橡皮擦改共用16ms背景順序佇列／隔離preview、放開flush一筆Undo，取消與epoch/generation拒收，保存／退出等待已放開手勢；核心減少每段配置與反解析。中途build50.74秒0warning0error，後續邊界補強與最終封裝進行中，未執行App／實作測試。 [本批日誌](ERASER_TOOLBAR_ALIGNMENT_2026-10-22.zh-TW.md)。
+
 ## 2026-10-22 — 工作列圖示粉色底板（x64試用完成，待實機）
 
 依截圖追查粉色方框；原PNG及既有EXE圖示沒有粉色、具透明度，但商店資源缺targetsize與深／淺色unplated變體。新增14尺寸×3變體共42個Store PNG，桌面ICO由單256px補為14尺寸、32bit alpha與小圖AND mask；原Logo PNG不改。Store來源已修，既有已發行MSIX未重建，須下次商店更新才帶入。同系列1.0.15／taskbar-icon-2026-10-22-r1 x64試用已封裝，ZIP132859405bytes／SHA256 `b79c70162358c742cf217f7f6875e5da08a8656fd670b3c228cd2c160be85e8f`；585payload／180source核同，52檔作品設定接續。SDK MakePRI可識別14尺寸及兩種unplated；Shell外觀未實機驗收。 [本批日誌](TASKBAR_ICON_2026-10-22.zh-TW.md)。
