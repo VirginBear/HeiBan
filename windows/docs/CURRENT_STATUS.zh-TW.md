@@ -1,8 +1,8 @@
 # Windows 目前開發狀態
 
-## 2026-10-22 — 使用者核准Store 1.0.16.0（封裝中）
+## 2026-10-22 — Store 1.0.16.0更新包完成（待使用者上傳）
 
-使用者指示打包準備更新上架，並明確確認1.0.16／1.0.16.0。本批製作正式x64＋ARM64 MSIX bundle，沿用DD7EC7CF.HeiBan及既有Publisher，保留舊Store套件byte；累積常用／完整指南、自由筆與磁鐵、圖形選單、圓擦除／板擦、工作列圖示資源改善。未自行上傳、送審或宣稱認證／上架；App／實作測試未執行。 [本批日誌](STORE_RELEASE_1.0.16_2026-10-22.zh-TW.md)。
+商店上傳包`dist/store/HeiBan-Store-1.0.16.0-x64-arm64.msixbundle`已完成，196597450bytes／SHA256 `57080fb301f2557bae8977f863877c7b91a40bae4eabed96f6f4813c9040e0be`，來源fa2582325c90483185e09f5d1583e48dc6106e16。x64／ARM64建置耗時00:01:55.58／00:01:47.10，各0warning0error；281來源SHA、ZIP CRC、套件身分／架構／內含包SHA、十語手冊／指南與42個targetsize圖示核同，兩架構實際resources.pri識別深／淺色unplated。原12份舊Store套件及28份歷史檔SHA均不變。未執行App／實作測試／WACK或Store安裝升級；助手未上傳／送審／發布。 [本批日誌](STORE_RELEASE_1.0.16_2026-10-22.zh-TW.md)。
 
 ## 2026-10-22 — 常用清除、圖示與圓形橡皮擦（x64試用完成，待實機）
 
