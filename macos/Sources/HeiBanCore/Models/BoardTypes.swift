@@ -196,6 +196,10 @@ public struct BoardPage: Codable, Identifiable, Equatable {
     public var createdAt: String
     public var updatedAt: String
 
+    enum CodingKeys: String, CodingKey {
+        case id, title, index, createdAt, updatedAt
+    }
+
     public init(
         id: String = UUID().uuidString,
         title: String = "第 1 頁",
@@ -208,6 +212,16 @@ public struct BoardPage: Codable, Identifiable, Equatable {
         self.index = index
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+    }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let now = ISO8601DateFormatter().string(from: Date())
+        self.id = try c.decodeIfPresent(String.self, forKey: .id) ?? UUID().uuidString
+        self.title = try c.decodeIfPresent(String.self, forKey: .title) ?? "第 1 頁"
+        self.index = try c.decodeIfPresent(Int.self, forKey: .index) ?? 0
+        self.createdAt = try c.decodeIfPresent(String.self, forKey: .createdAt) ?? now
+        self.updatedAt = try c.decodeIfPresent(String.self, forKey: .updatedAt) ?? self.createdAt
     }
 }
 
@@ -911,9 +925,9 @@ public struct BoardObject: Codable, Identifiable, Equatable {
         self.isVisible = try container.decodeIfPresent(Bool.self, forKey: .isVisible)
         self.name = try container.decodeIfPresent(String.self, forKey: .name)
         self.groupId = try container.decodeIfPresent(String.self, forKey: .groupId)
-        self.createdBy = try container.decode(String.self, forKey: .createdBy)
+        self.createdBy = try container.decodeIfPresent(String.self, forKey: .createdBy) ?? "local_user"
         self.creatorName = try container.decodeIfPresent(String.self, forKey: .creatorName)
-        self.updatedAt = try container.decode(String.self, forKey: .updatedAt)
+        self.updatedAt = try container.decodeIfPresent(String.self, forKey: .updatedAt) ?? ISO8601DateFormatter().string(from: Date())
         self.pageId = try container.decodeIfPresent(String.self, forKey: .pageId)
         self.arcRadius = try container.decodeIfPresent(Double.self, forKey: .arcRadius)
         self.arcStartAngle = try container.decodeIfPresent(Double.self, forKey: .arcStartAngle)
@@ -1221,14 +1235,15 @@ public struct BoardMetadata: Codable, Identifiable, Equatable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+        let now = ISO8601DateFormatter().string(from: Date())
         self.id = try container.decode(String.self, forKey: .id)
         self.title = try container.decode(String.self, forKey: .title)
-        self.ownerId = try container.decode(String.self, forKey: .ownerId)
-        self.ownerName = try container.decode(String.self, forKey: .ownerName)
+        self.ownerId = try container.decodeIfPresent(String.self, forKey: .ownerId) ?? "local_user"
+        self.ownerName = try container.decodeIfPresent(String.self, forKey: .ownerName) ?? "Local User"
         self.ownerPhoto = try container.decodeIfPresent(String.self, forKey: .ownerPhoto)
-        self.backgroundColor = try container.decode(String.self, forKey: .backgroundColor)
-        self.gridStyle = try container.decode(GridStyle.self, forKey: .gridStyle)
-        self.boardTheme = try container.decode(BoardTheme.self, forKey: .boardTheme)
+        self.backgroundColor = try container.decodeIfPresent(String.self, forKey: .backgroundColor) ?? "#172e25"
+        self.gridStyle = try container.decodeIfPresent(GridStyle.self, forKey: .gridStyle) ?? .grid
+        self.boardTheme = try container.decodeIfPresent(BoardTheme.self, forKey: .boardTheme) ?? .blackboard
         self.canvasMode = try container.decodeIfPresent(CanvasMode.self, forKey: .canvasMode)
         self.canvasPreset = try container.decodeIfPresent(CanvasPreset.self, forKey: .canvasPreset)
         self.canvasWidth = try container.decodeIfPresent(Double.self, forKey: .canvasWidth)
@@ -1240,8 +1255,8 @@ public struct BoardMetadata: Codable, Identifiable, Equatable {
         self.collaboratorIds = try container.decodeIfPresent([String].self, forKey: .collaboratorIds)
         self.memberRoles = try container.decodeIfPresent([String: String].self, forKey: .memberRoles)
         self.source = try container.decodeIfPresent(String.self, forKey: .source)
-        self.createdAt = try container.decode(String.self, forKey: .createdAt)
-        self.updatedAt = try container.decode(String.self, forKey: .updatedAt)
+        self.createdAt = try container.decodeIfPresent(String.self, forKey: .createdAt) ?? now
+        self.updatedAt = try container.decodeIfPresent(String.self, forKey: .updatedAt) ?? self.createdAt
         self.pages = try container.decodeIfPresent([BoardPage].self, forKey: .pages)
         self.activePageId = try container.decodeIfPresent(String.self, forKey: .activePageId)
         self.coverStyle = try container.decodeIfPresent(String.self, forKey: .coverStyle)

@@ -33,10 +33,20 @@ struct BoardEraserOverlay: View {
             x: max(0, size.width - BoardEraserGeometry.width - 20),
             y: max(0, size.height - BoardEraserGeometry.height - 40))
     }
+    private var spriteTransform: CGAffineTransform {
+        let t = BoardEraserGeometry.imageTransform
+        let cx = BoardEraserGeometry.width / 2
+        let cy = BoardEraserGeometry.height / 2
+        let m = CGAffineTransform(a: t.m11, b: t.m12, c: t.m21, d: t.m22, tx: 0, ty: 0)
+        return CGAffineTransform(translationX: -cx, y: -cy)
+            .concatenating(m)
+            .concatenating(CGAffineTransform(translationX: cx, y: cy))
+    }
     var body: some View {
         if engine.toolbarPreferences.boardEraserVisible && !engine.readingMode {
             ZStack {
-                Image("BoardEraser", bundle: .module).resizable().scaledToFit().scaleEffect(x: -1, y: 1)
+                Image("BoardEraser", bundle: .module).resizable().scaledToFit()
+                    .transformEffect(spriteTransform)
                     .opacity(state.pointer == nil ? 1 : 0.78).allowsHitTesting(false)
                 BoardEraserPointer(engine: engine, origin: origin)
             }
@@ -59,6 +69,15 @@ private struct BoardEraserPointer: NSViewRepresentable {
         let engine: BoardEngine
         var origin: CGPoint
         var startWindow: CGPoint?, startCanvas: Point?
+        private var resignObserver: NSObjectProtocol?
+        deinit {
+            if let resignObserver { NotificationCenter.default.removeObserver(resignObserver) }
+        }
+        private func cancelDrag() {
+            engine.cancelBoardEraser()
+            startWindow = nil
+            startCanvas = nil
+        }
         override var isFlipped: Bool { true }
         override var acceptsFirstResponder: Bool { true }
         override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
@@ -98,16 +117,21 @@ private struct BoardEraserPointer: NSViewRepresentable {
         }
         override func keyDown(with event: NSEvent) {
             if event.keyCode == 53 {
-                engine.cancelBoardEraser()
-                startWindow = nil
-                startCanvas = nil
+                cancelDrag()
             } else {
                 super.keyDown(with: event)
             }
         }
         override func viewDidMoveToWindow() {
             super.viewDidMoveToWindow()
-            if window == nil { engine.cancelBoardEraser() }
+            if let resignObserver { NotificationCenter.default.removeObserver(resignObserver) }
+            resignObserver = nil
+            cancelDrag()
+            if let window {
+                resignObserver = NotificationCenter.default.addObserver(
+                    forName: NSWindow.didResignKeyNotification, object: window, queue: .main
+                ) { [weak self] _ in self?.cancelDrag() }
+            }
         }
         override func rightMouseDown(with event: NSEvent) {
             let menu = NSMenu()

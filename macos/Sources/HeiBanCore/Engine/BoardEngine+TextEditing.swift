@@ -104,6 +104,26 @@ extension BoardEngine {
         selectedIds = [object.id]
     }
 
+    /// 空字串也可能代表刪除既有文字；只看草稿是否非空會漏報這種修改。
+    var hasUncommittedTextChanges: Bool {
+        guard inlineTextEditing else { return false }
+        guard let original = originalTextObject else {
+            return !textDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+        let originalSpans = original.richTextSpans ?? [TextSpan(
+            text: original.text ?? "", isBold: original.isBold, isItalic: original.isItalic,
+            isUnderline: original.isUnderline, isStrikethrough: original.isStrikethrough,
+            color: original.strokeColor, highlightColor: original.highlightColor)]
+        return textDraft != (original.text ?? "")
+            || normalizedRichTextSpans(editingRichTextSpans, plainText: textDraft)
+                != normalizedRichTextSpans(originalSpans, plainText: original.text ?? "")
+            || editingFontFamily != (original.fontFamily ?? "PingFang TC")
+            || editingFontSize != (original.fontSize ?? (original.type == "sticky" ? 16 : 24))
+            || editingTextAlign != (original.align ?? "left")
+            || editingTextColor != original.strokeColor
+            || editingTextOpacity != original.opacity
+    }
+
     public func commitInlineTextEntry() {
         let content = textDraft
         defer {

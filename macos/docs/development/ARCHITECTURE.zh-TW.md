@@ -1,6 +1,6 @@
 # Mac 實際架構與維護邊界
 
-更新：2026-10-16。這份文件描述現況，未建立不存在的 Storage／Metal 模組。
+更新：2026-10-17。這份文件描述現況，未建立不存在的 Storage／Metal 模組。
 
 ## 套件與職責
 
@@ -95,3 +95,12 @@ macos/.build是可重新產生的SDK模組／中間檔／建置產品，沒有�
 - PDFEditableAttachment：符合PDF交叉索引的增量stream，沿舊Mac／Windows可發現的base64原稿標記；不更改.heiban契約。多頁PDF及原稿皆在本機產生，完整原稿分享限制見隱私文字。
 - 工具列icons／labels及Common偏好由ToolbarPreferences／ToolbarContentPolicy共用；labels單排／單列，四頁及組頁只為暫態UI。螢幕尺寸按labels與icons分流，clear／close在中段之外。
 - 手冊單一正體中文21章來源保持generate_user_guide.py，其餘語言的Mac原生操作總覽由Documentation/Guides＋generate_localized_guides.py生成，Guide視窗依L10n載入資源，頁內語言選擇不改App偏好。
+
+
+## 1.0.15 同版修整（2026-10-17）
+
+板擦高頻快照已從 engine.objects 移到 BoardEraserState.previewObjects，由 BoardEraserObjectsLayer 獨立訂閱並以目前頁過濾後交共用renderer。document永遠只讀永久objects，無須在每次取得快照時猜測是否正擦除。開始記錄作品／頁與drawingGeometryRevision；放開前再核對，外部命令若已修改永久物件則丟棄過時預覽。取消不回寫原陣列，避免覆蓋新操作。isBoardEraserActive只在開始／結束發布，供保存回饋及導航鎖定；原生視窗失焦或拆除清理手勢。
+
+普通保存的generation在每次已提交編輯推進，先標記尚未保存，才決定是否排自動寫入；關閉自動保存不會保留過期的「已儲存」。排程執行及完成回報都核對generation，但已開始的串行磁碟寫入仍可能完成。同步／非同步離開作品均提交文字與板擦後取值型別快照；不是保存所有未完成筆畫的通用交易機制。
+
+圖文工具列以shownPageIDs作實際渲染清單；More補齊目前未渲染工具，螢幕Undo／Redo同樣展開為共用元件。設定請求依renderedIDs決定是否先開More，不再誤用包含其他頁工具的visibleIDs。中段ScrollView有明確可用尺寸，常駐入口在捲動區之外；沒有新增第二套命令catalog或作品設定。

@@ -4,6 +4,7 @@
 
 ## Mac維護與目前交付
 
+- [2026-10-22 Windows 1.0.16 → Mac 1.0.16 同步與專案健康度審視](../macos/docs/development/logs/2026-10-22/01.zh-TW.md)：工具列預設全開與無損遷移、自由筆無磁鐵干擾、板擦 80% 幾何、十語無邊界指南與 1,858 項斷言通過。
 - [Windows1.0.15 → Mac1.0.15同步開發／功能與限制](../macos/docs/development/WINDOWS_SYNC_REVIEW_2026-10-16.zh-TW.md)。本機版本與編譯／封裝證據依當日日誌，公開舊Release另列。
 
 - [Mac開發進度、排錯與交接總表](../macos/docs/development/MAC_DEVELOPMENT_HANDOFF_2026-10-13.zh-TW.md)

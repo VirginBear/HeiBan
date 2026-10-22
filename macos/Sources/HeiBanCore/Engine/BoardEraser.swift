@@ -3,6 +3,8 @@ import CoreGraphics
 import Foundation
 
 public final class BoardEraserState: ObservableObject {
+    // 只有獨立的物件渲染層訂閱此高頻預覽，不觸發永久幾何索引／保存／Undo。
+    @Published public internal(set) var previewObjects: [BoardObject]?
     @Published public var pointer: Point?
     @Published public var grip = Point(x: 80, y: 49)
     public init() {}
@@ -10,12 +12,32 @@ public final class BoardEraserState: ObservableObject {
 
 /// Same original sprite and mirrored alpha hull as Windows. Units are screen points, never world units.
 public enum BoardEraserGeometry {
-    public static let width = 160.0, height = 1280.0 / 13
+    public static let width = 160.0, height = 1280.0 / 13, lengthScale = 0.8
+    public static let imageTransform: (m11: Double, m12: Double, m21: Double, m22: Double) = {
+        let angle = -20.0 * .pi / 180.0
+        let x = cos(angle)
+        let y = sin(angle)
+        let delta = lengthScale - 1.0
+        return (
+            -(1.0 + delta * x * x),
+            delta * x * y,
+            -delta * x * y,
+            1.0 + delta * y * y
+        )
+    }()
     public static let outline: [Point] = [
         (0.12070, 0.59146), (0.15322, 0.55488), (0.79049, 0.17480), (0.83615, 0.19411), (0.85679, 0.24187),
         (0.89181, 0.40650), (0.87930, 0.47764), (0.83615, 0.52033), (0.20763, 0.88923), (0.17198, 0.87907),
         (0.14196, 0.81606), (0.10944, 0.65854),
-    ].map { Point(x: (1 - $0.0) * width, y: $0.1 * height) }
+    ].map { raw in
+        let t = imageTransform
+        let dx = (raw.0 - 0.5) * width
+        let dy = (raw.1 - 0.5) * height
+        return Point(
+            x: (0.5 + (t.m11 * dx + t.m21 * dy) / width) * width,
+            y: (0.5 + (t.m12 * dx + t.m22 * dy) / height) * height
+        )
+    }
     public static func canGrab(_ p: Point) -> Bool { ConvexEraserFootprint(outline).contains(p) }
 }
 
@@ -109,24 +131,29 @@ extension BoardEngine {
     }
     public func beginBoardEraser(at pointer: Point, grip: Point) {
         guard !readingMode, !showingHome, BoardEraserGeometry.canGrab(grip) else { return }
-        commitInlineTextEntry()
+        if inlineTextEditing { commitInlineTextEntry() }
         let previousTool = currentTool
         cancelTransientInteraction()
         currentTool = previousTool
         boardEraserOriginal = objects
         boardEraserContext = board.id + ":" + (activePageId ?? "")
+        boardEraserRevision = drawingGeometryRevision
+        boardEraser.previewObjects = objects
+        isBoardEraserActive = true
         boardEraser.grip = grip
         boardEraser.pointer = pointer
         moveBoardEraser(to: pointer)
     }
     public func moveBoardEraser(to pointer: Point) {
-        guard boardEraserOriginal != nil, boardEraserContext == board.id + ":" + (activePageId ?? "") else {
+        guard boardEraserOriginal != nil else { return }
+        guard boardEraserSessionIsCurrent else {
+            cancelBoardEraser()
             return
         }
         let last = boardEraser.pointer ?? pointer
         let steps = max(1, Int(ceil(hypot(pointer.x - last.x, pointer.y - last.y) / 5)))
         // Build one replacement list per native event. Intermediate samples cover fast drags without gaps.
-        var draft = objects
+        var draft = boardEraser.previewObjects ?? objects
         for i in 1...steps {
             let p = Point(
                 x: last.x + (pointer.x - last.x) * Double(i) / Double(steps),
@@ -186,23 +213,32 @@ extension BoardEngine {
                 return [item]
             }
         }
-        if draft != objects { objects = draft }
+        if draft != boardEraser.previewObjects { boardEraser.previewObjects = draft }
         boardEraser.pointer = pointer
     }
+    private var boardEraserSessionIsCurrent: Bool {
+        boardEraserContext == board.id + ":" + (activePageId ?? "")
+            && boardEraserRevision == drawingGeometryRevision
+    }
+
     public func finishBoardEraser() {
         guard let before = boardEraserOriginal else { return }
-        boardEraserOriginal = nil
-        boardEraserContext = nil
-        boardEraser.pointer = nil
-        guard before != objects else { return }
-        transactionManager.push(.replaceObjects(before: before, after: objects))
+        // 若其他命令已改永久物件，不能用過時整頁預覽覆蓋該命令。
+        let after = boardEraserSessionIsCurrent ? boardEraser.previewObjects : nil
+        cancelBoardEraser()
+        guard let after, before != after else { return }
+        objects = after
+        transactionManager.push(.replaceObjects(before: before, after: after))
         scheduleAutosave()
     }
+
     public func cancelBoardEraser() {
-        guard let original = boardEraserOriginal else { return }
-        objects = original
+        guard boardEraserOriginal != nil else { return }
         boardEraserOriginal = nil
         boardEraserContext = nil
+        boardEraserRevision = nil
+        boardEraser.previewObjects = nil
         boardEraser.pointer = nil
+        isBoardEraserActive = false
     }
 }

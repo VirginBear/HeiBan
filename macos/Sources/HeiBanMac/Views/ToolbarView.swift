@@ -119,6 +119,7 @@ struct ToolbarToolsView: View {
     @ViewState private var showLaserSettings = false
     @ViewState private var showRulerSettings = false
     @ViewState private var showMorePopover = false
+    @ViewState private var requestedSettingsID: String?
     @ViewState private var showCustomizeSheet = false
 
     let screenController: ScreenAnnotationController?
@@ -140,10 +141,41 @@ struct ToolbarToolsView: View {
     private var visibleIDs: [String] {
         ToolbarContentPolicy.visibleIDs(engine.toolbarPreferences, screen: screenController != nil)
     }
-    private var hiddenItems: [ToolbarItemDefinition] {
-        engine.toolbarPreferences.hiddenItems.filter {
-            ToolbarContentPolicy.isAvailable($0.id, screen: screenController != nil)
-        }
+    private var usesLabels: Bool { engine.toolbarPreferences.displayMode == "labels" }
+    private var pageIDs: [String] {
+        ToolbarContentPolicy.pageIDs(engine.toolbarPreferences, screen: screenController != nil, page: activePage)
+    }
+    // 預留常駐選取、更多、兩個換組箭頭及間距，再計算實際能容納的工具。
+    private var pageCapacity: Int {
+        max(1, Int((availableLength - (vertical ? 144 : 116)) / (vertical ? 50 : 76)))
+    }
+    private var currentPageOffset: Int {
+        min(pageOffset, max(0, ((pageIDs.count - 1) / pageCapacity) * pageCapacity))
+    }
+    private var shownPageIDs: [String] {
+        Array(pageIDs.dropFirst(currentPageOffset).prefix(pageCapacity))
+    }
+    private var renderedIDs: [String] { usesLabels ? ["select"] + shownPageIDs : visibleIDs }
+    private var overflowIDs: [String] {
+        let candidates = ToolbarPreferences.allDefinitions
+            .filter { ToolbarContentPolicy.isAvailable($0.id, screen: screenController != nil) }
+            .flatMap { item in
+                screenController != nil && item.id == "undoRedo" ? ["undo", "redo"] : [item.id]
+            }
+        let overflow = candidates.filter { !renderedIDs.contains($0) }
+        // 程式請求設定時把錨點放到可見首列，避免它在 More 捲動區底部仍被裁掉。
+        guard let requestedSettingsID, overflow.contains(requestedSettingsID) else { return overflow }
+        return [requestedSettingsID] + overflow.filter { $0 != requestedSettingsID }
+    }
+    private func revealSettings(_ id: String) {
+        guard !renderedIDs.contains(id) else { return }
+        requestedSettingsID = id
+        showMorePopover = true
+    }
+    private func toolTitle(_ id: String) -> String {
+        if id == "undo" { return "復原" }
+        if id == "redo" { return "重做" }
+        return ToolbarPreferences.allDefinitions.first { $0.id == id }?.displayName ?? id
     }
 
     var body: some View {
@@ -171,54 +203,81 @@ struct ToolbarToolsView: View {
                   source.toolbarPreferences != engine.toolbarPreferences else { return }
             engine.toolbarPreferences = source.toolbarPreferences
         }
-        .onChange(of: engine.showColorPopover) { _, show in if show && !visibleIDs.contains("color") { showMorePopover = true } }
-        .onChange(of: engine.showShapesPopover) { _, show in if show && !visibleIDs.contains("shapes") { showMorePopover = true } }
-        .onChange(of: engine.showEraserPopover) { _, show in if show && !visibleIDs.contains("eraser") { showMorePopover = true } }
+        .onChange(of: engine.showColorPopover) { _, show in if show { revealSettings("color") } }
+        .onChange(of: engine.showShapesPopover) { _, show in if show { revealSettings("shapes") } }
+        .onChange(of: engine.showEraserPopover) { _, show in if show { revealSettings("eraser") } }
         .onChange(of: engine.toolbarPreferences) { _, _ in pageOffset=0;screenController?.toolbarPreferencesChanged() }
         .onChange(of: availableLength) { _, _ in pageOffset=0 }
+        .onChange(of: showMorePopover) { _, show in if !show { requestedSettingsID = nil } }
     }
 
-    private var pageCapacity: Int { max(1,Int((availableLength-(vertical ? 144 : 132))/(vertical ? 54 : 78))) }
     private var labeledTools: some View {
-        let ids=ToolbarContentPolicy.pageIDs(engine.toolbarPreferences,screen:screenController != nil,page:activePage)
-        let offset=min(pageOffset,max(0,((ids.count-1)/pageCapacity)*pageCapacity))
-        let shown=Array(ids.dropFirst(offset).prefix(pageCapacity))
-        let shell=vertical ? AnyLayout(VStackLayout(spacing:4)) : AnyLayout(HStackLayout(spacing:6))
+        let shell = vertical ? AnyLayout(VStackLayout(spacing: 4)) : AnyLayout(HStackLayout(spacing: 6))
         return shell {
-            renderToolItem(id:"select") // Always reachable, including empty/custom pages.
-            VStack(spacing:4) {
-                if vertical || availableLength<480 {
-                    Picker(L10n.t("工具分頁"),selection:$activePage) {
-                        ForEach(Array(ToolbarContentPolicy.pages.enumerated()),id:\.element) { i,id in Text(L10n.t(ToolbarContentPolicy.pageTitles[i])).tag(id) }
-                    }.labelsHidden().frame(width:116)
-                } else {
-                    HStack(spacing:4) {
-                        ForEach(Array(ToolbarContentPolicy.pages.enumerated()),id:\.element) { i,id in
-                            Button(L10n.t(ToolbarContentPolicy.pageTitles[i])) { activePage=id }
-                                .buttonStyle(.plain).padding(.horizontal,10).padding(.vertical,3)
-                                .background(activePage==id ? Color.accentColor.opacity(0.16) : Color.clear,in:Capsule())
-                        }
-                    }.font(.system(size:11))
+            renderToolItem(id: "select")
+            VStack(spacing: 4) {
+                pageSelector
+                // 頁容量解決一般窄視窗；更小的宿主仍可捲動中段，固定命令不被推出面板。
+                ScrollView(vertical ? .vertical : .horizontal) {
+                    pageTools.fixedSize(horizontal: !vertical, vertical: vertical)
                 }
-                let row=vertical ? AnyLayout(VStackLayout(spacing:2)) : AnyLayout(HStackLayout(spacing:4))
-                row {
-                    Button { pageOffset=max(0,offset-pageCapacity) } label: { Image(systemName:vertical ? "chevron.up" : "chevron.left").frame(width:18,height:22) }
-                        .disabled(offset==0).help(L10n.t("上一組工具"))
-                    ForEach(shown,id:\.self) { id in
-                        let item=ToolbarPreferences.allDefinitions.first { $0.id == (id=="undo" || id=="redo" ? "undoRedo" : id) }
-                        let tile=vertical ? AnyLayout(HStackLayout(spacing:5)) : AnyLayout(VStackLayout(spacing:2))
-                        tile {
-                            renderToolItem(id:id)
-                            Text(L10n.t(item?.displayName ?? id)).font(.system(size:10)).lineLimit(2).multilineTextAlignment(.center)
-                        }.frame(width:vertical ? 116 : 72,height:vertical ? 48 : 58)
-                    }
-                    if shown.isEmpty { Text(L10n.t("由自訂工具列加入常用工具")).font(.caption2).frame(width:72) }
-                    Button { pageOffset=offset+pageCapacity } label: { Image(systemName:vertical ? "chevron.down" : "chevron.right").frame(width:18,height:22) }
-                        .disabled(offset+pageCapacity>=ids.count).help(L10n.t("下一組工具"))
-                }
+                .scrollIndicators(.automatic)
             }
+            .frame(width: vertical ? 116 : max(1, availableLength - 76),
+                   height: vertical ? max(1, availableLength - 72) : 86)
             moreButton
-        }.onChange(of:activePage) { _,_ in pageOffset=0 }
+        }
+        .frame(width: vertical ? 116 : max(1, availableLength),
+               height: vertical ? max(1, availableLength) : 86)
+        .onChange(of: activePage) { _, _ in pageOffset = 0 }
+    }
+
+    private var pageTabsWidth: CGFloat {
+        let font = NSFont.systemFont(ofSize: 11)
+        return ToolbarContentPolicy.pageTitles.reduce(CGFloat(12)) { width, title in
+            width + (L10n.t(title) as NSString).size(withAttributes: [.font: font]).width + 20
+        }
+    }
+
+    @ViewBuilder private var pageSelector: some View {
+        if vertical || pageTabsWidth > availableLength - 76 {
+            Picker(L10n.t("工具分頁"), selection: $activePage) {
+                ForEach(Array(ToolbarContentPolicy.pages.enumerated()), id: \.element) { index, id in
+                    Text(L10n.t(ToolbarContentPolicy.pageTitles[index])).tag(id)
+                }
+            }.labelsHidden().frame(width: 116)
+        } else {
+            HStack(spacing: 4) {
+                ForEach(Array(ToolbarContentPolicy.pages.enumerated()), id: \.element) { index, id in
+                    Button(L10n.t(ToolbarContentPolicy.pageTitles[index])) { activePage = id }
+                        .buttonStyle(.plain).padding(.horizontal, 10).padding(.vertical, 3)
+                        .background(activePage == id ? Color.accentColor.opacity(0.16) : Color.clear, in: Capsule())
+                }
+            }.font(.system(size: 11)).fixedSize()
+        }
+    }
+
+    private var pageTools: some View {
+        let row = vertical ? AnyLayout(VStackLayout(spacing: 2)) : AnyLayout(HStackLayout(spacing: 4))
+        return row {
+            Button { pageOffset = max(0, currentPageOffset - pageCapacity) } label: {
+                Image(systemName: vertical ? "chevron.up" : "chevron.left").frame(width: 18, height: 22)
+            }.disabled(currentPageOffset == 0).help(L10n.t("上一組工具"))
+            ForEach(shownPageIDs, id: \.self) { id in
+                let tile = vertical ? AnyLayout(HStackLayout(spacing: 5)) : AnyLayout(VStackLayout(spacing: 2))
+                tile {
+                    renderToolItem(id: id)
+                    Text(L10n.t(toolTitle(id))).font(.system(size: 10)).lineLimit(2)
+                        .multilineTextAlignment(.center)
+                }.frame(width: vertical ? 116 : 72, height: vertical ? 48 : 58)
+            }
+            if shownPageIDs.isEmpty {
+                Text(L10n.t("由自訂工具列加入常用工具")).font(.caption2).frame(width: 72)
+            }
+            Button { pageOffset = currentPageOffset + pageCapacity } label: {
+                Image(systemName: vertical ? "chevron.down" : "chevron.right").frame(width: 18, height: 22)
+            }.disabled(currentPageOffset + pageCapacity >= pageIDs.count).help(L10n.t("下一組工具"))
+        }
     }
 
     @ViewBuilder private var items: some View {
@@ -233,11 +292,11 @@ struct ToolbarToolsView: View {
         .popover(isPresented: $showMorePopover, arrowEdge: settingsArrowEdge) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 8) {
-                    // 隱藏工具也渲染同一個控制元件，設定 popover 有真實錨點，無第二套命令 switch。
-                    ForEach(hiddenItems) { definition in
+                    // 隱藏、其他分頁及下一組工具都保留同一元件，讓設定永遠有真實錨點。
+                    ForEach(overflowIDs, id: \.self) { id in
                         HStack(spacing: 12) {
-                            renderToolItem(id: definition.id)
-                            Text(L10n.t(definition.displayName)).font(.system(size: 13))
+                            renderToolItem(id: id)
+                            Text(L10n.t(toolTitle(id))).font(.system(size: 13))
                             Spacer()
                         }
                     }
@@ -615,49 +674,102 @@ struct ShapesMenuView: View {
 
     var onSelect: ((ToolType) -> Void)? = nil
 
-    let shapes = [
-        ("rect", "矩形", "rectangle"),
-        ("rounded_rect", "圓角矩形", "rectangle.roundedtop"),
-        ("circle", "圓形 / 橢圓", "circle"),
-        ("triangle", "三角形", "triangle"),
-        ("polygon", "多邊形", "hexagon"),
-        ("quadrilateral", "四邊形", "square.on.square"),
-        ("diamond", "菱形", "diamond"),
-        ("star", "星形", "star"),
-        ("line", "直線", "line.diagonal"),
-        ("arrow", "箭頭", "arrow.up.right"),
-        ("connector", "連接線", "arrow.triangle.branch")
+    private let primaryShapes: [(ToolType, String, String)] = [
+        (.line, "直線", "line.diagonal"),
+        (.arrow, "箭頭", "arrow.up.right"),
+        (.rect, "矩形", "rectangle"),
+        (.circle, "圓形", "circle"),
+        (.triangle, "三角形", "triangle"),
+        (.quadrilateral, "四邊形", "square"),
+        (.diamond, "菱形", "diamond"),
+        (.polygon, "五角形", "pentagon"),
+        (.star, "星形", "star"),
+    ]
+
+    private let extraShapes: [(ToolType, String, String)] = [
+        (.roundedRect, "圓角矩形", "rectangle.roundedtop"),
+        (.connector, "連接線", "arrow.triangle.branch"),
     ]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 8) {
             Text(L10n.t("插入幾何形狀"))
                 .font(.system(size: 12, weight: .bold))
                 .foregroundColor(.secondary)
-                .padding(.horizontal, 8)
-                .padding(.top, 6)
+                .padding(.horizontal, 4)
 
-            ForEach(shapes, id: \.0) { type, title, icon in
-                Button {
-                    if let onSelect { onSelect(type) } else { engine.selectTool(type) }
-                    isPresented = false
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: icon)
-                            .frame(width: 20)
-                        Text(L10n.t(title))
-                            .font(.system(size: 13))
-                        Spacer()
-                    }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 5)
-                    .contentShape(Rectangle())
+            LazyVGrid(columns: Array(repeating: GridItem(.fixed(72), spacing: 8), count: 3), spacing: 8) {
+                ForEach(primaryShapes, id: \.0) { type, title, icon in
+                    shapeCell(type: type, title: title, icon: icon)
                 }
-                .buttonStyle(.plain)
             }
+
+            HStack(spacing: 8) {
+                ForEach(extraShapes, id: \.0) { type, title, icon in
+                    Button {
+                        if let onSelect { onSelect(type) } else { engine.selectTool(type) }
+                        isPresented = false
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: icon)
+                                .font(.system(size: 13, weight: .medium))
+                            Text(L10n.t(title))
+                                .font(.system(size: 12))
+                                .lineLimit(1)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 6)
+                        .background(
+                            engine.currentTool == type ? Color.accentColor.opacity(0.18) : Color.primary.opacity(0.04),
+                            in: RoundedRectangle(cornerRadius: 8)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(engine.currentTool == type ? Color.accentColor : Color.primary.opacity(0.12), lineWidth: 1)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            Divider()
+
+            Toggle(L10n.t("自動填滿圖形"), isOn: $engine.autoFillShapes)
+                .toggleStyle(.switch)
+                .controlSize(.small)
+                .font(.system(size: 12))
+                .padding(.horizontal, 4)
         }
-        .padding(8)
-        .frame(width: 170)
+        .padding(10)
+        .frame(width: 252)
+    }
+
+    private func shapeCell(type: ToolType, title: String, icon: String) -> some View {
+        let active = engine.currentTool == type
+        return Button {
+            if let onSelect { onSelect(type) } else { engine.selectTool(type) }
+            isPresented = false
+        } label: {
+            VStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.system(size: 17, weight: .medium))
+                    .frame(height: 22)
+                Text(L10n.t(title))
+                    .font(.system(size: 11, weight: .medium))
+                    .lineLimit(1)
+            }
+            .foregroundColor(active ? Color.accentColor : Color.primary)
+            .frame(width: 72, height: 56)
+            .background(
+                active ? Color.accentColor.opacity(0.18) : Color.primary.opacity(0.04),
+                in: RoundedRectangle(cornerRadius: 8)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(active ? Color.accentColor : Color.primary.opacity(0.12), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
     }
 }
 

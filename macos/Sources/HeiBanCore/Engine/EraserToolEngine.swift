@@ -64,27 +64,15 @@ public enum EraserToolEngine {
             let h = max(1.0, maxY - minY)
             let pointsJSON = String(data: (try? JSONEncoder().encode(run)) ?? Data(), encoding: .utf8)
 
-            let segment = BoardObject(
-                id: UUID().uuidString,
-                boardId: object.boardId,
-                type: object.type == "curve" ? "stroke" : object.type,
-                x: minX,
-                y: minY,
-                width: w,
-                height: h,
-                points: pointsJSON,
-                strokeColor: object.strokeColor,
-                fillColor: object.fillColor,
-                strokeWidth: object.strokeWidth,
-                lineStyle: object.lineStyle,
-                opacity: object.opacity,
-                rotation: object.rotation,
-                zIndex: object.zIndex,
-                groupId: object.groupId,
-                createdBy: object.createdBy,
-                creatorName: object.creatorName,
-                pageId: object.pageId
-            )
+            var segment = object
+            segment.id = UUID().uuidString
+            segment.type = object.type == "curve" ? "stroke" : object.type
+            segment.x = minX
+            segment.y = minY
+            segment.width = w
+            segment.height = h
+            segment.rotation = 0
+            segment.points = pointsJSON
             segments.append(segment)
         }
 

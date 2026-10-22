@@ -342,3 +342,16 @@ M21 獨立複核補充（2026-10-11）：f960c78 下完整 runner 1559/1559、Re
 2026-10-16，來源移植進行中；完整操作未驗收。Mac原1.0.13缺磁鐵、圖文分頁與Common、板擦、真正外部PDF圖片頁及多頁匯出；圖形預設單次選取、快速列自動出現也與Windows最新需求不同。改由原生共同幾何／policy／文件adapter接線，版本依使用者新授權對齊1.0.15。Windows早期2334等檢查不沿用為Mac本批證據。
 
 排解：首輪Mac文件adapter誤用fitToContent及緊接enum值的==.造成編譯錯誤，改既有fitNavigationView與運算子空白；第二輪Release56.58秒成功。第三輪發現ToolbarPreferences新增未知欄位不是Sendable，確認AnyCodableValue全為遞迴值型別後新增正式Sendable，不用unchecked迴避。板擦最初計畫用remove／insert複合命令，來源複核發現appendInZOrder會改legacy pageId=nil，已改明確replaceObjects交易。未執行故障重現／UI測試；最終編譯結果另記本日01。
+
+
+## M41 — 關閉自動保存後仍可能顯示已儲存，返回首頁漏交文字草稿
+
+2026-10-17，來源已修正並編譯；未作實機或故障注入驗收。scheduleAutosave原本在開關關閉／manual時提前返回，沒有更新status與generation；之前背景快照的完成回報可覆蓋新修改的狀態。改為先取消排程、推進generation並標記未儲存，再判斷排程；執行時也拒絕過時工作。串行queue仍保證寫入順序，不能宣稱取消已開始寫入。同步saveBeforeLeaving原本沒有commitInlineTextEntry，現在與非同步路徑一致，僅實際編輯中才提交；避免無草稿時重設工具。文字清空及樣式差異也列為草稿。
+
+## M42 — 板擦預覽仍寫入永久物件，取消可能覆蓋其他操作
+
+2026-10-17，修正M40／ADR-M25早期「暫態objects」的實際邊界：當時仍每個native event替換engine.objects，只在document讀原陣列。這會每次推進幾何revision並通知整個engine；取消則回寫原objects。改獨立BoardEraserState.previewObjects及小型render wrapper，放開才一次replaceObjects。新增來源revision／作品／頁核對，永久內容已有其他修改時丟棄預覽；Esc／失焦／拆除取消，不回寫永久資料。Undo／Redo／保存先結算。本批未量測流暢度，不能給改善倍率；精確斜角、長拖曳、局部切段、其他頁／鎖定保護與Undo仍待試用。
+
+## M43 — 圖文分頁外工具缺設定錨點，內容未受中段尺寸約束
+
+2026-10-17，來源已修正，實際窄視窗／長語言待驗收。visibleIDs包含全部分頁工具，用它判斷popover是否有錨點會漏掉其他分頁／下一組；More原本只渲染隱藏工具。改renderedIDs與overflowIDs互補，More用同一renderToolItem保留所有未渲染工具，沒有第二套命令處理。圖文中段給定實際長度並可捲動，固定選取／More不參與捲動，容量明列固定區與間距。初步懷疑舊容量漏計箭頭，複核後發現常數本身偏保守，未確認該推測，不記作確定根因。

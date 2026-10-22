@@ -85,10 +85,10 @@ public struct ChangelogEntry: Codable, Equatable, Identifiable {
 public struct AboutInfo: Equatable {
     public static let appName = "HeiBan 黑板"
     public static var appVersion: String {
-        (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "1.0.15"
+        (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "1.0.16"
     }
     public static var buildNumber: String {
-        (Bundle.main.infoDictionary?["CFBundleVersion"] as? String) ?? "20261016.1"
+        (Bundle.main.infoDictionary?["CFBundleVersion"] as? String) ?? "20261022.1"
     }
     public static let engineVersion = "HeiBan Blackboard Vector Engine 1.0"
     public static let copyright = "© 2026 HeiBan Team. All rights reserved."
@@ -96,6 +96,11 @@ public struct AboutInfo: Equatable {
     public static let supportEmail = "support@heiban.app"
 
     public static let changelog: [ChangelogEntry] = [
+        ChangelogEntry(version: "1.0.16", releaseDate: "2026-10-22", highlights: [
+            "工具列預設全工具開啟並採用圖示加文字分頁；常用工具新增顏色、線型與清空黑板",
+            "自由手繪筆刷不套用磁鐵吸附且完成不自動顯示選取框，幾何與曲線筆精準吸附並支援連續作畫",
+            "板擦縮短至 80% 長軸並對齊輪廓；新增十語單頁無邊界操作指南與練習作品"
+        ]),
         ChangelogEntry(version: "1.0.15", releaseDate: "2026-10-16", highlights: [
             "同步 Windows：磁鐵參考點、中心式圖形與連續繪圖，雙擊開詳細調整",
             "圖示／圖文分頁、常用工具自訂與常駐選取；原創可拖曳磁吸板擦",

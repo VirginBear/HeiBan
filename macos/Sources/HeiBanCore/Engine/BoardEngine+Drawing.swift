@@ -150,7 +150,6 @@ extension BoardEngine {
                 )
             }
             appendInZOrder(newObj)
-            selectedIds = [newObj.id]
             transactionManager.push(.insertObjects([newObj]))
             scheduleAutosave()
             return
@@ -209,10 +208,8 @@ extension BoardEngine {
             textureSeed: Int.random(in: 1...10000)
         )
         appendInZOrder(newObj)
-        if currentTool == .curve { selectedIds = [newObj.id] }
         transactionManager.push(.insertObjects([newObj]))
         scheduleAutosave()
-        if currentTool == .curve { currentTool = .select }
     }
 
     public var activeBrushWidth: Double {
@@ -264,7 +261,7 @@ extension BoardEngine {
                 tool: currentTool
             ),
             rulerState: ruler,
-            isEraserActive: isEraserSwipeActive || pointerGesture == .erasing,
+            isEraserActive: isEraserSwipeActive || pointerGesture == .erasing || isBoardEraserActive,
             currentTool: currentTool,
             isNotebook: isNotebook,
             activePageId: activePageId
@@ -274,15 +271,32 @@ extension BoardEngine {
     // MARK: - Eraser Engine (A04 & A24 & A14)
     public func beginEraserSwipe() {
         isEraserSwipeActive = true
+        lastEraserScreenPoint = nil
         activeEraserDeletedObjects.removeAll(keepingCapacity: true)
         activeEraserInsertedObjects.removeAll(keepingCapacity: true)
     }
 
     public func eraseAt(screenPt: Point) {
-        let worldPt = VectorMath.screenToWorld(screenPt, viewport: viewport)
         let hitThreshold = CanvasToolMetrics.eraserWorldRadius(
             screenDiameter: eraserSize, zoom: viewport.zoom)
+        let startPt = (isEraserSwipeActive || pointerGesture == .erasing) ? (lastEraserScreenPoint ?? screenPt) : screenPt
+        let steps = max(1, Int(ceil(hypot(screenPt.x - startPt.x, screenPt.y - startPt.y) / 5.0)))
+        if isEraserSwipeActive || pointerGesture == .erasing {
+            lastEraserScreenPoint = screenPt
+        }
 
+        for step in 1...steps {
+            let t = Double(step) / Double(steps)
+            let sampleScreen = Point(
+                x: startPt.x + (screenPt.x - startPt.x) * t,
+                y: startPt.y + (screenPt.y - startPt.y) * t
+            )
+            let worldPt = VectorMath.screenToWorld(sampleScreen, viewport: viewport)
+            eraseAtWorldSample(worldPt: worldPt, hitThreshold: hitThreshold)
+        }
+    }
+
+    private func eraseAtWorldSample(worldPt: Point, hitThreshold: Double) {
         if eraserMode == .object {
             var newlyDeleted: [BoardObject] = []
             objects.removeAll { obj in
@@ -317,6 +331,14 @@ extension BoardEngine {
                 if obj.type == "stroke" || obj.type == "highlighter" || obj.type == "paint"
                     || obj.type == "curve"
                 {
+                    let margin = hitThreshold + max(2.0, obj.strokeWidth)
+                    if obj.type != "curve" {
+                        if worldPt.x < obj.x - margin || worldPt.x > obj.x + obj.width + margin
+                            || worldPt.y < obj.y - margin || worldPt.y > obj.y + obj.height + margin
+                        {
+                            continue
+                        }
+                    }
                     let segments = EraserToolEngine.sliceStroke(
                         object: obj, eraserCenter: worldPt, eraserRadius: hitThreshold)
                     if segments != [obj] {
@@ -359,6 +381,7 @@ extension BoardEngine {
 
     public func endEraserSwipe() {
         isEraserSwipeActive = false
+        lastEraserScreenPoint = nil
         var commands: [BoardCommand] = []
         if !activeEraserDeletedObjects.isEmpty {
             commands.append(.removeObjects(activeEraserDeletedObjects))

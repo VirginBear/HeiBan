@@ -1279,7 +1279,7 @@ do {
     assertEqual(recWave, nil, "一般波動 S 筆跡嚴禁被誤辨識為幾何形狀 (正常書寫不誤觸)")
 
     // 勾選開口折線
-    var checkPoints: [Point] = [
+    let checkPoints: [Point] = [
         Point(x: 10, y: 50), Point(x: 20, y: 70), Point(x: 30, y: 90),
         Point(x: 60, y: 40), Point(x: 90, y: 10)
     ]
@@ -1334,7 +1334,7 @@ do {
     assertEqual(convertedObj.strokeWidth, 4.5, "轉形物件應嚴格保留工具粗細 (activeStrokeWidth)")
     assertEqual(convertedObj.opacity, 0.85, "轉形物件應嚴格保留工具透明度 (activeOpacity)")
     assertEqual(convertedObj.lineStyle, "dashed", "轉形物件應嚴格保留線條樣式 (activeLineStyle)")
-    assertTrue(engine.selectedIds.contains(convertedObj.id), "轉形完成物件應被自動選取以供後續微調")
+    assertTrue(engine.selectedIds.isEmpty, "轉形完成物件不自動顯示選取框，以利連續繪製 (1.0.16 對齊)")
 
     // 一次 Undo 完整復原
     engine.undo()
@@ -2174,7 +2174,7 @@ do {
     let library = LocalBoardLibrary(directory: tempBase)
 
     // 21.1 真實縮圖產生與保存
-    var testDoc = HeiBanDocument(
+    let testDoc = HeiBanDocument(
         board: HeiBanBoard(id: "board_thumb_test", title: "縮圖測試黑板", boardTheme: .blackboard),
         objects: [
             BoardObject(boardId: "board_thumb_test", type: "rect", x: 100, y: 100, width: 200, height: 150, strokeColor: "#ffffff", fillColor: "#166534"),
@@ -2815,13 +2815,13 @@ do {
 
     // 26.5 關於資訊與更新日誌真實性 (A22 & MAC-SYNC-02)
     assertEqual(AboutInfo.appName, "HeiBan 黑板", "App 名稱相符")
-    assertEqual(AboutInfo.appVersion, "1.0.15", "真版本號為 1.0.15 (對齊 Release.json 與 App plist)")
-    assertEqual(AboutInfo.buildNumber, "20261016.1", "組建編號存在且為 20261016.1")
+    assertEqual(AboutInfo.appVersion, "1.0.16", "真版本號為 1.0.16 (對齊 Release.json 與 App plist)")
+    assertEqual(AboutInfo.buildNumber, "20261022.1", "組建編號存在且為 20261022.1")
     assertEqual(AboutInfo.engineVersion.contains("HeiBan Blackboard Vector Engine"), true, "引擎核心資訊明確")
     assertEqual(AboutInfo.feedbackUrl, "https://github.com/VirginBear/HeiBan/issues", "意見回覆入口指向真實倉庫 VirginBear/HeiBan/issues")
     assertEqual(AboutInfo.changelog.count >= 2, true, "更新日誌至少涵蓋 2 個版本紀錄")
-    assertEqual(AboutInfo.changelog[0].version, "1.0.15", "最新更新日誌對應 1.0.15 正式版")
-    assertEqual(AboutInfo.changelog[0].highlights.count >= 3, true, "1.0.15 重點更新項目豐富詳盡")
+    assertEqual(AboutInfo.changelog[0].version, "1.0.16", "最新更新日誌對應 1.0.16 正式版")
+    assertEqual(AboutInfo.changelog[0].highlights.count >= 3, true, "1.0.16 重點更新項目豐富詳盡")
 }
 
 // ==============================================================================
@@ -2941,7 +2941,7 @@ do {
     assertEqual(authAdapter.state == .cancelled || authAdapter.state == .idle, true, "使用者取消後不跳錯誤視窗")
 
     // 重新啟動以測試回呼
-    let authURL2 = authAdapter.buildAuthorizationURL(redirectUri: redirectUri)
+    _ = authAdapter.buildAuthorizationURL(redirectUri: redirectUri)
     guard case .authenticating(let activeState) = authAdapter.state else {
         fatalError("State must be authenticating")
     }
@@ -3205,7 +3205,7 @@ do {
 // ==============================================================================
 print("\n[測試 31] W27 & A30: 協作故障、斷線重連、十人同板並發操作收斂 (立靶驗收)")
 do {
-    var baseDoc = HeiBanDocument(
+    let baseDoc = HeiBanDocument(
         board: BoardMetadata(id: "board_ten_clients", title: "十人高並發協同驗收", revision: 10),
         objects: [
             BoardObject(boardId: "board_ten_clients", type: "sticky", x: 100, y: 100, width: 200, height: 160, text: "初始便簽"),
@@ -4176,15 +4176,15 @@ do {
 
 print("\n[測試 42] ProDrafts 錄影檢討：V01–V06 工具列自訂、選取快速列、HUD 回饋、圖釘搜尋與縮圖增強 (立靶驗收)")
 do {
-    // 42.1 V01: ToolbarPreferences Customization (對齊 MAC-TB-01 精簡預設)
+    // 42.1 V01: ToolbarPreferences Customization (對齊 1.0.16 全工具開啟預設)
     var prefs = ToolbarPreferences()
-    assertEqual(prefs.activeItemIds.count, 9, "預設精簡工具列包含 9 個項目 (含磁鐵)")
-    assertEqual(prefs.hiddenItemIds.count, ToolbarPreferences.allDefinitions.count - 9, "預設其餘 18 項收納至隱藏清單 (更多)")
-    assertEqual(prefs.visibleItemIds.count, 9, "預設可見工具數量為 9")
+    assertEqual(prefs.activeItemIds.count, 27, "預設工具列包含全部 27 個項目")
+    assertEqual(prefs.hiddenItemIds.count, 0, "預設隱藏清單為 0")
+    assertEqual(prefs.visibleItemIds.count, 27, "預設可見工具數量為 27")
 
     prefs.setItemHidden(id: "ruler", hidden: true)
     assertTrue(prefs.hiddenItemIds.contains("ruler"), "隱藏螢幕尺後進入 hiddenItemIds")
-    assertEqual(prefs.visibleItemIds.count, 8, "隱藏 1 個工具後可見項目為 8")
+    assertEqual(prefs.visibleItemIds.count, 26, "隱藏 1 個工具後可見項目為 26")
     assertTrue(!prefs.visibleItemIds.contains("ruler"), "visibleItemIds 不含已隱藏之 ruler")
     assertTrue(prefs.hiddenItems.contains(where: { $0.id == "ruler" }), "hiddenItems 正確包含尺規定義")
 
@@ -4198,8 +4198,8 @@ do {
     assertTrue(decoded.hiddenItemIds.contains("ruler"), "反序列化保留隱藏項目")
 
     prefs.resetToDefaults()
-    assertEqual(prefs.activeItemIds.count, 9, "重設後恢復 9 個精簡工具")
-    assertEqual(prefs.hiddenItemIds.count, ToolbarPreferences.allDefinitions.count - 9, "重設後隱藏清單收納其餘 18 項")
+    assertEqual(prefs.activeItemIds.count, 27, "重設後恢復全部 27 個工具")
+    assertEqual(prefs.hiddenItemIds.count, 0, "重設後隱藏清單清空")
     assertEqual(prefs.activeItemIds.first, "select", "重設後首位恢復為 select")
 
     // 42.2 V02: SelectionQuickActionCoordinator
@@ -4708,7 +4708,7 @@ do {
 
     // 連接線隨動與解除綁定
     var nodeA = BoardObject(id: "node_a", type: "rect", x: 100, y: 100, width: 80, height: 60)
-    var nodeB = BoardObject(id: "node_b", type: "rect", x: 300, y: 100, width: 80, height: 60)
+    let nodeB = BoardObject(id: "node_b", type: "rect", x: 300, y: 100, width: 80, height: 60)
     let conn = BoardObject(
         id: "conn_1",
         type: "connector",
@@ -5163,12 +5163,12 @@ do {
 
     // 46.5 MAC-SYNC-02: 版本對齊、真實 Build、問題回報入口與更新日誌
     assertEqual(AboutInfo.appName, "HeiBan 黑板", "版本資訊：App 名稱相符")
-    assertEqual(AboutInfo.appVersion, "1.0.15", "版本對齊：核心版本號真實對齊 1.0.15")
-    assertEqual(AboutInfo.buildNumber, "20261016.1", "版本對齊：組建編號真實對齊 20261016.1")
+    assertEqual(AboutInfo.appVersion, "1.0.16", "版本對齊：核心版本號真實對齊 1.0.16")
+    assertEqual(AboutInfo.buildNumber, "20261022.1", "版本對齊：組建編號真實對齊 20261022.1")
     assertEqual(AboutInfo.feedbackUrl, "https://github.com/VirginBear/HeiBan/issues", "回報入口：指向 VirginBear/HeiBan/issues")
-    assertEqual(AboutInfo.changelog[0].version, "1.0.15", "更新日誌：最新紀錄為 1.0.15 正式版")
-    assertEqual(AboutInfo.changelog[0].releaseDate, "2026-10-16", "更新日誌：發布日期為 2026-10-16")
-    assertTrue(AboutInfo.changelog[0].highlights.count >= 3, "更新日誌：1.0.15 涵蓋磁鐵吸附、中心建構、板擦與 PDF 增量原稿")
+    assertEqual(AboutInfo.changelog[0].version, "1.0.16", "更新日誌：最新紀錄為 1.0.16 正式版")
+    assertEqual(AboutInfo.changelog[0].releaseDate, "2026-10-22", "更新日誌：發布日期為 2026-10-22")
+    assertTrue(AboutInfo.changelog[0].highlights.count >= 3, "更新日誌：1.0.16 涵蓋工具列預設全開、自由筆無磁鐵與板擦 80% 幾何")
 
     // 46.6 舊版圖釘座標相容性探針 (missing / null / false / true 語意保全)
     let legacyCases: [(name: String, flag: String, expected: Point)] = [
@@ -5224,14 +5224,16 @@ do {
 // -------------------------------------------------------------------------
 print("\n[測試 47] MAC-TB-01 ~ MAC-TB-03: 精簡主工具列、偏好遷移、教學工具 catalog 與真實儲存狀態機 (立靶驗收)")
 do {
-    // 47.1 MAC-TB-01: 精簡工具列項目常數與全新預設 (9項核心工具，含磁鐵)
+    // 47.1 MAC-TB-01: 精簡工具列項目常數與 1.0.16 全開預設
     let streamlined = ToolbarPreferences.streamlinedItemIds
     assertEqual(streamlined, ["select", "pen", "highlighter", "eraser", "ruler", "shapes", "magnet", "layers", "undoRedo"], "精簡列：精確包含 9 項常用工具 (含磁鐵)")
 
     let defaultPrefs = ToolbarPreferences.createDefault()
-    assertEqual(defaultPrefs.visibleItemIds, streamlined, "全新預設：visibleItemIds 預設為 9 個精簡工具")
-    assertEqual(defaultPrefs.activeItemIds, streamlined, "全新預設：activeItemIds 預設為 9 個精簡工具")
-    assertEqual(defaultPrefs.hiddenItemIds.count, ToolbarPreferences.allDefinitions.count - 9, "全新預設：其餘 18 項工具收納於 hiddenItemIds (更多)")
+    assertEqual(defaultPrefs.visibleItemIds, ToolbarPreferences.allItemIds, "全新預設 (1.0.16)：visibleItemIds 預設為全 27 項工具開啟")
+    assertEqual(defaultPrefs.activeItemIds, ToolbarPreferences.allItemIds, "全新預設 (1.0.16)：activeItemIds 預設為全 27 項工具開啟")
+    assertEqual(defaultPrefs.hiddenItemIds.count, 0, "全新預設 (1.0.16)：hiddenItemIds 預設為空")
+    assertEqual(defaultPrefs.displayMode, "labels", "全新預設 (1.0.16)：displayMode 預設為圖示與文字 (labels)")
+    assertEqual(defaultPrefs.commonItemIds, ToolbarPreferences.defaultCommonItemIds, "全新預設 (1.0.16)：常用工具預設包含筆刷、顏色、線型與清空黑板")
     assertTrue(Set(defaultPrefs.activeItemIds).isDisjoint(with: Set(defaultPrefs.hiddenItemIds)), "全新預設：active 與 hidden 彼此互斥無重複")
     assertEqual(Set(defaultPrefs.activeItemIds).union(Set(defaultPrefs.hiddenItemIds)), Set(ToolbarPreferences.allDefinitions.map(\.id)), "全新預設：聯集完整覆蓋全 catalog 27 項工具")
 
@@ -5282,11 +5284,13 @@ do {
     assertFalse(dirtyPrefs.activeItemIds.contains("bogusToolX"), "過濾未知：無效 ID bogusToolX 被過濾")
     assertFalse(dirtyPrefs.hiddenItemIds.contains("bogusToolY"), "過濾未知：無效 ID bogusToolY 被過濾")
 
-    // 情境 D：重設回預設
+    // 情境 D：重設回預設 (1.0.16 恢復全工具開啟與圖文分頁)
     var modifiedPrefs = ToolbarPreferences(activeItemIds: ["eraser"], hiddenItemIds: ["select"])
     modifiedPrefs.resetToDefaults()
-    assertEqual(modifiedPrefs.visibleItemIds, streamlined, "重設預設：恢復為 9 項精簡列")
-    assertEqual(modifiedPrefs.hiddenItemIds.count, ToolbarPreferences.allDefinitions.count - 9, "重設預設：其餘項目收納進 hidden")
+    assertEqual(modifiedPrefs.visibleItemIds, ToolbarPreferences.allItemIds, "重設預設：恢復為全 27 項工具開啟")
+    assertEqual(modifiedPrefs.hiddenItemIds.count, 0, "重設預設：hiddenItemIds 清空為 0")
+    assertEqual(modifiedPrefs.displayMode, "labels", "重設預設：恢復為圖示與文字 (labels)")
+    assertEqual(modifiedPrefs.commonItemIds, ToolbarPreferences.defaultCommonItemIds, "重設預設：恢復預設常用清單")
 
     // 47.3 MAC-TB-02: 圖層及教學工具 catalog 與 BoardEngine 統一命令
     let catalogIds = ToolbarPreferences.allDefinitions.map(\.id)
@@ -5877,13 +5881,18 @@ do {
 
     // 50.5 工具列分頁模式、常用自訂與常駐選取
     var tabPrefs = ToolbarPreferences()
-    assertEqual(tabPrefs.displayMode, "icons", "工具列模式：預設為純圖示 icons")
+    assertEqual(tabPrefs.displayMode, "labels", "工具列模式：1.0.16 預設為圖文分頁 labels")
+    tabPrefs.displayMode = "icons"
+    assertEqual(tabPrefs.displayMode, "icons", "工具列模式：成功切換為純圖示 icons")
     tabPrefs.displayMode = "labels"
-    assertEqual(tabPrefs.displayMode, "labels", "工具列模式：成功切換為圖文分頁 labels")
+    assertEqual(tabPrefs.displayMode, "labels", "工具列模式：成功切換回圖文分頁 labels")
 
     // 常用工具清單自訂
     assertTrue(tabPrefs.commonItemIds.contains("magnet"), "常用工具：預設包含磁鐵 magnet")
     assertTrue(tabPrefs.commonItemIds.contains("pen"), "常用工具：預設包含鋼筆 pen")
+    assertTrue(tabPrefs.commonItemIds.contains("color"), "常用工具：預設包含顏色設定 color")
+    assertTrue(tabPrefs.commonItemIds.contains("lineStyle"), "常用工具：預設包含線型設定 lineStyle")
+    assertTrue(tabPrefs.commonItemIds.contains("clearAll"), "常用工具：預設包含清空黑板 clearAll")
     tabPrefs.commonItemIds = ["pen", "eraser"]
     assertEqual(tabPrefs.commonItemIds, ["pen", "eraser"], "常用工具：支援使用者自訂")
 
@@ -5895,6 +5904,174 @@ do {
     // 試圖移動其他項目至第 0 位被攔截保全
     tabPrefs.moveItem(id: "pen", to: 0)
     assertEqual(tabPrefs.activeItemIds.first, "select", "選取防禦：moveItem 無法搶奪第 0 位 select")
+}
+
+// ==============================================================================
+// [測試 51] 1.0.16 Windows 同步與專案健康度審視：工具列遷移、自由筆無磁鐵、繪圖流暢度、板擦 80% 幾何、圓形橡皮擦預覽與無邊界指南 (立靶驗收)
+// ==============================================================================
+do {
+    print("\n[測試 51] 1.0.16 Windows 同步與專案健康度審視 (立靶驗收)")
+
+    // 51.1 工具列偏好無損升級：舊 9 項精簡預設自動升級至全 27 項開啟與圖文分頁，已自訂者保留
+    let legacyStreamlinedJSON = """
+    {
+      "activeItemIds": ["select","pen","highlighter","eraser","ruler","shapes","magnet","layers","undoRedo"],
+      "hiddenItemIds": ["curve","paint","sticky","text","laser","tape","lasso","screenshot","image","color","lineStyle","pins","compass","calculator","timer","dock","viewLock","clearAll"],
+      "displayMode": "icons",
+      "magnetEnabled": false,
+      "boardEraserVisible": true,
+      "commonItemIds": ["pen","highlighter","eraser","undoRedo","magnet"]
+    }
+    """.data(using: .utf8)!
+    let migratedFromStreamlined = try! JSONDecoder().decode(ToolbarPreferences.self, from: legacyStreamlinedJSON)
+    assertEqual(migratedFromStreamlined.activeItemIds, ToolbarPreferences.allItemIds, "51.1 舊精簡預設遷移：activeItemIds 自動升級為全 27 項工具開啟")
+    assertEqual(migratedFromStreamlined.hiddenItemIds, [], "51.1 舊精簡預設遷移：hiddenItemIds 自動清空")
+    assertEqual(migratedFromStreamlined.displayMode, "labels", "51.1 舊精簡預設遷移：displayMode 自動升級為 labels")
+    assertEqual(migratedFromStreamlined.commonItemIds, ToolbarPreferences.defaultCommonItemIds, "51.1 舊精簡預設遷移：commonItemIds 自動升級為包含 color/lineStyle/clearAll")
+    assertEqual(migratedFromStreamlined.defaultToolsRevision, 1, "51.1 舊精簡預設遷移：defaultToolsRevision 標記為 1")
+    assertEqual(migratedFromStreamlined.defaultPresentationRevision, 1, "51.1 舊精簡預設遷移：defaultPresentationRevision 標記為 1")
+    assertEqual(migratedFromStreamlined.defaultCommonRevision, 1, "51.1 舊精簡預設遷移：defaultCommonRevision 標記為 1")
+
+    // 使用者在升級後手動隱藏工具並移除 clearAll，重開後不再被強制覆寫
+    var userCustomized = migratedFromStreamlined
+    userCustomized.setItemHidden(id: "calculator", hidden: true)
+    userCustomized.commonItemIds.removeAll { $0 == "clearAll" }
+    userCustomized.displayMode = "icons"
+    let savedCustomData = try! JSONEncoder().encode(userCustomized)
+    let reloadedCustom = try! JSONDecoder().decode(ToolbarPreferences.self, from: savedCustomData)
+    assertTrue(reloadedCustom.hiddenItemIds.contains("calculator"), "51.1 自訂保留：手動隱藏之 calculator 重開後維持隱藏")
+    assertFalse(reloadedCustom.commonItemIds.contains("clearAll"), "51.1 自訂保留：手動從常用移除之 clearAll 重開後不會再被強制塞回")
+    assertEqual(reloadedCustom.displayMode, "icons", "51.1 自訂保留：手動切回之 icons 重開後維持 icons")
+
+    // 51.2 ToolbarContentPolicy 對齊：螢幕畫布支援 clearAll，雷射筆歸入 drawing 分頁
+    assertTrue(ToolbarContentPolicy.isAvailable("clearAll", screen: true), "51.2 螢幕工具列政策：clearAll 在螢幕畫布可用")
+    assertFalse(ToolbarContentPolicy.isAvailable("pins", screen: true), "51.2 螢幕工具列政策：pins 在螢幕畫布排除")
+    assertFalse(ToolbarContentPolicy.isAvailable("viewLock", screen: true), "51.2 螢幕工具列政策：viewLock 在螢幕畫布排除")
+    assertEqual(ToolbarContentPolicy.page(for: "laser"), "drawing", "51.2 分頁歸類：雷射筆 laser 歸入繪圖 drawing 分頁")
+    let commonScreenIds = ToolbarContentPolicy.pageIDs(ToolbarPreferences.createDefault(), screen: true, page: "common")
+    assertTrue(commonScreenIds.contains("clearAll"), "51.2 螢幕常用分頁：預設包含 clearAll")
+
+    // 51.3 自由筆不套用磁鐵吸附，幾何建構與圓規中心支援磁鐵吸附
+    assertFalse(MagnetSnapIndex.supportsConstructionTool(.pen), "51.3 磁鐵過濾：鋼筆 pen 不套用磁鐵吸附")
+    assertFalse(MagnetSnapIndex.supportsConstructionTool(.highlighter), "51.3 磁鐵過濾：螢光筆 highlighter 不套用磁鐵吸附")
+    assertFalse(MagnetSnapIndex.supportsConstructionTool(.paint), "51.3 磁鐵過濾：油漆筆刷 paint 不套用磁鐵吸附")
+    assertTrue(MagnetSnapIndex.supportsConstructionTool(.curve), "51.3 磁鐵過濾：曲線筆 curve 支援磁鐵吸附")
+    assertTrue(MagnetSnapIndex.supportsConstructionTool(.line), "51.3 磁鐵過濾：直線 line 支援磁鐵吸附")
+    assertTrue(MagnetSnapIndex.supportsConstructionTool(.rect), "51.3 磁鐵過濾：矩形 rect 支援磁鐵吸附")
+    assertTrue(MagnetSnapIndex.supportsConstructionTool(.circle), "51.3 磁鐵過濾：圓形 circle 支援磁鐵吸附")
+
+    let magEngine = BoardEngine(restoreSession: false, persistenceEnabled: false)
+    magEngine.showingHome = false
+    magEngine.viewport = ViewportTransform(x: 0, y: 0, zoom: 1.0)
+    magEngine.toolbarPreferences.magnetEnabled = true
+    let refRect = BoardObject(id: "mag_ref_rect", type: "rect", x: 100, y: 100, width: 80, height: 60)
+    magEngine.objects = [refRect]
+
+    // 自由筆模式：靠近頂點 (102, 102) 不吸附、不顯示綠圈，且跨越參考點書寫軌跡不偏折
+    magEngine.currentTool = .pen
+    magEngine.updateMagnetHover(at: Point(x: 102, y: 102))
+    assertEqual(magEngine.drawingAssist.target, nil, "51.3 自由筆懸停：開啟磁鐵時自由筆不顯示綠圈 target")
+    let freehandPt = magEngine.snapDrawingScreenPoint(Point(x: 102, y: 102))
+    assertEqual(freehandPt, Point(x: 102, y: 102), "51.3 自由筆座標：開啟磁鐵時自由筆座標不被拉向 (100, 100)")
+
+    magEngine.beginPointerGesture(at: Point(x: 102, y: 102))
+    magEngine.updatePointerGesture(at: Point(x: 140, y: 102), translation: CGSize(width: 38, height: 0))
+    magEngine.endPointerGesture(translation: CGSize(width: 38, height: 0))
+    let drawnStroke = magEngine.objects.last!
+    assertEqual(drawnStroke.type, "stroke", "51.3 自由筆落筆：成功建立 stroke")
+    assertEqual(drawnStroke.parsedPoints.first, Point(x: 102, y: 102), "51.3 自由筆軌跡：起點保持真實手繪位置 (102, 102)，不被磁鐵吸走")
+    assertEqual(magEngine.selectedIds.isEmpty, true, "51.4 繪圖流暢度：自由筆完成後不自動選取物件")
+    assertEqual(magEngine.currentTool, .pen, "51.4 繪圖流暢度：自由筆完成後保持在 pen 工具")
+
+    // 曲線筆模式：開啟磁鐵時吸附起點與終點，且完成後不自動選取、保持在 curve 工具
+    magEngine.objects = [refRect]
+    magEngine.currentTool = .curve
+    magEngine.updateMagnetHover(at: Point(x: 102, y: 102))
+    assertEqual(magEngine.drawingAssist.target, Point(x: 100, y: 100), "51.3 曲線筆懸停：靠近頂點時顯示綠圈 target (100, 100)")
+    magEngine.beginPointerGesture(at: Point(x: 102, y: 102))
+    magEngine.updatePointerGesture(at: Point(x: 140, y: 80), translation: CGSize(width: 38, height: -22))
+    magEngine.updatePointerGesture(at: Point(x: 179, y: 101), translation: CGSize(width: 77, height: -1))
+    magEngine.endPointerGesture(translation: CGSize(width: 77, height: -1))
+    let drawnCurve = magEngine.objects.last!
+    assertEqual(drawnCurve.type, "curve", "51.4 曲線筆繪製：成功建立 curve")
+    assertEqual(drawnCurve.parsedPoints.first, Point(x: 100, y: 100), "51.3 曲線筆吸附：起點精準吸附至矩形左上頂點 (100, 100)")
+    assertEqual(drawnCurve.parsedPoints.last, Point(x: 180, y: 100), "51.3 曲線筆吸附：終點精準吸附至矩形右上頂點 (180, 100)")
+    assertEqual(magEngine.selectedIds.isEmpty, true, "51.4 繪圖流暢度：曲線筆完成後不自動顯示選取框")
+    assertEqual(magEngine.currentTool, .curve, "51.4 繪圖流暢度：曲線筆完成後保持在 curve 可連續作畫")
+
+    // 圓規圓心吸附：即使 currentTool 為 pen，當 allowCompassCenter 為 true 時圓心仍可吸附參考點
+    magEngine.currentTool = .pen
+    let compassSnapped = magEngine.snapDrawingScreenPoint(Point(x: 141, y: 131), allowCompassCenter: true)
+    assertEqual(compassSnapped, Point(x: 140, y: 130), "51.3 圓規中心吸附：allowCompassCenter=true 時精準吸附至矩形中心 (140, 130)")
+
+    // 停筆轉形完成後不自動掛選取框
+    magEngine.startStroke(at: Point(x: 200, y: 200))
+    for x in stride(from: 210.0, through: 300.0, by: 15.0) {
+        magEngine.appendStrokePoint(at: Point(x: x, y: 200))
+    }
+    magEngine.checkGoodnotesShapeSnap()
+    assertTrue(magEngine.strokePreview.snappedShape != nil, "51.4 停筆轉形：成功識別直線")
+    magEngine.endStroke()
+    assertEqual(magEngine.selectedIds.isEmpty, true, "51.4 繪圖流暢度：停筆轉形完成後不自動顯示選取框")
+
+    // 51.5 板擦 80% 長軸幾何與隔離預覽
+    assertEqual(BoardEraserGeometry.lengthScale, 0.8, "51.5 板擦幾何：長軸比例為 0.8 (縮短 20%)")
+    assertEqual(BoardEraserGeometry.outline.count, 12, "51.5 板擦幾何：12 點輪廓")
+    let xs = BoardEraserGeometry.outline.map(\.x)
+    let spanX = (xs.max() ?? 0) - (xs.min() ?? 0)
+    assertTrue(spanX < 110.0 && spanX > 90.0, "51.5 板擦幾何：80% 長軸壓縮後水平跨度約為 101 pt (小於原 125 pt)")
+
+    // 51.6 圓形橡皮擦預覽隔離、連續補間、保留未知欄位與單筆 Undo
+    let circleEraserEngine = BoardEngine(restoreSession: false, persistenceEnabled: false)
+    circleEraserEngine.showingHome = false
+    circleEraserEngine.viewport = ViewportTransform(x: 0, y: 0, zoom: 1.0)
+    circleEraserEngine.currentTool = .eraser
+    circleEraserEngine.eraserMode = .partial
+    circleEraserEngine.eraserSize = 20.0
+
+    var richStroke = BoardObject(
+        id: "rich_stroke_1",
+        type: "stroke",
+        x: 0, y: 48, width: 200, height: 4,
+        points: "[{\"x\":0,\"y\":50},{\"x\":50,\"y\":50},{\"x\":100,\"y\":50},{\"x\":150,\"y\":50},{\"x\":200,\"y\":50}]",
+        strokeColor: "#86efac",
+        strokeWidth: 4,
+        brushKind: "chalk",
+        textureSeed: 777
+    )
+    richStroke.extraFields = ["customMeta": .string("keep_me")]
+    circleEraserEngine.objects = [richStroke]
+
+    // 開始擦除並快速跨過 y=50 (從 (100, 10) 拖到 (100, 90)，步長 > 5pt 靠補間命中 (100, 50))
+    circleEraserEngine.beginEraserSwipe()
+    circleEraserEngine.eraseAt(screenPt: Point(x: 100, y: 10))
+    circleEraserEngine.eraseAt(screenPt: Point(x: 100, y: 90))
+    circleEraserEngine.endEraserSwipe()
+
+    assertEqual(circleEraserEngine.objects.count, 2, "51.6 圓形橡皮擦補間：快速跨越仍精準切開筆跡為 2 段")
+    assertEqual(circleEraserEngine.objects[0].brushKind, "chalk", "51.6 局部擦除保全：保留 brushKind (chalk)")
+    assertEqual(circleEraserEngine.objects[0].textureSeed, 777, "51.6 局部擦除保全：保留 textureSeed (777)")
+    assertEqual(circleEraserEngine.objects[0].extraFields?["customMeta"], .string("keep_me"), "51.6 局部擦除保全：保留 extraFields")
+    circleEraserEngine.undo()
+    assertEqual(circleEraserEngine.objects.count, 1, "51.6 圓形橡皮擦復原：單次 Undo 完整還原原始 1 筆")
+    assertEqual(circleEraserEngine.objects[0].id, "rich_stroke_1", "51.6 圓形橡皮擦復原：還原原 ID")
+
+    // 51.7 關閉自動存檔時編輯仍推進 generation 並標記未儲存
+    let manualSaveEngine = BoardEngine(restoreSession: false, persistenceEnabled: true)
+    manualSaveEngine.showingHome = false
+    manualSaveEngine.autosaveStatus = "本機已儲存 12:00"
+    assertEqual(manualSaveEngine.saveFeedbackState, .saved(detail: "本機已儲存 12:00"), "51.7 初始為已儲存")
+    manualSaveEngine.addObject(BoardObject(id: "unsaved_obj_1", type: "rect", x: 10, y: 10, width: 50, height: 50))
+    assertEqual(manualSaveEngine.saveFeedbackState, .unsaved, "51.7 關閉自動存檔下新增物件後立即轉為 .unsaved")
+
+    // 51.8 十語單頁無邊界操作指南作品可被完整解碼且包含 25 個章節圖釘
+    let quickStartPath = "/Users/bear/Desktop/Code/HeiBan/macos/Sources/HeiBanMac/Resources/Guides/QuickStart-zh-TW.heiban"
+    let quickStartData = try! Data(contentsOf: URL(fileURLWithPath: quickStartPath))
+    let quickStartDoc = try! HeiBanDocumentCodec.decode(from: quickStartData)
+    assertEqual(quickStartDoc.board.id, "heiban-windows-quickstart-v2", "51.8 操作指南作品：ID 對齊 heiban-windows-quickstart-v2")
+    assertEqual(quickStartDoc.board.canvasMode, .infinite, "51.8 操作指南作品：單頁無邊界畫布 (.infinite)")
+    assertEqual(quickStartDoc.board.pins?.count, 25, "51.8 操作指南作品：包含完整 25 個教學章節圖釘")
+    assertTrue(quickStartDoc.objects.count > 100, "51.8 操作指南作品：包含豐富可實際擦除與編輯之練習物件")
 }
 
 print("\n==================================================")

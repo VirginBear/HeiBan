@@ -46,6 +46,8 @@ public class BoardEngine: ObservableObject {
     public let boardEraser = BoardEraserState()
     var boardEraserOriginal: [BoardObject]?
     var boardEraserContext: String?
+    var boardEraserRevision: UInt64?
+    @Published public internal(set) var isBoardEraserActive = false
     @Published public var showsObjectDetails = false
     public var documentImportHandler: ((URL) -> Void)?
     public var pdfExportHandler: (() -> Void)?
@@ -202,10 +204,13 @@ public class BoardEngine: ObservableObject {
     }
 
     public var hasUnsavedDraftOrChanges: Bool {
-        if inlineTextEditing && !textDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+        if hasUncommittedTextChanges || isBoardEraserActive { return true }
+        switch pointerGesture {
+        case .stroke, .shape, .polygon, .erasing, .moveSelection, .transformSelection, .lineEndpoint:
             return true
+        default:
+            return false
         }
-        return false
     }
 
     public var saveFeedbackState: BoardSaveFeedbackState {
@@ -448,6 +453,7 @@ public class BoardEngine: ObservableObject {
     var activeEraserDeletedObjects: [BoardObject] = []
     var activeEraserInsertedObjects: [BoardObject] = []
     var isEraserSwipeActive: Bool = false
+    var lastEraserScreenPoint: Point? = nil
     private var previousPanTranslation = CGSize.zero
     private var previousRulerTranslation = CGSize.zero
     private var rulerDragStart: Point?
@@ -903,12 +909,12 @@ public class BoardEngine: ObservableObject {
         scheduleAutosave()
     }
 
-    public var isPointerGestureActive: Bool { pointerGesture != .idle }
+    public var isPointerGestureActive: Bool { pointerGesture != .idle || isBoardEraserActive }
 
     public func beginPointerGesture(at screenPoint: Point, isShift: Bool = false, clickCount: Int = 1) {
         let drawing = [ToolType.pen, .curve, .highlighter, .paint, .triangle, .quadrilateral, .rect, .circle, .diamond, .star, .line, .arrow, .roundedRect, .polygon, .connector].contains(currentTool)
         if drawing { showsObjectDetails = false; showInspector = false; selectedIds.removeAll() }
-        let screenPoint = drawing ? snapDrawingScreenPoint(screenPoint) : screenPoint
+        let screenPoint = MagnetSnapIndex.supportsConstructionTool(currentTool) ? snapDrawingScreenPoint(screenPoint) : screenPoint
         guard pointerGesture == .idle else { return }
         pointerGestureStart = screenPoint
         if self.isShiftHeld != isShift { self.isShiftHeld = isShift }
@@ -1061,6 +1067,7 @@ public class BoardEngine: ObservableObject {
         } else if currentTool == .eraser {
             pointerGesture = .erasing
             beginEraserSwipe()
+            eraseAt(screenPt: screenPoint)
         } else if currentTool == .sticky || currentTool == .text {
             beginInlineTextEntry(
                 at: VectorMath.screenToWorld(screenPoint, viewport: viewport), kind: currentTool)
@@ -1468,6 +1475,7 @@ public class BoardEngine: ObservableObject {
 
     // MARK: - Undo & Redo (A04)
     public func undo() {
+        finishBoardEraser()
         guard let command = transactionManager.popUndo() else { return }
         apply(command: command, isUndo: true)
         selectedIds.removeAll()
@@ -1475,6 +1483,7 @@ public class BoardEngine: ObservableObject {
     }
 
     public func redo() {
+        finishBoardEraser()
         guard let command = transactionManager.popRedo() else { return }
         apply(command: command, isUndo: false)
         selectedIds.removeAll()

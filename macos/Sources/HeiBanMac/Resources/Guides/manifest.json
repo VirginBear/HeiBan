@@ -1,66 +1,66 @@
 {
-  "version": "1.0.15",
-  "build": "20261016.1",
+  "version": "1.0.16",
+  "build": "20261022.1",
   "editions": [
     {
       "language": "zh-TW",
       "chapters": 21,
-      "bytes": 34719,
-      "sha256": "c886d4464f894f7650cb434becc87fa7f4f3dc5fadf35dd8e695edae4df150e1"
+      "bytes": 35815,
+      "sha256": "5ba094a80919a74afc4393dc1ea888ecbbe4a8145ad75af40e33e75d48a5a892"
     },
     {
       "language": "zh-CN",
       "chapters": 13,
       "bytes": 6762,
-      "sha256": "203e05faf450f74ffad818d30433fca342f516bce276705403b31349e97a6147"
+      "sha256": "4188bf3289ee557f50bc013a092a419a0886c49da56d187e9eafc8606f4e372e"
     },
     {
       "language": "en",
       "chapters": 13,
       "bytes": 8709,
-      "sha256": "4c2a7e90223dea9d0cbed5a092a054e1ea95ef1b81e091c58b1ba3ef4ef9bd77"
+      "sha256": "b85cd9f491213b26c8cf1550ad157a703d8a6324cf00e3a14281d8b4e2de8b46"
     },
     {
       "language": "ja",
       "chapters": 13,
       "bytes": 9045,
-      "sha256": "fffc77a16c21a317f464e6ef2155109b1eaa5f2710e0be23bb7cf28c7288bb70"
+      "sha256": "5d25b1fd8e1a8ddc752c91dd4d85624e4520dd292d0af90923454eb1bbe7d6f4"
     },
     {
       "language": "ko",
       "chapters": 13,
       "bytes": 8976,
-      "sha256": "cd4e7643520cf346fc2cd582eb5520d37968002cbac91e6340dce0e6fd5079b4"
+      "sha256": "79c3066285f26b7c0dbbea6d3f8e5fafc7f13f6422935f2afa7b9ee5888e396a"
     },
     {
       "language": "es",
       "chapters": 13,
       "bytes": 8266,
-      "sha256": "ff1dea78b63a94fa4c5259bb943101818aaf6af002b1086be64c0347264561d2"
+      "sha256": "99923c4eed7b5c13ef635d55732263fd5ab4a1e4bbc54a077496a006e14f3d86"
     },
     {
       "language": "fr",
       "chapters": 13,
       "bytes": 8480,
-      "sha256": "b6635db8783ba8056726c8868af619bba173542bc17230705e7bd4e1d18166fb"
+      "sha256": "7082d8bdeea0a18d7a56bc0e8a8d8e3401d593f2c867b4cef20262992022933a"
     },
     {
       "language": "de",
       "chapters": 13,
       "bytes": 8369,
-      "sha256": "72015ecb783b6f63d10026c20f853787d572c1c2f1a80dba1fc227f8e149f466"
+      "sha256": "cb0973ef1c480327965e6d406f89cf749248dfba5a8e17404502962825d52cbc"
     },
     {
       "language": "pt-BR",
       "chapters": 13,
       "bytes": 7978,
-      "sha256": "fe34d4fefc21a024a0d37eb051259d4ddf1f183f2fbce2229ff9ae784672af24"
+      "sha256": "7f8a118ff0029ab36d612fbf8c4a2ac871be2130e53a6a9887f206d04a4e3d66"
     },
     {
       "language": "ar",
       "chapters": 13,
       "bytes": 10195,
-      "sha256": "cb7ed64c69534afe856f9d0392be150f356d342bb93176b6ecfe64c8df87ff37"
+      "sha256": "3a42d020980dcfc27b418673abf603b18321a9aa51c0365b620244b58a6ee8f0"
     }
   ]
 }
