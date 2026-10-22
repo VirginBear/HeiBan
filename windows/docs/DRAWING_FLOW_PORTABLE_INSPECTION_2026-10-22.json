@@ -1,0 +1,20 @@
+{
+  "success": true,
+  "label": "drawing-flow-2026-10-22-r1",
+  "sourceCommit": "8aabdbaf00b7bffac3ef89c26d388d69f240cd8a",
+  "zipBytes": 132641278,
+  "zipSha256": "1d2aa0b57ab90f6fcd75570d93b07930127b4343d4fe063afd158b2c38ee9f71",
+  "zipCrcValid": true,
+  "payloadFilesVerified": 583,
+  "sourceFilesVerified": 173,
+  "zipUserDataFiles": 0,
+  "exeArchitecture": "x64",
+  "languages": 10,
+  "practiceDocuments": 10,
+  "practicePagesPerDocument": 3,
+  "boardEraserAlpha": true,
+  "boardEraserLengthScale": 0.8,
+  "appExecuted": false,
+  "implementationTestsExecuted": false,
+  "hardwareAcceptance": "pending user test"
+}

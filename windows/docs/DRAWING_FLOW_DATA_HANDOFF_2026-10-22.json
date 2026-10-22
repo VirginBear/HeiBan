@@ -1,0 +1,9 @@
+{
+  "success": true,
+  "sourceTrial": "HeiBan-Windows-Portable-1.0.14-eraser-entry-2026-10-15-r1-win-x64",
+  "targetTrial": "HeiBan-Windows-Portable-1.0.15-drawing-flow-2026-10-22-r1-win-x64",
+  "files": 27,
+  "bytes": 24344718,
+  "allHashesMatch": true,
+  "zipStillHasNoUserData": true
+}

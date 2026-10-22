@@ -23,3 +23,12 @@
 
 - 縮短板擦後，透明矩形host不再攔下外圍畫布輸入：以同一12點contact建立透明Path作命中區，圖片本身不接管指標；抓取／輪廓／擦除一致。
 - Shared ToolbarUi.ReplaceIcon保留圖文按鈕標籤，兩畫布線型與色樣按實際變更快取，避免筆後移除標籤又重建。
+
+## 交付與實際執行結果
+- `Build-UserGuides.py`生成十語手冊與十份三頁.heiban；`dotnet build ... -c Release -r win-x64 -p:Platform=x64 --no-restore`中途成功0warning0error／56.18秒；`Package-PortableTrial.ps1 -Runtime win-x64 -Label drawing-flow-2026-10-22-r1`最終publish及封裝成功，App未啟動。
+- 來源8aabdbaf00b7bffac3ef89c26d388d69f240cd8a；ZIP 132641278bytes／SHA256 1d2aa0b57ab90f6fcd75570d93b07930127b4343d4fe063afd158b2c38ee9f71。靜態檢查ZIP CRC、583payload／173source雜湊、x64 PE、十語三頁範例與manifest SHA均符合，ZIP不含使用者Data。報告見DRAWING_FLOW_PORTABLE_ARTIFACT／INSPECTION_2026-10-22.json。
+- 靜態檢查輔助腳本初次以頂層pages讀取而KeyError，改依既有board.pages路徑；另一次Python未指定UTF-8而cp950解碼失敗，改明確UTF-8。均是檢查腳本錯誤，未更動文件契約或作品。未新增或執行實作測試。
+- `drawing-flow-handoff.ps1`：確認舊新試用都未執行、目標Data為空，接續27檔／24344718bytes，逐檔SHA符合；只複製原免安裝Data，未合併Store資料。程式啟動後會建立一次性操作範例。
+- `Clear-ObsoleteTrials.ps1 -KeepTrial HeiBan-Windows-Portable-1.0.15-drawing-flow-2026-10-22-r1-win-x64`：先核GitHub公開資產及路徑，再保留Data、清理舊試用runtime；釋放455073499bytes、備份24344718bytes，詳DRAWING_FLOW_TRIAL_CLEANUP_2026-10-22.json。1.0.15.0 Store包SHA仍a889482ff3aa171569ce415fc285340b26742528af4306a3e0a0e3d6fa07eb96；舊Store／已發布發行未刪。
+- `git fetch origin`發現main由73f17f5推進1046236（他台Mac同步）；`git merge --no-edit origin/main`保留完整提交，僅自動合併共用索引，無Windows封裝來源變更。試用包仍準確標8aabdba來源，沒有把上游測試數字當本批結果。
+- 未執行：App／UI／單元或整合測試／性能benchmark／DPI及硬體驗收／Store上傳發布。待實機確認：兩畫布連續筆跡與切筆、Undo／Redo混合一般編輯、全開工具列既有自訂偏好、首啟範例與刪後不重建、板擦斜角命中與擦除。沒有量測數字可宣稱已達小畫家流暢度。
