@@ -13,6 +13,14 @@ public partial class MainWindow
     private readonly record struct SceneKey(HeiBanDocument Document,long Generation,string? Page,double X,double Y,double Zoom,float Width,float Height,float Dpi);
     private SceneKey _sceneKey;
     private long _sceneBuilds;
+    private readonly List<BoardObject> _pendingInkScene=[];
+    private long _inkSceneBaseGeneration,_inkSceneEndGeneration;
+    private void QueueInkScene(BoardObject item,long previousGeneration)
+    {
+        if(_pendingInkScene.Count==0)_inkSceneBaseGeneration=previousGeneration;
+        else if(_inkSceneEndGeneration!=previousGeneration){_pendingInkScene.Clear();_sceneDirty=true;return;}
+        _pendingInkScene.Add(item);_inkSceneEndGeneration=_session.Generation;
+    }
     private void InvalidateCanvas(bool sceneChanged=true)
     {
         if(sceneChanged)_sceneDirty=true;
@@ -20,7 +28,7 @@ public partial class MainWindow
         CanvasSurface.Invalidate();
     }
     private void ClearScene()
-    {_scene?.Dispose();_scene=null;_sceneDirty=true;}
+    {_scene?.Dispose();_scene=null;_sceneDirty=true;_pendingInkScene.Clear();}
     private void RenderMainScene(CanvasControl surface,CanvasDrawingSession ds,float width,float height)
     {
         if(width<=0||height<=0)return;
@@ -30,14 +38,24 @@ public partial class MainWindow
         {ClearScene();_scene=new CanvasRenderTarget(surface,width,height,surface.Dpi);}
         if(_sceneDirty||key!=_sceneKey)
         {
+            // An appended stroke has the highest Z index. Reuse the committed bitmap
+            // only if document, viewport, page, DPI and the exact generation chain match.
+            // Any edit, undo, erase or resource/layout change takes the full render path.
+            var append=!_sceneDirty&&ReferenceEquals(sceneSession,_session)&&_pendingInkScene.Count>0&&
+                _inkSceneBaseGeneration==_sceneKey.Generation&&_inkSceneEndGeneration==key.Generation&&
+                key==(_sceneKey with{Generation=key.Generation});
             using(var drawing=_scene.CreateDrawingSession())
             {
                 var board=sceneSession.Document.Board;
-                _renderer.RenderBackground(drawing,board,_viewport,width,height);
+                if(!append)_renderer.RenderBackground(drawing,board,_viewport,width,height);
                 var clip=board.CanvasMode=="infinite"?new Rect(0,0,width,height):new Rect(_viewport.X,_viewport.Y,(board.CanvasWidth??595)*_viewport.Zoom,(board.CanvasHeight??842)*_viewport.Zoom);
-                using(var layer=drawing.CreateLayer(1,clip))_renderer.RenderObjects(drawing,sceneSession.DrawingObjects,_viewport,width,height);
+                using(var layer=drawing.CreateLayer(1,clip))
+                {
+                    if(append)_renderer.RenderObjects(drawing,_pendingInkScene,_viewport,width,height);
+                    else _renderer.RenderObjects(drawing,sceneSession.DrawingObjects,_viewport,width,height);
+                }
             }
-            _sceneKey=key;_sceneDirty=false;_sceneBuilds++;
+            _sceneKey=key;_sceneDirty=false;_pendingInkScene.Clear();if(!append)_sceneBuilds++;
         }
         // Hover, live ink, lasso, ruler and laser are drawn above the committed scene, preserving its object order.
         ds.DrawImage(_scene);
@@ -57,12 +75,25 @@ public partial class MainWindow
         SyncLayerSelection();
     }
     private readonly Microsoft.UI.Xaml.DispatcherTimer _thumbnailTimer=new(){Interval=TimeSpan.FromSeconds(1)};
+    private readonly Microsoft.UI.Xaml.DispatcherTimer _inkUiTimer=new(){Interval=TimeSpan.FromMilliseconds(200)};
+    private void RefreshAfterInk()
+    {
+        SelectionBar.Visibility=Microsoft.UI.Xaml.Visibility.Collapsed;
+        _inkUiTimer.Stop();_inkUiTimer.Start();InvalidateCanvas(false);
+    }
     private (HeiBanDocument Document,long Epoch)? _pendingThumbnail;
     private readonly Microsoft.UI.Xaml.DispatcherTimer _searchTimer=new(){Interval=TimeSpan.FromMilliseconds(150)};
     private readonly SemaphoreSlim _thumbnailGate=new(1,1);
     private readonly Dictionary<string,long> _thumbnailRevisions=[];
     private void InitializeDeferredWork()
     {
+        _inkUiTimer.Tick+=(_,_)=>
+        {
+            _inkUiTimer.Stop();
+            if(!_workspaceOpen)return;
+            if(_gesture||_ink.IsDrawing){_inkUiTimer.Start();return;}
+            RefreshLayersIfNeeded();
+        };
         _thumbnailTimer.Tick+=async(_,_)=>
         {
             _thumbnailTimer.Stop();

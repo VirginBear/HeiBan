@@ -10,7 +10,7 @@ public sealed class EditorSession
     private readonly HashSet<string> _selectedIds=[];
     public IReadOnlySet<string> SelectedIds => _selectedIds;
     public string? SelectedId { get => Selected?.Id; set { _selectedIds.Clear();if(value is not null)_selectedIds.Add(value); } }
-    public IEnumerable<BoardObject> SelectedObjects => PageObjects.Where(o=>_selectedIds.Contains(o.Id));
+    public IEnumerable<BoardObject> SelectedObjects => _selectedIds.Count==0?Enumerable.Empty<BoardObject>():PageObjects.Where(o=>_selectedIds.Contains(o.Id));
     public void SetSelection(IEnumerable<string> ids) { var valid=PageObjects.Select(o=>o.Id).ToHashSet();_selectedIds.Clear();_selectedIds.UnionWith(ids.Where(valid.Contains)); }
     public void ToggleSelection(string id) { if(!_selectedIds.Remove(id)&&PageObjects.Any(o=>o.Id==id))_selectedIds.Add(id); }
     public void MoveSelection(double dx,double dy) { foreach(var o in SelectedObjects.Where(o=>o.IsLocked!=true))Move(o,dx,dy); }
@@ -18,7 +18,7 @@ public sealed class EditorSession
     public bool IsDirty => Generation != SavedGeneration;
     public long Generation { get; private set; }
     public long SavedGeneration { get; private set; }
-    private sealed record Snapshot(HeiBanDocument Document,long Bytes);
+    private sealed record Snapshot(HeiBanDocument? Document,long Bytes,BoardObject? Added=null,int Index=-1);
     private readonly List<Snapshot> _undo = [];
     private readonly List<Snapshot> _redo = [];
     private HeiBanDocument? _transaction;
@@ -53,15 +53,25 @@ public sealed class EditorSession
         {bytes-=history[0].Bytes;history.RemoveAt(0);}
     }
     public void Cancel() { ClearPreviewMoves();if (_transaction is not null) { var revision=Document.Board.Revision;Document = _transaction;Document.Board.Revision=Math.Max(revision,Document.Board.Revision); } _transaction = null; }
-    public void Undo() => Restore(_undo, _redo);
-    public void Redo() => Restore(_redo, _undo);
-    private void Restore(List<Snapshot> from, List<Snapshot> to)
+    public void Undo() => Restore(_undo, _redo,true);
+    public void Redo() => Restore(_redo, _undo,false);
+    private void Restore(List<Snapshot> from, List<Snapshot> to,bool undo)
     {
         if (from.Count == 0) return;
         Cancel();
+        var entry=from[^1];
+        if(entry.Added is { } added)
+        {
+            // Completed ink only appends a top-level object. Store just that object's
+            // isolated snapshot; mixed edits still use full-document transactions.
+            var index=Document.Objects.FindIndex(o=>o.Id==added.Id);
+            if(undo){if(index<0)return;Document.Objects.RemoveAt(index);}
+            else{if(index>=0)return;Document.Objects.Insert(Math.Clamp(entry.Index,0,Document.Objects.Count),DocumentCodec.Clone(added));}
+            from.RemoveAt(from.Count-1);to.Add(entry);Trim(to);SelectedId=null;Generation++;return;
+        }
         var snapshot=DocumentCodec.Clone(Document);to.Add(new(snapshot,DocumentSnapshot.EstimatedBytes(snapshot)));Trim(to);
         var revision = Document.Board.Revision;
-        Document = DocumentCodec.Clone(from[^1].Document); from.RemoveAt(from.Count - 1);
+        Document = DocumentCodec.Clone(entry.Document!); from.RemoveAt(from.Count - 1);
         Document.Board.Revision = revision; SelectedId = null; Generation++;
     }
     // During a drag only bounds/endpoints change. Absolute point JSON and its GPU path stay unchanged until commit.
@@ -105,6 +115,15 @@ public sealed class EditorSession
         o.BoardId = Document.Board.Id; o.PageId = Document.Board.ActivePageId;
         o.ZIndex = Document.Objects.Count == 0 ? 0 : Document.Objects.Max(x => x.ZIndex) + 1;
         Document.Objects.Add(o); SelectedId = o.Id; return o;
+    }
+    public BoardObject AppendInk(BoardObject item)
+    {
+        if(HasTransaction||_previewMoves.Count!=0)throw new InvalidOperationException("Complete or cancel the current transaction before appending ink.");
+        if(item.Type is not("stroke" or "pen" or "highlighter" or "paint" or "line"))throw new ArgumentException("Only completed ink or its held-line result can use this transaction.",nameof(item));
+        var added=Add(item);SelectedId=null;
+        var snapshot=DocumentCodec.Clone(added);
+        _undo.Add(new(null,DocumentSnapshot.EstimatedBytes(snapshot),snapshot,Document.Objects.Count-1));
+        _redo.Clear();Trim(_undo);Generation++;return added;
     }
     public void DeleteSelected()
     {

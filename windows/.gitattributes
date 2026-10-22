@@ -2,3 +2,5 @@
 # per-page SHA manifest remains valid on another development computer.
 HeiBan.Windows/Assets/Guides/*.html text eol=lf
 HeiBan.Windows/Documentation/Guides/*.txt text eol=lf
+# Generated practice documents must keep their manifest SHA across Windows checkouts.
+HeiBan.Windows/Assets/Guides/QuickStart-*.heiban text eol=lf

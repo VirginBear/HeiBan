@@ -41,12 +41,20 @@ internal sealed partial class ScreenAnnotationWindow
         if(StyleSelection is not null)EditScreenStyle(o=>{o.FillColor=fill;o.FillGradientStart=null;o.FillGradientEnd=null;},true);
         else{_fill=fill;if(_preview?.Type is "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star")_preview.FillColor=fill;RefreshScreenStyleButtons();_dirty=true;}
     }
+    private Button? _lastScreenBrushButton,_lastScreenDashButton;
+    private string? _lastScreenBrushColor,_lastScreenDash;
     private void RefreshScreenStyleButtons()
     {
         var selected=StyleSelection;
         _brushButton.IsEnabled=selected?.IsLocked!=true;
-        _brushButton.Content=new Ellipse{Width=22,Height=22,Fill=new SolidColorBrush(Direct2DCanvasRenderer.HexToColor(selected?.StrokeColor??_color)),Stroke=ChromeBrush(100,85,100,92),StrokeThickness=1};
-        _dashButton.Content=ToolIcons.CreateDash(selected?.LineStyle??_dash);
+        var color=selected?.StrokeColor??_color;var dash=selected?.LineStyle??_dash;
+        if(!ReferenceEquals(_lastScreenBrushButton,_brushButton)||_lastScreenBrushColor!=color)
+        {
+            ToolbarUi.ReplaceIcon(_brushButton,new Ellipse{Width=22,Height=22,Fill=new SolidColorBrush(Direct2DCanvasRenderer.HexToColor(color)),Stroke=ChromeBrush(100,85,100,92),StrokeThickness=1});
+            _lastScreenBrushButton=_brushButton;_lastScreenBrushColor=color;
+        }
+        if(!ReferenceEquals(_lastScreenDashButton,_dashButton)||_lastScreenDash!=dash)
+        {ToolbarUi.ReplaceIcon(_dashButton,ToolIcons.CreateDash(dash));_lastScreenDashButton=_dashButton;_lastScreenDash=dash;}
         _dashButton.IsEnabled=selected?.IsLocked!=true&&(selected?.Type??_tool) is not("text" or "image" or "sticky" or "eraser" or "laser");
     }
     private void ShowScreenFill()=>ShowScreenFill(_moreButton);

@@ -772,7 +772,7 @@ public partial class MainWindow
     {
         // Screen canvas shares the settings file. Update the hidden owner in-memory too, or its
         // next toolbar rebuild could overwrite a choice just made in the screen session.
-        var updated=new ToolbarPreferences{DockSide=preferences.DockSide,DisplayMode=preferences.DisplayMode,MagnetEnabled=preferences.MagnetEnabled,BoardEraserVisible=preferences.BoardEraserVisible,CommonTools=[..preferences.CommonTools],ExtraFields=preferences.ExtraFields,VisibleTools=[..preferences.VisibleTools],HiddenTools=[..preferences.HiddenTools]};
+        var updated=new ToolbarPreferences{DockSide=preferences.DockSide,DisplayMode=preferences.DisplayMode,MagnetEnabled=preferences.MagnetEnabled,BoardEraserVisible=preferences.BoardEraserVisible,DefaultToolsRevision=preferences.DefaultToolsRevision,CommonTools=[..preferences.CommonTools],ExtraFields=preferences.ExtraFields,VisibleTools=[..preferences.VisibleTools],HiddenTools=[..preferences.HiddenTools]};
         updated.Normalize();
         await ToolbarPreferencesStore.SaveAsync(_storage.DataDirectory,updated);
         _toolbarPrefs=updated;
@@ -799,6 +799,8 @@ public partial class MainWindow
     private void ActivateTool(string tool)
     {
         _activeFlyout?.Hide();
+        if(tool==_tool&&!_gesture&&_editor is null&&_polygon.Count==0&&_session.SelectedIds.Count==0)
+        {FocusCanvasSurface();return;}
         CommitPropertyEdit();
         FinishText();
         var color=CurrentStyle.Color;var dash=CurrentStyle.Dash;
@@ -835,19 +837,33 @@ public partial class MainWindow
         {
             ToolbarUi.LabelMode(b,key,_toolbarPrefs.DisplayMode=="labels",40);
             var active = (key=="magnet"&&_toolbarPrefs.MagnetEnabled) || (key=="layers"&&LayersPanel.Visibility==Visibility.Visible) || key == _tool || (key == "ruler" && _rulerEnabled) || (key == "compass" && _compass.IsEnabled) || (key == "shapes" && _tool is "line" or "arrow" or "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star");
-            b.Background = Brush(active ? "#DCEBDD" : "#FCFCFA");
+            var color=Direct2DCanvasRenderer.HexToColor(active?"#DCEBDD":"#FCFCFA");
+            if(b.Background is not SolidColorBrush current||current.Color!=color)b.Background=new SolidColorBrush(color);
         }
         CanvasFormatText.Text = _session.Document.Board.CanvasMode switch { "notebook" => T("筆記本"), "fixed" => T("有邊界黑板"), _ => T("無邊界筆記") };
         RefreshNavigationChrome();UpdateSaveStatusLight(StatusText.Text);
         InspectorBookmark.Visibility = Inspector.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
     }
 
+    private Button? _dashIconButton;
+    private string? _dashIconStyle;
     private void RefreshProperties()
     {
         if (StrokeColorButton is null) return;
-        _syncingProperties = true;
         var o = _session.Selected;
         var style = CurrentStyle;
+        var dash=o?.LineStyle??style.Dash;
+        if(_toolButtons.TryGetValue("dash",out var dashButton)&&(!ReferenceEquals(_dashIconButton,dashButton)||_dashIconStyle!=dash))
+        {
+            var icon=ToolIcons.CreateDash(dash);
+            ToolbarUi.ReplaceIcon(dashButton,icon);
+            _dashIconButton=dashButton;_dashIconStyle=dash;
+        }
+        if(_brushSwatch is not null)_brushSwatch.Fill=Brush(o?.StrokeColor??style.Color);
+        // Hidden properties are synchronized when opened; tool switches need only
+        // their swatches, not every slider, number box and inspector section.
+        if(o is null&&Inspector.Visibility!=Visibility.Visible){RefreshSelectionBar();return;}
+        _syncingProperties = true;
         WidthSlider.Value = o?.StrokeWidth ?? style.Width;
         OpacitySlider.Value = o?.Opacity ?? style.Opacity;
         RotationBox.Value = o?.Rotation ?? 0;
@@ -855,7 +871,6 @@ public partial class MainWindow
         FillToggle.IsChecked = o is null ? style.Filled : o.FillColor != "none";
         FillOpacitySlider.Value=o?.FillOpacity??style.FillOpacity??1;
         DashBox.SelectedIndex = Math.Max(0, Array.IndexOf(DashStyles, o?.LineStyle ?? style.Dash));
-        if(_toolButtons.TryGetValue("dash",out var dashButton))dashButton.Content=ToolIcons.CreateDash(o?.LineStyle??style.Dash);
         StrokeColorButton.Content = T("自訂色輪 · ") + (o?.StrokeColor ?? style.Color);
         if (_brushSwatch is not null) _brushSwatch.Fill = Brush(o?.StrokeColor ?? style.Color);
         FillColorButton.Content = T("自訂填色與透明度");

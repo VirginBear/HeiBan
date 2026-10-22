@@ -184,8 +184,8 @@ Check(fixY + fixH <= 842, "Fixed canvas clamps Y within board height");
 // W-V01: ToolbarPreferences tests
 var defaultPrefs = ToolbarPreferences.CreateDefault();
 Check(defaultPrefs.DockSide == "上方", "Default dock side is 上方");
-Check(defaultPrefs.VisibleTools.Count == ToolbarPreferences.StreamlinedTools.Length, "Default visible tools are streamlined (8 tools)");
-Check(defaultPrefs.HiddenTools.Count == ToolbarPreferences.AllDefaultTools.Length - ToolbarPreferences.StreamlinedTools.Length, "Additional tools in hidden by default");
+Check(defaultPrefs.VisibleTools.Count == ToolbarPreferences.AllDefaultTools.Length, "Default visible tools include the full catalog");
+Check(defaultPrefs.HiddenTools.Count == 0, "No tools are hidden by default");
 
 // Normalization & corrupt settings handling
 var corruptPrefs = new ToolbarPreferences
@@ -231,7 +231,7 @@ try
     await File.WriteAllTextAsync(settingsPath, "{ corrupt json ... }}}");
     var fallbackPrefs = await ToolbarPreferencesStore.LoadAsync(tempDir);
     Check(fallbackPrefs.DockSide == "上方", "Corrupt file gracefully falls back to defaults");
-    Check(fallbackPrefs.VisibleTools.Count == ToolbarPreferences.StreamlinedTools.Length, "Corrupt file restores streamlined tools");
+    Check(fallbackPrefs.VisibleTools.Count == ToolbarPreferences.AllDefaultTools.Length, "Corrupt file restores all tools");
 }
 finally
 {
@@ -293,12 +293,12 @@ Check(safeCoord.IsCapturing, "Session still capturing after mismatched cancel");
 Check(safeCoord.CancelIfMatching(sReq1!.RequestId, "matching"), "CancelIfMatching succeeds with matching requestId");
 Check(safeCoord.State == ScreenshotSessionState.Cancelled, "State transitioned to Cancelled");
 
-// 2. ToolbarPreferences: 精簡預設配置、移動工具排序、新工具收折於更多
+// 2. ToolbarPreferences: 全開預設配置、移動工具排序、新工具相容規則
 var streamPrefs = ToolbarPreferences.CreateDefault();
-Check(streamPrefs.VisibleTools.Count == ToolbarPreferences.StreamlinedTools.Length, "Streamlined default toolbar has 8 tools");
-Check(streamPrefs.HiddenTools.Contains("calculator"), "Calculator placed in hidden/more by default");
-Check(streamPrefs.HiddenTools.Contains("timer"), "Timer placed in hidden/more by default");
-Check(streamPrefs.HiddenTools.Contains("compass"), "Compass placed in hidden/more by default");
+Check(streamPrefs.VisibleTools.Count == ToolbarPreferences.AllDefaultTools.Length, "Default toolbar shows the full catalog");
+Check(streamPrefs.VisibleTools.Contains("calculator"), "Calculator is visible by default");
+Check(streamPrefs.VisibleTools.Contains("timer"), "Timer is visible by default");
+Check(streamPrefs.VisibleTools.Contains("compass"), "Compass is visible by default");
 Check(streamPrefs.MoveToolDown("select"), "Move select down succeeded");
 Check(streamPrefs.VisibleTools[1] == "select", "Select moved to index 1");
 Check(streamPrefs.MoveToolUp("select"), "Move select up succeeded");

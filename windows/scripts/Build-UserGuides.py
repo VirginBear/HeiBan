@@ -141,13 +141,56 @@ def render(code,rows,legacy=False):
 <div class="layout"><aside><nav aria-label="{metadata['toc']}">{navigation}</nav></aside><main><p id="empty" role="status" aria-live="polite" hidden>{metadata['empty']}</p>{sections}<footer>{metadata['footer']}</footer></main></div><script>{SCRIPT}</script></body></html>
 '''
 
+def practice_document(code, rows):
+    """Editable local examples reuse the translated guide, without user content."""
+    import math
+    titles={'zh-TW':'操作說明 · 工具練習','zh-CN':'操作说明 · 工具练习',
+            'en':'User guide · Practice canvas','ja':'操作ガイド · 練習用キャンバス',
+            'ko':'사용 설명 · 연습 캔버스','es':'Guía de uso · Lienzo de práctica',
+            'fr':'Mode d’emploi · Toile d’entraînement','de':'Bedienungsanleitung · Übungsfläche',
+            'pt-BR':'Guia de uso · Tela de prática','ar':'دليل الاستخدام · لوحة التدريب'}
+    pages=[{'id':f'quickstart-{i+1}','index':i,'title':rows[key][0]} for i,key in enumerate(['brush','shapes','eraser'])]
+    board={'id':'heiban-windows-quickstart-v1','title':titles[code],'ownerId':'local_user',
+           'backgroundColor':'#ffffff','gridColor':'#b9cec3','gridStyle':'dots','boardTheme':'whiteboard',
+           'canvasMode':'notebook','canvasPreset':'custom','canvasWidth':960,'canvasHeight':640,
+           'pages':pages,'activePageId':pages[0]['id'],'revision':1}
+    items=[]
+    def add(page, kind, x,y,w,h,**values):
+        item={'id':f'quickstart-{code}-{len(items)+1}','boardId':board['id'],'pageId':pages[page]['id'],
+              'type':kind,'x':x,'y':y,'width':w,'height':h,'zIndex':len(items),
+              'strokeColor':'#24533d','strokeWidth':4,'fillColor':'none','opacity':1,'isLocked':False}
+        item.update(values);items.append(item)
+    def text(page,section,y,title=False):
+        add(page,'text',32,y,890,64 if title else 140,text=rows[section][0 if title else 1],fontSize=26 if title else 17)
+    for page,key in enumerate(['brush','shapes','eraser']):text(page,key,24,True);text(page,key,92)
+    for i,color in enumerate(['#24533d','#4189c7','#d79126']):
+        pts=[{'x':64+j*10,'y':275+i*66+math.sin(j/4)*15,'pressure':1} for j in range(35)]
+        add(0,'stroke',60,255+i*66,355,42,points=json.dumps(pts,separators=(',',':')),strokeColor=color,strokeWidth=4+i*2)
+    add(0,'highlighter',500,294,340,24,points=json.dumps([{'x':510,'y':306},{'x':830,'y':306}]),strokeWidth=24,strokeColor='#d9b927',opacity=.45)
+    text(0,'selection',475)
+    add(1,'rect',70,276,170,110,fillColor='#dcebdd')
+    add(1,'circle',300,276,110,110,strokeColor='#4189c7')
+    add(1,'triangle',474,276,160,110,fillColor='#fff0ab',points=json.dumps([{'x':554,'y':276},{'x':474,'y':386},{'x':634,'y':386}]))
+    add(1,'arrow',690,280,150,100,x1=690,y1=380,x2=840,y2=280,strokeColor='#ba652b')
+    text(1,'properties',455)
+    for i in range(3):
+        pts=[{'x':80+j*10,'y':270+i*46+math.sin(j/3)*12,'pressure':1} for j in range(60)]
+        add(2,'stroke',76,250+i*46,600,34,points=json.dumps(pts,separators=(',',':')),strokeWidth=6,strokeColor=['#24533d','#4189c7','#ba652b'][i])
+    text(2,'shortcuts',455)
+    board['itemCount']=len(items)
+    return {'schemaVersion':'1.0.0','version':'1.0','board':board,'objects':items}
+
 catalogs={code:read(code) for code in LANGUAGES if code!='zh-CN'}
 catalogs['zh-CN']={key:[simplify(value) for value in values] for key,values in catalogs['zh-TW'].items()}
 TARGET.mkdir(exist_ok=True,parents=True)
 manifest={'schema':1,'defaultLanguage':'zh-TW','sections':SECTIONS,'languageCodes':list(LANGUAGES),
           'scope':'Bundled offline help, not app execution or native-language review','pages':[]}
 manifest['screenshots']=[{'file':'images/'+name,'sha256':hashlib.sha256((TARGET/'images'/name).read_bytes()).hexdigest()} for name in SCREENSHOTS.values()]
+manifest['practiceDocuments']=[]
 for code in LANGUAGES:
+    practice=json.dumps(practice_document(code,catalogs[code]),ensure_ascii=False,indent=2).encode('utf-8')
+    filename=f'QuickStart-{code}.heiban';(TARGET/filename).write_bytes(practice)
+    manifest['practiceDocuments'].append({'language':code,'file':filename,'bytes':len(practice),'sha256':hashlib.sha256(practice).hexdigest()})
     data=render(code,catalogs[code]).encode('utf-8')
     (TARGET/f'{code}.html').write_bytes(data)
     manifest['pages'].append({'language':code,'file':f'{code}.html','sections':len(SECTIONS),

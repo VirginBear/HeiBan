@@ -41,7 +41,9 @@ public static class DocumentSnapshot
     }
 
     // Conservative per-snapshot accounting preserves the old 32 MB history limit; shared strings may be counted again.
-    public static long EstimatedBytes(HeiBanDocument document)
+    public static long EstimatedBytes(HeiBanDocument document)=>Estimate(document);
+    internal static long EstimatedBytes(BoardObject item)=>Estimate(item);
+    private static long Estimate(object root)
     {
         var seen=new HashSet<object>(ReferenceEqualityComparer.Instance);
         long Count(object? value)
@@ -54,6 +56,6 @@ public static class DocumentSnapshot
             if(!Fields.TryGetValue(value.GetType(),out var properties))return 16;
             return 64+properties.Sum(p=>Count(p.GetValue(value)));
         }
-        return Count(document);
+        return Count(root);
     }
 }

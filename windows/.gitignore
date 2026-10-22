@@ -8,3 +8,6 @@ dist/
 
 # User works recovered before removing obsolete Portable builds
 recovered-user-data/
+
+# Deterministic bundled exercises generated from the guide, never user works.
+!HeiBan.Windows/Assets/Guides/QuickStart-*.heiban

@@ -29,7 +29,7 @@ public partial class MainWindow
     {
         _objectDetailsId=null;Inspector.Visibility=Visibility.Collapsed;SelectionBar.Visibility=Visibility.Collapsed;
         _session.SelectedId=null;_magnetTarget=null;
-        EnsureMagnetIndex(force:true);
+        EnsureMagnetIndex();
     }
     private InkPoint SnapDrawingPoint(InkPoint point)
     {
@@ -69,7 +69,7 @@ public partial class MainWindow
         format.SelectionChanged+=(_,_)=>setMode(format.SelectedIndex==1?"labels":"icons");panel.Children.Add(format);
         var commands=new StackPanel{Orientation=Orientation.Horizontal,Spacing=8};
         var all=new Button{Content=Localization.Strings.T("全選")};all.Click+=(_,_)=>{visible.UnionWith(order);rebuild();};
-        var defaults=new Button{Content=Localization.Strings.T("預設")};defaults.Click+=(_,_)=>{visible.Clear();visible.UnionWith(ToolbarPreferences.StreamlinedTools);order.Clear();order.AddRange(ToolbarPreferences.AllDefaultTools.Where(key=>key!="extension"));format.SelectedIndex=0;resetCommon();rebuild();};
+        var defaults=new Button{Content=Localization.Strings.T("預設")};defaults.Click+=(_,_)=>{visible.Clear();visible.UnionWith(ToolbarPreferences.AllDefaultTools);order.Clear();order.AddRange(ToolbarPreferences.AllDefaultTools.Where(key=>key!="extension"));format.SelectedIndex=0;resetCommon();rebuild();};
         commands.Children.Add(all);commands.Children.Add(defaults);panel.Children.Add(commands);return panel;
     }
     private async void ToggleMagnet()

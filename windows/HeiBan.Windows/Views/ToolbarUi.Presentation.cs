@@ -35,6 +35,12 @@ internal static partial class ToolbarUi
         }
         button.Width=labels?84:iconSize;button.Height=labels?72:iconSize;
     }
+    internal static void ReplaceIcon(Button button,UIElement icon)
+    {
+        // Retain the label and its measured panel when just the swatch/style changes.
+        if(button.Content is StackPanel{Tag:"toolbar-label"} label){label.Children.RemoveAt(0);label.Children.Insert(0,icon);}
+        else button.Content=icon;
+    }
     internal static void DetachButtons(IEnumerable<Button> buttons)
     {
         foreach(var button in buttons)

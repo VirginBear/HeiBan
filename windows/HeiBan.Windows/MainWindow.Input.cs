@@ -176,7 +176,7 @@ public partial class MainWindow
             }
             else _preview=Styled(new BoardObject{Type=_tool,X=_start.X,Y=_start.Y,Width=1,Height=1});
         }
-        InvalidateCanvas();e.Handled=true;
+        InvalidateCanvas(_tool is not("pen" or "highlighter" or "paint"));e.Handled=true;
     }
     private BoardObject Styled(BoardObject o)
     {
@@ -348,11 +348,13 @@ public partial class MainWindow
             var points=_ink.Finish(e.GetCurrentPoint(CanvasSurface),_viewport);
             if(points.Count>0)
             {
-                _session.Begin();var box=VectorMath.ComputeBoundingBox(points,EffectiveWidth);
+                var box=VectorMath.ComputeBoundingBox(points,EffectiveWidth);
                 var o=Styled(new BoardObject{Type=_tool=="pen"?"stroke":_tool,X=box.MinX,Y=box.MinY,Width=box.Width,Height=box.Height,Points=JsonSerializer.Serialize(points,DocumentCodec.Options)});
                 if(_tool=="pen"&&_ink.IsStraight&&points.Count==2){o.Type="line";o.Points=null;ObjectHandles.SetEndpoints(o,points[0],points[1]);}
-                _session.Add(o);
+                var previousGeneration=_session.Generation;
+                _session.AppendInk(o);QueueInkScene(o,previousGeneration);
             }
+            ResetGesture();CanvasSurface.ReleasePointerCaptures();RefreshAfterInk();e.Handled=true;return;
         }
         else if(_shapeGesture&&_preview is not null)
         {

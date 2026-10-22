@@ -198,7 +198,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         if(input.Kind=="down")
         {
             if(_tool=="select")DamageSelectedObjects(); // Remove the previous selection adorners even when the new gesture starts on blank space.
-            _start=_last=p;if(_tool!="select")_session.Begin();_points.Clear();_points.Add(p);
+            _start=_last=p;if(_tool is not("select" or "pen" or "highlighter" or "paint"))_session.Begin();_points.Clear();_points.Add(p);
             _screenPenStraight=false;_penHoldAnchor=_tool=="pen"?p:null;_penHoldSince=Now;_straightenTimer.Stop();if(_penHoldAnchor is not null)_straightenTimer.Start();
             if(_tool=="select")
             {
@@ -253,9 +253,9 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
                 if(_tool=="pen"&&_screenPenStraight)
                 {
                     var line=Styled(new BoardObject{Type="line",X=bounds.MinX,Y=bounds.MinY,Width=bounds.Width,Height=bounds.Height});
-                    ObjectHandles.SetEndpoints(line,_points[0],_points[^1]);_session.Add(line);
+                    ObjectHandles.SetEndpoints(line,_points[0],_points[^1]);_session.AppendInk(line);
                 }
-                else _session.Add(Styled(new BoardObject{Type=_tool=="pen"?"stroke":_tool,X=bounds.MinX,Y=bounds.MinY,Width=bounds.Width,Height=bounds.Height,Points=JsonSerializer.Serialize(_points,DocumentCodec.Options)}));
+                else _session.AppendInk(Styled(new BoardObject{Type=_tool=="pen"?"stroke":_tool,X=bounds.MinX,Y=bounds.MinY,Width=bounds.Width,Height=bounds.Height,Points=JsonSerializer.Serialize(_points,DocumentCodec.Options)}));
             }
             _straightenTimer.Stop();_penHoldAnchor=null;_screenPenStraight=false;_session.Commit();if(_marquee)DamageSelectedObjects();var committedDamage=_damage;RefreshScreenStyleButtons();_marquee=false;_points.Clear();_start=_last=null;_preview=null;_handle=null;_renderer.ResetLive();Changed();
             if(_tool=="select"&&_session.Selected is not null)FocusScreenChrome();

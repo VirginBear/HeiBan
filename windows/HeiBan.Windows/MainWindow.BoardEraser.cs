@@ -14,6 +14,7 @@ public partial class MainWindow
     private Point _boardEraserGripOffset;
     private uint _boardEraserPointer;
     private bool _boardEraserWhole;
+    private bool _boardEraserTransformApplied;
     private async Task SetBoardEraserVisibleAsync(bool visible)
     {
         var previous=_toolbarPrefs.BoardEraserVisible;
@@ -30,6 +31,17 @@ public partial class MainWindow
     private void RefreshBoardEraser()
     {
         if(BoardEraserDock is null)return;
+        if(!_boardEraserTransformApplied)
+        {
+            var t=BoardEraserGeometry.ImageTransform;
+            BoardEraserImage.RenderTransform=new Microsoft.UI.Xaml.Media.MatrixTransform
+            {Matrix=new Microsoft.UI.Xaml.Media.Matrix{M11=t.M11,M12=t.M12,M21=t.M21,M22=t.M22}};
+            var contact=BoardEraserGeometry.ContactAt(0,0);
+            var figure=new Microsoft.UI.Xaml.Media.PathFigure{StartPoint=new Point(contact[0].X,contact[0].Y),IsClosed=true,IsFilled=true};
+            foreach(var point in contact.Skip(1))figure.Segments.Add(new Microsoft.UI.Xaml.Media.LineSegment{Point=new Point(point.X,point.Y)});
+            var hit=new Microsoft.UI.Xaml.Media.PathGeometry();hit.Figures.Add(figure);BoardEraserHitSurface.Data=hit;
+            _boardEraserTransformApplied=true;
+        }
         BoardEraserDock.Width=BoardEraserGeometry.DisplayWidth;BoardEraserDock.Height=BoardEraserGeometry.DisplayHeight;
         BoardEraserDock.Visibility=_toolbarPrefs.BoardEraserVisible?Visibility.Visible:Visibility.Collapsed;
         if(_boardEraserDraft is null)

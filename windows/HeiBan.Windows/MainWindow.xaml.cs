@@ -110,13 +110,13 @@ public partial class MainWindow : Window
             catch(Exception error){await Error(error);}
             finally{if(!_closing){ShowSavingOverlay(false);_preparingClose=false;ApplySavingPreferences();}}
         };
-        Closed+=(_,_)=>{_layerPreview?.End();CanvasCursorHost.ReleaseCursor();_shapeCursor.Dispose();_updates?.Dispose();_autosave.Stop();_thumbnailTimer.Stop();_searchTimer.Stop();_teachingSaveTimer.Stop();CancelScreenshotCapture("視窗關閉");_timerTickTimer?.Stop();_laserTimer.Stop();_propertyCommitTimer.Stop();_headerHideTimer.Stop();ClearScene();CanvasSurface.RemoveFromVisualTree();_renderer.Dispose();_screenAnnotation?.Dispose();};
+        Closed+=(_,_)=>{_layerPreview?.End();CanvasCursorHost.ReleaseCursor();_shapeCursor.Dispose();_updates?.Dispose();_autosave.Stop();_thumbnailTimer.Stop();_inkUiTimer.Stop();_searchTimer.Stop();_teachingSaveTimer.Stop();CancelScreenshotCapture("視窗關閉");_timerTickTimer?.Stop();_laserTimer.Stop();_propertyCommitTimer.Stop();_headerHideTimer.Stop();ClearScene();CanvasSurface.RemoveFromVisualTree();_renderer.Dispose();_screenAnnotation?.Dispose();};
         App.StartupStage="顯示首頁";
         try { EnsureScreenAnnotation(); } catch(Exception e) { StatusText.Text=T("螢幕畫布初始化失敗：")+e.Message; }
     }
     public async void InitializeAsync(string? file)
     {
-        try { if(file is null)await RefreshLibrary();else await OpenAsync(await _storage.ImportAsync(file));
+        try { await EnsureQuickStartAsync();if(file is null)await RefreshLibrary();else await OpenAsync(await _storage.ImportAsync(file));
             var guideView=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--guide-view=",StringComparison.Ordinal));
             var workflow=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--drawing-workflow-output=",StringComparison.Ordinal));
             var validation=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--validation-output=",StringComparison.Ordinal));

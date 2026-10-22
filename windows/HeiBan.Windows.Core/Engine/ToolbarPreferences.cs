@@ -13,6 +13,7 @@ public sealed class ToolbarPreferences
     public string DisplayMode { get; set; } = "icons";
     public bool MagnetEnabled { get; set; }
     public bool BoardEraserVisible { get; set; } = true;
+    public int DefaultToolsRevision { get; set; }
     public List<string> CommonTools { get; set; } = ["pen","highlighter","eraser","undo","redo","magnet"];
     [System.Text.Json.Serialization.JsonExtensionData] public Dictionary<string,JsonElement>? ExtraFields { get; set; }
 
@@ -60,12 +61,22 @@ public sealed class ToolbarPreferences
     public static ToolbarPreferences CreateDefault() => new()
     {
         DockSide = "上方",
-        VisibleTools = [.. StreamlinedTools],
-        HiddenTools = [.. AllDefaultTools.Except(StreamlinedTools)]
+        DefaultToolsRevision = 1,
+        VisibleTools = [.. AllDefaultTools],
+        HiddenTools = []
     };
 
     public void Normalize()
     {
+        // Upgrade only the exact former preset. An explicit custom ordering or
+        // visibility choice remains owned by the user, including deliberately hidden tools.
+        if(DefaultToolsRevision<1)
+        {
+            if(VisibleTools is not null&&HiddenTools is not null&&VisibleTools.SequenceEqual(StreamlinedTools)&&
+                HiddenTools.ToHashSet().SetEquals(AllDefaultTools.Except(StreamlinedTools)))
+            {VisibleTools=[..AllDefaultTools];HiddenTools=[];}
+            DefaultToolsRevision=1;
+        }
         if(DisplayMode is not("icons" or "labels"))DisplayMode="icons";
         if (DockSide is not ("上方" or "左側" or "下方" or "右側"))
         {
@@ -99,11 +110,12 @@ public sealed class ToolbarPreferences
 
     public void ResetToDefault()
     {
+        DefaultToolsRevision=1;
         DisplayMode="icons";MagnetEnabled=false;
         CommonTools=["pen","highlighter","eraser","undo","redo","magnet"];
         DockSide = "上方";
-        VisibleTools = [.. StreamlinedTools];
-        HiddenTools = [.. AllDefaultTools.Except(StreamlinedTools)];
+        VisibleTools = [.. AllDefaultTools];
+        HiddenTools = [];
     }
 
     public bool MoveToolUp(string toolKey)
