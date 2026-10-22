@@ -1,23 +1,26 @@
-import SwiftUI
 import HeiBanCore
+import SwiftUI
 
 /// Original HeiBan artwork, drawn in a 32-point grid and shared by every pin entry point.
 /// The supplied image is a direction reference only; no pixels or paths were copied.
 struct HeiBanPinIcon: View {
+    var color: String = "#39B9DC"
     var body: some View {
         GeometryReader { geometry in
             let scale = min(geometry.size.width, geometry.size.height) / 32
             ZStack {
-                PinSilhouette().fill(LinearGradient(
-                    colors: [Color(hex: "#54C6E8"), Color(hex: "#248FC4")],
-                    startPoint: .topLeading, endPoint: .bottomTrailing))
+                PinSilhouette().fill(
+                    LinearGradient(
+                        colors: [Color(hex: color).opacity(0.8), Color(hex: color)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing))
                 Path { path in
                     path.move(to: CGPoint(x: 15, y: 23))
                     path.addLine(to: CGPoint(x: 17, y: 23))
                     path.addLine(to: CGPoint(x: 16, y: 30))
                     path.closeSubpath()
                 }.fill(Color(hex: "#DDE8E4"))
-                PinSilhouette().stroke(Color(hex: "#234B43"), style: StrokeStyle(lineWidth: 1.4, lineJoin: .round))
+                PinSilhouette().stroke(
+                    Color(hex: "#234B43"), style: StrokeStyle(lineWidth: 1.4, lineJoin: .round))
                 Path { path in
                     path.move(to: CGPoint(x: 13, y: 7))
                     path.addLine(to: CGPoint(x: 18, y: 7))
@@ -74,10 +77,14 @@ private struct BoardFormatOutline: Shape {
 
     func path(in rect: CGRect) -> Path {
         var p = Path()
-        func line(_ a: CGPoint, _ b: CGPoint) { p.move(to: a); p.addLine(to: b) }
+        func line(_ a: CGPoint, _ b: CGPoint) {
+            p.move(to: a)
+            p.addLine(to: b)
+        }
         switch mode {
         case .notebook:
-            p.addRoundedRect(in: CGRect(x: 5, y: 3, width: 16, height: 18), cornerSize: CGSize(width: 2, height: 2))
+            p.addRoundedRect(
+                in: CGRect(x: 5, y: 3, width: 16, height: 18), cornerSize: CGSize(width: 2, height: 2))
             line(CGPoint(x: 9, y: 3), CGPoint(x: 9, y: 21))
             for y in [7, 12, 17] { line(CGPoint(x: 3, y: y), CGPoint(x: 6, y: y)) }
             line(CGPoint(x: 12, y: 9), CGPoint(x: 17, y: 9))
@@ -90,11 +97,15 @@ private struct BoardFormatOutline: Shape {
             }
             p.move(to: CGPoint(x: 12, y: 12))
             p.addCurve(to: CGPoint(x: 4, y: 12), control1: CGPoint(x: 7, y: 5), control2: CGPoint(x: 4, y: 8))
-            p.addCurve(to: CGPoint(x: 12, y: 12), control1: CGPoint(x: 4, y: 16), control2: CGPoint(x: 7, y: 19))
-            p.addCurve(to: CGPoint(x: 20, y: 12), control1: CGPoint(x: 17, y: 5), control2: CGPoint(x: 20, y: 8))
-            p.addCurve(to: CGPoint(x: 12, y: 12), control1: CGPoint(x: 20, y: 16), control2: CGPoint(x: 17, y: 19))
+            p.addCurve(
+                to: CGPoint(x: 12, y: 12), control1: CGPoint(x: 4, y: 16), control2: CGPoint(x: 7, y: 19))
+            p.addCurve(
+                to: CGPoint(x: 20, y: 12), control1: CGPoint(x: 17, y: 5), control2: CGPoint(x: 20, y: 8))
+            p.addCurve(
+                to: CGPoint(x: 12, y: 12), control1: CGPoint(x: 20, y: 16), control2: CGPoint(x: 17, y: 19))
         case .fixed:
-            p.addRoundedRect(in: CGRect(x: 3, y: 4, width: 18, height: 13), cornerSize: CGSize(width: 2, height: 2))
+            p.addRoundedRect(
+                in: CGRect(x: 3, y: 4, width: 18, height: 13), cornerSize: CGSize(width: 2, height: 2))
             line(CGPoint(x: 12, y: 17), CGPoint(x: 12, y: 21))
             line(CGPoint(x: 8, y: 21), CGPoint(x: 16, y: 21))
         }
@@ -135,5 +146,53 @@ struct BoardFormatBadge: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("畫布類型：\(board.canvasFormatLabel)")
         .allowsHitTesting(false)
+    }
+}
+
+/// Original drafting compass: two legs, crossbar and a joint, readable at toolbar scale.
+struct HeiBanCompassIcon: View {
+    var body: some View {
+        Canvas { context, size in
+            let s = min(size.width, size.height) / 24
+            var path = Path()
+            path.move(to: CGPoint(x: 12 * s, y: 5 * s))
+            path.addLine(to: CGPoint(x: 4 * s, y: 22 * s))
+            path.move(to: CGPoint(x: 12 * s, y: 5 * s))
+            path.addLine(to: CGPoint(x: 20 * s, y: 22 * s))
+            path.move(to: CGPoint(x: 7 * s, y: 15 * s))
+            path.addLine(to: CGPoint(x: 17 * s, y: 15 * s))
+            path.move(to: CGPoint(x: 12 * s, y: 0))
+            path.addLine(to: CGPoint(x: 12 * s, y: 3 * s))
+            context.stroke(
+                path, with: .foreground,
+                style: StrokeStyle(lineWidth: 1.8 * s, lineCap: .round, lineJoin: .round))
+            context.stroke(
+                Path(ellipseIn: CGRect(x: 9 * s, y: 3 * s, width: 6 * s, height: 6 * s)), with: .foreground,
+                lineWidth: 1.6 * s)
+        }.frame(width: 19, height: 19).accessibilityHidden(true)
+    }
+}
+
+struct HeiBanMagnetIcon: View {
+    var body: some View {
+        Canvas { context, size in
+            let scale = min(size.width, size.height) / 24
+            var path = Path()
+            path.move(to: CGPoint(x: 5 * scale, y: 4 * scale))
+            path.addLine(to: CGPoint(x: 5 * scale, y: 13 * scale))
+            path.addCurve(
+                to: CGPoint(x: 12 * scale, y: 20 * scale), control1: CGPoint(x: 5 * scale, y: 17 * scale),
+                control2: CGPoint(x: 8 * scale, y: 20 * scale))
+            path.addCurve(
+                to: CGPoint(x: 19 * scale, y: 13 * scale), control1: CGPoint(x: 16 * scale, y: 20 * scale),
+                control2: CGPoint(x: 19 * scale, y: 17 * scale))
+            path.addLine(to: CGPoint(x: 19 * scale, y: 4 * scale))
+            context.stroke(path, with: .foreground, style: StrokeStyle(lineWidth: 4 * scale, lineCap: .round))
+            for x in [3.0, 17.0] {
+                context.fill(
+                    Path(CGRect(x: x * scale, y: 4 * scale, width: 4 * scale, height: 3 * scale)),
+                    with: .color(.white))
+            }
+        }.frame(width: 19, height: 19).accessibilityHidden(true)
     }
 }

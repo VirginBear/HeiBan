@@ -1,6 +1,6 @@
 # Mac 架構決策紀錄
 
-更新：2026-10-13。決策有取捨，後續變更以新編號取代，不刪除原理由。
+更新：2026-10-16。決策有取捨，後續變更以新編號取代，不刪除原理由。
 
 ## ADR-M01 — 平台目錄分離
 
@@ -157,3 +157,15 @@ hiddenTitleBar在本機未執行頂端雙擊縮放；保留現有簡潔介面，
 ## 2026-10-13 文件交接補齊
 
 本批没有新程式架構決策。依ADR-M07補齊現況／驗證界線／失敗方案，以MAC_DEVELOPMENT_HANDOFF和M39連結最新證據；ADR-M18／M20的獨立樣式及清單由ADR-M23取代，ADR-M24清理與公開政策不變。Windows減重候選在Windows文件規劃，未將其採為Mac或Windows已實作部署。
+
+## ADR-M25 — 磁鐵及板擦共用幾何，預覽與永久交易分開
+
+2026-10-16，採用。依Windows1.0.15需求以Swift原生實作。DrawingReferenceGeometry定義真實頂點／中點／中心，服務磁鐵與板擦及多邊形渲染；索引按幾何revision／頁／倍率重建，pointer只查附近九格。DrawingAssistState的目標由獨立疊層觀察。板擦使用原創PNG副本與相同鏡像alpha凸輪廓，不用外框擦除。拖曳中只替換暫態渲染objects，document快照仍讀原objects，放開一筆replaceObjects；Esc還原。不能借一般insert命令恢復整頁，因appendInZOrder會替舊pageId=nil重新掛頁；新命令精確恢復原陣列與未知欄位。
+
+## ADR-M26 — Mac文件交換為原生adapter，PDF附完整原稿
+
+2026-10-16，採用。PDFKit逐頁轉圖、範圍／密碼／限量；簡報以Keynote只開唯一臨時副本並轉PDF，不能搬Windows COM或以不完整OOXML畫面代替。Keynote可用性／Automation／字型是平台限制，提供先手動轉PDF路徑。取消與失敗不安裝半份作品，正常作品由既有save-before-leaving保護。Mac PDF匯出共用SwiftUI Canvas renderer，支援多頁與現有圖形／文字／圖片，沿相同marker但改有效incremental stream保存完整原稿，舊檔仍可恢復。分享風險在UI／手冊／隱私文字說明；PNG用於只分享可見內容。沒有改.heiban v1格式。
+
+## ADR-M27 — 工具分頁、常用及語言屬本機偏好
+
+2026-10-16，採用。icons／labels、磁鐵、板擦顯隱與Common集合保存在Mac原工具偏好，解碼缺欄位給預設並保留未知欄位，不寫作品／Undo。選取不可隱藏；圖文單排／列用頁容量與換組箭頭，普通／螢幕同一個渲染元件與catalog，宿主只持尺寸及清空／退出。十語手冊是Mac自有可重生資源，不在App讀Windows目錄或使用網路翻譯。新使用者自動保存off，明確舊設定／manual照原遷移，手動與退出保存保持獨立。

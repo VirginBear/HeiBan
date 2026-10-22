@@ -6,6 +6,12 @@
 
 Windows 1.0.15提交使用的隱私文字見[2026-10-15版](windows/docs/PRIVACY_POLICY_2026-10-15.zh-TW.md)，包含本機PDF／PowerPoint轉換、匯出內嵌完整原稿、更新與診斷說明。本次不改Mac或Web行為。
 
+## Mac 1.0.15 文件交換補充
+
+2026-10-16本機開發版新增PDF頁面與簡報匯入。PDF以PDFKit在本機轉成圖片頁；簡報由使用者安裝的Keynote及系統自動化授權轉唯一暫存副本，不修改原始或既有開啟的簡報，也不由黑板上傳到轉換服務。Keynote自己的連線、字型及隱私行為依Apple／使用者設定處理。
+
+Mac PDF匯出會附上**完整可編輯原稿**，可能包含其他頁面、隱藏物件與內嵌圖片，不能因PDF畫面只看見一頁就當作已移除其餘資料。匯出前有提示；若只分享可見內容，請使用PNG並檢查輸出。HTML及.heiban也可包含完整原稿。這些是來源行為說明，不代表本批已完成全部實際往返驗收。
+
 ## Mac 與 Windows 原生版
 
 作品主要保存在本機。Mac 位於 `~/Library/Application Support/HeiBan/`；Windows 安裝版位於 `%LOCALAPPDATA%\HeiBan\Windows\`，免安裝版位於程式資料夾 `Data/`。開發隔離環境變數可改變位置，因此它們不是每台電腦的絕對路徑保證。

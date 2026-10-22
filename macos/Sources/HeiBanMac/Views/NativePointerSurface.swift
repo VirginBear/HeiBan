@@ -43,12 +43,14 @@ struct NativePointerSurface: NSViewRepresentable {
         }
         override func mouseEntered(with event: NSEvent) { onInteraction?(); updateEraserCursor(event); updatePolygonCursor(event); updateTransformCursor(event); updateHoverToolCursor(event) }
         override func mouseMoved(with event: NSEvent) {
+            engine.updateMagnetHover(at: Point(point(event)))
             if engine.laserEngine.isEnabled && !engine.isHoldingSpace {
                 engine.laserEngine.addSample(point: VectorMath.screenToWorld(Point(point(event)), viewport: engine.viewport))
             }
             updateEraserCursor(event); updatePolygonCursor(event); updateTransformCursor(event); updateHoverToolCursor(event)
         }
         override func mouseExited(with event: NSEvent) {
+            engine.updateMagnetHover(at: nil)
             engine.laserEngine.beginTrail()
             engine.updateEraserCursor(at: nil)
             engine.updateHoverCursor(at: nil, diameter: nil)

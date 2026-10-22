@@ -4,7 +4,7 @@ import Foundation
 /// 自動保存與最近工作快照。主執行緒先擷取不可變文件，再交給單一寫入佇列；退出等待已排程寫入。
 extension BoardEngine {
     public var document: HeiBanDocument {
-        var snapshot = HeiBanDocument(board: board, objects: objects)
+        var snapshot = HeiBanDocument(board: board, objects: boardEraserOriginal ?? objects)
         if let envelope = persistence.header {
             snapshot.schemaVersion = envelope.schemaVersion
             snapshot.version = envelope.version
@@ -86,6 +86,7 @@ extension BoardEngine {
 
     @discardableResult
     public func saveBeforeLeaving() -> Bool {
+        finishBoardEraser()
         guard persistence.enabled else { return true }
         if showingHome && objects.isEmpty && !libraryBoards.contains(where: { $0.id == board.id }) {
             return true
@@ -123,6 +124,7 @@ extension BoardEngine {
 
     /// 正常結束應用程式時使用非同步保存，避免大作品的編碼／磁碟寫入凍結主執行緒。
     public func saveBeforeLeaving(completion: @escaping (Bool) -> Void) {
+        finishBoardEraser()
         dispatchPrecondition(condition: .onQueue(.main))
         guard persistence.enabled else { completion(true); return }
         if showingHome && objects.isEmpty && !libraryBoards.contains(where: { $0.id == board.id }) {

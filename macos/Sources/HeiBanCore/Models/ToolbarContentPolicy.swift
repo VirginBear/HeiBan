@@ -10,7 +10,29 @@ public enum ToolbarContentPolicy {
             screen && id == "undoRedo" ? ["undo", "redo"] : [id]
         }
     }
+    public static let pages = ["common", "drawing", "insert", "organize"]
+    public static let pageTitles = ["常用", "繪圖", "插入", "管理"]
+    public static func page(for id: String) -> String {
+        if [
+            "pen", "curve", "highlighter", "paint", "eraser", "ruler", "shapes", "color", "lineStyle",
+            "magnet", "compass",
+        ].contains(id) {
+            return "drawing"
+        }
+        if ["sticky", "text", "image", "screenshot", "tape", "calculator", "timer"].contains(id) {
+            return "insert"
+        }
+        return "organize"
+    }
+    public static func pageIDs(_ preferences: ToolbarPreferences, screen: Bool, page: String) -> [String] {
+        visibleIDs(preferences, screen: screen).filter { id in
+            guard id != "select" else { return false }
+            if page != "common" { return Self.page(for: id) == page }
+            return preferences.commonItemIds.contains(id)
+                || (["undo", "redo"].contains(id) && preferences.commonItemIds.contains("undoRedo"))
+        }
+    }
     public static func screenItemCount(_ preferences: ToolbarPreferences) -> Int {
-        visibleIDs(preferences, screen: true).count + 1 // 共用「更多」入口。
+        visibleIDs(preferences, screen: true).count + 1  // 共用「更多」入口。
     }
 }

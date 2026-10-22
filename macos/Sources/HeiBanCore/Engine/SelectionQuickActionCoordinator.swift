@@ -86,9 +86,9 @@ public enum SelectionQuickActionCoordinator {
 
         let editable = selectedObjects.allSatisfy { $0.isLocked != true }
         let strokeTypes: Set<String> = ["stroke", "pen", "highlighter", "paint", "curve", "arc",
-                                        "rect", "circle", "triangle", "quadrilateral", "diamond", "star", "line", "arrow"]
+                                        "rect", "circle", "triangle", "quadrilateral", "diamond", "star", "polygon", "pentagon", "rounded_rect", "ellipse", "line", "arrow"]
         let colorTypes = strokeTypes.union(["text", "sticky"])
-        let fillTypes: Set<String> = ["rect", "circle", "triangle", "quadrilateral", "diamond", "star", "sticky"]
+        let fillTypes: Set<String> = ["rect", "circle", "triangle", "quadrilateral", "diamond", "star", "polygon", "pentagon", "rounded_rect", "ellipse", "sticky"]
         let allowsColor = editable && selectedObjects.allSatisfy { colorTypes.contains($0.type) }
         let allowsStrokeWidth = editable && selectedObjects.allSatisfy { strokeTypes.contains($0.type) }
         let allowsFill = editable && selectedObjects.allSatisfy { fillTypes.contains($0.type) }

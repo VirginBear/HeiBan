@@ -17,15 +17,61 @@ public struct ToolbarItemDefinition: Identifiable, Codable, Equatable, Sendable 
 public struct ToolbarPreferences: Codable, Equatable, Sendable {
     public var activeItemIds: [String]
     public var hiddenItemIds: [String]
+    public var displayMode: String = "icons"
+    public var magnetEnabled: Bool = false
+    public var boardEraserVisible: Bool = true
+    public var commonItemIds: [String] = ["pen", "highlighter", "eraser", "undoRedo", "magnet"]
+
+    public var extraFields: [String: AnyCodableValue]?
+
+    private enum CodingKeys: String, CodingKey, CaseIterable {
+        case activeItemIds, hiddenItemIds, displayMode, magnetEnabled, boardEraserVisible, commonItemIds
+    }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        activeItemIds =
+            try c.decodeIfPresent([String].self, forKey: .activeItemIds) ?? Self.streamlinedItemIds
+        hiddenItemIds = try c.decodeIfPresent([String].self, forKey: .hiddenItemIds) ?? []
+        displayMode = try c.decodeIfPresent(String.self, forKey: .displayMode) ?? "icons"
+        magnetEnabled = try c.decodeIfPresent(Bool.self, forKey: .magnetEnabled) ?? false
+        boardEraserVisible = try c.decodeIfPresent(Bool.self, forKey: .boardEraserVisible) ?? true
+        commonItemIds =
+            try c.decodeIfPresent([String].self, forKey: .commonItemIds) ?? [
+                "pen", "highlighter", "eraser", "undoRedo", "magnet",
+            ]
+        let dynamic = try decoder.container(keyedBy: AnyCodingKey.self)
+        let known = Set(CodingKeys.allCases.map(\.stringValue))
+        var extras: [String: AnyCodableValue] = [:]
+        for key in dynamic.allKeys where !known.contains(key.stringValue) {
+            extras[key.stringValue] = try dynamic.decode(AnyCodableValue.self, forKey: key)
+        }
+        extraFields = extras.isEmpty ? nil : extras
+        normalize()
+    }
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(activeItemIds, forKey: .activeItemIds)
+        try c.encode(hiddenItemIds, forKey: .hiddenItemIds)
+        try c.encode(displayMode, forKey: .displayMode)
+        try c.encode(magnetEnabled, forKey: .magnetEnabled)
+        try c.encode(boardEraserVisible, forKey: .boardEraserVisible)
+        try c.encode(commonItemIds, forKey: .commonItemIds)
+        var dynamic = encoder.container(keyedBy: AnyCodingKey.self)
+        let known = Set(CodingKeys.allCases.map(\.stringValue))
+        for (key, value) in extraFields ?? [:] where !known.contains(key) {
+            try dynamic.encode(value, forKey: AnyCodingKey(stringValue: key)!)
+        }
+    }
 
     public static let streamlinedItemIds: [String] = [
-        "select", "pen", "highlighter", "eraser", "ruler", "shapes", "layers", "undoRedo"
+        "select", "pen", "highlighter", "eraser", "ruler", "shapes", "magnet", "layers", "undoRedo",
     ]
 
     public static let allDefinitions: [ToolbarItemDefinition] = [
         ToolbarItemDefinition(id: "select", displayName: "選取 / 導航", icon: "cursorarrow", isEssential: true),
         ToolbarItemDefinition(id: "pen", displayName: "鋼筆 / 向量筆", icon: "pencil"),
-        ToolbarItemDefinition(id: "curve", displayName: "曲線筆", icon: "point.topleft.down.to.point.bottomright.curvepath"),
+        ToolbarItemDefinition(
+            id: "curve", displayName: "曲線筆", icon: "point.topleft.down.to.point.bottomright.curvepath"),
         ToolbarItemDefinition(id: "highlighter", displayName: "螢光筆", icon: "highlighter"),
         ToolbarItemDefinition(id: "paint", displayName: "油漆筆刷", icon: "paintbrush.pointed.fill"),
         ToolbarItemDefinition(id: "eraser", displayName: "橡皮擦", icon: "eraser.fill"),
@@ -40,6 +86,7 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
         ToolbarItemDefinition(id: "image", displayName: "圖片匯入", icon: "photo.badge.plus"),
         ToolbarItemDefinition(id: "color", displayName: "筆刷設定", icon: "circle.fill"),
         ToolbarItemDefinition(id: "lineStyle", displayName: "實線 / 虛線", icon: "minus"),
+        ToolbarItemDefinition(id: "magnet", displayName: "磁鐵", icon: "dot.squareshape.split.2x2"),
         ToolbarItemDefinition(id: "layers", displayName: "物件圖層", icon: "square.3.layers.3d"),
         ToolbarItemDefinition(id: "pins", displayName: "圖釘", icon: "pin.fill"),
         ToolbarItemDefinition(id: "compass", displayName: "圓規", icon: "circle.circle"),
@@ -48,7 +95,7 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
         ToolbarItemDefinition(id: "undoRedo", displayName: "復原 / 重做", icon: "arrow.uturn.backward"),
         ToolbarItemDefinition(id: "dock", displayName: "停靠位置", icon: "rectangle.3.group"),
         ToolbarItemDefinition(id: "viewLock", displayName: "鎖定視角", icon: "lock.fill"),
-        ToolbarItemDefinition(id: "clearAll", displayName: "清空黑板", icon: "trash")
+        ToolbarItemDefinition(id: "clearAll", displayName: "清空黑板", icon: "trash"),
     ]
 
     public static let defaultActiveItemIds: [String] = streamlinedItemIds
@@ -66,7 +113,9 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
             self.hiddenItemIds = hiddenItemIds ?? []
         } else {
             self.activeItemIds = Self.streamlinedItemIds
-            self.hiddenItemIds = hiddenItemIds ?? Self.allDefinitions.map(\.id).filter { !Self.streamlinedItemIds.contains($0) }
+            self.hiddenItemIds =
+                hiddenItemIds
+                ?? Self.allDefinitions.map(\.id).filter { !Self.streamlinedItemIds.contains($0) }
         }
     }
 
@@ -88,6 +137,17 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
             activeItemIds.append("layers")
         }
 
+        if !activeItemIds.contains("magnet") && !hiddenItemIds.contains("magnet") {
+            activeItemIds.append("magnet")
+        }
+        hiddenItemIds.removeAll { $0 == "select" }
+        activeItemIds.removeAll { $0 == "select" }
+        activeItemIds.insert("select", at: 0)
+        if displayMode != "labels" { displayMode = "icons" }
+        var commonSeen = Set<String>()
+        commonItemIds = commonItemIds.filter {
+            allKnown.contains($0) && $0 != "select" && commonSeen.insert($0).inserted
+        }
         activeItemIds = activeItemIds.filter { allKnown.contains($0) && activeSeen.insert($0).inserted }
         hiddenItemIds = hiddenItemIds.filter { allKnown.contains($0) && hiddenSeen.insert($0).inserted }
 
@@ -101,11 +161,15 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
     }
 
     public mutating func resetToDefaults() {
+        displayMode = "icons"
+        magnetEnabled = false
+        commonItemIds = ["pen", "highlighter", "eraser", "undoRedo", "magnet"]
         activeItemIds = Self.streamlinedItemIds
         hiddenItemIds = Self.allDefinitions.map(\.id).filter { !Self.streamlinedItemIds.contains($0) }
     }
 
     public mutating func setItemHidden(id: String, hidden: Bool) {
+        guard id != "select" else { return }
         if hidden {
             if !hiddenItemIds.contains(id) {
                 hiddenItemIds.append(id)
@@ -119,15 +183,17 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
     }
 
     public mutating func moveItem(from sourceIndex: Int, to destinationIndex: Int) {
-        guard sourceIndex >= 0, sourceIndex < activeItemIds.count,
-              destinationIndex >= 0, destinationIndex < activeItemIds.count,
-              sourceIndex != destinationIndex else { return }
+        guard sourceIndex > 0, sourceIndex < activeItemIds.count,
+            destinationIndex > 0, destinationIndex < activeItemIds.count,
+            sourceIndex != destinationIndex
+        else { return }
         let item = activeItemIds.remove(at: sourceIndex)
         activeItemIds.insert(item, at: destinationIndex)
     }
 
     public mutating func moveItem(id: String, to destinationIndex: Int) {
-        guard let sourceIndex = activeItemIds.firstIndex(of: id) else { return }
-        moveItem(from: sourceIndex, to: destinationIndex)
+        guard id != "select", let sourceIndex = activeItemIds.firstIndex(of: id) else { return }
+        let target = max(1, min(activeItemIds.count - 1, destinationIndex))
+        moveItem(from: sourceIndex, to: target)
     }
 }

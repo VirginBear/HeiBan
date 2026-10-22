@@ -1,0 +1,99 @@
+{
+  "language": "pt-BR",
+  "title": "HeiBan · Guia do usuário",
+  "search": "Pesquisar no guia",
+  "languageLabel": "Idioma do guia",
+  "sections": [
+    {
+      "id": "language",
+      "title": "Idioma da interface e do guia",
+      "paragraphs": [
+        "Escolha o idioma em Conta e ajustes. A ajuda abre nesse idioma; o seletor desta página muda apenas o guia. Nomes e textos das obras não são traduzidos."
+      ]
+    },
+    {
+      "id": "start",
+      "title": "Primeiros passos",
+      "paragraphs": [
+        "Use + no Início para criar caderno, tela infinita ou quadro limitado; escolha título, tamanho e fundo. Abra pelo cartão e organize com busca, favoritos, seleção múltipla e Lixeira. Novas configurações deixam o salvamento automático DESLIGADO; as escolhas anteriores são mantidas."
+      ]
+    },
+    {
+      "id": "navigate",
+      "title": "Mover, ampliar e bloquear vista",
+      "paragraphs": [
+        "A roda amplia no ponteiro. Arraste segurando o botão central ou Space para mover. No trackpad, use dois dedos e pinça. A rolagem de texto fica no editor. Leitura e Bloqueio de vista evitam alterações. Clique duas vezes no título vazio ou use ⌘⌥0 para ampliar/restaurar a janela."
+      ]
+    },
+    {
+      "id": "workspace",
+      "title": "Navegação e barras",
+      "paragraphs": [
+        "Arraste a alça para qualquer borda. Mais → Personalizar oferece ícones ou abas Frequentes, Desenhar, Inserir e Organizar. Seleção fica visível; setas mudam grupos se faltar espaço. Exibição, ordem, Selecionar tudo, Padrões e Frequentes são independentes. Ferramentas ocultas ficam em Mais. A aba Propriedades também pode ser movida."
+      ]
+    },
+    {
+      "id": "brush",
+      "title": "Caneta e pincéis",
+      "paragraphs": [
+        "O círculo de cor abre pincel, cor, Hex, recentes, espessura e opacidade. Com seleção, muda estilos compatíveis; sem seleção, define próximos traços. A amostra acompanha o zoom. Pare um traço quase reto por um segundo para endireitar. O laser é ajustado no próprio botão e seu rastro não é salvo."
+      ]
+    },
+    {
+      "id": "shapes",
+      "title": "Linhas, setas, formas e curvas",
+      "paragraphs": [
+        "Ferramentas continuam ativas após criar. Retângulos partem do canto; círculos, losangos, pentágonos e estrelas do centro. Clique três vértices para triângulo ou quatro para quadrilátero; a prévia é reta. Curvas podem ser ajustadas depois. O ímã atrai início e próximos pontos para vértices, centros e pontos médios próximos (cerca de 10 pontos de tela). Ocultos são excluídos; formas bloqueadas servem como referência."
+      ]
+    },
+    {
+      "id": "selection",
+      "title": "Seleção e transformações",
+      "paragraphs": [
+        "Seleção move e ajusta tamanho, rotação, pontas A/B e vértices. Shift adiciona à seleção. Um clique mostra alças; dois abrem detalhes. Camadas gerencia nomes, visibilidade, bloqueio e ordem, com prévia ao arrastar e indicação de inserção. Um arrasto corresponde a um desfazer."
+      ]
+    },
+    {
+      "id": "text",
+      "title": "Texto e notas adesivas",
+      "paragraphs": [
+        "T e Nota adesiva permitem digitar no lugar; Concluir ou ⌘Enter confirma. Clique duplo edita texto existente. Clique direito muda tamanho e cor, inclusive de várias caixas. Formas oferecem preenchimento, gradiente, opacidade, padrões de linha e tamanho da seta. Rolar texto não amplia a tela."
+      ]
+    },
+    {
+      "id": "eraser",
+      "title": "Borracha",
+      "paragraphs": [
+        "Borracha apaga objeto ou parte do traço com alcance visível antes de pressionar. Imagens, texto, notas e objetos bloqueados são protegidos. No quadro normal, o apagador inclinado segue a silhueta espelhada da imagem. Clique direito muda modo ou oculta; Mais o mostra novamente. Um arrasto é um desfazer; Esc cancela. A remoção parcial corta vetores, não pixels de imagens."
+      ]
+    },
+    {
+      "id": "ruler",
+      "title": "Régua",
+      "paragraphs": [
+        "Mova a régua pelo corpo, gire a alça e digite ângulos com uma casa decimal. A cor se adapta. No compasso, prepare centro e início, clique no centro e arraste a ponta. Calculadora e Contagem regressiva são móveis. Fita esconde conteúdo e Laço seleciona regiões. Alfinetes guardam vistas e usam a mesma cor na lista e no quadro."
+      ]
+    },
+    {
+      "id": "screen",
+      "title": "Canvas da tela",
+      "paragraphs": [
+        "A tela de anotação no Início abre uma camada transparente sobre outros apps. ⌘⌥⇧D alterna desenho/passagem de cliques, ⌘⌥⇧S captura e ⌘⌥⇧X sai. Compartilha ferramentas e preferências, exceto alfinetes e navegação. Pode ficar em quatro lados. Limpar mantém aberta e aceita desfazer; T insere texto. Telas protegidas do sistema não são garantidas."
+      ]
+    },
+    {
+      "id": "files",
+      "title": "Salvar, dados e exportar",
+      "paragraphs": [
+        "Cole imagens com ⌘V ou arraste. Importe .heiban/JSON, PDF e PPT/PPTX/Keynote. Slides exigem Keynote e permissão de Automação para converter uma cópia temporária em PDF; o original não muda. Também é possível converter antes. Escolha até 200 páginas e 100 MB de imagens; cancelar não aplica nada. Documentos externos tornam-se imagens bloqueadas, sem elementos editáveis, vídeo ou animação. PDF exporta página atual/todas e inclui todo o original com outras páginas e objetos ocultos. Use PNG para compartilhar apenas o visível e .heiban para editar depois. A saída normal espera o salvamento."
+      ]
+    },
+    {
+      "id": "status",
+      "title": "Escopo e limitações",
+      "paragraphs": [
+        "Mac 1.0.15 usa SwiftUI/AppKit nativos. Foi compilado, mas esta etapa não executou testes automáticos nem interativos. Slides, traduções longas, monitores e canetas reais exigem avaliação. Google/nuvem, colaboração e protótipos estruturados não são recursos completos entregues. O mesmo número de versão não comprova paridade total."
+      ]
+    }
+  ]
+}

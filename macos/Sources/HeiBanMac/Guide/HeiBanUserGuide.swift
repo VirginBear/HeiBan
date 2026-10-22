@@ -5,10 +5,18 @@ import WebKit
 final class HeiBanUserGuide: NSObject, NSWindowDelegate {
     static let shared = HeiBanUserGuide()
     private var window: NSWindow?
+    private var currentLanguage: String?
 
     func show() {
-        if let window { NSApp.activate(ignoringOtherApps: true); window.makeKeyAndOrderFront(nil); return }
-        guard let url = Bundle.module.url(forResource: "HeiBanUserGuide", withExtension: "html") else { return }
+        guard let url = Bundle.module.url(forResource:L10n.shared.code,withExtension:"html",subdirectory:"Guides")
+            ?? Bundle.module.url(forResource:"HeiBanUserGuide",withExtension:"html") else { return }
+        if let window {
+            if currentLanguage != L10n.shared.code,let web=window.contentView as? WKWebView {
+                web.loadFileURL(url,allowingReadAccessTo:url.deletingLastPathComponent());currentLanguage=L10n.shared.code
+            }
+            NSApp.activate(ignoringOtherApps:true);window.makeKeyAndOrderFront(nil);return
+        }
+        currentLanguage=L10n.shared.code
         let configuration = WKWebViewConfiguration()
         configuration.websiteDataStore = .nonPersistent()
         let webView = WKWebView(frame: .zero, configuration: configuration)

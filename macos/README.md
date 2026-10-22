@@ -1,3 +1,9 @@
+## 2026-10-16 · Mac 1.0.15 同步開發
+
+本機目標1.0.15／20261016.1，與Windows1.0.15同產品版號。同步磁鐵參考點、中心式與連續繪圖、雙擊詳細屬性、圖文分頁與常用工具、原創板擦、PDF多頁交換、Keynote轉簡報、自動保存新設定預設off與退出提示。原生SwiftUI／AppKit／PDFKit，沒有Windows執行時依賴。
+
+詳[功能對照與待試用清單](docs/development/WINDOWS_SYNC_REVIEW_2026-10-16.zh-TW.md)／[開發日誌](docs/development/logs/2026-10-16/01.zh-TW.md)。本機App與最後編譯證據依日誌；未自動發布新GitHub Release，下面1.0.13是既有公開下載歷史。簡報需Keynote及Automation許可；外部PDF／簡報為圖片註記頁。十語手冊為正體中文21章圖解、其他語言13主題總覽，母語與互動仍待驗收。
+
 # 黑板 · macOS 原生版
 
 開發接手：先讀[10/13進度、排錯與待驗收總表](docs/development/MAC_DEVELOPMENT_HANDOFF_2026-10-13.zh-TW.md)與[維護入口](docs/development/README.zh-TW.md)。Mac1.0.13最終共用工具批次已封裝公開預覽，完整功能回歸待驗收；本次文檔同步沒有進版或重建。

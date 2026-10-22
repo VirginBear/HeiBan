@@ -15,6 +15,37 @@ extension BoardEngine {
         showTemporaryStatus("成功載入黑板檔案：\(doc.board.title)")
     }
 
+    /// Conversion owns a complete value snapshot. Save the old owner asynchronously once,
+    /// then recheck identity/cancellation before installing; never replace the active work from a late callback.
+    @MainActor
+    public func importPreparedDocument(_ incoming: HeiBanDocument, expectedBoardID: String) async throws {
+        guard board.id == expectedBoardID else { throw CancellationError() }
+        let saved = await withCheckedContinuation { continuation in
+            saveBeforeLeaving { continuation.resume(returning: $0) }
+        }
+        try Task.checkCancellation()
+        guard saved, board.id == expectedBoardID else {
+            throw NSError(
+                domain: "HeiBanImport", code: 1, userInfo: [NSLocalizedDescriptionKey: "原作品未保存或已切換，匯入已停止"])
+        }
+        // PDF restoration is an import, not permission to overwrite a library work with a matching embedded ID.
+        var imported=incoming
+        imported.board.id=UUID().uuidString
+        imported.board.revision=1
+        imported.board.thumbnail=nil
+        for index in imported.objects.indices { imported.objects[index].boardId=imported.board.id }
+        activate(imported)
+        let importedSaved = await withCheckedContinuation { continuation in
+            saveBeforeLeaving { continuation.resume(returning: $0) }
+        }
+        if !importedSaved {
+            // The completed import remains in the editor for retry/export; never discard it after a disk error.
+            throw NSError(
+                domain: "HeiBanImport", code: 2,
+                userInfo: [NSLocalizedDescriptionKey: "匯入已保留在畫布，但儲存失敗，請另存或重試"])
+        }
+    }
+
     public func loadShowcaseBoard() {
         guard saveBeforeLeaving() else { return }
         if let doc = FeatureShowcaseDocument.makeDocument() {
@@ -32,6 +63,12 @@ extension BoardEngine {
     }
 
     public func load(from url: URL) throws {
+        if ["pdf", "ppt", "pptx", "key"].contains(url.pathExtension.lowercased()),
+            let handler = documentImportHandler
+        {
+            handler(url)
+            return
+        }
         let data = try Data(contentsOf: url)
         try loadFromJsonData(data)
     }
@@ -64,7 +101,8 @@ extension BoardEngine {
         }
 
         dialogService.runOpenPanel(
-            allowedExtensions: ["blackboard.json", "json", "heiban"], allowsMultiple: false
+            allowedExtensions: ["blackboard.json", "json", "heiban", "pdf", "ppt", "pptx", "key"],
+            allowsMultiple: false
         ) { [weak self] urls in
             guard let self = self, let url = urls?.first else { return }
             do {
@@ -88,6 +126,10 @@ extension BoardEngine {
     }
 
     public func exportPDFPrompt() {
+        if let handler = pdfExportHandler {
+            handler()
+            return
+        }
         presentExport(format: "PDF", fileExtension: "pdf", success: "已匯出 PDF 文件") { exporter in
             try exporter.exportPDF(scope: .allObjects, selectedIds: selectedIds)
         }

@@ -35,6 +35,7 @@ private struct ScreenAnnotationToolControls: View {
             else if vertical { verticalControls }
             else { horizontalControls }
         }
+        .preferredColorScheme(.light).tint(Color(hex:"#39735a"))
         .buttonStyle(.plain).font(.system(size: 14)).padding(vertical ? 8 : 12)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
         .overlay(RoundedRectangle(cornerRadius: 16).stroke(.gray.opacity(0.2)))
@@ -117,7 +118,7 @@ private struct ScreenAnnotationToolControls: View {
 
     // 共用一般畫布的圖示、排序、設定與更多入口；这里只負責螢幕視窗的固定命令。
     private var sharedTools: some View {
-        ToolbarToolsView(engine: engine, screenController: controller, columns: columns)
+        ToolbarToolsView(engine: engine, screenController: controller, columns: columns, availableLength: vertical ? controller.controlsSize.height-194 : controller.controlsSize.width-224)
     }
 
     private func iconButton(_ icon: String, title: String, action: @escaping () -> Void) -> some View {

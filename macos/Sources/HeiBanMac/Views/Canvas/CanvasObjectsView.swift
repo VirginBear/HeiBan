@@ -140,36 +140,14 @@ struct CanvasObjectsView: View {
 
         case "triangle", "quadrilateral", "diamond", "star":
             var path = Path()
-            let polygonPoints = obj.parsedPoints
-            if (obj.type == "triangle" || obj.type == "quadrilateral"), polygonPoints.count >= 3 {
-                for (index, point) in polygonPoints.enumerated() {
-                    let screenPoint = CGPoint(x: point.x * zoom + vx, y: point.y * zoom + vy)
-                    if index == 0 { path.move(to: screenPoint) } else { path.addLine(to: screenPoint) }
-                }
-                path.closeSubpath()
-            } else if obj.type == "triangle" {
-                path.move(to: CGPoint(x: screenX + screenW / 2, y: screenY))
-                path.addLine(to: CGPoint(x: screenX, y: screenY + screenH))
-                path.addLine(to: CGPoint(x: screenX + screenW, y: screenY + screenH))
-                path.closeSubpath()
-            } else if obj.type == "diamond" {
-                path.move(to: CGPoint(x: screenX + screenW / 2, y: screenY))
-                path.addLine(to: CGPoint(x: screenX + screenW, y: screenY + screenH / 2))
-                path.addLine(to: CGPoint(x: screenX + screenW / 2, y: screenY + screenH))
-                path.addLine(to: CGPoint(x: screenX, y: screenY + screenH / 2))
-                path.closeSubpath()
-            } else {
-                for index in 0..<10 {
-                    let angle = Double(index) * .pi / 5 - .pi / 2
-                    let radius = index.isMultiple(of: 2) ? 0.5 : 0.22
-                    let point = CGPoint(
-                        x: screenX + screenW / 2 + screenW * radius * cos(angle),
-                        y: screenY + screenH / 2 + screenH * radius * sin(angle)
-                    )
-                    if index == 0 { path.move(to: point) } else { path.addLine(to: point) }
-                }
-                path.closeSubpath()
+            var unrotated=obj
+            unrotated.rotation=0 // Context above already owns object rotation.
+            let vertices=DrawingReferenceGeometry.outline(unrotated)
+            for (i,p) in vertices.enumerated() {
+                let screen=CGPoint(x:p.x*zoom+vx,y:p.y*zoom+vy)
+                if i==0 { path.move(to:screen) } else { path.addLine(to:screen) }
             }
+            path.closeSubpath()
             if obj.fillColor != "none" {
                 fillShape(path, bounds: CGRect(x: screenX, y: screenY, width: screenW, height: screenH), object: obj, context: &context)
             }
@@ -246,11 +224,10 @@ struct CanvasObjectsView: View {
             )
             context.stroke(Path(roundedRect: rect, cornerRadius: cornerR), with: .color(strokeColor), style: strokeStyle)
 
-        case "polygon":
-            let sides = obj.polygonSides ?? 5
-            let centerWorld = Point(x: obj.x + obj.width / 2.0, y: obj.y + obj.height / 2.0)
-            let radiusWorld = min(obj.width, obj.height) / 2.0
-            let vertices = VectorMath.computePolygonVertices(center: centerWorld, radius: radiusWorld, sides: sides, rotation: obj.rotation)
+        case "polygon", "pentagon":
+            var unrotated=obj
+            unrotated.rotation=0
+            let vertices=DrawingReferenceGeometry.outline(unrotated)
             var polyPath = Path()
             for (idx, v) in vertices.enumerated() {
                 let sPt = CGPoint(x: v.x * zoom + vx, y: v.y * zoom + vy)

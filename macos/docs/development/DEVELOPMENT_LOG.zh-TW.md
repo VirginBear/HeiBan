@@ -4,6 +4,7 @@
 此索引由 `macos/scripts/new_dev_entry.py` 生成；實際內容由開發者填寫。
 歷史變更摘要及曾遇問題另見 [ISSUE_HISTORY](ISSUE_HISTORY.zh-TW.md)。
 
+- [2026-10-16 · 同步 Windows 1.0.15 更新至 Mac 原生版本](logs/2026-10-16/01.zh-TW.md)
 - [2026-10-13 · 整理 Windows 減重分析計劃與 Mac 開發交接並同步 GitHub](logs/2026-10-13/03.zh-TW.md)
 - [2026-10-13 · 分析 Mac 與 Windows 發行體積與封裝相依成本](logs/2026-10-13/02.zh-TW.md)
 - [2026-10-13 · 清理 Mac 編譯快取並公開目前 1.0.13 成品與開發紀錄](logs/2026-10-13/01.zh-TW.md)
