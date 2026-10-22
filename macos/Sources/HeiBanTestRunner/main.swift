@@ -6072,6 +6072,53 @@ do {
     assertEqual(quickStartDoc.board.canvasMode, .infinite, "51.8 操作指南作品：單頁無邊界畫布 (.infinite)")
     assertEqual(quickStartDoc.board.pins?.count, 25, "51.8 操作指南作品：包含完整 25 個教學章節圖釘")
     assertTrue(quickStartDoc.objects.count > 100, "51.8 操作指南作品：包含豐富可實際擦除與編輯之練習物件")
+
+    // 51.9 工具列自適應緊湊佈局與靠左/靠上固定參考錨點（切換分頁時分頁標籤不跳動）
+    let layoutEngine = BoardEngine(restoreSession: false, persistenceEnabled: false)
+    layoutEngine.toolbarDock = "top"
+    layoutEngine.toolbarOffset = .zero
+    let winSize = CGSize(width: 1440, height: 900)
+    let commonPanelSize = ToolbarContentPolicy.panelSize(
+        preferences: layoutEngine.toolbarPreferences,
+        page: "common",
+        vertical: false,
+        windowSize: winSize
+    )
+    let drawingPanelSize = ToolbarContentPolicy.panelSize(
+        preferences: layoutEngine.toolbarPreferences,
+        page: "drawing",
+        vertical: false,
+        windowSize: winSize
+    )
+    assertTrue(commonPanelSize.width < drawingPanelSize.width, "51.9 工具列自適應寬度：常用分頁寬度緊湊貼合內容，無右側大片留白")
+    assertTrue(drawingPanelSize.width <= winSize.width - 32, "51.9 工具列自適應寬度：繪圖分頁全工具在標準電腦畫面可完整平鋪顯示")
+
+    let commonCenter = layoutEngine.toolbarPosition(in: winSize, panelSize: commonPanelSize, topClearance: 12)
+    let drawingCenter = layoutEngine.toolbarPosition(in: winSize, panelSize: drawingPanelSize, topClearance: 12)
+    let commonLeftEdge = commonCenter.x - commonPanelSize.width / 2.0
+    let drawingLeftEdge = drawingCenter.x - drawingPanelSize.width / 2.0
+    assertTrue(abs(commonLeftEdge - drawingLeftEdge) < 0.5, "51.9 工具列固定左緣錨點：切換不同長度分頁時左邊界固定不跳動 (\(commonLeftEdge) vs \(drawingLeftEdge))")
+
+    // 直排時頂部邊界固定不跳動
+    layoutEngine.toolbarDock = "left"
+    layoutEngine.toolbarOffset = .zero
+    let vCommonSize = ToolbarContentPolicy.panelSize(
+        preferences: layoutEngine.toolbarPreferences,
+        page: "common",
+        vertical: true,
+        windowSize: winSize
+    )
+    let vDrawingSize = ToolbarContentPolicy.panelSize(
+        preferences: layoutEngine.toolbarPreferences,
+        page: "drawing",
+        vertical: true,
+        windowSize: winSize
+    )
+    let vCommonCenter = layoutEngine.toolbarPosition(in: winSize, panelSize: vCommonSize, topClearance: 64)
+    let vDrawingCenter = layoutEngine.toolbarPosition(in: winSize, panelSize: vDrawingSize, topClearance: 64)
+    let vCommonTopEdge = vCommonCenter.y - vCommonSize.height / 2.0
+    let vDrawingTopEdge = vDrawingCenter.y - vDrawingSize.height / 2.0
+    assertTrue(abs(vCommonTopEdge - vDrawingTopEdge) < 0.5, "51.9 直排工具列固定頂緣錨點：切換不同高度分頁時頂邊界固定不跳動")
 }
 
 print("\n==================================================")

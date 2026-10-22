@@ -10,6 +10,7 @@ public struct ToolbarView: View {
     let topClearance: CGFloat
     @ViewState private var horizontalLength: CGFloat = 900
     @ViewState private var verticalLength: CGFloat = 760
+    @ViewState private var activePage: String = "common"
     @ViewState private var dragOrigin: CGPoint?
     @ViewState private var translation = CGSize.zero
     @ViewState private var dropTarget: String?
@@ -23,7 +24,12 @@ public struct ToolbarView: View {
     private var vertical: Bool { engine.isToolbarVertical }
     private var panelSize: CGSize {
         if engine.toolbarPreferences.displayMode == "labels" {
-            return vertical ? CGSize(width:160,height:min(660,max(200,windowSize.height-88))) : CGSize(width:min(1120,max(260,windowSize.width-32)),height:116)
+            return ToolbarContentPolicy.panelSize(
+                preferences: engine.toolbarPreferences,
+                page: activePage,
+                vertical: vertical,
+                windowSize: windowSize
+            )
         }
         // The handle stays outside the scroll area; only tools overflow in small windows.
         if vertical {
@@ -41,7 +47,7 @@ public struct ToolbarView: View {
 
     public var body: some View {
         ZStack {
-            let layout = vertical ? AnyLayout(VStackLayout(spacing: 8)) : AnyLayout(HStackLayout(spacing: 8))
+            let layout = vertical ? AnyLayout(VStackLayout(spacing: 6)) : AnyLayout(HStackLayout(spacing: 8))
             layout {
                 Image(systemName: "line.3.horizontal")
                     .rotationEffect(.degrees(vertical ? 0 : 90))
@@ -67,7 +73,11 @@ public struct ToolbarView: View {
                             dropTarget = nil
                         })
                 if engine.toolbarPreferences.displayMode == "labels" {
-                    ToolbarToolsView(engine:engine,availableLength:vertical ? panelSize.height-48 : panelSize.width-64)
+                    ToolbarToolsView(
+                        engine: engine,
+                        availableLength: vertical ? max(120, windowSize.height - 88) : max(280, windowSize.width - 32),
+                        externalActivePage: $activePage
+                    )
                 } else {
                     ScrollView(vertical ? .vertical : .horizontal) {
                         ToolbarToolsView(engine: engine)
@@ -80,7 +90,7 @@ public struct ToolbarView: View {
                 }
             }
             .padding(8)
-            .frame(width: panelSize.width, height: panelSize.height)
+            .frame(width: panelSize.width, height: panelSize.height, alignment: vertical ? .top : .leading)
             .background(Color(nsColor: .windowBackgroundColor).opacity(0.98), in: RoundedRectangle(cornerRadius: 16))
             .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.primary.opacity(0.12), lineWidth: 1))
             .shadow(color: .black.opacity(0.18), radius: 12, y: 4)
@@ -125,15 +135,47 @@ struct ToolbarToolsView: View {
     let screenController: ScreenAnnotationController?
     let columns: Int?
     let availableLength: CGFloat
-    @ViewState private var activePage = "common"
+    var externalActivePage: Binding<String>? = nil
+    @ViewState private var internalActivePage = "common"
     @ViewState private var pageOffset = 0
 
-    init(engine: BoardEngine, screenController: ScreenAnnotationController? = nil, columns: Int? = nil, availableLength: CGFloat = 600) {
+    init(
+        engine: BoardEngine,
+        screenController: ScreenAnnotationController? = nil,
+        columns: Int? = nil,
+        availableLength: CGFloat = 600,
+        externalActivePage: Binding<String>? = nil
+    ) {
         self.engine = engine
         self.laser = engine.laserEngine
         self.screenController = screenController
         self.columns = columns
         self.availableLength = availableLength
+        self.externalActivePage = externalActivePage
+    }
+
+    private var activePage: String {
+        externalActivePage?.wrappedValue ?? internalActivePage
+    }
+
+    private func setActivePage(_ page: String) {
+        guard page != activePage else { return }
+        closeTransientToolPopovers()
+        pageOffset = 0
+        if let externalActivePage {
+            externalActivePage.wrappedValue = page
+        } else {
+            internalActivePage = page
+        }
+    }
+
+    private func closeTransientToolPopovers() {
+        engine.showColorPopover = false
+        engine.showShapesPopover = false
+        engine.showEraserPopover = false
+        showLaserSettings = false
+        showRulerSettings = false
+        showMorePopover = false
     }
 
     private var vertical: Bool { screenController?.controlsDock.isVertical ?? engine.isToolbarVertical }
@@ -145,9 +187,18 @@ struct ToolbarToolsView: View {
     private var pageIDs: [String] {
         ToolbarContentPolicy.pageIDs(engine.toolbarPreferences, screen: screenController != nil, page: activePage)
     }
-    // 預留常駐選取、更多、兩個換組箭頭及間距，再計算實際能容納的工具。
+    private var toolsAvailableLength: CGFloat {
+        max(ToolbarContentPolicy.horizontalTileWidth, availableLength - (vertical ? 148 : 136))
+    }
     private var pageCapacity: Int {
-        max(1, Int((availableLength - (vertical ? 144 : 116)) / (vertical ? 50 : 76)))
+        ToolbarContentPolicy.pageCapacity(
+            itemCount: pageIDs.count,
+            availableLength: toolsAvailableLength,
+            vertical: vertical
+        )
+    }
+    private var needsPaging: Bool {
+        pageCapacity < pageIDs.count
     }
     private var currentPageOffset: Int {
         min(pageOffset, max(0, ((pageIDs.count - 1) / pageCapacity) * pageCapacity))
@@ -163,12 +214,24 @@ struct ToolbarToolsView: View {
                 screenController != nil && item.id == "undoRedo" ? ["undo", "redo"] : [item.id]
             }
         let overflow = candidates.filter { !renderedIDs.contains($0) }
-        // 程式請求設定時把錨點放到可見首列，避免它在 More 捲動區底部仍被裁掉。
         guard let requestedSettingsID, overflow.contains(requestedSettingsID) else { return overflow }
         return [requestedSettingsID] + overflow.filter { $0 != requestedSettingsID }
     }
     private func revealSettings(_ id: String) {
         guard !renderedIDs.contains(id) else { return }
+        if usesLabels {
+            let targetPage = ToolbarContentPolicy.page(for: id)
+            if ToolbarContentPolicy.pages.contains(targetPage),
+               ToolbarContentPolicy.pageIDs(engine.toolbarPreferences, screen: screenController != nil, page: targetPage).contains(id) {
+                if let externalActivePage {
+                    externalActivePage.wrappedValue = targetPage
+                } else {
+                    internalActivePage = targetPage
+                }
+                pageOffset = 0
+                return
+            }
+        }
         requestedSettingsID = id
         showMorePopover = true
     }
@@ -191,7 +254,6 @@ struct ToolbarToolsView: View {
             }
         }
         .onAppear {
-            // 首頁期間一般工具列不在 view tree；再次打開時也需讀到螢幕模式已保存的偏好。
             if let data = UserDefaults.standard.data(forKey: "HeiBan.toolbarPreferences"),
                let preferences = try? JSONDecoder().decode(ToolbarPreferences.self, from: data),
                preferences != engine.toolbarPreferences {
@@ -206,77 +268,169 @@ struct ToolbarToolsView: View {
         .onChange(of: engine.showColorPopover) { _, show in if show { revealSettings("color") } }
         .onChange(of: engine.showShapesPopover) { _, show in if show { revealSettings("shapes") } }
         .onChange(of: engine.showEraserPopover) { _, show in if show { revealSettings("eraser") } }
-        .onChange(of: engine.toolbarPreferences) { _, _ in pageOffset=0;screenController?.toolbarPreferencesChanged() }
-        .onChange(of: availableLength) { _, _ in pageOffset=0 }
+        .onChange(of: engine.toolbarPreferences) { _, _ in pageOffset = 0; screenController?.toolbarPreferencesChanged() }
+        .onChange(of: availableLength) { _, _ in pageOffset = 0 }
         .onChange(of: showMorePopover) { _, show in if !show { requestedSettingsID = nil } }
     }
 
     private var labeledTools: some View {
         let shell = vertical ? AnyLayout(VStackLayout(spacing: 4)) : AnyLayout(HStackLayout(spacing: 6))
         return shell {
-            renderToolItem(id: "select")
-            VStack(spacing: 4) {
+            labeledToolTile(id: "select")
+            VStack(alignment: .leading, spacing: 4) {
                 pageSelector
-                // 頁容量解決一般窄視窗；更小的宿主仍可捲動中段，固定命令不被推出面板。
-                ScrollView(vertical ? .vertical : .horizontal) {
-                    pageTools.fixedSize(horizontal: !vertical, vertical: vertical)
-                }
-                .scrollIndicators(.automatic)
+                // 移除內部捲動拉桿（ScrollView），直接以單列平鋪顯示目前分頁工具。
+                pageTools
             }
-            .frame(width: vertical ? 116 : max(1, availableLength - 76),
-                   height: vertical ? max(1, availableLength - 72) : 86)
+            .frame(maxWidth: vertical ? 124 : nil, alignment: .leading)
             moreButton
-        }
-        .frame(width: vertical ? 116 : max(1, availableLength),
-               height: vertical ? max(1, availableLength) : 86)
-        .onChange(of: activePage) { _, _ in pageOffset = 0 }
-    }
-
-    private var pageTabsWidth: CGFloat {
-        let font = NSFont.systemFont(ofSize: 11)
-        return ToolbarContentPolicy.pageTitles.reduce(CGFloat(12)) { width, title in
-            width + (L10n.t(title) as NSString).size(withAttributes: [.font: font]).width + 20
         }
     }
 
     @ViewBuilder private var pageSelector: some View {
-        if vertical || pageTabsWidth > availableLength - 76 {
-            Picker(L10n.t("工具分頁"), selection: $activePage) {
+        let pageBinding = Binding<String>(
+            get: { activePage },
+            set: { setActivePage($0) }
+        )
+        if vertical {
+            Picker(L10n.t("工具分頁"), selection: pageBinding) {
                 ForEach(Array(ToolbarContentPolicy.pages.enumerated()), id: \.element) { index, id in
                     Text(L10n.t(ToolbarContentPolicy.pageTitles[index])).tag(id)
                 }
-            }.labelsHidden().frame(width: 116)
+            }.labelsHidden().frame(width: 120)
         } else {
             HStack(spacing: 4) {
                 ForEach(Array(ToolbarContentPolicy.pages.enumerated()), id: \.element) { index, id in
-                    Button(L10n.t(ToolbarContentPolicy.pageTitles[index])) { activePage = id }
-                        .buttonStyle(.plain).padding(.horizontal, 10).padding(.vertical, 3)
-                        .background(activePage == id ? Color.accentColor.opacity(0.16) : Color.clear, in: Capsule())
+                    let isSelected = activePage == id
+                    Button {
+                        setActivePage(id)
+                    } label: {
+                        Text(L10n.t(ToolbarContentPolicy.pageTitles[index]))
+                            .font(.system(size: 11, weight: isSelected ? .semibold : .regular))
+                            .foregroundStyle(isSelected ? Color.accentColor : Color.primary)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(isSelected ? Color.accentColor.opacity(0.18) : Color.primary.opacity(0.05), in: Capsule())
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
                 }
-            }.font(.system(size: 11)).fixedSize()
+            }
+            .fixedSize()
         }
     }
 
     private var pageTools: some View {
-        let row = vertical ? AnyLayout(VStackLayout(spacing: 2)) : AnyLayout(HStackLayout(spacing: 4))
+        let row = vertical
+            ? AnyLayout(VStackLayout(spacing: ToolbarContentPolicy.verticalTileSpacing))
+            : AnyLayout(HStackLayout(spacing: ToolbarContentPolicy.horizontalTileSpacing))
         return row {
-            Button { pageOffset = max(0, currentPageOffset - pageCapacity) } label: {
-                Image(systemName: vertical ? "chevron.up" : "chevron.left").frame(width: 18, height: 22)
-            }.disabled(currentPageOffset == 0).help(L10n.t("上一組工具"))
+            if needsPaging {
+                Button { pageOffset = max(0, currentPageOffset - pageCapacity) } label: {
+                    Image(systemName: vertical ? "chevron.up" : "chevron.left")
+                        .frame(width: 20, height: 26)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .disabled(currentPageOffset == 0)
+                .help(L10n.t("上一組工具"))
+            }
             ForEach(shownPageIDs, id: \.self) { id in
-                let tile = vertical ? AnyLayout(HStackLayout(spacing: 5)) : AnyLayout(VStackLayout(spacing: 2))
-                tile {
-                    renderToolItem(id: id)
-                    Text(L10n.t(toolTitle(id))).font(.system(size: 10)).lineLimit(2)
-                        .multilineTextAlignment(.center)
-                }.frame(width: vertical ? 116 : 72, height: vertical ? 48 : 58)
+                labeledToolTile(id: id)
             }
             if shownPageIDs.isEmpty {
-                Text(L10n.t("由自訂工具列加入常用工具")).font(.caption2).frame(width: 72)
+                Text(L10n.t("由自訂工具列加入常用工具"))
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .frame(width: vertical ? 120 : 140, height: vertical ? 44 : 58, alignment: .leading)
             }
-            Button { pageOffset = currentPageOffset + pageCapacity } label: {
-                Image(systemName: vertical ? "chevron.down" : "chevron.right").frame(width: 18, height: 22)
-            }.disabled(currentPageOffset + pageCapacity >= pageIDs.count).help(L10n.t("下一組工具"))
+            if needsPaging {
+                Button { pageOffset = currentPageOffset + pageCapacity } label: {
+                    Image(systemName: vertical ? "chevron.down" : "chevron.right")
+                        .frame(width: 20, height: 26)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .disabled(currentPageOffset + pageCapacity >= pageIDs.count)
+                .help(L10n.t("下一組工具"))
+            }
+        }
+    }
+
+    private func labeledToolTile(id: String) -> some View {
+        let tile = vertical ? AnyLayout(HStackLayout(spacing: 6)) : AnyLayout(VStackLayout(spacing: 2))
+        return tile {
+            renderToolItem(id: id)
+            Text(L10n.t(toolTitle(id)))
+                .font(.system(size: 10))
+                .lineLimit(2)
+                .multilineTextAlignment(vertical ? .leading : .center)
+                .allowsHitTesting(false)
+            if vertical { Spacer(minLength: 0) }
+        }
+        .padding(.horizontal, vertical ? 6 : 2)
+        .frame(
+            width: vertical ? 124 : (id == "select" ? 48 : ToolbarContentPolicy.horizontalTileWidth),
+            height: vertical ? ToolbarContentPolicy.verticalTileHeight : 58
+        )
+        .contentShape(Rectangle())
+        .onTapGesture {
+            triggerToolTileTap(id: id)
+        }
+    }
+
+    private func triggerToolTileTap(id: String) {
+        switch id {
+        case "magnet": engine.toggleMagnet()
+        case "select": selectTool(.select)
+        case "pen": selectTool(.pen)
+        case "curve": selectTool(.curve)
+        case "highlighter": selectTool(.highlighter)
+        case "paint": selectTool(.paint)
+        case "eraser":
+            if engine.currentTool != .eraser { selectTool(.eraser) }
+            engine.showEraserPopover = true
+        case "ruler":
+            screenController?.setDrawing(true)
+            engine.ruler.enabled.toggle()
+            engine.showTemporaryStatus(engine.ruler.enabled ? "已啟用螢幕尺" : "已關閉螢幕尺")
+        case "shapes":
+            screenController?.setDrawing(true)
+            engine.showShapesPopover.toggle()
+        case "sticky": selectTool(.sticky)
+        case "text": selectTool(.text)
+        case "laser":
+            if engine.currentTool == .laser {
+                showLaserSettings = true
+            } else {
+                selectTool(.laser)
+                engine.laserEngine.isEnabled = true
+            }
+        case "tape": selectTool(.tape)
+        case "lasso": selectTool(.lasso)
+        case "screenshot": captureScreenshot()
+        case "image": importImage()
+        case "color": engine.showColorPopover.toggle()
+        case "lineStyle": engine.activeLineStyle = (engine.activeLineStyle == "solid") ? "dashed" : "solid"
+        case "layers":
+            screenController?.setDrawing(true)
+            if screenController != nil { showMorePopover = false }
+            engine.toggleLayerPanel()
+        case "pins": engine.togglePinManager()
+        case "compass":
+            screenController?.setDrawing(true)
+            engine.toggleCompass()
+        case "calculator":
+            screenController?.setDrawing(true)
+            engine.toggleCalculator()
+        case "timer":
+            screenController?.setDrawing(true)
+            engine.toggleTimer()
+        case "viewLock": engine.toggleViewportLock()
+        case "undo": if engine.canUndo { engine.undo() }
+        case "redo": if engine.canRedo { engine.redo() }
+        case "clearAll": clearCanvas()
+        default: break
         }
     }
 
@@ -291,14 +445,10 @@ struct ToolbarToolsView: View {
         }
         .popover(isPresented: $showMorePopover, arrowEdge: settingsArrowEdge) {
             ScrollView {
-                VStack(alignment: .leading, spacing: 8) {
-                    // 隱藏、其他分頁及下一組工具都保留同一元件，讓設定永遠有真實錨點。
+                VStack(alignment: .leading, spacing: 6) {
+                    // 隱藏與其他分頁工具以單一輕量按鈕呈現，不在 Overflow 重複掛載 .popover，杜絕多重 NSHostingView 搶奪錨點崩潰。
                     ForEach(overflowIDs, id: \.self) { id in
-                        HStack(spacing: 12) {
-                            renderToolItem(id: id)
-                            Text(L10n.t(toolTitle(id))).font(.system(size: 13))
-                            Spacer()
-                        }
+                        overflowToolRow(id: id)
                     }
                     Divider()
                     Picker(L10n.t("工具列格式"), selection:Binding(get:{engine.toolbarPreferences.displayMode},set:{engine.toolbarPreferences.displayMode=$0;engine.saveToolbarPreferences()})) {
@@ -325,7 +475,7 @@ struct ToolbarToolsView: View {
                         Text(controller.message).font(.caption2).foregroundStyle(.secondary)
                     }
                 }.padding(12)
-            }.frame(width: 260).frame(maxHeight: 520)
+            }.frame(width: 260).frame(maxHeight: 480)
         }
         .popover(isPresented: Binding(get: { screenController != nil && engine.showLayerPanel },
                                       set: { if screenController != nil { engine.showLayerPanel = $0 } }),
@@ -336,6 +486,72 @@ struct ToolbarToolsView: View {
         .popover(isPresented: $showCustomizeSheet, arrowEdge: settingsArrowEdge) {
             ToolbarCustomizeSheet(engine: engine, isPresented: $showCustomizeSheet,
                                   screenContext: screenController != nil)
+        }
+    }
+
+    @ViewBuilder
+    private func overflowToolRow(id: String) -> some View {
+        if id == "dock" {
+            Menu {
+                Button(L10n.t("靠左 · 直向")) { showMorePopover = false; dock("left") }
+                Button(L10n.t("靠右 · 直向")) { showMorePopover = false; dock("right") }
+                Button(L10n.t("靠上 · 橫向")) { showMorePopover = false; dock("top") }
+                Button(L10n.t("靠下 · 橫向")) { showMorePopover = false; dock("bottom") }
+            } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: "rectangle.3.group").frame(width: 24, height: 24)
+                    Text(L10n.t(toolTitle(id))).font(.system(size: 13))
+                    Spacer()
+                }
+            }
+            .buttonStyle(.plain)
+        } else if id == "undoRedo" {
+            HStack(spacing: 10) {
+                undoButton
+                redoButton
+                Text(L10n.t(toolTitle(id))).font(.system(size: 13))
+                Spacer()
+            }
+        } else {
+            let def = ToolbarPreferences.allDefinitions.first { $0.id == id }
+            Button {
+                showMorePopover = false
+                DispatchQueue.main.async {
+                    if ["color", "shapes", "eraser", "laser", "ruler"].contains(id), usesLabels {
+                        let targetPage = ToolbarContentPolicy.page(for: id)
+                        if ToolbarContentPolicy.pages.contains(targetPage) {
+                            if let externalActivePage {
+                                externalActivePage.wrappedValue = targetPage
+                            } else {
+                                internalActivePage = targetPage
+                            }
+                        }
+                    }
+                    triggerToolTileTap(id: id)
+                }
+            } label: {
+                HStack(spacing: 10) {
+                    Group {
+                        if id == "magnet" { HeiBanMagnetIcon() }
+                        else if id == "compass" { HeiBanCompassIcon() }
+                        else if id == "pins" { HeiBanPinIcon().frame(width: 16, height: 16) }
+                        else if id == "color" {
+                            Circle()
+                                .fill(Color(hex: laser.isEnabled ? laser.color : (engine.selectedStrokeColor.valueOrNil ?? engine.activeColor)))
+                                .frame(width: 18, height: 18)
+                                .overlay(Circle().stroke(.secondary, lineWidth: 1))
+                        } else {
+                            Image(systemName: def?.icon ?? "circle")
+                        }
+                    }
+                    .frame(width: 24, height: 24)
+                    Text(L10n.t(toolTitle(id))).font(.system(size: 13))
+                    Spacer()
+                }
+                .padding(.vertical, 2)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
         }
     }
 
@@ -796,6 +1012,7 @@ struct ToolButton: View {
                 .foregroundColor(isSelected ? Color.accentColor : Color.primary)
                 .frame(width: 32, height: 32)
                 .background(isSelected ? Color.accentColor.opacity(0.22) : Color.clear, in: RoundedRectangle(cornerRadius: 6))
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .help(L10n.t(tooltip))

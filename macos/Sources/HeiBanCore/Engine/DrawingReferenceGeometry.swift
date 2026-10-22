@@ -194,7 +194,7 @@ extension BoardEngine {
     }
     public func updateMagnetHover(at point: Point?) {
         guard let point, !readingMode, MagnetSnapIndex.supportsConstructionTool(currentTool) else {
-            drawingAssist.target = nil
+            if drawingAssist.target != nil { drawingAssist.target = nil }
             return
         }
         _ = snapDrawingScreenPoint(point)

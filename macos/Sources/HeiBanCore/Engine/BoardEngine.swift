@@ -613,9 +613,15 @@ public class BoardEngine: ObservableObject {
             // Keep the current orientation when undocking, avoiding a jump at release.
             toolbarFloatingVertical = isToolbarVertical
             let clamped = clampPanelCenter(center, panelSize: panelSize, windowSize: windowSize, margin: 8)
+            let leftOrTopEdge = isToolbarVertical
+                ? CGPoint(x: clamped.x, y: clamped.y - panelSize.height / 2)
+                : CGPoint(x: clamped.x - panelSize.width / 2, y: clamped.y)
+            let baseOrigin = isToolbarVertical
+                ? CGPoint(x: windowSize.width / 2, y: 76.0)
+                : CGPoint(x: 16.0, y: windowSize.height - 48.0)
             toolbarOffset = CGSize(
-                width: clamped.x - windowSize.width / 2,
-                height: clamped.y - (windowSize.height - 48))
+                width: leftOrTopEdge.x - baseOrigin.x,
+                height: leftOrTopEdge.y - baseOrigin.y)
             toolbarDock = "floating"
             persistToolbarPlacement()
         }
@@ -631,27 +637,37 @@ public class BoardEngine: ObservableObject {
     public func toolbarPosition(in windowSize: CGSize, panelSize: CGSize? = nil, topClearance: CGFloat = 64) -> CGPoint {
         let size =
             panelSize ?? toolbarLayoutSize
-            ?? CGSize(width: isToolbarVertical ? 64 : 420, height: isToolbarVertical ? 420 : 64)
-        let base: CGPoint
+            ?? CGSize(width: isToolbarVertical ? 68 : 420, height: isToolbarVertical ? 420 : 64)
+        // 以左邊緣（橫排）或頂邊緣（直排）為固定參考錨點，切換不同長度分頁時分頁標籤與選取按鈕位置絕對不跳動。
+        let posX: CGFloat
+        let posY: CGFloat
         switch toolbarDock {
         case "left":
-            base = CGPoint(x: size.width / 2 + 12, y: (windowSize.height + 56) / 2)
+            posX = size.width / 2 + 12 + toolbarOffset.width
+            posY = max(76.0, topClearance) + size.height / 2 + toolbarOffset.height
         case "right":
-            base = CGPoint(x: windowSize.width - size.width / 2 - 12, y: (windowSize.height + 56) / 2)
+            posX = windowSize.width - size.width / 2 - 12 + toolbarOffset.width
+            posY = max(76.0, topClearance) + size.height / 2 + toolbarOffset.height
         case "top":
-            base = CGPoint(x: windowSize.width / 2, y: topClearance + size.height / 2)
+            posX = 16.0 + size.width / 2 + toolbarOffset.width
+            posY = topClearance + size.height / 2 + toolbarOffset.height
         case "bottom":
-            base = CGPoint(x: windowSize.width / 2, y: windowSize.height - 48.0)
+            posX = 16.0 + size.width / 2 + toolbarOffset.width
+            posY = windowSize.height - size.height / 2 - 16.0 + toolbarOffset.height
         default:  // floating
-            base = CGPoint(x: windowSize.width / 2, y: windowSize.height - 48.0)
+            if isToolbarVertical {
+                posX = windowSize.width / 2 + toolbarOffset.width
+                posY = 76.0 + size.height / 2 + toolbarOffset.height
+            } else {
+                posX = 16.0 + size.width / 2 + toolbarOffset.width
+                posY = windowSize.height - 48.0 + toolbarOffset.height
+            }
         }
-        let posX = base.x + toolbarOffset.width
-        let posY = base.y + toolbarOffset.height
         return clampPanelCenter(
             CGPoint(x: posX, y: posY),
             panelSize: size,
             windowSize: windowSize,
-            margin: 4.0)
+            margin: 8.0)
     }
 
     public func clampPanelCenter(
@@ -670,9 +686,15 @@ public class BoardEngine: ObservableObject {
 
     public func repositionPanelsIfNeeded(windowSize: CGSize) {
         if toolbarDock == "floating" {
-            let clamped = toolbarPosition(in: windowSize)
-            let base = CGPoint(x: windowSize.width / 2, y: windowSize.height - 48.0)
-            toolbarOffset = CGSize(width: clamped.x - base.x, height: clamped.y - base.y)
+            let size = toolbarLayoutSize ?? CGSize(width: isToolbarVertical ? 68 : 420, height: isToolbarVertical ? 420 : 64)
+            let clamped = toolbarPosition(in: windowSize, panelSize: size)
+            if isToolbarVertical {
+                let topEdge = clamped.y - size.height / 2
+                toolbarOffset = CGSize(width: clamped.x - windowSize.width / 2, height: topEdge - 76.0)
+            } else {
+                let leftEdge = clamped.x - size.width / 2
+                toolbarOffset = CGSize(width: leftEdge - 16.0, height: clamped.y - (windowSize.height - 48.0))
+            }
         }
     }
 

@@ -191,9 +191,11 @@ struct NativePointerSurface: NSViewRepresentable {
                 engine.updateHoverCursor(at: nil, diameter: nil)
                 return
             }
-            // Keep the pointer independently of tool selection; the overlay derives
-            // its size live when the tool, slider or viewport changes.
-            engine.updateHoverCursor(at: Point(point(event)), diameter: engine.toolCursorDiameter)
+            guard let diameter = engine.toolCursorDiameter, diameter > 0 else {
+                engine.updateHoverCursor(at: nil, diameter: nil)
+                return
+            }
+            engine.updateHoverCursor(at: Point(point(event)), diameter: diameter)
         }
 
         @objc private func deleteFromContext(_ sender: Any?) { engine.deleteSelected() }

@@ -8,7 +8,8 @@
 - **自由手繪排除磁鐵吸附與連續繪圖流暢度**：`MagnetSnapIndex.supportsConstructionTool` 限定幾何工具與曲線筆（排除 `pen`、`highlighter`、`paint`），自由手繪跨越既有筆跡不再被磁鐵拉扯出凹凸折角；圓規未鎖定時圓心支援磁鐵吸附。自由手繪、停筆轉形與曲線筆完成後不自動顯示選取框，曲線筆完成後保持在曲線工具可連續繪製。
 - **板擦 80% 長軸幾何、圓形橡皮擦 5pt 補間與九宮格圖形選單**：原創磁吸板擦長軸縮短至 80%（`BoardEraserGeometry.lengthScale = 0.8`），貼圖與 12 點凸多邊形輪廓共用中心仿射變換；圓形橡皮擦支援 5pt 連續路徑補間與 AABB 快速過濾，局部切割保留 `brushKind`、`textureSeed` 與 `extraFields`。一般與螢幕畫布共用 3×3 九宮格描邊圖形選單與自動填滿開關。
 - **十語單頁無邊界操作指南與專案健康度清零**：內建 10 語 `QuickStart-*.heiban`（25 章節圖釘與可操作練習物件），首次啟動自動建立一次（記錄 `quickstart-v2.json` marker，刪除不重生），並可從首頁「使用說明 → 操作說明 · 全工具指南」開啟。消除 `CanvasObjectsView` 的 `NSParagraphStyle` Sendable 警告與測試套件變數警告。
-- **先靶後箭與封裝證據**：`swift run --package-path macos HeiBanTestRunner` 新增 `[測試 51]`，累計 **1,858 / 1,858 項斷言 100% 通過（0 失敗）**；`check_localization.py` 407 項 UI 字串於 10 語詞庫全數對齊；`macos/dist/HeiBan.app`（`1.0.16` / `20261022.1`）Release 封裝與 `codesign --verify --deep --strict` 嚴格簽章通過。詳見[當日日誌](logs/2026-10-22/01.zh-TW.md)。
+- **工具列自適應平鋪、固定左緣錨點與防閃退加固**：移除圖文工具列內部捲動拉桿（`ScrollView`），依各分頁工具數自動緊湊貼合寬度（常用分頁無右側留白、繪圖分頁 12 項工具完整單列平鋪）；橫排固定左緣錨點（`x = 16.0`）且分頁標籤靠左對齊，切換分頁時位置不跳動；開放整塊圖文磚點擊熱區並消除非畫筆工具懸停廣播；修復 `_NSPopoverWindow` 多重錨點與動態預覽尺寸引發的約束循環閃退。
+- **先靶後箭與封裝證據**：`swift run --package-path macos HeiBanTestRunner` 新增 `[測試 51]`，累計 **1,862 / 1,862 項斷言 100% 通過（0 失敗）**；`check_localization.py` 407 項 UI 字串於 10 語詞庫全數對齊；`macos/dist/HeiBan.app`（`1.0.16` / `20261022.1`）Release 封裝與 `codesign --verify --deep --strict` 嚴格簽章通過。詳見[當日日誌](logs/2026-10-22/01.zh-TW.md)。
 
 
 ## 2026-10-17 — 1.0.15 同版修整
