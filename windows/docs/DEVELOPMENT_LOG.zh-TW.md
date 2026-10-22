@@ -1,6 +1,6 @@
 # Windows 開發日誌
 
-## 2026-10-22 — 常用清除、圖示與圓形橡皮擦（製作中）
+## 2026-10-22 — 常用清除、圖示與圓形橡皮擦（x64試用完成，待實機）
 
 本批查三條獨立路徑：清除本頁未列DefaultCommonTools；screen shapes用填色PathIcon而main用描邊UIElement；圓擦除仍在每次move同步全掃／局部切割及重畫。共用圖形工廠、常用migration及CircularEraserGesture，worker沿用BoardEraserWork圓形模式；核心倒序遍歷、owned fragment、cut span／純數值中點；新切點保留未知欄位與tilt。實作與未驗收見日誌。 [本批日誌](ERASER_TOOLBAR_ALIGNMENT_2026-10-22.zh-TW.md)。
 

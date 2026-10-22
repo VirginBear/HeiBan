@@ -1,6 +1,6 @@
 # Windows 開發決策
 
-## 2026-10-22 — 常用清除、圖示與圓形橡皮擦（製作中）
+## 2026-10-22 — 常用清除、圖示與圓形橡皮擦（x64試用完成，待實機）
 
 兩種圓形橡皮擦共用CircularEraserGesture處理批次／preview／完成，UIhost僅負責座標、timer與一筆Undo；沿用板擦worker，避免重新建立一套幾何擦除引擎。主資料只在釋放且flush後變更，generation／epoch不符拒收；取消丟棄preview。維持現有圓形範圍與partial/whole模式，未知物件／sample欄位保存，無文件schema遷移。常用追加一次即可，之後使用者移除仍尊重。 [本批日誌](ERASER_TOOLBAR_ALIGNMENT_2026-10-22.zh-TW.md)。
 

@@ -17,3 +17,14 @@
 - 十語workspace／eraser章同步清除常用、共用圖形選單及擦除完成／取消規則。Build-UserGuides.py完成10語、25章64段／語；不覆寫使用者已編輯的v2操作指南作品。新scope沿用EraserMove／EraserApply／EraserCommit，不產生假性能數字。
 - screen背景物件更新仍需重畫完成圖層並CPU回讀；本批先移除高頻輸入中的同步幾何工作，未宣稱全面消除大型場景／多螢幕成本。
 - 初次多檔apply_patch因Dispose所在行比預期長而整批拒絕，沒有部分套用；拆開後完成。rg初次literal MainWindow*.cs路徑失敗，改用實際目錄加-g。這些是工具匹配問題，不是App實測結果。
+
+## 最終交付
+- `Package-PortableTrial.ps1 -Runtime win-x64 -Label eraser-toolbar-2026-10-22-r1`完成App／Updater最終publish及ZIP，來源7848fbd23c453a14bc18683249217c8d929295cf；ZIP132870905bytes／SHA256 `6ca95bff81af5075a04d25fb5739f3e017425b23f64ade876570bc4990bdb07e`。中途build時間不套用為最終性能數字。
+- `eraser-toolbar-inspect.py`核ZIP CRC、585payload／183source SHA、PE x64、10語25章29工具無邊界練習、ICO14frames、採樣launcher BOM；ZIP不含使用者Data。功能標記為來源組成描述，不代表已執行實作測試。
+- 新舊App都未執行時，`eraser-toolbar-handoff.ps1`接續52檔／24767448bytes，SHA全同。`Clear-ObsoleteTrials.ps1 -KeepTrial HeiBan-Windows-Portable-1.0.15-eraser-toolbar-2026-10-22-r1-win-x64`先保留Data／未知檔24767448bytes至dist/trial-data-backups/20261022-133010-947dcda4，清舊未發布runtime／ZIP釋放456902957bytes。Store1.0.15.0雜湊仍a889482ff3aa171569ce415fc285340b26742528af4306a3e0a0e3d6fa07eb96，已發布歷史保留。
+- 仍1.0.15，不自行進版或Store／Release提交。公開與私人交接分別同步；原YouTube未提交內容保留。
+
+## 未驗收及後續實機
+- 未執行App、自動／實作測試、新性能採樣、GPU trace、DPI／多螢幕與Undo回歸；沒有本批改善比例或延遲上限證據。保留手動Capture-InputLatency.cmd以讀真實資料。
+- 使用者需確認常用清除出現、移除後重新啟動不再強加；兩畫布9圖形格狀描邊及screen填滿入口；圓擦除物件／局部模式、快拖連續路徑、放開最後一段、Undo／Redo、Esc／capture lost、放開後立刻切工具／儲存／關閉、旋轉筆跡與跨頁／未知欄位。
+- 背景snapshot、完成時Undo快照及完整scene重建仍有成本；screen有CPU GetPixelBytes回讀。其他編輯改變generation／epoch時晚到結果會被拒收，未宣稱所有快速交錯操作都已實機驗收。
