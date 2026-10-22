@@ -167,6 +167,7 @@ internal sealed partial class ScreenAnnotationWindow
     }
     private void ChooseScreenTool(string key)
     {
+        using var trace=global::HeiBan.Windows.Diagnostics.InputLatencyTrace.Measure(global::HeiBan.Windows.Diagnostics.InputStage.ToolSwitch);
         _chromeFlyout?.Hide();FinishScreenText();if(key==_tool&&key=="laser"){_ = LaserSettingsAsync();return;}if(key==_tool&&key=="eraser"){ShowEraserSettings();return;}
         var selectionVisuals=(_tool=="select"||key=="select")&&_session.SelectedIds.Count>0;
         if(selectionVisuals)DamageSelectedObjects();CancelGesture();_tool=key;if(!_drawing)SetDrawing(true);else if(selectionVisuals)_dirty=true;RefreshButtons();

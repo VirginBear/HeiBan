@@ -183,6 +183,15 @@ public sealed class BoardObject
     [JsonIgnore] public double PreviewOffsetY { get=>_previewOffsetY; internal set=>SetBoundsValue(ref _previewOffsetY,value); }
     private string? _points;
     private List<InkPoint>? _parsedPoints;
+    public void SetCompletedInkPoints(IReadOnlyList<InkPoint> points)
+    {
+        // Own a copy before the pointer collector clears/reuses its list. Keep
+        // the serialized contract and render cache together, avoiding an
+        // immediate JSON parse of the points we have just collected.
+        var owned=points.Select(point=>point.Snapshot()).ToList();
+        var encoded=JsonSerializer.Serialize(owned,Engine.DocumentCodec.Options);
+        Points=encoded;_parsedPoints=owned;
+    }
     [JsonIgnore]
     public IReadOnlyList<InkPoint> ParsedPoints => _parsedPoints ??= string.IsNullOrWhiteSpace(Points)
         ? [] : JsonSerializer.Deserialize<List<InkPoint>>(Points) ?? [];

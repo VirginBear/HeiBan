@@ -1,5 +1,9 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-22 — 畫筆與工具切換停頓追查（待實機採樣）
+
+Direct2DCanvasRenderer.WetInk：單一viewport尺寸GPU raster依document操作reset／DPI／viewport／色寬key重用，穩定cubic64段追加、末段預覽；alpha只合成一次，opaque略過layer，虛線維持舊path。GPU資源只在resize／device change／ClearCache／Dispose時換；pin CanvasTextLayout cache最多256項。MagnetSnapIndex.Add只供已提交append，hosts匹配generation／epoch／page／zoom，其他操作full rebuild。InputLatencyTrace預設關閉、固定ring且不記內容。 [本批日誌](INK_LATENCY_2026-10-22.zh-TW.md)。
+
 ## 2026-10-22 — 常用工具與完整無邊界指南（x64試用完成，待實機）
 
 ToolbarPreferences.DefaultPresentationRevision與工具顯隱revision分開：新建／reset採labels與DefaultCommonTools，僅舊原始常用配置遷移；主／螢幕偏好回傳包含revision。生成器對照runtime AllDefaultTools與分章映射，完整手冊轉text物件與可編輯幾何，不讀使用者資料；Board CanvasMode／CanvasPreset=infinite、單page、25個世界座標圖釘。 [本批日誌](TOOLBAR_GUIDE_2026-10-22.zh-TW.md)。

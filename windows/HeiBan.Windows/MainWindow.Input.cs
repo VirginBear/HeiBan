@@ -3,6 +3,7 @@ using System.IO;
 using System.Numerics;
 using System.Text.Json;
 using HeiBan.Windows.Engine;
+using HeiBan.Windows.Diagnostics;
 using HeiBan.Windows.Models;
 using HeiBan.Windows.Views;
 using Microsoft.Graphics.Canvas;
@@ -52,6 +53,7 @@ public partial class MainWindow
     {ClearScene();_renderer.ClearCache();e.TrackAsyncAction(_renderer.LoadImagesAsync(sender,_session.Document.Objects).AsAsyncAction());}
     private void CanvasSurface_Draw(CanvasControl sender,CanvasDrawEventArgs e)
     {
+        using var trace=InputLatencyTrace.Measure(InputStage.CanvasDraw);
         var ds=e.DrawingSession;var w=(float)sender.ActualWidth;var h=(float)sender.ActualHeight;
         RenderMainScene(sender,ds,w,h);
         var board=_session.Document.Board;
@@ -59,7 +61,7 @@ public partial class MainWindow
         using(var layer=ds.CreateLayer(1,clip))
         {
             if(_preview is not null)_renderer.RenderPreview(ds,_preview,_viewport,w,h);
-            if(_ink.IsDrawing)_renderer.RenderLiveStroke(ds,_ink.ActiveStrokePoints,_viewport,_strokeColor,EffectiveWidth,_opacity,CurrentStyle.Dash);
+            if(_ink.IsDrawing)_renderer.RenderWetInk(ds,_ink.ActiveStrokePoints,_viewport,_strokeColor,EffectiveWidth,_opacity,CurrentStyle.Dash,new Size(w,h));
             if(_polygon.Count>0)
             {
                 var cursor=SnapDrawingPoint(_viewport.ScreenToWorld(_mouse.X,_mouse.Y));
@@ -75,9 +77,8 @@ public partial class MainWindow
         foreach(var pin in board.Pins??[])
         {
             var p=_viewport.WorldToScreen(pin.X,pin.Y);
-            Direct2DCanvasRenderer.DrawPin(ds,new((float)p.X,(float)p.Y),.9f,pin.Color);
-            using var format=new Microsoft.Graphics.Canvas.Text.CanvasTextFormat{FontSize=14};
-            ds.DrawText(pin.Name,(float)p.X+16,(float)p.Y,Direct2DCanvasRenderer.HexToColor(pin.TextColor??"#397056"),format);
+            if(p.Y < -64||p.Y > h+32||p.X>w+32)continue;
+            _renderer.RenderPinLabel(ds,pin,new((float)p.X,(float)p.Y));
         }
         if(_boardEraserDraft is not null)
         {var contact=BoardEraserContact(_boardEraserLast);for(var i=0;i<contact.Length;i++){var a=contact[i];var b=contact[(i+1)%contact.Length];ds.DrawLine((float)a.X,(float)a.Y,(float)b.X,(float)b.Y,Direct2DCanvasRenderer.HexToColor("#39735A"),2);}}
@@ -89,6 +90,7 @@ public partial class MainWindow
     private double EffectiveWidth=>_strokeWidth;
     private void CanvasSurface_PointerPressed(object sender,PointerRoutedEventArgs e)
     {
+        using var trace=InputLatencyTrace.Measure(InputStage.PointerDown);
         FinishPinRename();
         if(_editor is not null)FinishText();
         FocusCanvasSurface();
@@ -200,6 +202,7 @@ public partial class MainWindow
     }
     private void CanvasSurface_PointerMoved(object sender,PointerRoutedEventArgs e)
     {
+        using var trace=InputLatencyTrace.Measure(InputStage.PointerMove);
         var p=e.GetCurrentPoint(CanvasSurface);_mouse=new((float)p.Position.X,(float)p.Position.Y);_hover=true;
         UpdateShapeCursor();
         if(!_gesture&&IsDrawingTool(_tool)){EnsureMagnetIndex();SnapDrawingPoint(_viewport.ScreenToWorld(_mouse.X,_mouse.Y));InvalidateCanvas(false);}
@@ -294,6 +297,7 @@ public partial class MainWindow
     private void Erase(InkPoint p)=>_session.Erase(p,EraserSizeSlider.Value/2,EraserModeBox.SelectedIndex==0);
     private void CanvasSurface_PointerReleased(object sender,PointerRoutedEventArgs e)
     {
+        using var trace=InputLatencyTrace.Measure(InputStage.InkCommit);
         HideHUD();
         if(!_gesture||e.Pointer.PointerId!=_pointerId)return;
         if(_tool=="laser"){_laser.EndTrail();ResetGesture();CanvasSurface.ReleasePointerCaptures();return;}
@@ -349,10 +353,11 @@ public partial class MainWindow
             if(points.Count>0)
             {
                 var box=VectorMath.ComputeBoundingBox(points,EffectiveWidth);
-                var o=Styled(new BoardObject{Type=_tool=="pen"?"stroke":_tool,X=box.MinX,Y=box.MinY,Width=box.Width,Height=box.Height,Points=JsonSerializer.Serialize(points,DocumentCodec.Options)});
+                var o=Styled(new BoardObject{Type=_tool=="pen"?"stroke":_tool,X=box.MinX,Y=box.MinY,Width=box.Width,Height=box.Height});
+                o.SetCompletedInkPoints(points);
                 if(_tool=="pen"&&_ink.IsStraight&&points.Count==2){o.Type="line";o.Points=null;ObjectHandles.SetEndpoints(o,points[0],points[1]);}
                 var previousGeneration=_session.Generation;
-                _session.AppendInk(o);QueueInkScene(o,previousGeneration);
+                _session.AppendInk(o);AppendInkMagnetReferences(o,previousGeneration);QueueInkScene(o,previousGeneration);
             }
             ResetGesture();CanvasSurface.ReleasePointerCaptures();RefreshAfterInk();e.Handled=true;return;
         }

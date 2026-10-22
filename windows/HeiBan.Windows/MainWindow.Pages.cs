@@ -53,12 +53,33 @@ public partial class MainWindow
     }
     private void NavigationLock_Click(object sender,RoutedEventArgs e)
     {_viewLocked=!_viewLocked;StatusText.Text=_viewLocked?T("視角已鎖定"):T("視角已解鎖");RefreshNavigationChrome();}
+    private bool? _navigationLockState,_navigationReadingState;
+    private string? _navigationLanguage;
+    private Button? _navigationUpperLock;
     private void RefreshNavigationChrome()
     {
-        NavigationLockButton.Content=Views.ToolIcons.Create(_viewLocked?"lock":"unlock");NavigationReadingButton.Content=Views.ToolIcons.Create(_readingMode?"pen":"reading");
-        if(_toolButtons.TryGetValue("viewLock",out var upper)){upper.Content=Views.ToolIcons.Create(_viewLocked?"lock":"unlock");upper.Background=Brush(_viewLocked?"#DCEBDD":"transparent");ToolTipService.SetToolTip(upper,_viewLocked?T("解除視角鎖定"):T("鎖定視角：避免平移與縮放"));}
-        NavigationLockButton.Background=_viewLocked?Brush("#DCEBDD"):Brush("transparent");
-        ToolTipService.SetToolTip(NavigationLockButton,_viewLocked?T("解除視角鎖定"):T("鎖定視角：避免平移與縮放"));ToolTipService.SetToolTip(NavigationReadingButton,_readingMode?T("回到編輯模式"):T("閱讀模式：拖曳移動畫布"));
+        var language=Localization.Strings.Language;var translated=_navigationLanguage!=language;
+        var locking=_navigationLockState!=_viewLocked;
+        if(locking||translated)
+        {
+            NavigationLockButton.Content=Views.ToolIcons.Create(_viewLocked?"lock":"unlock");
+            NavigationLockButton.Background=Brush(_viewLocked?"#DCEBDD":"transparent");
+            ToolTipService.SetToolTip(NavigationLockButton,_viewLocked?T("解除視角鎖定"):T("鎖定視角：避免平移與縮放"));
+        }
+        if(_navigationReadingState!=_readingMode||translated)
+        {
+            NavigationReadingButton.Content=Views.ToolIcons.Create(_readingMode?"pen":"reading");
+            ToolTipService.SetToolTip(NavigationReadingButton,_readingMode?T("回到編輯模式"):T("閱讀模式：拖曳移動畫布"));
+        }
+        _toolButtons.TryGetValue("viewLock",out var upper);
+        if(upper is not null&&(locking||translated||!ReferenceEquals(upper,_navigationUpperLock)))
+        {
+            // Updating an icon must retain its text wrapper in labeled mode.
+            Views.ToolbarUi.ReplaceIcon(upper,Views.ToolIcons.Create(_viewLocked?"lock":"unlock"));
+            upper.Background=Brush(_viewLocked?"#DCEBDD":"#FCFCFA");
+            ToolTipService.SetToolTip(upper,_viewLocked?T("解除視角鎖定"):T("鎖定視角：避免平移與縮放"));
+        }
+        _navigationLockState=_viewLocked;_navigationReadingState=_readingMode;_navigationLanguage=language;_navigationUpperLock=upper;
     }
 
 }

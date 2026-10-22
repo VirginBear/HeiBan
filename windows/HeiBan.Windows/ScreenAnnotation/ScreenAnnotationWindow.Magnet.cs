@@ -7,6 +7,13 @@ internal sealed partial class ScreenAnnotationWindow
     private long _screenMagnetGeneration=-1,_screenMagnetEpoch=-1;
     private HeiBan.Windows.Models.InkPoint? _screenMagnetTarget;
     private global::Windows.Foundation.Rect? _lastMagnetDamage;
+    private void AppendScreenInk(HeiBan.Windows.Models.BoardObject item)
+    {
+        var before=_session.Generation;_session.AppendInk(item);
+        if(_screenMagnetIndex is not null&&_toolbarPreferences.MagnetEnabled&&_screenMagnetGeneration==before&&
+            _screenMagnetEpoch==_session.DocumentEpoch&&_screenMagnetScale==_dpiScale)
+        {_screenMagnetIndex.Add(item);_screenMagnetGeneration=_session.Generation;}
+    }
     private void EnsureScreenMagnetIndex()
     {
         if(!_toolbarPreferences.MagnetEnabled){_screenMagnetIndex=null;return;}

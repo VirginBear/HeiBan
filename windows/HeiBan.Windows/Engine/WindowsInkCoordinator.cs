@@ -34,7 +34,15 @@ public sealed class WindowsInkCoordinator
     public void ProcessPointerUpdate(IEnumerable<PointerPoint> points, ViewportTransform viewport)
     {
         if (!IsDrawing) return;
-        // WinUI intermediate points are newest first. Sorting by timestamp avoids backwards folds.
+        // WinUI batches normally arrive newest first. Walk a monotonic batch
+        // backwards without LINQ sorting/temporary arrays on every pointer event.
+        if(points is IList<PointerPoint> batch)
+        {
+            var descending=true;
+            for(var i=1;i<batch.Count;i++)if(batch[i].Timestamp>batch[i-1].Timestamp){descending=false;break;}
+            if(descending){for(var i=batch.Count-1;i>=0;i--)if(batch[i].PointerId==_pointer)Append(batch[i],viewport);return;}
+        }
+        // Preserve all samples if an input provider uses a different ordering.
         foreach (var p in points.OrderBy(p => p.Timestamp)) if (p.PointerId == _pointer) Append(p, viewport);
     }
     private void Append(PointerPoint p, ViewportTransform viewport)

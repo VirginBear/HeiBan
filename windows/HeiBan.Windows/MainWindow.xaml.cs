@@ -73,7 +73,7 @@ public partial class MainWindow : Window
         App.StartupStage="載入主視窗 XAML";
         InitializeComponent();
         Root.Loaded+=(_,_)=>{if(VisualTreeHelper.GetParent(Root) is UIElement rootHost){rootHost.KeyDown-=Root_KeyDown;rootHost.KeyDown+=Root_KeyDown;}};
-        InitializeLibraryChrome();BuildChrome();InitializeTeachingTools();InitializeDeferredWork();
+        InitializeLibraryChrome();BuildChrome();InitializeTeachingTools();InitializeDeferredWork();InitializeInputLatencyTrace();
         ApplyLanguageChrome();
         App.StartupStage="設定主視窗";
         ExtendsContentIntoTitleBar=true;SetTitleBar(AppTitleBar);SystemBackdrop=null;
@@ -105,12 +105,15 @@ public partial class MainWindow : Window
                 await FlushPendingThumbnailAsync();
                 if(_workspaceOpen&&_session.IsDirty)return;
                 if(_updates is not null)await _updates.PrepareExitAsync();
+                _inputLatencyHeartbeat?.Stop();
+                try{await Diagnostics.InputLatencyTrace.SaveAsync();}
+                catch(Exception error){System.Diagnostics.Debug.WriteLine("Input latency report: "+error.Message);}
                 _closing=true;Close();
             }
             catch(Exception error){await Error(error);}
             finally{if(!_closing){ShowSavingOverlay(false);_preparingClose=false;ApplySavingPreferences();}}
         };
-        Closed+=(_,_)=>{_layerPreview?.End();CanvasCursorHost.ReleaseCursor();_shapeCursor.Dispose();_updates?.Dispose();_autosave.Stop();_thumbnailTimer.Stop();_inkUiTimer.Stop();_searchTimer.Stop();_teachingSaveTimer.Stop();CancelScreenshotCapture("視窗關閉");_timerTickTimer?.Stop();_laserTimer.Stop();_propertyCommitTimer.Stop();_headerHideTimer.Stop();ClearScene();CanvasSurface.RemoveFromVisualTree();_renderer.Dispose();_screenAnnotation?.Dispose();};
+        Closed+=(_,_)=>{_inputLatencyHeartbeat?.Stop();_layerPreview?.End();CanvasCursorHost.ReleaseCursor();_shapeCursor.Dispose();_updates?.Dispose();_autosave.Stop();_thumbnailTimer.Stop();_inkUiTimer.Stop();_searchTimer.Stop();_teachingSaveTimer.Stop();CancelScreenshotCapture("視窗關閉");_timerTickTimer?.Stop();_laserTimer.Stop();_propertyCommitTimer.Stop();_headerHideTimer.Stop();ClearScene();CanvasSurface.RemoveFromVisualTree();_renderer.Dispose();_screenAnnotation?.Dispose();};
         App.StartupStage="顯示首頁";
         try { EnsureScreenAnnotation(); } catch(Exception e) { StatusText.Text=T("螢幕畫布初始化失敗：")+e.Message; }
     }

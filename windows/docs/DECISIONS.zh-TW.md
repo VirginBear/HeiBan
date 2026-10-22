@@ -1,5 +1,9 @@
 # Windows 開發決策
 
+## 2026-10-22 — 畫筆與工具切換停頓追查（待實機採樣）
+
+不把UWP InkCanvas／InkPresenter直接當WinUI3替換件。本批先消除已確認的hot-path重複工作與提供手動本機採樣；若數據仍指CanvasControl排程或screen readback，再規劃CanvasSwapChainPanel／HWND合成，不在未量測時整套更換渲染引擎。文件JSON格式不改；新筆SetCompletedInkPoints持有深拷貝點列與相同serialized points，snapshot未知欄位保留。 [本批日誌](INK_LATENCY_2026-10-22.zh-TW.md)。
+
 ## 2026-10-22 — 常用工具與完整無邊界指南（x64試用完成，待實機）
 
 操作指南v2另用heiban-windows-quickstart-v2與quickstart-v2.json，保護前批v1可能已編輯的作品；刪除後marker保留而不重建。沿用文件既有infinite／page／pins欄位，無schema遷移，未知欄位仍由原codec保留。截圖非必要，本批採完整文字與原生可操作範例，未新增App截圖。 [本批日誌](TOOLBAR_GUIDE_2026-10-22.zh-TW.md)。

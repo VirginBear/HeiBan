@@ -1,5 +1,9 @@
 # Windows 開發日誌
 
+## 2026-10-22 — 畫筆與工具切換停頓追查（待實機採樣）
+
+前批全開指南後使用者實測仍卡，補充拖著畫線也卡。依Microsoft Direct2D／Win2D官方資料比對：自有UI指標收集器非InkPresenter，XAML UI與繪圖同執行緒。找出預覽整筆幾何重送、圖釘每幀文字建銷、磁鐵每筆全量重建、Points序列化立刻反解析及導覽圖示重建等可確認成本；逐項減少並附可選數值採樣，未以建置代替實際性能證據。 [本批日誌](INK_LATENCY_2026-10-22.zh-TW.md)。
+
 ## 2026-10-22 — 常用工具與完整無邊界指南（x64試用完成，待實機）
 
 開工保留三份平台文件及三份YouTube新文件。查明預設icons、常用缺brush／dash、範例notebook三頁且手冊start仍說不建範例。新增偏好呈現revision、預設與還原採labels，常用補brush／dash；生成器改單頁infinite全手冊並核對runtime29項工具覆蓋。更新十語指南64段與v2一次性建立。 [本批日誌](TOOLBAR_GUIDE_2026-10-22.zh-TW.md)。

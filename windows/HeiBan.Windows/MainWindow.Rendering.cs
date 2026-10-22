@@ -1,4 +1,5 @@
 using HeiBan.Windows.Engine;
+using HeiBan.Windows.Diagnostics;
 using HeiBan.Windows.Models;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.UI.Xaml;
@@ -31,6 +32,7 @@ public partial class MainWindow
     {_scene?.Dispose();_scene=null;_sceneDirty=true;_pendingInkScene.Clear();}
     private void RenderMainScene(CanvasControl surface,CanvasDrawingSession ds,float width,float height)
     {
+        using var trace=InputLatencyTrace.Measure(InputStage.SceneRender);
         if(width<=0||height<=0)return;
         var sceneSession=_boardEraserDraft??_session;
         var key=new SceneKey(sceneSession.Document,sceneSession.Generation,sceneSession.Document.Board.ActivePageId,_viewport.X,_viewport.Y,_viewport.Zoom,width,height,surface.Dpi);
@@ -65,6 +67,7 @@ public partial class MainWindow
     private string? _layersPage;
     private void RefreshLayersIfNeeded()
     {
+        using var trace=InputLatencyTrace.Measure(InputStage.LayersRefresh);
         if(LayersPanel.Visibility!=Microsoft.UI.Xaml.Visibility.Visible)return;
         if(!ReferenceEquals(_layersDocument,_session.Document)||_layersGeneration!=_session.Generation||_layersPage!=_session.Document.Board.ActivePageId)
         {

@@ -10,15 +10,18 @@ public sealed class MagnetSnapIndex
     public MagnetSnapIndex(IEnumerable<BoardObject> objects,double radius)
     {
         _radius=double.IsFinite(radius)&&radius>0?radius:10;
-        foreach(var item in objects.Where(o=>o.IsVisible!=false))
+        foreach(var item in objects)Add(item);
+    }
+    // Only append-only ink may update an existing index. Edits, removals, page
+    // changes and Undo must still rebuild it at the host's generation boundary.
+    public void Add(BoardObject item)
+    {
+        if(item.IsVisible==false)return;
+        foreach(var p in ReferencePoints(item))
         {
-            var points=ReferencePoints(item);
-            foreach(var p in points)
-            {
-                if(!double.IsFinite(p.X)||!double.IsFinite(p.Y))continue;
-                var key=Cell(p);if(!_cells.TryGetValue(key,out var bucket))_cells[key]=bucket=[];
-                bucket.Add(new(p.X,p.Y));
-            }
+            if(!double.IsFinite(p.X)||!double.IsFinite(p.Y))continue;
+            var key=Cell(p);if(!_cells.TryGetValue(key,out var bucket))_cells[key]=bucket=[];
+            bucket.Add(new(p.X,p.Y));
         }
     }
     /// <summary>Geometric references are independent of editable handles, including locked shapes.</summary>

@@ -22,7 +22,7 @@ internal static partial class ToolbarUi
         var wrapped=button.Content as StackPanel;
         if(wrapped?.Tag as string=="toolbar-label")
         {
-            if(labels){((TextBlock)wrapped.Children[1]).Text=T(key=="brush"?"筆刷":key=="more"?"更多":ToolbarPreferences.ToolNames.GetValueOrDefault(key,key));return;}
+            if(labels){var text=(TextBlock)wrapped.Children[1];var value=T(key=="brush"?"筆刷":key=="more"?"更多":ToolbarPreferences.ToolNames.GetValueOrDefault(key,key));if(text.Text!=value)text.Text=value;return;}
             var icon=wrapped.Children[0];wrapped.Children.RemoveAt(0);button.Content=icon;
         }
         else if(labels)

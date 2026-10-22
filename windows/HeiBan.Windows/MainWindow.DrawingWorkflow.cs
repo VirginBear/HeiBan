@@ -1,4 +1,5 @@
 using HeiBan.Windows.Engine;
+using HeiBan.Windows.Diagnostics;
 using HeiBan.Windows.Models;
 using HeiBan.Windows.Views;
 using Microsoft.UI.Xaml;
@@ -17,10 +18,17 @@ public partial class MainWindow
     private long _magnetGeneration=-1,_magnetEpoch=-1;
     private string? _magnetPage;
     private double _magnetZoom;
+    private void AppendInkMagnetReferences(BoardObject item,long previousGeneration)
+    {
+        if(_magnetIndex is null||!_toolbarPrefs.MagnetEnabled||_magnetGeneration!=previousGeneration||
+            _magnetEpoch!=_session.DocumentEpoch||_magnetPage!=_session.Document.Board.ActivePageId||_magnetZoom!=_viewport.Zoom)return;
+        _magnetIndex.Add(item);_magnetGeneration=_session.Generation;
+    }
     private void EnsureMagnetIndex(bool force=false)
     {
         if(!_toolbarPrefs.MagnetEnabled){_magnetIndex=null;_magnetTarget=null;return;}
         if(!force&&_magnetIndex is not null&&_magnetGeneration==_session.Generation&&_magnetEpoch==_session.DocumentEpoch&&_magnetPage==_session.Document.Board.ActivePageId&&_magnetZoom==_viewport.Zoom)return;
+        using var trace=InputLatencyTrace.Measure(InputStage.MagnetRebuild);
         _magnetIndex=new MagnetSnapIndex(_session.VisibleObjects,10/_viewport.Zoom);
         _magnetGeneration=_session.Generation;_magnetEpoch=_session.DocumentEpoch;_magnetPage=_session.Document.Board.ActivePageId;_magnetZoom=_viewport.Zoom;
     }

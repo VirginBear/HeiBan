@@ -19,7 +19,7 @@ $recordRoot=Join-Path $windowsRoot ('.build\portable-trial-'+[guid]::NewGuid().T
 New-Item -ItemType Directory -Path $recordRoot | Out-Null
 $source=(& git -C $windowsRoot rev-parse HEAD).Trim()
 if($LASTEXITCODE -ne 0){throw '無法記錄來源commit。'}
-$sourcePaths=@(& git -C $windowsRoot ls-files --cached --others --exclude-standard -- '*.cs' '*.csproj' '*.ps1' '*.xaml' '*.html' '*.manifest' 'README.md' 'HeiBan.Windows/Localization/*.json' 'HeiBan.Windows/Localization/*.txt' 'HeiBan.Windows/Localization/Catalogs/*.json' 'HeiBan.Windows/Documentation/Guides/*.txt' 'HeiBan.Windows/Assets/Guides/manifest.json' 'HeiBan.Windows/Assets/Guides/QuickStart-*.heiban' 'scripts/Build-LocalizationCatalogs.py' 'scripts/Build-UserGuides.py')
+$sourcePaths=@(& git -C $windowsRoot ls-files --cached --others --exclude-standard -- '*.cs' '*.csproj' '*.ps1' '*.cmd' '*.xaml' '*.html' '*.manifest' 'README.md' 'HeiBan.Windows/Localization/*.json' 'HeiBan.Windows/Localization/*.txt' 'HeiBan.Windows/Localization/Catalogs/*.json' 'HeiBan.Windows/Documentation/Guides/*.txt' 'HeiBan.Windows/Assets/Guides/manifest.json' 'HeiBan.Windows/Assets/Guides/QuickStart-*.heiban' 'scripts/Build-LocalizationCatalogs.py' 'scripts/Build-UserGuides.py')
 if($LASTEXITCODE -ne 0){throw '無法記錄來源檔案。'}
 $sourceFiles=@($sourcePaths | Sort-Object -Unique | ForEach-Object {
     @{path=$_;sha256=(Get-FileHash -LiteralPath (Join-Path $windowsRoot $_) -Algorithm SHA256).Hash.ToLowerInvariant()}
@@ -34,6 +34,10 @@ try {
         New-Item -ItemType Directory -Path (Join-Path $payload "Data\$folder") | Out-Null
     }
     Copy-Item -LiteralPath (Join-Path $windowsRoot 'README.md') -Destination (Join-Path $payload 'README-Windows.md')
+    Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'Capture-InputLatency.cmd') -Destination $payload
+    # Windows PowerShell 5.1 needs the BOM for the localized launcher text.
+    $capture=Get-Content -LiteralPath (Join-Path $PSScriptRoot 'Collect-InputLatency.ps1') -Raw
+    Set-Content -LiteralPath (Join-Path $payload 'Collect-InputLatency.ps1') -Value $capture -Encoding utf8BOM
     @"
 # HeiBan 黑板：本機免安裝試用版
 

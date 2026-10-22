@@ -1,6 +1,7 @@
 using static HeiBan.Windows.Localization.Strings;
 using System.Numerics;
 using HeiBan.Windows.Engine;
+using HeiBan.Windows.Diagnostics;
 using HeiBan.Windows.Models;
 using HeiBan.Windows.Views;
 using Microsoft.UI.Xaml;
@@ -798,6 +799,7 @@ public partial class MainWindow
 
     private void ActivateTool(string tool)
     {
+        using var trace=InputLatencyTrace.Measure(InputStage.ToolSwitch);
         _activeFlyout?.Hide();
         if(tool==_tool&&!_gesture&&_editor is null&&_polygon.Count==0&&_session.SelectedIds.Count==0)
         {FocusCanvasSurface();return;}
@@ -999,6 +1001,7 @@ public partial class MainWindow
 
     private void ShowBrushSettings(FrameworkElement anchor)
     {
+        using var trace=InputLatencyTrace.Measure(InputStage.BrushPanel);
         var selected = _session.Selected;
         if(selected is not null){Inspector.Visibility=Visibility.Visible;RefreshProperties();RefreshChrome();return;}
         if(_tool=="laser"){ShowLaserSettings(anchor);return;}

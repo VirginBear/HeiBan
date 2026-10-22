@@ -22,7 +22,7 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
     private InkPoint? _liveFirst;
     private int _liveEnd;
     public void ResetLive()
-    {foreach(var geometry in _liveBlocks)geometry.Dispose();_liveBlocks.Clear();_liveEnd=0;_liveFirst=null;}
+    {foreach(var geometry in _liveBlocks)geometry.Dispose();_liveBlocks.Clear();_liveEnd=0;_liveFirst=null;_wetFirst=null;}
     public event Action? ResourcesChanged;
     public static Color HexToColor(string? hex, float opacity=1)
     {
@@ -57,7 +57,7 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
     }
     public void ClearCache()
     {
-        _imageEpoch++;ResetLive();ClearTextCache();_viewportCandidates.Clear();
+        _imageEpoch++;ResetLive();ClearWetResources();ClearTextCache();_viewportCandidates.Clear();
         foreach(var value in _geometry.Values)value.Geometry.Dispose(); _geometry.Clear();
         foreach(var value in _images.Values)value.Dispose(); _images.Clear();
     }
@@ -254,7 +254,7 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
         var style=StrokeStyle(lineStyle);
         var ink=HexToColor(color,(float)opacity);
         // One opacity layer prevents translucent highlighter blocks accumulating alpha at joins.
-        using(var layer=ds.CreateLayer((float)opacity))
+        using(var layer=opacity<.99999?ds.CreateLayer((float)opacity):null)
         {
             ink=HexToColor(color);
             foreach(var block in _liveBlocks)ds.DrawGeometry(block,ink,(float)width,style);

@@ -253,9 +253,13 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
                 if(_tool=="pen"&&_screenPenStraight)
                 {
                     var line=Styled(new BoardObject{Type="line",X=bounds.MinX,Y=bounds.MinY,Width=bounds.Width,Height=bounds.Height});
-                    ObjectHandles.SetEndpoints(line,_points[0],_points[^1]);_session.AppendInk(line);
+                    ObjectHandles.SetEndpoints(line,_points[0],_points[^1]);AppendScreenInk(line);
                 }
-                else _session.AppendInk(Styled(new BoardObject{Type=_tool=="pen"?"stroke":_tool,X=bounds.MinX,Y=bounds.MinY,Width=bounds.Width,Height=bounds.Height,Points=JsonSerializer.Serialize(_points,DocumentCodec.Options)}));
+                else
+                {
+                    var item=Styled(new BoardObject{Type=_tool=="pen"?"stroke":_tool,X=bounds.MinX,Y=bounds.MinY,Width=bounds.Width,Height=bounds.Height});
+                    item.SetCompletedInkPoints(_points);AppendScreenInk(item);
+                }
             }
             _straightenTimer.Stop();_penHoldAnchor=null;_screenPenStraight=false;_session.Commit();if(_marquee)DamageSelectedObjects();var committedDamage=_damage;RefreshScreenStyleButtons();_marquee=false;_points.Clear();_start=_last=null;_preview=null;_handle=null;_renderer.ResetLive();Changed();
             if(_tool=="select"&&_session.Selected is not null)FocusScreenChrome();
@@ -294,6 +298,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     }
     private void Render()
     {
+        using var trace=global::HeiBan.Windows.Diagnostics.InputLatencyTrace.Measure(global::HeiBan.Windows.Diagnostics.InputStage.ScreenRender);
         if(_target is null||_committed is null)return;
         _laser.Prune(Now);
         global::Windows.Foundation.Rect? laserDamage=null;
@@ -340,7 +345,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             if(_points.Count>0&&_tool is "pen" or "highlighter" or "paint" or "lasso")
             {
                 IReadOnlyList<InkPoint> livePoints=_screenPenStraight&&_points.Count>1?new[]{_points[0],_points[^1]}:_points;
-                _renderer.RenderLiveStroke(ds,livePoints,_viewport,_tool=="lasso"?"#39735A":_color,_tool=="lasso"?1:_width*_dpiScale,_tool=="highlighter"?_opacity*.4:_opacity,_tool=="lasso"?"dashed":_dash);
+                _renderer.RenderWetInk(ds,livePoints,_viewport,_tool=="lasso"?"#39735A":_color,_tool=="lasso"?1:_width*_dpiScale,_tool=="highlighter"?_opacity*.4:_opacity,_tool=="lasso"?"dashed":_dash,new global::Windows.Foundation.Size(_overlay.Width,_overlay.Height));
             }
             if(_tool=="select")foreach(var selected in _session.SelectedObjects)_renderer.RenderSelection(ds,selected,_viewport,_session.SelectedIds.Count==1);
             _renderer.RenderLaser(ds,_laser,_viewport,Now,_dpiScale);
