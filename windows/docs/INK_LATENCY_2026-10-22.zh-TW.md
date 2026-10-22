@@ -28,3 +28,5 @@
 - `dotnet build windows/HeiBan.Windows/HeiBan.Windows.csproj -c Release -r win-x64 -p:Platform=x64 --no-restore`成功，0warning／0error，39.59秒。此為中途來源；最終portable仍重新編譯，不作性能提升量測。
 - solid live raster以64段為單位追加，保持原預覽分段接點並避免每幀新增GPU flush；live tail最多65段。bbox計入cubic控制點最大步距，透明筆clip不截斷大跨度曲線。
 - 試用包附Capture-InputLatency.cmd／Collect-InputLatency.ps1，只在使用者手動啟動此入口時量測真實操作；正常啟動HeiBan.exe不啟用採樣。已有同一路徑程式執行先停止採樣啟動；正常退出寫本機JSON。不自動執行本批尚未授權的實作測試。
+
+- 第一輪portable已封裝成功；交付前靜態檢視採樣啟動腳本，將互動採樣視窗明確設Normal（此入口由使用者手動點開，非背景服務），避免啟動可見性不確定；補採樣使用說明，重新以r2封裝。沒有啟動App或偽造採樣數字。
