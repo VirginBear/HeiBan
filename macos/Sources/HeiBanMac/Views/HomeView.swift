@@ -92,7 +92,7 @@ struct HomeView: View {
             }.padding(24).background(Color(red: 0.98, green: 0.985, blue: 0.975))
         }
         .buttonStyle(.bordered)
-        .onAppear { shelf.reload(); engine.refreshLibrary() }
+        .onAppear { ensureQuickStartOnFirstLaunch(); shelf.reload(); engine.refreshLibrary() }
         .onChange(of: section) { _, _ in selectionMode = false; selectedBoardIDs.removeAll() }
         .onChange(of: search) { _, _ in retainVisibleSelection() }
         .onChange(of: format) { _, _ in retainVisibleSelection() }
@@ -137,6 +137,8 @@ struct HomeView: View {
             }.buttonStyle(.plain).help(L10n.t("帳號與設定"))
             Menu {
                 Button(L10n.t("使用手冊")) { HeiBanUserGuide.shared.show() }
+                Button(L10n.t("操作說明 · 全工具指南")) { openQuickStartGuideBoard() }
+                Button(L10n.t("建立新的操作指南練習")) { openQuickStartGuideBoard(fresh: true) }
                 Button(L10n.t("我的螢幕就是我的畫布")) { ScreenAnnotationController.shared.start() }
                 Divider()
                 Button(L10n.t("建立功能示範黑板")) { engine.loadShowcaseBoard() }
@@ -200,6 +202,35 @@ struct HomeView: View {
         let date = ISO8601DateFormatter().date(from: value)
         return date?.formatted(date: .abbreviated, time: .shortened) ?? "本機儲存"
     }
+
+    private func quickStartGuideDocument() throws -> HeiBanDocument {
+        let url = Bundle.module.url(forResource: "QuickStart-\(language.code)", withExtension: "heiban", subdirectory: "Guides")
+            ?? Bundle.module.url(forResource: "QuickStart-zh-TW", withExtension: "heiban", subdirectory: "Guides")
+        guard let url else { throw CocoaError(.fileNoSuchFile) }
+        return try HeiBanDocumentCodec.decode(from: Data(contentsOf: url))
+    }
+
+    private func ensureQuickStartOnFirstLaunch() {
+        do {
+            try QuickStartGuideStore(library: BoardEngine.library).installOnFirstLaunch(template: quickStartGuideDocument)
+        } catch { guideError(error) }
+    }
+
+    private func openQuickStartGuideBoard(fresh: Bool = false) {
+        guard engine.saveBeforeLeaving() else { return }
+        do {
+            let store = QuickStartGuideStore(library: BoardEngine.library)
+            let id = try fresh ? store.createFresh(template: quickStartGuideDocument)
+                : store.openOrCreate(template: quickStartGuideDocument)
+            engine.refreshLibrary()
+            engine.openLibraryBoard(id)
+        } catch { guideError(error) }
+    }
+
+    private func guideError(_ error: Error) {
+        engine.showTemporaryStatus("\(L10n.t("無法開啟操作指南"))：\(error.localizedDescription)")
+    }
+
 }
 
 struct AdvancedBoardSheet: View {

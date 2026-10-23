@@ -46,6 +46,8 @@ public class BoardEngine: ObservableObject {
     public let boardEraser = BoardEraserState()
     var boardEraserOriginal: [BoardObject]?
     var boardEraserContext: String?
+    var boardEraserRevision: UInt64?
+    @Published public internal(set) var isBoardEraserActive = false
     @Published public var showsObjectDetails = false
     public var documentImportHandler: ((URL) -> Void)?
     public var pdfExportHandler: (() -> Void)?
@@ -140,10 +142,20 @@ public class BoardEngine: ObservableObject {
 
     @Published public var showPinManager: Bool = false
     @Published public var showInspector: Bool = false
-    @Published public var showEraserPopover: Bool = false
+    @Published public var presentedToolSettings: BoardToolSettings?
+    public var showEraserPopover: Bool {
+        get { presentedToolSettings == .eraser }
+        set { setToolSettings(.eraser, shown: newValue) }
+    }
     @Published public var showExportMenu: Bool = false
-    @Published public var showShapesPopover: Bool = false
-    @Published public var showColorPopover: Bool = false
+    public var showShapesPopover: Bool {
+        get { presentedToolSettings == .shapes }
+        set { setToolSettings(.shapes, shown: newValue) }
+    }
+    public var showColorPopover: Bool {
+        get { presentedToolSettings == .color }
+        set { setToolSettings(.color, shown: newValue) }
+    }
     @Published public var showPinPopover: Bool = false
     @Published public var showNoteInfoPopover: Bool = false
     @Published public var showInsertMenu: Bool = false
@@ -202,10 +214,13 @@ public class BoardEngine: ObservableObject {
     }
 
     public var hasUnsavedDraftOrChanges: Bool {
-        if inlineTextEditing && !textDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+        if hasUncommittedTextChanges || isBoardEraserActive || isEraserSwipeActive { return true }
+        switch pointerGesture {
+        case .stroke, .shape, .polygon, .erasing, .moveSelection, .transformSelection, .lineEndpoint:
             return true
+        default:
+            return false
         }
-        return false
     }
 
     public var saveFeedbackState: BoardSaveFeedbackState {
@@ -390,29 +405,14 @@ public class BoardEngine: ObservableObject {
         saveToolbarPreferences()
     }
 
-    public func closeAllTransientPanels() {
-        showColorPopover = false
-        showEraserPopover = false
-        showShapesPopover = false
+    private func setToolSettings(_ settings: BoardToolSettings, shown: Bool) {
+        if shown { presentedToolSettings = settings }
+        else if presentedToolSettings == settings { presentedToolSettings = nil }
     }
-
-    public func openBrushSettings() {
-        showEraserPopover = false
-        showShapesPopover = false
-        showColorPopover = true
-    }
-
-    public func openEraserSettings() {
-        showColorPopover = false
-        showShapesPopover = false
-        showEraserPopover = true
-    }
-
-    public func openShapesSettings() {
-        showColorPopover = false
-        showEraserPopover = false
-        showShapesPopover = true
-    }
+    public func closeAllTransientPanels() { presentedToolSettings = nil }
+    public func openBrushSettings() { presentedToolSettings = .color }
+    public func openEraserSettings() { presentedToolSettings = .eraser }
+    public func openShapesSettings() { presentedToolSettings = .shapes }
     @Published public var showLayerPanel: Bool = false
     @Published public var editingLayerId: String? = nil
     @Published public var editingLayerName: String = ""
@@ -445,9 +445,8 @@ public class BoardEngine: ObservableObject {
     // 同一個手勢共用這些暫態狀態；internal 供 HeiBanCore 延伸檔使用，不對 Mac UI 公開。
     // Transaction Manager for Undo / Redo & Layers (A04 & A24)
     public let transactionManager = TransactionManager(maxCapacity: 50)
-    var activeEraserDeletedObjects: [BoardObject] = []
-    var activeEraserInsertedObjects: [BoardObject] = []
-    var isEraserSwipeActive: Bool = false
+    public let circularEraser = CircularEraserState()
+    @Published public internal(set) var isEraserSwipeActive = false
     private var previousPanTranslation = CGSize.zero
     private var previousRulerTranslation = CGSize.zero
     private var rulerDragStart: Point?
@@ -607,9 +606,15 @@ public class BoardEngine: ObservableObject {
             // Keep the current orientation when undocking, avoiding a jump at release.
             toolbarFloatingVertical = isToolbarVertical
             let clamped = clampPanelCenter(center, panelSize: panelSize, windowSize: windowSize, margin: 8)
+            let leftOrTopEdge = isToolbarVertical
+                ? CGPoint(x: clamped.x, y: clamped.y - panelSize.height / 2)
+                : CGPoint(x: clamped.x - panelSize.width / 2, y: clamped.y)
+            let baseOrigin = isToolbarVertical
+                ? CGPoint(x: windowSize.width / 2, y: 76.0)
+                : CGPoint(x: ToolbarContentPolicy.horizontalAnchor(preferences: toolbarPreferences, windowSize: windowSize), y: windowSize.height - 48.0)
             toolbarOffset = CGSize(
-                width: clamped.x - windowSize.width / 2,
-                height: clamped.y - (windowSize.height - 48))
+                width: leftOrTopEdge.x - baseOrigin.x,
+                height: leftOrTopEdge.y - baseOrigin.y)
             toolbarDock = "floating"
             persistToolbarPlacement()
         }
@@ -625,27 +630,37 @@ public class BoardEngine: ObservableObject {
     public func toolbarPosition(in windowSize: CGSize, panelSize: CGSize? = nil, topClearance: CGFloat = 64) -> CGPoint {
         let size =
             panelSize ?? toolbarLayoutSize
-            ?? CGSize(width: isToolbarVertical ? 64 : 420, height: isToolbarVertical ? 420 : 64)
-        let base: CGPoint
+            ?? CGSize(width: isToolbarVertical ? 68 : 420, height: isToolbarVertical ? 420 : 64)
+        // 以左邊緣（橫排）或頂邊緣（直排）為固定參考錨點，切換不同長度分頁時分頁標籤與選取按鈕位置絕對不跳動。
+        let posX: CGFloat
+        let posY: CGFloat
         switch toolbarDock {
         case "left":
-            base = CGPoint(x: size.width / 2 + 12, y: (windowSize.height + 56) / 2)
+            posX = size.width / 2 + 12 + toolbarOffset.width
+            posY = max(76.0, topClearance) + size.height / 2 + toolbarOffset.height
         case "right":
-            base = CGPoint(x: windowSize.width - size.width / 2 - 12, y: (windowSize.height + 56) / 2)
+            posX = windowSize.width - size.width / 2 - 12 + toolbarOffset.width
+            posY = max(76.0, topClearance) + size.height / 2 + toolbarOffset.height
         case "top":
-            base = CGPoint(x: windowSize.width / 2, y: topClearance + size.height / 2)
+            posX = ToolbarContentPolicy.horizontalAnchor(preferences: toolbarPreferences, windowSize: windowSize) + size.width / 2 + toolbarOffset.width
+            posY = topClearance + size.height / 2 + toolbarOffset.height
         case "bottom":
-            base = CGPoint(x: windowSize.width / 2, y: windowSize.height - 48.0)
+            posX = ToolbarContentPolicy.horizontalAnchor(preferences: toolbarPreferences, windowSize: windowSize) + size.width / 2 + toolbarOffset.width
+            posY = windowSize.height - size.height / 2 - 16.0 + toolbarOffset.height
         default:  // floating
-            base = CGPoint(x: windowSize.width / 2, y: windowSize.height - 48.0)
+            if isToolbarVertical {
+                posX = windowSize.width / 2 + toolbarOffset.width
+                posY = 76.0 + size.height / 2 + toolbarOffset.height
+            } else {
+                posX = ToolbarContentPolicy.horizontalAnchor(preferences: toolbarPreferences, windowSize: windowSize) + size.width / 2 + toolbarOffset.width
+                posY = windowSize.height - 48.0 + toolbarOffset.height
+            }
         }
-        let posX = base.x + toolbarOffset.width
-        let posY = base.y + toolbarOffset.height
         return clampPanelCenter(
             CGPoint(x: posX, y: posY),
             panelSize: size,
             windowSize: windowSize,
-            margin: 4.0)
+            margin: 8.0)
     }
 
     public func clampPanelCenter(
@@ -664,9 +679,15 @@ public class BoardEngine: ObservableObject {
 
     public func repositionPanelsIfNeeded(windowSize: CGSize) {
         if toolbarDock == "floating" {
-            let clamped = toolbarPosition(in: windowSize)
-            let base = CGPoint(x: windowSize.width / 2, y: windowSize.height - 48.0)
-            toolbarOffset = CGSize(width: clamped.x - base.x, height: clamped.y - base.y)
+            let size = toolbarLayoutSize ?? CGSize(width: isToolbarVertical ? 68 : 420, height: isToolbarVertical ? 420 : 64)
+            let clamped = toolbarPosition(in: windowSize, panelSize: size)
+            if isToolbarVertical {
+                let topEdge = clamped.y - size.height / 2
+                toolbarOffset = CGSize(width: clamped.x - windowSize.width / 2, height: topEdge - 76.0)
+            } else {
+                let leftEdge = clamped.x - size.width / 2
+                toolbarOffset = CGSize(width: leftEdge - ToolbarContentPolicy.horizontalAnchor(preferences: toolbarPreferences, windowSize: windowSize), height: clamped.y - (windowSize.height - 48.0))
+            }
         }
     }
 
@@ -903,12 +924,12 @@ public class BoardEngine: ObservableObject {
         scheduleAutosave()
     }
 
-    public var isPointerGestureActive: Bool { pointerGesture != .idle }
+    public var isPointerGestureActive: Bool { pointerGesture != .idle || isBoardEraserActive || isEraserSwipeActive }
 
     public func beginPointerGesture(at screenPoint: Point, isShift: Bool = false, clickCount: Int = 1) {
         let drawing = [ToolType.pen, .curve, .highlighter, .paint, .triangle, .quadrilateral, .rect, .circle, .diamond, .star, .line, .arrow, .roundedRect, .polygon, .connector].contains(currentTool)
         if drawing { showsObjectDetails = false; showInspector = false; selectedIds.removeAll() }
-        let screenPoint = drawing ? snapDrawingScreenPoint(screenPoint) : screenPoint
+        let screenPoint = MagnetSnapIndex.supportsConstructionTool(currentTool) ? snapDrawingScreenPoint(screenPoint) : screenPoint
         guard pointerGesture == .idle else { return }
         pointerGestureStart = screenPoint
         if self.isShiftHeld != isShift { self.isShiftHeld = isShift }
@@ -1061,6 +1082,7 @@ public class BoardEngine: ObservableObject {
         } else if currentTool == .eraser {
             pointerGesture = .erasing
             beginEraserSwipe()
+            eraseAt(screenPt: screenPoint)
         } else if currentTool == .sticky || currentTool == .text {
             beginInlineTextEntry(
                 at: VectorMath.screenToWorld(screenPoint, viewport: viewport), kind: currentTool)
@@ -1264,7 +1286,13 @@ public class BoardEngine: ObservableObject {
         endPanGesture()
     }
 
+    // 指標路由的setter維持在主檔；工具延伸檔只能要求結束自己擁有的手勢。
+    func clearCircularEraserPointerGesture() {
+        if pointerGesture == .erasing { pointerGesture = .idle; pointerGestureStart = nil }
+    }
+
     public func cancelTransientInteraction() {
+        cancelEraserSwipe()
         cancelBoardEraser()
         showsObjectDetails = false
         drawingAssist.target = nil
@@ -1299,6 +1327,7 @@ public class BoardEngine: ObservableObject {
 
     /// Selects a tool. If the specified tool is already active, toggles back to .select (A05, A11).
     public func selectTool(_ tool: ToolType) {
+        cancelEraserSwipe()
         finishBoardEraser()
         showsObjectDetails = false
         drawingAssist.target = nil
@@ -1352,6 +1381,7 @@ public class BoardEngine: ObservableObject {
 
     /// Cleans up modifier states and transient gestures when window loses focus (A11).
     public func handleWindowBlur() {
+        cancelEraserSwipe()
         isHoldingSpace = false
         isShiftHeld = false
         laserEngine.clear()
@@ -1468,6 +1498,8 @@ public class BoardEngine: ObservableObject {
 
     // MARK: - Undo & Redo (A04)
     public func undo() {
+        cancelEraserSwipe()
+        finishBoardEraser()
         guard let command = transactionManager.popUndo() else { return }
         apply(command: command, isUndo: true)
         selectedIds.removeAll()
@@ -1475,6 +1507,8 @@ public class BoardEngine: ObservableObject {
     }
 
     public func redo() {
+        cancelEraserSwipe()
+        finishBoardEraser()
         guard let command = transactionManager.popRedo() else { return }
         apply(command: command, isUndo: false)
         selectedIds.removeAll()
@@ -1580,6 +1614,7 @@ public class BoardEngine: ObservableObject {
     }
 
     public func clearAll() {
+        cancelEraserSwipe()
         if isNotebook {
             let pageObjs = currentPageObjects
             guard !pageObjs.isEmpty else { return }

@@ -24,10 +24,6 @@ struct AnnotationPanelGrip: NSViewRepresentable {
         var onEnd: ((NSPoint) -> Void)?
         override var mouseDownCanMoveWindow: Bool { false }
         override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
-        override func draw(_ dirtyRect: NSRect) {
-            NSImage(systemSymbolName: "line.3.horizontal", accessibilityDescription: "移動螢幕畫布控制列")?
-                .draw(in: bounds.insetBy(dx: 2, dy: 5))
-        }
         override func resetCursorRects() { addCursorRect(bounds, cursor: .openHand) }
         override func mouseDown(with event: NSEvent) {
             onBegin?(NSEvent.mouseLocation)

@@ -93,16 +93,19 @@ struct ToolbarBrushSettings: View {
     }
     private var brushPreview: some View {
         let diameter = engine.activeBrushWidth * engine.viewport.zoom
+        let clampedDiameter = min(76.0, max(2.0, diameter))
         return VStack(alignment: .leading, spacing: 5) {
             Text("實際大小 · 畫布上直徑 \(diameter.formatted(.number.precision(.fractionLength(0...1)))) pt")
                 .font(.caption).foregroundStyle(.secondary)
-            ScrollView([.horizontal, .vertical]) {
-                Circle().fill(Color(hex: engine.activeColor).opacity(style.selectedOpacityForControls))
-                    .frame(width: diameter, height: diameter)
-                    .frame(width: max(240, diameter + 24), height: max(80, diameter + 24))
-            }.frame(height: 100)
-                .background(Color.primary.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
-                .accessibilityLabel(L10n.t("與目前畫布縮放相同的筆刷尺寸預覽"))
+            ZStack {
+                Circle()
+                    .fill(Color(hex: engine.activeColor).opacity(style.selectedOpacityForControls))
+                    .frame(width: clampedDiameter, height: clampedDiameter)
+            }
+            .frame(width: 252, height: 84)
+            .clipped()
+            .background(Color.primary.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+            .accessibilityLabel(L10n.t("與目前畫布縮放相同的筆刷尺寸預覽"))
         }
     }
 

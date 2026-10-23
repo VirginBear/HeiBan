@@ -113,6 +113,14 @@ public enum DrawingReferenceGeometry {
 
 /// Cell size equals snap radius; each pointer sample visits at most nine nearby buckets.
 public final class MagnetSnapIndex {
+    /// Freehand brushes follow pointer samples; magnet snapping applies only to geometric construction tools.
+    public static func supportsConstructionTool(_ tool: ToolType) -> Bool {
+        [
+            .curve, .line, .arrow, .rect, .roundedRect, .circle, .triangle, .quadrilateral, .diamond,
+            .polygon, .star, .connector,
+        ].contains(tool)
+    }
+
     private struct Cell: Hashable {
         let x: Int64
         let y: Int64
@@ -161,8 +169,10 @@ extension BoardEngine {
         drawingAssist.target = nil
         saveToolbarPreferences()
     }
-    public func snapDrawingScreenPoint(_ point: Point) -> Point {
-        guard toolbarPreferences.magnetEnabled else {
+    public func snapDrawingScreenPoint(_ point: Point, allowCompassCenter: Bool = false) -> Point {
+        guard toolbarPreferences.magnetEnabled,
+            allowCompassCenter || MagnetSnapIndex.supportsConstructionTool(currentTool)
+        else {
             drawingAssist.target = nil
             return point
         }
@@ -183,13 +193,8 @@ extension BoardEngine {
             pressure: point.pressure)
     }
     public func updateMagnetHover(at point: Point?) {
-        guard let point, !readingMode,
-            [
-                .pen, .highlighter, .paint, .curve, .line, .arrow, .rect, .circle, .triangle, .quadrilateral,
-                .diamond, .star, .polygon, .roundedRect, .connector,
-            ].contains(currentTool)
-        else {
-            drawingAssist.target = nil
+        guard let point, !readingMode, MagnetSnapIndex.supportsConstructionTool(currentTool) else {
+            if drawingAssist.target != nil { drawingAssist.target = nil }
             return
         }
         _ = snapDrawingScreenPoint(point)

@@ -42,3 +42,9 @@ public enum ScreenCaptureMode: Equatable {
     case region
     case display(index: Int)
 }
+
+/// 單一工具設定呈現請求，不寫入作品或Undo。宿主只建立一個popover錨點。
+public enum BoardToolSettings: String, Identifiable {
+    case color, shapes, eraser, laser, ruler
+    public var id: String { rawValue }
+}

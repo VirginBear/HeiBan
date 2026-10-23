@@ -7,12 +7,13 @@ struct CanvasObjectsView: View {
     let selectionOffset: CGSize
     let lineEndpoint: LineEndpointPreview?
     let shapeObject: BoardObject?
+    var objects: [BoardObject]? = nil
 
     var body: some View {
         Canvas { context, size in
             let visibleRect = VectorMath.visibleWorldRect(canvasSize: size, viewport: engine.viewport)
 
-            for obj in engine.currentPageObjects {
+            for obj in objects ?? engine.currentPageObjects {
                 guard obj.isVisible != false else { continue }
                 let isSelected = engine.selectedIds.contains(obj.id)
 

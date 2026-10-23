@@ -1,6 +1,6 @@
 # Mac 實際架構與維護邊界
 
-更新：2026-10-16。這份文件描述現況，未建立不存在的 Storage／Metal 模組。
+更新：2026-10-23。這份文件描述現況，未建立不存在的 Storage／Metal 模組。
 
 ## 套件與職責
 
@@ -95,3 +95,39 @@ macos/.build是可重新產生的SDK模組／中間檔／建置產品，沒有�
 - PDFEditableAttachment：符合PDF交叉索引的增量stream，沿舊Mac／Windows可發現的base64原稿標記；不更改.heiban契約。多頁PDF及原稿皆在本機產生，完整原稿分享限制見隱私文字。
 - 工具列icons／labels及Common偏好由ToolbarPreferences／ToolbarContentPolicy共用；labels單排／單列，四頁及組頁只為暫態UI。螢幕尺寸按labels與icons分流，clear／close在中段之外。
 - 手冊單一正體中文21章來源保持generate_user_guide.py，其餘語言的Mac原生操作總覽由Documentation/Guides＋generate_localized_guides.py生成，Guide視窗依L10n載入資源，頁內語言選擇不改App偏好。
+
+
+## 1.0.15 同版修整（2026-10-17）
+
+板擦高頻快照已從 engine.objects 移到 BoardEraserState.previewObjects，由 BoardEraserObjectsLayer 獨立訂閱並以目前頁過濾後交共用renderer。document永遠只讀永久objects，無須在每次取得快照時猜測是否正擦除。開始記錄作品／頁與drawingGeometryRevision；放開前再核對，外部命令若已修改永久物件則丟棄過時預覽。取消不回寫原陣列，避免覆蓋新操作。isBoardEraserActive只在開始／結束發布，供保存回饋及導航鎖定；原生視窗失焦或拆除清理手勢。
+
+普通保存的generation在每次已提交編輯推進，先標記尚未保存，才決定是否排自動寫入；關閉自動保存不會保留過期的「已儲存」。排程執行及完成回報都核對generation，但已開始的串行磁碟寫入仍可能完成。同步／非同步離開作品均提交文字與板擦後取值型別快照；不是保存所有未完成筆畫的通用交易機制。
+
+圖文工具列以shownPageIDs作實際渲染清單；More補齊目前未渲染工具，螢幕Undo／Redo同樣展開為共用元件。設定請求依renderedIDs決定是否先開More，不再誤用包含其他頁工具的visibleIDs。中段ScrollView有明確可用尺寸，常駐入口在捲動區之外；沒有新增第二套命令catalog或作品設定。
+
+
+## 1.0.16來源現況與10/23審視邊界
+
+10/22工具列改為按分頁工具數緊湊佈局，取消圖文中段ScrollView；More不再重複渲染設定popover元件，改輕量命令列，筆刷預覽固定尺寸。這取代上段1.0.15的中段捲動／More同元件描述，但隱藏設定缺穩定host及第二套trigger switch仍待處理，不能宣稱已完成單一命令來源。
+
+QuickStart由HomeView讀取Mac bundle，再寫本機library與marker；目前資產沒有進Git、內容仍是Windows限定操作，且手動開啟會先寫同ID範本。這是需修正的現況，不是正式採用的跨平台指南架構。圓形橡皮擦仍沿同步永久objects修改及放開復原交易，與BoardEraser獨立預覽是不同路徑；取消與稀疏線段裁剪尚有差距。
+
+使用者要求Mac優先操作一致性，Windows性能問題留原平台量測；沒有採用Windows worker／GPU實作作Mac新架構。具體證據與接續順序見[10/23核對報告](ANTIGRAVITY_PROGRESS_REVIEW_2026-10-23.zh-TW.md)。
+
+
+## 2026-10-23 L01–06實作
+
+- QuickStartGuideStore屬Mac Guide adapter，管理供應範本、現有練習、新ID及marker；不在HomeView重複寫入同ID範本。Mac十語JSON→generate_quickstart_guides.py→QuickStart-*.heiban／quickstart-manifest.json，建置可再生且供應檔進Git；使用者Library不參與生成。
+- CircularEraserState獨立高頻預覽；BoardEngine+Drawing只在正常放開替換永久陣列，取消不回寫舊文件。EraserToolEngine做圓與線段裁剪及旋轉烘焙，Point保留擴充欄位。與實體板擦共用渲染出口，但不混用grip／pointer工具狀態。
+- BoardToolSettings／presentedToolSettings統一設定呈現；ToolbarToolsView一個穩定popover host，render／圖文／More共用performToolAction。舊showColor／Eraser／Shapes API是相容別名，不是第二份呈現旗標。
+- 螢幕展開改用catalog清空及固定退出，收合仍有兩者；horizontalFixedWidth改174pt，對應移除重複清空的38pt。四邊／長語言的實際互動尚未驗收。
+
+以上是來源實作；不以編譯代替UI／故障注入／性能驗收。參見ADR-M30–32及本日誌02。
+
+
+## 2026-10-23 工具列與雷射／板擦補齊（日誌03）
+
+- ToolbarContentPolicy統一繪圖頁水平參考、尺寸、分組；一般BoardEngine保存offset，螢幕Controller保存dock/fraction與active page，兩者座標系仍分開。螢幕不再固定1100×136；外觀沿用ToolbarPanelSurface，UndoRedo不再被螢幕限定拆成另一套catalog。
+- LaserTrailGeometry只做唯讀螢幕座標幾何。LaserOverlayView以Timeline讀暫態樣本，按手勢畫連續柔光，不產生BoardObject。
+- BoardEraserArtwork共用工具圖示與畫布圖片，以資源URL快取載入；BoardEraserOverlay同時掛普通與螢幕畫布，仍沿用BoardEraserState預覽及既有放開提交交易。
+- 舊AnnotationToolbarLayout展開幾何保留為相容API／歷史runner依賴；目前螢幕展開走共用policy，收合仍用其尺寸。尚未移除不影響產品的相容入口。

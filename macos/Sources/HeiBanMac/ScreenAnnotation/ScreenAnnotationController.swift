@@ -16,6 +16,7 @@ final class ScreenAnnotationController: ObservableObject {
     @Published private(set) var controlsDock = AnnotationToolbarDock(
         rawValue: UserDefaults.standard.string(forKey: "HeiBan.screenToolbar.dock") ?? "top") ?? .top
     @Published private(set) var controlsCollapsed = UserDefaults.standard.bool(forKey: "HeiBan.screenToolbar.collapsed")
+    @Published private(set) var controlsPage = "common"
     @Published private(set) var controlsSize = NSSize(width: 820, height: 60)
     private var controlsPosition: Double = {
         let value = UserDefaults.standard.object(forKey: "HeiBan.screenToolbar.position") as? Double ?? 0.5
@@ -294,6 +295,8 @@ final class ScreenAnnotationController: ObservableObject {
     /// 暫停、換工具、保存及截圖共同收束文字草稿，先結束原生組字。
     /// 不把未提交文字只留在 editor；停止後仍沿用既有 .heiban 恢復檔。
     private func commitTextDrafts() {
+        // 未放開的圓擦不屬於作品；截圖、保存、切換模式前捨棄預覽。
+        for session in sessions { session.engine.cancelEraserSwipe() }
         for session in sessions where session.engine.showInlineTextEditor {
             (session.panel.firstResponder as? NSTextView)?.unmarkText()
             session.engine.commitInlineTextEntry()
@@ -396,17 +399,43 @@ final class ScreenAnnotationController: ObservableObject {
         }
     }
 
-    private func controlsFrame(dock:AnnotationToolbarDock,on screen:NSScreen) -> NSRect {
-        guard !controlsCollapsed,activeEngine.toolbarPreferences.displayMode=="labels" else {
-            return AnnotationToolbarLayout.frame(for:dock,position:controlsPosition,collapsed:controlsCollapsed,on:screen,itemCount:ToolbarContentPolicy.screenItemCount(activeEngine.toolbarPreferences))
+    private func controlsPanelSize(dock: AnnotationToolbarDock, area: NSRect, page: String) -> NSSize {
+        if controlsCollapsed {
+            return AnnotationToolbarLayout.size(for: dock, collapsed: true, availableSize: area.size)
         }
-        let area=AnnotationToolbarLayout.availableFrame(on:screen)
-        let size=dock.isVertical ? NSSize(width:min(160,area.width),height:min(660,area.height)) : NSSize(width:min(1100,area.width),height:min(136,area.height))
-        let fraction=max(0,min(1,controlsPosition))
-        var origin=area.origin
-        if dock.isVertical { origin.y += (area.height-size.height)*fraction;if dock == .right { origin.x=area.maxX-size.width } }
-        else { origin.x += (area.width-size.width)*fraction;if dock == .top { origin.y=area.maxY-size.height } }
-        return NSRect(origin:origin,size:size)
+        // 共用一般畫布尺寸；只為作畫／穿透與退出兩個必要命令保留 80pt。
+        let extra: CGFloat = 80
+        let virtualWindow = CGSize(width: area.width + 32 - (dock.isVertical ? 0 : extra),
+                                   height: area.height + 88 - (dock.isVertical ? extra : 0))
+        let common = ToolbarContentPolicy.panelSize(preferences: activeEngine.toolbarPreferences,
+            page: page, vertical: dock.isVertical, windowSize: virtualWindow, screen: true)
+        return NSSize(width: min(area.width, common.width + (dock.isVertical ? 0 : extra)),
+                      height: min(area.height, common.height + (dock.isVertical ? extra : 0)))
+    }
+
+    private func controlsFrame(dock: AnnotationToolbarDock, on screen: NSScreen) -> NSRect {
+        let area = AnnotationToolbarLayout.availableFrame(on: screen)
+        let size = controlsPanelSize(dock: dock, area: area, page: controlsPage)
+        let reference = controlsPanelSize(dock: dock, area: area, page: "drawing")
+        let fraction = CGFloat(max(0, min(1, controlsPosition)))
+        var origin = area.origin
+        if dock.isVertical {
+            // AppKit y 向上：固定參考頁的頂邊，不因工具數量改變握把位置。
+            let top = area.minY + max(0, area.height - reference.height) * fraction + reference.height
+            origin.y = min(max(area.minY, top - size.height), area.maxY - size.height)
+            if dock == .right { origin.x = area.maxX - size.width }
+        } else {
+            origin.x += min(max(0, area.width - size.width), max(0, area.width - reference.width) * fraction)
+            if dock == .top { origin.y = area.maxY - size.height }
+        }
+        return NSRect(origin: origin, size: size)
+    }
+
+    func setControlsPage(_ page: String) {
+        guard ToolbarContentPolicy.pages.contains(page), controlsPage != page else { return }
+        controlsPage = page
+        guard let screen = controls?.screen else { return }
+        placeControls(dock: controlsDock, on: screen)
     }
 
     private func showControls() {
@@ -494,7 +523,7 @@ final class ScreenAnnotationController: ObservableObject {
             let screen = NSScreen.screens.first(where: { $0.frame.contains(point) }) ?? controls?.screen else { return }
         let dock = AnnotationToolbarLayout.nearestDock(to: point, on: screen, current: controlsDock)
         let available = AnnotationToolbarLayout.availableFrame(on: screen)
-        let size = controlsFrame(dock:dock,on:screen).size
+        let size = controlsPanelSize(dock: dock, area: available, page: "drawing")
         controlsPosition = AnnotationToolbarLayout.position(forDrop: point, dock: dock, availableFrame: available, size: size)
         placeControls(dock: dock, on: screen)
         if let id = displayID(for: screen) { selectDisplay(id) }

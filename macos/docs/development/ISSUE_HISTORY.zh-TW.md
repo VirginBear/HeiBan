@@ -342,3 +342,49 @@ M21 獨立複核補充（2026-10-11）：f960c78 下完整 runner 1559/1559、Re
 2026-10-16，來源移植進行中；完整操作未驗收。Mac原1.0.13缺磁鐵、圖文分頁與Common、板擦、真正外部PDF圖片頁及多頁匯出；圖形預設單次選取、快速列自動出現也與Windows最新需求不同。改由原生共同幾何／policy／文件adapter接線，版本依使用者新授權對齊1.0.15。Windows早期2334等檢查不沿用為Mac本批證據。
 
 排解：首輪Mac文件adapter誤用fitToContent及緊接enum值的==.造成編譯錯誤，改既有fitNavigationView與運算子空白；第二輪Release56.58秒成功。第三輪發現ToolbarPreferences新增未知欄位不是Sendable，確認AnyCodableValue全為遞迴值型別後新增正式Sendable，不用unchecked迴避。板擦最初計畫用remove／insert複合命令，來源複核發現appendInZOrder會改legacy pageId=nil，已改明確replaceObjects交易。未執行故障重現／UI測試；最終編譯結果另記本日01。
+
+
+## M41 — 關閉自動保存後仍可能顯示已儲存，返回首頁漏交文字草稿
+
+2026-10-17，來源已修正並編譯；未作實機或故障注入驗收。scheduleAutosave原本在開關關閉／manual時提前返回，沒有更新status與generation；之前背景快照的完成回報可覆蓋新修改的狀態。改為先取消排程、推進generation並標記未儲存，再判斷排程；執行時也拒絕過時工作。串行queue仍保證寫入順序，不能宣稱取消已開始寫入。同步saveBeforeLeaving原本沒有commitInlineTextEntry，現在與非同步路徑一致，僅實際編輯中才提交；避免無草稿時重設工具。文字清空及樣式差異也列為草稿。
+
+## M42 — 板擦預覽仍寫入永久物件，取消可能覆蓋其他操作
+
+2026-10-17，修正M40／ADR-M25早期「暫態objects」的實際邊界：當時仍每個native event替換engine.objects，只在document讀原陣列。這會每次推進幾何revision並通知整個engine；取消則回寫原objects。改獨立BoardEraserState.previewObjects及小型render wrapper，放開才一次replaceObjects。新增來源revision／作品／頁核對，永久內容已有其他修改時丟棄預覽；Esc／失焦／拆除取消，不回寫永久資料。Undo／Redo／保存先結算。本批未量測流暢度，不能給改善倍率；精確斜角、長拖曳、局部切段、其他頁／鎖定保護與Undo仍待試用。
+
+## M43 — 圖文分頁外工具缺設定錨點，內容未受中段尺寸約束
+
+2026-10-17，來源已修正，實際窄視窗／長語言待驗收。visibleIDs包含全部分頁工具，用它判斷popover是否有錨點會漏掉其他分頁／下一組；More原本只渲染隱藏工具。改renderedIDs與overflowIDs互補，More用同一renderToolItem保留所有未渲染工具，沒有第二套命令處理。圖文中段給定實際長度並可捲動，固定選取／More不參與捲動，容量明列固定區與間距。初步懷疑舊容量漏計箭頭，複核後發現常數本身偏保守，未確認該推測，不記作確定根因。
+
+
+## M44 — 1.0.16完成報告與操作／資產完整性仍有差距
+
+2026-10-23，來源審視已確認，尚未進行UI故障重現／修正。Antigravity兩筆Mac提交c1b8745／05ce02d確已在origin；本機App1.0.16／20261022.1簽章有效。但不能將既有1,862核心斷言視為全部原生操作通過。
+
+- L01：HomeView手動開指南先寫同ID範本，有覆蓋使用者練習路徑；首次建立忽略錯誤仍寫marker。
+- L02–03：Mac十語QuickStart只存在被根*.heiban忽略的本機資產，沒有入Git或生成步驟；內容仍含Windows快捷鍵／資料位置／PowerPoint條件。現有App碰巧打包齊備，不能代表新checkout可重建。
+- L04：More防閃退改輕量按鈕後，隱藏工具沒有設定anchor；切換目標頁並pageOffset=0也不一定到目標組。
+- L05：圓形橡皮擦仍在每樣本改永久objects，通用取消沒有回復／清理其交易；局部切段只判取樣點，線段穿圓但端點在外時會漏切。不同於已隔離的實體板擦預覽。
+- L06：圖文磚第二套trigger switch與原按鈕不完全一致，dock／undoRedo文字熱區無命令；螢幕固定清空與catalog清空另需核對重複顯示。
+
+不在本輪改程式或推定性能瓶頸，保留Antigravity既有工作。下一批先內容保護／擦除交易，再做Mac專用指南與資產可重建，最後統一設定host／命令與實際四邊操作。來源依據及工作清單見[核對報告](ANTIGRAVITY_PROGRESS_REVIEW_2026-10-23.zh-TW.md)／[日誌](logs/2026-10-23/01.zh-TW.md)。
+
+
+### M44後續 — L01–06已落來源，互動驗收待完成（2026-10-23日誌02）
+
+指南改Mac v3、一般開啟保留內容、明確新練習用新ID、成功後marker及flock防競爭；十語Mac來源／生成資產以精確例外納入Git。設定改engine單一enum與root host，取消More的第二套trigger及依賴工具可見性的anchor；圖文改原生Button／Menu／分開UndoRedo。圓擦隔離預覽、正常放開精確replace，取消丟棄，局部線段圓交點、旋轉世界座標與point擴充資料保全。
+
+實作困難：第一次試圖在Drawing延伸檔寫入pointerGesture的private setter而編譯失敗，改主檔內部clearCircularEraserPointerGesture入口，保持setter封裝。兩次工具腳本因相對工作目錄／檔案分類猜錯而未執行，已用實際Models路徑及專案根重跑；沒有以失敗步驟宣稱已套用。最後將設定狀態從View局部搬回engine，避免closeAllTransientPanels無法關閉新host。編譯警告仍有NSParagraphStyle Sendable及CommandLineTools搜尋路徑；不能沿用前批「警告清零」。
+
+## M45 — LocalBoardLibrary expectedRevision目前未執行CAS
+
+2026-10-23，審視指南建立邊界時發現：saveToFile接受expectedRevision但實際只比較磁碟revision是否高於incoming，沒有使用expectedRevision。這批指南不依賴該參數，以自身flock及存在檢查拒絕覆寫；沒有修改庫的公共修訂語義或既有作品。一般庫多程序／多文件CAS仍待獨立設計與驗收，不因本批指南安全處理而標完成。
+
+
+## M46 — 左錨點貼左、螢幕工具列異形、雷射分段與板擦不可達
+
+2026-10-23，來源已修、待實機。左錨點固定x=16導致貼左；改繪圖頁偏左置中計算並同步反算。螢幕獨立1100×136與material、分頁宿主不同步；改共用尺寸／外殼及controller.controlsPage，僅增加穿透／退出按鈕。純圖示同普通畫布以捲動處理溢出。
+
+Mac雷射24級透明度分桶、round cap逐段發光產生珠狀交界；改連續平滑輪廓、柔光與徑向光點。板擦既有PNG已存在，沒有證據證明圖本身損壞；可確認入口隱蔽且螢幕未掛疊層，現補可見catalog與共用疊層，明確URL載入PNG避免依賴名稱查找。
+
+本輪第一次編譯因移除Undo分拆時連帶移掉definition→id映射，Overflow型別錯誤；補map(\.id)後封裝成功。未把編譯當實際操作驗收；仍有NSParagraphStyle Sendable／工具鏈搜尋路徑舊警告。Windows逐段DrawLine僅完成來源核對與[交接](WINDOWS_LASER_HANDOFF_2026-10-23.zh-TW.md)，沒有修改或執行Windows。

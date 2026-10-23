@@ -6,6 +6,12 @@
 
 **目前是公開預覽版。** 各平台的功能與驗收進度不同，請先備份重要作品。[安裝與更新](docs/INSTALL.zh-TW.md) · [快速開始](docs/QUICK_START.zh-TW.md) · [下載最新版](https://github.com/VirginBear/HeiBan/releases)
 
+## Mac 開發來源更新
+
+GitHub `main` 的 Mac 開發來源已更新至 **1.0.16 / 20261023.2**：工具列左錨點、一般／螢幕畫布共用介面、連續雷射尾跡、實體板擦、指南練習保護及擦除交易修正。[Mac 目前狀態](macos/docs/development/CURRENT_STATUS.zh-TW.md) · [完整手冊](macos/docs/USER_GUIDE.zh-TW.md) · [從來源建置](docs/BUILDING.zh-TW.md)。
+
+這次更新原始碼、資源及文件；下方下載連結仍對應各自已發行的成品，沒有將開發來源版號直接套用到舊下載包。
+
 ## 下載
 
 | 電腦 | 版本 | 下載 |

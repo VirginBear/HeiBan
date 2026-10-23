@@ -1,0 +1,107 @@
+{
+  "language": "pt-BR",
+  "title": "Guia de uso · Todas as ferramentas · Mac",
+  "intro": "Abrir o guia mantém seu exercício. Criar um novo exercício gera outro trabalho e preserva o anterior. A borracha mostra uma prévia ao arrastar e confirma uma etapa de desfazer ao soltar. Esc ou trocar ferramenta ou trabalho cancela o apagamento pendente.",
+  "chapters": [
+    {
+      "title": "Idioma da interface e do guia",
+      "body": "Escolha o idioma em Conta e ajustes. A ajuda abre nesse idioma; o seletor desta página muda apenas o guia. Nomes e textos das obras não são traduzidos."
+    },
+    {
+      "title": "Primeiros passos",
+      "body": "Use + no Início para criar caderno, tela infinita ou quadro limitado; escolha título, tamanho e fundo. Abra pelo cartão e organize com busca, favoritos, seleção múltipla e Lixeira. Novas configurações deixam o salvamento automático DESLIGADO; as escolhas anteriores são mantidas."
+    },
+    {
+      "title": "Início e biblioteca",
+      "body": "Use + no Início para criar caderno, tela infinita ou quadro limitado; escolha título, tamanho e fundo. Abra pelo cartão e organize com busca, favoritos, seleção múltipla e Lixeira. Novas configurações deixam o salvamento automático DESLIGADO; as escolhas anteriores são mantidas."
+    },
+    {
+      "title": "Tipos de canvas e páginas",
+      "body": "Use + no Início para criar caderno, tela infinita ou quadro limitado; escolha título, tamanho e fundo. Abra pelo cartão e organize com busca, favoritos, seleção múltipla e Lixeira. Novas configurações deixam o salvamento automático DESLIGADO; as escolhas anteriores são mantidas."
+    },
+    {
+      "title": "Mover, ampliar e bloquear vista",
+      "body": "A roda amplia no ponteiro. Arraste segurando o botão central ou Space para mover. No trackpad, use dois dedos e pinça. A rolagem de texto fica no editor. Leitura e Bloqueio de vista evitam alterações. Clique duas vezes no título vazio ou use ⌘⌥0 para ampliar/restaurar a janela."
+    },
+    {
+      "title": "Navegação e barras",
+      "body": "Arraste a alça para qualquer borda. Mais → Personalizar oferece ícones ou abas Frequentes, Desenhar, Inserir e Organizar. Seleção fica visível; setas mudam grupos se faltar espaço. Exibição, ordem, Selecionar tudo, Padrões e Frequentes são independentes. Ferramentas ocultas ficam em Mais. A aba Propriedades também pode ser movida.\nA barra horizontal fica um pouco à esquerda do centro com base na largura de Desenhar e mantém a borda esquerda ao trocar de página. As duas telas compartilham páginas, estilo e rolagem."
+    },
+    {
+      "title": "Caneta e pincéis",
+      "body": "O círculo de cor abre pincel, cor, Hex, recentes, espessura e opacidade. Com seleção, muda estilos compatíveis; sem seleção, define próximos traços. A amostra acompanha o zoom. Pare um traço quase reto por um segundo para endireitar. O laser é ajustado no próprio botão e seu rastro não é salvo."
+    },
+    {
+      "title": "Linhas, setas, formas e curvas",
+      "body": "Ferramentas continuam ativas após criar. Retângulos partem do canto; círculos, losangos, pentágonos e estrelas do centro. Clique três vértices para triângulo ou quatro para quadrilátero; a prévia é reta. Curvas podem ser ajustadas depois. O ímã atrai início e próximos pontos para vértices, centros e pontos médios próximos (cerca de 10 pontos de tela). Ocultos são excluídos; formas bloqueadas servem como referência."
+    },
+    {
+      "title": "Seleção e transformações",
+      "body": "Seleção move e ajusta tamanho, rotação, pontas A/B e vértices. Shift adiciona à seleção. Um clique mostra alças; dois abrem detalhes. Camadas gerencia nomes, visibilidade, bloqueio e ordem, com prévia ao arrastar e indicação de inserção. Um arrasto corresponde a um desfazer."
+    },
+    {
+      "title": "Propriedades, cores e estilos",
+      "body": "O círculo de cor abre pincel, cor, Hex, recentes, espessura e opacidade. Com seleção, muda estilos compatíveis; sem seleção, define próximos traços. A amostra acompanha o zoom. Pare um traço quase reto por um segundo para endireitar. O laser é ajustado no próprio botão e seu rastro não é salvo."
+    },
+    {
+      "title": "Texto e notas adesivas",
+      "body": "T e Nota adesiva permitem digitar no lugar; Concluir ou ⌘Enter confirma. Clique duplo edita texto existente. Clique direito muda tamanho e cor, inclusive de várias caixas. Formas oferecem preenchimento, gradiente, opacidade, padrões de linha e tamanho da seta. Rolar texto não amplia a tela."
+    },
+    {
+      "title": "Borracha",
+      "body": "Borracha apaga objeto ou parte do traço com alcance visível antes de pressionar. Imagens, texto, notas e objetos bloqueados são protegidos. No quadro normal, o apagador inclinado segue a silhueta espelhada da imagem. Clique direito muda modo ou oculta; Mais o mostra novamente. Um arrasto é um desfazer; Esc cancela. A remoção parcial corta vetores, não pixels de imagens.\nAbrir o guia mantém seu exercício. Criar um novo exercício gera outro trabalho e preserva o anterior. A borracha mostra uma prévia ao arrastar e confirma uma etapa de desfazer ao soltar. Esc ou trocar ferramenta ou trabalho cancela o apagamento pendente.\nDesenhar → Apagador de quadro mostra ou oculta o apagador físico. O controle também fica nos ajustes da borracha e em Mais. Arraste-o nas duas telas."
+    },
+    {
+      "title": "Régua",
+      "body": "Mova a régua pelo corpo, gire a alça e digite ângulos com uma casa decimal. A cor se adapta. No compasso, prepare centro e início, clique no centro e arraste a ponta. Calculadora e Contagem regressiva são móveis. Fita esconde conteúdo e Laço seleciona regiões. Alfinetes guardam vistas e usam a mesma cor na lista e no quadro."
+    },
+    {
+      "title": "Compasso: preparar, travar, desenhar",
+      "body": "Mova a régua pelo corpo, gire a alça e digite ângulos com uma casa decimal. A cor se adapta. No compasso, prepare centro e início, clique no centro e arraste a ponta. Calculadora e Contagem regressiva são móveis. Fita esconde conteúdo e Laço seleciona regiões. Alfinetes guardam vistas e usam a mesma cor na lista e no quadro."
+    },
+    {
+      "title": "Ponteiro laser",
+      "body": "O círculo de cor abre pincel, cor, Hex, recentes, espessura e opacidade. Com seleção, muda estilos compatíveis; sem seleção, define próximos traços. A amostra acompanha o zoom. Pare um traço quase reto por um segundo para endireitar. O laser é ajustado no próprio botão e seu rastro não é salvo.\nO laser usa um contorno contínuo e suave com brilho difuso. Tamanho do ponto, largura do rastro e duração podem ser ajustados separadamente."
+    },
+    {
+      "title": "Calculadora e cronômetro",
+      "body": "Mova a régua pelo corpo, gire a alça e digite ângulos com uma casa decimal. A cor se adapta. No compasso, prepare centro e início, clique no centro e arraste a ponta. Calculadora e Contagem regressiva são móveis. Fita esconde conteúdo e Laço seleciona regiões. Alfinetes guardam vistas e usam a mesma cor na lista e no quadro."
+    },
+    {
+      "title": "Imagens, capturas e recorte",
+      "body": "Cole imagens com ⌘V ou arraste. Importe .heiban/JSON, PDF e PPT/PPTX/Keynote. Slides exigem Keynote e permissão de Automação para converter uma cópia temporária em PDF; o original não muda. Também é possível converter antes. Escolha até 200 páginas e 100 MB de imagens; cancelar não aplica nada. Documentos externos tornam-se imagens bloqueadas, sem elementos editáveis, vídeo ou animação. PDF exporta página atual/todas e inclui todo o original com outras páginas e objetos ocultos. Use PNG para compartilhar apenas o visível e .heiban para editar depois. A saída normal espera o salvamento."
+    },
+    {
+      "title": "Alfinetes de vista e cores",
+      "body": "Mova a régua pelo corpo, gire a alça e digite ângulos com uma casa decimal. A cor se adapta. No compasso, prepare centro e início, clique no centro e arraste a ponta. Calculadora e Contagem regressiva são móveis. Fita esconde conteúdo e Laço seleciona regiões. Alfinetes guardam vistas e usam a mesma cor na lista e no quadro."
+    },
+    {
+      "title": "Canvas da tela",
+      "body": "A tela de anotação no Início abre uma camada transparente sobre outros apps. ⌘⌥⇧D alterna desenho/passagem de cliques, ⌘⌥⇧S captura e ⌘⌥⇧X sai. Compartilha ferramentas e preferências, exceto alfinetes e navegação. Pode ficar em quatro lados. Limpar mantém aberta e aceita desfazer; T insere texto. Telas protegidas do sistema não são garantidas.\nA barra da tela usa a aparência e o tamanho por página da barra normal, com botões extras de desenho/interação e saída. Nas laterais fica vertical; os ícones rolam quando falta espaço."
+    },
+    {
+      "title": "Salvar, dados e exportar",
+      "body": "Os trabalhos do Mac ficam em ~/Library/Application Support/HeiBan/. Guarde .heiban para editar. O salvamento automático usa a sessão local; salve novamente uma cópia para atualizar o arquivo externo.\nCole imagens com ⌘V ou arraste. Importe .heiban/JSON, PDF e PPT/PPTX/Keynote. Slides exigem Keynote e permissão de Automação para converter uma cópia temporária em PDF; o original não muda. Também é possível converter antes. Escolha até 200 páginas e 100 MB de imagens; cancelar não aplica nada. Documentos externos tornam-se imagens bloqueadas, sem elementos editáveis, vídeo ou animação. PDF exporta página atual/todas e inclui todo o original com outras páginas e objetos ocultos. Use PNG para compartilhar apenas o visível e .heiban para editar depois. A saída normal espera o salvamento."
+    },
+    {
+      "title": "Atalhos",
+      "body": "⌘S salva; ⌘Z desfaz; ⌘⇧Z refaz; ⌘C/⌘V copia/cola; ⌘N cria um trabalho. Tela de anotações: ⌘⌥⇧D desenhar/interagir, ⌘⌥⇧S salvar captura, ⌘⌥⇧X sair."
+    },
+    {
+      "title": "Atualizações",
+      "body": "Sobre HeiBan → Atualizações do GitHub verifica versões compatíveis com Mac. Baixe e instale pela página da versão; o aplicativo não é substituído em segundo plano."
+    },
+    {
+      "title": "Escopo e limitações",
+      "body": "Mac usa SwiftUI/AppKit nativos. Foi compilado, mas esta etapa não executou testes automáticos nem interativos. Slides, traduções longas, monitores e canetas reais exigem avaliação. Google/nuvem, colaboração e protótipos estruturados não são recursos completos entregues. O mesmo número de versão não comprova paridade total."
+    },
+    {
+      "title": "Dicas de fundo",
+      "body": "Use + no Início para criar caderno, tela infinita ou quadro limitado; escolha título, tamanho e fundo. Abra pelo cartão e organize com busca, favoritos, seleção múltipla e Lixeira. Novas configurações deixam o salvamento automático DESLIGADO; as escolhas anteriores são mantidas."
+    },
+    {
+      "title": "Ordem de camadas e indicadores",
+      "body": "Seleção move e ajusta tamanho, rotação, pontas A/B e vértices. Shift adiciona à seleção. Um clique mostra alças; dois abrem detalhes. Camadas gerencia nomes, visibilidade, bloqueio e ordem, com prévia ao arrastar e indicação de inserção. Um arrasto corresponde a um desfazer."
+    }
+  ]
+}

@@ -169,3 +169,44 @@ hiddenTitleBar在本機未執行頂端雙擊縮放；保留現有簡潔介面，
 ## ADR-M27 — 工具分頁、常用及語言屬本機偏好
 
 2026-10-16，採用。icons／labels、磁鐵、板擦顯隱與Common集合保存在Mac原工具偏好，解碼缺欄位給預設並保留未知欄位，不寫作品／Undo。選取不可隱藏；圖文單排／列用頁容量與換組箭頭，普通／螢幕同一個渲染元件與catalog，宿主只持尺寸及清空／退出。十語手冊是Mac自有可重生資源，不在App讀Windows目錄或使用網路翻譯。新使用者自動保存off，明確舊設定／manual照原遷移，手動與退出保存保持獨立。
+
+
+## ADR-M28 — 板擦預覽與永久objects明確分離
+
+2026-10-17，採用，修正ADR-M25的早期「暫態objects」實作。previewObjects由獨立狀態及物件render wrapper訂閱，document只讀永久objects；開始／結束才發布engine旗標。放開核對作品／頁／永久幾何revision再做精確replaceObjects，保留legacy pageId、未知欄位與順序；取消只捨棄預覽，不能還原整頁覆蓋其他命令。Undo與保存先結算，原生失焦取消。代價：預覽需保留原陣列及修改副本，使用Swift值型別copy-on-write；每樣本幾何切段仍有成本，未量測不能宣稱全面解決頓挫。
+
+## ADR-M29 — 未保存狀態不依賴自動保存開關，工具設定依實際渲染入口
+
+2026-10-17，採用。普通作品的已提交修改一律推進generation／未保存狀態，再決定是否排程；背景已開始寫入仍允許完成，但過期UI回報必須拒絕。同步與非同步離開都先提交文字／板擦；草稿狀態不加入Undo或改文件格式。螢幕保存仍由自己的owner負責。
+
+圖文工具列顯示工具不等於偏好中的所有visible工具；popover錨點與More互補清單必須以目前頁、目前組計算。More沿用同一renderToolItem，維持一般／螢幕命令一致；中段有尺寸及捲動邊界，固定選取／More留外面。保留目前四分頁及本機偏好格式，未新增文件欄位。
+
+
+## ADR-M30 — Mac指南v3供應資產與使用者練習分開
+
+2026-10-23，採用。Mac使用Documentation/QuickStart十語JSON及generate_quickstart_guides.py，產25章／128物件的獨立v3 .heiban供應資產與SHA manifest。限縮macos/.gitignore例外到資源目錄的QuickStart檔，來源／生成檔一併版本控制，build_app必經生成。程式不讀Windows目錄；舊v2作品／marker不改。一般開啟找現有v3練習；明確建立新練習才新ID，marker保存最近指南ID。首次安裝成功落盤後才寫marker；刪除不自動重生。建立以advisory flock及檔案／垃圾桶存在檢查保護，不依賴目前未落實的LocalBoardLibrary expectedRevision參數；不是宣稱整個作品庫已具跨程序CAS。
+
+## ADR-M31 — 圓形橡皮擦隔離預覽及世界座標切割
+
+2026-10-23，採用。CircularEraserState與實體BoardEraserState分開，兩者在同一小型render wrapper擇一讀取。圓擦取樣只改previewObjects，正常放開且作品／頁／永久geometry revision符合才replaceObjects一次；保留原陣列順序、舊pageId=nil與未知欄位，不用刪除再append破壞頁面。Esc／失焦／拆除／換工具／保存及切作品捨棄未放開圓擦，已放開手勢同步提交，沒有待flush背景工作。直接eraseAt呼叫仍提供單次隱含手勢以相容舊入口。
+
+局部擦除解線段與圓交點，旋轉筆跡先轉世界座標；曲線96段近似，不保證解析Bezier布林運算。交點壓力插值，擴充欄位沿用最近端點；Point v1編解碼保留未知欄位，hash只取已知值而Equatable保留全值比較。沒有更換.heiban v1或引入Windows worker；性能要另行量測。
+
+## ADR-M32 — 單一設定狀態／錨點與單一工具命令
+
+2026-10-23，採用，取代ADR-M29的More重複元件錨點方案。Core BoardToolSettings描述低頻設定呈現，engine.presentedToolSettings為唯一狀態；舊三個show*Popover改相容computed別名。closeAllTransientPanels及工具切換能同步收起設定。ToolbarToolsView root只有一個工具設定popover，色彩／形狀／圓擦／雷射／尺規共用；顯示偏好或分組不決定設定可達性。More先關再開設定，避免原生視窗尺寸競爭。
+
+performToolAction是圖示、圖文Button與More的唯一動作路由；dock是完整Menu，Undo／Redo為兩個獨立可用性／熱區，不以外層tap包住內層Button。螢幕展開清空走catalog／More，固定尾端只留退出；收合維持清空／退出。偏好格式與作品schema不改；一般／螢幕沿用同組元件。
+
+
+## ADR-M33 — 繪圖頁參考錨點與雙畫布共用工具列外殼
+
+2026-10-23，採用。ToolbarContentPolicy.horizontalAnchor以繪圖頁panelSize計算偏左置中基準（中央左移24pt，最小16pt）；BoardEngine定位、浮動拖曳反算及resize共用此基準，當前頁面只決定寬度。既有使用者offset仍保留；靠邊命令可重設offset。邊界空間不足時仍需夾限，不保證超寬面板的左緣永遠不動。
+
+ToolbarPanelSurface提供共用背景、圓角、邊線與陰影；ToolbarToolsView提供兩種畫布相同的分頁、命令與UndoRedo結構。螢幕controller持有controlsPage，使用同一panelSize加必要操作／退出的80pt，依繪圖頁寬度固定左邊或上邊，純圖示溢出用ScrollView。只有螢幕視窗停靠／穿透屬Mac NSPanel；沒有將原生視窗生命週期塞入Core或普通畫布。
+
+## ADR-M34 — 雷射連續輪廓及板擦共用可見入口
+
+2026-10-23，採用。雷射先按startsNewTrail分手勢，再以凸包內二次曲線平滑、有界細分、時間漸細輪廓、整條柔光／色彩／白芯渲染，光點用徑向漸層；不再以24級透明度分段端帽。每來源段最多24個細分，引擎仍最多500點；沒有實測FPS承諾，也不宣稱為逐像素沿路徑alpha漸層。
+
+新增boardEraser catalog命令，繪圖頁／More／橡皮擦設定共用顯示偏好；第一次發現入口補在圓擦旁，已明確隱藏者保留。BoardEraserArtwork以Bundle URL一次載入原創PNG，另有缺資源視覺備援。普通與螢幕畫布使用同一BoardEraserOverlay與隔離交易；螢幕點板擦先通知顯示器啟用，確保控制列Undo對準同一引擎。作品格式、既有練習與Windows來源不改。

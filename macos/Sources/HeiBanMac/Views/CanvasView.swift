@@ -348,9 +348,26 @@ struct CanvasObjectsLayer: View {
     @ViewState<BoardObject?> private var shape: BoardObject?
 
     var body: some View {
-        CanvasObjectsView(engine: engine, selectionOffset: offset, lineEndpoint: endpoint, shapeObject: shape)
+        BoardEraserObjectsLayer(engine: engine, state: engine.boardEraser, circular: engine.circularEraser,
+                                offset: offset, endpoint: endpoint, shape: shape)
             .onReceive(engine.strokePreview.$selectionOffset.removeDuplicates()) { offset = $0 }
             .onReceive(engine.strokePreview.$lineEndpoint.removeDuplicates()) { endpoint = $0 }
             .onReceive(engine.strokePreview.$shapeObject.removeDuplicates()) { shape = $0 }
+    }
+}
+
+/// 板擦只使物件畫面失效；工具列、屬性及永久物件索引不訂閱拖曳快照。
+private struct BoardEraserObjectsLayer: View {
+    @ObservedObject var engine: BoardEngine
+    @ObservedObject var state: BoardEraserState
+    @ObservedObject var circular: CircularEraserState
+    let offset: CGSize
+    let endpoint: LineEndpointPreview?
+    let shape: BoardObject?
+
+    var body: some View {
+        CanvasObjectsView(engine: engine, selectionOffset: offset, lineEndpoint: endpoint,
+                          shapeObject: shape,
+                          objects: (circular.previewObjects ?? state.previewObjects)?.filter { engine.isObjectOnCurrentPage($0) })
     }
 }

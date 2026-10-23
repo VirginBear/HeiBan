@@ -16,11 +16,6 @@ private struct ScreenAnnotationToolControls: View {
     @ObservedObject var controller: ScreenAnnotationController
     @ObservedObject var engine: BoardEngine
     private var vertical: Bool { controller.controlsDock.isVertical }
-    private var itemCount: Int { ToolbarContentPolicy.screenItemCount(engine.toolbarPreferences) }
-    private var columns: Int {
-        vertical ? max(1, Int((controller.controlsSize.width - 12) / 36)) :
-            AnnotationToolbarLayout.horizontalColumns(width: controller.controlsSize.width, itemCount: itemCount)
-    }
     private var popoverEdge: Edge {
         switch controller.controlsDock {
         case .top: return .top
@@ -36,47 +31,44 @@ private struct ScreenAnnotationToolControls: View {
             else { horizontalControls }
         }
         .preferredColorScheme(.light).tint(Color(hex:"#39735a"))
-        .buttonStyle(.plain).font(.system(size: 14)).padding(vertical ? 8 : 12)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(.gray.opacity(0.2)))
+        .buttonStyle(.plain).padding(8)
+        .frame(width: controller.controlsSize.width, height: controller.controlsSize.height,
+               alignment: vertical ? .top : .leading)
+        .modifier(ToolbarPanelSurface())
         .disabled(controller.isCapturing)
     }
 
     private var grip: some View {
         AnnotationPanelGrip(onBegin: controller.beginControlsDrag,
                             onMove: controller.moveControlsDrag, onEnd: controller.endControlsDrag)
-            .frame(width: 24, height: 30)
+            .frame(width: vertical ? 44 : 24, height: vertical ? 20 : 40)
+            .overlay {
+                Image(systemName: "line.3.horizontal")
+                    .rotationEffect(.degrees(vertical ? 0 : 90))
+                    .font(.system(size: 15, weight: .semibold)).foregroundStyle(.secondary)
+                    .allowsHitTesting(false)
+            }
             .help(L10n.t("拖曳到螢幕上下左右；放開後停靠，左右自動直排"))
             .accessibilityLabel(L10n.t("移動螢幕畫布工具列"))
     }
 
     private var drawingButton: some View {
         Button { controller.toggleDrawing() } label: {
-            Group {
-                if vertical {
-                    Image(systemName: controller.isDrawing ? "pencil.tip" : "cursorarrow")
-                } else {
-                    Label(L10n.t(controller.isDrawing ? "作畫" : "操作"),
-                          systemImage: controller.isDrawing ? "pencil.tip" : "cursorarrow")
-                }
-            }
-                .font(.system(size: 12, weight: .medium))
+            Image(systemName: controller.isDrawing ? "pencil.tip" : "cursorarrow")
+                .font(.system(size: 16))
                 .foregroundStyle(controller.isDrawing ? Color.orange : Color.green)
-                .frame(width: vertical ? 32 : 62, height: 32)
+                .frame(width: 32, height: 32)
                 .contentShape(Rectangle())
         }.help("\(controller.isDrawing ? "作畫中" : "操作中・滑鼠穿透")；⌘⌥⇧D 切換\n\(controller.message)")
             .accessibilityLabel(L10n.t(controller.isDrawing ? "切換為滑鼠穿透" : "切換為作畫"))
     }
 
     private var horizontalControls: some View {
-        HStack(spacing: 6) {
-            HStack(spacing: 6) { grip; drawingButton }.frame(width: 92)
-            Divider().frame(width: 1, height: 22)
+        HStack(spacing: 8) {
+            grip
             sharedTools
-                .frame(width: max(32, controller.controlsSize.width - AnnotationToolbarLayout.horizontalFixedWidth))
-            Divider().frame(width: 1, height: 22)
-            // 清空與退出在固定尾端，新增工具只增加中段列數，不能把退出推出 NSPanel。
-            HStack(spacing: 6) { clearButton; closeButton }.frame(width: 70)
+            drawingButton
+            closeButton
         }
     }
 
@@ -108,17 +100,27 @@ private struct ScreenAnnotationToolControls: View {
 
     private var verticalControls: some View {
         VStack(spacing: 6) {
-            VStack(spacing: 4) { grip; drawingButton }
-            Divider()
+            grip
             sharedTools
-            Divider()
-            VStack(spacing: 4) { clearButton; closeButton }
+            drawingButton
+            closeButton
         }
     }
 
-    // 共用一般畫布的圖示、排序、設定與更多入口；这里只負責螢幕視窗的固定命令。
+    // 和一般畫布相同的分頁與捲動方式；宿主持有分頁，切頁才改視窗大小。
     private var sharedTools: some View {
-        ToolbarToolsView(engine: engine, screenController: controller, columns: columns, availableLength: vertical ? controller.controlsSize.height-194 : controller.controlsSize.width-224)
+        let length = vertical ? controller.controlsSize.height - 80 : controller.controlsSize.width - 80
+        return Group {
+            if engine.toolbarPreferences.displayMode == "labels" {
+                ToolbarToolsView(engine: engine, screenController: controller, availableLength: length,
+                    externalActivePage: Binding(get: { controller.controlsPage }, set: controller.setControlsPage))
+            } else {
+                ScrollView(vertical ? .vertical : .horizontal) {
+                    ToolbarToolsView(engine: engine, screenController: controller)
+                        .fixedSize(horizontal: !vertical, vertical: vertical)
+                }.scrollIndicators(.automatic)
+            }
+        }
     }
 
     private func iconButton(_ icon: String, title: String, action: @escaping () -> Void) -> some View {

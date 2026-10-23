@@ -86,8 +86,13 @@ public struct CompassOverlayView: View {
         .gesture(
             DragGesture(minimumDistance: 6, coordinateSpace: .named("compassOverlay"))
                 .onChanged { gesture in
-                    let worldPt = VectorMath.screenToWorld(Point(gesture.location), viewport: engine.viewport)
+                    let rawPt = Point(gesture.location)
+                    let snappedPt = compass.isArmed ? rawPt : engine.snapDrawingScreenPoint(rawPt, allowCompassCenter: true)
+                    let worldPt = VectorMath.screenToWorld(snappedPt, viewport: engine.viewport)
                     compass.moveCenter(to: worldPt)
+                }
+                .onEnded { _ in
+                    engine.drawingAssist.target = nil
                 }
         )
         .simultaneousGesture(TapGesture().onEnded { compass.toggleArmed() })

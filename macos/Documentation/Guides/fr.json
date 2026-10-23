@@ -15,7 +15,8 @@
       "id": "start",
       "title": "Premiers pas",
       "paragraphs": [
-        "Dans Accueil, + crée un carnet, une toile infinie ou un tableau limité : nom, taille et fond. Ouvrez une carte et organisez avec recherche, favoris, sélection multiple et Corbeille. Les nouveaux réglages désactivent l’enregistrement automatique ; les anciens choix sont conservés."
+        "Dans Accueil, + crée un carnet, une toile infinie ou un tableau limité : nom, taille et fond. Ouvrez une carte et organisez avec recherche, favoris, sélection multiple et Corbeille. Les nouveaux réglages désactivent l’enregistrement automatique ; les anciens choix sont conservés.",
+        "Ouvrir le guide conserve votre exercice. Un nouvel exercice crée une œuvre distincte sans modifier l’ancienne."
       ]
     },
     {
@@ -29,14 +30,16 @@
       "id": "workspace",
       "title": "Navigation et barres d'outils",
       "paragraphs": [
-        "Glissez la poignée vers un des quatre côtés. Plus → Personnaliser propose icônes seules ou onglets Favoris, Dessin, Insertion et Gestion. Sélection reste visible ; des flèches changent de groupe si nécessaire. Affichage, ordre, Tout sélectionner, Défauts et Favoris sont indépendants. Les outils masqués restent dans Plus. L’onglet Propriétés est aussi déplaçable."
+        "Glissez la poignée vers un des quatre côtés. Plus → Personnaliser propose icônes seules ou onglets Favoris, Dessin, Insertion et Gestion. Sélection reste visible ; des flèches changent de groupe si nécessaire. Affichage, ordre, Tout sélectionner, Défauts et Favoris sont indépendants. Les outils masqués restent dans Plus. L’onglet Propriétés est aussi déplaçable.",
+        "La barre horizontale est placée légèrement à gauche du centre selon la largeur de Dessin et conserve son bord gauche lors du changement de page. Les deux canevas partagent pages, style et défilement."
       ]
     },
     {
       "id": "brush",
       "title": "Stylo et pinceaux",
       "paragraphs": [
-        "Le cercle de couleur ouvre pinceau, couleur, Hex, couleurs récentes, épaisseur et opacité. Une sélection modifie ses styles compatibles ; sinon les prochains traits. L’aperçu suit le zoom. Immobilisez un trait presque droit une seconde pour le redresser. Le laser se règle sur son bouton et sa trace n’est pas enregistrée."
+        "Le cercle de couleur ouvre pinceau, couleur, Hex, couleurs récentes, épaisseur et opacité. Une sélection modifie ses styles compatibles ; sinon les prochains traits. L’aperçu suit le zoom. Immobilisez un trait presque droit une seconde pour le redresser. Le laser se règle sur son bouton et sa trace n’est pas enregistrée.",
+        "Le laser utilise un contour continu et lissé avec une lueur douce. Taille du point, largeur de trace et durée restent réglables séparément."
       ]
     },
     {
@@ -64,7 +67,9 @@
       "id": "eraser",
       "title": "Gomme",
       "paragraphs": [
-        "La gomme efface l’objet ou une partie du trait et montre sa portée avant le clic. Images, texte, notes et objets verrouillés sont protégés. Sur la toile normale, l’effaceur incliné suit le contour miroir de l’image. Clic droit pour mode/masquage ; Plus le réaffiche. Un glissement vaut une annulation ; Esc annule. L’effacement partiel coupe les vecteurs, pas les pixels des images."
+        "La gomme efface l’objet ou une partie du trait et montre sa portée avant le clic. Images, texte, notes et objets verrouillés sont protégés. Sur la toile normale, l’effaceur incliné suit le contour miroir de l’image. Clic droit pour mode/masquage ; Plus le réaffiche. Un glissement vaut une annulation ; Esc annule. L’effacement partiel coupe les vecteurs, pas les pixels des images.",
+        "La gomme affiche un aperçu pendant le glissement puis valide une seule étape d’annulation au relâchement. Échap ou changer d’outil ou d’œuvre annule l’effacement inachevé.",
+        "Dessin → Brosse à tableau affiche ou masque la brosse physique. Le réglage est aussi dans les options de gomme et Plus. Faites-la glisser sur les deux canevas."
       ]
     },
     {
@@ -78,7 +83,8 @@
       "id": "screen",
       "title": "Canevas d'écran",
       "paragraphs": [
-        "La toile d’écran d’Accueil ajoute une couche transparente sur les autres apps. ⌘⌥⇧D alterne dessin/clics traversants, ⌘⌥⇧S capture, ⌘⌥⇧X termine. Outils et réglages sont partagés sauf épingles et navigation. Placement sur quatre côtés. Effacer garde la couche ouverte et reste annulable ; T saisit du texte. Les écrans système protégés ne sont pas garantis."
+        "La toile d’écran d’Accueil ajoute une couche transparente sur les autres apps. ⌘⌥⇧D alterne dessin/clics traversants, ⌘⌥⇧S capture, ⌘⌥⇧X termine. Outils et réglages sont partagés sauf épingles et navigation. Placement sur quatre côtés. Effacer garde la couche ouverte et reste annulable ; T saisit du texte. Les écrans système protégés ne sont pas garantis.",
+        "La barre d’écran reprend l’apparence et la taille par page de la barre normale, avec les commandes dessin/interactions et quitter. Sur les côtés elle est verticale ; les icônes défilent si nécessaire."
       ]
     },
     {
@@ -92,7 +98,7 @@
       "id": "status",
       "title": "Portée et limites",
       "paragraphs": [
-        "Mac 1.0.15 utilise SwiftUI/AppKit natifs. La compilation a réussi, mais aucun test automatique ou interactif n’a été effectué pour ce lot. Compatibilité des diapositives, traductions longues, écrans multiples et stylets restent à vérifier. Google/cloud, collaboration et prototypes structurés ne sont pas des fonctions complètes livrées. Un même numéro ne prouve pas la parité totale."
+        "Mac 1.0.16 utilise SwiftUI/AppKit natifs. La compilation a réussi, mais aucun test automatique ou interactif n’a été effectué pour ce lot. Compatibilité des diapositives, traductions longues, écrans multiples et stylets restent à vérifier. Google/cloud, collaboration et prototypes structurés ne sont pas des fonctions complètes livrées. Un même numéro ne prouve pas la parité totale."
       ]
     }
   ]

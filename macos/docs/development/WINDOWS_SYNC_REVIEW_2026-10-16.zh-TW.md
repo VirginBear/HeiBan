@@ -2,6 +2,8 @@
 
 日期：2026-10-16；Mac目標1.0.15／20261016.1，Windows產品1.0.15／Store1.0.15.0。基準origin/main=73f17f5；從3f39f1d快轉21筆、132檔。使用者本次明確授權同版號同步，取代先前不進版的限制；不推定授權提交Store或公開Mac Release。
 
+2026-10-17後續：產品仍1.0.15，build20261017.1補保存狀態、真正獨立板擦預覽及分頁設定入口；見[日誌](logs/2026-10-17/01.zh-TW.md)。下列為10/16同步基準與尚待實機清單。
+
 ## 來源與界線
 
 - [Windows1.0.15說明](../../../windows/docs/STORE_RELEASE_NOTES_1.0.15.zh-TW.md)、[繪圖流程](../../../windows/docs/DRAWING_WORKFLOW_2026-10-15.zh-TW.md)、[八項修整](../../../windows/docs/CANVAS_UI_REFINEMENT_2026-10-15.zh-TW.md)、[板擦入口與鏡像](../../../windows/docs/BOARD_ERASER_ENTRY_MIRROR_2026-10-15.zh-TW.md)。

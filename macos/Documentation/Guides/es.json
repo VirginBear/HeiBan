@@ -15,7 +15,8 @@
       "id": "start",
       "title": "Primeros pasos",
       "paragraphs": [
-        "Use + en Inicio para crear un cuaderno, lienzo infinito o pizarra limitada; elija título, tamaño y fondo. Abra una tarjeta y organice con búsqueda, favoritos, selección múltiple y Papelera. Los ajustes nuevos desactivan el guardado automático; se conservan las preferencias anteriores."
+        "Use + en Inicio para crear un cuaderno, lienzo infinito o pizarra limitada; elija título, tamaño y fondo. Abra una tarjeta y organice con búsqueda, favoritos, selección múltiple y Papelera. Los ajustes nuevos desactivan el guardado automático; se conservan las preferencias anteriores.",
+        "Abrir la guía conserva tu ejercicio. Crear uno nuevo genera otra obra y mantiene la anterior."
       ]
     },
     {
@@ -29,14 +30,16 @@
       "id": "workspace",
       "title": "Navegación y barras de herramientas",
       "paragraphs": [
-        "Arrastre el asa a cualquier lado. Más → Personalizar barra ofrece iconos o pestañas Frecuentes, Dibujar, Insertar y Organizar. Selección permanece visible; las flechas cambian grupos cuando falta espacio. Puede mostrar, ordenar, seleccionar todo, restablecer y elegir Frecuentes por separado. Las herramientas ocultas siguen en Más. También puede mover la pestaña Propiedades."
+        "Arrastre el asa a cualquier lado. Más → Personalizar barra ofrece iconos o pestañas Frecuentes, Dibujar, Insertar y Organizar. Selección permanece visible; las flechas cambian grupos cuando falta espacio. Puede mostrar, ordenar, seleccionar todo, restablecer y elegir Frecuentes por separado. Las herramientas ocultas siguen en Más. También puede mover la pestaña Propiedades.",
+        "La barra horizontal se coloca un poco a la izquierda del centro según el ancho de Dibujar y conserva el borde izquierdo al cambiar de página. Ambos lienzos comparten páginas, estilo y desplazamiento."
       ]
     },
     {
       "id": "brush",
       "title": "Lápiz y pinceles",
       "paragraphs": [
-        "El círculo de color abre pincel, color, Hex, recientes, grosor y opacidad. Con selección cambia estilos compatibles; sin selección configura trazos futuros. La muestra sigue el zoom. Mantenga un trazo casi recto quieto un segundo para enderezarlo. El láser se configura desde su botón y su rastro no se guarda."
+        "El círculo de color abre pincel, color, Hex, recientes, grosor y opacidad. Con selección cambia estilos compatibles; sin selección configura trazos futuros. La muestra sigue el zoom. Mantenga un trazo casi recto quieto un segundo para enderezarlo. El láser se configura desde su botón y su rastro no se guarda.",
+        "El láser usa un contorno continuo y suave con resplandor. El tamaño del punto, el ancho del rastro y la duración se ajustan por separado."
       ]
     },
     {
@@ -64,7 +67,9 @@
       "id": "eraser",
       "title": "Borrador",
       "paragraphs": [
-        "Borrador ofrece objeto o parte del trazo, con alcance antes de pulsar. Imágenes, texto, notas y objetos bloqueados se protegen. En el lienzo normal, el borrador inclinado sigue la silueta reflejada de su imagen. Clic derecho cambia modo u oculta; Más lo vuelve a mostrar. Un arrastre es un deshacer; Esc cancela. El borrado parcial corta vectores, no píxeles de imágenes."
+        "Borrador ofrece objeto o parte del trazo, con alcance antes de pulsar. Imágenes, texto, notas y objetos bloqueados se protegen. En el lienzo normal, el borrador inclinado sigue la silueta reflejada de su imagen. Clic derecho cambia modo u oculta; Más lo vuelve a mostrar. Un arrastre es un deshacer; Esc cancela. El borrado parcial corta vectores, no píxeles de imágenes.",
+        "El borrado se previsualiza al arrastrar y se confirma al soltar en un solo paso de deshacer. Esc o cambiar herramienta u obra cancela el borrado pendiente.",
+        "Dibujar → Borrador de pizarra muestra u oculta el borrador físico. También está en los ajustes de borrado y Más. Arrástralo en ambos lienzos."
       ]
     },
     {
@@ -78,7 +83,8 @@
       "id": "screen",
       "title": "Lienzo de pantalla",
       "paragraphs": [
-        "Lienzo de pantalla en Inicio abre una capa transparente sobre otras apps. ⌘⌥⇧D alterna dibujo/paso de clics, ⌘⌥⇧S captura y ⌘⌥⇧X sale. Comparte herramientas y preferencias, excepto pines y navegación de vista. Acóplelo en cualquier lado. Vaciar no cierra y admite deshacer; T escribe. No se garantiza cubrir pantallas protegidas del sistema."
+        "Lienzo de pantalla en Inicio abre una capa transparente sobre otras apps. ⌘⌥⇧D alterna dibujo/paso de clics, ⌘⌥⇧S captura y ⌘⌥⇧X sale. Comparte herramientas y preferencias, excepto pines y navegación de vista. Acóplelo en cualquier lado. Vaciar no cierra y admite deshacer; T escribe. No se garantiza cubrir pantallas protegidas del sistema.",
+        "La barra de pantalla adopta la apariencia y el tamaño por página de la barra normal, con controles adicionales de dibujo/interacción y salida. En los laterales se dispone verticalmente; los iconos se desplazan si falta espacio."
       ]
     },
     {
@@ -92,7 +98,7 @@
       "id": "status",
       "title": "Alcance y límites",
       "paragraphs": [
-        "Mac 1.0.15 usa SwiftUI/AppKit nativos. Se compiló, pero no se hicieron pruebas automáticas ni interactivas de esta tanda. Revise fuentes y compatibilidad de diapositivas, traducciones largas, monitores y lápices reales. Google/nube, colaboración y prototipos de notas estructuradas no son funciones entregadas completas. Compartir versión no demuestra paridad total."
+        "Mac 1.0.16 usa SwiftUI/AppKit nativos. Se compiló, pero no se hicieron pruebas automáticas ni interactivas de esta tanda. Revise fuentes y compatibilidad de diapositivas, traducciones largas, monitores y lápices reales. Google/nube, colaboración y prototipos de notas estructuradas no son funciones entregadas completas. Compartir versión no demuestra paridad total."
       ]
     }
   ]
