@@ -90,3 +90,7 @@ x64免安裝 `ink-pipeline-2026-10-23-r1` 已完成，來源`05920d7ebbed2d2665f
 - `windows/docs/INK_PIPELINE_2026-10-23.zh-TW.md`
 - `windows/docs/INK_STORAGE_CONTRACT_2026-10-23.zh-TW.md`
 - `windows/docs/ISSUE_HISTORY.zh-TW.md`
+
+## GitHub 同步排解
+
+首次公開push遭fetch-first拒絕：遠端已有6個macOS／共用索引提交，最新fc83473。先fetch並以`git diff --name-only HEAD...origin/main -- windows`確認Windows沒有遠端修改，再用普通merge保留兩側歷史（merge 69b263193f71c3efba7538788d0ad674d1291258），沒有force push／重寫Mac工作。Windows來源與試用包對應仍是05920d7；合併後另逐SHA確認184份封裝來源不變。三份既有YouTube未提交差異仍為6／8／4行，三份新文件保留。
