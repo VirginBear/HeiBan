@@ -1,0 +1,28 @@
+{
+  "label": "ink-pipeline-2026-10-23-r1",
+  "version": "1.0.16",
+  "runtime": "win-x64",
+  "sourceCommit": "05920d7ebbed2d2665f1d343bc3e5edc7ab3b6dc",
+  "zip": "windows/dist/trials/HeiBan-Windows-Portable-1.0.16-ink-pipeline-2026-10-23-r1-win-x64.zip",
+  "bytes": 132876728,
+  "sha256": "6b2ac83bb81198f160d35743197264122288ad8bc894a0d870c0cbdbf2c62712",
+  "payloadFilesChecked": 585,
+  "sourceFilesChecked": 184,
+  "archiveFiles": 587,
+  "zipUserDataFiles": 0,
+  "zipCrcAndPayloadShaMatch": true,
+  "peArchitecture": "x64",
+  "preservedStoreFiles": 36,
+  "storeFilesUnchanged": true,
+  "dataHandoff": {
+    "files": 52,
+    "bytes": 24830676,
+    "allSha256Match": true,
+    "originalRetained": true
+  },
+  "appExecuted": false,
+  "implementationTestsExecuted": false,
+  "performanceCaptured": false,
+  "storeRepackaged": false,
+  "formalVersionIncremented": false
+}

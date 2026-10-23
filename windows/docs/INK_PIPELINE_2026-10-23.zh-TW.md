@@ -55,3 +55,38 @@
 ## 未執行
 
 App 啟動、實作測試、實機性能採樣、Store 上傳／送審／發布未執行。未宣稱已達小畫家手感或零延遲。
+
+## 免安裝交付
+
+x64免安裝 `ink-pipeline-2026-10-23-r1` 已完成，來源`05920d7ebbed2d2665f1d343bc3e5edc7ab3b6dc`，ZIP 132876728bytes／SHA256 `6b2ac83bb81198f160d35743197264122288ad8bc894a0d870c0cbdbf2c62712`。585 payload／184 source SHA及ZIP CRC核同，ZIP使用者Data=0。確認無HeiBan程序後接續52檔／24830676bytes作品設定，原與新逐SHA相同；原資料夾保留。36份Store檔SHA不變。App／實作測試／新性能採樣未執行，待使用者實機；未重包／提交Store。
+
+- 執行既有 Package-PortableTrial.ps1 -Runtime win-x64 -Label ink-pipeline-2026-10-23-r1；App／Updater publish均成功。原始封裝紀錄：`.build/portable-trial-a3c03348071747a78f0aa31bf76efb07`。
+- 產物路徑：`windows/dist/trials/HeiBan-Windows-Portable-1.0.16-ink-pipeline-2026-10-23-r1-win-x64.zip`，解壓資料夾同名；直接啟動其中 HeiBan.exe。ZIP空Data，本機解壓資料夾已接續作品；不包含作品的ZIP與本機Data交接分開。
+- inspect_delivery.py僅讀ZIP／來源／PE／Store SHA與資料複製核同，不啟動程式。初次Path.with_suffix將1.0.16版號誤當副檔名；改附加.zip。copy2遇長Trash路徑失敗，來源未動；改extended-length前綴並只續拷已核同的來源檔，完整枚舉後52檔24830676bytes核同。初次普通路徑枚舉35檔381306bytes會漏長路徑，已明確更正，最終報告以52檔為準。
+- 原未發布試用與Data暫保留供本批實機比較；沒有為節省空間刪原資料或既有Store成品。
+- [完整產物紀錄](INK_PIPELINE_ARTIFACT_2026-10-23.json)。本批未發布GitHub Release、未進版、未製作新Store包；舊1.0.16.0商店包不含本次新source。
+
+## 本批來源提交變更檔案
+
+- `windows/HeiBan.Windows.Core/Diagnostics/InputLatencyTrace.cs`
+- `windows/HeiBan.Windows.Core/Engine/CurvePreview.cs`
+- `windows/HeiBan.Windows.Core/Engine/DocumentSnapshot.cs`
+- `windows/HeiBan.Windows.Core/Engine/EditorSession.cs`
+- `windows/HeiBan.Windows.Core/Engine/VectorMath.cs`
+- `windows/HeiBan.Windows.Core/Models/BoardModels.cs`
+- `windows/HeiBan.Windows/Engine/Direct2DCanvasRenderer.WetInk.cs`
+- `windows/HeiBan.Windows/Engine/Direct2DCanvasRenderer.cs`
+- `windows/HeiBan.Windows/Engine/WindowsInkCoordinator.cs`
+- `windows/HeiBan.Windows/MainWindow.Input.cs`
+- `windows/HeiBan.Windows/MainWindow.Rendering.cs`
+- `windows/HeiBan.Windows/MainWindow.Teaching.cs`
+- `windows/HeiBan.Windows/ScreenAnnotation/NativeOverlayWindow.Readback.cs`
+- `windows/HeiBan.Windows/ScreenAnnotation/NativeOverlayWindow.cs`
+- `windows/HeiBan.Windows/ScreenAnnotation/ScreenAnnotationWindow.cs`
+- `windows/docs/ARCHITECTURE.zh-TW.md`
+- `windows/docs/CURRENT_STATUS.zh-TW.md`
+- `windows/docs/DECISIONS.zh-TW.md`
+- `windows/docs/DEVELOPMENT_LOG.zh-TW.md`
+- `windows/docs/INK_PIPELINE_2026-10-23.zh-TW.md`
+- `windows/docs/INK_STORAGE_CONTRACT_2026-10-23.zh-TW.md`
+- `windows/docs/ISSUE_HISTORY.zh-TW.md`

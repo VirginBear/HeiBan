@@ -4,6 +4,8 @@
 
 使用者先提出小畫家式分工，後提供另一AI分析並要求直接編寫。先確認兩畫布原已在放開後建物件，校正「每幀全建曲線／每事件建InputCursor」等過度推論，再減輕輸入、預覽與收筆。延後Points getter編碼前同時修snapshot深拷貝、歷史估算與cache key，避免半套lazy破壞保存。系統dotnet無SDK退出1，改用既有本機SDK；首輪59.90秒0error／2warning，修in參數後27.90秒0warning0error。未啟動App或執行測試。 [本批日誌](INK_PIPELINE_2026-10-23.zh-TW.md)。
 
+x64免安裝 `ink-pipeline-2026-10-23-r1` 已完成，來源`05920d7ebbed2d2665f1d343bc3e5edc7ab3b6dc`，ZIP 132876728bytes／SHA256 `6b2ac83bb81198f160d35743197264122288ad8bc894a0d870c0cbdbf2c62712`。585 payload／184 source SHA及ZIP CRC核同，ZIP使用者Data=0。確認無HeiBan程序後接續52檔／24830676bytes作品設定，原與新逐SHA相同；原資料夾保留。36份Store檔SHA不變。App／實作測試／新性能採樣未執行，待使用者實機；未重包／提交Store。 [產物紀錄](INK_PIPELINE_ARTIFACT_2026-10-23.json)。
+
 ## 2026-10-22 — Store 1.0.16.0更新包完成（待使用者上傳）
 
 開工保留三份平台文件18行YouTube原未提交內容及三份YouTube新文件。先查1.0.15.0舊包、manifest／StoreIdentity／csproj，依專案規則取得使用者明確版號確認後才改1.0.16／1.0.16.0。建立舊產物SHA快照，十語指南status同步新版；準備十語版本說明，使用既有Package-Store.ps1正式雙架構封裝入口。 [本批日誌](STORE_RELEASE_1.0.16_2026-10-22.zh-TW.md)。
