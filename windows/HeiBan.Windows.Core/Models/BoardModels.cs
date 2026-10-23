@@ -129,7 +129,14 @@ public sealed class BoardObject
     private double _x,_y,_width,_height,_previewOffsetX,_previewOffsetY,_strokeWidth=2;
     private string? _type="stroke",_extension;
     // Immutable payload strings are shared; mutable collections belong to this snapshot.
-    internal BoardObject Snapshot() { var copy=(BoardObject)MemberwiseClone();copy._parsedPoints=null;copy.PreviewOffsetX=copy.PreviewOffsetY=0;copy.RichTextSpans=RichTextSpans?.Select(span=>span.Snapshot()).ToList();copy.ExtraFields=Engine.DocumentSnapshot.CopyFields(ExtraFields);return copy; }
+    internal BoardObject Snapshot()
+    {
+        var copy=(BoardObject)MemberwiseClone();
+        // Unencoded ink must be isolated too: a worker/undo snapshot must not own
+        // the live editor's mutable samples. Encoding is deferred to file exchange.
+        copy._parsedPoints=_pointsPendingEncoding?_parsedPoints?.Select(point=>point.Snapshot()).ToList():null;
+        copy.PreviewOffsetX=copy.PreviewOffsetY=0;copy.RichTextSpans=RichTextSpans?.Select(span=>span.Snapshot()).ToList();copy.ExtraFields=Engine.DocumentSnapshot.CopyFields(ExtraFields);return copy;
+    }
 
     // Matches the existing Mac v1 optional name field; identifiers remain unchanged.
     [JsonPropertyName("name")]
@@ -178,30 +185,52 @@ public sealed class BoardObject
     /// 筆跡點 JSON 字串 (序列化之 Point[] 陣列，含座標與壓感)
     /// </summary>
     [JsonPropertyName("points")]
-    public string? Points { get => _points; set { _points = value; _parsedPoints = null; } }
+    public string? Points
+    {
+        // Preserve the v1 embedded JSON-string contract at serialization/export
+        // boundaries. Drawing, undo accounting and geometry keys never read it.
+        get
+        {
+            if(_pointsPendingEncoding)
+            {
+                using var trace=Diagnostics.InputLatencyTrace.Measure(Diagnostics.InputStage.InkEncode);
+                _points=JsonSerializer.Serialize(_parsedPoints,Engine.DocumentCodec.Options);_pointsPendingEncoding=false;
+            }
+            return _points;
+        }
+        set { _points=value;_parsedPoints=null;_pendingPointBytes=0;_pointsPendingEncoding=false; }
+    }
     [JsonIgnore] public double PreviewOffsetX { get=>_previewOffsetX; internal set=>SetBoundsValue(ref _previewOffsetX,value); }
     [JsonIgnore] public double PreviewOffsetY { get=>_previewOffsetY; internal set=>SetBoundsValue(ref _previewOffsetY,value); }
     private string? _points;
     private List<InkPoint>? _parsedPoints;
+    private long _pendingPointBytes;
+    private bool _pointsPendingEncoding;
+    [JsonIgnore] public object PointsCacheKey => (object?)_parsedPoints??_points??string.Empty;
+    [JsonIgnore] internal string? EncodedPoints => _points;
+    [JsonIgnore] internal bool HasStoredPoints => _points is not null||_pointsPendingEncoding;
+    [JsonIgnore] internal long EstimatedPointBytes => _points is null?_pendingPointBytes:24+_points.Length*2L;
     public void SetCompletedInkPoints(IReadOnlyList<InkPoint> points)
     {
-        // Own a copy before the pointer collector clears/reuses its list. Keep
-        // the serialized contract and render cache together, avoiding an
-        // immediate JSON parse of the points we have just collected.
+        // Own samples before the collector reuses its list. Do not turn them
+        // into JSON while the UI needs to accept the next stroke.
         var owned=points.Select(point=>point.Snapshot()).ToList();
         SetOwnedInkPoints(owned);
     }
     internal void SetOwnedInkPoints(List<InkPoint> owned)
     {
-        // Eraser fragments are new lists already owned by the isolated session.
-        // Transfer them without another per-point clone; snapshots retain only
-        // the immutable JSON and never expose this list to the render/UI owner.
-        var encoded=JsonSerializer.Serialize(owned,Engine.DocumentCodec.Options);
-        Points=encoded;_parsedPoints=owned;
+        // Eraser fragments already own their samples. Snapshot() deep-copies an
+        // unencoded list, preserving worker/undo isolation and unknown fields.
+        _points=null;_parsedPoints=owned;_pointsPendingEncoding=true;
+        // Conservative history budgeting without reflection/serialization per
+        // sample on every pen-up. Include extension payloads, which can be large.
+        _pendingPointBytes=32+owned.Count*512L;
+        foreach(var point in owned)if(point.ExtraFields is { } fields)
+            foreach(var field in fields)_pendingPointBytes+=64+field.Key.Length*2L+field.Value.GetRawText().Length*2L;
     }
     [JsonIgnore]
-    public IReadOnlyList<InkPoint> ParsedPoints => _parsedPoints ??= string.IsNullOrWhiteSpace(Points)
-        ? [] : JsonSerializer.Deserialize<List<InkPoint>>(Points) ?? [];
+    public IReadOnlyList<InkPoint> ParsedPoints => _parsedPoints ??= string.IsNullOrWhiteSpace(_points)
+        ? [] : JsonSerializer.Deserialize<List<InkPoint>>(_points) ?? [];
     [JsonIgnore]
     public bool IsErasable => Type is "stroke" or "pen" or "highlighter" or "paint" or "curve"
         or "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "line" or "arrow" or "star" or "pentagon" or "arc" or "tape";

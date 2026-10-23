@@ -1,5 +1,9 @@
 # Windows 目前開發狀態
 
+## 2026-10-23 — 畫筆即時預覽與收筆分離（x64編譯成功，待實機）
+
+Windows來源維持1.0.16／1.0.16.0。自由筆移動走收樣／Invalidate短路，solid wet每幀只追加已固定段；最後實線可沿用GPU預覽接背景。收筆點列延後JSON，snapshot／估算／geometry key配合隔離；保留同步永久物件與逐筆Undo。無邊界clip與高頻狀態更新減少，雷射／停筆timer按需；screen native IBuffer重用，仍有GPU回讀。最終x64 build27.90秒、0warning0error；App／測試／性能採樣未執行，待獨立試用與使用者實機。 [本批日誌](INK_PIPELINE_2026-10-23.zh-TW.md)。
+
 ## 2026-10-22 — Store 1.0.16.0更新包完成（待使用者上傳）
 
 商店上傳包`dist/store/HeiBan-Store-1.0.16.0-x64-arm64.msixbundle`已完成，196597450bytes／SHA256 `57080fb301f2557bae8977f863877c7b91a40bae4eabed96f6f4813c9040e0be`，來源fa2582325c90483185e09f5d1583e48dc6106e16。x64／ARM64建置耗時00:01:55.58／00:01:47.10，各0warning0error；281來源SHA、ZIP CRC、套件身分／架構／內含包SHA、十語手冊／指南與42個targetsize圖示核同，兩架構實際resources.pri識別深／淺色unplated。原12份舊Store套件及28份歷史檔SHA均不變。未執行App／實作測試／WACK或Store安裝升級；助手未上傳／送審／發布。 [本批日誌](STORE_RELEASE_1.0.16_2026-10-22.zh-TW.md)。

@@ -12,7 +12,24 @@ public partial class MainWindow
     private void InitializeTeachingTools()
     {
         LoadTeachingSettings();
-        _laserTimer.Tick+=(_,_)=>{if(_tool=="pen"&&_ink.TrySnapStraight(_viewport.Zoom)){_renderer.ResetLive();InvalidateCanvas(false);}if(_laser.Samples.Count==0)return;_laser.Prune(LaserNow);if(_workspaceOpen)InvalidateCanvas(false);};_laserTimer.Start();
+        _laserTimer.Tick+=(_,_)=>
+        {
+            if(_tool=="pen"&&_ink.TrySnapStraight(_viewport.Zoom)){_renderer.ResetLive();InvalidateCanvas(false);}
+            if(_laser.Samples.Count>0){_laser.Prune(LaserNow);if(_workspaceOpen)InvalidateCanvas(false);}
+            UpdateTeachingTimer();
+        };
+    }
+    private void UpdateTeachingTimer()
+    {
+        var laser=_laser.Samples.Count>0;
+        if(laser||(_workspaceOpen&&_tool=="pen"&&_ink.IsDrawing&&!_ink.IsStraight&&_ink.Projection is null))
+        {
+            // A one-second hold does not need a permanent 60 Hz UI wake-up.
+            var interval=TimeSpan.FromMilliseconds(laser?16:100);
+            if(_laserTimer.Interval!=interval)_laserTimer.Interval=interval;
+            if(!_laserTimer.IsEnabled)_laserTimer.Start();
+        }
+        else _laserTimer.Stop();
     }
     private async void ClearPage()
     {

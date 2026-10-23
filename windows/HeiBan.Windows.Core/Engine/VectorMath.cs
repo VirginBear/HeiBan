@@ -103,7 +103,7 @@ public static class VectorMath
         }
 
         // 若為筆跡類物件，執行高精度分段線段距離判定
-        if (obj.Type is "stroke" or "pen" or "highlighter" or "paint" or "curve" && !string.IsNullOrEmpty(obj.Points))
+        if (obj.Type is "stroke" or "pen" or "highlighter" or "paint" or "curve" && obj.ParsedPoints.Count>0)
         {
             try
             {

@@ -121,6 +121,7 @@ public sealed class EditorSession
         if(HasTransaction||_previewMoves.Count!=0)throw new InvalidOperationException("Complete or cancel the current transaction before appending ink.");
         if(item.Type is not("stroke" or "pen" or "highlighter" or "paint" or "line"))throw new ArgumentException("Only completed ink or its held-line result can use this transaction.",nameof(item));
         var added=Add(item);SelectedId=null;
+        using var trace=global::HeiBan.Windows.Diagnostics.InputLatencyTrace.Measure(global::HeiBan.Windows.Diagnostics.InputStage.InkSnapshot);
         var snapshot=DocumentCodec.Clone(added);
         _undo.Add(new(null,DocumentSnapshot.EstimatedBytes(snapshot),snapshot,Document.Objects.Count-1));
         _redo.Clear();Trim(_undo);Generation++;return added;

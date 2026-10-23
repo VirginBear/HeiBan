@@ -28,7 +28,6 @@ public partial class MainWindow
         if(sceneChanged)_sceneDirty=true;
         if(_canvasInvalidated)return;
         _canvasInvalidated=true;
-        UpdateSaveStatusLight(StatusText.Text);
         CanvasSurface.Invalidate();
     }
     private void ClearScene()
@@ -55,12 +54,13 @@ public partial class MainWindow
                 var board=sceneSession.Document.Board;
                 if(!append)_renderer.RenderBackground(drawing,board,_viewport,width,height);
                 var clip=board.CanvasMode=="infinite"?new Rect(0,0,width,height):new Rect(_viewport.X,_viewport.Y,(board.CanvasWidth??595)*_viewport.Zoom,(board.CanvasHeight??842)*_viewport.Zoom);
-                using(var layer=drawing.CreateLayer(1,clip))
+                using(var layer=board.CanvasMode=="infinite"?null:drawing.CreateLayer(1,clip))
                 {
-                    if(append)_renderer.RenderObjects(drawing,_pendingInkScene,_viewport,width,height);
+                    if(append)foreach(var ink in _pendingInkScene)_renderer.RenderAppendedInk(drawing,ink,_viewport,width,height);
                     else _renderer.RenderObjects(drawing,sceneSession.DrawingObjects,_viewport,width,height);
                 }
             }
+            _renderer.DiscardCompletedWetInk();
             _sceneKey=key;_sceneDirty=false;_pendingInkScene.Clear();if(!append)_sceneBuilds++;
         }
         // Hover, live ink, lasso, ruler and laser are drawn above the committed scene, preserving its object order.

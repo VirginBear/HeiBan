@@ -54,12 +54,12 @@ public partial class MainWindow
     private void CanvasSurface_Draw(CanvasControl sender,CanvasDrawEventArgs e)
     {
         using var trace=InputLatencyTrace.Measure(InputStage.CanvasDraw);
-        _canvasInvalidated=false;UpdateSaveStatusLight(StatusText.Text);
+        _canvasInvalidated=false;if(!_ink.IsDrawing)UpdateSaveStatusLight(StatusText.Text);
         var ds=e.DrawingSession;var w=(float)sender.ActualWidth;var h=(float)sender.ActualHeight;
         RenderMainScene(sender,ds,w,h);
         var board=_session.Document.Board;
         var clip=board.CanvasMode=="infinite"?new Rect(0,0,w,h):new Rect(_viewport.X,_viewport.Y,(board.CanvasWidth??595)*_viewport.Zoom,(board.CanvasHeight??842)*_viewport.Zoom);
-        using(var layer=ds.CreateLayer(1,clip))
+        using(var layer=board.CanvasMode=="infinite"?null:ds.CreateLayer(1,clip))
         {
             if(_preview is not null)_renderer.RenderPreview(ds,_preview,_viewport,w,h);
             if(_ink.IsDrawing)_renderer.RenderWetInk(ds,_ink.ActiveStrokePoints,_viewport,_strokeColor,EffectiveWidth,_opacity,CurrentStyle.Dash,new Size(w,h));
@@ -107,7 +107,7 @@ public partial class MainWindow
         if(MagnetSnapIndex.SupportsConstructionTool(_tool))_start=_lastWorld=SnapDrawingPoint(_start!);
         _panning=p.Properties.IsMiddleButtonPressed || KeyIsDown(VirtualKey.Space) || _readingMode;
         _gesture=true;CanvasSurface.CapturePointer(e.Pointer);
-        if(_tool=="laser"){_panning=false;_laser.Add(_start,LaserNow);InvalidateCanvas();e.Handled=true;return;}
+        if(_tool=="laser"){_panning=false;_laser.Add(_start,LaserNow);UpdateTeachingTimer();InvalidateCanvas(false);e.Handled=true;return;}
         if(_panning){if(_viewLocked)_panning=false;e.Handled=true;return;}
         if(_tool=="lasso"){_lasso.Clear();_lasso.Add(_start);e.Handled=true;return;}
         if(_rulerEnabled&&RulerPivotHit(screen)){_rulerPivotMoving=true;e.Handled=true;return;}
@@ -161,6 +161,7 @@ public partial class MainWindow
         {
             LatchRuler(screen);_ink.Projection=_snapEdge is not null?ProjectOnRuler:null;
             _ink.ProcessPointerDown(p,_viewport);
+            UpdateTeachingTimer();
         }
         else if(_tool=="eraser")BeginCircularEraser(_start);
         else if(_tool is "text" or "sticky")
@@ -210,9 +211,17 @@ public partial class MainWindow
             if(_gesture&&p.PointerId==_pointerId){using var eraserTrace=InputLatencyTrace.Measure(InputStage.EraserMove);eraser.Queue(_viewport.ScreenToWorld(_mouse.X,_mouse.Y));}
             InvalidateCanvas(false);e.Handled=true;return;
         }
-        UpdateShapeCursor();
+        // Once captured, freehand samples need only collection and a coalesced
+        // paint request. Handle hit tests, DPI/cursors and world deltas belong
+        // to manipulation tools, not the high-frequency ink path.
+        if(_gesture&&p.PointerId==_pointerId&&_ink.IsDrawing)
+        {
+            _ink.ProcessPointerUpdate(e.GetIntermediatePoints(CanvasSurface),_viewport);
+            InvalidateCanvas(false);e.Handled=true;return;
+        }
+        if(_tool=="select")UpdateShapeCursor();
         if(!_gesture&&MagnetSnapIndex.SupportsConstructionTool(_tool)){EnsureMagnetIndex();SnapDrawingPoint(_viewport.ScreenToWorld(_mouse.X,_mouse.Y));InvalidateCanvas(false);}
-        if(_tool=="laser"){_laser.Add(_viewport.ScreenToWorld(_mouse.X,_mouse.Y),LaserNow);InvalidateCanvas(false);return;}
+        if(_tool=="laser"){_laser.Add(_viewport.ScreenToWorld(_mouse.X,_mouse.Y),LaserNow);UpdateTeachingTimer();InvalidateCanvas(false);return;}
         if(_tool=="lasso"&&_gesture){var lp=_viewport.ScreenToWorld(_mouse.X,_mouse.Y);if(_lasso.Count==0||Math.Sqrt(Math.Pow(lp.X-_lasso[^1].X,2)+Math.Pow(lp.Y-_lasso[^1].Y,2))>2/_viewport.Zoom)_lasso.Add(lp);InvalidateCanvas(false);return;}
         if(!_gesture||p.PointerId!=_pointerId)
         {
@@ -362,6 +371,7 @@ public partial class MainWindow
                 if(_tool=="pen"&&_ink.IsStraight&&points.Count==2){o.Type="line";o.Points=null;ObjectHandles.SetEndpoints(o,points[0],points[1]);}
                 var previousGeneration=_session.Generation;
                 _session.AppendInk(o);AppendInkMagnetReferences(o,previousGeneration);QueueInkScene(o,previousGeneration);
+                if(o.Type is "stroke" or "highlighter" or "paint")_renderer.QueueCompletedWetInk(o,points);
             }
             ResetGesture();CanvasSurface.ReleasePointerCaptures();RefreshAfterInk();e.Handled=true;return;
         }
@@ -384,7 +394,7 @@ public partial class MainWindow
         else ShapeConstruction.Drag(_preview,_start,world);
     }
     private static InkPoint ConstrainLine(InkPoint anchor,InkPoint point)=>KeyIsDown(VirtualKey.Shift)?ObjectHandles.ConstrainOrthogonal(anchor,point):point;
-    private void ResetGesture(){HideHUD();_renderer.ResetLive();_gesture=_panning=_rulerMoving=_rulerRotating=_rulerPivotMoving=_shapeGesture=_lineCompleting=_marquee=false;_compassCenterMoving=_compassCenterMoved=_compassRadiusMoving=_compassPencilMoving=false;_objectHandle=null;_manipulationStart=null;_movingPin=null;_snapEdge=null;_ink.Projection=null;_magnetTarget=null;if(_hover)UpdateShapeCursor();else ResetShapeCursor();}
+    private void ResetGesture(){HideHUD();_renderer.ResetLive();_gesture=_panning=_rulerMoving=_rulerRotating=_rulerPivotMoving=_shapeGesture=_lineCompleting=_marquee=false;_compassCenterMoving=_compassCenterMoved=_compassRadiusMoving=_compassPencilMoving=false;_objectHandle=null;_manipulationStart=null;_movingPin=null;_snapEdge=null;_ink.Projection=null;_magnetTarget=null;UpdateTeachingTimer();if(_hover)UpdateShapeCursor();else ResetShapeCursor();}
     private void CancelGesture(){CancelCircularEraser();var changed=_session.HasTransaction;_lasso.Clear();_laser.Clear();HideHUD();_ink.Cancel();_session.Cancel();_preview=null;_lineAnchor=null;_compass.Prepare();ResetGesture();CanvasSurface.ReleasePointerCaptures();if(changed)RefreshProperties();InvalidateCanvas(changed);}
     private void CanvasSurface_PointerCanceled(object sender,PointerRoutedEventArgs e){HideHUD();if(_gesture)CancelGesture();}
     private void UpdateShapeCursor()

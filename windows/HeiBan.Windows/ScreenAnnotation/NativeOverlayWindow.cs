@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace HeiBan.Windows.ScreenAnnotation;
 
-internal sealed class NativeOverlayWindow : IDisposable
+internal sealed partial class NativeOverlayWindow : IDisposable
 {
     public readonly record struct PointerEvent(string Kind,double X,double Y,bool Shift=false);
     public event Action<PointerEvent>? Pointer;
@@ -48,7 +48,7 @@ internal sealed class NativeOverlayWindow : IDisposable
     }
     public bool RegisterShortcut(int id,uint modifiers,uint key)=>RegisterHotKey(_window,id,modifiers|0x4000,key);
     public void Show(bool drawing){SetDrawing(drawing);ShowWindow(_window,4);}
-    public void Hide()=>ShowWindow(_window,0);
+    public void Hide(){ShowWindow(_window,0);ReleaseReadback();}
     public void SetDrawing(bool value)
     {
         _drawing=value;
@@ -67,9 +67,11 @@ internal sealed class NativeOverlayWindow : IDisposable
         if(_disposed)return;
         if(x<0||y<0||width<=0||height<=0||x+width>Width||y+height>Height||bytes.Length!=checked(width*height*4))throw new ArgumentException("Overlay region does not match pixel dimensions.");
         fixed(byte* sourcePixels=bytes)
-        {
-            for(var row=0;row<height;row++)Buffer.MemoryCopy(sourcePixels+row*width*4,(byte*)_pixels+((y+row)*Width+x)*4,width*4,width*4);
-        }
+            CopyAndPresent(sourcePixels,x,y,width,height);
+    }
+    private unsafe void CopyAndPresent(byte* sourcePixels,int x,int y,int width,int height)
+    {
+        for(var row=0;row<height;row++)Buffer.MemoryCopy(sourcePixels+row*width*4,(byte*)_pixels+((y+row)*Width+x)*4,width*4,width*4);
         var destination=new Point {X=Left,Y=Top};var size=new Size {Width=Width,Height=Height};var source=new Point();
         var blend=new Blend {Operation=0,Alpha=255,Format=1};var dirty=new Rectangle{Left=x,Top=y,Right=x+width,Bottom=y+height};
         var info=new LayeredWindowInfo{Size=(uint)Marshal.SizeOf<LayeredWindowInfo>(),Destination=(nint)(&destination),Dimensions=(nint)(&size),SourceDc=_dc,Source=(nint)(&source),Blend=(nint)(&blend),Flags=2,Dirty=(nint)(&dirty)};
@@ -114,6 +116,7 @@ internal sealed class NativeOverlayWindow : IDisposable
     }
     private void ReleasePixels()
     {
+        ReleaseReadback();
         if(_oldBitmap!=0){SelectObject(_dc,_oldBitmap);_oldBitmap=0;}
         if(_bitmap!=0){DeleteObject(_bitmap);_bitmap=0;}
         if(_dc!=0){DeleteDC(_dc);_dc=0;}_pixels=0;

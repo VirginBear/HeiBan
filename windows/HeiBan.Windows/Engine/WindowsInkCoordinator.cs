@@ -12,6 +12,7 @@ public sealed class WindowsInkCoordinator
     private InkPoint? _holdAnchor;
     private double _holdSince;
     private bool _straight;
+    private int _straightCheckedCount=-1;
     private static double Now=>System.Diagnostics.Stopwatch.GetTimestamp()/(double)System.Diagnostics.Stopwatch.Frequency;
     public Func<InkPoint, InkPoint>? Projection { get; set; }
     public bool IsDrawing { get; private set; }
@@ -20,6 +21,8 @@ public sealed class WindowsInkCoordinator
     public bool TrySnapStraight(double zoom)
     {
         if(!IsDrawing||_straight||Projection is not null||_points.Count<5||Now-_holdSince<1)return false;
+        if(_straightCheckedCount==_points.Count)return false;
+        _straightCheckedCount=_points.Count;
         if(!StraightStrokeRecognizer.IsEligible(_points,zoom))return false;
         _straight=true;return true;
     }
@@ -27,7 +30,7 @@ public sealed class WindowsInkCoordinator
     {
         // Touch draws no ink; reserve it for navigation and ignore palm contacts during pen use.
         if (point.PointerDeviceType == PointerDeviceType.Touch || IsDrawing) return false;
-        _pointer = point.PointerId; _lastTimestamp = 0; _points.Clear(); IsDrawing = true;_straight=false;_holdAnchor=null;_holdSince=Now;
+        _pointer = point.PointerId; _lastTimestamp = 0; _points.Clear(); IsDrawing = true;_straight=false;_straightCheckedCount=-1;_holdAnchor=null;_holdSince=Now;
         Append(point, viewport); return true;
     }
     public void ProcessPointerUpdate(IEnumerable<PointerPoint> points, ViewportTransform viewport)

@@ -13,7 +13,8 @@ public static class DocumentSnapshot
     {
         typeof(HeiBanDocument),typeof(BoardMetadata),typeof(BoardObject),typeof(BoardPin),
         typeof(BoardPage),typeof(InkPoint),typeof(TextSpan)
-    }.ToDictionary(type=>type,type=>type.GetProperties().Where(p=>p.CanRead&&p.GetCustomAttribute<JsonIgnoreAttribute>() is null).ToArray());
+    }.ToDictionary(type=>type,type=>type.GetProperties().Where(p=>p.CanRead&&p.GetCustomAttribute<JsonIgnoreAttribute>() is null&&
+        !(type==typeof(BoardObject)&&p.Name==nameof(BoardObject.Points))).ToArray());
 
     // JsonElement is immutable; copying the dictionary isolates replacement/removal without duplicating payloads.
     internal static Dictionary<string,JsonElement>? CopyFields(Dictionary<string,JsonElement>? value)=>value is null?null:new(value);
@@ -24,6 +25,15 @@ public static class DocumentSnapshot
         if(left is null||right is null||left.GetType()!=right.GetType())return false;
         if(left is string||left.GetType().IsPrimitive||left.GetType().IsEnum)return left.Equals(right);
         if(left is JsonElement a&&right is JsonElement b)return a.Equals(b)||a.GetRawText()==b.GetRawText();
+        if(left is BoardObject ink&&right is BoardObject otherInk)
+        {
+            // Points is a lazy serialization boundary; comparing transactions
+            // must not force the editor's entire ink history to encode first.
+            if(ink.HasStoredPoints!=otherInk.HasStoredPoints)return false;
+            var samePoints=ink.EncodedPoints is { } encoded&&otherInk.EncodedPoints is { } otherEncoded
+                ?encoded==otherEncoded:EqualValue(ink.ParsedPoints,otherInk.ParsedPoints);
+            return samePoints&&Fields[typeof(BoardObject)].All(p=>EqualValue(p.GetValue(ink),p.GetValue(otherInk)));
+        }
         if(left is IDictionary dictionary&&right is IDictionary other)
         {
             if(dictionary.Count!=other.Count)return false;
@@ -54,7 +64,7 @@ public static class DocumentSnapshot
             if(value is IDictionary map){long size=64;foreach(DictionaryEntry e in map)size+=32+Count(e.Key)+Count(e.Value);return size;}
             if(value is IList list){long size=32+list.Count*8L;foreach(var item in list)size+=Count(item);return size;}
             if(!Fields.TryGetValue(value.GetType(),out var properties))return 16;
-            return 64+properties.Sum(p=>Count(p.GetValue(value)));
+            return 64+(value is BoardObject ink?ink.EstimatedPointBytes:0)+properties.Sum(p=>Count(p.GetValue(value)));
         }
         return Count(root);
     }

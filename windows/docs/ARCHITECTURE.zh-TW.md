@@ -1,5 +1,9 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-23 — 畫筆即時預覽與收筆分離（x64編譯成功，待實機）
+
+BoardObject新筆以獨佔點列待編碼；Points getter保留v1字串契約，null與extension data不改。未編碼Snapshot隔離點／未知欄位，DocumentSnapshot估算／比較及渲染／CurvePreview cache用記憶體資料而不觸發getter。main append可保留最後wet raster到下一Draw，generation／viewport失配或虛線回到原稿渲染。NativeOverlay保留IBufferByteAccess COM參考及位址，Win2D局部回讀後直接複製DIB，hide／resize／dispose釋放持有參考。 [本批日誌](INK_PIPELINE_2026-10-23.zh-TW.md)。
+
 ## 2026-10-22 — 常用清除、圖示與圓形橡皮擦（x64試用完成，待實機）
 
 CircularEraserGesture在host UI thread收集world點、發16ms單worker Task.Run、收隔離Document快照供Preview EditorSession繪製；BoardEraserWork新增circle radius overload，以radius/2間距掃過連續路徑。EditorSession.EraseChanged回報是否有改動；無命中不發布重畫快照。兩host完成後檢generation／epoch才安裝Objects並提交一筆Undo。ToolbarUi.Shapes共用9格描邊工廠；clearAll入screen catalog並避免同一XAML按鈕多父項。 [本批日誌](ERASER_TOOLBAR_ALIGNMENT_2026-10-22.zh-TW.md)。

@@ -357,7 +357,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             if(_screenEraserPointer is { } eraser)_renderer.RenderHover(ds,eraser,true,_eraserSize*_dpiScale,_viewport);
         }
         var x=(int)region.X;var y=(int)region.Y;var width=(int)region.Width;var height=(int)region.Height;
-        var pixels=_target.GetPixelBytes(x,y,width,height);_overlay.Present(pixels,x,y,width,height);_presentedBytes+=pixels.Length;_renderedFrames++;
+        _overlay.PresentBitmap(_target,x,y,width,height);_presentedBytes+=(long)width*height*4;_renderedFrames++;
         _dirty=false;_fullDamage=false;_damage=null;_lastLaserDamage=laserDamage;_lastEraserDamage=eraserDamage;_lastMagnetDamage=magnetDamage;
     }
     public void ApplySavingPreferences(){_saveTimer.Stop();if(_owner.AutoSaveEnabled&&IsActive&&!_stopping&&_session.IsDirty)_saveTimer.Start();}

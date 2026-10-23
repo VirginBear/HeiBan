@@ -5,13 +5,14 @@ namespace HeiBan.Windows.Engine;
 public static class CurvePreview
 {
     private sealed class Cache
-    {public string? Key;public IReadOnlyList<InkPoint> Points=[];public VectorMath.RectBounds Bounds;}
+    {public object? Key;public IReadOnlyList<InkPoint> Points=[];public VectorMath.RectBounds Bounds;}
     private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<BoardObject,Cache> Geometry=new();
     public static (IReadOnlyList<InkPoint> Points,VectorMath.RectBounds Bounds) ForObject(BoardObject o)
     {
         var cache=Geometry.GetOrCreateValue(o);
-        if(cache.Key!=o.Points||cache.Points.Count==0)
-        {cache.Key=o.Points;cache.Points=Flatten(o.ParsedPoints);cache.Bounds=VectorMath.ComputeBoundingBox(cache.Points,0);}
+        var points=o.ParsedPoints;var key=o.PointsCacheKey;
+        if(!Equals(cache.Key,key)||cache.Points.Count==0)
+        {cache.Key=key;cache.Points=Flatten(points);cache.Bounds=VectorMath.ComputeBoundingBox(cache.Points,0);}
         return(cache.Points,cache.Bounds);
     }
     // Identical Catmull-Rom control construction to the Win2D committed curve.

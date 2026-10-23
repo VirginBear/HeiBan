@@ -12,7 +12,7 @@ namespace HeiBan.Windows.Engine;
 /// <summary>Committed world-space geometry cache. Pointer previews never serialize points to JSON.</summary>
 public sealed partial class Direct2DCanvasRenderer : IDisposable
 {
-    private readonly Dictionary<string, (string Key, CanvasGeometry Geometry)> _geometry = [];
+    private readonly Dictionary<string, (object Key, CanvasGeometry Geometry)> _geometry = [];
     private readonly Dictionary<string, CanvasBitmap> _images = [];
     private readonly ObjectViewportCache _viewportCandidates=new();
     // Diagnostic/reference switch; production still falls back automatically for small/dense views.
@@ -22,7 +22,12 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
     private InkPoint? _liveFirst;
     private int _liveEnd;
     public void ResetLive()
-    {foreach(var geometry in _liveBlocks)geometry.Dispose();_liveBlocks.Clear();_liveEnd=0;_liveFirst=null;_wetFirst=null;ClearWetTail();}
+    {
+        foreach(var geometry in _liveBlocks)geometry.Dispose();_liveBlocks.Clear();_liveEnd=0;_liveFirst=null;
+        // A released stroke may still need its pixels appended to the scene.
+        // Input state can reset immediately without discarding that GPU preview.
+        if(_completedWetInk is null){_wetFirst=null;ClearWetTail();}
+    }
     public event Action? ResourcesChanged;
     public static Color HexToColor(string? hex, float opacity=1)
     {
@@ -139,8 +144,8 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
         if(o.Type is "stroke" or "pen" or "highlighter" or "paint" or "curve")
         {
             if(o.ParsedPoints.Count==1){var p=o.ParsedPoints[0];ds.FillCircle((float)p.X,(float)p.Y,(float)(o.StrokeWidth/2),stroke);return;}
-            var key=o.Points??"";
-            if(!_geometry.TryGetValue(o.Id,out var entry)||entry.Key!=key)
+            var key=o.PointsCacheKey;
+            if(!_geometry.TryGetValue(o.Id,out var entry)||!Equals(entry.Key,key))
             {
                 entry.Geometry?.Dispose(); var geometry=Path(ds,o.ParsedPoints,false,true);
                 if(geometry is null)return;entry=(key,geometry);_geometry[o.Id]=entry;
