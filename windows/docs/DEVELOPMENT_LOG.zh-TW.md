@@ -1,8 +1,10 @@
 # Windows 開發日誌
 
-## 2026-10-24 — 核准Store 1.0.17.0（封裝中）
+## 2026-10-24 — Store 1.0.17.0提交包完成（待使用者上傳）
 
 開工保存三份6／8／4行及YouTube原未提交內容；建立42份Store歷史檔SHA快照，取得使用者版號確認後同步csproj、Store manifest／Identity與十語指南版本，整理十語更新說明；沿用Package-Store正式封裝入口。 [本批日誌](STORE_RELEASE_1.0.17_2026-10-24.zh-TW.md)。
+
+正式商店包`dist/store/HeiBan-Store-1.0.17.0-x64-arm64.msixbundle`已完成，196654884bytes／SHA256 `f4caf4d9611ab901f236ec2640e0e0de2242d62f0b628ad48bbc7ec0f076ad78`，來源`1ebbeea2872ec2dbfcb61dd397e5a54fd15f21a8`。x64／ARM64建置56.80／59.69秒，均0warning0error；293來源SHA、兩架構manifest／十語資源／PRI／圖示與指南、ZIP CRC及內含包byte核同。42份舊Store檔（含18套件）SHA不變。未執行本批App／實作測試、安裝升級、WACK或性能採樣；未上傳、送審、發布。使用者可接續Partner Center上傳單一bundle。 [完整性核對](STORE_INSPECTION_1.0.17.0_2026-10-24.json)。
 
 ## 2026-10-24 — 筆刷單層捲動與目前工具色線
 

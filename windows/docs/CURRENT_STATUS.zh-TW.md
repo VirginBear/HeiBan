@@ -1,8 +1,10 @@
 # Windows 目前開發狀態
 
-## 2026-10-24 — 核准Store 1.0.17.0（封裝中）
+## 2026-10-24 — Store 1.0.17.0提交包完成（待使用者上傳）
 
 使用者明確確認採用1.0.17／1.0.17.0，準備正式x64＋ARM64商店包；累積主畫布直接呈現／輸入驅動擦除／平滑雷射／畫布恢復、共用常用色及工具列修整。沿用原Store身分與runFullTrust；前版產物保留，未自行上傳或送審。 [本批日誌](STORE_RELEASE_1.0.17_2026-10-24.zh-TW.md)。
+
+正式商店包`dist/store/HeiBan-Store-1.0.17.0-x64-arm64.msixbundle`已完成，196654884bytes／SHA256 `f4caf4d9611ab901f236ec2640e0e0de2242d62f0b628ad48bbc7ec0f076ad78`，來源`1ebbeea2872ec2dbfcb61dd397e5a54fd15f21a8`。x64／ARM64建置56.80／59.69秒，均0warning0error；293來源SHA、兩架構manifest／十語資源／PRI／圖示與指南、ZIP CRC及內含包byte核同。42份舊Store檔（含18套件）SHA不變。未執行本批App／實作測試、安裝升級、WACK或性能採樣；未上傳、送審、發布。使用者可接續Partner Center上傳單一bundle。 [完整性核對](STORE_INSPECTION_1.0.17.0_2026-10-24.json)。
 
 ## 2026-10-24 — 筆刷單層捲動與目前工具色線
 
