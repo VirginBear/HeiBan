@@ -113,7 +113,7 @@ internal sealed partial class ScreenAnnotationWindow
         var wheel=new ColorPicker{Color=Direct2DCanvasRenderer.HexToColor(StyleSelection?.StrokeColor??_color),Width=260,ColorSpectrumShape=ColorSpectrumShape.Ring,IsHexInputVisible=true,IsColorChannelTextInputVisible=false,IsAlphaEnabled=true};
         panel.Children.Add(new PaletteEditor(_owner.ProfilePalette,()=>$"#{wheel.Color.R:X2}{wheel.Color.G:X2}{wheel.Color.B:X2}{wheel.Color.A:X2}",c=>wheel.Color=Direct2DCanvasRenderer.HexToColor(c),wheel));
         wheel.ColorChanged+=(_,e)=>SetScreenColor($"#{e.NewColor.R:X2}{e.NewColor.G:X2}{e.NewColor.B:X2}{e.NewColor.A:X2}");panel.Children.Add(wheel);
-        panel.Children.Add(new TextBlock{Text=T("填色請使用工具列的填滿按鈕。"),FontSize=12});ShowChromeFlyout(new Flyout{Content=new ScrollViewer{Content=panel,MaxHeight=540,VerticalScrollBarVisibility=ScrollBarVisibility.Auto}},_paletteButton);
+        panel.Children.Add(new TextBlock{Text=T("填色請使用工具列的填滿按鈕。"),FontSize=12});ShowChromeFlyout(new Flyout{Content=panel},_paletteButton);
     }
 
     private System.Numerics.Vector2? _screenEraserPointer;

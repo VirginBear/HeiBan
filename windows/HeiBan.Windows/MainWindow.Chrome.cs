@@ -820,7 +820,7 @@ public partial class MainWindow
         _opacity = CurrentStyle.Opacity;
         _fillColor = CurrentStyle.Fill;
         if (_brushSwatch is not null) _brushSwatch.Fill = Brush(_strokeColor);
-        foreach(var (key,button) in _toolButtons)ToolbarUi.SetToolColor(button,key,_strokeColor);
+        foreach(var (key,button) in _toolButtons)ToolbarUi.SetToolColor(button,key,_strokeColor,_tool);
     }
 
     private void RefreshChrome()
@@ -829,7 +829,7 @@ public partial class MainWindow
         foreach (var (key, b) in _toolButtons)
         {
             ToolbarUi.LabelMode(b,key,_toolbarPrefs.DisplayMode=="labels",40);
-            ToolbarUi.SetToolColor(b,key,CurrentStyle.Color);
+            ToolbarUi.SetToolColor(b,key,CurrentStyle.Color,_tool);
             var active = (key=="magnet"&&_toolbarPrefs.MagnetEnabled) || (key=="layers"&&LayersPanel.Visibility==Visibility.Visible) || key == _tool || (key == "ruler" && _rulerEnabled) || (key == "compass" && _compass.IsEnabled) || (key == "shapes" && _tool is "line" or "arrow" or "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star");
             var color=Direct2DCanvasRenderer.HexToColor(active?"#DCEBDD":"#FCFCFA");
             if(b.Background is not SolidColorBrush current||current.Color!=color)b.Background=new SolidColorBrush(color);
@@ -1053,7 +1053,9 @@ public partial class MainWindow
         alpha.ValueChanged += (_, e) => { ChangeProperty(() => { if (_session.Selected is { } o) o.Opacity = e.NewValue; else { CurrentStyle.Opacity = e.NewValue; LoadActiveStyle(); } }); Sync(); };
         if (_rulerEnabled) { var b = new Button { Content = T("尺規角度與配色…") }; b.Click += (_, _) => ShowRulerSettings(anchor); panel.Children.Add(b); }
         Sync();
-        var flyout = new Flyout { Content = new ScrollViewer { Content = panel, MaxHeight = Math.Max(300, Root.ActualHeight - 100), VerticalScrollBarVisibility = ScrollBarVisibility.Auto } };
+        // WinUI FlyoutPresenter already owns the constrained ScrollViewer. Nesting
+        // another one gives this long brush panel two independent vertical bars.
+        var flyout = new Flyout { Content = panel };
         flyout.Closed += (_, _) => CommitPropertyEdit();
         ShowExclusiveFlyout(flyout, anchor);
     }

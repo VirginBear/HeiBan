@@ -18,14 +18,17 @@ internal static partial class ToolbarUi
             RowDefinitions.Add(new(){Height=GridLength.Auto});RowDefinitions.Add(new(){Height=GridLength.Auto});
             Icon.Content=icon;Children.Add(Icon);Grid.SetRow(_line,1);Children.Add(_line);
         }
-        internal void SetColor(string color)
+        internal void SetColor(string color,bool active)
         {
-            if(_color==color)return;_color=color;
+            // Reserve the same icon height, but only the active tool paints a color line.
+            _line.Opacity=active?1:0;
+            _line.IsHitTestVisible=false;
+            if(!active||_color==color)return;_color=color;
             // White/transparent colors remain bounded against the paper toolbar.
             var chip=PaletteEditor.Chip(color);chip.Width=22;chip.Height=4;_line.Child=chip;
         }
     }
-    internal static void SetToolColor(Button button,string key,string color)
+    internal static void SetToolColor(Button button,string key,string color,string activeTool)
     {
         if(!HasToolColor(key))return;
         var label=button.Content as StackPanel;
@@ -38,6 +41,6 @@ internal static partial class ToolbarUi
             indicator=new ColorIcon(icon);
             if(label is null)button.Content=indicator;else label.Children.Insert(0,indicator);
         }
-        indicator.SetColor(color);
+        indicator.SetColor(color,key==activeTool||(key=="shapes"&&ShapeTools.Any(shape=>shape.Key==activeTool)));
     }
 }

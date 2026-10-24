@@ -1,5 +1,10 @@
 # Windows 開發決策
 
+## 2026-10-24 — 單一捲動擁有者與活動色線
+
+筆刷／色盤Flyout的限高與捲動由原生FlyoutPresenter負責，Content不再嵌套另一ScrollViewer；其他視窗不作全域替換。ColorIcon以當前工具key與共用ShapeTools判斷活動筆色線，Opacity隱藏保留量測空間；非活動色線不重建chip。只更新Chrome狀態，不進入指標／Draw熱路徑，不改文件schema與獨立工具記色規則。 [日誌](BRUSH_FOCUS_2026-10-24.zh-TW.md)。
+
+
 ## 2026-10-24 — 共用profile色盤與工具筆色顯示
 
 移除材質名稱選單而保留BrushKind資料，避免有名稱但無效果的誤導；不重寫材質引擎，不改文件schema。色盤用獨立palette.json、不擴充會覆寫未知欄位的teaching.json；壞檔／未來版本保留原byte並停用增刪，空列表不自動重填。依本次要求將laser與select強制常駐，只補laser常用項；修正ToolbarPreferences手工複製DefaultCommonRevision遺漏。主／螢幕的實際筆色仍各走原樣式邏輯，不暗改獨立記色規則。 [日誌](BRUSH_PALETTE_IMPLEMENTATION_2026-10-24.zh-TW.md)。

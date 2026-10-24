@@ -1,5 +1,10 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-24 — 單一捲動擁有者與活動色線
+
+筆刷／色盤Flyout的限高與捲動由原生FlyoutPresenter負責，Content不再嵌套另一ScrollViewer；其他視窗不作全域替換。ColorIcon以當前工具key與共用ShapeTools判斷活動筆色線，Opacity隱藏保留量測空間；非活動色線不重建chip。只更新Chrome狀態，不進入指標／Draw熱路徑，不改文件schema與獨立工具記色規則。 [日誌](BRUSH_FOCUS_2026-10-24.zh-TW.md)。
+
+
 ## 2026-10-24 — 共用profile色盤與工具筆色顯示
 
 PalettePreferencesStore由MainWindow依DataDirectory建立，screen透過owner存取；Semaphore序列化基於最新快照的增刪，原子落盤後才Changed，未完成保存由退出Flush等待。沒有把色盤寫入作品／Undo或指標高頻路徑。PaletteEditor Loaded／Unloaded訂閱解除，ColorPicker事件只更新色票標記；ColorIcon保留圖示／色線與標籤包裝，ReplaceIcon不丟色線。ToolbarUi.Arrange共用兩個常駐控制項，不為每頁複製XAML父項。 [日誌](BRUSH_PALETTE_IMPLEMENTATION_2026-10-24.zh-TW.md)。
