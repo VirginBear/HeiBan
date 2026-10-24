@@ -30,6 +30,11 @@ public partial class MainWindow
         _canvasInvalidated=true;
         CanvasSurface.Invalidate();
     }
+    private void PresentInteraction(bool sceneChanged=false)
+    {
+        if(sceneChanged)_sceneDirty=true;
+        _canvasInvalidated=true;CanvasSurface.PresentNow();
+    }
     private void ClearScene()
     {_scene?.Dispose();_scene=null;_sceneDirty=true;_canvasInvalidated=false;_pendingInkScene.Clear();}
     private void RenderMainScene(HeiBan.Windows.Views.ImmediateCanvas surface,CanvasDrawingSession ds,float width,float height)
@@ -94,7 +99,6 @@ public partial class MainWindow
     private readonly Dictionary<string,long> _thumbnailRevisions=[];
     private void InitializeDeferredWork()
     {
-        _boardEraserTimer.Tick+=(_,_)=>PumpBoardEraser();
         _inkUiTimer.Tick+=(_,_)=>
         {
             _inkUiTimer.Stop();

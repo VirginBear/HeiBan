@@ -16,13 +16,17 @@ public sealed class LaserPointerEngine
     private readonly List<LaserSample> _samples=[];
     private bool _start=true;
     public IReadOnlyList<LaserSample> Samples => _samples;
+    // Match the Mac presentation lifetimes without altering saved tool settings.
+    public double Lifetime=>Mode switch {"point"=>.3,"shortTrail"=>Math.Clamp(FadeDuration,.2,.8),_=>Math.Clamp(FadeDuration,.2,10)};
     public void Add(InkPoint point,double now)
     {
         Prune(now);
+        if(!_start&&_samples.Count>0&&now-_samples[^1].Timestamp<1d/120
+            &&Math.Abs(point.X-_samples[^1].Point.X)<.001&&Math.Abs(point.Y-_samples[^1].Point.Y)<.001)return;
         _samples.Add(new(DocumentCodec.Clone(point),now,_start));_start=false;
         if(_samples.Count>500)_samples.RemoveRange(0,_samples.Count-500);
     }
     public void EndTrail()=>_start=true;
-    public void Prune(double now)=>_samples.RemoveAll(s=>now-s.Timestamp>Math.Clamp(FadeDuration,.1,10));
+    public void Prune(double now)=>_samples.RemoveAll(s=>now-s.Timestamp>Lifetime);
     public void Clear(){_samples.Clear();_start=true;}
 }

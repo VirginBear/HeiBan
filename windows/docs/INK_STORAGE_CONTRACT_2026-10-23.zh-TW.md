@@ -28,3 +28,7 @@
 ## 驗收狀態
 
 本批編譯成功不代表文件 round-trip、壓感／高 DPI、透明筆畫交疊或 Undo 已實機驗收。依當次限制未新增／執行測試；後續需使用者用獨立試用包核對。實際結果與未完成事項見 [開發日誌](INK_PIPELINE_2026-10-23.zh-TW.md)。
+
+## 2026-10-24 補充：擦除預覽的所有權
+
+EraserPreviewPublisher只供BoardEraserWork逐次發布：worker與UI永不共用同一可變BoardObject或點列；第一次發布存活物件深拷貝，後續以reference重用UI自己的只讀複本，替換片段重新拷貝。前提是核心擦除僅remove/replace，不在原物件就地修改。每份預覽有獨立Objects清單、Board及未知欄位字典；完成並flush後才安裝主文件並提交Undo。取消丟棄預覽，文件切換／generation失配拒收。現有points字串、null、extension data、Undo與保存契約保持；雷射為暫態資料，不寫文件，沒有格式遷移。

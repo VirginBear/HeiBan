@@ -62,7 +62,7 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
     }
     public void ClearCache()
     {
-        _imageEpoch++;ResetLive();ClearWetResources();ClearTextCache();_viewportCandidates.Clear();
+        _imageEpoch++;ClearLaserResources();ResetLive();ClearWetResources();ClearTextCache();_viewportCandidates.Clear();
         foreach(var value in _geometry.Values)value.Geometry.Dispose(); _geometry.Clear();
         foreach(var value in _images.Values)value.Dispose(); _images.Clear();
     }
@@ -74,7 +74,7 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
         PruneTextCache(ids);
         foreach(var id in _geometry.Keys.Where(id=>!ids.Contains(id)).ToArray()){_geometry[id].Geometry.Dispose();_geometry.Remove(id);}
     }
-    public void Dispose()=>ClearCache();
+    public void Dispose(){ClearCache();ClearToolArt();}
     public void RenderBackground(CanvasDrawingSession ds,BoardMetadata board,ViewportTransform vp,float width,float height)
     {
         var bounded=board.CanvasMode is "fixed" or "notebook";
@@ -389,29 +389,4 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
         var r=(float)(diameter*vp.Zoom/2);ds.FillCircle(pointer,r,HexToColor(eraser?"#f46e87":"#396a53",.22f));
         ds.DrawCircle(pointer,r,HexToColor(eraser?"#cf4860":"#ffffff"),1.2f);ds.DrawCircle(pointer,r+1,HexToColor("#234b43"),.6f);
     }
-    public void RenderLaser(CanvasDrawingSession ds,LaserPointerEngine laser,ViewportTransform vp,double now,double density=1)
-    {
-        var samples=laser.Samples;
-        if(samples.Count==0)return;
-        for(var i=0;i<samples.Count;i++)
-        {
-            var sample=samples[i];var position=vp.WorldToScreen(sample.Point.X,sample.Point.Y);
-            var point=new Vector2((float)position.X,(float)position.Y);
-            var opacity=(float)Math.Clamp(1-(now-sample.Timestamp)/Math.Clamp(laser.FadeDuration,.1,10),0,1);
-            if(laser.Mode!="point"&&i>0&&!sample.StartsTrail)
-            {
-                var previous=vp.WorldToScreen(samples[i-1].Point.X,samples[i-1].Point.Y);
-                ds.DrawLine(new((float)previous.X,(float)previous.Y),point,HexToColor(laser.Color,opacity),(float)(laser.Width*density));
-                if(laser.WhiteCore)ds.DrawLine(new((float)previous.X,(float)previous.Y),point,HexToColor("#FFFFFF",opacity*.85f),(float)(laser.Width*density)*.25f);
-            }
-            if(i==samples.Count-1)
-            {
-                var radius=(float)(laser.PointDiameter*density)/2;
-                ds.FillCircle(point,radius*1.4f,HexToColor(laser.Color,opacity*.2f));
-                ds.FillCircle(point,radius,HexToColor(laser.Color,opacity));
-                if(laser.WhiteCore)ds.FillCircle(point,radius*.28f,HexToColor("#FFFFFF",opacity));
-            }
-        }
-    }
-
 }

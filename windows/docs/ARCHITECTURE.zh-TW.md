@@ -1,5 +1,9 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-24 — 輸入驅動擦除與共用雷射
+
+CircularEraserGesture／板擦在UI收樣即發單worker，完成後依序drain新點；取消和文件generation／epoch拒收、一手勢一Undo保留。EraserPreviewPublisher以worker物件reference映射到隔離UI複本；核心EraseChanged／EraseFootprintChanged只移除或替換物件，不修改存活物件。每次發布新Objects容器與metadata，但存活UI複本只讀重用，移除物件映射同步釋放；不能把此契約用到會原地改屬性的其他操作。一般主畫布PresentInteraction共用ImmediateCanvas，板擦GPU圖與XAML／擦面共用中心矩陣；screen仍timer呈現／GPU回讀／GDI。雷射共用Direct2DCanvasRenderer.Laser，二次中點平滑留在樣本凸包、時間漸細連續輪廓與Gaussian柔光、徑向光點；device clear釋放brush，暫存點不入文件。 [日誌](ERASER_LASER_PAN_2026-10-24.zh-TW.md)。
+
 ## 2026-10-24 — 單一即時主畫布host
 
 ImmediateCanvas只擁有呈現排程與GPU表面，仍由MainWindow同一Draw與Direct2DCanvasRenderer繪製。輸入／文件由UI執行緒擁有，不跨執行緒碰session。當前筆跡直接Present(0)，其他操作低優先合併；240Hz上限只合併顯示，不丟原始樣本。單次timer補末點；卸載／關閉停止timer並釋放swap chain，DPI／大小重設buffers；graphics COM錯誤回CanvasControl。資源清除與重新載圖沿用CreateResources契約。獨立input thread與screen DirectComposition尚未實作。 [日誌](IMMEDIATE_INK_2026-10-24.zh-TW.md)。

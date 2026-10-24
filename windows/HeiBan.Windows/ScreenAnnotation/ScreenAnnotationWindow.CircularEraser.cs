@@ -11,7 +11,7 @@ internal sealed partial class ScreenAnnotationWindow
         if(_circularEraser is { } active)
         {
             if(!active.IsFinishing&&input.Kind is "move" or "up")
-            {using var trace=InputLatencyTrace.Measure(InputStage.EraserMove);active.Queue(point);if(input.Kind=="up")_ = CompleteCircularEraserAsync();}
+            {using var trace=InputLatencyTrace.Measure(InputStage.EraserMove);active.Queue(point);PumpCircularEraser();if(input.Kind=="up")_ = CompleteCircularEraserAsync();}
             return true;
         }
         if(_tool!="eraser"||input.Kind!="down")return false;
@@ -19,7 +19,7 @@ internal sealed partial class ScreenAnnotationWindow
         _circularEraserCompletion=null;
         var gesture=_circularEraser=new(_session,_eraserSize*_dpiScale/2,_eraserWhole);
         gesture.PreviewChanged+=()=>{if(ReferenceEquals(_circularEraser,gesture)){_dirty=_fullDamage=_committedDirty=true;}};
-        gesture.Queue(point);return true;
+        gesture.Queue(point);PumpCircularEraser();return true;
     }
     private async void PumpCircularEraser()
     {

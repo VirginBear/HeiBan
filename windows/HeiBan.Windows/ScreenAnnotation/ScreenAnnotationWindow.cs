@@ -82,7 +82,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         var failed=0;
         foreach(var key in new[]{(1,0x41u),(2,0x44u),(3,0x53u),(4,0x51u),(5,0x4Bu)})if(!_overlay.RegisterShortcut(key.Item1,0x0002|0x0001,key.Item2))failed++;
         _hotkeyRegistrationFailed=failed>0;if(failed>0)_status.Text=T("部分快捷鍵被其他程式占用，請使用控制列按鈕。");
-        _renderTimer.Tick+=(_,_)=>{if(!IsActive)return;try{PumpCircularEraser();UpdateScreenEraser();UpdateScreenMagnetHover();if(_dirty||_laser.Samples.Count>0)Render();}catch(Exception e){_renderTimer.Stop();_overlay.Hide();_status.Text=T("螢幕繪圖已停止：")+e.Message;}};
+        _renderTimer.Tick+=(_,_)=>{if(!IsActive)return;try{UpdateScreenEraser();UpdateScreenMagnetHover();if(_dirty||_laser.Samples.Count>0)Render();}catch(Exception e){_renderTimer.Stop();_overlay.Hide();_status.Text=T("螢幕繪圖已停止：")+e.Message;}};
         _focusRememberTimer.Tick+=(_,_)=>{if(IsActive)RememberExternalFocus();};
         _straightenTimer.Tick+=(_,_)=>
         {
@@ -308,7 +308,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         global::Windows.Foundation.Rect? laserDamage=null;
         if(_laser.Samples.Count>0)
         {
-            var points=_laser.Samples.Select(s=>s.Point).ToArray();var pad=Math.Max(_laser.PointDiameter*.8,_laser.Width)*_dpiScale+4;
+            var points=_laser.Samples.Select(s=>s.Point).ToArray();var pad=Math.Max(_laser.PointDiameter*1.2,_laser.Width*4)*_dpiScale+4;
             var left=Math.Max(0,Math.Floor(points.Min(p=>p.X)-pad));var top=Math.Max(0,Math.Floor(points.Min(p=>p.Y)-pad));
             var right=Math.Min(_overlay.Width,Math.Ceiling(points.Max(p=>p.X)+pad));var bottom=Math.Min(_overlay.Height,Math.Ceiling(points.Max(p=>p.Y)+pad));
             if(right>left&&bottom>top)laserDamage=new(left,top,right-left,bottom-top);

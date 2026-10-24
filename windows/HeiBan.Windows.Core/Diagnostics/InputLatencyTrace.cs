@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace HeiBan.Windows.Diagnostics;
 
-public enum InputStage { PointerDown,PointerMove,InkCommit,CanvasDraw,SceneRender,MagnetRebuild,ToolSwitch,BrushPanel,LayersRefresh,UiHeartbeat,ScreenRender,EraserMove,EraserApply,EraserCommit,SceneRebuild,WetInkRender,InkEncode,InkSnapshot,WetRasterAppend,ScreenReadback,PointerBatchToDraw,PointerBatchToPresent,SwapChainPresent }
+public enum InputStage { PointerDown,PointerMove,InkCommit,CanvasDraw,SceneRender,MagnetRebuild,ToolSwitch,BrushPanel,LayersRefresh,UiHeartbeat,ScreenRender,EraserMove,EraserApply,EraserCommit,SceneRebuild,WetInkRender,InkEncode,InkSnapshot,WetRasterAppend,ScreenReadback,PointerBatchToDraw,PointerBatchToPresent,SwapChainPresent,LaserRender }
 
 /// <summary>
 /// Opt-in local timings of real user interaction, never synthetic input. The

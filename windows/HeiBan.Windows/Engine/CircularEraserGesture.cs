@@ -25,7 +25,13 @@ internal sealed class CircularEraserGesture
     internal Task PumpAsync()
     {
         if(_cancelled||IsFinishing||_pending.Count==0||_batch?.IsCompleted==false)return Task.CompletedTask;
-        return _batch=ApplyAsync();
+        return _batch=DrainAsync();
+    }
+    private async Task DrainAsync()
+    {
+        // Start on input, then drain arrivals after each worker completes. A
+        // result no longer waits for the next periodic UI timer to be noticed.
+        do{await ApplyAsync();}while(!_cancelled&&!IsFinishing&&_pending.Count>0);
     }
     private async Task ApplyAsync()
     {

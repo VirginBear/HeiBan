@@ -1,5 +1,9 @@
 # Windows 開發決策
 
+## 2026-10-24 — 擦除隔離預覽與Mac雷射參考
+
+沿用現有CPU幾何擦除，不永久合併筆畫／扁平化原稿、不改文件schema。移除額外排程等待與存活物件重複snapshot，以readonly UI複本保留幾何快取；完整scene重建、首次隔離快照及screen回讀尚未消除。參考最新GitHub Mac雷射來源26ea834cfe65d1a479b7cb549980461645ef6bf0，Windows兩畫布共用輪廓／柔光算法，不複製另一套工具引擎，Mac來源不修改。使用者對前批畫筆的正面感受與本批擦除待驗收分開；未量測50ms，不作性能保證。 [日誌](ERASER_LASER_PAN_2026-10-24.zh-TW.md)。
+
 ## 2026-10-24 — 先移除XAML呈現等待，保留比較路徑
 
 使用者負面手感回報推進新呈現host，保留HEIBAN_RENDER_PATH=xaml與Compare-XamlRendering.cmd，人工比較固定solid batch16。小批次不改文件或曲線，最新尾段永遠畫出。先不預測輸入或更改平滑契約；schema3時間只涵蓋App事件到Draw／Present，OS佇列與螢幕光子不可由此推論。swap chain會增加顯存，仍需4K及DPI／透明筆實機驗收，不作已達50ms承諾。 [日誌](IMMEDIATE_INK_2026-10-24.zh-TW.md)。

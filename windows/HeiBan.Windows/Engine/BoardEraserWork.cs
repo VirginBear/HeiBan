@@ -8,6 +8,7 @@ namespace HeiBan.Windows.Engine;
 internal sealed class BoardEraserWork
 {
     private readonly EditorSession _editor=new();
+    private readonly EraserPreviewPublisher _publisher=new();
     private readonly ViewportTransform _viewport;
     private readonly double _gripX,_gripY;
     private readonly bool _whole;
@@ -44,6 +45,6 @@ internal sealed class BoardEraserWork
             _last=point;
         }
         Changed|=changed;
-        return changed?DocumentCodec.Clone(_editor.Document):null;
+        return changed?_publisher.Publish(_editor.Document):null;
     }
 }

@@ -7,17 +7,15 @@ public partial class MainWindow
 {
     private CircularEraserGesture? _circularEraser;
     private Task? _circularEraserCompletion;
-    private readonly DispatcherTimer _circularEraserTimer=new(){Interval=TimeSpan.FromMilliseconds(16)};
     private void BeginCircularEraser(InkPoint point)
     {
         _session.SelectedId=null;_objectDetailsId=null;SelectionBar.Visibility=Inspector.Visibility=Visibility.Collapsed;
         _circularEraserCompletion=null;
         var gesture=_circularEraser=new(_session,EraserSizeSlider.Value/2,EraserModeBox.SelectedIndex==0);
-        gesture.PreviewChanged+=()=>{if(ReferenceEquals(_circularEraser,gesture)){_renderer.Prune(gesture.Preview.Document.Objects);InvalidateCanvas();}};
-        gesture.Queue(point);_circularEraserTimer.Tick-=PumpCircularEraser;_circularEraserTimer.Tick+=PumpCircularEraser;_circularEraserTimer.Start();
-        InvalidateCanvas(false);
+        gesture.PreviewChanged+=()=>{if(ReferenceEquals(_circularEraser,gesture)){_renderer.Prune(gesture.Preview.Document.Objects);PresentInteraction(true);}};
+        gesture.Queue(point);PumpCircularEraser();PresentInteraction();
     }
-    private async void PumpCircularEraser(object? sender,object e)
+    private async void PumpCircularEraser()
     {
         var gesture=_circularEraser;if(gesture is null)return;
         try{await gesture.PumpAsync();}
@@ -26,7 +24,7 @@ public partial class MainWindow
     private Task CompleteCircularEraserAsync()=>_circularEraserCompletion??=CompleteCircularEraserCoreAsync();
     private async Task CompleteCircularEraserCoreAsync()
     {
-        var gesture=_circularEraser;if(gesture is null)return;_circularEraserTimer.Stop();
+        var gesture=_circularEraser;if(gesture is null)return;
         try
         {
             var snapshot=await gesture.CompleteAsync();
@@ -39,6 +37,6 @@ public partial class MainWindow
     private void CancelCircularEraser()
     {
         var gesture=_circularEraser;if(gesture is null)return;
-        _circularEraser=null;gesture.Cancel();_circularEraserTimer.Stop();InvalidateCanvas();
+        _circularEraser=null;gesture.Cancel();InvalidateCanvas();
     }
 }
