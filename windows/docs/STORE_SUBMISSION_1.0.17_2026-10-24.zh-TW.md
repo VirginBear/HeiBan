@@ -16,3 +16,5 @@
 ## 命令與完成核對
 
 實際執行git status／rev-parse／ls-remote、讀文件、gh repo view --json visibility、git diff --cached --check、分別commit／push兩庫與最終遠端HEAD核對。推送結果於完成後追加；沒有新測試數字或商店認證結果。
+
+公開送審紀錄已以77fe0afa73de2b2c73351d23a81ae88f66266d14提交並成功推送origin/main；後續僅補推送證據與私人交接。原未提交內容仍保留，沒有執行測試或改動二進位產物。
