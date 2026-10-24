@@ -4,6 +4,9 @@
 
 前批畫筆獲使用者「順暢很多」回饋，非毫秒量測。本批中鍵／空白鍵平移顯示握手游標，釋放／取消恢復；鎖定視角不平移。一般／螢幕圓形擦除與板擦改輸入驅動單worker接續處理，移除16ms啟動輪詢；穩定隔離預覽物件，避免每批重複深拷貝存活筆跡。一般畫布擦除與拖曳板擦共用立即呈現，仍放開flush後一筆Undo。參考GitHub Mac雷射26ea834：共用renderer改二次平滑連續漸細輪廓、柔光／白芯／徑向光點，兩畫布一致，十語手冊同步。最終x64 build20.79秒0warning0error；App／實作測試／新性能採樣未執行。完整scene重畫與screen回讀仍在，手感待實機；仍1.0.16／1.0.16.0，未重做Store。 [日誌](ERASER_LASER_PAN_2026-10-24.zh-TW.md)。
 
+x64免安裝`eraser-laser-2026-10-24-r1`已完成，來源`4fdd1c1b7f758b9be169c884d8d31faad80a9b30`，ZIP 132894162bytes／SHA256 `090d222413d60e2abd68c6b86adffe5017c841d79ace60adf893c0e7236f0eb1`。586 payload／190 source SHA與ZIP CRC核同，兩EXE為x64，ZIP使用者Data=0。確認無HeiBan程序後，接續52檔／24746295bytes作品設定、原與新逐SHA相同，原trial保留；36份Store檔SHA不變。未啟動App／執行實作測試／取得新性能數字，未重包／提交Store。 [交付紀錄](ERASER_LASER_PAN_ARTIFACT_2026-10-24.json)。
+
+
 ## 2026-10-24 — 主畫布直接呈現與延遲診斷（試用完成，待實機）
 
 使用者GO續接轉角跟筆問題。主畫布共用renderer改由單一CanvasSwapChain直接提交，活動筆跡不再多等一次CanvasControl.Invalidate；非筆跡更新合併、240Hz提交上限／末點timer，閒置不輪詢。solid raster改16段小批次，尾巴仍到最新點；原點列、平滑與逐筆Undo不變。保留XAML人工比較／graphics錯誤回退，新增schema3事件→Draw／Present及端點一致性彙總。x64最終build23.79秒0warning0error，沒有App／實作測試／新性能數字，50ms尚未驗收；仍1.0.16／1.0.16.0，不重做Store。 [本批日誌](IMMEDIATE_INK_2026-10-24.zh-TW.md)。

@@ -1,0 +1,28 @@
+{
+  "label": "eraser-laser-2026-10-24-r1",
+  "version": "1.0.16",
+  "runtime": "win-x64",
+  "sourceCommit": "4fdd1c1b7f758b9be169c884d8d31faad80a9b30",
+  "zip": "windows/dist/trials/HeiBan-Windows-Portable-1.0.16-eraser-laser-2026-10-24-r1-win-x64.zip",
+  "bytes": 132894162,
+  "sha256": "090d222413d60e2abd68c6b86adffe5017c841d79ace60adf893c0e7236f0eb1",
+  "payloadFilesChecked": 586,
+  "sourceFilesChecked": 190,
+  "archiveFiles": 588,
+  "zipUserDataFiles": 0,
+  "zipCrcAndPayloadShaMatch": true,
+  "peArchitecture": "x64",
+  "preservedStoreFiles": 36,
+  "storeFilesUnchanged": true,
+  "dataHandoff": {
+    "files": 52,
+    "bytes": 24746295,
+    "allSha256Match": true,
+    "originalRetained": true
+  },
+  "appExecuted": false,
+  "implementationTestsExecuted": false,
+  "performanceCaptured": false,
+  "storeRepackaged": false,
+  "formalVersionIncremented": false
+}

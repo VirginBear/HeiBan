@@ -43,3 +43,12 @@
 2. 大量筆跡下圓形與斜板擦跟手，局部／物件模式範圍正確；跨長路徑、釋放最後一點、取消、Undo／Redo、保存重開。
 3. 主／螢幕雷射三模式、柔光與白芯、變色／粗細、不同縮放／DPI；主畫布離開重進不拉橋線，screen柔光消退無殘影。
 4. 預覽仍需全scene重畫，screen還有16ms render／GPU回讀／GDI，首次手勢仍有雙隔離快照；本批減少等待與配置，不宣稱解決所有負載。
+
+## 封裝與交接完成
+
+- 來源 `4fdd1c1b7f758b9be169c884d8d31faad80a9b30`，`Package-PortableTrial.ps1 -Runtime win-x64 -Label eraser-laser-2026-10-24-r1` 成功；紀錄 `.build/portable-trial-38912b502868483cafd4589eaaa43734`，App／Updater publish完成。
+- ZIP `windows/dist/trials/HeiBan-Windows-Portable-1.0.16-eraser-laser-2026-10-24-r1-win-x64.zip`，132894162bytes，SHA256 `090d222413d60e2abd68c6b86adffe5017c841d79ace60adf893c0e7236f0eb1`。
+- ignored `inspect_delivery.py` 核對586 payload、190來源SHA、588個archive entries與完整ZIP CRC、兩EXE x64；archive沒有使用者Data。此為產物核同，不是功能測試。
+- Get-Process與複製前後再次確認無HeiBan程序；以extended-length路徑完整枚舉／複製最新immediate-ink試用Data，52檔24746295bytes，原資料前後與新資料逐SHA相同。只有統計進公開紀錄，不含作品名稱／內容；原試用不刪除。
+- 36份Store檔與開工SHA一致。App／實作測試／新性能採樣未執行，手感仍待使用者。原6／8／4行未提交平台差異及三份YouTube新文件保留。
+- 公開交付摘要見ERASER_LASER_PAN_ARTIFACT_2026-10-24.json；私人庫另記必要產品交接及壓縮對話。未上傳試用binary到GitHub，不更動Mac來源／正式版號／既有商店包。
