@@ -1,5 +1,9 @@
 # Mac 目前開發狀態
 
+## 2026-10-24 — Mac 1.0.17 / 20261024.3 開發來源已上傳GitHub
+
+依使用者明確授權，Mac同步補齊與螢幕畫布模式修復、十語資源／指南、使用手冊及開發／排錯紀錄已推送至 [VirginBear/HeiBan main](https://github.com/VirginBear/HeiBan/tree/main/macos)。來源提交 [64dad31](https://github.com/VirginBear/HeiBan/commit/64dad31)，git ls-remote核對相同完整SHA；本段與日誌為後續同步證據提交。Windows沒有變更，沒有新增二進位Release／DMG／ZIP。先前日誌的「尚未推送」為當時歷史狀態，實作及待驗收範圍仍依下方與[上傳日誌04](logs/2026-10-24/04.zh-TW.md)。
+
 ## 2026-10-24 — 螢幕畫布操作切換修復，build20261024.3已實機確認
 
 最新本機App **1.0.17 / 20261024.3**：`macos/dist/HeiBan.app`。固定模式按鈕橫排明示「操作螢幕／繼續作畫」，左右圖示，和註記選取分開；模式／退出有獨立區域，收合也保留。操作時畫布釋放滑鼠與鍵盤key／first responder；原生螢幕畫布選單提供獨立操作／繼續／找回工具列。Esc在控制列也能暫停；雷射暫停後再按會恢復作畫。
