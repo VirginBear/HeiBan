@@ -1,0 +1,31 @@
+{
+  "label": "brush-palette-2026-10-24-r2",
+  "version": "1.0.16",
+  "runtime": "win-x64",
+  "sourceCommit": "bd61a87c7725a748b70dc2c961946c5300afc2a2",
+  "zip": "windows/dist/trials/HeiBan-Windows-Portable-1.0.16-brush-palette-2026-10-24-r2-win-x64.zip",
+  "bytes": 132914524,
+  "sha256": "7f059c38eeaa114a601c3ff7f691ff5cd3448fb8422981aa6866ed23480fa280",
+  "payloadFilesChecked": 586,
+  "sourceFilesChecked": 195,
+  "archiveFiles": 588,
+  "zipUserDataFiles": 0,
+  "zipCrcAndPayloadShaMatch": true,
+  "peArchitecture": "x64",
+  "preservedStoreFiles": 36,
+  "storeFilesUnchanged": true,
+  "dataHandoff": {
+    "files": 59,
+    "bytes": 25836882,
+    "allSha256Match": true,
+    "originalRetained": true
+  },
+  "appExecuted": true,
+  "implementationTestsExecuted": true,
+  "testDataIsolated": true,
+  "runtimeTestRecord": "windows/docs/BRUSH_FOCUS_2026-10-24.zh-TW.md",
+  "coreAssertionsPassed": 2365,
+  "performanceCaptured": false,
+  "storeRepackaged": false,
+  "formalVersionIncremented": false
+}

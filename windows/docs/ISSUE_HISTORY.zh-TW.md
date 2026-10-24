@@ -4,6 +4,8 @@
 
 確認使用者所指為內外兩個垂直捲軸，保留顏色／粗細／透明度滑桿。主筆刷、螢幕筆刷與調色盤移除Content內層ScrollViewer，交由WinUI FlyoutPresenter內建容器限高捲動。共用ColorIcon只在目前筆／螢光／油漆／曲線／幾何工具顯示色線，選取／雷射／橡皮擦時不亮其他筆色線；隱藏保留量測空間。十語手冊與新指南同步。x64 build50.18秒0warning0error、核心2,365項通過；獨立資料實機核對一般／螢幕筆刷單一捲軸且可到粗細透明度、鋼筆與螢光單色線、一般矩形與選取／螢幕雷射狀態。完整DPI／四邊、ARM64、性能採樣未執行；版本仍1.0.16／1.0.16.0。 [本批日誌](BRUSH_FOCUS_2026-10-24.zh-TW.md)。
 
+x64免安裝`brush-palette-2026-10-24-r2`完成，來源`bd61a87c7725a748b70dc2c961946c5300afc2a2`，ZIP 132914524bytes／SHA256 `7f059c38eeaa114a601c3ff7f691ff5cd3448fb8422981aa6866ed23480fa280`。586 payload／195 source SHA、588 archive entries及CRC核同、兩EXE x64、ZIP使用者Data=0、36Store檔SHA不變。最終包以獨立ui-verify啟動，指南可見、鋼筆單色線、筆刷UIA僅一個VerticalScrollBar，保留#123456設定；正常關閉且程序0後，接續上一版brush-palette-r1最新59檔25836882bytes，原前後與新逐SHA相同，原試用與其Data保留。 [產物核對](BRUSH_FOCUS_ARTIFACT_2026-10-24.json)。
+
 
 ## 2026-10-24 — 筆刷常用色與常駐雷射（實作／實機驗證）
 
