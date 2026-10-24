@@ -85,10 +85,10 @@ public struct ChangelogEntry: Codable, Equatable, Identifiable {
 public struct AboutInfo: Equatable {
     public static let appName = "HeiBan 黑板"
     public static var appVersion: String {
-        (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "1.0.16"
+        (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "1.0.17"
     }
     public static var buildNumber: String {
-        (Bundle.main.infoDictionary?["CFBundleVersion"] as? String) ?? "20261022.1"
+        (Bundle.main.infoDictionary?["CFBundleVersion"] as? String) ?? "20261024.1"
     }
     public static let engineVersion = "HeiBan Blackboard Vector Engine 1.0"
     public static let copyright = "© 2026 HeiBan Team. All rights reserved."
@@ -96,6 +96,13 @@ public struct AboutInfo: Equatable {
     public static let supportEmail = "support@heiban.app"
 
     public static let changelog: [ChangelogEntry] = [
+        ChangelogEntry(version: "1.0.17", releaseDate: "2026-10-24", highlights: [
+            "新增常用色盤管理：支援保存、管理刪除與還原預設色，一般畫布與螢幕畫布即時共用",
+            "選取與雷射筆跨分頁常駐：各工具分頁均可隨時切換選取與雷射筆",
+            "活動繪圖工具筆色色線：僅當前選用的繪圖工具顯示色線，切換工具高度穩定不跳動",
+            "筆刷設定單層捲動化：移除無材質效果之筆刷類型下拉，面板滾動更加直覺",
+            "滑鼠中鍵與空白鍵平移游標：拖動畫布時顯示握手平移游標"
+        ]),
         ChangelogEntry(version: "1.0.16", releaseDate: "2026-10-22", highlights: [
             "工具列預設全工具開啟並採用圖示加文字分頁；常用工具新增顏色、線型與清空黑板",
             "自由手繪筆刷不套用磁鐵吸附且完成不自動顯示選取框，幾何與曲線筆精準吸附並支援連續作畫",

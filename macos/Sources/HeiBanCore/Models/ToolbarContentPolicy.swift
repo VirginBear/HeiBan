@@ -25,7 +25,7 @@ public enum ToolbarContentPolicy {
     }
     public static func pageIDs(_ preferences: ToolbarPreferences, screen: Bool, page: String) -> [String] {
         visibleIDs(preferences, screen: screen).filter { id in
-            guard id != "select" else { return false }
+            guard id != "select", id != "laser" else { return false }
             if page != "common" { return Self.page(for: id) == page }
             return preferences.commonItemIds.contains(id)
                 || (["undo", "redo"].contains(id) && preferences.commonItemIds.contains("undoRedo"))
@@ -33,6 +33,27 @@ public enum ToolbarContentPolicy {
     }
     public static func screenItemCount(_ preferences: ToolbarPreferences) -> Int {
         visibleIDs(preferences, screen: true).count + 1  // 共用「更多」入口。
+    }
+
+    /// 判定工具是否支援筆色色線 (1.0.17 對齊)
+    public static func hasToolColor(_ key: String) -> Bool {
+        key == "pen" || key == "highlighter" || key == "paint" || key == "curve" || key == "shapes"
+    }
+
+    /// 判定工具筆色色線是否為活動中（只有目前選用的繪圖工具顯示色線）
+    public static func isToolColorActive(toolKey: String, currentTool: ToolType) -> Bool {
+        switch toolKey {
+        case "pen": return currentTool == .pen
+        case "highlighter": return currentTool == .highlighter
+        case "paint": return currentTool == .paint
+        case "curve": return currentTool == .curve
+        case "shapes":
+            return [
+                ToolType.rect, .roundedRect, .circle, .triangle, .polygon,
+                .quadrilateral, .diamond, .star, .line, .arrow, .connector
+            ].contains(currentTool)
+        default: return false
+        }
     }
 
     /// 分頁變短時保持同一左緣；參考完整繪圖頁，而不是目前分頁。
@@ -78,7 +99,7 @@ public enum ToolbarContentPolicy {
             let count = max(1, items.count)
             if vertical {
                 let maxPanelHeight = max(220, windowSize.height - 88)
-                let fixedChrome: CGFloat = 148 // 握把 + 選取 + 分頁選單 + 更多 + 上下內距
+                let fixedChrome: CGFloat = 196 // 握把 + 選取 + 雷射 + 分頁選單 + 更多 + 上下內距
                 let availForTools = max(verticalTileHeight, maxPanelHeight - fixedChrome)
                 let cap = pageCapacity(itemCount: count, availableLength: availForTools, vertical: true)
                 let shownCount = min(count, cap)
@@ -91,7 +112,7 @@ public enum ToolbarContentPolicy {
                 return CGSize(width: 148, height: totalHeight)
             } else {
                 let maxPanelWidth = max(280, windowSize.width - 32)
-                let fixedChrome: CGFloat = 140 // 握把24 + 選取48 + 更多32 + 間距20 + 內距16
+                let fixedChrome: CGFloat = 188 // 握把24 + 選取48 + 雷射48 + 更多32 + 間距20 + 內距16
                 let availForTools = max(horizontalTileWidth, maxPanelWidth - fixedChrome)
                 let cap = pageCapacity(itemCount: count, availableLength: availForTools, vertical: false)
                 let shownCount = min(count, cap)

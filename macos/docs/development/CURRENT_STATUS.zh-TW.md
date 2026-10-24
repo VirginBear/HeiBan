@@ -1,5 +1,18 @@
 # Mac 目前開發狀態
 
+## 2026-10-24 — 同步 Windows 1.0.17：常用色盤 Store、常駐雷射、筆色底線與手形平移 (完成封裝與立靶驗收)
+
+Mac 產品版號升級至 **1.0.17**，最新本機 build **20261024.1**，成品位於 `macos/dist/HeiBan.app`。`windows/` 目錄嚴格保持零修改。
+
+- **常用色盤 Store (`PalettePreferencesStore`)**：持久化於 `Settings/palette.json`（schemaVersion 1），一般與螢幕畫布共用。支援 8 色預設、增刪、管理模式、還原、大寫標準化、去重與壞檔安全保護。
+- **常駐雷射與選取**：所有分頁前置固定為選取（第 0 位）與雷射（第 1 位），常用工具列預設納入雷射；防禦隱藏與換位。
+- **作用中筆刷色彩底線**：繪圖工具（`pen`, `highlighter`, `paint`, `curve`, `shapes`）選用時於圖示下方顯示 22×3 pt 當前筆色底線，未啟用時透明佔位無抖動。
+- **筆刷設定面板精簡**：移除 8 種混淆筆刷材質下拉選單，整合常用色盤管理與單一滾動視圖。
+- **中鍵拖曳平移手勢回饋**：中鍵拖曳畫布時設定為閉合手形游標 (`closedHand`)。
+- **先靶後箭檢驗**：`HeiBanTestRunner` 新增 `[測試 52]`，全套件 **1906 項斷言 100% 通過（0 失敗）**。
+- **封裝與簽章**：`build_app.sh` 封裝成功，`codesign --verify --deep --strict` 檢驗合格。
+- 詳見[日誌01](logs/2026-10-24/01.zh-TW.md)。
+
 ## 2026-10-23 — GitHub 開發來源已同步
 
 依使用者授權，Mac **1.0.16 / 20261023.2**來源、資源、十語指南與開發文件已推送至 [VirginBear/HeiBan main](https://github.com/VirginBear/HeiBan/tree/main/macos)。來源提交 [26ea834](https://github.com/VirginBear/HeiBan/commit/26ea834)及前兩筆Mac提交已上傳，git ls-remote核對成功；本段與推送證據另以文件提交保存。本批沒有發布新的DMG／ZIP或改Windows；下方實作與待驗收狀態保留。詳[同步日誌04](logs/2026-10-23/04.zh-TW.md)。

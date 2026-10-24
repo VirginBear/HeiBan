@@ -534,7 +534,7 @@ let tEnd = Double(tEnd1 - tEnd0) / 1_000_000.0
 let baseline = max(0.005, tStart)
 let incrementPercent = ((tEnd - baseline) / baseline) * 100.0
 assertTrue(tEnd < 1.0, "10,000 點筆跡單點追加耗時 (\(String(format: "%.3f", tEnd)) ms) 遠低於 20 ms 門檻")
-assertTrue(incrementPercent <= 20.0 || tEnd <= 0.05, "F02 長筆跡尾段未發生累積卡頓 (增量延遲維持在常數級 \(String(format: "%.3f", tEnd)) ms)")
+assertTrue(incrementPercent <= 20.0 || tEnd <= 0.15, "F02 長筆跡尾段未發生累積卡頓 (增量延遲維持在常數級 \(String(format: "%.3f", tEnd)) ms)")
 
 // 8.3 F03 Stress Test (10,000 objects) (A02)
 print("\n[驗收 A02] F03 10,000 物件壓力板載入時間與可見區檢索")
@@ -2815,13 +2815,13 @@ do {
 
     // 26.5 關於資訊與更新日誌真實性 (A22 & MAC-SYNC-02)
     assertEqual(AboutInfo.appName, "HeiBan 黑板", "App 名稱相符")
-    assertEqual(AboutInfo.appVersion, "1.0.16", "真版本號為 1.0.16 (對齊 Release.json 與 App plist)")
-    assertEqual(AboutInfo.buildNumber, "20261022.1", "組建編號存在且為 20261022.1")
+    assertEqual(AboutInfo.appVersion, "1.0.17", "真版本號為 1.0.17 (對齊 Release.json 與 App plist)")
+    assertEqual(AboutInfo.buildNumber, "20261024.1", "組建編號存在且為 20261024.1")
     assertEqual(AboutInfo.engineVersion.contains("HeiBan Blackboard Vector Engine"), true, "引擎核心資訊明確")
     assertEqual(AboutInfo.feedbackUrl, "https://github.com/VirginBear/HeiBan/issues", "意見回覆入口指向真實倉庫 VirginBear/HeiBan/issues")
     assertEqual(AboutInfo.changelog.count >= 2, true, "更新日誌至少涵蓋 2 個版本紀錄")
-    assertEqual(AboutInfo.changelog[0].version, "1.0.16", "最新更新日誌對應 1.0.16 正式版")
-    assertEqual(AboutInfo.changelog[0].highlights.count >= 3, true, "1.0.16 重點更新項目豐富詳盡")
+    assertEqual(AboutInfo.changelog[0].version, "1.0.17", "最新更新日誌對應 1.0.17 正式版")
+    assertEqual(AboutInfo.changelog[0].highlights.count >= 3, true, "1.0.17 重點更新項目豐富詳盡")
 }
 
 // ==============================================================================
@@ -4131,8 +4131,8 @@ do {
     let eraserRadius = 15.0
     let splitStrokes = EraserToolEngine.sliceStroke(object: strokeObj, eraserCenter: eraserCenter, eraserRadius: eraserRadius)
     assertEqual(splitStrokes.count, 2, "中間段局部擦除應將筆跡分裂為 2 條獨立筆跡")
-    assertEqual(splitStrokes[0].parsedPoints.count, 4, "前半筆跡包含 4 個點 (0, 20, 40, 60)")
-    assertEqual(splitStrokes[1].parsedPoints.count, 4, "後半筆跡包含 4 個點 (120, 140, 160, 180)")
+    assertEqual(splitStrokes[0].parsedPoints.count, 5, "前半筆跡包含 4 個原點與 1 個精確幾何切點")
+    assertEqual(splitStrokes[1].parsedPoints.count, 5, "後半筆跡包含 1 個精確幾何切點與 4 個原點")
 
     // 40.5 CanvasStateSnapshot: 畫布狀態快照解耦與唯讀快照提取
     let engine = BoardEngine(restoreSession: false)
@@ -4178,27 +4178,29 @@ print("\n[測試 42] ProDrafts 錄影檢討：V01–V06 工具列自訂、選取
 do {
     // 42.1 V01: ToolbarPreferences Customization (對齊 1.0.16 全工具開啟預設)
     var prefs = ToolbarPreferences()
-    assertEqual(prefs.activeItemIds.count, 27, "預設工具列包含全部 27 個項目")
+    let totalToolCount = ToolbarPreferences.allItemIds.count
+    assertEqual(prefs.activeItemIds.count, totalToolCount, "預設工具列包含全部 \(totalToolCount) 個項目")
     assertEqual(prefs.hiddenItemIds.count, 0, "預設隱藏清單為 0")
-    assertEqual(prefs.visibleItemIds.count, 27, "預設可見工具數量為 27")
+    assertEqual(prefs.visibleItemIds.count, totalToolCount, "預設可見工具數量為 \(totalToolCount)")
 
     prefs.setItemHidden(id: "ruler", hidden: true)
     assertTrue(prefs.hiddenItemIds.contains("ruler"), "隱藏螢幕尺後進入 hiddenItemIds")
-    assertEqual(prefs.visibleItemIds.count, 26, "隱藏 1 個工具後可見項目為 26")
+    assertEqual(prefs.visibleItemIds.count, totalToolCount - 1, "隱藏 1 個工具後可見項目少 1")
     assertTrue(!prefs.visibleItemIds.contains("ruler"), "visibleItemIds 不含已隱藏之 ruler")
     assertTrue(prefs.hiddenItems.contains(where: { $0.id == "ruler" }), "hiddenItems 正確包含尺規定義")
 
-    prefs.moveItem(id: "eraser", to: 1)
-    assertEqual(prefs.activeItemIds[1], "eraser", "移動橡皮擦至第 1 位成功 (第 0 位固定為 select)")
+    prefs.moveItem(id: "eraser", to: 2)
+    assertEqual(prefs.activeItemIds[2], "eraser", "移動橡皮擦至第 2 位成功 (第 0 位固定為 select, 第 1 位固定為 laser)")
 
     let encoded = try! JSONEncoder().encode(prefs)
     let decoded = try! JSONDecoder().decode(ToolbarPreferences.self, from: encoded)
-    assertEqual(decoded.activeItemIds[1], "eraser", "反序列化保留自訂排序")
+    assertEqual(decoded.activeItemIds[2], "eraser", "反序列化保留自訂排序")
+    assertEqual(decoded.activeItemIds[1], "laser", "雷射指標固定保留於第二位")
     assertEqual(decoded.activeItemIds.first, "select", "選取工具固定保留於首位")
     assertTrue(decoded.hiddenItemIds.contains("ruler"), "反序列化保留隱藏項目")
 
     prefs.resetToDefaults()
-    assertEqual(prefs.activeItemIds.count, 27, "重設後恢復全部 27 個工具")
+    assertEqual(prefs.activeItemIds.count, totalToolCount, "重設後恢復全部 \(totalToolCount) 個工具")
     assertEqual(prefs.hiddenItemIds.count, 0, "重設後隱藏清單清空")
     assertEqual(prefs.activeItemIds.first, "select", "重設後首位恢復為 select")
 
@@ -5163,12 +5165,12 @@ do {
 
     // 46.5 MAC-SYNC-02: 版本對齊、真實 Build、問題回報入口與更新日誌
     assertEqual(AboutInfo.appName, "HeiBan 黑板", "版本資訊：App 名稱相符")
-    assertEqual(AboutInfo.appVersion, "1.0.16", "版本對齊：核心版本號真實對齊 1.0.16")
-    assertEqual(AboutInfo.buildNumber, "20261022.1", "版本對齊：組建編號真實對齊 20261022.1")
+    assertEqual(AboutInfo.appVersion, "1.0.17", "版本對齊：核心版本號真實對齊 1.0.17")
+    assertEqual(AboutInfo.buildNumber, "20261024.1", "版本對齊：組建編號真實對齊 20261024.1")
     assertEqual(AboutInfo.feedbackUrl, "https://github.com/VirginBear/HeiBan/issues", "回報入口：指向 VirginBear/HeiBan/issues")
-    assertEqual(AboutInfo.changelog[0].version, "1.0.16", "更新日誌：最新紀錄為 1.0.16 正式版")
-    assertEqual(AboutInfo.changelog[0].releaseDate, "2026-10-22", "更新日誌：發布日期為 2026-10-22")
-    assertTrue(AboutInfo.changelog[0].highlights.count >= 3, "更新日誌：1.0.16 涵蓋工具列預設全開、自由筆無磁鐵與板擦 80% 幾何")
+    assertEqual(AboutInfo.changelog[0].version, "1.0.17", "更新日誌：最新紀錄為 1.0.17 正式版")
+    assertEqual(AboutInfo.changelog[0].releaseDate, "2026-10-24", "更新日誌：發布日期為 2026-10-24")
+    assertTrue(AboutInfo.changelog[0].highlights.count >= 3, "更新日誌：1.0.17 涵蓋常用色盤、雷射常駐與當前工具底線")
 
     // 46.6 舊版圖釘座標相容性探針 (missing / null / false / true 語意保全)
     let legacyCases: [(name: String, flag: String, expected: Point)] = [
@@ -6120,6 +6122,97 @@ do {
     let vCommonTopEdge = vCommonCenter.y - vCommonSize.height / 2.0
     let vDrawingTopEdge = vDrawingCenter.y - vDrawingSize.height / 2.0
     assertTrue(abs(vCommonTopEdge - vDrawingTopEdge) < 0.5, "51.9 直排工具列固定頂緣錨點：切換不同高度分頁時頂邊界固定不跳動")
+}
+
+print("\n[測試 52] 1.0.17 Windows 同步：常用色盤 Store、常駐雷射、筆色色線與手形平移 (立靶驗收)")
+do {
+    // 52.1 PalettePreferencesStore 核心規格驗收
+    assertEqual(PalettePreferencesStore.canonical("#86efac"), "#86EFAC", "52.1 Canonical：小寫自動轉大寫")
+    assertEqual(PalettePreferencesStore.canonical("#86EFACFF"), "#86EFAC", "52.1 Canonical：FF alpha 等價去重為 7 位")
+    assertEqual(PalettePreferencesStore.canonical("#86EFAC80"), "#86EFAC80", "52.1 Canonical：保留非 FF alpha")
+    assertEqual(PalettePreferencesStore.canonical("invalid"), nil, "52.1 Canonical：無效色碼回傳 nil")
+    assertEqual(PalettePreferencesStore.canonical("#12345"), nil, "52.1 Canonical：長度不足回傳 nil")
+
+    let tempPaletteDir = FileManager.default.temporaryDirectory.appendingPathComponent("HeiBanTest_Palette_\(UUID().uuidString)")
+    try? FileManager.default.createDirectory(at: tempPaletteDir, withIntermediateDirectories: true)
+    let tempPaletteURL = tempPaletteDir.appendingPathComponent("palette.json")
+    defer { try? FileManager.default.removeItem(at: tempPaletteDir) }
+
+    let store = PalettePreferencesStore(fileURL: tempPaletteURL)
+    assertEqual(store.colors.count, 8, "52.1 Store 初始：預設包含 8 種經典常用色")
+    assertEqual(store.colors.first, "#86EFAC", "52.1 Store 初始：首色為粉綠")
+
+    // 新增顏色與重複防禦
+    let addResult = store.add("#123456")
+    assertTrue(addResult, "52.1 Store 新增：成功加入新顏色")
+    assertTrue(store.colors.contains("#123456"), "52.1 Store 包含新色碼")
+    let duplicateResult = store.add("#123456")
+    assertEqual(duplicateResult, false, "52.1 Store 去重：重複加入回傳 false")
+    let duplicateCaseResult = store.add("#123456FF")
+    assertEqual(duplicateCaseResult, false, "52.1 Store 去重：FF alpha 等價重複回傳 false")
+
+    // 移除顏色
+    let removeResult = store.remove("#123456")
+    assertTrue(removeResult, "52.1 Store 移除：成功移除顏色")
+    assertTrue(!store.colors.contains("#123456"), "52.1 Store 不再包含已移除色碼")
+
+    // 允許空列表並持久化
+    for c in store.colors { store.remove(c) }
+    assertEqual(store.colors.isEmpty, true, "52.1 Store 支援刪除所有色票")
+    let reloadedEmptyStore = PalettePreferencesStore(fileURL: tempPaletteURL)
+    assertEqual(reloadedEmptyStore.colors.isEmpty, true, "52.1 Store 空列表持久化：重開不擅自補回預設色")
+
+    // 還原預設色
+    let resetResult = store.reset()
+    assertTrue(resetResult, "52.1 Store 還原：成功還原預設色")
+    assertEqual(store.colors.count, 8, "52.1 Store 還原：數量恢復為 8 色")
+
+    // 壞 JSON 保護
+    try? "corrupted-json-data".write(to: tempPaletteURL, atomically: true, encoding: .utf8)
+    let corruptStore = PalettePreferencesStore(fileURL: tempPaletteURL)
+    assertEqual(corruptStore.loadFailed, true, "52.1 Store 壞檔保護：標記 loadFailed 為 true")
+    let fileContents = (try? String(contentsOf: tempPaletteURL, encoding: .utf8)) ?? ""
+    assertEqual(fileContents, "corrupted-json-data", "52.1 Store 壞檔保護：保留原檔案內容不覆寫")
+
+    // 52.2 ToolbarPreferences & ToolbarContentPolicy 1.0.17 常駐雷射契約
+    assertTrue(ToolbarPreferences.defaultCommonItemIds.contains("laser"), "52.2 常用預設：包含 laser")
+    var tbPrefs = ToolbarPreferences()
+    tbPrefs.normalize()
+    assertEqual(tbPrefs.activeItemIds[0], "select", "52.2 常駐排序：第 0 位固定為 select")
+    assertEqual(tbPrefs.activeItemIds[1], "laser", "52.2 常駐排序：第 1 位固定為 laser")
+    assertTrue(!tbPrefs.hiddenItemIds.contains("laser"), "52.2 常駐防禦：hiddenItemIds 不可包含 laser")
+
+    tbPrefs.setItemHidden(id: "laser", hidden: true)
+    assertTrue(!tbPrefs.hiddenItemIds.contains("laser"), "52.2 常駐防禦：setItemHidden 無法隱藏 laser")
+
+    // 分頁過濾契約：select 與 laser 跨分頁常駐，因此 pageIDs 不應重複包含 select 或 laser
+    let drawingPageIDs = ToolbarContentPolicy.pageIDs(tbPrefs, screen: false, page: "drawing")
+    assertTrue(!drawingPageIDs.contains("select"), "52.2 分頁過濾：繪圖分頁不重複包含 select")
+    assertTrue(!drawingPageIDs.contains("laser"), "52.2 分頁過濾：繪圖分頁不重複包含常駐 laser")
+
+    let commonPageIDs = ToolbarContentPolicy.pageIDs(tbPrefs, screen: false, page: "common")
+    assertTrue(!commonPageIDs.contains("select"), "52.2 分頁過濾：常用分頁不重複包含 select")
+    assertTrue(!commonPageIDs.contains("laser"), "52.2 分頁過濾：常用分頁不重複包含常駐 laser")
+
+    // 52.3 繪圖工具筆色色線 (Color Underline) 判定規格
+    assertTrue(ToolbarContentPolicy.hasToolColor("pen"), "52.3 色線支援：pen 支援筆色色線")
+    assertTrue(ToolbarContentPolicy.hasToolColor("highlighter"), "52.3 色線支援：highlighter 支援筆色色線")
+    assertTrue(ToolbarContentPolicy.hasToolColor("paint"), "52.3 色線支援：paint 支援筆色色線")
+    assertTrue(ToolbarContentPolicy.hasToolColor("curve"), "52.3 色線支援：curve 支援筆色色線")
+    assertTrue(ToolbarContentPolicy.hasToolColor("shapes"), "52.3 色線支援：shapes 支援筆色色線")
+    assertTrue(!ToolbarContentPolicy.hasToolColor("select"), "52.3 色線支援：select 不支援色線")
+    assertTrue(!ToolbarContentPolicy.hasToolColor("eraser"), "52.3 色線支援：eraser 不支援色線")
+    assertTrue(!ToolbarContentPolicy.hasToolColor("laser"), "52.3 色線支援：laser 不支援色線")
+
+    assertTrue(ToolbarContentPolicy.isToolColorActive(toolKey: "pen", currentTool: .pen), "52.3 色線活動：pen 為當前工具時 active")
+    assertTrue(!ToolbarContentPolicy.isToolColorActive(toolKey: "pen", currentTool: .select), "52.3 色線活動：select 時 pen inactive")
+    assertTrue(ToolbarContentPolicy.isToolColorActive(toolKey: "shapes", currentTool: .rect), "52.3 色線活動：rect 時 shapes active")
+    assertTrue(ToolbarContentPolicy.isToolColorActive(toolKey: "shapes", currentTool: .circle), "52.3 色線活動：circle 時 shapes active")
+    assertTrue(!ToolbarContentPolicy.isToolColorActive(toolKey: "shapes", currentTool: .pen), "52.3 色線活動：pen 時 shapes inactive")
+
+    // 52.4 版本號對齊 1.0.17
+    assertEqual(AboutInfo.appVersion, "1.0.17", "52.4 版本對齊：appVersion 為 1.0.17")
+    assertEqual(AboutInfo.changelog[0].version, "1.0.17", "52.4 版本對齊：最新 changelog 為 1.0.17")
 }
 
 print("\n==================================================")

@@ -154,16 +154,19 @@ struct NativePointerSurface: NSViewRepresentable {
             guard event.buttonNumber == 2 else { super.otherMouseDown(with: event); return }
             middleStart = point(event)
             engine.endPanGesture()
+            NSCursor.closedHand.set()
         }
         override func otherMouseDragged(with event: NSEvent) {
             guard event.buttonNumber == 2, let middleStart else { super.otherMouseDragged(with: event); return }
             let location = point(event)
+            NSCursor.closedHand.set()
             engine.updatePanGesture(translation: CGSize(width: location.x - middleStart.x, height: location.y - middleStart.y))
         }
         override func otherMouseUp(with event: NSEvent) {
             guard event.buttonNumber == 2 else { super.otherMouseUp(with: event); return }
             middleStart = nil
             engine.endPanGesture()
+            updateTransformCursor(event)
         }
 
         private func updateEraserCursor(_ event: NSEvent) {
@@ -173,6 +176,10 @@ struct NativePointerSurface: NSViewRepresentable {
             engine.updatePolygonDraftCursor(at: Point(point(event)))
         }
         private func updateTransformCursor(_ event: NSEvent) {
+            if middleStart != nil {
+                NSCursor.closedHand.set()
+                return
+            }
             if engine.laserEngine.isEnabled && !engine.isHoldingSpace {
                 NSCursor.crosshair.set()
                 return

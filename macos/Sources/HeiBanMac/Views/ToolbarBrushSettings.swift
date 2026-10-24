@@ -6,12 +6,14 @@ import SwiftUI
 struct ToolbarBrushSettings: View {
     @ObservedObject private var language = L10n.shared
     @ObservedObject var engine: BoardEngine
+    @ObservedObject private var paletteStore = PalettePreferencesStore.shared
 
     private var style: ToolbarStyleActions { ToolbarStyleActions(engine: engine) }
 
     @ViewState private var hexInput = ""
+    @ViewState private var isManagingPalette = false
+    @ViewState private var paletteMessage: String?
 
-    private let colors = ["#86efac", "#fef08a", "#93c5fd", "#ffffff", "#f472b6", "#fb923c", "#c084fc", "#ef4444", "#111827"]
     private var currentColor: String { style.selectedStrokeColorForControls }
     private var currentWidth: Double { style.selectedStrokeWidthForControls }
     private var currentOpacity: Double { style.selectedOpacityForControls }
@@ -28,9 +30,8 @@ struct ToolbarBrushSettings: View {
             VStack(alignment: .leading, spacing: 14) {
                 headerSection
 
-                // 1. 筆刷／線條色彩與預設色票
-                if !style.hasSelectedStyleTarget { brushKindSection }
-                strokeColorSection
+                // 1. 常用色盤 (可增刪、管理、還原預設色)
+                paletteSection
 
                 // 2. 自訂顏色與 Hex 輸入
                 customColorSection
@@ -76,18 +77,89 @@ struct ToolbarBrushSettings: View {
 
     // MARK: - Sections
 
-    private var brushKindSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(L10n.t("筆刷類型")).font(.caption.bold())
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 6) {
-                ForEach(BrushKind.allCases, id: \.self) { kind in
-                    Button { engine.activeBrushKind = kind } label: {
-                        Label(L10n.t(kind.displayName), systemImage: kind.systemIconName)
-                            .font(.caption2).frame(maxWidth: .infinity, alignment: .leading).padding(6)
-                            .background(engine.activeBrushKind == kind ? Color.accentColor.opacity(0.2) : Color.primary.opacity(0.05),
-                                        in: RoundedRectangle(cornerRadius: 6))
+    private var paletteSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text(L10n.t("常用色")).font(.system(size: 11, weight: .semibold))
+                Spacer()
+                Button(L10n.t(isManagingPalette ? "完成" : "管理")) {
+                    isManagingPalette.toggle()
+                    paletteMessage = nil
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.mini)
+            }
+
+            if paletteStore.colors.isEmpty {
+                Text(L10n.t("尚無常用色，調色後按＋新增。"))
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .padding(.vertical, 4)
+            } else {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 6), spacing: 8) {
+                    ForEach(paletteStore.colors, id: \.self) { color in
+                        VStack(spacing: 2) {
+                            Button {
+                                style.setColor(color)
+                                hexInput = color
+                                paletteMessage = nil
+                            } label: {
+                                Circle().fill(Color(hex: color)).frame(width: 22, height: 22)
+                                    .overlay(Circle().stroke(Color.gray.opacity(0.4), lineWidth: 1))
+                                    .overlay(Circle().stroke(Color.accentColor, lineWidth: currentColor.lowercased() == color.lowercased() ? 2.5 : 0).padding(-3))
+                                    .frame(width: 32, height: 32).contentShape(Rectangle())
+                            }
+                            .help("註記顏色 \(color)")
+                            .accessibilityLabel("註記顏色 \(color)")
+                            .contextMenu {
+                                Button(L10n.t("移除顏色")) {
+                                    paletteStore.remove(color)
+                                }
+                            }
+
+                            if isManagingPalette {
+                                Button {
+                                    paletteStore.remove(color)
+                                } label: {
+                                    Image(systemName: "minus.circle.fill")
+                                        .font(.system(size: 14))
+                                        .foregroundStyle(Color.red.opacity(0.8))
+                                }
+                                .buttonStyle(.plain)
+                                .help(L10n.t("移除此顏色"))
+                            }
+                        }
                     }
                 }
+            }
+
+            HStack(spacing: 8) {
+                Button {
+                    let canon = PalettePreferencesStore.canonical(currentColor) ?? currentColor
+                    if paletteStore.add(canon) {
+                        paletteMessage = nil
+                    } else {
+                        paletteMessage = L10n.t("此顏色已在常用色")
+                    }
+                } label: {
+                    Label(L10n.t("新增目前顏色"), systemImage: "plus")
+                        .font(.caption)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+
+                Button(L10n.t("還原預設色")) {
+                    paletteStore.reset()
+                    paletteMessage = nil
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+            }
+
+            if let message = paletteMessage {
+                Text(message)
+                    .font(.caption2)
+                    .foregroundStyle(.orange)
             }
         }
     }
@@ -124,32 +196,6 @@ struct ToolbarBrushSettings: View {
         }
     }
 
-    private var strokeColorSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text(L10n.t("線條顏色")).font(.system(size: 11, weight: .semibold))
-                Spacer()
-                if style.hasSelectedStyleTarget && engine.selectedStrokeColor.isMixed {
-                    Text(L10n.t("混合顏色")).font(.caption2).foregroundStyle(.secondary)
-                }
-            }
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 6), spacing: 8) {
-                ForEach(colors, id: \.self) { color in
-                    Button {
-                        style.setColor(color)
-                        hexInput = color
-                    } label: {
-                        Circle().fill(Color(hex: color)).frame(width: 22, height: 22)
-                            .overlay(Circle().stroke(Color.gray.opacity(0.4), lineWidth: 1))
-                            .overlay(Circle().stroke(Color.accentColor, lineWidth: currentColor.lowercased() == color.lowercased() ? 2.5 : 0).padding(-3))
-                            .frame(width: 32, height: 32).contentShape(Rectangle())
-                    }
-                    .help("註記顏色 \(color)")
-                    .accessibilityLabel("註記顏色 \(color)")
-                }
-            }
-        }
-    }
 
     private var customColorSection: some View {
         HStack(spacing: 8) {
@@ -269,7 +315,8 @@ struct ToolbarBrushSettings: View {
                 }
                 .help(L10n.t("無填色"))
 
-                ForEach(colors.prefix(4), id: \.self) { hex in
+                let fillSwatches = paletteStore.colors.isEmpty ? PalettePreferencesStore.defaultColors : paletteStore.colors
+                ForEach(fillSwatches.prefix(4), id: \.self) { hex in
                     Button {
                         style.setFillColor(hex)
                     } label: {
