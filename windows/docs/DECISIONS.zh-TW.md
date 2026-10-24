@@ -1,5 +1,10 @@
 # Windows 開發決策
 
+## 2026-10-24 — 先移除XAML呈現等待，保留比較路徑
+
+使用者負面手感回報推進新呈現host，保留HEIBAN_RENDER_PATH=xaml與Compare-XamlRendering.cmd，人工比較固定solid batch16。小批次不改文件或曲線，最新尾段永遠畫出。先不預測輸入或更改平滑契約；schema3時間只涵蓋App事件到Draw／Present，OS佇列與螢幕光子不可由此推論。swap chain會增加顯存，仍需4K及DPI／透明筆實機驗收，不作已達50ms承諾。 [日誌](IMMEDIATE_INK_2026-10-24.zh-TW.md)。
+
+
 ## 2026-10-23 — 畫筆即時預覽與收筆分離（x64編譯成功，待實機）
 
 本批不將作品扁平化或把多筆永久合併；保留逐筆Undo、選取、局部擦除與v1文件。同步提交輕量物件後延遲JSON，不建立可能與保存／Undo競爭的背景提交佇列。減輕已確認hot path；獨立input/render thread待新的端到端證據再規劃。沒有正式進版、Store重打包或發布授權推論。 [本批日誌](INK_PIPELINE_2026-10-23.zh-TW.md)。

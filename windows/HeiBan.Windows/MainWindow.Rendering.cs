@@ -32,7 +32,7 @@ public partial class MainWindow
     }
     private void ClearScene()
     {_scene?.Dispose();_scene=null;_sceneDirty=true;_canvasInvalidated=false;_pendingInkScene.Clear();}
-    private void RenderMainScene(CanvasControl surface,CanvasDrawingSession ds,float width,float height)
+    private void RenderMainScene(HeiBan.Windows.Views.ImmediateCanvas surface,CanvasDrawingSession ds,float width,float height)
     {
         using var trace=InputLatencyTrace.Measure(InputStage.SceneRender);
         if(width<=0||height<=0)return;

@@ -16,6 +16,7 @@ public sealed class WindowsInkCoordinator
     private static double Now=>System.Diagnostics.Stopwatch.GetTimestamp()/(double)System.Diagnostics.Stopwatch.Frequency;
     public Func<InkPoint, InkPoint>? Projection { get; set; }
     public bool IsDrawing { get; private set; }
+    public ulong LastTimestamp=>_lastTimestamp;
     public bool IsStraight=>_straight;
     public IReadOnlyList<InkPoint> ActiveStrokePoints => _straight&&_points.Count>1?new[]{_points[0],_points[^1]}:_points;
     public bool TrySnapStraight(double zoom)

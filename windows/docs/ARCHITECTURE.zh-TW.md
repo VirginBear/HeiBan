@@ -1,5 +1,10 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-24 — 單一即時主畫布host
+
+ImmediateCanvas只擁有呈現排程與GPU表面，仍由MainWindow同一Draw與Direct2DCanvasRenderer繪製。輸入／文件由UI執行緒擁有，不跨執行緒碰session。當前筆跡直接Present(0)，其他操作低優先合併；240Hz上限只合併顯示，不丟原始樣本。單次timer補末點；卸載／關閉停止timer並釋放swap chain，DPI／大小重設buffers；graphics COM錯誤回CanvasControl。資源清除與重新載圖沿用CreateResources契約。獨立input thread與screen DirectComposition尚未實作。 [日誌](IMMEDIATE_INK_2026-10-24.zh-TW.md)。
+
+
 ## 2026-10-23 — 畫筆即時預覽與收筆分離（x64編譯成功，待實機）
 
 BoardObject新筆以獨佔點列待編碼；Points getter保留v1字串契約，null與extension data不改。未編碼Snapshot隔離點／未知欄位，DocumentSnapshot估算／比較及渲染／CurvePreview cache用記憶體資料而不觸發getter。main append可保留最後wet raster到下一Draw，generation／viewport失配或虛線回到原稿渲染。NativeOverlay保留IBufferByteAccess COM參考及位址，Win2D局部回讀後直接複製DIB，hide／resize／dispose釋放持有參考。 [本批日誌](INK_PIPELINE_2026-10-23.zh-TW.md)。

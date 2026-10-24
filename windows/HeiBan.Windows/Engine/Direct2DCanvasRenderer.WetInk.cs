@@ -11,6 +11,8 @@ namespace HeiBan.Windows.Engine;
 
 public sealed partial class Direct2DCanvasRenderer
 {
+    private static readonly int SolidWetBatch=ReadSolidWetBatch();
+    private static int ReadSolidWetBatch()=>int.TryParse(Environment.GetEnvironmentVariable("HEIBAN_WET_BATCH"),out var size)&&size>=1&&size<=64?size:16;
     private CanvasRenderTarget? _wetRaster;
     private readonly record struct WetView(double X,double Y,double Zoom,double Width,double Height,float Dpi,string Color,double StrokeWidth,string LineStyle);
     private WetView _wetView;
@@ -51,14 +53,15 @@ public sealed partial class Direct2DCanvasRenderer
     /// Rasterize only newly stable cubic segments. Keep the last segment live
     /// because its next control point can still change. One viewport-sized GPU
     /// target is reused between strokes; it never enters document/undo data.
-    /// Solid ink appends all newly stable segments once per draw, not per input
-    /// event. Dashed ink retains its existing 64-segment phase boundaries, but
+    /// Solid ink appends small batches to avoid an offscreen drawing-session
+    /// flush for every mouse sample. Dashed ink retains 64-segment boundaries, but
     /// no longer replays every old block each frame.
     /// </summary>
     public void RenderWetInk(CanvasDrawingSession ds,IReadOnlyList<InkPoint> points,ViewportTransform vp,
         string color,double width,double opacity,string lineStyle,Size surfaceSize)
     {
         using var trace=InputLatencyTrace.Measure(InputStage.WetInkRender);
+        InputPresentationTrace.SetWetBatch(SolidWetBatch);
         if(points.Count<3||surfaceSize.Width<=0||surfaceSize.Height<=0)
         {_wetFirst=null;RenderLiveStroke(ds,points,vp,color,width,opacity,lineStyle);return;}
         var key=new WetView(vp.X,vp.Y,vp.Zoom,surfaceSize.Width,surfaceSize.Height,ds.Dpi,color,width,lineStyle);
@@ -84,11 +87,11 @@ public sealed partial class Direct2DCanvasRenderer
             if(i>0)_wetMaxStep=Math.Max(_wetMaxStep,Math.Max(Math.Abs(p.X-points[i-1].X),Math.Abs(p.Y-points[i-1].Y)));
         }
         _wetCount=points.Count;_wetView=key;
-        // The next sample fixes a cubic's final control point. Append a single
-        // batch per rendered frame; only the last segment remains provisional.
-        // Dash caps/phases must keep the pre-existing block boundaries.
-        var stableEnd=lineStyle=="solid"?points.Count-2:
-            _wetStableEnd+Math.Max(0,(points.Count-2-_wetStableEnd)/64)*64;
+        // Every received sample is visible in the bounded tail immediately;
+        // batching only changes when older geometry enters the raster cache.
+        // No points are withheld waiting for a batch. Dash phases stay at 64.
+        var batchSize=lineStyle=="solid"?SolidWetBatch:64;
+        var stableEnd=_wetStableEnd+Math.Max(0,(points.Count-2-_wetStableEnd)/batchSize)*batchSize;
         if(reset||stableEnd>_wetStableEnd)
         {
             using var appendTrace=InputLatencyTrace.Measure(InputStage.WetRasterAppend);

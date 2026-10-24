@@ -35,6 +35,7 @@ try {
     }
     Copy-Item -LiteralPath (Join-Path $windowsRoot 'README.md') -Destination (Join-Path $payload 'README-Windows.md')
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'Capture-InputLatency.cmd') -Destination $payload
+    Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'Compare-XamlRendering.cmd') -Destination $payload
     # Windows PowerShell 5.1 needs the BOM for the localized launcher text.
     $capture=Get-Content -LiteralPath (Join-Path $PSScriptRoot 'Collect-InputLatency.ps1') -Raw
     Set-Content -LiteralPath (Join-Path $payload 'Collect-InputLatency.ps1') -Value $capture -Encoding utf8BOM

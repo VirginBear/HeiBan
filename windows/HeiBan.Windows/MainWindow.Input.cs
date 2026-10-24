@@ -49,13 +49,13 @@ public partial class MainWindow
     private Vector2? _snapEdge;
     private Vector2 _snapDirection;
 
-    private void CanvasSurface_CreateResources(CanvasControl sender,Microsoft.Graphics.Canvas.UI.CanvasCreateResourcesEventArgs e)
+    private void CanvasSurface_CreateResources(ImmediateCanvas sender,ImmediateCanvasResourcesEventArgs e)
     {ClearScene();_renderer.ClearCache();e.TrackAsyncAction(_renderer.LoadImagesAsync(sender,_session.Document.Objects).AsAsyncAction());}
-    private void CanvasSurface_Draw(CanvasControl sender,CanvasDrawEventArgs e)
+    private void CanvasSurface_Draw(ImmediateCanvas sender,CanvasDrawingSession drawingSession)
     {
         using var trace=InputLatencyTrace.Measure(InputStage.CanvasDraw);
         _canvasInvalidated=false;if(!_ink.IsDrawing)UpdateSaveStatusLight(StatusText.Text);
-        var ds=e.DrawingSession;var w=(float)sender.ActualWidth;var h=(float)sender.ActualHeight;
+        var ds=drawingSession;var w=(float)sender.ActualWidth;var h=(float)sender.ActualHeight;
         RenderMainScene(sender,ds,w,h);
         var board=_session.Document.Board;
         var clip=board.CanvasMode=="infinite"?new Rect(0,0,w,h):new Rect(_viewport.X,_viewport.Y,(board.CanvasWidth??595)*_viewport.Zoom,(board.CanvasHeight??842)*_viewport.Zoom);
@@ -205,6 +205,7 @@ public partial class MainWindow
     private void CanvasSurface_PointerMoved(object sender,PointerRoutedEventArgs e)
     {
         using var trace=InputLatencyTrace.Measure(InputStage.PointerMove);
+        var arrival=InputLatencyTrace.Enabled?System.Diagnostics.Stopwatch.GetTimestamp():0;
         var p=e.GetCurrentPoint(CanvasSurface);_mouse=new((float)p.Position.X,(float)p.Position.Y);_hover=true;
         if(_circularEraser is { } eraser)
         {
@@ -217,7 +218,15 @@ public partial class MainWindow
         if(_gesture&&p.PointerId==_pointerId&&_ink.IsDrawing)
         {
             _ink.ProcessPointerUpdate(e.GetIntermediatePoints(CanvasSurface),_viewport);
-            InvalidateCanvas(false);e.Handled=true;return;
+            if(InputLatencyTrace.Enabled&&_ink.ActiveStrokePoints is {Count:>0} points)
+            {
+                var last=points[^1];var at=_viewport.WorldToScreen(last.X,last.Y);
+                var dx=at.X-_mouse.X;var dy=at.Y-_mouse.Y;
+                InputPresentationTrace.PointerBatch(arrival,p.Timestamp,_ink.LastTimestamp,Math.Sqrt(dx*dx+dy*dy),_ink.Projection is not null);
+            }
+            // Submit the latest complete batch now; no extra XAML invalidation
+            // hop between captured freehand input and the swap-chain frame.
+            _canvasInvalidated=true;CanvasSurface.PresentNow();e.Handled=true;return;
         }
         if(_tool=="select")UpdateShapeCursor();
         if(!_gesture&&MagnetSnapIndex.SupportsConstructionTool(_tool)){EnsureMagnetIndex();SnapDrawingPoint(_viewport.ScreenToWorld(_mouse.X,_mouse.Y));InvalidateCanvas(false);}

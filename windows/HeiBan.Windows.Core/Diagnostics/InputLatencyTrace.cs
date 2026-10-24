@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace HeiBan.Windows.Diagnostics;
 
-public enum InputStage { PointerDown,PointerMove,InkCommit,CanvasDraw,SceneRender,MagnetRebuild,ToolSwitch,BrushPanel,LayersRefresh,UiHeartbeat,ScreenRender,EraserMove,EraserApply,EraserCommit,SceneRebuild,WetInkRender,InkEncode,InkSnapshot,WetRasterAppend,ScreenReadback }
+public enum InputStage { PointerDown,PointerMove,InkCommit,CanvasDraw,SceneRender,MagnetRebuild,ToolSwitch,BrushPanel,LayersRefresh,UiHeartbeat,ScreenRender,EraserMove,EraserApply,EraserCommit,SceneRebuild,WetInkRender,InkEncode,InkSnapshot,WetRasterAppend,ScreenReadback,PointerBatchToDraw,PointerBatchToPresent,SwapChainPresent }
 
 /// <summary>
 /// Opt-in local timings of real user interaction, never synthetic input. The
@@ -51,7 +51,7 @@ public static class InputLatencyTrace
             }
         }).ToArray();
         var memory=GC.GetGCMemoryInfo();
-        var report=new{schema=2,scope="Real user CPU handler/drawing submission durations; nested stages overlap. Not GPU execution or end-to-end input/display latency. UI heartbeat includes OS scheduling and inactive periods. EraserApply runs on a worker thread.",
+        var report=new{schema=3,presentation=InputPresentationTrace.Summary(),scope="Real user CPU handler/drawing submission durations; nested stages overlap. Not GPU execution or end-to-end input/display latency. UI heartbeat includes OS scheduling and inactive periods. EraserApply runs on a worker thread.",
             recordedUtc=DateTime.UtcNow,elapsedSeconds=Stopwatch.GetElapsedTime(Started).TotalSeconds,
             processWorkingSetBytes=Environment.WorkingSet,collections=Enumerable.Range(0,3).Select(i=>GC.CollectionCount(i)-InitialCollections[i]).ToArray(),
             totalManagedAllocatedBytes=GC.GetTotalAllocatedBytes(false)-InitialAllocated,gcPauseMs=(GC.GetTotalPauseDuration()-InitialPause).TotalMilliseconds,
