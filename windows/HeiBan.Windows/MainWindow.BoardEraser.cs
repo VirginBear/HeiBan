@@ -57,6 +57,7 @@ public partial class MainWindow
     }
     private void BoardEraser_Pressed(object sender,PointerRoutedEventArgs e)
     {
+        if(!CanvasSurface.IsRenderingAvailable){e.Handled=true;return;}
         if(_boardEraserDraft is not null||_circularEraser is not null)return;
         var pointer=e.GetCurrentPoint(DrawingArea);if(!pointer.Properties.IsLeftButtonPressed||_readingMode)return;
         var grip=e.GetCurrentPoint(BoardEraserDock).Position;
@@ -114,6 +115,7 @@ public partial class MainWindow
     }
     private void BoardEraser_Moved(object sender,PointerRoutedEventArgs e)
     {
+        if(!CanvasSurface.IsRenderingAvailable){CancelBoardEraser();e.Handled=true;return;}
         using var trace=InputLatencyTrace.Measure(InputStage.EraserMove);
         if(_boardEraserDraft is null||_boardEraserFinishing||e.Pointer.PointerId!=_boardEraserPointer)return;
         var point=e.GetCurrentPoint(DrawingArea).Position;

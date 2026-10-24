@@ -178,3 +178,7 @@ HeiBan 為 GPL-3.0-only，附 [限定 Windows SDK 例外](LICENSE-WINDOWS-EXCEPT
 [preview.5 README 封存](docs/README_preview5_ARCHIVE.zh-TW.md) · [原開發工作單](docs/WINDOWS_DEVELOPMENT_PLAN_2026-10-09.zh-TW.md) · [架構](docs/ARCHITECTURE.zh-TW.md) · [問題紀錄](docs/ISSUE_HISTORY.zh-TW.md)
 
 本輪追加：螢幕物件樣式、原位置截圖物件、Shift水平／垂直直線、首頁多選刪除；本版依最新要求恢復右鍵物件選單，取消右鍵自動穿透；圖形／框選局部讀回與無手勢工具切換避免整屏傳輸。實際原生驗證與封裝以本輪BUILD_STATUS為準。
+
+## 畫布顯示異常（2026-10-24修正）
+
+若畫布暫時無法顯示，先等待初始化；畫面失敗提示提供「重新載入畫布」。首幀前不接受繪畫，避免不見的筆跡。不要刪作品來排除顯示問題。修正版免安裝使用獨立標籤canvas-recovery-2026-10-24-r1；舊eraser-laser包有已重現的空白退化。測試範圍／交付來源見[修復紀錄](docs/CANVAS_RECOVERY_2026-10-24.zh-TW.md)。

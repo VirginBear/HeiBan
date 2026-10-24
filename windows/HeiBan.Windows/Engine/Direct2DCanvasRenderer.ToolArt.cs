@@ -14,12 +14,19 @@ public sealed partial class Direct2DCanvasRenderer
         ClearToolArt();var epoch=_toolArtEpoch;
         try
         {
-            var bitmap=await CanvasBitmap.LoadAsync(device,new Uri("ms-appx:///Assets/BoardEraser.png"));
+            // Portable apps have no package identity. Resolve the shipped asset
+            // beside the executable and decode a stream in both distribution modes.
+            using var stream=File.OpenRead(System.IO.Path.Combine(AppContext.BaseDirectory,"Assets","BoardEraser.png"));
+            var bitmap=await CanvasBitmap.LoadAsync(device,stream.AsRandomAccessStream());
             if(epoch!=_toolArtEpoch){bitmap.Dispose();return;}
             _boardEraserArt=bitmap;ResourcesChanged?.Invoke();
         }
-        catch(Exception e) when(e is System.IO.IOException or System.Runtime.InteropServices.COMException)
-        { /* XAML retains the same sprite as a visual fallback if GPU loading fails. */ }
+        catch(Exception e) when(e is not OutOfMemoryException)
+        {
+            // Optional artwork must never fault an unobserved startup task or
+            // prevent the document surface from becoming ready. XAML is retained.
+            Diagnostics.CanvasSurfaceDiagnostics.Record("optional-eraser-art",e);
+        }
     }
     internal void RenderBoardEraser(CanvasDrawingSession ds,double left,double top,float opacity)
     {

@@ -1,5 +1,9 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-24 — 畫布初始化與可選工具資源隔離
+
+ImmediateCanvas的必要CreateResources只追蹤文件圖片；可選工具圖在相同UI／device邊界獨立載入、epoch失效時dispose，失敗有界診斷但不得決定_ready。GPU首幀成功前IsRenderingAvailable=false，MainWindow與板擦輸入拒收，不改永久文件。host初始化／Present捕捉非OOM例外，回CanvasControl；相容資源失敗明示重載入口。診斷只有階段、型別、HRESULT／UTC，不存作品文字、路徑、例外訊息或stack。 [本批日誌](CANVAS_RECOVERY_2026-10-24.zh-TW.md)。
+
 ## 2026-10-24 — 輸入驅動擦除與共用雷射
 
 CircularEraserGesture／板擦在UI收樣即發單worker，完成後依序drain新點；取消和文件generation／epoch拒收、一手勢一Undo保留。EraserPreviewPublisher以worker物件reference映射到隔離UI複本；核心EraseChanged／EraseFootprintChanged只移除或替換物件，不修改存活物件。每次發布新Objects容器與metadata，但存活UI複本只讀重用，移除物件映射同步釋放；不能把此契約用到會原地改屬性的其他操作。一般主畫布PresentInteraction共用ImmediateCanvas，板擦GPU圖與XAML／擦面共用中心矩陣；screen仍timer呈現／GPU回讀／GDI。雷射共用Direct2DCanvasRenderer.Laser，二次中點平滑留在樣本凸包、時間漸細連續輪廓與Gaussian柔光、徑向光點；device clear釋放brush，暫存點不入文件。 [日誌](ERASER_LASER_PAN_2026-10-24.zh-TW.md)。

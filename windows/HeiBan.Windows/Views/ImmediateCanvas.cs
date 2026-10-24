@@ -31,7 +31,8 @@ public sealed class ImmediateCanvas : Grid, ICanvasResourceCreatorWithDpi
     private CanvasSwapChain? _swapChain;
     private CanvasControl? _fallback;
     private XamlRoot? _root;
-    private bool _ready,_pending,_queued,_drawing,_disposed;
+    private bool _ready,_pending,_queued,_drawing,_disposed,_hasPresented;
+    private Border? _failureOverlay;
     private int _epoch;
     private double _width,_height;
     private float _dpi;
@@ -43,6 +44,7 @@ public sealed class ImmediateCanvas : Grid, ICanvasResourceCreatorWithDpi
     private const double MinimumFrameMilliseconds=1000d/240;
     public event Action<ImmediateCanvas,ImmediateCanvasResourcesEventArgs>? CreateResources;
     public event Action<ImmediateCanvas,CanvasDrawingSession>? Draw;
+    public bool IsRenderingAvailable=>_ready&&_hasPresented&&_failureOverlay is null;
     public CanvasDevice Device=>_fallback?.Device??(_device??=CanvasDevice.GetSharedDevice());
     public float Dpi=>_fallback?.Dpi??(float)(96*(XamlRoot?.RasterizationScale??1));
     public float ConvertPixelsToDips(int pixels)=>pixels*96f/Dpi;
@@ -66,7 +68,11 @@ public sealed class ImmediateCanvas : Grid, ICanvasResourceCreatorWithDpi
         if(_disposed)return;
         _root=XamlRoot;
         if(_root is not null)_root.Changed+=RootChanged;
-        if(_useFallback)InstallFallback();
+        if(_useFallback)
+        {
+            try{InstallFallback();}
+            catch(Exception ex) when(ex is not OutOfMemoryException){ShowFailure("initialize-fallback",ex);}
+        }
         else _=InitializeSurfaceAsync();
     }
     private void RootChanged(XamlRoot sender,XamlRootChangedEventArgs args)=>Invalidate();
@@ -87,8 +93,8 @@ public sealed class ImmediateCanvas : Grid, ICanvasResourceCreatorWithDpi
             InputPresentationTrace.SetPath("swap-chain");
             Invalidate();
         }
-        catch(COMException ex) when(epoch==_epoch&&!_disposed)
-        {SwitchToFallback(ex.HResult);}
+        catch(Exception ex) when(ex is not OutOfMemoryException)
+        {if(epoch==_epoch&&!_disposed){CanvasSurfaceDiagnostics.Record("initialize-swap-chain",ex);SwitchToFallback(ex.HResult);}}
     }
 
     public void Invalidate()
@@ -151,9 +157,11 @@ public sealed class ImmediateCanvas : Grid, ICanvasResourceCreatorWithDpi
             // or promise zero lag. GPU back pressure is included in this scope.
             using(InputLatencyTrace.Measure(InputStage.SwapChainPresent))_swapChain.Present(0);
             _lastPresent=System.Diagnostics.Stopwatch.GetTimestamp();
+            _hasPresented=true;
             InputPresentationTrace.EndPresent();
         }
-        catch(COMException ex){SwitchToFallback(ex.HResult);}
+        catch(Exception ex) when(ex is not OutOfMemoryException)
+        {CanvasSurfaceDiagnostics.Record("present-swap-chain",ex);SwitchToFallback(ex.HResult);}
         finally{_drawing=false;}
     }
 
@@ -166,7 +174,8 @@ public sealed class ImmediateCanvas : Grid, ICanvasResourceCreatorWithDpi
         {
             _root=XamlRoot;
             if(_root is not null)_root.Changed+=RootChanged;
-            InstallFallback();
+            try{InstallFallback();}
+            catch(Exception ex) when(ex is not OutOfMemoryException){ShowFailure("install-fallback",ex);}
         }
     }
     private void InstallFallback()
@@ -176,25 +185,55 @@ public sealed class ImmediateCanvas : Grid, ICanvasResourceCreatorWithDpi
         _fallback.CreateResources+=(sender,args)=>
         {
             var resources=new ImmediateCanvasResourcesEventArgs();
-            CreateResources?.Invoke(this,resources);
-            args.TrackAsyncAction(resources.Completion.AsAsyncAction());
+            _ready=false;
+            try
+            {
+                CreateResources?.Invoke(this,resources);
+                args.TrackAsyncAction(CompleteFallbackResourcesAsync(resources,_epoch).AsAsyncAction());
+            }
+            catch(Exception ex) when(ex is not OutOfMemoryException){ShowFailure("create-fallback-resources",ex);}
         };
         _fallback.Draw+=(sender,args)=>
         {
-            _pending=false;
-            InputPresentationTrace.BeginDraw();
-            Draw?.Invoke(this,args.DrawingSession);
-            // CanvasControl owns the later presentation. Never label Draw's
-            // return as Present or visible latency in the diagnostic report.
-            InputPresentationTrace.EndDrawWithoutPresent();
+            if(!_ready)return;
+            try
+            {
+                _pending=false;
+                InputPresentationTrace.BeginDraw();
+                Draw?.Invoke(this,args.DrawingSession);
+                _hasPresented=true;
+                // CanvasControl owns the later presentation; Draw's return is
+                // neither Present nor a measurement of visible display latency.
+                InputPresentationTrace.EndDrawWithoutPresent();
+            }
+            catch(Exception ex) when(ex is not OutOfMemoryException){ShowFailure("draw-fallback",ex);}
         };
         Children.Add(_fallback);
         InputPresentationTrace.SetPath("xaml");
         _fallback.Invalidate();
     }
+    private async Task CompleteFallbackResourcesAsync(ImmediateCanvasResourcesEventArgs resources,int epoch)
+    {
+        try{await resources.Completion;if(epoch==_epoch&&!_disposed)_ready=true;}
+        catch(Exception ex) when(ex is not OutOfMemoryException)
+        {if(epoch==_epoch&&!_disposed)ShowFailure("load-fallback-resources",ex);}
+    }
+    private void ShowFailure(string stage,Exception error)
+    {
+        _ready=_hasPresented=false;
+        CanvasSurfaceDiagnostics.Record(stage,error);
+        if(_disposed||_failureOverlay is not null)return;
+        var panel=new StackPanel{Spacing=16,MaxWidth=420};
+        panel.Children.Add(new TextBlock{Text=Localization.Strings.T("畫布暫時無法顯示。請重新載入畫布後再繪畫。"),TextWrapping=TextWrapping.Wrap,FontSize=16});
+        var retry=new Button{Content=Localization.Strings.T("重新載入畫布"),HorizontalAlignment=HorizontalAlignment.Center};
+        retry.Click+=(_,_)=>{ReleaseSurface();if(IsLoaded)OnLoaded(this,new RoutedEventArgs());};
+        panel.Children.Add(retry);
+        _failureOverlay=new Border{Background=new SolidColorBrush(Color.FromArgb(250,248,250,248)),Padding=new Thickness(28),Child=panel,HorizontalAlignment=HorizontalAlignment.Center,VerticalAlignment=VerticalAlignment.Center,CornerRadius=new CornerRadius(16)};
+        Children.Add(_failureOverlay);
+    }
     private void ReleaseSurface()
     {
-        ++_epoch;_ready=_queued=false;_pending=true;
+        ++_epoch;_ready=_queued=_hasPresented=false;_pending=true;
         _frameTimer?.Stop();_frameTimer=null;_lastPresent=0;
         if(_root is not null)_root.Changed-=RootChanged;
         _root=null;
@@ -203,6 +242,7 @@ public sealed class ImmediateCanvas : Grid, ICanvasResourceCreatorWithDpi
         _panel=null;
         _fallback?.RemoveFromVisualTree();_fallback=null;
         Children.Clear();
+        _failureOverlay=null;
         // Shared device lifetime belongs to Win2D, not this view.
         _device=null;
     }

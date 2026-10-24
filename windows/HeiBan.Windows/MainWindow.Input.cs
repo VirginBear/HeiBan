@@ -50,7 +50,13 @@ public partial class MainWindow
     private Vector2 _snapDirection;
 
     private void CanvasSurface_CreateResources(ImmediateCanvas sender,ImmediateCanvasResourcesEventArgs e)
-    {ClearScene();_renderer.ClearCache();e.TrackAsyncAction(Task.WhenAll(_renderer.LoadImagesAsync(sender,_session.Document.Objects),_renderer.LoadToolArtAsync(sender)).AsAsyncAction());}
+    {
+        ClearScene();_renderer.ClearCache();
+        e.TrackAsyncAction(_renderer.LoadImagesAsync(sender,_session.Document.Objects).AsAsyncAction());
+        // Decorative tool art has its own handled failure and redraw callback;
+        // it is never a prerequisite for presenting the user's document.
+        _ = _renderer.LoadToolArtAsync(sender);
+    }
     private void CanvasSurface_Draw(ImmediateCanvas sender,CanvasDrawingSession drawingSession)
     {
         using var trace=InputLatencyTrace.Measure(InputStage.CanvasDraw);
@@ -91,6 +97,7 @@ public partial class MainWindow
     private double EffectiveWidth=>_strokeWidth;
     private void CanvasSurface_PointerPressed(object sender,PointerRoutedEventArgs e)
     {
+        if(!CanvasSurface.IsRenderingAvailable){e.Handled=true;CanvasSurface.Invalidate();return;}
         using var trace=InputLatencyTrace.Measure(InputStage.PointerDown);
         if(_boardEraserDraft is not null||_circularEraser is not null){e.Handled=true;return;}
         FinishPinRename();
@@ -204,6 +211,7 @@ public partial class MainWindow
     }
     private void CanvasSurface_PointerMoved(object sender,PointerRoutedEventArgs e)
     {
+        if(!CanvasSurface.IsRenderingAvailable){if(_gesture)CancelGesture();e.Handled=true;return;}
         using var trace=InputLatencyTrace.Measure(InputStage.PointerMove);
         var arrival=InputLatencyTrace.Enabled?System.Diagnostics.Stopwatch.GetTimestamp():0;
         var p=e.GetCurrentPoint(CanvasSurface);_mouse=new((float)p.Position.X,(float)p.Position.Y);_hover=true;
@@ -320,6 +328,7 @@ public partial class MainWindow
     }
     private async void CanvasSurface_PointerReleased(object sender,PointerRoutedEventArgs e)
     {
+        if(!CanvasSurface.IsRenderingAvailable){if(_gesture)CancelGesture();e.Handled=true;return;}
         if(_circularEraser is { } eraser&&_gesture&&e.Pointer.PointerId==_pointerId)
         {
             var point=e.GetCurrentPoint(CanvasSurface).Position;eraser.Queue(_viewport.ScreenToWorld(point.X,point.Y));
@@ -446,7 +455,7 @@ public partial class MainWindow
         ZoomText.Text=$"{_viewport.Zoom:P0}";RefreshProperties();InvalidateCanvas();e.Handled=true;
     }
     private void CanvasSurface_DoubleTapped(object sender,DoubleTappedRoutedEventArgs e)
-    {var p=e.GetPosition(CanvasSurface);if(PinAt(new((float)p.X,(float)p.Y)) is { } pin){CancelGesture();StartPinRename(pin);e.Handled=true;return;}var o=_session.Hit(_viewport.ScreenToWorld(p.X,p.Y),6/_viewport.Zoom);if(o?.Type=="tape"&&o.IsLocked!=true){_session.Begin();o.IsRevealed=o.IsRevealed!=true;_session.Commit();RefreshEditor();e.Handled=true;}else if(o is {IsLocked:not true}){CancelGesture();_tool="select";_polygon.Clear();_session.SelectedId=o.Id;_objectDetailsId=o.Id;Inspector.Visibility=Visibility.Visible;RefreshEditor();if(o.Type is "text" or "sticky")StartText(o);e.Handled=true;}}
+    {if(!CanvasSurface.IsRenderingAvailable){e.Handled=true;return;}var p=e.GetPosition(CanvasSurface);if(PinAt(new((float)p.X,(float)p.Y)) is { } pin){CancelGesture();StartPinRename(pin);e.Handled=true;return;}var o=_session.Hit(_viewport.ScreenToWorld(p.X,p.Y),6/_viewport.Zoom);if(o?.Type=="tape"&&o.IsLocked!=true){_session.Begin();o.IsRevealed=o.IsRevealed!=true;_session.Commit();RefreshEditor();e.Handled=true;}else if(o is {IsLocked:not true}){CancelGesture();_tool="select";_polygon.Clear();_session.SelectedId=o.Id;_objectDetailsId=o.Id;Inspector.Visibility=Visibility.Visible;RefreshEditor();if(o.Type is "text" or "sticky")StartText(o);e.Handled=true;}}
     private bool _editingNew;
     private string? _editingBoard,_editingPage;
     private void StartText(BoardObject o,bool isNew=false)

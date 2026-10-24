@@ -1,5 +1,9 @@
 # Windows 問題與排解紀錄
 
+## 2026-10-24 — 畫布空白退化修復（x64實機流程已驗證）
+
+舊eraser-laser包已在隔離資料重現：指南120物件畫面空白，畫線後保存為121物件，輸入與縮圖路徑仍活著。可選板擦PNG不再阻擋必要資源初始化，改BaseDirectory stream載入；主host捕捉非COM失敗並回退／顯示重載，首幀前禁止新增隱形筆跡。修正版x64 build29.18秒0warning0error；Computer Use實測指南可見、新建筆記→畫線→首頁縮圖→重開筆跡可見。再正常退出、強制XAML且暫移測試PNG，重開舊線與畫新線皆可見；診斷記optional-eraser-art/FileNotFoundException/0x80070002，沒有卡住畫布。測試全用獨立HEIBAN_WINDOWS_DATA_DIRECTORY，不寫使用者作品。原舊版現場例外stack未取得，未把推論當HRESULT實測。版本仍1.0.16／1.0.16.0；未量測性能或驗證ARM64／Store。 [修復與實測紀錄](CANVAS_RECOVERY_2026-10-24.zh-TW.md)。
+
 ## 2026-10-24 — 中鍵手形、即時擦除與平滑雷射（候選試用）
 
 前批畫筆獲使用者「順暢很多」回饋，非毫秒量測。本批中鍵／空白鍵平移顯示握手游標，釋放／取消恢復；鎖定視角不平移。一般／螢幕圓形擦除與板擦改輸入驅動單worker接續處理，移除16ms啟動輪詢；穩定隔離預覽物件，避免每批重複深拷貝存活筆跡。一般畫布擦除與拖曳板擦共用立即呈現，仍放開flush後一筆Undo。參考GitHub Mac雷射26ea834：共用renderer改二次平滑連續漸細輪廓、柔光／白芯／徑向光點，兩畫布一致，十語手冊同步。最終x64 build20.79秒0warning0error；App／實作測試／新性能採樣未執行。完整scene重畫與screen回讀仍在，手感待實機；仍1.0.16／1.0.16.0，未重做Store。 [日誌](ERASER_LASER_PAN_2026-10-24.zh-TW.md)。
