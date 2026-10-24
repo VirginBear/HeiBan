@@ -91,7 +91,7 @@ internal sealed partial class ScreenAnnotationWindow
         Command("預設",()=>_toolbarPreferences.ResetToDefault());
         Command("只有圖示",()=>_toolbarPreferences.DisplayMode="icons");Command("圖示與文字（分頁）",()=>_toolbarPreferences.DisplayMode="labels");
         var common=new MenuFlyoutSubItem{Text=T("常用")};
-        foreach(var key in ToolbarContentPolicy.ScreenCanvasTools.Where(key=>key!="select"))
+        foreach(var key in ToolbarContentPolicy.ScreenCanvasTools.Where(key=>key is not("select" or "laser")))
         {
             var favorite=new ToggleMenuFlyoutItem{Text=T(ToolbarPreferences.ToolNames.GetValueOrDefault(key,key)),IsChecked=_toolbarPreferences.CommonTools.Contains(key)};
             favorite.Click+=async(_,_)=>
@@ -107,7 +107,7 @@ internal sealed partial class ScreenAnnotationWindow
         submenu.Items.Add(new MenuFlyoutSeparator());
         foreach(var key in ToolbarContentPolicy.VisibleTools(_toolbarPreferences,screenCanvas:true).Concat(ToolbarContentPolicy.HiddenTools(_toolbarPreferences,screenCanvas:true)))
         {
-            var item=new ToggleMenuFlyoutItem{Text=T(ToolbarPreferences.ToolNames.GetValueOrDefault(key,key)),IsEnabled=key!="select",IsChecked=_toolbarPreferences.VisibleTools.Contains(key)};
+            var item=new ToggleMenuFlyoutItem{Text=T(ToolbarPreferences.ToolNames.GetValueOrDefault(key,key)),IsEnabled=key is not("select" or "laser"),IsChecked=_toolbarPreferences.VisibleTools.Contains(key)};
             item.Click+=async(_,_)=>
             {
                 var previousVisible=_toolbarPreferences.VisibleTools.ToList();var previousHidden=_toolbarPreferences.HiddenTools.ToList();
@@ -123,14 +123,10 @@ internal sealed partial class ScreenAnnotationWindow
     {
         var selected=StyleSelection;var currentColor=selected?.StrokeColor??_color;var currentWidth=(selected?.StrokeWidth/_dpiScale)??_width;var currentAlpha=selected?.Opacity??_opacity;
         var panel=new StackPanel{Width=248,Spacing=14,RequestedTheme=ElementTheme.Light};panel.Children.Add(new TextBlock{Text=selected is null?T("顏色與筆刷"):T("選取物件樣式"),FontSize=16});
-        var palette=new Grid{ColumnSpacing=8,RowSpacing=8};for(var i=0;i<3;i++)palette.ColumnDefinitions.Add(new());palette.RowDefinitions.Add(new());palette.RowDefinitions.Add(new());
-        var colors=new[]{"#EF4444","#F59E0B","#22C55E","#3B82F6","#FFFFFF","#111827"};var swatches=new List<(Button Button,string Color)>();
-        for(var i=0;i<colors.Length;i++)
-        {
-            var hex=colors[i];var button=new Button{Content=new Ellipse{Width=24,Height=24,Fill=new SolidColorBrush(Direct2DCanvasRenderer.HexToColor(hex)),Stroke=ChromeBrush(100,85,100,92),StrokeThickness=1},Width=36,Height=36,MinWidth=0,MinHeight=0,Padding=new Thickness(3),CornerRadius=new CornerRadius(18),Background=ChromeBrush(0,0,0,0),BorderBrush=ChromeBrush(255,66,117,93),BorderThickness=new Thickness(hex==currentColor?2:0),HorizontalAlignment=HorizontalAlignment.Center};
-            AutomationProperties.SetName(button,T("註記顏色 ")+hex);button.Click+=(_,_)=>{SetScreenColor(hex);CommitScreenStyle();foreach(var swatch in swatches)swatch.Button.BorderThickness=new Thickness(swatch.Color==hex?2:0);};Grid.SetColumn(button,i%3);Grid.SetRow(button,i/3);palette.Children.Add(button);swatches.Add((button,hex));
-        }
-        panel.Children.Add(palette);
+        var wheel=new ColorPicker{Color=Direct2DCanvasRenderer.HexToColor(currentColor),Width=248,ColorSpectrumShape=ColorSpectrumShape.Ring,IsHexInputVisible=true,IsColorChannelTextInputVisible=false,IsAlphaEnabled=true,IsAlphaSliderVisible=true,IsAlphaTextInputVisible=true};
+        wheel.ColorChanged+=(_,e)=>{SetScreenColor($"#{e.NewColor.R:X2}{e.NewColor.G:X2}{e.NewColor.B:X2}{e.NewColor.A:X2}");};
+        panel.Children.Add(new PaletteEditor(_owner.ProfilePalette,()=>$"#{wheel.Color.R:X2}{wheel.Color.G:X2}{wheel.Color.B:X2}{wheel.Color.A:X2}",color=>wheel.Color=Direct2DCanvasRenderer.HexToColor(color),wheel));
+        panel.Children.Add(wheel);
         var type=selected?.Type??_tool;
         if(type is not("text" or "sticky" or "image"))
         {
@@ -147,7 +143,7 @@ internal sealed partial class ScreenAnnotationWindow
             extension.SelectionChanged+=(_,_)=>{var value=options[Math.Max(0,extension.SelectedIndex)];if(StyleSelection is not null)EditScreenStyle(o=>{if(o.Type is "line" or "arrow")o.Extension=value;});else _screenExtension=value;};panel.Children.Add(extension);
         }
         var alphaValue=new TextBlock{Text=$"{currentAlpha:P0}",FontSize=12};panel.Children.Add(BrushCaption(T("透明度"),alphaValue));var alpha=ChromeSlider(.1,1,currentAlpha,"");alpha.StepFrequency=.05;alpha.ValueChanged+=(_,_)=>{if(StyleSelection is not null)EditScreenStyle(o=>o.Opacity=alpha.Value);else _opacity=alpha.Value;alphaValue.Text=$"{alpha.Value:P0}";};panel.Children.Add(alpha);
-        panel.Children.Add(new TextBlock{Text=_status.Text,FontSize=10,TextWrapping=TextWrapping.Wrap});ShowChromeFlyout(new Flyout{Content=panel},_brushButton);
+        panel.Children.Add(new TextBlock{Text=_status.Text,FontSize=10,TextWrapping=TextWrapping.Wrap});ShowChromeFlyout(new Flyout{Content=new ScrollViewer{Content=panel,MaxHeight=540,VerticalScrollBarVisibility=ScrollBarVisibility.Auto}},_brushButton);
     }
     private static Grid BrushCaption(string text,TextBlock value){var row=new Grid();row.ColumnDefinitions.Add(new(){Width=new GridLength(1,GridUnitType.Star)});row.ColumnDefinitions.Add(new(){Width=GridLength.Auto});row.Children.Add(new TextBlock{Text=text,FontSize=12});Grid.SetColumn(value,1);row.Children.Add(value);return row;}
     private static Slider ChromeSlider(double min,double max,double value,string label)

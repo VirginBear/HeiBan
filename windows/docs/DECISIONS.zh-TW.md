@@ -1,5 +1,9 @@
 # Windows 開發決策
 
+## 2026-10-24 — 共用profile色盤與工具筆色顯示
+
+移除材質名稱選單而保留BrushKind資料，避免有名稱但無效果的誤導；不重寫材質引擎，不改文件schema。色盤用獨立palette.json、不擴充會覆寫未知欄位的teaching.json；壞檔／未來版本保留原byte並停用增刪，空列表不自動重填。依本次要求將laser與select強制常駐，只補laser常用項；修正ToolbarPreferences手工複製DefaultCommonRevision遺漏。主／螢幕的實際筆色仍各走原樣式邏輯，不暗改獨立記色規則。 [日誌](BRUSH_PALETTE_IMPLEMENTATION_2026-10-24.zh-TW.md)。
+
 ## 2026-10-24 — 畫布初始化與可選工具資源隔離
 
 可選資源不得阻擋文件畫布；免安裝與Store共用BaseDirectory唯讀stream，不靠ms-appx解析工具PNG。失敗先保留畫面與可見恢復入口，避免輸入繼續新增不可見物件。維持既有即時呈現／240Hz上限、文件schema與一手勢一Undo；不因修復回退到每筆延遲顯示。舊包重現、新包正常流程與XAML＋缺圖故障注入分別記錄，沒有實測的裝置重建／OOM／ARM64不標已驗收。 [本批日誌](CANVAS_RECOVERY_2026-10-24.zh-TW.md)。

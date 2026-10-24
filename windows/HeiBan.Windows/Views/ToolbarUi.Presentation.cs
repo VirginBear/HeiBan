@@ -38,7 +38,9 @@ internal static partial class ToolbarUi
     internal static void ReplaceIcon(Button button,UIElement icon)
     {
         // Retain the label and its measured panel when just the swatch/style changes.
-        if(button.Content is StackPanel{Tag:"toolbar-label"} label){label.Children.RemoveAt(0);label.Children.Insert(0,icon);}
+        if(button.Content is StackPanel{Tag:"toolbar-label"} label)
+        {if(label.Children[0] is ColorIcon colored)colored.Icon.Content=icon;else{label.Children.RemoveAt(0);label.Children.Insert(0,icon);}}
+        else if(button.Content is ColorIcon colored)colored.Icon.Content=icon;
         else button.Content=icon;
     }
     internal static void DetachButtons(IEnumerable<Button> buttons)
@@ -53,9 +55,9 @@ internal static partial class ToolbarUi
         DetachButtons(buttons.Select(item=>item.Button));
         host.Children.Clear();
         foreach(var (key,button) in buttons)LabelMode(button,key,labels,iconSize);
-        if(!labels){foreach(var (_,button) in buttons)host.Children.Add(button);return null;}
+        if(!labels){foreach(var (_,button) in buttons.OrderBy(b=>b.Key=="select"?0:b.Key=="laser"?1:2))host.Children.Add(button);return null;}
         var shell=new StackPanel{Orientation=vertical?Orientation.Vertical:Orientation.Horizontal,Spacing=6};
-        if(buttons.FirstOrDefault(b=>b.Key=="select").Button is { } select)shell.Children.Add(select);
+        foreach(var key in new[]{"select","laser"})if(buttons.FirstOrDefault(b=>b.Key==key).Button is { } pinned)shell.Children.Add(pinned);
         var body=new StackPanel{Spacing=4};
         var tabs=new StackPanel{Orientation=vertical?Orientation.Vertical:Orientation.Horizontal,Spacing=3};
         var flow=new ToolbarFlowPanel{Orientation=vertical?Orientation.Vertical:Orientation.Horizontal,RunLength=vertical?600:900,Spacing=3,SingleRun=true};
@@ -63,7 +65,7 @@ internal static partial class ToolbarUi
         void Show(string page)
         {
             flow.Children.Clear();flow.PageOffset=0;
-            foreach(var (key,button) in buttons.Where(b=>b.Key is not("select" or "more")&&(page=="common"?(commonTools?.Contains(b.Key)??PageFor(b.Key)=="common"):PageFor(b.Key)==page)))flow.Children.Add(button);
+            foreach(var (key,button) in buttons.Where(b=>b.Key is not("select" or "laser" or "more")&&(page=="common"?(commonTools?.Contains(b.Key)??PageFor(b.Key)=="common"):PageFor(b.Key)==page)))flow.Children.Add(button);
             foreach(var pair in tabButtons)pair.Value.Background=new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(pair.Key==page?(byte)45:(byte)0,57,115,90));
             changePage(page);
         }

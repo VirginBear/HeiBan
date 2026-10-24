@@ -68,6 +68,7 @@ public partial class MainWindow : Window
         _storage=new();
         Localization.Strings.Initialize(_storage.DataDirectory);
         LoadSavingPreferences();
+        ProfilePalette=new PalettePreferencesStore(_storage.DataDirectory);
         _toolbarPrefs=ToolbarPreferencesStore.Load(_storage.DataDirectory);
         _dock=_toolbarPrefs.DockSide;
         App.StartupStage="載入主視窗 XAML";
@@ -102,6 +103,7 @@ public partial class MainWindow : Window
                 if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();
                 if(_boardEraserFinishing)await CompleteBoardEraserAsync();else CancelBoardEraser();
                 await SaveTeachingSettingsAsync();
+                await ProfilePalette.FlushAsync();
                 if(_screenAnnotation?.IsActive==true&&!await _screenAnnotation.StopAsync())return;
                 if(_workspaceOpen&&_session.IsDirty&&!await SaveAsync())return;
                 await FlushPendingThumbnailAsync();

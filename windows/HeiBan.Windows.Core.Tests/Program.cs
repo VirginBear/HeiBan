@@ -681,7 +681,7 @@ var html=BoardExporter.Html(exportDoc,exportDoc.Objects,exportArea);Check(html.C
 Check(BoardExporter.Bounds(new BoardMetadata{CanvasMode="fixed",CanvasWidth=595,CanvasHeight=842},exportDoc.Objects).Width==595,"Fixed canvas exports paper dimensions");
 var cropped=new BoardObject{Type="image",OriginalWidth=800,OriginalHeight=600,Width=100,Height=150,CropX=200,CropY=100,CropWidth=200,CropHeight=300,ImageUrl="data:image/png;base64,AA=="};var croppedSvg=BoardExporter.Svg(exportDoc,new[]{cropped},new(0,0,300,300));Check(croppedSvg.Contains("viewBox=\"200 100 200 300\""),"SVG uses original-pixel crop rectangle");
 var teachingDoc=new HeiBanDocument{Objects=[new BoardObject{Type="stroke",BrushKind="calligraphy",Name="鋼筆"},new BoardObject{Type="tape",IsRevealed=true,TapeStyle="striped"}]};var teachingRoundTrip=DocumentCodec.Decode(DocumentCodec.Encode(teachingDoc));Check(teachingRoundTrip.Objects[0].BrushKind=="calligraphy"&&teachingRoundTrip.Objects[1].IsRevealed==true,"Mac brush and tape fields round trip");
-var upgradedToolbar=new ToolbarPreferences{VisibleTools=["select","pen"],HiddenTools=[]};upgradedToolbar.Normalize();Check(new[]{"laser","tape","lasso","extension","clearAll","viewLock"}.All(upgradedToolbar.HiddenTools.Contains),"Existing toolbar preferences receive new tools in More");
+var upgradedToolbar=new ToolbarPreferences{VisibleTools=["select","pen"],HiddenTools=[]};upgradedToolbar.Normalize();Check(new[]{"tape","lasso","extension","clearAll","viewLock"}.All(upgradedToolbar.HiddenTools.Contains)&&upgradedToolbar.VisibleTools.Contains("laser"),"Existing toolbar preferences receive new tools in More");
 var customTimer=new TimerCoordinator();customTimer.SetCountdownDuration(73);customTimer.Mode=TimerMode.Countdown;customTimer.Start();customTimer.UpdateDisplayTimes(73);Check(customTimer.Status==TimerStatus.TimesUp,"Custom countdown reaches requested duration");
 var minimumPdf=System.Text.Encoding.ASCII.GetBytes("%PDF-1.7\n1 0 obj\n<< /Type /Catalog >>\nendobj\nxref\n0 2\n0000000000 65535 f \n0000000009 00000 n \ntrailer\n<< /Size 2 /Root 1 0 R >>\nstartxref\n50\n%%EOF\n");
 var attached=PdfDocumentAttachment.Append(minimumPdf,exportDoc);var attachmentText=System.Text.Encoding.ASCII.GetString(attached);
@@ -932,6 +932,7 @@ modePreferences.DisplayMode="future-mode";modePreferences.Normalize();Check(mode
 var printPagesDoc=new HeiBanDocument{Board=new BoardMetadata{CanvasMode="notebook",Pages=[new(){Id="p1"},new(){Id="p2",Index=1}]},Objects=[new(){Type="text",Text="First",PageId="p1"},new(){Type="text",Text="Second",PageId="p2"}]};
 var printedPages=BoardExporter.Html(printPagesDoc,[],new(0,0,595,842),true,printPagesDoc.Board.Pages.Select(p=>printPagesDoc.Objects.Where(o=>o.PageId==p.Id)));
 Check(System.Text.RegularExpressions.Regex.Matches(printedPages,"<svg ").Count==2&&printedPages.Contains("break-after:page"),"Printable multi-page output retains two separate pages");
+await PalettePreferenceChecks.Run(Check);
 Console.WriteLine($"PASS: {checks} Windows interaction geometry, screenshot coordinator, calculator, compass/arc, timer & offline guide checks");
 
 

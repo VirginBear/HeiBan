@@ -46,6 +46,7 @@ internal sealed partial class ScreenAnnotationWindow
     private void RefreshScreenStyleButtons()
     {
         var selected=StyleSelection;
+        foreach(var (key,button) in _buttons)ToolbarUi.SetToolColor(button,key,_color);
         _brushButton.IsEnabled=selected?.IsLocked!=true;
         var color=selected?.StrokeColor??_color;var dash=selected?.LineStyle??_dash;
         if(!ReferenceEquals(_lastScreenBrushButton,_brushButton)||_lastScreenBrushColor!=color)

@@ -1,5 +1,9 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-24 — 共用profile色盤與工具筆色顯示
+
+PalettePreferencesStore由MainWindow依DataDirectory建立，screen透過owner存取；Semaphore序列化基於最新快照的增刪，原子落盤後才Changed，未完成保存由退出Flush等待。沒有把色盤寫入作品／Undo或指標高頻路徑。PaletteEditor Loaded／Unloaded訂閱解除，ColorPicker事件只更新色票標記；ColorIcon保留圖示／色線與標籤包裝，ReplaceIcon不丟色線。ToolbarUi.Arrange共用兩個常駐控制項，不為每頁複製XAML父項。 [日誌](BRUSH_PALETTE_IMPLEMENTATION_2026-10-24.zh-TW.md)。
+
 ## 2026-10-24 — 畫布初始化與可選工具資源隔離
 
 ImmediateCanvas的必要CreateResources只追蹤文件圖片；可選工具圖在相同UI／device邊界獨立載入、epoch失效時dispose，失敗有界診斷但不得決定_ready。GPU首幀成功前IsRenderingAvailable=false，MainWindow與板擦輸入拒收，不改永久文件。host初始化／Present捕捉非OOM例外，回CanvasControl；相容資源失敗明示重載入口。診斷只有階段、型別、HRESULT／UTC，不存作品文字、路徑、例外訊息或stack。 [本批日誌](CANVAS_RECOVERY_2026-10-24.zh-TW.md)。

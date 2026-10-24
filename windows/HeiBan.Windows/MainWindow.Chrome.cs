@@ -46,7 +46,7 @@ public partial class MainWindow
     private string? _selectionBarSignature;
     private BoardObject? _selectionBarObject;
     private readonly List<Action<BoardObject>> _selectionBarUpdates=[];
-    private static readonly string[] Palette = ["#86EFAC", "#FEF08A", "#93C5FD", "#FFFFFF", "#F472B6", "#FB923C", "#C084FC", "#24533D"];
+    internal PalettePreferencesStore ProfilePalette { get; private set; } = null!;
     private static readonly string[] DashStyles = ["solid", "dashed", "dotted", "dashdot"];
     private string _styleTool = "pen";
     private bool _syncingProperties = true, _propertyEditing;
@@ -493,7 +493,7 @@ public partial class MainWindow
         if (!_chromeEventsBound)
         {
             AddPalette(StrokePalette, color => ChangeProperty(() => { if (_session.Selected is { } o) o.StrokeColor = color; else { CurrentStyle.Color = color; LoadActiveStyle(); } }));
-            AddPalette(FillPalette, color => ChangeProperty(() => SetFillColor(color)));
+            AddPalette(FillPalette, color => ChangeProperty(() => SetFillColor(color)),()=>_session.Selected?.FillColor is { } fill&&fill!="none"?fill:CurrentStyle.Fill);
             WidthSlider.ValueChanged += (_, e) => ChangeProperty(() => { if (_session.Selected is { } o) o.StrokeWidth = e.NewValue; else { CurrentStyle.Width = e.NewValue; LoadActiveStyle(); } });
             OpacitySlider.ValueChanged += (_, e) => ChangeProperty(() => { if (_session.Selected is { } o) o.Opacity = e.NewValue; else { CurrentStyle.Opacity = e.NewValue; LoadActiveStyle(); } });
             FillToggle.Checked += FillChanged;
@@ -696,7 +696,7 @@ public partial class MainWindow
                 var cb = new CheckBox
                 {
                     Content = new StackPanel{Orientation=Orientation.Horizontal,Spacing=10,Children={ToolIcons.Create(key),new TextBlock{Text=T(ToolbarPreferences.ToolNames.GetValueOrDefault(key,key)),MaxWidth=160,TextWrapping=TextWrapping.Wrap,VerticalAlignment=VerticalAlignment.Center}}},
-                    IsEnabled=key!="select",IsChecked = key=="select"||visibleSet.Contains(key)
+                    IsEnabled=key is not("select" or "laser"),IsChecked = key is "select" or "laser"||visibleSet.Contains(key)
                 };
                 cb.Checked += (_, _) => visibleSet.Add(key);
                 cb.Unchecked += (_, _) => visibleSet.Remove(key);
@@ -709,7 +709,7 @@ public partial class MainWindow
                     (allKeys[idx - 1], allKeys[idx]) = (allKeys[idx], allKeys[idx - 1]);
                     RebuildList();
                 };
-                var common=new CheckBox{Content=T("常用"),IsChecked=commonSet.Contains(key),IsEnabled=key!="select",MinWidth=72};
+                var common=new CheckBox{Content=T("常用"),IsChecked=commonSet.Contains(key),IsEnabled=key is not("select" or "laser"),MinWidth=72};
                 common.Checked+=(_,_)=>{commonSet.Add(key);visibleSet.Add(key);cb.IsChecked=true;};
                 common.Unchecked+=(_,_)=>commonSet.Remove(key);
                 Grid.SetColumn(common,1);grid.Children.Add(common);
@@ -735,7 +735,7 @@ public partial class MainWindow
         var dialog = new ContentDialog
         {FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,
             Title = T("自訂工具列"),
-            Content = new StackPanel{Spacing=10,Children={CustomizeToolbarHeader(visibleSet,allKeys,RebuildList,displayMode,value=>displayMode=value,()=>{commonSet.Clear();commonSet.UnionWith(new ToolbarPreferences().CommonTools);}),new TextBlock{Text=T("左側勾選顯示工具，勾選「常用」加入常用分頁；選取工具會持續顯示。"),TextWrapping=TextWrapping.Wrap,FontSize=12,Foreground=Brush("#65746A")},scroll}},
+            Content = new StackPanel{Spacing=10,Children={CustomizeToolbarHeader(visibleSet,allKeys,RebuildList,displayMode,value=>displayMode=value,()=>{commonSet.Clear();commonSet.UnionWith(new ToolbarPreferences().CommonTools);}),new TextBlock{Text=T("左側勾選顯示工具，勾選「常用」加入常用分頁；選取與雷射會持續顯示。"),TextWrapping=TextWrapping.Wrap,FontSize=12,Foreground=Brush("#65746A")},scroll}},
             PrimaryButtonText = T("儲存"),
             CloseButtonText = T("取消"),
             XamlRoot = Root.XamlRoot
@@ -773,28 +773,17 @@ public partial class MainWindow
     {
         // Screen canvas shares the settings file. Update the hidden owner in-memory too, or its
         // next toolbar rebuild could overwrite a choice just made in the screen session.
-        var updated=new ToolbarPreferences{DockSide=preferences.DockSide,DisplayMode=preferences.DisplayMode,MagnetEnabled=preferences.MagnetEnabled,BoardEraserVisible=preferences.BoardEraserVisible,DefaultToolsRevision=preferences.DefaultToolsRevision,DefaultPresentationRevision=preferences.DefaultPresentationRevision,CommonTools=[..preferences.CommonTools],ExtraFields=preferences.ExtraFields,VisibleTools=[..preferences.VisibleTools],HiddenTools=[..preferences.HiddenTools]};
+        var updated=new ToolbarPreferences{DockSide=preferences.DockSide,DisplayMode=preferences.DisplayMode,MagnetEnabled=preferences.MagnetEnabled,BoardEraserVisible=preferences.BoardEraserVisible,DefaultToolsRevision=preferences.DefaultToolsRevision,DefaultPresentationRevision=preferences.DefaultPresentationRevision,DefaultCommonRevision=preferences.DefaultCommonRevision,CommonTools=[..preferences.CommonTools],ExtraFields=preferences.ExtraFields,VisibleTools=[..preferences.VisibleTools],HiddenTools=[..preferences.HiddenTools]};
         updated.Normalize();
         await ToolbarPreferencesStore.SaveAsync(_storage.DataDirectory,updated);
         _toolbarPrefs=updated;
         BuildChrome();
     }
 
-    private void AddPalette(StackPanel panel, Action<string> set)
+    private void AddPalette(StackPanel panel, Action<string> set, Func<string>? current=null)
     {
-        foreach (var color in Palette)
-        {
-            var b = new Button
-            {
-                Width = 24, Height = 24, Padding = new Thickness(2),
-                BorderThickness = new Thickness(0), Background = Brush("#FCFCFA"),
-                CornerRadius = new CornerRadius(12),
-                Content = new Ellipse { Width = 18, Height = 18, Fill = Brush(color), Stroke = Brush("#A7B2A3"), StrokeThickness = 1 }
-            };
-            ToolTipService.SetToolTip(b, color);
-            b.Click += (_, _) => set(color);
-            panel.Children.Add(b);
-        }
+        panel.Orientation=Orientation.Vertical;
+        panel.Children.Add(new PaletteEditor(ProfilePalette,current??(()=>_session.Selected?.StrokeColor??CurrentStyle.Color),set));
     }
 
     private async void ActivateTool(string tool)
@@ -831,6 +820,7 @@ public partial class MainWindow
         _opacity = CurrentStyle.Opacity;
         _fillColor = CurrentStyle.Fill;
         if (_brushSwatch is not null) _brushSwatch.Fill = Brush(_strokeColor);
+        foreach(var (key,button) in _toolButtons)ToolbarUi.SetToolColor(button,key,_strokeColor);
     }
 
     private void RefreshChrome()
@@ -839,6 +829,7 @@ public partial class MainWindow
         foreach (var (key, b) in _toolButtons)
         {
             ToolbarUi.LabelMode(b,key,_toolbarPrefs.DisplayMode=="labels",40);
+            ToolbarUi.SetToolColor(b,key,CurrentStyle.Color);
             var active = (key=="magnet"&&_toolbarPrefs.MagnetEnabled) || (key=="layers"&&LayersPanel.Visibility==Visibility.Visible) || key == _tool || (key == "ruler" && _rulerEnabled) || (key == "compass" && _compass.IsEnabled) || (key == "shapes" && _tool is "line" or "arrow" or "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star");
             var color=Direct2DCanvasRenderer.HexToColor(active?"#DCEBDD":"#FCFCFA");
             if(b.Background is not SolidColorBrush current||current.Color!=color)b.Background=new SolidColorBrush(color);
@@ -977,7 +968,7 @@ public partial class MainWindow
     {
         var picker = ColorWheel(current);
         picker.ColorChanged += (_, e) => update(ColorHex(e.NewColor));
-        var f = new Flyout { Content = picker };
+        var f = new Flyout { Content = new StackPanel{Spacing=10,Children={new PaletteEditor(ProfilePalette,()=>ColorHex(picker.Color),c=>picker.Color=Direct2DCanvasRenderer.HexToColor(c),picker),picker}} };
         f.Closed += (_, _) => CommitPropertyEdit();
         ShowExclusiveFlyout(f, anchor);
     }
@@ -991,10 +982,8 @@ public partial class MainWindow
         var panel = new StackPanel { Width = 286, Spacing = 12 };
         panel.Children.Add(new TextBlock { Text = selected is null ? F($"繪圖設定（{T(ToolbarPreferences.ToolNames.GetValueOrDefault(_styleTool,_styleTool))}）") : T("已選取物件設定"), FontSize = 16, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
         AddExtendedObjectSettings(panel,selected);
-        var palette = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 5 };
-        AddPalette(palette, c => ChangeProperty(() => { if (_session.Selected is { } o) o.StrokeColor = c; else { CurrentStyle.Color = c; LoadActiveStyle(); } }));
-        panel.Children.Add(palette);
         var wheel = ColorWheel(selected?.StrokeColor ?? CurrentStyle.Color);
+        panel.Children.Add(new PaletteEditor(ProfilePalette,()=>ColorHex(wheel.Color),c=>wheel.Color=Direct2DCanvasRenderer.HexToColor(c),wheel));
         panel.Children.Add(wheel);
         var width = new Slider { Header = T("線條粗細（pt）"), Minimum = .5, Maximum = 128, Value = selected?.StrokeWidth ?? CurrentStyle.Width, StepFrequency = .5 };
         panel.Children.Add(width);
@@ -1015,7 +1004,7 @@ public partial class MainWindow
             filled = new CheckBox { Content = T("填滿圖形"), IsChecked = selected is null ? CurrentStyle.Filled : selected.FillColor != "none" };
             panel.Children.Add(filled);
             var fillPalette = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 5 };
-            AddPalette(fillPalette, c => { ChangeProperty(() => SetFillColor(c)); filled.IsChecked = true; });
+            AddPalette(fillPalette, c => { ChangeProperty(() => SetFillColor(c)); filled.IsChecked = true; },()=>_session.Selected?.FillColor is { } fill&&fill!="none"?fill:CurrentStyle.Fill);
             panel.Children.Add(fillPalette);
 
             var fillAlpha = new Slider { Header = T("填色透明度"), Minimum = 0, Maximum = 1, StepFrequency = .01, Value = selected?.FillOpacity ?? CurrentStyle.FillOpacity ?? 1.0 };
@@ -1062,7 +1051,6 @@ public partial class MainWindow
         wheel.ColorChanged += (_, e) => { ChangeProperty(() => { if (_session.Selected is { } o) o.StrokeColor = ColorHex(e.NewColor); else { CurrentStyle.Color = ColorHex(e.NewColor); LoadActiveStyle(); } }); Sync(); };
         width.ValueChanged += (_, e) => { ChangeProperty(() => { if (_session.Selected is { } o) o.StrokeWidth = e.NewValue; else { CurrentStyle.Width = e.NewValue; LoadActiveStyle(); } }); Sync(); };
         alpha.ValueChanged += (_, e) => { ChangeProperty(() => { if (_session.Selected is { } o) o.Opacity = e.NewValue; else { CurrentStyle.Opacity = e.NewValue; LoadActiveStyle(); } }); Sync(); };
-        foreach (var child in palette.Children.OfType<Button>()) child.Click += (_, _) => { wheel.Color = Direct2DCanvasRenderer.HexToColor(_session.Selected?.StrokeColor ?? CurrentStyle.Color); Sync(); };
         if (_rulerEnabled) { var b = new Button { Content = T("尺規角度與配色…") }; b.Click += (_, _) => ShowRulerSettings(anchor); panel.Children.Add(b); }
         Sync();
         var flyout = new Flyout { Content = new ScrollViewer { Content = panel, MaxHeight = Math.Max(300, Root.ActualHeight - 100), VerticalScrollBarVisibility = ScrollBarVisibility.Auto } };
@@ -1166,7 +1154,7 @@ public partial class MainWindow
                         noFill.Click += (_, _) => ChangeProperty(() => SetFilled(false));
                         p.Children.Add(noFill);
                         var pal = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4 };
-                        AddPalette(pal, c => ChangeProperty(() => SetFillColor(c)));
+                        AddPalette(pal, c => ChangeProperty(() => SetFillColor(c)),()=>_session.Selected?.FillColor is { } fill&&fill!="none"?fill:CurrentStyle.Fill);
                         p.Children.Add(pal);
                         var alphaSlider = new Slider { Header = T("填色透明度"), Minimum = 0, Maximum = 1, StepFrequency = .01, Value = selected.FillOpacity ?? selected.Opacity };
                         alphaSlider.ValueChanged += (_, e) => ChangeProperty(() => selected.FillOpacity = e.NewValue);

@@ -16,7 +16,7 @@ public sealed class ToolbarPreferences
     public int DefaultToolsRevision { get; set; }
     public int DefaultPresentationRevision { get; set; }
     public int DefaultCommonRevision { get; set; }
-    public static readonly string[] DefaultCommonTools = ["pen","highlighter","eraser","brush","dash","undo","redo","magnet","clearAll"];
+    public static readonly string[] DefaultCommonTools = ["pen","highlighter","eraser","brush","dash","undo","redo","magnet","clearAll","laser"];
     public List<string> CommonTools { get; set; } = [.. DefaultCommonTools];
     [System.Text.Json.Serialization.JsonExtensionData] public Dictionary<string,JsonElement>? ExtraFields { get; set; }
 
@@ -116,8 +116,10 @@ public sealed class ToolbarPreferences
         // One-time discovery: old preferences lack layers in both lists. A later explicit hide remains respected.
         if(!VisibleTools.Contains("layers")&&!HiddenTools.Contains("layers"))VisibleTools.Add("layers");
         if(!VisibleTools.Contains("magnet")&&!HiddenTools.Contains("magnet"))VisibleTools.Add("magnet");
-        HiddenTools.RemoveAll(t=>t=="select");
-        VisibleTools.RemoveAll(t=>t=="select");VisibleTools.Insert(0,"select");
+        // Selection and laser are fixed controls in every page, per the current UI contract.
+        HiddenTools.RemoveAll(t=>t is "select" or "laser");
+        VisibleTools.RemoveAll(t=>t is "select" or "laser");VisibleTools.InsertRange(0,["select","laser"]);
+        if(!CommonTools.Contains("laser"))CommonTools.Add("laser");
         var seen = new HashSet<string>();
         VisibleTools = VisibleTools.Where(t => allKnown.Contains(t) && seen.Add(t)).ToList();
         HiddenTools = HiddenTools.Where(t => allKnown.Contains(t) && seen.Add(t)).ToList();
@@ -163,7 +165,7 @@ public sealed class ToolbarPreferences
 
     public void HideTool(string toolKey)
     {
-        if(toolKey=="select")return;
+        if(toolKey is "select" or "laser")return;
         if (VisibleTools.Remove(toolKey))
         {
             if (!HiddenTools.Contains(toolKey))

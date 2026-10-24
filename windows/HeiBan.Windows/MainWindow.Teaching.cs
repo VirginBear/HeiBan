@@ -62,12 +62,6 @@ public partial class MainWindow
     }
     private void AddExtendedObjectSettings(StackPanel panel,BoardObject? selected)
     {
-        if(selected is null||selected.Type is "stroke" or "pen" or "highlighter" or "paint")
-        {
-            var kinds=new[]{"pen","fountain","pencil","watercolor","highlighter","crayon","calligraphy","paint"};
-            var brush=new ComboBox{Header=T("筆刷"),ItemsSource=new[]{T("向量筆"),T("鋼筆"),T("鉛筆"),T("水彩"),T("螢光筆"),T("蠟筆"),T("書法"),T("油漆")},SelectedIndex=Math.Max(0,Array.IndexOf(kinds,selected?.BrushKind??CurrentStyle.BrushKind))};
-            brush.SelectionChanged+=(_,_)=>ChangeProperty(()=>{var kind=kinds[Math.Max(0,brush.SelectedIndex)];if(_session.Selected is { } o)o.BrushKind=kind;else CurrentStyle.BrushKind=kind;});panel.Children.Add(brush);
-        }
         if(selected?.Type is "line" or "arrow")
         {var b=new Button{Content=T("延伸直線設定")};b.Click+=(_,_)=>ShowExtensionSettings(b);panel.Children.Add(b);}
         if(selected?.Type=="arrow")

@@ -110,15 +110,8 @@ internal sealed partial class ScreenAnnotationWindow
     private void ShowScreenPalette()
     {
         var panel=new StackPanel{Width=260,Spacing=10,Children={new TextBlock{Text=T("調色盤 · 線條／文字色"),FontSize=16}}};
-        var colors=new[]{"#EF4444","#F59E0B","#FDE047","#22C55E","#3B82F6","#C084FC","#FFFFFF","#111827"};
-        var grid=new Grid{ColumnSpacing=8,RowSpacing=8};for(var i=0;i<4;i++)grid.ColumnDefinitions.Add(new());for(var i=0;i<2;i++)grid.RowDefinitions.Add(new());
-        for(var i=0;i<colors.Length;i++)
-        {
-            var hex=colors[i];var button=new Button{Content=new Microsoft.UI.Xaml.Shapes.Ellipse{Width=24,Height=24,Fill=new SolidColorBrush(Direct2DCanvasRenderer.HexToColor(hex)),Stroke=ChromeBrush(100,85,100,92),StrokeThickness=1},Padding=new Thickness(8),CornerRadius=new CornerRadius(20)};
-            ToolTipService.SetToolTip(button,hex);button.Click+=(_,_)=>{SetScreenColor(hex);CommitScreenStyle();};Grid.SetColumn(button,i%4);Grid.SetRow(button,i/4);grid.Children.Add(button);
-        }
-        panel.Children.Add(grid);
-        var wheel=new ColorPicker{Color=Direct2DCanvasRenderer.HexToColor(StyleSelection?.StrokeColor??_color),Width=260,ColorSpectrumShape=ColorSpectrumShape.Ring,IsHexInputVisible=true,IsAlphaEnabled=true};
+        var wheel=new ColorPicker{Color=Direct2DCanvasRenderer.HexToColor(StyleSelection?.StrokeColor??_color),Width=260,ColorSpectrumShape=ColorSpectrumShape.Ring,IsHexInputVisible=true,IsColorChannelTextInputVisible=false,IsAlphaEnabled=true};
+        panel.Children.Add(new PaletteEditor(_owner.ProfilePalette,()=>$"#{wheel.Color.R:X2}{wheel.Color.G:X2}{wheel.Color.B:X2}{wheel.Color.A:X2}",c=>wheel.Color=Direct2DCanvasRenderer.HexToColor(c),wheel));
         wheel.ColorChanged+=(_,e)=>SetScreenColor($"#{e.NewColor.R:X2}{e.NewColor.G:X2}{e.NewColor.B:X2}{e.NewColor.A:X2}");panel.Children.Add(wheel);
         panel.Children.Add(new TextBlock{Text=T("填色請使用工具列的填滿按鈕。"),FontSize=12});ShowChromeFlyout(new Flyout{Content=new ScrollViewer{Content=panel,MaxHeight=540,VerticalScrollBarVisibility=ScrollBarVisibility.Auto}},_paletteButton);
     }
