@@ -1,4 +1,4 @@
-# 2026-10-24 Windows 畫布空白修復（實測通過，封裝中）
+# 2026-10-24 Windows 畫布空白修復（實測與封裝完成）
 
 ## 使用者回報與範圍
 
@@ -38,3 +38,15 @@ eraser-laser-2026-10-24-r1 開作品後沒有畫布，輸入仍有筆跡寫入�
 `Engine/Direct2DCanvasRenderer.ToolArt.cs`、`MainWindow.Input.cs`、`MainWindow.BoardEraser.cs`、`Views/ImmediateCanvas.cs`、新增`Diagnostics/CanvasSurfaceDiagnostics.cs`；Localization Sources／authoring／10 catalogs、README排錯說明及平台狀態／架構／決策／問題／日誌。只有Windows，無文件格式或指南原稿遷移；不替換既有作品中的指南。
 
 主host首幀與可選圖隔離已透過UI驗證；錯誤overlay重試與GPU裝置遺失恢復尚未故障注入，OOM、ARM64、混合DPI／多螢幕、長時大量筆跡與擦除延遲、WACK／Store重包或送審未執行。沒有新性能採樣，不宣稱50ms或所有延遲已解決。接續封裝及來源／SHA紀錄另補，使用者作品不進ZIP或Git。
+
+## 最終交付與資料保全
+
+`Package-PortableTrial.ps1 -Runtime win-x64 -Label canvas-recovery-2026-10-24-r1` 成功，publish App／Updater，封裝紀錄`.build/portable-trial-d0f825bc4a0a4b659eebc684731c56ab`。source commit ebad4c3f8a470ec33de237e5cd1d0e318042bd15；未提高正式版本。
+
+最終payload HeiBan.exe以HEIBAN_WINDOWS_DATA_DIRECTORY=old-isolated-data、清除HEIBAN_RENDER_PATH覆寫啟動；開舊指南，當時舊包看不到但已保存的綠色斜線與指南／背景一併正常顯示，正常退出。此輪沒有把測試作品移入使用者Data。
+
+`python windows/.build/canvas-recovery-20261024-r1/inspect_delivery.py` 成功核對payload SHA、ZIP檔案CRC／byte、source SHA、兩PE x64與36 Store檔。所有HeiBan已關閉後才從前批eraser-laser Data接續；用Windows長路徑逐檔snapshot／複製／核同，原資料不刪不改。沒有以未完成的複製宣稱成功。
+
+x64免安裝`canvas-recovery-2026-10-24-r1`完成，來源`ebad4c3f8a470ec33de237e5cd1d0e318042bd15`；ZIP 132896794bytes／SHA256 `4a20e8db556d04cd79344d87e15d36135bb9ce59714e1091281c9a1b81ed4cb8`。586 payload／191 source SHA、588 archive entries與CRC核同，兩EXE x64；ZIP使用者Data=0。最終包以舊隔離資料打開，舊版看不到卻已保存的筆跡與指南文字／圖形恢復可見。所有測試程序正常退出後接續舊eraser-laser使用者Data 58檔／25080400bytes，原前後與新逐SHA相同；原trial保留，36份Store不變。 [交付核對](CANVAS_RECOVERY_ARTIFACT_2026-10-24.json)。
+
+啟動：`windows/dist/trials/HeiBan-Windows-Portable-1.0.16-canvas-recovery-2026-10-24-r1-win-x64/HeiBan.exe`。ZIP沒有使用者Data，本機解壓資料夾已接續；不要重新解壓覆蓋Data。舊問題包保留供追查，使用修正版。沒有發布GitHub Release或提交Store；公開原始碼／技術紀錄與私人對話摘要各自Git同步。
