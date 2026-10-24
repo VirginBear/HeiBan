@@ -1,5 +1,10 @@
 # Microsoft Store 1.0.17.0 更新 — 2026-10-24
 
+## 2026-10-24 — Store 1.0.17.0已提交更新審查（使用者回報）
+
+使用者回報已提交1.0.17.0更新審查，目前等待Microsoft結果。此為使用者提供的狀態，未另登入Partner Center核對；尚無本批通過認證／發布的確認。套件沿用已交付的x64＋ARM64 bundle，不重打包或進版。 [送審紀錄](STORE_SUBMISSION_1.0.17_2026-10-24.zh-TW.md)。
+
+
 ## 開工與授權
 
 使用者試用brush-palette-r2後要求「OK 幫我打包 我要更新微軟商店的版本」，依windows/AGENTS.md取得明確「採用1.0.17／1.0.17.0」回覆。本批只Windows，起點34dc7d725a6e6fb2778cf45fa7f725b3438c1d9c；開工git status保留三份文件6／8／4行和三YouTube新檔。已讀平台索引／CURRENT_STATUS／ARCHITECTURE／ISSUE_HISTORY／DECISIONS、AGENTS與前版Store紀錄。

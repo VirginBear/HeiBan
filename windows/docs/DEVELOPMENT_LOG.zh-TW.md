@@ -1,5 +1,10 @@
 # Windows 開發日誌
 
+## 2026-10-24 — Store 1.0.17.0已提交更新審查（使用者回報）
+
+使用者回報已提交1.0.17.0更新審查，目前等待Microsoft結果。此為使用者提供的狀態，未另登入Partner Center核對；尚無本批通過認證／發布的確認。套件沿用已交付的x64＋ARM64 bundle，不重打包或進版。 [送審紀錄](STORE_SUBMISSION_1.0.17_2026-10-24.zh-TW.md)。
+
+
 ## 2026-10-24 — Store 1.0.17.0提交包完成（待使用者上傳）
 
 開工保存三份6／8／4行及YouTube原未提交內容；建立42份Store歷史檔SHA快照，取得使用者版號確認後同步csproj、Store manifest／Identity與十語指南版本，整理十語更新說明；沿用Package-Store正式封裝入口。 [本批日誌](STORE_RELEASE_1.0.17_2026-10-24.zh-TW.md)。
