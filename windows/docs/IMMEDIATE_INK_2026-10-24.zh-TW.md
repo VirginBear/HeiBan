@@ -11,7 +11,7 @@
 - 方案：共用同一套場景／筆跡renderer，換單一繪圖host，活動筆跡事件直接提交；其他UI更新仍合併排程，閒置不跑繪圖迴圈。保留環境變數切回CanvasControl比較，不能把CPU提交數字當螢幕可見延遲。
 - 不使用預測或移動筆尖來掩蓋延遲；文件點列與平滑幾何語義不變。優先解決呈現排程，轉角形狀失真與時間延遲分開驗收。
 
-## 命令／目前結果
+## 開工命令／當時結果
 
 已執行git status、Get-Content及rg靜態追查、官方文件查詢。一次rg literal wildcard失敗（error123），改目錄-g。尚未修改程式／編譯／測試／啟動App。後續結果即時追加。
 
@@ -41,3 +41,13 @@
 程式：Views/ImmediateCanvas.cs；MainWindow.xaml／Input.cs／Rendering.cs；Engine/WindowsInkCoordinator.cs及Direct2DCanvasRenderer.WetInk.cs；Core/Diagnostics/InputLatencyTrace.cs、InputPresentationTrace.cs。封裝：Collect-InputLatency.ps1／Compare-XamlRendering.cmd／Package-PortableTrial.ps1。文件：本日誌、平台五份索引及INPUT_LATENCY_CAPTURE。新增host只改主畫布；screen只共用wet batching，仍native readback／GDI路徑，不能說兩畫布均改swap-chain。
 
 交付前git diff --check通過（只有既有LF／CRLF提示）；私人庫visibility已核PRIVATE。36份Store檔有開工SHA基準，待封裝後比對。來源維持1.0.16，不進版；還沒有runtime驗收與50ms結果。
+
+## 免安裝交付／資料接續
+
+x64免安裝`immediate-ink-2026-10-24-r1`完成，來源`acb64fb2dc676f5ff6d5ff616d74bda5ce5db288`，ZIP 132882435bytes／SHA256 `c71d282d8a362b84672befdfa418ff1da527ee2e7352f2173e28ad42ebfec6f2`。586 payload／187 source SHA及ZIP CRC核同，ZIP使用者Data=0。確認無HeiBan程序後接續52檔／24902680bytes、原與新逐SHA相同；原trial保留，36份Store檔SHA不變。App／實作測試／新性能採樣未執行，未重包／提交Store。 [交付紀錄](IMMEDIATE_INK_ARTIFACT_2026-10-24.json)。
+
+Package-PortableTrial.ps1 -Runtime win-x64 -Label immediate-ink-2026-10-24-r1：App與Updater publish完成；本機SDK暫加入process PATH，結束即還原。封裝證據`.build/portable-trial-636b203d1de9404cbe9f1371d20e796e/publish.log`、artifact.json。`.build/immediate-ink-20261024-r1/inspect_delivery.py`實際檢查來源／payload SHA、ZIP CRC與兩EXE x64；資料接續使用extended-length路徑，52個Data原檔與副本逐SHA核同。沒有覆寫舊試用／作品或Store成品，也沒有自動開App。
+
+使用者先正常關閉舊版，再啟動新版資料夾HeiBan.exe；可先人工比較方形／三角形急轉及曲線。需數字時自行用Capture-InputLatency.cmd；對照用Compare-XamlRendering.cmd（兩者batch16）。正常退出後各有不同名稱JSON。PointerMove現在包含直接繪製／Present的巢狀成本，不與舊純收樣PointerMove直接作性能對比。CPU提交仍不等於螢幕可見時間。
+
+未驗收：可見延遲／P95<50ms、240Hz上限在各螢幕的實際背壓、DPI／縮放與graphics錯誤回退、透明筆／轉角／Undo與保存重開。這是新呈現路徑候選，不宣稱已達超級順暢。獨立輸入執行緒／screen readback替換與轉角平滑改動尚未實作。

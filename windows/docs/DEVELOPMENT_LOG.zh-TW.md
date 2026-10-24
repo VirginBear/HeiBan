@@ -1,8 +1,10 @@
 # Windows 開發日誌
 
-## 2026-10-24 — 主畫布直接呈現與延遲診斷（已編譯，試用封裝中）
+## 2026-10-24 — 主畫布直接呈現與延遲診斷（試用完成，待實機）
 
 使用者GO續接轉角跟筆問題。主畫布共用renderer改由單一CanvasSwapChain直接提交，活動筆跡不再多等一次CanvasControl.Invalidate；非筆跡更新合併、240Hz提交上限／末點timer，閒置不輪詢。solid raster改16段小批次，尾巴仍到最新點；原點列、平滑與逐筆Undo不變。保留XAML人工比較／graphics錯誤回退，新增schema3事件→Draw／Present及端點一致性彙總。x64最終build23.79秒0warning0error，沒有App／實作測試／新性能數字，50ms尚未驗收；仍1.0.16／1.0.16.0，不重做Store。 [本批日誌](IMMEDIATE_INK_2026-10-24.zh-TW.md)。
+
+x64免安裝`immediate-ink-2026-10-24-r1`完成，來源`acb64fb2dc676f5ff6d5ff616d74bda5ce5db288`，ZIP 132882435bytes／SHA256 `c71d282d8a362b84672befdfa418ff1da527ee2e7352f2173e28ad42ebfec6f2`。586 payload／187 source SHA及ZIP CRC核同，ZIP使用者Data=0。確認無HeiBan程序後接續52檔／24902680bytes、原與新逐SHA相同；原trial保留，36份Store檔SHA不變。App／實作測試／新性能採樣未執行，未重包／提交Store。 [交付紀錄](IMMEDIATE_INK_ARTIFACT_2026-10-24.json)。
 
 
 ## 2026-10-23 — 轉角跟筆仍明顯延遲（僅分析，待下一輪調校）
