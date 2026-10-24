@@ -27,3 +27,15 @@ Computer Use在ui-verify：開指南畫布正常；筆刷選單不含材質下�
 色盤是profile設定，序列化schemaVersion=1／colors／extension data；#RRGGBBAA沿用文件契約，RGB與FF alpha去重，非法6／8之外值拒收。保存例外不發布未存狀態，未來／損壞設定不啟動覆寫；明確空列表可保存。未更改作品schema／BrushKind值／Undo／輸入及渲染熱路徑，也未合併／扁平化筆跡。無文字／圖釘色盤整批替換。
 
 未驗收：ARM64、實際50ms延遲／大量筆跡長時性能、所有語系人工逐頁審閱、實際GPU裝置遺失、Store WACK／上傳／送審。不修改Mac／Web、版本維持1.0.16／1.0.16.0，保留36Store檔與所有原試用／作品。四邊／圖示配置的最終UI抽查另記，不把靜態預算調整當全顯示器驗收。
+
+## 最終實機與交付
+
+修整後build重新啟動ui-verify，筆刷同時包含#123456／#654321，確認正常退出後持久化；ColorPicker切至已存色，UIA目前色標記即由#123456轉#654321。切成只有圖示並保存，選取與雷射在最前方，筆工具色線保留；畫布／先前保存筆跡正常。一般／螢幕上方圖文、一般上方圖示已抽查；其餘停靠、狹小視窗、混合DPI與語言的完整排列未逐一實機驗收，不宣稱已完成全部矩陣。
+
+`Package-PortableTrial.ps1 -Runtime win-x64 -Label brush-palette-2026-10-24-r1`成功，App／Updater publish、source inventory及ZIP完成；封裝紀錄`.build/portable-trial-eb840ff34e304f93acb4ae5dd5b8c7a3`。來源07eaf2e96997f3e93892f65e4eb02ddaf4ce7a21，版本1.0.16／1.0.16.0不變。最終payload EXE以同獨立資料啟動，確認指南／既有筆跡、工具色線、雷射與色票仍正常。首次截圖為遮擋視窗的舊畫面，明確activate目標後重新觀察，未對其他程式操作。
+
+所有測試App正常退出後，`python windows/.build/brush-palette-20261024-r1/inspect_delivery.py`核對payload SHA、ZIP byte／CRC、sources SHA、兩PE及36份Store SHA成功；HEIBAN程序=0才接續使用者明確選定的canvas-recovery Data，長路徑逐檔來源前後／新目的核同。主Data沒有混入合成測試作品。使用者另一份ui-data不是垃圾建置檔，另存dist/trials/Preserved-Brush-Trial-Data-2026-10-24/Data，14檔414781bytes逐SHA相同；原檔也保留，均未入ZIP／Git。
+
+x64免安裝`brush-palette-2026-10-24-r1`完成，來源`07eaf2e96997f3e93892f65e4eb02ddaf4ce7a21`；ZIP 132913852bytes／SHA256 `923f1319036d430bc9914143d7f68d71eda15cfe2f269f2e0aced4f560efd09c`。586 payload／195 source SHA與588 archive entries CRC核同、兩EXE x64；ZIP使用者Data=0。最終包以獨立資料啟動，舊筆跡、色票與圖示色線正常；58檔／24795474bytes從使用者指定的canvas-recovery Data接續，原前後與新逐SHA相同。原試用與36Store檔SHA不變；另一份試用Data另存14檔414781bytes並逐SHA核同，未入Git／ZIP。 [產物與交付](BRUSH_PALETTE_ARTIFACT_2026-10-24.json)。
+
+啟動：`windows/dist/trials/HeiBan-Windows-Portable-1.0.16-brush-palette-2026-10-24-r1-win-x64/HeiBan.exe`。本機資料夾已接續原作品／設定；ZIP沒有作品，不用重新解壓覆蓋此Data。沒有清理舊成品／使用者資料、正式進版、重打Store／送審或發布二進位Release。公開程式與技術紀錄、私人對話壓縮交接分開Git同步。

@@ -1,0 +1,38 @@
+{
+  "label": "brush-palette-2026-10-24-r1",
+  "version": "1.0.16",
+  "runtime": "win-x64",
+  "sourceCommit": "07eaf2e96997f3e93892f65e4eb02ddaf4ce7a21",
+  "zip": "windows/dist/trials/HeiBan-Windows-Portable-1.0.16-brush-palette-2026-10-24-r1-win-x64.zip",
+  "bytes": 132913852,
+  "sha256": "923f1319036d430bc9914143d7f68d71eda15cfe2f269f2e0aced4f560efd09c",
+  "payloadFilesChecked": 586,
+  "sourceFilesChecked": 195,
+  "archiveFiles": 588,
+  "zipUserDataFiles": 0,
+  "zipCrcAndPayloadShaMatch": true,
+  "peArchitecture": "x64",
+  "preservedStoreFiles": 36,
+  "storeFilesUnchanged": true,
+  "dataHandoff": {
+    "files": 58,
+    "bytes": 24795474,
+    "allSha256Match": true,
+    "originalRetained": true
+  },
+  "appExecuted": true,
+  "implementationTestsExecuted": true,
+  "testDataIsolated": true,
+  "runtimeTestRecord": "windows/docs/BRUSH_PALETTE_IMPLEMENTATION_2026-10-24.zh-TW.md",
+  "coreAssertionsPassed": 2365,
+  "performanceCaptured": false,
+  "storeRepackaged": false,
+  "formalVersionIncremented": false,
+  "additionalTrialDataPreserved": {
+    "files": 14,
+    "bytes": 414781,
+    "allSha256Match": true,
+    "originalRetained": true,
+    "relativePath": "windows/dist/trials/Preserved-Brush-Trial-Data-2026-10-24"
+  }
+}

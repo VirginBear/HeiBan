@@ -2,7 +2,9 @@
 
 ## 2026-10-24 — 筆刷常用色與常駐雷射（實作／實機驗證）
 
-依GO與「請實際驗證後交付」實作：移除無材質效果的八種筆刷下拉但保留BrushKind契約；新增共用PalettePreferencesStore／PaletteEditor，可＋保存當前色、去重、管理／右鍵移除、空列表與還原預設，profile原子保存及未知欄位保留，退出等待排隊寫入。兩host共用，色線共用包裝／僅色變更新，圖示與圖文模式保留。雷射與選取在分頁外常駐、常用預設含雷射且不重複，舊自訂配置其他選項不重置。十語介面0missing、十語手冊／新建指南同步。核心2,365項通過，x64修整後build50.46秒0warning0error；一般新增／移除、雙向共用色、兩畫布四分頁雷射、重複提示、畫線保存／回首頁重開已實際操作。最終包重開與交付核對仍在進行；無新性能採樣或Store操作。 [本批日誌](BRUSH_PALETTE_IMPLEMENTATION_2026-10-24.zh-TW.md)。
+依GO與「請實際驗證後交付」實作：移除無材質效果的八種筆刷下拉但保留BrushKind契約；新增共用PalettePreferencesStore／PaletteEditor，可＋保存當前色、去重、管理／右鍵移除、空列表與還原預設，profile原子保存及未知欄位保留，退出等待排隊寫入。兩host共用，色線共用包裝／僅色變更新，圖示與圖文模式保留。雷射與選取在分頁外常駐、常用預設含雷射且不重複，舊自訂配置其他選項不重置。十語介面0missing、十語手冊／新建指南同步。核心2,365項通過，x64修整後build50.46秒0warning0error；一般新增／移除、雙向共用色、兩畫布四分頁雷射、重複提示、畫線保存／回首頁重開已實際操作。最終包重開、色票保存與交付核對完成；無新性能採樣或Store操作。 [本批日誌](BRUSH_PALETTE_IMPLEMENTATION_2026-10-24.zh-TW.md)。
+
+x64免安裝`brush-palette-2026-10-24-r1`完成，來源`07eaf2e96997f3e93892f65e4eb02ddaf4ce7a21`；ZIP 132913852bytes／SHA256 `923f1319036d430bc9914143d7f68d71eda15cfe2f269f2e0aced4f560efd09c`。586 payload／195 source SHA與588 archive entries CRC核同、兩EXE x64；ZIP使用者Data=0。最終包以獨立資料啟動，舊筆跡、色票與圖示色線正常；58檔／24795474bytes從使用者指定的canvas-recovery Data接續，原前後與新逐SHA相同。原試用與36Store檔SHA不變；另一份試用Data另存14檔414781bytes並逐SHA核同，未入Git／ZIP。 [產物與交付](BRUSH_PALETTE_ARTIFACT_2026-10-24.json)。
 
 ## 2026-10-24 — 筆刷色盤與常駐雷射（僅規劃）
 
