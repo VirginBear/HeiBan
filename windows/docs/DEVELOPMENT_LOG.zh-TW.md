@@ -1,5 +1,9 @@
 # Windows 開發日誌
 
+## 2026-10-24 — 筆刷色盤與常駐雷射（僅規劃）
+
+使用者確認畫布修復OK，要求移除無材質效果筆刷下拉、＋增色／可刪除並保存常用色、筆工具下方筆色色線、雷射與選取跨頁常駐且預設常用。本輪靜態核對確認BrushKind選單與renderer未接材質、兩host固定色盤不同、已有共用工具列可擴充。詳細UI、profile色盤保存／未知欄位、舊配置遷移、執行次序與驗收見[開發計畫](BRUSH_PALETTE_TOOLBAR_PLAN_2026-10-24.zh-TW.md)。未修改程式／編譯／測試／封裝／進版，等使用者續接；仍以canvas-recovery為現有試用，不重做Store。
+
 ## 2026-10-24 — 畫布空白退化修復（x64實機流程已驗證）
 
 舊eraser-laser包已在隔離資料重現：指南120物件畫面空白，畫線後保存為121物件，輸入與縮圖路徑仍活著。可選板擦PNG不再阻擋必要資源初始化，改BaseDirectory stream載入；主host捕捉非COM失敗並回退／顯示重載，首幀前禁止新增隱形筆跡。修正版x64 build29.18秒0warning0error；Computer Use實測指南可見、新建筆記→畫線→首頁縮圖→重開筆跡可見。再正常退出、強制XAML且暫移測試PNG，重開舊線與畫新線皆可見；診斷記optional-eraser-art/FileNotFoundException/0x80070002，沒有卡住畫布。測試全用獨立HEIBAN_WINDOWS_DATA_DIRECTORY，不寫使用者作品。原舊版現場例外stack未取得，未把推論當HRESULT實測。版本仍1.0.16／1.0.16.0；未量測性能或驗證ARM64／Store。 [修復與實測紀錄](CANVAS_RECOVERY_2026-10-24.zh-TW.md)。
