@@ -388,3 +388,21 @@ M21 獨立複核補充（2026-10-11）：f960c78 下完整 runner 1559/1559、Re
 Mac雷射24級透明度分桶、round cap逐段發光產生珠狀交界；改連續平滑輪廓、柔光與徑向光點。板擦既有PNG已存在，沒有證據證明圖本身損壞；可確認入口隱蔽且螢幕未掛疊層，現補可見catalog與共用疊層，明確URL載入PNG避免依賴名稱查找。
 
 本輪第一次編譯因移除Undo分拆時連帶移掉definition→id映射，Overflow型別錯誤；補map(\.id)後封裝成功。未把編譯當實際操作驗收；仍有NSParagraphStyle Sendable／工具鏈搜尋路徑舊警告。Windows逐段DrawLine僅完成來源核對與[交接](WINDOWS_LASER_HANDOFF_2026-10-23.zh-TW.md)，沒有修改或執行Windows。
+
+
+## M47 — 1.0.17同步已落來源，色盤失敗／alpha與文件仍有差距
+
+2026-10-24，本批核對da357e4後修正，待使用者實機。原PalettePreferences的decodeIfPresent將缺少／null colors當空清單，load靜默濾掉不合法色碼；寫入失敗Bool=false又被UI誤報為重複，移除／還原沒有回饋。改必要陣列／完整驗證、原檔保護、分類Failure，未存狀態不發布；合法空清單不補回預設。
+
+色盤保留RRGGBBAA，但SwiftUI Color原以ARGB解析、AppKit文字解析忽略alpha，跨Windows色碼會顯錯。改共用HexColorComponents並接Hex及系統色輪alpha；不改原稿字串。常駐雷射後chrome少算6pt間距，改唯一預算常數。中鍵在locked仍顯示closedHand、空白拖曳顯示openHand、失焦殘留middleStart；改依實際pan及原生生命週期清理。
+
+十語catalog／手冊／新指南未跟上前批UI，本批補操作與提示翻譯。前批日誌預設首色與profile目錄描述不符，對照報告以來源更正，不刪歷史。前批1906斷言屬該批文件聲明；這次未跑套件／UI／性能，不沿用為本輪證據。
+
+
+## M48 — 螢幕畫布模式入口退化、焦點未釋放及雷射無法恢復
+
+2026-10-24，來源修復並以CUA進行本機針對性操作。使用者回報不能切操作；舊版快捷鍵後Finder可選項目，不能把整個穿透底層說成完全失效。可確認來源缺口：模式只有32pt圖示易與選取／畫筆混淆；ignoresMouseEvents切換之外沒有明確交還key／first responder，canvas一直可成key；雷射暫停後再按同工具只開設定、不回作畫。舊工具列按鈕實際失效的唯一根因沒有完整重現，不把推論當舊版實測。
+
+修復固定模式區／文字動作名／明確工具frame，操作時釋放鍵盤焦點與canvas key資格，保留可點控制列；原生選單備援與Esc控制列路由；雷射恢復先同步模式。收合橫排因文字增加改328pt，左右仍圖示。舊版定位時一處誤猜Panel獨立檔，實際在Session尾端；CUA曾要求App檔案重讀，重綁實際App後續接，沒有繞過檢查。
+
+實測：頂端展開操作→繼續標籤及狀態變更；Finder滑鼠點列、Down鍵改選成功；頂端收合切換與退出完整可見；左側圖示恢復、暫停雷射再按雷射恢復；控制列Esc暫停；固定X退出回首頁。恢復原top／position／expanded與Finder選取；未畫測試線或清除使用者註記。右側／底部、外接螢幕、所有外部App、輸入法／長文字及截圖中切換未驗收。完整過程與SHA見[日誌03](logs/2026-10-24/03.zh-TW.md)。

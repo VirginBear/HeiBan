@@ -16,6 +16,9 @@ private struct ScreenAnnotationToolControls: View {
     @ObservedObject var controller: ScreenAnnotationController
     @ObservedObject var engine: BoardEngine
     private var vertical: Bool { controller.controlsDock.isVertical }
+    private var showsModeTitle: Bool {
+        !vertical && (!controller.controlsCollapsed || controller.controlsSize.width >= 328)
+    }
     private var popoverEdge: Edge {
         switch controller.controlsDock {
         case .top: return .top
@@ -54,20 +57,32 @@ private struct ScreenAnnotationToolControls: View {
 
     private var drawingButton: some View {
         Button { controller.toggleDrawing() } label: {
-            Image(systemName: controller.isDrawing ? "pencil.tip" : "cursorarrow")
-                .font(.system(size: 16))
-                .foregroundStyle(controller.isDrawing ? Color.orange : Color.green)
-                .frame(width: 32, height: 32)
-                .contentShape(Rectangle())
-        }.help("\(controller.isDrawing ? "作畫中" : "操作中・滑鼠穿透")；⌘⌥⇧D 切換\n\(controller.message)")
-            .accessibilityLabel(L10n.t(controller.isDrawing ? "切換為滑鼠穿透" : "切換為作畫"))
+            HStack(spacing: 6) {
+                Image(systemName: controller.isDrawing ? "cursorarrow.rays" : "pencil.tip")
+                    .font(.system(size: 16))
+                if showsModeTitle {
+                    Text(L10n.t(controller.isDrawing ? "操作螢幕" : "繼續作畫"))
+                        .font(.system(size: 12, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.8)
+                }
+            }
+            .frame(width: showsModeTitle ? AnnotationToolbarLayout.horizontalModeButtonWidth : 32, height: 32)
+            .foregroundStyle(controller.isDrawing ? Color.primary : Color(hex: "#39735a"))
+            .background(controller.isDrawing ? Color.primary.opacity(0.06) : Color.green.opacity(0.16),
+                        in: RoundedRectangle(cornerRadius: 8))
+            .contentShape(Rectangle())
+        }
+        .fixedSize().layoutPriority(2)
+        .help("\(L10n.t(controller.isDrawing ? "切換為滑鼠穿透" : "切換為作畫")) · ⌘⌥⇧D")
+        .accessibilityLabel(L10n.t(controller.isDrawing ? "操作螢幕" : "繼續作畫"))
+        .accessibilityValue(L10n.t(controller.isDrawing ? "作畫中" : "操作中・滑鼠穿透"))
+        .accessibilityIdentifier("screen-canvas.mode")
     }
 
     private var horizontalControls: some View {
         HStack(spacing: 8) {
             grip
-            sharedTools
             drawingButton
+            sharedTools
             closeButton
         }
     }
@@ -101,15 +116,16 @@ private struct ScreenAnnotationToolControls: View {
     private var verticalControls: some View {
         VStack(spacing: 6) {
             grip
-            sharedTools
             drawingButton
+            sharedTools
             closeButton
         }
     }
 
     // 和一般畫布相同的分頁與捲動方式；宿主持有分頁，切頁才改視窗大小。
     private var sharedTools: some View {
-        let length = vertical ? controller.controlsSize.height - 80 : controller.controlsSize.width - 80
+        let reserved = AnnotationToolbarLayout.expandedCommandLength(vertical: vertical)
+        let length = (vertical ? controller.controlsSize.height : controller.controlsSize.width) - reserved
         return Group {
             if engine.toolbarPreferences.displayMode == "labels" {
                 ToolbarToolsView(engine: engine, screenController: controller, availableLength: length,
@@ -121,12 +137,15 @@ private struct ScreenAnnotationToolControls: View {
                 }.scrollIndicators(.automatic)
             }
         }
+        .frame(width: vertical ? nil : max(1, length - 48),
+               height: vertical ? max(1, length - 42) : nil)
+        .clipped().contentShape(Rectangle())
     }
 
     private func iconButton(_ icon: String, title: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: icon).frame(width: 32, height: 32).contentShape(Rectangle())
-        }.help(L10n.t(title)).accessibilityLabel(L10n.t(title))
+        }.fixedSize().layoutPriority(2).help(L10n.t(title)).accessibilityLabel(L10n.t(title))
     }
     private var clearButton: some View {
         iconButton("trash", title: "一鍵清空所有螢幕註記（可復原，不結束螢幕畫布）", action: controller.clearAnnotations)

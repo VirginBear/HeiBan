@@ -78,6 +78,10 @@ final class ScreenAnnotationSession {
         engine.updateCurrentToolStyle(color: color, strokeWidth: width, opacity: opacity)
         if !drawing { engine.laserEngine.cleanupOnDeactivate() }
         panel.ignoresMouseEvents = !drawing
+        if !drawing {
+            panel.makeFirstResponder(nil)
+            if panel.isKeyWindow { panel.resignKey() }
+        }
     }
 
     func saveRecovery() throws {
@@ -135,6 +139,6 @@ final class ScreenAnnotationSession {
 }
 
 private final class AnnotationCanvasPanel: NSPanel {
-    override var canBecomeKey: Bool { true }
+    override var canBecomeKey: Bool { !ignoresMouseEvents }
     override var canBecomeMain: Bool { false }
 }

@@ -948,5 +948,22 @@
   "點狀": "Dots",
   "點線": "Dotted",
   "＋ 插入內容與輔助工具": "Insert content and helpers",
-  "𝄞 五線譜 (Staff)": "Music staff"
+  "𝄞 五線譜 (Staff)": "Music staff",
+  "常用色": "Saved colors",
+  "尚無常用色，調色後按＋新增。": "No saved colors. Choose a color, then press +.",
+  "移除顏色": "Remove color",
+  "新增目前顏色": "Save current color",
+  "還原預設色": "Restore default colors",
+  "此顏色已在常用色": "This color is already saved",
+  "常用色未載入，原設定檔已保留。": "Saved colors could not be loaded. The original settings file is preserved.",
+  "常用色保存失敗，請重試。": "Could not save colors. Please retry.",
+  "目前顏色": "Current color",
+  "套用顏色": "Apply color",
+  "常用欄可獨立勾選；選取與雷射筆固定顯示": "Customize Common separately; Selection and Laser stay visible",
+  "請輸入 #RRGGBB 或 #RRGGBBAA。": "Enter #RRGGBB or #RRGGBBAA.",
+  "操作螢幕": "Use screen",
+  "繼續作畫": "Resume drawing",
+  "顯示螢幕畫布工具列": "Show screen canvas toolbar",
+  "作畫中": "Drawing",
+  "操作中・滑鼠穿透": "Interacting · Click-through"
 }

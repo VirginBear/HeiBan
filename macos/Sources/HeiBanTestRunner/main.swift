@@ -2816,7 +2816,7 @@ do {
     // 26.5 關於資訊與更新日誌真實性 (A22 & MAC-SYNC-02)
     assertEqual(AboutInfo.appName, "HeiBan 黑板", "App 名稱相符")
     assertEqual(AboutInfo.appVersion, "1.0.17", "真版本號為 1.0.17 (對齊 Release.json 與 App plist)")
-    assertEqual(AboutInfo.buildNumber, "20261024.1", "組建編號存在且為 20261024.1")
+    assertEqual(AboutInfo.buildNumber, "20261024.3", "組建編號存在且為 20261024.1")
     assertEqual(AboutInfo.engineVersion.contains("HeiBan Blackboard Vector Engine"), true, "引擎核心資訊明確")
     assertEqual(AboutInfo.feedbackUrl, "https://github.com/VirginBear/HeiBan/issues", "意見回覆入口指向真實倉庫 VirginBear/HeiBan/issues")
     assertEqual(AboutInfo.changelog.count >= 2, true, "更新日誌至少涵蓋 2 個版本紀錄")
@@ -5166,7 +5166,7 @@ do {
     // 46.5 MAC-SYNC-02: 版本對齊、真實 Build、問題回報入口與更新日誌
     assertEqual(AboutInfo.appName, "HeiBan 黑板", "版本資訊：App 名稱相符")
     assertEqual(AboutInfo.appVersion, "1.0.17", "版本對齊：核心版本號真實對齊 1.0.17")
-    assertEqual(AboutInfo.buildNumber, "20261024.1", "版本對齊：組建編號真實對齊 20261024.1")
+    assertEqual(AboutInfo.buildNumber, "20261024.3", "版本對齊：組建編號真實對齊 20261024.1")
     assertEqual(AboutInfo.feedbackUrl, "https://github.com/VirginBear/HeiBan/issues", "回報入口：指向 VirginBear/HeiBan/issues")
     assertEqual(AboutInfo.changelog[0].version, "1.0.17", "更新日誌：最新紀錄為 1.0.17 正式版")
     assertEqual(AboutInfo.changelog[0].releaseDate, "2026-10-24", "更新日誌：發布日期為 2026-10-24")
@@ -5479,7 +5479,7 @@ do {
 
     // 48.3 MAC-TB-05: 螢幕工具列收合與展開保全
     let collapsedHSize = AnnotationToolbarLayout.size(for: .top, collapsed: true, availableSize: NSSize(width: 1200, height: 800))
-    assertEqual(Double(collapsedHSize.width), 284.0, "橫向收合：握把、模式與四個控制具有實際空間")
+    assertEqual(Double(collapsedHSize.width), 328.0, "橫向收合：握把、模式與四個控制具有實際空間")
     assertEqual(Double(collapsedHSize.height), 60.0, "橫向收合：收合高度維持 60 pt")
 
     let collapsedVSize = AnnotationToolbarLayout.size(for: .left, collapsed: true, availableSize: NSSize(width: 1200, height: 800))

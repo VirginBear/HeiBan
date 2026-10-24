@@ -64,6 +64,8 @@ public enum ToolbarContentPolicy {
     }
 
     /// 橫排每個工具磚寬度（含圖示與雙行文字），確保 12 個繪圖工具也能在一般電腦螢幕一列完整平鋪無捲軸。
+    public static let horizontalChrome: CGFloat = 194 // 原140 + 雷射48 + 新間距6
+    public static let verticalChrome: CGFloat = 196
     public static let horizontalTileWidth: CGFloat = 62
     public static let horizontalTileSpacing: CGFloat = 4
     public static let verticalTileHeight: CGFloat = 44
@@ -99,7 +101,7 @@ public enum ToolbarContentPolicy {
             let count = max(1, items.count)
             if vertical {
                 let maxPanelHeight = max(220, windowSize.height - 88)
-                let fixedChrome: CGFloat = 196 // 握把 + 選取 + 雷射 + 分頁選單 + 更多 + 上下內距
+                let fixedChrome = verticalChrome
                 let availForTools = max(verticalTileHeight, maxPanelHeight - fixedChrome)
                 let cap = pageCapacity(itemCount: count, availableLength: availForTools, vertical: true)
                 let shownCount = min(count, cap)
@@ -112,7 +114,7 @@ public enum ToolbarContentPolicy {
                 return CGSize(width: 148, height: totalHeight)
             } else {
                 let maxPanelWidth = max(280, windowSize.width - 32)
-                let fixedChrome: CGFloat = 188 // 握把24 + 選取48 + 雷射48 + 更多32 + 間距20 + 內距16
+                let fixedChrome = horizontalChrome
                 let availForTools = max(horizontalTileWidth, maxPanelWidth - fixedChrome)
                 let cap = pageCapacity(itemCount: count, availableLength: availForTools, vertical: false)
                 let shownCount = min(count, cap)

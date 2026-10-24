@@ -25,11 +25,11 @@
     },
     {
       "title": "Navigation und Symbolleisten",
-      "body": "Den Griff an eine der vier Kanten ziehen. Mehr → Werkzeugleiste anpassen bietet Symbole oder Häufig, Zeichnen, Einfügen und Verwalten. Auswahl bleibt sichtbar; Pfeile wechseln bei Platzmangel die Gruppe. Anzeige, Reihenfolge, Alle, Standard und Häufig sind separat wählbar. Versteckte Werkzeuge bleiben unter Mehr. Auch der Eigenschaften-Reiter lässt sich versetzen.\nDie horizontale Leiste steht anhand der Breite der Zeichnen-Seite etwas links der Mitte und behält beim Seitenwechsel ihre linke Kante. Beide Zeichenflächen teilen Seiten, Gestaltung und Scrollen."
+      "body": "Den Griff an eine der vier Kanten ziehen. Mehr → Werkzeugleiste anpassen bietet Symbole oder Häufig, Zeichnen, Einfügen und Verwalten. Auswahl bleibt sichtbar; Pfeile wechseln bei Platzmangel die Gruppe. Anzeige, Reihenfolge, Alle, Standard und Häufig sind separat wählbar. Versteckte Werkzeuge bleiben unter Mehr. Auch der Eigenschaften-Reiter lässt sich versetzen.\nDie horizontale Leiste steht anhand der Breite der Zeichnen-Seite etwas links der Mitte und behält beim Seitenwechsel ihre linke Kante. Beide Zeichenflächen teilen Seiten, Gestaltung und Scrollen.\nAuswahl und Laser stehen ohne Duplikate vor allen Seiten; nur das aktive Zeichenwerkzeug zeigt eine Farblinie. Mit Mitteltaste oder Leertaste ziehen verschiebt die Ansicht; gesperrte Ansichten und Bildschirmflächen bleiben fest."
     },
     {
       "title": "Stift und Pinsel",
-      "body": "Der Farbkreis öffnet Pinsel, Farbe, Hex, letzte Farben, Breite und Deckkraft. Bei Auswahl werden passende Objektstile geändert, sonst künftige Striche. Die Vorschau folgt dem Zoom. Einen fast geraden Strich eine Sekunde still halten richtet ihn gerade. Lasereinstellungen liegen am Laserknopf; seine Spur wird nicht gespeichert."
+      "body": "Der Farbkreis öffnet Farbe, Hex, letzte Farben, Breite und Deckkraft. Bei Auswahl werden passende Objektstile geändert, sonst künftige Striche. Die Vorschau folgt dem Zoom. Einen fast geraden Strich eine Sekunde still halten richtet ihn gerade. Lasereinstellungen liegen am Laserknopf; seine Spur wird nicht gespeichert.\nDas Pinselfenster hat einen Scrollbereich für Farbe, Breite und Deckkraft, ohne Materialmenü. + speichert die Farbe; Verwalten oder Rechtsklick entfernt sie; Zurücksetzen stellt acht Farben wieder her. Eine leere Palette bleibt gespeichert. Beide Flächen teilen Settings/palette.json. Lesefehler bewahren die Datei; Schreibfehler werden angezeigt. Hex unterstützt #RRGGBB und #RRGGBBAA mit Alpha am Ende; Großschreibung und FF-Äquivalente werden dedupliziert."
     },
     {
       "title": "Linien, Pfeile, Formen und Kurven",
@@ -41,7 +41,7 @@
     },
     {
       "title": "Eigenschaften, Farben und Stile",
-      "body": "Der Farbkreis öffnet Pinsel, Farbe, Hex, letzte Farben, Breite und Deckkraft. Bei Auswahl werden passende Objektstile geändert, sonst künftige Striche. Die Vorschau folgt dem Zoom. Einen fast geraden Strich eine Sekunde still halten richtet ihn gerade. Lasereinstellungen liegen am Laserknopf; seine Spur wird nicht gespeichert."
+      "body": "Der Farbkreis öffnet Farbe, Hex, letzte Farben, Breite und Deckkraft. Bei Auswahl werden passende Objektstile geändert, sonst künftige Striche. Die Vorschau folgt dem Zoom. Einen fast geraden Strich eine Sekunde still halten richtet ihn gerade. Lasereinstellungen liegen am Laserknopf; seine Spur wird nicht gespeichert."
     },
     {
       "title": "Text und Haftnotizen",
@@ -61,7 +61,7 @@
     },
     {
       "title": "Laserzeiger",
-      "body": "Der Farbkreis öffnet Pinsel, Farbe, Hex, letzte Farben, Breite und Deckkraft. Bei Auswahl werden passende Objektstile geändert, sonst künftige Striche. Die Vorschau folgt dem Zoom. Einen fast geraden Strich eine Sekunde still halten richtet ihn gerade. Lasereinstellungen liegen am Laserknopf; seine Spur wird nicht gespeichert.\nDer Laser verwendet eine durchgehende geglättete Kontur und weiches Leuchten. Punktgröße, Spurbreite und Ausblendzeit bleiben getrennt einstellbar."
+      "body": "Der Farbkreis öffnet Farbe, Hex, letzte Farben, Breite und Deckkraft. Bei Auswahl werden passende Objektstile geändert, sonst künftige Striche. Die Vorschau folgt dem Zoom. Einen fast geraden Strich eine Sekunde still halten richtet ihn gerade. Lasereinstellungen liegen am Laserknopf; seine Spur wird nicht gespeichert.\nDer Laser verwendet eine durchgehende geglättete Kontur und weiches Leuchten. Punktgröße, Spurbreite und Ausblendzeit bleiben getrennt einstellbar."
     },
     {
       "title": "Rechner und Timer",

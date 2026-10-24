@@ -70,9 +70,8 @@ struct ToolbarBrushSettings: View {
         .buttonStyle(.plain)
         .frame(width: 284)
         .frame(maxHeight: 520)
-        .onAppear {
-            hexInput = currentColor
-        }
+        .onAppear { hexInput = currentColor }
+        .onChange(of: currentColor) { _, color in hexInput = color }
     }
 
     // MARK: - Sections
@@ -88,6 +87,7 @@ struct ToolbarBrushSettings: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.mini)
+                .disabled(paletteStore.loadFailed)
             }
 
             if paletteStore.colors.isEmpty {
@@ -106,27 +106,28 @@ struct ToolbarBrushSettings: View {
                             } label: {
                                 Circle().fill(Color(hex: color)).frame(width: 22, height: 22)
                                     .overlay(Circle().stroke(Color.gray.opacity(0.4), lineWidth: 1))
-                                    .overlay(Circle().stroke(Color.accentColor, lineWidth: currentColor.lowercased() == color.lowercased() ? 2.5 : 0).padding(-3))
+                                    .overlay(Circle().stroke(Color.accentColor, lineWidth: PalettePreferencesStore.canonical(currentColor) == color ? 2.5 : 0).padding(-3))
                                     .frame(width: 32, height: 32).contentShape(Rectangle())
                             }
-                            .help("註記顏色 \(color)")
-                            .accessibilityLabel("註記顏色 \(color)")
+                            .help("\(L10n.t("套用顏色")) \(color)")
+                            .accessibilityLabel("\(L10n.t(PalettePreferencesStore.canonical(currentColor) == color ? "目前顏色" : "套用顏色")) \(color)")
                             .contextMenu {
                                 Button(L10n.t("移除顏色")) {
-                                    paletteStore.remove(color)
-                                }
+                                    updatePalette { paletteStore.remove(color) }
+                                }.disabled(paletteStore.loadFailed)
                             }
 
                             if isManagingPalette {
                                 Button {
-                                    paletteStore.remove(color)
+                                    updatePalette { paletteStore.remove(color) }
                                 } label: {
                                     Image(systemName: "minus.circle.fill")
                                         .font(.system(size: 14))
                                         .foregroundStyle(Color.red.opacity(0.8))
                                 }
                                 .buttonStyle(.plain)
-                                .help(L10n.t("移除此顏色"))
+                                .help(L10n.t("移除顏色"))
+                                .disabled(paletteStore.loadFailed)
                             }
                         }
                     }
@@ -135,34 +136,40 @@ struct ToolbarBrushSettings: View {
 
             HStack(spacing: 8) {
                 Button {
-                    let canon = PalettePreferencesStore.canonical(currentColor) ?? currentColor
-                    if paletteStore.add(canon) {
-                        paletteMessage = nil
-                    } else {
-                        paletteMessage = L10n.t("此顏色已在常用色")
-                    }
+                    updatePalette(duplicateMessage: true) { paletteStore.add(currentColor) }
                 } label: {
                     Label(L10n.t("新增目前顏色"), systemImage: "plus")
                         .font(.caption)
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
+                .disabled(paletteStore.loadFailed)
 
                 Button(L10n.t("還原預設色")) {
-                    paletteStore.reset()
-                    paletteMessage = nil
+                    updatePalette { paletteStore.reset() }
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
+                .disabled(paletteStore.loadFailed)
             }
 
-            if let message = paletteMessage {
+            if let message = paletteStore.loadFailed ? L10n.t("常用色未載入，原設定檔已保留。") : paletteMessage {
                 Text(message)
                     .font(.caption2)
                     .foregroundStyle(.orange)
             }
         }
     }
+    private func updatePalette(duplicateMessage: Bool = false, _ change: () -> Bool) {
+        if change() { paletteMessage = nil; return }
+        switch paletteStore.lastFailure {
+        case .unavailable: paletteMessage = L10n.t("常用色未載入，原設定檔已保留。")
+        case .writeFailed: paletteMessage = L10n.t("常用色保存失敗，請重試。")
+        case .invalidColor: paletteMessage = L10n.t("請輸入 #RRGGBB 或 #RRGGBBAA。")
+        case nil: paletteMessage = duplicateMessage ? L10n.t("此顏色已在常用色") : nil
+        }
+    }
+
     private var brushPreview: some View {
         let diameter = engine.activeBrushWidth * engine.viewport.zoom
         let clampedDiameter = min(76.0, max(2.0, diameter))
@@ -206,10 +213,10 @@ struct ToolbarBrushSettings: View {
                     style.setColor(hex)
                     hexInput = hex
                 }
-            ), supportsOpacity: false)
+            ), supportsOpacity: true)
             .labelsHidden()
 
-            TextField("#RRGGBB", text: $hexInput)
+            TextField("#RRGGBB[AA]", text: $hexInput)
                 .textFieldStyle(.roundedBorder)
                 .font(.system(size: 11, design: .monospaced))
                 .frame(width: 90)
@@ -315,8 +322,7 @@ struct ToolbarBrushSettings: View {
                 }
                 .help(L10n.t("無填色"))
 
-                let fillSwatches = paletteStore.colors.isEmpty ? PalettePreferencesStore.defaultColors : paletteStore.colors
-                ForEach(fillSwatches.prefix(4), id: \.self) { hex in
+                ForEach(paletteStore.colors.prefix(4), id: \.self) { hex in
                     Button {
                         style.setFillColor(hex)
                     } label: {
@@ -333,7 +339,7 @@ struct ToolbarBrushSettings: View {
                         let hex = Self.hexString(color)
                         style.setFillColor(hex)
                     }
-                ), supportsOpacity: false)
+                ), supportsOpacity: true)
                 .labelsHidden()
             }
 
@@ -427,21 +433,22 @@ struct ToolbarBrushSettings: View {
     private func applyHexInput() {
         var clean = hexInput.trimmingCharacters(in: .whitespacesAndNewlines)
         if !clean.hasPrefix("#") { clean = "#" + clean }
-        let hexDigits = clean.dropFirst()
-        if hexDigits.count == 6 && hexDigits.allSatisfy({ $0.isHexDigit }) {
-            style.setColor(clean)
-            hexInput = clean
+        guard let canonical = PalettePreferencesStore.canonical(clean) else {
+            paletteMessage = L10n.t("請輸入 #RRGGBB 或 #RRGGBBAA。")
+            return
         }
+        style.setColor(canonical)
+        hexInput = canonical
+        paletteMessage = nil
     }
 
     private static func hexString(_ color: Color) -> String {
-        guard let rgb = NSColor(color).usingColorSpace(.deviceRGB) else { return "#ef4444" }
-        return String(
-            format: "#%02X%02X%02X",
-            Int((rgb.redComponent * 255).rounded()),
-            Int((rgb.greenComponent * 255).rounded()),
-            Int((rgb.blueComponent * 255).rounded())
-        )
+        guard let rgb = NSColor(color).usingColorSpace(.sRGB) else { return "#ef4444" }
+        // 系統色輪可能來自廣色域顯示器；文件Hex是sRGB，轉換後限制到8bit通道。
+        func byte(_ component: CGFloat) -> Int { min(255, max(0, Int((component * 255).rounded()))) }
+        let hex = String(format: "#%02X%02X%02X%02X",
+            byte(rgb.redComponent), byte(rgb.greenComponent), byte(rgb.blueComponent), byte(rgb.alphaComponent))
+        return PalettePreferencesStore.canonical(hex) ?? "#EF4444"
     }
 }
 

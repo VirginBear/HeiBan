@@ -25,11 +25,11 @@
     },
     {
       "title": "Navegación y barras de herramientas",
-      "body": "Arrastre el asa a cualquier lado. Más → Personalizar barra ofrece iconos o pestañas Frecuentes, Dibujar, Insertar y Organizar. Selección permanece visible; las flechas cambian grupos cuando falta espacio. Puede mostrar, ordenar, seleccionar todo, restablecer y elegir Frecuentes por separado. Las herramientas ocultas siguen en Más. También puede mover la pestaña Propiedades.\nLa barra horizontal se coloca un poco a la izquierda del centro según el ancho de Dibujar y conserva el borde izquierdo al cambiar de página. Ambos lienzos comparten páginas, estilo y desplazamiento."
+      "body": "Arrastre el asa a cualquier lado. Más → Personalizar barra ofrece iconos o pestañas Frecuentes, Dibujar, Insertar y Organizar. Selección permanece visible; las flechas cambian grupos cuando falta espacio. Puede mostrar, ordenar, seleccionar todo, restablecer y elegir Frecuentes por separado. Las herramientas ocultas siguen en Más. También puede mover la pestaña Propiedades.\nLa barra horizontal se coloca un poco a la izquierda del centro según el ancho de Dibujar y conserva el borde izquierdo al cambiar de página. Ambos lienzos comparten páginas, estilo y desplazamiento.\nSelección y Láser permanecen antes de todas las páginas sin duplicarse; solo la herramienta activa muestra su línea de color. Arrastre con botón central o Espacio para desplazar; las vistas bloqueadas y el lienzo de pantalla no se desplazan."
     },
     {
       "title": "Lápiz y pinceles",
-      "body": "El círculo de color abre pincel, color, Hex, recientes, grosor y opacidad. Con selección cambia estilos compatibles; sin selección configura trazos futuros. La muestra sigue el zoom. Mantenga un trazo casi recto quieto un segundo para enderezarlo. El láser se configura desde su botón y su rastro no se guarda."
+      "body": "El círculo de color abre color, Hex, recientes, grosor y opacidad. Con selección cambia estilos compatibles; sin selección configura trazos futuros. La muestra sigue el zoom. Mantenga un trazo casi recto quieto un segundo para enderezarlo. El láser se configura desde su botón y su rastro no se guarda.\nEl panel de pincel tiene una sola zona de desplazamiento para color, grosor y opacidad, sin menú de materiales. + guarda el color; gestionar o clic derecho lo elimina; restaurar devuelve ocho colores. Puede guardarse una paleta vacía. Ambos lienzos comparten Settings/palette.json. Los errores de lectura conservan el archivo y los de guardado muestran un aviso. Hex admite #RRGGBB y #RRGGBBAA con alfa al final, deduplicando mayúsculas y equivalentes FF."
     },
     {
       "title": "Líneas, flechas, formas y curvas",
@@ -41,7 +41,7 @@
     },
     {
       "title": "Propiedades, colores y estilos",
-      "body": "El círculo de color abre pincel, color, Hex, recientes, grosor y opacidad. Con selección cambia estilos compatibles; sin selección configura trazos futuros. La muestra sigue el zoom. Mantenga un trazo casi recto quieto un segundo para enderezarlo. El láser se configura desde su botón y su rastro no se guarda."
+      "body": "El círculo de color abre color, Hex, recientes, grosor y opacidad. Con selección cambia estilos compatibles; sin selección configura trazos futuros. La muestra sigue el zoom. Mantenga un trazo casi recto quieto un segundo para enderezarlo. El láser se configura desde su botón y su rastro no se guarda."
     },
     {
       "title": "Texto y notas adhesivas",
@@ -61,7 +61,7 @@
     },
     {
       "title": "Puntero láser",
-      "body": "El círculo de color abre pincel, color, Hex, recientes, grosor y opacidad. Con selección cambia estilos compatibles; sin selección configura trazos futuros. La muestra sigue el zoom. Mantenga un trazo casi recto quieto un segundo para enderezarlo. El láser se configura desde su botón y su rastro no se guarda.\nEl láser usa un contorno continuo y suave con resplandor. El tamaño del punto, el ancho del rastro y la duración se ajustan por separado."
+      "body": "El círculo de color abre color, Hex, recientes, grosor y opacidad. Con selección cambia estilos compatibles; sin selección configura trazos futuros. La muestra sigue el zoom. Mantenga un trazo casi recto quieto un segundo para enderezarlo. El láser se configura desde su botón y su rastro no se guarda.\nEl láser usa un contorno continuo y suave con resplandor. El tamaño del punto, el ancho del rastro y la duración se ajustan por separado."
     },
     {
       "title": "Calculadora y temporizador",

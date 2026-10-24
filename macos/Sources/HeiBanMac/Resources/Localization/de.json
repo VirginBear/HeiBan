@@ -948,5 +948,22 @@
   "點狀": "Punkte",
   "點線": "Gepunktet",
   "＋ 插入內容與輔助工具": "Inhalte und Hilfsmittel einfügen",
-  "𝄞 五線譜 (Staff)": "Notenlinien"
+  "𝄞 五線譜 (Staff)": "Notenlinien",
+  "常用色": "Gespeicherte Farben",
+  "尚無常用色，調色後按＋新增。": "Keine gespeicherten Farben. Farbe wählen und + drücken.",
+  "移除顏色": "Farbe entfernen",
+  "新增目前顏色": "Aktuelle Farbe speichern",
+  "還原預設色": "Standardfarben wiederherstellen",
+  "此顏色已在常用色": "Diese Farbe ist bereits gespeichert",
+  "常用色未載入，原設定檔已保留。": "Farben konnten nicht geladen werden. Die ursprüngliche Datei bleibt erhalten.",
+  "常用色保存失敗，請重試。": "Farben konnten nicht gespeichert werden. Bitte erneut versuchen.",
+  "目前顏色": "Aktuelle Farbe",
+  "套用顏色": "Farbe anwenden",
+  "常用欄可獨立勾選；選取與雷射筆固定顯示": "Favoriten separat anpassen; Auswahl und Laser bleiben sichtbar",
+  "請輸入 #RRGGBB 或 #RRGGBBAA。": "Geben Sie #RRGGBB oder #RRGGBBAA ein.",
+  "操作螢幕": "Bildschirm nutzen",
+  "繼續作畫": "Weiterzeichnen",
+  "顯示螢幕畫布工具列": "Bildschirm-Werkzeugleiste anzeigen",
+  "作畫中": "Zeichnen",
+  "操作中・滑鼠穿透": "Bedienen · Durchklicken"
 }

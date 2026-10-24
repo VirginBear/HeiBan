@@ -88,7 +88,7 @@ public struct AboutInfo: Equatable {
         (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "1.0.17"
     }
     public static var buildNumber: String {
-        (Bundle.main.infoDictionary?["CFBundleVersion"] as? String) ?? "20261024.1"
+        (Bundle.main.infoDictionary?["CFBundleVersion"] as? String) ?? "20261024.3"
     }
     public static let engineVersion = "HeiBan Blackboard Vector Engine 1.0"
     public static let copyright = "© 2026 HeiBan Team. All rights reserved."

@@ -210,3 +210,25 @@ ToolbarPanelSurface提供共用背景、圓角、邊線與陰影；ToolbarToolsV
 2026-10-23，採用。雷射先按startsNewTrail分手勢，再以凸包內二次曲線平滑、有界細分、時間漸細輪廓、整條柔光／色彩／白芯渲染，光點用徑向漸層；不再以24級透明度分段端帽。每來源段最多24個細分，引擎仍最多500點；沒有實測FPS承諾，也不宣稱為逐像素沿路徑alpha漸層。
 
 新增boardEraser catalog命令，繪圖頁／More／橡皮擦設定共用顯示偏好；第一次發現入口補在圓擦旁，已明確隱藏者保留。BoardEraserArtwork以Bundle URL一次載入原創PNG，另有缺資源視覺備援。普通與螢幕畫布使用同一BoardEraserOverlay與隔離交易；螢幕點板擦先通知顯示器啟用，確保控制列Undo對準同一引擎。作品格式、既有練習與Windows來源不改。
+
+
+## ADR-M35 — Mac 1.0.17色盤的資料保護、失敗語意與RGBA共用解析
+
+2026-10-24，採用。PalettePreferencesStore由主執行緒UI低頻命令持有，沿原子同步小檔寫入，成功才發布colors；移除未使用的queue，不將同步方法偽稱為Windows async／flush。缺少／null colors、不合法任一元素、未來版本視為不可編輯，保留原檔／未知欄位；空陣列是有效用戶選擇。Failure區分不可載入、非法色與保存失敗，UI不能將磁碟失敗說成重複，失敗後保留原色票供重試。
+
+HexColorComponents為Mac Core純值解析器，SwiftUI Color、AppKit文字與背景對比共用RGB／RGBA語意，8碼alpha在尾端；接受#RGB相容顯示，但常用色只保存6／8碼。不靠色碼猜ARGB、不重寫作品或改schema。筆刷面板可輸入8碼／色輪alpha；既有brushKind資料與渲染保留，UI與Windows同以樣式控制為主。
+
+## ADR-M36 — 常駐工具預算與原生平移抓取狀態
+
+2026-10-24，採用。ToolbarContentPolicy以horizontalChrome=194、verticalChrome=196作唯一圖文固定區預算，宿主panelSize與工具組容量共用；保持選取／雷射跨頁常駐及一般／螢幕外殼。
+
+中鍵開始前拒絕鎖定、文字輸入與未完成左鍵手勢；游標由middleStart或實際engine.pointerGesture.pan決定，空白鍵按下只表示可平移，不等於已抓取。放開、Esc、原生失焦／拆除清除中鍵參考與pan delta，防下一次跨程式拖曳使用舊起點。螢幕viewport固定，不加入平移與縮放。
+
+
+## ADR-M37 — 螢幕畫布模式是視窗輸入／焦點契約，不是選取工具
+
+2026-10-24，採用。作畫／操作按鈕放共享工具列之外的固定區；橫排用動作名稱「操作螢幕／繼續作畫」，左右保留窄圖示，具有screen-canvas.mode識別與目前狀態。Core提供模式按鈕112pt、橫／直固定區160／80pt、橫收合328pt，UI與NSPanel尺寸共用；共享工具有明確可用frame及hit bounds，不能擠掉模式／退出。
+
+setDrawing是按鈕、快捷鍵、獨立模式選單的唯一入口，核對各panel實際ignoresMouseEvents；只在模式改變或視窗不一致時重跑工具收束／恢復，避免同狀態命令取消筆畫。操作模式另釋放canvas first responder／key與控制列key，canvas只有接收滑鼠時能成為key；返回外部App，沒有可用外部App時deactivate。控制列持續可點；showControlsForInteraction只提高／聚焦控制列，不重開整屏輸入。
+
+螢幕畫布選單及選單列常駐入口提供操作／繼續／顯示工具列。Esc在canvas及controls均能暫停；編輯器與popover仍保留其原生取消行為。雷射暫停後currentTool仍為laser，按同工具需先恢復作畫，不能只打開設定。以上不改作品schema、不將選取工具等同穿透，也不重寫原有註記。

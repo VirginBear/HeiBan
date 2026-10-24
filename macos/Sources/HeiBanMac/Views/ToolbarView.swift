@@ -191,7 +191,7 @@ struct ToolbarToolsView: View {
             engine.toolbarPreferences, screen: screenController != nil, page: activePage)
     }
     private var toolsAvailableLength: CGFloat {
-        max(ToolbarContentPolicy.horizontalTileWidth, availableLength - (vertical ? 196 : 188))
+        max(ToolbarContentPolicy.horizontalTileWidth, availableLength - (vertical ? ToolbarContentPolicy.verticalChrome : ToolbarContentPolicy.horizontalChrome))
     }
     private var pageCapacity: Int {
         ToolbarContentPolicy.pageCapacity(
@@ -472,10 +472,12 @@ struct ToolbarToolsView: View {
             screenController?.setDrawing(true)
             presentSettings(.shapes)
         case "laser":
-            if engine.currentTool == .laser {
+            let resumingScreen = screenController?.isDrawing == false
+            screenController?.setDrawing(true)
+            if engine.currentTool == .laser && !resumingScreen {
                 presentSettings(.laser)
             } else {
-                selectTool(.laser)
+                if engine.currentTool != .laser { selectTool(.laser) }
                 engine.laserEngine.isEnabled = true
             }
         case "screenshot": captureScreenshot()
