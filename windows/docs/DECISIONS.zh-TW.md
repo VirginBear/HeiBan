@@ -1,5 +1,9 @@
 # Windows 開發決策
 
+## 2026-10-24 — 核准Store 1.0.17.0（封裝中）
+
+本次使用者明確回覆「採用1.0.17／1.0.17.0」，可以提高Windows正式版號與製作商店套件。身份、免費策略與受限功能模型不變；核准只適用此批，不推論後續版本或自行送審授權。 [本批日誌](STORE_RELEASE_1.0.17_2026-10-24.zh-TW.md)。
+
 ## 2026-10-24 — 單一捲動擁有者與活動色線
 
 筆刷／色盤Flyout的限高與捲動由原生FlyoutPresenter負責，Content不再嵌套另一ScrollViewer；其他視窗不作全域替換。ColorIcon以當前工具key與共用ShapeTools判斷活動筆色線，Opacity隱藏保留量測空間；非活動色線不重建chip。只更新Chrome狀態，不進入指標／Draw熱路徑，不改文件schema與獨立工具記色規則。 [日誌](BRUSH_FOCUS_2026-10-24.zh-TW.md)。
