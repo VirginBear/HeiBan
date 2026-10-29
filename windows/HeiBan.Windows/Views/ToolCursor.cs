@@ -12,6 +12,14 @@ internal sealed class ToolCursor : IDisposable
     internal nint Get(string tool,int size)
     {
         if(_cursors.TryGetValue((tool,size),out var cursor))return cursor;
+        if(tool=="cane")
+        {
+            // The held sprite is drawn at the pointer's lower-right grip; hide
+            // the duplicate tool badge without changing input coordinates.
+            var transparent=new byte[size*size/8];Array.Fill(transparent,(byte)255);
+            cursor=CreateCursor(0,0,0,size,size,transparent,new byte[transparent.Length]);
+            _cursors[(tool,size)]=cursor;return cursor;
+        }
         var path=ToolIcons.CursorPath(tool);
         if(path is null)return 0;
         try

@@ -1,5 +1,9 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-29 — 持續握持工具與單次提示分離
+
+CaneFeedback.Point表示休止握點，StartedAt只控制一次揮動；移動、按住與揮動完成不提交永久物件。主畫布即時呈現位置、僅動畫期間timer；screen有最後動畫影格旗標、舊新damage與native leave清除，不能因手持圖常駐導致永久全屏重畫。Sprite保留原比例，以右下握柄(.92,.90)旋轉；兩host共用原創圖，缺圖回退向量。CaneVisible為optional工具偏好，缺值true，與工具Common／VisibleTools分開；右鍵／更多保存同一profile，clone保留未知欄。常用槽置中，cane不對應管理頁。MediaPlayer預載SoundEffects、不開網路，MediaFailed記有限診斷並退回生命週期固定的memory PlaySound，停止與釋放防止晚到播放。這不是實機音效通過證據。 [日誌](CANE_REFINEMENT_2026-10-29.zh-TW.md)。
+
 ## 2026-10-29 — 藤條為單次暫態提示
 
 CaneFeedback只保存單一位置／起始時間，點擊替換、不累積點或Undo；兩畫布在命中測試前攔截輸入，使用同一Win2D向量動畫。主畫布動畫timer僅有效期啟用；螢幕畫布合併前後保守damage並在最後清除，不使永久scene失效。音效為可重建原創PCM WAV，WinMM非同步播放；缺檔靜默回退、快速再點取代前音，不調整系統音量。快捷只選用，不發聲；一般畫布板擦旁獨立click target，與板擦拖動區域分開。管理按鈕可移至常用雷射旁，切頁先detach，舊偏好一次發現新工具且保留使用者後續隱藏／Common選擇。無新文件欄位或依賴套件。 [日誌](CANE_TOOL_2026-10-29.zh-TW.md)。

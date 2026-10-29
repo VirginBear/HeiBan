@@ -6,12 +6,13 @@ namespace HeiBan.Windows.Engine;
 
 public sealed partial class Direct2DCanvasRenderer
 {
-    private CanvasBitmap? _boardEraserArt;
+    private CanvasBitmap? _boardEraserArt,_caneArt;
     private long _toolArtEpoch;
     internal bool HasBoardEraserArt=>_boardEraserArt is not null;
     internal async Task LoadToolArtAsync(ICanvasResourceCreator device)
     {
         ClearToolArt();var epoch=_toolArtEpoch;
+        await LoadCaneArtAsync(device);
         try
         {
             // Portable apps have no package identity. Resolve the shipped asset
@@ -28,6 +29,18 @@ public sealed partial class Direct2DCanvasRenderer
             Diagnostics.CanvasSurfaceDiagnostics.Record("optional-eraser-art",e);
         }
     }
+    internal async Task LoadCaneArtAsync(ICanvasResourceCreator device)
+    {
+        var epoch=_toolArtEpoch;
+        try
+        {
+            using var stream=File.OpenRead(System.IO.Path.Combine(AppContext.BaseDirectory,"Assets","Cane.png"));
+            var bitmap=await CanvasBitmap.LoadAsync(device,stream.AsRandomAccessStream());
+            if(epoch!=_toolArtEpoch){bitmap.Dispose();return;}
+            _caneArt?.Dispose();_caneArt=bitmap;ResourcesChanged?.Invoke();
+        }
+        catch(Exception e) when(e is not OutOfMemoryException){Diagnostics.CanvasSurfaceDiagnostics.Record("optional-cane-art",e);}
+    }
     internal void RenderBoardEraser(CanvasDrawingSession ds,double left,double top,float opacity)
     {
         if(_boardEraserArt is not { } bitmap)return;
@@ -40,5 +53,5 @@ public sealed partial class Direct2DCanvasRenderer
         try{ds.DrawImage(bitmap,new Rect(0,0,w,h),bitmap.Bounds,opacity);}
         finally{ds.Transform=old;}
     }
-    private void ClearToolArt(){_toolArtEpoch++;_boardEraserArt?.Dispose();_boardEraserArt=null;}
+    private void ClearToolArt(){_toolArtEpoch++;_boardEraserArt?.Dispose();_boardEraserArt=null;_caneArt?.Dispose();_caneArt=null;}
 }

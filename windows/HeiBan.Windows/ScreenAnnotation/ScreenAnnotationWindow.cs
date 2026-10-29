@@ -25,6 +25,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     private readonly ViewportTransform _viewport=new();
     private readonly LaserPointerEngine _laser;
     private readonly CaneFeedback _cane=new();
+    private bool _caneWasAnimating;
     // The screen host reads the same user toolbar file as the board, then applies host filtering without rewriting that preference.
     private ToolbarPreferences _toolbarPreferences;
     private nint _lastExternal;
@@ -83,7 +84,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         var failed=0;
         foreach(var key in new[]{(1,0x41u),(2,0x44u),(3,0x53u),(4,0x51u),(5,0x4Bu)})if(!_overlay.RegisterShortcut(key.Item1,0x0002|0x0001,key.Item2))failed++;
         _hotkeyRegistrationFailed=failed>0;if(failed>0)_status.Text=T("部分快捷鍵被其他程式占用，請使用控制列按鈕。");
-        _renderTimer.Tick+=(_,_)=>{if(!IsActive)return;try{UpdateScreenEraser();UpdateScreenMagnetHover();if(_dirty||_laser.Samples.Count>0||_cane.IsActive(Now)||_lastCaneDamage is not null)Render();}catch(Exception e){_renderTimer.Stop();_overlay.Hide();_status.Text=T("螢幕繪圖已停止：")+e.Message;}};
+        _renderTimer.Tick+=(_,_)=>{if(!IsActive)return;try{UpdateScreenEraser();UpdateScreenMagnetHover();if(_dirty||_laser.Samples.Count>0||_cane.IsActive(Now)||_caneWasAnimating)Render();}catch(Exception e){_renderTimer.Stop();_overlay.Hide();_status.Text=T("螢幕繪圖已停止：")+e.Message;}};
         _focusRememberTimer.Tick+=(_,_)=>{if(IsActive)RememberExternalFocus();};
         _straightenTimer.Tick+=(_,_)=>
         {
@@ -101,7 +102,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         {
             Directory.CreateDirectory(Path.GetDirectoryName(_recoveryPath)!);_sessionLease=new FileStream(_recoveryPath+".lock",FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
             var doc=File.Exists(_recoveryPath)?DocumentCodec.Decode(await File.ReadAllTextAsync(_recoveryPath)):new HeiBanDocument{Board=new BoardMetadata{Title=T("螢幕註記"),CanvasMode="fixed",BackgroundColor="transparent",GridStyle="blank"}};
-            _session.Open(doc);CreateTarget();await _renderer.LoadImagesAsync(_target!,doc.Objects);
+            _session.Open(doc);CreateTarget();await _renderer.LoadCaneArtAsync(_target!);await _renderer.LoadImagesAsync(_target!,doc.Objects);
             IsActive=true;_laser.Clear();_owner.AppWindow.Hide();RememberExternalFocus();_overlay.Show(true);SetDrawing(true);Render();
             ResizeChrome();RefreshButtons();
             PositionChrome();AppWindow.Show();Activate();_renderTimer.Start();_focusRememberTimer.Start();
@@ -138,14 +139,15 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         if(!IsActive||_stopping||_captureCancellation is not null)return;
         if(input.Kind=="cancel"){CancelGesture();return;}
         if(!_drawing)return;
+        if(input.Kind=="leave"){if(_cane.Point is not null){_cane.Clear();_dirty=true;}return;}
         var p=new InkPoint(input.X,input.Y,1);
         // Like the laser, the cane owns clicks before object hit tests; holding
         // or moving never repeats its sound or creates document objects.
         if(_tool=="cane")
         {
             UpdateScreenShapeCursor(p);
-            if(input.Kind is "down" or "double"&&input.LeftDown){_cane.Strike(p,Now);CaneSound.Play();_dirty=true;}
-            else if(input.Kind=="right"){_cane.Clear();CaneSound.Stop();_dirty=true;}
+            if(_cane.Move(p))_dirty=true;
+            if(input.Kind is "down" or "double"&&input.LeftDown){_cane.Strike(p,Now);CaneSound.Play(error=>DispatcherQueue.TryEnqueue(()=>_status.Text=T("藤條音效無法播放：")+error));_dirty=true;}
             return;
         }
         // Laser owns this whole input route: hover/right/double never reach object hit tests.
@@ -321,7 +323,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         if(_target is null||_committed is null)return;
         var sceneSession=_circularEraser?.Preview??_session;
         _laser.Prune(Now);
-        if(!_cane.IsActive(Now))_cane.Clear();
+        _caneWasAnimating=_cane.IsActive(Now);
         global::Windows.Foundation.Rect? caneDamage=null;
         if(Direct2DCanvasRenderer.CaneBounds(_cane,_viewport,Now,_dpiScale) is { } caneBounds)
         {

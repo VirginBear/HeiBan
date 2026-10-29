@@ -93,11 +93,16 @@ internal sealed partial class NativeOverlayWindow : IDisposable
         if(_dc==0||_bitmap==0||_pixels==0)throw new Win32Exception(Marshal.GetLastWin32Error());
         _oldBitmap=SelectObject(_dc,_bitmap);
     }
+    private bool _trackingMouse;
+    [StructLayout(LayoutKind.Sequential)] private struct MouseTracking{public uint Size,Flags;public nint Window;public uint HoverTime;}
+    [DllImport("user32.dll")] private static extern bool TrackMouseEvent(ref MouseTracking tracking);
     private nint Procedure(nint hwnd,uint message,nuint wParam,nint lParam)
     {
         try
         {
             if(message==0x0020&&_drawing&&_shapeCursor.Current!=0){_shapeCursor.Apply();return 1;}
+            if(message==0x02A3){_trackingMouse=false;if(!_pointerCaptured)Pointer?.Invoke(new("leave",0,0));return 0;}
+            if(message==0x0200&&!_trackingMouse){var tracking=new MouseTracking{Size=(uint)Marshal.SizeOf<MouseTracking>(),Flags=2,Window=hwnd};_trackingMouse=TrackMouseEvent(ref tracking);}
             if(message==0x0312){Hotkey?.Invoke((int)wParam);return 0;}
             if(message==0x007E){ResizeDesktop();BoundsChanged?.Invoke();return 0;}
             if(message==0x0021)return new nint(3); // Never take the underlying app's keyboard focus.

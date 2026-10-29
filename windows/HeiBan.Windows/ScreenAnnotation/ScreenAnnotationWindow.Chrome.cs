@@ -158,7 +158,7 @@ internal sealed partial class ScreenAnnotationWindow
         using var trace=global::HeiBan.Windows.Diagnostics.InputLatencyTrace.Measure(global::HeiBan.Windows.Diagnostics.InputStage.ToolSwitch);
         _chromeFlyout?.Hide();FinishScreenText();if(key==_tool&&key=="laser"){_ = LaserSettingsAsync();return;}if(key==_tool&&key=="eraser"){ShowEraserSettings();return;}
         var selectionVisuals=(_tool=="select"||key=="select")&&_session.SelectedIds.Count>0;
-        if(selectionVisuals)DamageSelectedObjects();CancelGesture();_tool=key;
+        if(selectionVisuals)DamageSelectedObjects();CancelGesture();_tool=key;if(key=="cane")CaneSound.Prepare();
         if(key is "laser" or "cane")_session.SelectedId=null;
         if(!_drawing)SetDrawing(true);else if(selectionVisuals)_dirty=true;
         _overlay.SetManipulationCursor(null,null,_tool);RefreshButtons();
@@ -190,6 +190,7 @@ internal sealed partial class ScreenAnnotationWindow
         Item("save",T("儲存註記"),async()=>{if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();FinishScreenText();CancelGesture();if(await SaveAsync()){_status.Text=_session.IsDirty?T("尚有變更"):T("已儲存");RefreshMode();}});
         var dockMenu=new MenuFlyoutSubItem{Text=T("工具列位置")};
         foreach(var pair in new[]{("top","上方"),("bottom","下方"),("left","左側"),("right","右側")}){var side=pair.Item1;var item=new MenuFlyoutItem{Text=T(pair.Item2)};item.Click+=(_,_)=>DockChrome(side);dockMenu.Items.Add(item);}menu.Items.Add(dockMenu);menu.Items.Add(new MenuFlyoutSeparator());
+        Item("cane",T("藤條"),()=>ChooseScreenTool("cane"));
         Item("palette",T("調色盤"),ShowScreenPalette);
         menu.Items.Add(ScreenToolbarCustomization());
         Item("export",T("儲存可編輯註記／透明 PNG…"),async()=>await ExportAnnotationsAsync());Item("delete",T("一鍵清空畫布（可復原）"),ClearScreenObjects);Item("reading",T("使用說明（正體中文）"),async()=>await global::Windows.System.Launcher.LaunchUriAsync(new Uri(Path.Combine(AppContext.BaseDirectory,"Assets","HeiBanUserGuide.html"))));

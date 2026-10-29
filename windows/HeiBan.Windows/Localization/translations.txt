@@ -554,3 +554,6 @@ PDF、PPT、PPTX 會另外產生圖片頁面放進畫布，不會直接編輯原
 
 藤條|Rattan cane|籐の指示棒|등나무 지시봉|Varilla de ratán|Baguette en rotin|Rattan-Zeigestock|Vareta de vime|عصا راتان
 藤條：點一下選用，再點畫布揮動發聲|Cane: click to select, then click the canvas to swing and play a snap|指示棒：クリックして選び、キャンバスをクリックすると振って音を鳴らします|지시봉: 클릭하여 선택한 후 캔버스를 클릭하면 휘두르는 동작과 타격음이 나옵니다|Varilla: selecciona con un clic y pulsa el lienzo para dar un golpe con sonido|Baguette : cliquez pour la sélectionner, puis sur le canevas pour un geste accompagné d’un claquement|Zeigestock: auswählen, dann zum Schwingen und Klatschen auf die Zeichenfläche klicken|Vareta: clique para selecionar e depois na tela para balançar e ouvir o estalo|العصا: انقر لاختيارها ثم انقر اللوحة لتلويحها وتشغيل صوت الطقطقة
+顯示藤條|Show cane|指示棒を表示|지시봉 표시|Mostrar varilla|Afficher la baguette|Zeigestock anzeigen|Mostrar vareta|إظهار العصا
+隱藏藤條|Hide cane|指示棒を隠す|지시봉 숨기기|Ocultar varilla|Masquer la baguette|Zeigestock ausblenden|Ocultar vareta|إخفاء العصا
+藤條音效無法播放：|Cane sound could not play: |指示棒の音声を再生できません：|지시봉 소리를 재생할 수 없습니다: |No se pudo reproducir el sonido de la varilla: |Impossible de lire le son de la baguette : |Zeigestock-Ton konnte nicht abgespielt werden: |Não foi possível tocar o som da vareta: |تعذر تشغيل صوت العصا:\s

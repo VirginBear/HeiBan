@@ -91,7 +91,7 @@ public partial class MainWindow
         {if(_boardEraserGpuPreview)_renderer.RenderBoardEraser(ds,_boardEraserLast.X-_boardEraserGripOffset.X,_boardEraserLast.Y-_boardEraserGripOffset.Y,.78f);var contact=BoardEraserContact(_boardEraserLast);for(var i=0;i<contact.Length;i++){var a=contact[i];var b=contact[(i+1)%contact.Length];ds.DrawLine((float)a.X,(float)a.Y,(float)b.X,(float)b.Y,Direct2DCanvasRenderer.HexToColor("#39735A"),2);}}
         if(_rulerEnabled)DrawRuler(ds);
         if(_compass.IsEnabled)_renderer.RenderCompass(ds,_compass,_viewport);
-        _renderer.RenderCane(ds,_cane,_viewport,LaserNow);
+        if(_tool=="cane"&&_hover&&!_panning&&!_readingMode){_cane.Move(_viewport.ScreenToWorld(_mouse.X,_mouse.Y));_renderer.RenderCane(ds,_cane,_viewport,LaserNow);}
         if(!_panning&&_boardEraserDraft is null&&_hover&&_editor is null&&_tool is "pen" or "highlighter" or "paint" or "eraser")
             _renderer.RenderHover(ds,_mouse,_tool=="eraser",_tool=="eraser"?EraserSizeSlider.Value:EffectiveWidth,_viewport);
     }
@@ -118,7 +118,7 @@ public partial class MainWindow
         _gesture=true;CanvasSurface.CapturePointer(e.Pointer);
         if(_panning){UpdateShapeCursor();e.Handled=true;return;}
         if(_tool=="laser"){_panning=false;_laser.Press(_start,LaserNow);UpdateTeachingTimer();PresentInteraction();e.Handled=true;return;}
-        if(_tool=="cane"){_cane.Strike(_start,LaserNow);CaneSound.Play();UpdateTeachingTimer();PresentInteraction();e.Handled=true;return;}
+        if(_tool=="cane"){_cane.Strike(_start,LaserNow);PlayCaneSound();UpdateTeachingTimer();PresentInteraction();e.Handled=true;return;}
         if(_tool=="lasso"){_lasso.Clear();_lasso.Add(_start);e.Handled=true;return;}
         if(_rulerEnabled&&RulerPivotHit(screen)){_rulerPivotMoving=true;e.Handled=true;return;}
         if(_rulerEnabled&&RulerRotationHit(screen)){BeginRulerRotation(screen);e.Handled=true;return;}
@@ -246,7 +246,7 @@ public partial class MainWindow
             e.Handled=true;return;
         }
         if(!_gesture||_tool=="select")UpdateShapeCursor();
-        if(_tool=="cane"){e.Handled=true;return;}
+        if(_tool=="cane"){_cane.Move(_viewport.ScreenToWorld(_mouse.X,_mouse.Y));PresentInteraction();e.Handled=true;return;}
         if(!_gesture&&MagnetSnapIndex.SupportsConstructionTool(_tool)){EnsureMagnetIndex();SnapDrawingPoint(_viewport.ScreenToWorld(_mouse.X,_mouse.Y));InvalidateCanvas(false);}
         if(_tool=="laser"&&!_panning)
         {
@@ -457,8 +457,8 @@ public partial class MainWindow
     private void ResetShapeCursor()
     {var dpi=(uint)Math.Round((Root.XamlRoot?.RasterizationScale??1)*96);_shapeCursor.Update(null,null,dpi);CanvasCursorHost.SetNativeCursor(_shapeCursor.Current,dpi);}
     private void CanvasSurface_PointerEntered(object sender,PointerRoutedEventArgs e)
-    {var p=e.GetCurrentPoint(CanvasSurface);_mouse=new((float)p.Position.X,(float)p.Position.Y);_hover=true;UpdateShapeCursor();}
-    private void CanvasSurface_PointerExited(object sender,PointerRoutedEventArgs e){HideHUD();_laser.Release();UpdateTeachingTimer();_hover=false;if(!_gesture){_magnetTarget=null;ResetShapeCursor();}InvalidateCanvas(false);}
+    {var p=e.GetCurrentPoint(CanvasSurface);_mouse=new((float)p.Position.X,(float)p.Position.Y);_hover=true;if(_tool=="cane"){_cane.Move(_viewport.ScreenToWorld(_mouse.X,_mouse.Y));PresentInteraction();}UpdateShapeCursor();}
+    private void CanvasSurface_PointerExited(object sender,PointerRoutedEventArgs e){HideHUD();_laser.Release();_cane.Clear();UpdateTeachingTimer();_hover=false;if(!_gesture){_magnetTarget=null;ResetShapeCursor();}InvalidateCanvas(false);}
     private void CanvasSurface_PointerWheelChanged(object sender,PointerRoutedEventArgs e)
     {
         if(_editor is not null||_gesture||_viewLocked||_boardEraserDraft is not null)return;

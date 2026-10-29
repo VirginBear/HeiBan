@@ -11,7 +11,8 @@ internal static partial class ToolbarUi
     private static readonly (string Key,string Label)[] Pages=[("common","常用"),("drawing","繪圖"),("insert","插入"),("organize","管理")];
     private static string PageFor(string key)=>key switch
     {
-        "select" or "undo" or "redo" or "cane"=>"organize",
+        "select" or "undo" or "redo"=>"organize",
+        "cane"=>"common-only",
         "pen" or "highlighter" or "eraser" or "magnet"=>"drawing",
         "brush" or "curve" or "paint" or "ruler" or "shapes" or "compass" or "dash"=>"drawing",
         "sticky" or "text" or "image" or "screenshot" or "tape" or "calculator" or "timer"=>"insert",
@@ -60,7 +61,7 @@ internal static partial class ToolbarUi
         var shell=new StackPanel{Orientation=vertical?Orientation.Vertical:Orientation.Horizontal,Spacing=6};
         foreach(var key in new[]{"select","laser"})if(buttons.FirstOrDefault(b=>b.Key==key).Button is { } pinned)shell.Children.Add(pinned);
         var caneButton=buttons.FirstOrDefault(b=>b.Key=="cane").Button;
-        var caneSlot=new StackPanel{Visibility=Visibility.Collapsed};
+        var caneSlot=new StackPanel{Visibility=Visibility.Collapsed,VerticalAlignment=VerticalAlignment.Center,HorizontalAlignment=HorizontalAlignment.Center};
         if(favoriteCane&&caneButton is not null)shell.Children.Add(caneSlot);
         var body=new StackPanel{Spacing=4};
         var tabs=new StackPanel{Orientation=vertical?Orientation.Vertical:Orientation.Horizontal,Spacing=3};

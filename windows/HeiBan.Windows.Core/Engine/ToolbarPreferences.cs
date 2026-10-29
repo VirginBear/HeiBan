@@ -13,6 +13,7 @@ public sealed class ToolbarPreferences
     public string DisplayMode { get; set; } = "labels";
     public bool MagnetEnabled { get; set; }
     public bool BoardEraserVisible { get; set; } = true;
+    public bool CaneVisible { get; set; } = true;
     public int DefaultToolsRevision { get; set; }
     public int DefaultPresentationRevision { get; set; }
     public int DefaultCommonRevision { get; set; }

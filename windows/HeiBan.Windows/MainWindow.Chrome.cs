@@ -578,12 +578,15 @@ public partial class MainWindow
             finally{boardEraserItem.IsChecked=_toolbarPrefs.BoardEraserVisible;boardEraserItem.IsEnabled=true;}
         };
         menu.Items.Add(boardEraserItem);
+        var caneVisible=new ToggleMenuFlyoutItem{Text=T("顯示藤條"),IsChecked=_toolbarPrefs.CaneVisible};
+        caneVisible.Click+=async(_,_)=>{caneVisible.IsEnabled=false;try{await SetCaneVisibleAsync(caneVisible.IsChecked);}finally{caneVisible.IsChecked=_toolbarPrefs.CaneVisible;caneVisible.IsEnabled=true;}};menu.Items.Add(caneVisible);
+        var caneTool=new MenuFlyoutItem{Text=T("藤條"),Icon=ToolIcons.CreateIcon("cane")};caneTool.Click+=(_,_)=>ActivateTool("cane");menu.Items.Add(caneTool);
         menu.Items.Add(new MenuFlyoutSeparator());
 
         // 隱藏工具清單
         if (_toolbarPrefs.HiddenTools.Count > 0)
         {
-            foreach (var key in _toolbarPrefs.HiddenTools.Where(key=>key!="extension"))
+            foreach (var key in _toolbarPrefs.HiddenTools.Where(key=>key is not("extension" or "cane")))
             {
                 var toolKey = key;
                 var item = new MenuFlyoutItem
@@ -773,7 +776,7 @@ public partial class MainWindow
     {
         // Screen canvas shares the settings file. Update the hidden owner in-memory too, or its
         // next toolbar rebuild could overwrite a choice just made in the screen session.
-        var updated=new ToolbarPreferences{DockSide=preferences.DockSide,DisplayMode=preferences.DisplayMode,MagnetEnabled=preferences.MagnetEnabled,BoardEraserVisible=preferences.BoardEraserVisible,DefaultToolsRevision=preferences.DefaultToolsRevision,DefaultPresentationRevision=preferences.DefaultPresentationRevision,DefaultCommonRevision=preferences.DefaultCommonRevision,CommonTools=[..preferences.CommonTools],ExtraFields=preferences.ExtraFields,VisibleTools=[..preferences.VisibleTools],HiddenTools=[..preferences.HiddenTools]};
+        var updated=new ToolbarPreferences{DockSide=preferences.DockSide,DisplayMode=preferences.DisplayMode,MagnetEnabled=preferences.MagnetEnabled,BoardEraserVisible=preferences.BoardEraserVisible,CaneVisible=preferences.CaneVisible,DefaultToolsRevision=preferences.DefaultToolsRevision,DefaultPresentationRevision=preferences.DefaultPresentationRevision,DefaultCommonRevision=preferences.DefaultCommonRevision,CommonTools=[..preferences.CommonTools],ExtraFields=preferences.ExtraFields,VisibleTools=[..preferences.VisibleTools],HiddenTools=[..preferences.HiddenTools]};
         updated.Normalize();
         await ToolbarPreferencesStore.SaveAsync(_storage.DataDirectory,updated);
         _toolbarPrefs=updated;
@@ -800,6 +803,7 @@ public partial class MainWindow
         _polygon.Clear();
         _session.SelectedId = null;_objectDetailsId=null;
         _tool = tool;
+        if(tool=="cane"){CaneSound.Prepare();if(_hover)_cane.Move(_viewport.ScreenToWorld(_mouse.X,_mouse.Y));}
         if (tool is not ("select" or "eraser" or "cane"))
         {
             _styleTool = tool;

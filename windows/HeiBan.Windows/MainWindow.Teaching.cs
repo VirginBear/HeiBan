@@ -16,7 +16,7 @@ public partial class MainWindow
         {
             if(_tool=="pen"&&_ink.TrySnapStraight(_viewport.Zoom)){_renderer.ResetLive();InvalidateCanvas(false);}
             if(_laser.Samples.Count>0){_laser.Prune(LaserNow);if(_workspaceOpen)InvalidateCanvas(false);}
-            if(_cane.Point is not null){if(!_cane.IsActive(LaserNow))_cane.Clear();if(_workspaceOpen)InvalidateCanvas(false);}
+            if(_cane.Point is not null&&_workspaceOpen)InvalidateCanvas(false);
             UpdateTeachingTimer();
         };
     }
