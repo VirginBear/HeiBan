@@ -45,10 +45,22 @@ public final class LaserPointerEngine: ObservableObject, @unchecked Sendable {
     public private(set) var samples: [LaserSample] = []
 
     @Published public private(set) var hasVisibleSamples = false
+    @Published public private(set) var isPressed = false
     private var expiryTimer: Timer?
     private var startsNewTrail = true
 
     public let maxCapacity: Int = 500 // Upper bound to guarantee no memory leak during long presentations
+
+    public var lifetime: Double {
+        switch mode {
+        case .point:
+            return 0.3
+        case .shortTrail:
+            return max(0.2, min(fadeDuration, 0.8))
+        case .line:
+            return max(0.2, fadeDuration)
+        }
+    }
 
     public init() {
         let defaults = UserDefaults.standard
@@ -64,7 +76,26 @@ public final class LaserPointerEngine: ObservableObject, @unchecked Sendable {
 
     public func beginTrail() { startsNewTrail = true }
 
+    public func press(point: Point, timestamp: TimeInterval = ProcessInfo.processInfo.systemUptime) {
+        clear()
+        isPressed = true
+        addSample(point: point, timestamp: timestamp)
+    }
+
+    public func movePressed(point: Point, timestamp: TimeInterval = ProcessInfo.processInfo.systemUptime) {
+        guard isPressed else { return }
+        addSample(point: point, timestamp: timestamp)
+    }
+
+    public func release() {
+        clear()
+    }
+
     public func addSample(point: Point, timestamp: TimeInterval = ProcessInfo.processInfo.systemUptime) {
+        if isPressed, let last = samples.last, timestamp - last.timestamp > lifetime {
+            samples.removeAll(keepingCapacity: true)
+            startsNewTrail = true
+        }
         purgeExpiredSamples(currentTime: timestamp)
         if let last = samples.last, last.point == point, timestamp - last.timestamp < 1.0 / 120.0 { return }
         let sample = LaserSample(point: point, timestamp: timestamp, startsNewTrail: startsNewTrail)
@@ -75,7 +106,7 @@ public final class LaserPointerEngine: ObservableObject, @unchecked Sendable {
             expiryTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
                 guard let self else { return }
                 self.purgeExpiredSamples()
-                if self.samples.isEmpty { self.clear() }
+                if self.samples.isEmpty && !self.isPressed { self.clear() }
             }
         }
         if samples.count > maxCapacity {
@@ -85,10 +116,11 @@ public final class LaserPointerEngine: ObservableObject, @unchecked Sendable {
 
     public func purgeExpiredSamples(currentTime: TimeInterval = ProcessInfo.processInfo.systemUptime) {
         guard !samples.isEmpty else { return }
+        let held = isPressed ? samples.last : nil
         switch mode {
         case .point:
-            // Point mode keeps only the latest sample if it's recent (within 0.3s)
-            if let last = samples.last, currentTime - last.timestamp <= 0.3 {
+            // Point mode keeps only the latest sample if it's recent (within 0.3s) or while pressed
+            if let last = samples.last, isPressed || currentTime - last.timestamp <= 0.3 {
                 samples = [last]
             } else {
                 samples.removeAll(keepingCapacity: true)
@@ -100,6 +132,9 @@ public final class LaserPointerEngine: ObservableObject, @unchecked Sendable {
             let cutoff = currentTime - max(0.2, fadeDuration)
             samples.removeAll { $0.timestamp < cutoff }
         }
+        if isPressed, samples.isEmpty, let held {
+            samples.append(held)
+        }
     }
 
     public func clear() {
@@ -107,6 +142,7 @@ public final class LaserPointerEngine: ObservableObject, @unchecked Sendable {
         expiryTimer = nil
         samples.removeAll(keepingCapacity: true)
         startsNewTrail = true
+        isPressed = false
         if hasVisibleSamples { hasVisibleSamples = false }
     }
 

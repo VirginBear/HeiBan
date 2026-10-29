@@ -13,7 +13,10 @@ struct LaserOverlayView: View {
                     let lifetime = laser.mode == .point ? 0.3 :
                         (laser.mode == .shortTrail ? min(0.8, laser.fadeDuration) : laser.fadeDuration)
                     let duration = max(0.2, lifetime)
-                    let samples = laser.samples.filter { now - $0.timestamp < duration }
+                    var samples = laser.samples.filter { now - $0.timestamp < duration }
+                    if laser.isPressed, samples.isEmpty, let held = laser.samples.last {
+                        samples = [held]
+                    }
                     guard let last = samples.last else { return }
                     let color = Color(hex: laser.color)
                     let width = CGFloat(max(1, laser.width))
@@ -42,7 +45,7 @@ struct LaserOverlayView: View {
                     }
                     let point = VectorMath.worldToScreen(last.point, viewport: viewport)
                     let radius = CGFloat(max(4, laser.pointDiameter)) / 2
-                    let alpha = max(0, min(1, 1 - (now - last.timestamp) / duration))
+                    let alpha = laser.isPressed ? 1.0 : max(0, min(1, 1 - (now - last.timestamp) / duration))
                     let center = CGPoint(x: point.x, y: point.y)
                     let haloRadius = radius * 2.4
                     let halo = Path(ellipseIn: CGRect(x: center.x - haloRadius, y: center.y - haloRadius,

@@ -28,6 +28,7 @@ struct ScreenAnnotationCanvas: View {
                 if engine.currentTool == .lasso { LassoOverlayView(engine: engine) }
                 CompassOverlayView(compass: engine.compassEngine, engine: engine)
                 LaserOverlayView(laser: engine.laserEngine, viewport: engine.viewport)
+                CaneTeachingOverlay(engine: engine)
                 if engine.currentTool == .eraser,
                    let point = engine.eraserCursorPoint ?? engine.hoverCursorPoint {
                     EraserCursorOverlayView(engine: engine, point: point).allowsHitTesting(false)
@@ -39,7 +40,15 @@ struct ScreenAnnotationCanvas: View {
             .frame(width: geometry.size.width, height: geometry.size.height)
             .coordinateSpace(name: "HeiBan.workspace")
             .onDrop(of: [UTType.fileURL, UTType.image], delegate: CanvasImageDropDelegate(engine: engine))
-            .onAppear { engine.repositionRulerIfNeeded(windowSize: geometry.size) }
+            .onAppear {
+                engine.repositionRulerIfNeeded(windowSize: geometry.size)
+                engine.caneStrikeSoundHandler = {
+                    CaneSound.shared.play { msg in engine.showTemporaryStatus(msg) }
+                }
+                engine.caneStopSoundHandler = {
+                    CaneSound.shared.stop()
+                }
+            }
         }.coordinateSpace(name: "canvas")
     }
 }

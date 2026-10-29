@@ -23,6 +23,7 @@ public extension ToolType {
     static let image = "image"
     static let pin = "pin"
     static let laser = "laser"
+    static let cane = "cane"
     static let tape = "tape"
     static let lasso = "lasso"
     static let roundedRect = "rounded_rect"

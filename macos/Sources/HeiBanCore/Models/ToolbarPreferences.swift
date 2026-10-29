@@ -20,6 +20,7 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
     public var displayMode: String = "labels"
     public var magnetEnabled: Bool = false
     public var boardEraserVisible: Bool = true
+    public var caneVisible: Bool = true
     public var commonItemIds: [String] = Self.defaultCommonItemIds
     public var defaultToolsRevision: Int = 0
     public var defaultPresentationRevision: Int = 0
@@ -27,12 +28,18 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
 
     public var extraFields: [String: AnyCodableValue]?
 
+    public static let fixedTools: [String] = ["select", "laser", "cane"]
+
+    public static func isFixedTool(_ id: String) -> Bool {
+        id == "select" || id == "laser" || id == "cane"
+    }
+
     public static let defaultCommonItemIds: [String] = [
-        "pen", "highlighter", "eraser", "color", "lineStyle", "undoRedo", "magnet", "clearAll", "laser",
+        "select", "laser", "cane", "pen", "highlighter", "eraser", "color", "lineStyle", "undoRedo", "magnet", "clearAll",
     ]
 
     private enum CodingKeys: String, CodingKey, CaseIterable {
-        case activeItemIds, hiddenItemIds, displayMode, magnetEnabled, boardEraserVisible, commonItemIds
+        case activeItemIds, hiddenItemIds, displayMode, magnetEnabled, boardEraserVisible, caneVisible, commonItemIds
         case defaultToolsRevision, defaultPresentationRevision, defaultCommonRevision
     }
     public init(from decoder: Decoder) throws {
@@ -43,6 +50,7 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
         displayMode = try c.decodeIfPresent(String.self, forKey: .displayMode) ?? "labels"
         magnetEnabled = try c.decodeIfPresent(Bool.self, forKey: .magnetEnabled) ?? false
         boardEraserVisible = try c.decodeIfPresent(Bool.self, forKey: .boardEraserVisible) ?? true
+        caneVisible = try c.decodeIfPresent(Bool.self, forKey: .caneVisible) ?? true
         commonItemIds =
             try c.decodeIfPresent([String].self, forKey: .commonItemIds) ?? Self.defaultCommonItemIds
         defaultToolsRevision = try c.decodeIfPresent(Int.self, forKey: .defaultToolsRevision) ?? 0
@@ -65,6 +73,7 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
         try c.encode(displayMode, forKey: .displayMode)
         try c.encode(magnetEnabled, forKey: .magnetEnabled)
         try c.encode(boardEraserVisible, forKey: .boardEraserVisible)
+        try c.encode(caneVisible, forKey: .caneVisible)
         try c.encode(commonItemIds, forKey: .commonItemIds)
         try c.encode(defaultToolsRevision, forKey: .defaultToolsRevision)
         try c.encode(defaultPresentationRevision, forKey: .defaultPresentationRevision)
@@ -83,6 +92,7 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
     public static let allDefinitions: [ToolbarItemDefinition] = [
         ToolbarItemDefinition(id: "select", displayName: "選取 / 導航", icon: "cursorarrow", isEssential: true),
         ToolbarItemDefinition(id: "laser", displayName: "雷射筆", icon: "rays", isEssential: true),
+        ToolbarItemDefinition(id: "cane", displayName: "藤條", icon: "wand.and.rays", isEssential: true),
         ToolbarItemDefinition(id: "pen", displayName: "鋼筆 / 向量筆", icon: "pencil"),
         ToolbarItemDefinition(
             id: "curve", displayName: "曲線筆", icon: "point.topleft.down.to.point.bottomright.curvepath"),
@@ -160,7 +170,7 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
 
         // Upgrade untouched earlier streamlined defaults once; preserve custom order or explicit hidden choices.
         if defaultToolsRevision < 1 {
-            let expectedHidden = Set(Self.allItemIds.filter { $0 != "boardEraser" }).subtracting(Self.streamlinedItemIds)
+            let expectedHidden = Set(Self.allItemIds.filter { $0 != "boardEraser" && $0 != "cane" }).subtracting(Self.streamlinedItemIds)
             if activeItemIds == Self.streamlinedItemIds
                 && hiddenItemIds.count == expectedHidden.count
                 && Set(hiddenItemIds) == expectedHidden
@@ -196,17 +206,19 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
             activeItemIds.append("magnet")
         }
 
-        hiddenItemIds.removeAll { $0 == "select" || $0 == "laser" }
-        activeItemIds.removeAll { $0 == "select" || $0 == "laser" }
-        activeItemIds.insert("laser", at: 0)
-        activeItemIds.insert("select", at: 0)
-        if !commonItemIds.contains("laser") {
-            commonItemIds.append("laser")
+        hiddenItemIds.removeAll { Self.isFixedTool($0) }
+        activeItemIds.removeAll { Self.isFixedTool($0) }
+        for index in stride(from: Self.fixedTools.count - 1, through: 0, by: -1) {
+            activeItemIds.insert(Self.fixedTools[index], at: 0)
         }
         if displayMode != "labels" { displayMode = "icons" }
         var commonSeen = Set<String>()
+        commonItemIds.removeAll { Self.isFixedTool($0) }
+        for index in stride(from: Self.fixedTools.count - 1, through: 0, by: -1) {
+            commonItemIds.insert(Self.fixedTools[index], at: 0)
+        }
         commonItemIds = commonItemIds.filter {
-            allKnown.contains($0) && $0 != "select" && commonSeen.insert($0).inserted
+            allKnown.contains($0) && commonSeen.insert($0).inserted
         }
         var activeSeen = Set<String>()
         var hiddenSeen = Set<String>()
@@ -215,21 +227,27 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
 
         // 其餘新增工具收納進 hiddenItemIds (更多)，避免破壞使用者既有配置
         for def in Self.allDefinitions {
-            if def.id != "boardEraser", def.id != "laser", !activeSeen.contains(def.id) && !hiddenSeen.contains(def.id) {
+            if def.id != "boardEraser", !Self.isFixedTool(def.id), !activeSeen.contains(def.id) && !hiddenSeen.contains(def.id) {
                 hiddenItemIds.append(def.id)
                 hiddenSeen.insert(def.id)
             }
         }
 
-        // 首次提供板擦入口放在橡皮擦旁；日後明確隱藏仍尊重使用者設定。
+        // 首次提供板擦入口放在橡皮擦旁（且永遠在三個固定教學工具之後）；日後明確隱藏仍尊重使用者設定。
         if discoverBoardEraser && !activeItemIds.contains("boardEraser") {
-            activeItemIds.insert("boardEraser", at: (activeItemIds.firstIndex(of: "eraser") ?? 0) + 1)
+            let insertAt = max(
+                Self.fixedTools.count,
+                (activeItemIds.firstIndex(of: "eraser") ?? (Self.fixedTools.count - 1)) + 1
+            )
+            activeItemIds.insert("boardEraser", at: min(insertAt, activeItemIds.count))
         }
     }
 
     public mutating func resetToDefaults() {
         displayMode = "labels"
         magnetEnabled = false
+        boardEraserVisible = true
+        caneVisible = true
         commonItemIds = Self.defaultCommonItemIds
         activeItemIds = Self.allItemIds
         hiddenItemIds = []
@@ -239,7 +257,7 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
     }
 
     public mutating func setItemHidden(id: String, hidden: Bool) {
-        guard id != "select", id != "laser" else { return }
+        guard !Self.isFixedTool(id) else { return }
         if hidden {
             if !hiddenItemIds.contains(id) {
                 hiddenItemIds.append(id)
@@ -253,8 +271,8 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
     }
 
     public mutating func moveItem(from sourceIndex: Int, to destinationIndex: Int) {
-        guard sourceIndex >= 2, sourceIndex < activeItemIds.count,
-            destinationIndex >= 2, destinationIndex < activeItemIds.count,
+        guard sourceIndex >= Self.fixedTools.count, sourceIndex < activeItemIds.count,
+            destinationIndex >= Self.fixedTools.count, destinationIndex < activeItemIds.count,
             sourceIndex != destinationIndex
         else { return }
         let item = activeItemIds.remove(at: sourceIndex)
@@ -262,8 +280,8 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
     }
 
     public mutating func moveItem(id: String, to destinationIndex: Int) {
-        guard id != "select", id != "laser", let sourceIndex = activeItemIds.firstIndex(of: id) else { return }
-        let target = max(2, min(activeItemIds.count - 1, destinationIndex))
+        guard !Self.isFixedTool(id), let sourceIndex = activeItemIds.firstIndex(of: id) else { return }
+        let target = max(Self.fixedTools.count, min(activeItemIds.count - 1, destinationIndex))
         moveItem(from: sourceIndex, to: target)
     }
 }

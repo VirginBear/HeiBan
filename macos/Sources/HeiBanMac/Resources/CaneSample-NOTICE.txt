@@ -1,0 +1,10 @@
+CaneSnap.wav — user-supplied excerpt
+
+Reference attribution from the supplied filename: 77音效.
+Reference: 棍子聲音 藤條揮打聲│77音效_320k.mp3
+Selected decoded timeline: 31.990–32.250 seconds (one swing).
+The full recording is not included. Source hash and processing are recorded in
+Assets/CaneSnap.source.json. Extract-CaneSample.py rebuilds the excerpt when
+provided with the reference file. The recording metadata contains no license
+information. This notice records provenance; it does not assert original
+HeiBan authorship or an independent license grant for the recording.

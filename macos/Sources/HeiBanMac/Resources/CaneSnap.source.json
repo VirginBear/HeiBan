@@ -1,0 +1,31 @@
+{
+  "kind": "User-provided reference excerpt; not HeiBan-original synthesis",
+  "referenceName": "棍子聲音 藤條揮打聲│77音效_320k.mp3",
+  "referenceSha256": "ecf805861c57d188e361ae3a40e2200838b5786f528f355037b6f9a96380c681",
+  "requestedWindowSeconds": [
+    30,
+    33
+  ],
+  "selectedSourceSeconds": [
+    31.99,
+    32.25
+  ],
+  "purpose": "One isolated cane swing, replacing the previously synthesized cue",
+  "creditFromFilename": "77音效",
+  "license": "No license information in supplied MP3 metadata; no claim of original authorship or independent rights verification",
+  "processing": {
+    "channels": 1,
+    "sampleRate": 48000,
+    "bitsPerSample": 16,
+    "durationSeconds": 0.26,
+    "linearGain": 3.058943533697632,
+    "gainDb": 9.71142920474836,
+    "peakTarget": 0.82,
+    "fadeInSeconds": 0.002,
+    "fadeOutSeconds": 0.01,
+    "pitchChanged": false,
+    "speedChanged": false,
+    "fullReferenceIncluded": false
+  },
+  "outputSha256": "4dae6536c771acb84b85adf54e506df8e2f6aa01ebcc4ae4e179f5a78b684602"
+}

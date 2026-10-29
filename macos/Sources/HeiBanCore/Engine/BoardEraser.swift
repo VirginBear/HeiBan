@@ -13,31 +13,54 @@ public final class BoardEraserState: ObservableObject {
 /// Same original sprite and mirrored alpha hull as Windows. Units are screen points, never world units.
 public enum BoardEraserGeometry {
     public static let width = 160.0, height = 1280.0 / 13, lengthScale = 0.8
-    public static let imageTransform: (m11: Double, m12: Double, m21: Double, m22: Double) = {
+    private static let rawOutline: [(Double, Double)] = [
+        (0.12070, 0.59146), (0.15322, 0.55488), (0.79049, 0.17480), (0.83615, 0.19411), (0.85679, 0.24187),
+        (0.89181, 0.40650), (0.87930, 0.47764), (0.83615, 0.52033), (0.20763, 0.88923), (0.17198, 0.87907),
+        (0.14196, 0.81606), (0.10944, 0.65854),
+    ]
+    public static let imageTransform: (m11: Double, m12: Double, m21: Double, m22: Double, m31: Double, m32: Double) = {
         let angle = -20.0 * .pi / 180.0
         let x = cos(angle)
         let y = sin(angle)
         let delta = lengthScale - 1.0
+        let a11 = -(1.0 + delta * x * x)
+        let a12 = delta * x * y
+        let a21 = -delta * x * y
+        let a22 = 1.0 + delta * y * y
+        // 原素材鏡像後約為左上到右下 20°；再轉 25° 讓長軸落在 45°，並預留角落安全邊距避免裁切。
+        let r = 25.0 * .pi / 180.0
+        let cr = cos(r)
+        let sr = sin(r)
+        let m11 = a11 * cr - a12 * sr
+        let m12 = a11 * sr + a12 * cr
+        let m21 = a21 * cr - a22 * sr
+        let m22 = a21 * sr + a22 * cr
+        let bounds = ToolArtBounds.from(rawOutline.map { u, v in
+            let dx = (u - 0.5) * width
+            let dy = (v - 0.5) * height
+            return Point(x: m11 * dx + m21 * dy, y: m12 * dx + m22 * dy)
+        })
+        let fit = min(1.0, min(width * 0.9 / bounds.width, height * 0.9 / bounds.height))
         return (
-            -(1.0 + delta * x * x),
-            delta * x * y,
-            -delta * x * y,
-            1.0 + delta * y * y
+            m11 * fit,
+            m12 * fit,
+            m21 * fit,
+            m22 * fit,
+            -(bounds.left + bounds.right) * 0.5 * fit,
+            -(bounds.top + bounds.bottom) * 0.5 * fit
         )
     }()
-    public static let outline: [Point] = [
-        (0.12070, 0.59146), (0.15322, 0.55488), (0.79049, 0.17480), (0.83615, 0.19411), (0.85679, 0.24187),
-        (0.89181, 0.40650), (0.87930, 0.47764), (0.83615, 0.52033), (0.20763, 0.88923), (0.17198, 0.87907),
-        (0.14196, 0.81606), (0.10944, 0.65854),
-    ].map { raw in
+    public static let outline: [Point] = rawOutline.map { raw in
         let t = imageTransform
         let dx = (raw.0 - 0.5) * width
         let dy = (raw.1 - 0.5) * height
         return Point(
-            x: (0.5 + (t.m11 * dx + t.m21 * dy) / width) * width,
-            y: (0.5 + (t.m12 * dx + t.m22 * dy) / height) * height
+            x: 0.5 * width + t.m11 * dx + t.m21 * dy + t.m31,
+            y: 0.5 * height + t.m12 * dx + t.m22 * dy + t.m32
         )
     }
+    public static let displayOutline: [Point] = outline
+    public static let displayBounds: ToolArtBounds = ToolArtBounds.from(outline)
     public static func canGrab(_ p: Point) -> Bool { ConvexEraserFootprint(outline).contains(p) }
 }
 
@@ -127,6 +150,10 @@ extension BoardEngine {
     public func setBoardEraserVisible(_ visible: Bool) {
         if !visible { cancelBoardEraser() }
         toolbarPreferences.boardEraserVisible = visible
+        saveToolbarPreferences()
+    }
+    public func setCaneVisible(_ visible: Bool) {
+        toolbarPreferences.caneVisible = visible
         saveToolbarPreferences()
     }
     public func beginBoardEraser(at pointer: Point, grip: Point) {

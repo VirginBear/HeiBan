@@ -196,3 +196,38 @@ struct HeiBanMagnetIcon: View {
         }.frame(width: 19, height: 19).accessibilityHidden(true)
     }
 }
+
+/// Rattan teaching cane icon matching Windows 1.0.18 ToolIcons.Cane().
+struct HeiBanCaneIcon: View {
+    var body: some View {
+        Canvas { context, size in
+            let s = min(size.width, size.height) / 24
+            var shaft = Path()
+            shaft.move(to: CGPoint(x: 4.5 * s, y: 19.5 * s))
+            shaft.addLine(to: CGPoint(x: 19.5 * s, y: 4.5 * s))
+            context.stroke(
+                shaft, with: .foreground,
+                style: StrokeStyle(lineWidth: 2.2 * s, lineCap: .round, lineJoin: .round))
+
+            var knots = Path()
+            for (ax, ay, bx, by) in [
+                (7.4, 14.8, 9.2, 16.6),
+                (11.1, 11.1, 12.9, 12.9),
+                (14.8, 7.4, 16.6, 9.2),
+            ] {
+                knots.move(to: CGPoint(x: ax * s, y: ay * s))
+                knots.addLine(to: CGPoint(x: bx * s, y: by * s))
+            }
+            for (ax, ay, bx, by) in [
+                (17.2, 2.8, 19.2, 1.8),
+                (21.2, 4.8, 22.2, 6.8),
+            ] {
+                knots.move(to: CGPoint(x: ax * s, y: ay * s))
+                knots.addLine(to: CGPoint(x: bx * s, y: by * s))
+            }
+            context.stroke(
+                knots, with: .foreground,
+                style: StrokeStyle(lineWidth: 1.5 * s, lineCap: .round, lineJoin: .round))
+        }.frame(width: 19, height: 19).accessibilityHidden(true)
+    }
+}

@@ -165,6 +165,10 @@ public class BoardEngine: ObservableObject {
     public let timerCoordinator = TimerCoordinator()
     public let compassEngine = CompassToolEngine()
     public let laserEngine = LaserPointerEngine()
+    public let cane = CaneFeedback()
+    @Published public var caneRenderTick: UInt64 = 0
+    public var caneStrikeSoundHandler: (() -> Void)?
+    public var caneStopSoundHandler: (() -> Void)?
 
     @Published public var activeBrushKind: BrushKind = .pen
     @Published public var lassoMode: LassoMode = .freeform
@@ -950,9 +954,14 @@ public class BoardEngine: ObservableObject {
                 toggleTapeRevealed(id: hitTape.id)
                 return
             }
+            if currentTool == .cane {
+                cane.strike(worldPoint, now: ProcessInfo.processInfo.systemUptime)
+                caneRenderTick &+= 1
+                caneStrikeSoundHandler?()
+                return
+            }
             if laserEngine.isEnabled {
-                laserEngine.beginTrail()
-                laserEngine.addSample(point: worldPoint)
+                laserEngine.press(point: worldPoint)
                 return
             }
             guard !viewportLocked else { return }
@@ -960,9 +969,16 @@ public class BoardEngine: ObservableObject {
             return
         }
 
+        if currentTool == .cane {
+            let worldPoint = VectorMath.screenToWorld(screenPoint, viewport: viewport)
+            cane.strike(worldPoint, now: ProcessInfo.processInfo.systemUptime)
+            caneRenderTick &+= 1
+            caneStrikeSoundHandler?()
+            return
+        }
+
         if currentTool == .laser || laserEngine.isEnabled {
-            laserEngine.beginTrail()
-            laserEngine.addSample(point: VectorMath.screenToWorld(screenPoint, viewport: viewport))
+            laserEngine.press(point: VectorMath.screenToWorld(screenPoint, viewport: viewport))
             return
         }
 
@@ -1094,9 +1110,14 @@ public class BoardEngine: ObservableObject {
             updatePanGesture(translation: translation)
             return
         }
+        if currentTool == .cane {
+            let worldPoint = VectorMath.screenToWorld(screenPoint, viewport: viewport)
+            if cane.move(worldPoint) { caneRenderTick &+= 1 }
+            return
+        }
         if currentTool == .laser || laserEngine.isEnabled {
             let worldPoint = VectorMath.screenToWorld(screenPoint, viewport: viewport)
-            laserEngine.addSample(point: worldPoint)
+            laserEngine.movePressed(point: worldPoint)
             return
         }
         if self.isShiftHeld != isShift { self.isShiftHeld = isShift }
@@ -1187,7 +1208,12 @@ public class BoardEngine: ObservableObject {
     }
 
     public func endPointerGesture(translation: CGSize) {
+        if currentTool == .cane, pointerGesture == .idle {
+            pointerGestureStart = nil
+            return
+        }
         if currentTool == .laser || laserEngine.isEnabled, pointerGesture == .idle {
+            laserEngine.release()
             pointerGestureStart = nil
             return
         }
@@ -1320,6 +1346,9 @@ public class BoardEngine: ObservableObject {
         polygonDraftPoints.removeAll()
         polygonDraftCursorPoint = nil
         laserEngine.cleanupOnDeactivate()
+        cane.clear()
+        caneStopSoundHandler?()
+        caneRenderTick &+= 1
         activeAlignmentGuides.removeAll()
         inFlightLassoPoints.removeAll()
         closeAllTransientPanels()
@@ -1332,6 +1361,11 @@ public class BoardEngine: ObservableObject {
         showsObjectDetails = false
         drawingAssist.target = nil
         if tool != .laser || currentTool == .laser { laserEngine.cleanupOnDeactivate() }
+        if tool != .cane || currentTool == .cane {
+            cane.clear()
+            caneStopSoundHandler?()
+            caneRenderTick &+= 1
+        }
         closeAllTransientPanels()
         readingMode = false
         if !polygonDraftPoints.isEmpty {
@@ -1385,6 +1419,9 @@ public class BoardEngine: ObservableObject {
         isHoldingSpace = false
         isShiftHeld = false
         laserEngine.clear()
+        cane.clear()
+        caneStopSoundHandler?()
+        caneRenderTick &+= 1
         activeAlignmentGuides.removeAll()
         inFlightLassoPoints.removeAll()
         if pointerGesture == .pan {

@@ -1,5 +1,19 @@
 # Mac 目前開發狀態
 
+## 2026-10-29 — 同步 Windows 1.0.18 至 Mac 1.0.18：三固定教學工具、藤條教學工具、45° 板擦、按住雷射與四向圖層移動
+
+Mac 產品版號升級至 **1.0.18**，最新本機 build **20261029.1**，成品位於 `macos/dist/HeiBan.app`。已從 `origin/main` 快轉同步 Windows 1.0.18（`2fe8dfd`），`windows/` 目錄嚴格保持零修改。
+
+- **三項固定教學工具（選取、雷射筆、藤條）**：`ToolbarPreferences.fixedTools` 擴充為 `["select", "laser", "cane"]`，工具總數增至 29 項。三項工具固定顯示於工具列分頁前方、不在各分頁重複；「更多」選單與右鍵選單支援「顯示藤條／隱藏右下藤條快捷」。
+- **藤條教學工具（`CaneEngine`、`CaneQuickOverlay`、`CaneTeachingOverlay`、`CaneSound`）**：
+  - 右下角與板擦底部對齊並排顯示藤條快捷（點擊切換藤條工具，右鍵可隱藏）。
+  - 一般畫布與螢幕畫布均支援：握柄錨點 `(0.903, 0.875)` 跟隨游標呈 `45°` 左上斜角，左鍵點擊揮動至 `75°`（撞擊點 `0.075s`、歷時 `0.26s`）、顯示琥珀色雙層震波環並播放清脆拍打音效（`CaneSnap.wav`，衍生自 freesound.org #446128 by inspectorj，CC BY 3.0）。
+  - 教學安全保護：藤條點擊或雙擊物件不選取、不移動、不展開詳細屬性，不寫入作品或 Undo。
+- **板擦 45° 斜角與可視像素幾何對齊**：`BoardEraserGeometry` 加入 `+25°` 旋轉（將原圖轉至 `45°` 斜角）與 `ToolArtBounds.boardEraser` 置中 `fit` 縮放平移，12 點凸包輪廓與貼圖矩陣完全一致，與右下藤條快捷底部齊平。
+- **雷射筆按住顯示與共用色盤**：改為按住左鍵並移動才顯示光點與尾跡、放開立即消失；按住靜止逾時自動清除舊尾跡並保留游標下光點。`LaserSettingsView` 接入 `PalettePreferencesStore.shared` 與筆刷共用常用色盤。
+- **右鍵四向圖層移動與專屬游標**：`BoardEngine.moveSelectedLayers(_:)` 支援「移至圖層頂端、上移圖層、下移圖層、移至圖層底端」，多選移動保持相對順序、限定當前頁面並以單筆 Undo 紀錄；`CursorHelper.setToolCursor` 提供十字準星＋右下工具圖示游標。
+- **先靶後箭與封裝證據**：`swift run --package-path macos HeiBanTestRunner` 新增 `[測試 53]`，全套件 **1,979 / 1,979 項斷言 100% 通過（0 失敗）**；`check_localization.py` **419 個 UI 字面值、10 語詞庫全數通過**；十語離線手冊已更新；`build_app.sh` Release 封裝（57.93 秒）與 `codesign --verify --deep --strict` 嚴格簽章檢驗通過。詳見[當日日誌](logs/2026-10-29/01.zh-TW.md)。
+
 ## 2026-10-24 — Mac 1.0.17 / 20261024.3 開發來源已上傳GitHub
 
 依使用者明確授權，Mac同步補齊與螢幕畫布模式修復、十語資源／指南、使用手冊及開發／排錯紀錄已推送至 [VirginBear/HeiBan main](https://github.com/VirginBear/HeiBan/tree/main/macos)。來源提交 [64dad31](https://github.com/VirginBear/HeiBan/commit/64dad31)，git ls-remote核對相同完整SHA；本段與日誌為後續同步證據提交。Windows沒有變更，沒有新增二進位Release／DMG／ZIP。先前日誌的「尚未推送」為當時歷史狀態，實作及待驗收範圍仍依下方與[上傳日誌04](logs/2026-10-24/04.zh-TW.md)。

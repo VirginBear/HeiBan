@@ -76,7 +76,12 @@ final class ScreenAnnotationSession {
         engine.cancelTransientInteraction()
         if tool != .select { engine.selectTool(tool) }
         engine.updateCurrentToolStyle(color: color, strokeWidth: width, opacity: opacity)
-        if !drawing { engine.laserEngine.cleanupOnDeactivate() }
+        if !drawing {
+            engine.laserEngine.cleanupOnDeactivate()
+            engine.cane.clear()
+            engine.caneStopSoundHandler?()
+            engine.caneRenderTick &+= 1
+        }
         panel.ignoresMouseEvents = !drawing
         if !drawing {
             panel.makeFirstResponder(nil)

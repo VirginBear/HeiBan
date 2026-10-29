@@ -2815,13 +2815,13 @@ do {
 
     // 26.5 關於資訊與更新日誌真實性 (A22 & MAC-SYNC-02)
     assertEqual(AboutInfo.appName, "HeiBan 黑板", "App 名稱相符")
-    assertEqual(AboutInfo.appVersion, "1.0.17", "真版本號為 1.0.17 (對齊 Release.json 與 App plist)")
-    assertEqual(AboutInfo.buildNumber, "20261024.3", "組建編號存在且為 20261024.1")
+    assertEqual(AboutInfo.appVersion, "1.0.18", "真版本號為 1.0.18 (對齊 Release.json 與 App plist)")
+    assertEqual(AboutInfo.buildNumber, "20261029.1", "組建編號存在且為 20261029.1")
     assertEqual(AboutInfo.engineVersion.contains("HeiBan Blackboard Vector Engine"), true, "引擎核心資訊明確")
     assertEqual(AboutInfo.feedbackUrl, "https://github.com/VirginBear/HeiBan/issues", "意見回覆入口指向真實倉庫 VirginBear/HeiBan/issues")
     assertEqual(AboutInfo.changelog.count >= 2, true, "更新日誌至少涵蓋 2 個版本紀錄")
-    assertEqual(AboutInfo.changelog[0].version, "1.0.17", "最新更新日誌對應 1.0.17 正式版")
-    assertEqual(AboutInfo.changelog[0].highlights.count >= 3, true, "1.0.17 重點更新項目豐富詳盡")
+    assertEqual(AboutInfo.changelog[0].version, "1.0.18", "最新更新日誌對應 1.0.18 正式版")
+    assertEqual(AboutInfo.changelog[0].highlights.count >= 3, true, "1.0.18 重點更新項目豐富詳盡")
 }
 
 // ==============================================================================
@@ -4189,12 +4189,13 @@ do {
     assertTrue(!prefs.visibleItemIds.contains("ruler"), "visibleItemIds 不含已隱藏之 ruler")
     assertTrue(prefs.hiddenItems.contains(where: { $0.id == "ruler" }), "hiddenItems 正確包含尺規定義")
 
-    prefs.moveItem(id: "eraser", to: 2)
-    assertEqual(prefs.activeItemIds[2], "eraser", "移動橡皮擦至第 2 位成功 (第 0 位固定為 select, 第 1 位固定為 laser)")
+    prefs.moveItem(id: "eraser", to: 3)
+    assertEqual(prefs.activeItemIds[3], "eraser", "移動橡皮擦至第 3 位成功 (前 3 位固定為 select, laser, cane)")
 
     let encoded = try! JSONEncoder().encode(prefs)
     let decoded = try! JSONDecoder().decode(ToolbarPreferences.self, from: encoded)
-    assertEqual(decoded.activeItemIds[2], "eraser", "反序列化保留自訂排序")
+    assertEqual(decoded.activeItemIds[3], "eraser", "反序列化保留自訂排序")
+    assertEqual(decoded.activeItemIds[2], "cane", "藤條固定保留於第三位")
     assertEqual(decoded.activeItemIds[1], "laser", "雷射指標固定保留於第二位")
     assertEqual(decoded.activeItemIds.first, "select", "選取工具固定保留於首位")
     assertTrue(decoded.hiddenItemIds.contains("ruler"), "反序列化保留隱藏項目")
@@ -4580,12 +4581,15 @@ do {
     assertEqual(engine.objects.count, initialObjCount, "雷射筆：手勢軌跡不進入 objects 永久文檔")
     assertEqual(engine.canUndo, initialUndoCan, "雷射筆：手勢軌跡不產生 Undo 歷史記錄")
 
-    // 閱讀模式可用
+    // 閱讀模式可用 (1.0.18 按住左鍵顯示雷射)
     engine.readingMode = true
     engine.laserEngine.clear()
     engine.laserEngine.isEnabled = true
-    engine.updatePointerGesture(at: Point(x: 200, y: 200), translation: CGSize(width: 100, height: 100))
-    assertTrue(engine.laserEngine.samples.count > 0, "雷射筆：在閱讀模式下依然可即時指示取樣")
+    engine.beginPointerGesture(at: Point(x: 180, y: 180))
+    engine.updatePointerGesture(at: Point(x: 200, y: 200), translation: CGSize(width: 20, height: 20))
+    assertTrue(engine.laserEngine.samples.count > 0, "雷射筆：在閱讀模式下按住依然可即時指示取樣")
+    engine.endPointerGesture(translation: CGSize(width: 20, height: 20))
+    assertEqual(engine.laserEngine.samples.count, 0, "雷射筆：閱讀模式放開左鍵立即清空光點與尾跡")
     engine.readingMode = false
     engine.laserEngine.clear()
     engine.laserEngine.isEnabled = false
@@ -5165,12 +5169,12 @@ do {
 
     // 46.5 MAC-SYNC-02: 版本對齊、真實 Build、問題回報入口與更新日誌
     assertEqual(AboutInfo.appName, "HeiBan 黑板", "版本資訊：App 名稱相符")
-    assertEqual(AboutInfo.appVersion, "1.0.17", "版本對齊：核心版本號真實對齊 1.0.17")
-    assertEqual(AboutInfo.buildNumber, "20261024.3", "版本對齊：組建編號真實對齊 20261024.1")
+    assertEqual(AboutInfo.appVersion, "1.0.18", "版本對齊：核心版本號真實對齊 1.0.18")
+    assertEqual(AboutInfo.buildNumber, "20261029.1", "版本對齊：組建編號真實對齊 20261029.1")
     assertEqual(AboutInfo.feedbackUrl, "https://github.com/VirginBear/HeiBan/issues", "回報入口：指向 VirginBear/HeiBan/issues")
-    assertEqual(AboutInfo.changelog[0].version, "1.0.17", "更新日誌：最新紀錄為 1.0.17 正式版")
-    assertEqual(AboutInfo.changelog[0].releaseDate, "2026-10-24", "更新日誌：發布日期為 2026-10-24")
-    assertTrue(AboutInfo.changelog[0].highlights.count >= 3, "更新日誌：1.0.17 涵蓋常用色盤、雷射常駐與當前工具底線")
+    assertEqual(AboutInfo.changelog[0].version, "1.0.18", "更新日誌：最新紀錄為 1.0.18 正式版")
+    assertEqual(AboutInfo.changelog[0].releaseDate, "2026-10-29", "更新日誌：發布日期為 2026-10-29")
+    assertTrue(AboutInfo.changelog[0].highlights.count >= 3, "更新日誌：1.0.18 涵蓋藤條教學工具、三固定工具、按住雷射與四向圖層")
 
     // 46.6 舊版圖釘座標相容性探針 (missing / null / false / true 語意保全)
     let legacyCases: [(name: String, flag: String, expected: Point)] = [
@@ -6016,12 +6020,12 @@ do {
     magEngine.endStroke()
     assertEqual(magEngine.selectedIds.isEmpty, true, "51.4 繪圖流暢度：停筆轉形完成後不自動顯示選取框")
 
-    // 51.5 板擦 80% 長軸幾何與隔離預覽
+    // 51.5 板擦 80% 長軸幾何與 45° 斜角校正
     assertEqual(BoardEraserGeometry.lengthScale, 0.8, "51.5 板擦幾何：長軸比例為 0.8 (縮短 20%)")
     assertEqual(BoardEraserGeometry.outline.count, 12, "51.5 板擦幾何：12 點輪廓")
     let xs = BoardEraserGeometry.outline.map(\.x)
     let spanX = (xs.max() ?? 0) - (xs.min() ?? 0)
-    assertTrue(spanX < 110.0 && spanX > 90.0, "51.5 板擦幾何：80% 長軸壓縮後水平跨度約為 101 pt (小於原 125 pt)")
+    assertTrue(spanX < 100.0 && spanX > 70.0, "51.5 板擦幾何：80% 長軸與 45° 校正後水平跨度落在安全邊界內")
 
     // 51.6 圓形橡皮擦預覽隔離、連續補間、保留未知欄位與單筆 Undo
     let circleEraserEngine = BoardEngine(restoreSession: false, persistenceEnabled: false)
@@ -6210,9 +6214,175 @@ do {
     assertTrue(ToolbarContentPolicy.isToolColorActive(toolKey: "shapes", currentTool: .circle), "52.3 色線活動：circle 時 shapes active")
     assertTrue(!ToolbarContentPolicy.isToolColorActive(toolKey: "shapes", currentTool: .pen), "52.3 色線活動：pen 時 shapes inactive")
 
-    // 52.4 版本號對齊 1.0.17
-    assertEqual(AboutInfo.appVersion, "1.0.17", "52.4 版本對齊：appVersion 為 1.0.17")
-    assertEqual(AboutInfo.changelog[0].version, "1.0.17", "52.4 版本對齊：最新 changelog 為 1.0.17")
+    // 52.4 版本號對齊 1.0.18
+    assertEqual(AboutInfo.appVersion, "1.0.18", "52.4 版本對齊：appVersion 為 1.0.18")
+    assertEqual(AboutInfo.changelog[0].version, "1.0.18", "52.4 版本對齊：最新 changelog 為 1.0.18")
+}
+
+print("\n[測試 53] 1.0.18 Windows 同步：三固定教學工具、藤條姿態與回饋、板擦45°幾何、按住雷射與四向圖層移動 (立靶驗收)")
+do {
+    // 53.1 三款固定教學工具 (select, laser, cane) 與 caneVisible 偏好持久化
+    assertEqual(ToolbarPreferences.fixedTools, ["select", "laser", "cane"], "53.1 固定教學工具：順序為 select, laser, cane")
+    assertTrue(ToolbarPreferences.isFixedTool("select"), "53.1 isFixedTool(select) 為 true")
+    assertTrue(ToolbarPreferences.isFixedTool("laser"), "53.1 isFixedTool(laser) 為 true")
+    assertTrue(ToolbarPreferences.isFixedTool("cane"), "53.1 isFixedTool(cane) 為 true")
+    assertFalse(ToolbarPreferences.isFixedTool("pen"), "53.1 isFixedTool(pen) 為 false")
+
+    var prefs18 = ToolbarPreferences.createDefault()
+    prefs18.normalize()
+    assertEqual(Array(prefs18.activeItemIds.prefix(3)), ["select", "laser", "cane"], "53.1 activeItemIds 前三項固定為 select, laser, cane")
+    assertEqual(Array(prefs18.commonItemIds.prefix(3)), ["select", "laser", "cane"], "53.1 commonItemIds 前三項固定為 select, laser, cane")
+    assertEqual(prefs18.caneVisible, true, "53.1 caneVisible 預設為 true")
+
+    // 固定工具不可被隱藏或搶佔前 3 個索引
+    prefs18.setItemHidden(id: "cane", hidden: true)
+    assertFalse(prefs18.hiddenItemIds.contains("cane"), "53.1 cane 不可被隱藏")
+    prefs18.moveItem(id: "pen", to: 0)
+    prefs18.moveItem(id: "pen", to: 2)
+    assertEqual(Array(prefs18.activeItemIds.prefix(3)), ["select", "laser", "cane"], "53.1 moveItem 無法移動至前 3 個固定教學工具槽位")
+
+    // 分頁清單過濾固定教學工具，避免在分頁內容區重複出現
+    for page in ToolbarContentPolicy.pages {
+        let ids = ToolbarContentPolicy.pageIDs(prefs18, screen: false, page: page)
+        assertFalse(ids.contains("select"), "53.1 \(page) 分頁不重複包含 select")
+        assertFalse(ids.contains("laser"), "53.1 \(page) 分頁不重複包含 laser")
+        assertFalse(ids.contains("cane"), "53.1 \(page) 分頁不重複包含 cane")
+    }
+
+    // caneVisible 序列化與舊 JSON 缺省預設 true
+    prefs18.caneVisible = false
+    let encoded18 = try! JSONEncoder().encode(prefs18)
+    let decoded18 = try! JSONDecoder().decode(ToolbarPreferences.self, from: encoded18)
+    assertEqual(decoded18.caneVisible, false, "53.1 caneVisible=false 完整持久化")
+
+    let oldPrefsJSON = """
+    {"activeItemIds":["select","pen"],"hiddenItemIds":["cane"]}
+    """.data(using: .utf8)!
+    let migratedOldPrefs = try! JSONDecoder().decode(ToolbarPreferences.self, from: oldPrefsJSON)
+    assertEqual(migratedOldPrefs.caneVisible, true, "53.1 舊設定無 caneVisible 時預設為 true")
+    assertEqual(Array(migratedOldPrefs.activeItemIds.prefix(3)), ["select", "laser", "cane"], "53.1 舊設定自動補齊前三項固定工具")
+    assertFalse(migratedOldPrefs.hiddenItemIds.contains("cane"), "53.1 舊設定 hiddenItemIds 自動移除固定工具 cane")
+
+    // 53.2 藤條姿態 (CanePose) 與點擊回饋 (CaneFeedback)
+    let caneRot = CanePose.artworkRestRotationDegrees(width: 248, height: 152)
+    assertTrue(caneRot > 14.5 && caneRot < 15.5, "53.2 CanePose：將原圖校正至 45° 教學握持角之補償旋轉約 15.05°")
+    assertEqual(CanePose.swingDegrees(elapsed: -0.01), 0.0, "53.2 CanePose：未開始時揮動角為 0")
+    assertEqual(CanePose.swingDegrees(elapsed: 0.26), 0.0, "53.2 CanePose：結束後揮動角回到 0")
+    let raisedSwing = CanePose.swingDegrees(elapsed: 0.035)
+    assertTrue(abs(raisedSwing - 30.0) < 0.01, "53.2 CanePose：0.035s 蓄力高點上揚 +30° (至 75°)")
+    let impactSwing = CanePose.swingDegrees(elapsed: CanePose.impactSeconds)
+    assertTrue(abs(impactSwing) < 0.01, "53.2 CanePose：0.075s 擊中瞬間回到 0° 偏移 (45° 基準)")
+    let reboundSwing = CanePose.swingDegrees(elapsed: 0.1675)
+    assertTrue(reboundSwing > 7.5 && reboundSwing <= 8.0, "53.2 CanePose：擊中後具備彈性回彈弧度 (+8°)")
+
+    let caneBounds = CanePose.dockBounds(width: BoardEraserGeometry.width, height: BoardEraserGeometry.height)
+    assertTrue(caneBounds.width > 140 && caneBounds.height > 40, "53.2 CanePose.dockBounds：有效計算 45° 旋轉後實體凸包包圍盒 (\(caneBounds.width)x\(caneBounds.height))")
+
+    let feedback = CaneFeedback()
+    assertFalse(feedback.isActive(now: 10.0), "53.2 CaneFeedback：初始為非活動")
+    assertTrue(feedback.move(Point(x: 100, y: 200)), "53.2 CaneFeedback：首次移動回傳 true")
+    assertFalse(feedback.move(Point(x: 100.001, y: 200.001)), "53.2 CaneFeedback：極微小移動去抖動回傳 false")
+    assertFalse(feedback.isActive(now: 10.0), "53.2 CaneFeedback：純移動不觸發打擊動畫")
+    feedback.strike(Point(x: 120, y: 240), now: 10.0)
+    assertTrue(feedback.isActive(now: 10.05), "53.2 CaneFeedback：strike 後在 0.26s 內為 active")
+    assertFalse(feedback.isActive(now: 10.30), "53.2 CaneFeedback：超過 0.26s 自動結束 active")
+    feedback.clear()
+    assertEqual(feedback.point, nil, "53.2 CaneFeedback：clear 清空座標")
+
+    // 53.3 板擦 45° 斜角校正與居中包圍盒 (BoardEraserGeometry)
+    let eb = BoardEraserGeometry.displayBounds
+    assertTrue(eb.left >= 0 && eb.right <= BoardEraserGeometry.width, "53.3 板擦 45° 幾何：水平完全落在 160pt 畫布內不裁切")
+    assertTrue(eb.top >= 0 && eb.bottom <= BoardEraserGeometry.height, "53.3 板擦 45° 幾何：垂直完全落在 98.46pt 畫布內不裁切")
+    assertTrue(abs((eb.left + eb.right) * 0.5 - BoardEraserGeometry.width * 0.5) < 1.0, "53.3 板擦 45° 幾何：水平居中對齊")
+    assertTrue(abs((eb.top + eb.bottom) * 0.5 - BoardEraserGeometry.height * 0.5) < 1.0, "53.3 板擦 45° 幾何：垂直居中對齊")
+
+    // 53.4 按住顯示雷射筆 (LaserPointerEngine.press / movePressed / release)
+    let holdLaser = LaserPointerEngine()
+    holdLaser.mode = .shortTrail
+    holdLaser.fadeDuration = 0.5
+    // 未按住時 movePressed 不應產生樣本
+    holdLaser.movePressed(point: Point(x: 10, y: 10), timestamp: 100.0)
+    assertTrue(holdLaser.samples.isEmpty, "53.4 按住雷射：未按住時滑鼠移動不產生雷射樣本")
+
+    // 按下左鍵開始顯示
+    holdLaser.press(point: Point(x: 20, y: 30), timestamp: 100.0)
+    assertTrue(holdLaser.isPressed, "53.4 按住雷射：press 後 isPressed 為 true")
+    assertEqual(holdLaser.samples.count, 1, "53.4 按住雷射：press 立即記錄首個光點")
+
+    // 按住靜止超過 fadeDuration (例如 2 秒後)，purgeExpiredSamples 仍保留最後一個按住光點
+    holdLaser.purgeExpiredSamples(currentTime: 102.0)
+    assertEqual(holdLaser.samples.count, 1, "53.4 按住雷射：按住原地不動超過淡出時間仍保留當前光點")
+
+    // 靜止很久後再次拖動，不會把過期舊點連成突兀長直線，而是開啟新尾跡
+    holdLaser.movePressed(point: Point(x: 80, y: 90), timestamp: 102.1)
+    assertEqual(holdLaser.samples.count, 1, "53.4 按住雷射：靜止過久後移動自動清除舊點並以新點起頭")
+    assertTrue(holdLaser.samples[0].startsNewTrail, "53.4 按住雷射：新點標記為 startsNewTrail")
+
+    // 放開左鍵立即清空所有光點與尾跡
+    holdLaser.release()
+    assertFalse(holdLaser.isPressed, "53.4 按住雷射：release 後 isPressed 為 false")
+    assertTrue(holdLaser.samples.isEmpty, "53.4 按住雷射：release 後立即清空光點與尾跡")
+
+    // 53.5 雷射筆與藤條在畫布點擊不選取、不新增、不汙染作品物件與 Undo
+    let teachEngine = BoardEngine(restoreSession: false, persistenceEnabled: false)
+    teachEngine.showingHome = false
+    teachEngine.viewport = ViewportTransform(x: 0, y: 0, zoom: 1.0)
+    let sampleRect = BoardObject(id: "teach_rect_1", type: "rect", x: 50, y: 50, width: 100, height: 100)
+    teachEngine.objects = [sampleRect]
+    teachEngine.selectTool(.cane)
+    assertEqual(teachEngine.currentTool, .cane, "53.5 切換至藤條工具")
+    var soundPlayed = false
+    teachEngine.caneStrikeSoundHandler = { soundPlayed = true }
+    teachEngine.beginPointerGesture(at: Point(x: 80, y: 80), clickCount: 2)
+    assertTrue(soundPlayed, "53.5 藤條點擊觸發清脆拍打音效回呼")
+    assertTrue(teachEngine.cane.isActive(now: ProcessInfo.processInfo.systemUptime), "53.5 藤條點擊啟動揮動與震波狀態")
+    assertTrue(teachEngine.selectedIds.isEmpty, "53.5 藤條雙擊物件不選取物件")
+    assertFalse(teachEngine.showsObjectDetails, "53.5 藤條雙擊物件不展開詳細設定")
+    assertEqual(teachEngine.objects.count, 1, "53.5 藤條點擊不新增任何作品物件")
+    assertFalse(teachEngine.canUndo, "53.5 藤條點擊不產生 Undo 紀錄")
+
+    // 53.6 物件右鍵四向圖層順序調整 (moveSelectedLayers: front, up, down, back)
+    let layerEngine = BoardEngine(restoreSession: false, persistenceEnabled: false)
+    layerEngine.showingHome = false
+    layerEngine.board.canvasMode = .notebook
+    layerEngine.board.pages = [BoardPage(id: "p1", title: "P1"), BoardPage(id: "p2", title: "P2")]
+    layerEngine.board.activePageId = "p1"
+
+    let o1 = BoardObject(id: "o1", type: "rect", x: 0, y: 0, width: 20, height: 20, zIndex: 1, pageId: "p1")
+    let o2 = BoardObject(id: "o2", type: "rect", x: 0, y: 0, width: 20, height: 20, zIndex: 2, pageId: "p1")
+    let o3 = BoardObject(id: "o3", type: "rect", x: 0, y: 0, width: 20, height: 20, zIndex: 3, pageId: "p1")
+    let o4 = BoardObject(id: "o4", type: "rect", x: 0, y: 0, width: 20, height: 20, zIndex: 4, pageId: "p1")
+    let otherPageObj = BoardObject(id: "other_p2", type: "rect", x: 0, y: 0, width: 20, height: 20, zIndex: 5, pageId: "p2")
+    layerEngine.objects = [o1, o2, o3, o4, otherPageObj]
+
+    // 已在最底端時移至底端為 no-op，不產生 Undo
+    layerEngine.selectedIds = ["o1"]
+    assertFalse(layerEngine.moveSelectedLayers(.back), "53.6 已在底端時 moveSelectedLayers(.back) 回傳 false")
+    assertFalse(layerEngine.canUndo, "53.6 無實際順序變更時不寫入 Undo")
+
+    // 多選 [o1, o3] 執行上移一層 (.up) -> [o2, o1, o4, o3]
+    layerEngine.selectedIds = ["o1", "o3"]
+    assertTrue(layerEngine.moveSelectedLayers(.up), "53.6 多選 [o1, o3] 上移一層成功")
+    assertEqual(layerEngine.currentPageObjects.map(\.id), ["o2", "o1", "o4", "o3"], "53.6 多選上移一層保持相對順序且正確跨越相鄰物件")
+    assertEqual(layerEngine.objects.last?.id, "other_p2", "53.6 跨頁物件位置不受當頁圖層調整破壞")
+
+    // 單次 Undo 還原
+    layerEngine.undo()
+    assertEqual(layerEngine.currentPageObjects.map(\.id), ["o1", "o2", "o3", "o4"], "53.6 單次 Undo 完整還原多選上移前順序")
+
+    // 移至頂端 (.front)
+    layerEngine.selectedIds = ["o1", "o3"]
+    assertTrue(layerEngine.moveSelectedLayers(.front), "53.6 移至頂端成功")
+    assertEqual(layerEngine.currentPageObjects.map(\.id), ["o2", "o4", "o1", "o3"], "53.6 移至頂端後 [o1, o3] 位於最前方並維持彼此相對順序")
+
+    // 移至底端 (.back)
+    assertTrue(layerEngine.moveSelectedLayers(.back), "53.6 移至底端成功")
+    assertEqual(layerEngine.currentPageObjects.map(\.id), ["o1", "o3", "o2", "o4"], "53.6 移至底端後 [o1, o3] 位於最後方並維持彼此相對順序")
+
+    // 下移一層 (.down)：從 [o1, o3, o2, o4] 中選取 [o3] 下移一層 -> [o3, o1, o2, o4]
+    layerEngine.selectedIds = ["o3"]
+    assertTrue(layerEngine.moveSelectedLayers(.down), "53.6 [o3] 下移一層成功")
+    assertEqual(layerEngine.currentPageObjects.map(\.id), ["o3", "o1", "o2", "o4"], "53.6 下移一層後 [o3] 越過 [o1] 來到 [o3, o1, o2, o4]")
 }
 
 print("\n==================================================")

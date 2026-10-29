@@ -27,6 +27,9 @@ struct NativePointerSurface: NSViewRepresentable {
         private var windowObserver: NSObjectProtocol?
         private var hoverMonitor: Any?
         private let textContext = TextStyleContextMenu()
+        private var contextBoardId: String?
+        private var contextPageId: String?
+        private var contextSelectedIds: Set<String> = []
         override var isFlipped: Bool { true }
         override var acceptsFirstResponder: Bool { true }
         override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
@@ -46,17 +49,30 @@ struct NativePointerSurface: NSViewRepresentable {
             trackingAreas.forEach(removeTrackingArea)
             addTrackingArea(NSTrackingArea(rect: bounds, options: [.mouseMoved, .mouseEnteredAndExited, .activeAlways, .inVisibleRect], owner: self, userInfo: nil))
         }
-        override func mouseEntered(with event: NSEvent) { onInteraction?(); updateEraserCursor(event); updatePolygonCursor(event); updateTransformCursor(event); updateHoverToolCursor(event) }
+        override func mouseEntered(with event: NSEvent) {
+            onInteraction?()
+            if engine.currentTool == .cane {
+                let world = VectorMath.screenToWorld(Point(point(event)), viewport: engine.viewport)
+                if engine.cane.move(world) { engine.caneRenderTick &+= 1 }
+            }
+            updateEraserCursor(event); updatePolygonCursor(event); updateTransformCursor(event); updateHoverToolCursor(event)
+        }
         override func mouseMoved(with event: NSEvent) {
-            engine.updateMagnetHover(at: Point(point(event)))
-            if engine.laserEngine.isEnabled && !engine.isHoldingSpace {
-                engine.laserEngine.addSample(point: VectorMath.screenToWorld(Point(point(event)), viewport: engine.viewport))
+            let loc = Point(point(event))
+            engine.updateMagnetHover(at: loc)
+            if engine.currentTool == .cane && !engine.isHoldingSpace {
+                let world = VectorMath.screenToWorld(loc, viewport: engine.viewport)
+                if engine.cane.move(world) { engine.caneRenderTick &+= 1 }
             }
             updateEraserCursor(event); updatePolygonCursor(event); updateTransformCursor(event); updateHoverToolCursor(event)
         }
         override func mouseExited(with event: NSEvent) {
             engine.updateMagnetHover(at: nil)
-            engine.laserEngine.beginTrail()
+            engine.laserEngine.release()
+            if !engine.cane.isActive(now: ProcessInfo.processInfo.systemUptime) {
+                engine.cane.clear()
+                engine.caneRenderTick &+= 1
+            }
             engine.updateEraserCursor(at: nil)
             engine.updateHoverCursor(at: nil, diameter: nil)
             engine.updateHoveredHandle(at: nil)
@@ -111,6 +127,7 @@ struct NativePointerSurface: NSViewRepresentable {
         }
         override func rightMouseDown(with event: NSEvent) {
             guard !engine.readingMode else { return }
+            guard engine.currentTool != .laser && engine.currentTool != .cane && !engine.laserEngine.isEnabled else { return }
             if engine.showInlineTextEditor { engine.commitInlineTextEntry() }
             onInteraction?()
             window?.makeFirstResponder(self)
@@ -125,8 +142,15 @@ struct NativePointerSurface: NSViewRepresentable {
                 engine.selectedIds.removeAll()
             }
 
+            contextBoardId = engine.board.id
+            contextPageId = engine.activePageId
+            contextSelectedIds = engine.selectedIds
+
             let menu = NSMenu()
             let hasSelection = !engine.selectedIds.isEmpty
+            let canMoveLayer = hasSelection && engine.currentPageObjects.count > 1 && engine.currentPageObjects.contains(where: {
+                engine.selectedIds.contains($0.id) && $0.isLocked != true && $0.isVisible != false
+            })
             let delete = NSMenuItem(title: L10n.t("刪除"), action: #selector(deleteFromContext(_:)), keyEquivalent: "")
             delete.target = self
             delete.isEnabled = hasSelection
@@ -148,6 +172,20 @@ struct NativePointerSurface: NSViewRepresentable {
             paste.target = self
             paste.isEnabled = NSPasteboard.general.string(forType: .string) != nil || MacPlatformPasteboardService.containsImage
             menu.addItem(paste)
+            if hasSelection {
+                menu.addItem(.separator())
+                for (title, sel) in [
+                    ("移至圖層頂端", #selector(layerFrontFromContext(_:))),
+                    ("上移圖層", #selector(layerUpFromContext(_:))),
+                    ("下移圖層", #selector(layerDownFromContext(_:))),
+                    ("移至圖層底端", #selector(layerBackFromContext(_:))),
+                ] {
+                    let item = NSMenuItem(title: L10n.t(title), action: sel, keyEquivalent: "")
+                    item.target = self
+                    item.isEnabled = canMoveLayer
+                    menu.addItem(item)
+                }
+            }
             textContext.append(to: menu, engine: engine, view: self, point: location)
             menu.popUp(positioning: nil, at: location, in: self)
         }
@@ -193,23 +231,34 @@ struct NativePointerSurface: NSViewRepresentable {
                 NSCursor.closedHand.set()
                 return
             }
-            if engine.laserEngine.isEnabled && !engine.isHoldingSpace {
-                NSCursor.crosshair.set()
+            if !engine.viewportLocked && (engine.readingMode || engine.isHoldingSpace) {
+                if engine.readingMode && (engine.currentTool == .cane || engine.currentTool == .laser || engine.laserEngine.isEnabled) {
+                    CursorHelper.setToolCursor(tool: engine.currentTool == .cane ? .cane : .laser)
+                    return
+                }
+                NSCursor.openHand.set()
                 return
             }
-            if !engine.viewportLocked && (engine.readingMode || engine.isHoldingSpace) { NSCursor.openHand.set(); return }
+            if engine.currentTool == .cane {
+                CursorHelper.setToolCursor(tool: .cane)
+                return
+            }
+            if engine.currentTool == .laser || engine.laserEngine.isEnabled {
+                CursorHelper.setToolCursor(tool: .laser)
+                return
+            }
             let loc = point(event)
             let pt = Point(loc)
             engine.updateHoveredHandle(at: pt)
             if let cursorType = engine.currentCursorType(at: pt) {
                 CursorHelper.setCursor(for: cursorType)
-            } else if engine.currentTool == .select {
-                CursorHelper.setCursor(for: nil)
+            } else {
+                CursorHelper.setToolCursor(tool: engine.currentTool)
             }
         }
         private func updateHoverToolCursor(_ event: NSEvent) {
-            if engine.laserEngine.isEnabled {
-                // Laser positions belong to its display-rate buffer, not BoardEngine's
+            if engine.laserEngine.isEnabled || engine.currentTool == .cane {
+                // Laser & Cane positions belong to their display-rate buffers, not BoardEngine's
                 // published cursor state (which would redraw the entire canvas).
                 engine.updateHoverCursor(at: nil, diameter: nil)
                 return
@@ -221,6 +270,9 @@ struct NativePointerSurface: NSViewRepresentable {
             engine.updateHoverCursor(at: Point(point(event)), diameter: diameter)
         }
 
+        private var isContextMenuStateValid: Bool {
+            !engine.readingMode && engine.board.id == contextBoardId && engine.activePageId == contextPageId && engine.selectedIds == contextSelectedIds
+        }
         @objc private func deleteFromContext(_ sender: Any?) { engine.deleteSelected() }
         @objc private func copyFromContext(_ sender: Any?) { engine.copySelected() }
         @objc private func cloneFromContext(_ sender: Any?) {
@@ -229,6 +281,22 @@ struct NativePointerSurface: NSViewRepresentable {
         }
         @objc private func cutFromContext(_ sender: Any?) { engine.cutSelected() }
         @objc private func pasteFromContext(_ sender: Any?) { engine.pasteClipboard(offset: CGPoint(x: 24, y: 24)) }
+        @objc private func layerFrontFromContext(_ sender: Any?) {
+            guard isContextMenuStateValid else { return }
+            _ = engine.moveSelectedLayers(.front)
+        }
+        @objc private func layerUpFromContext(_ sender: Any?) {
+            guard isContextMenuStateValid else { return }
+            _ = engine.moveSelectedLayers(.up)
+        }
+        @objc private func layerDownFromContext(_ sender: Any?) {
+            guard isContextMenuStateValid else { return }
+            _ = engine.moveSelectedLayers(.down)
+        }
+        @objc private func layerBackFromContext(_ sender: Any?) {
+            guard isContextMenuStateValid else { return }
+            _ = engine.moveSelectedLayers(.back)
+        }
         private func scheduleHold() {
             guard !engine.readingMode && !engine.isHoldingSpace else { return }
             guard [ToolType.pen, .highlighter, .paint].contains(engine.currentTool) else { return }

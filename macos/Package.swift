@@ -20,7 +20,7 @@ let package = Package(
             name: "HeiBanMac",
             dependencies: ["HeiBanCore"],
             path: "Sources/HeiBanMac",
-            resources: [.copy("Resources/Guides"), .copy("Resources/BoardEraser.png"), .copy("Resources/HeiBanLogo.png"), .copy("Resources/HeiBanAppIcon.png"), .copy("Resources/HeiBanUserGuide.html"), .copy("Resources/Localization")]
+            resources: [.copy("Resources/Guides"), .copy("Resources/BoardEraser.png"), .copy("Resources/Cane.png"), .copy("Resources/CaneSnap.wav"), .copy("Resources/CaneSnap.source.json"), .copy("Resources/CaneSample-NOTICE.txt"), .copy("Resources/HeiBanLogo.png"), .copy("Resources/HeiBanAppIcon.png"), .copy("Resources/HeiBanUserGuide.html"), .copy("Resources/Localization")]
         ),
         .executableTarget(
             name: "HeiBanTestRunner",

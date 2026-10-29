@@ -328,6 +328,9 @@ final class ScreenAnnotationController: ObservableObject {
         for session in sessions {
             session.setDrawing(isDrawing)
             session.engine.laserEngine.clear()
+            session.engine.cane.clear()
+            session.engine.caneStopSoundHandler?()
+            session.engine.caneRenderTick &+= 1
             session.engine.clearAll()
         }
         message = "已清空所有螢幕註記 · 可在各螢幕復原"

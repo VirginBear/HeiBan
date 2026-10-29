@@ -66,6 +66,7 @@ public struct CanvasView: View {
                 }
 
                 MagnetTargetOverlay(state:engine.drawingAssist,viewport:engine.viewport).zIndex(18)
+                CaneQuickOverlay(engine: engine, size: geo.size).zIndex(19)
                 BoardEraserOverlay(engine:engine,size:geo.size).zIndex(19)
                 PinMarkerOverlayView(engine: engine)
 
@@ -93,6 +94,10 @@ public struct CanvasView: View {
                 LaserOverlayView(laser: engine.laserEngine, viewport: engine.viewport)
                     .zIndex(14)
 
+                // Cane Teaching Overlay
+                CaneTeachingOverlay(engine: engine)
+                    .zIndex(14.5)
+
                 // World Coordinate Ruler (R10)
                 if engine.showWorldRuler && !engine.readingMode {
                     WorldRulerOverlayView(engine: engine)
@@ -113,6 +118,12 @@ public struct CanvasView: View {
             .onAppear {
                 engine.canvasSize = geo.size
                 engine.repositionRulerIfNeeded(windowSize: geo.size)
+                engine.caneStrikeSoundHandler = {
+                    CaneSound.shared.play { msg in engine.showTemporaryStatus(msg) }
+                }
+                engine.caneStopSoundHandler = {
+                    CaneSound.shared.stop()
+                }
             }
             .onChange(of: geo.size) { _, size in
                 engine.canvasSize = size
@@ -205,6 +216,7 @@ private struct PinMarkerOverlayView: View {
                     .background(.regularMaterial, in: Capsule())
             }
             .contentShape(Rectangle())
+            .allowsHitTesting(!engine.readingMode && engine.currentTool != .laser && engine.currentTool != .cane)
             .onTapGesture { engine.jumpToPin(pin) }
             .gesture(
                 DragGesture(minimumDistance: 4, coordinateSpace: .named("canvas"))

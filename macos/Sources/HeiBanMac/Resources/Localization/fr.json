@@ -965,5 +965,17 @@
   "繼續作畫": "Reprendre le dessin",
   "顯示螢幕畫布工具列": "Afficher la barre du canevas d’écran",
   "作畫中": "Dessin en cours",
-  "操作中・滑鼠穿透": "Interaction · Clics traversants"
+  "操作中・滑鼠穿透": "Interaction · Clics traversants",
+  "藤條": "Baguette en rotin",
+  "顯示藤條": "Afficher la baguette",
+  "隱藏藤條": "Masquer la baguette",
+  "隱藏右下藤條快捷": "Masquer le raccourci baguette en bas à droite",
+  "顯示右下藤條快捷": "Afficher le raccourci baguette en bas à droite",
+  "藤條：點擊切換教學拍打工具；右鍵可隱藏": "Baguette : cliquer pour activer l’outil de frappe pédagogique ; clic droit pour masquer",
+  "常用欄可獨立勾選；選取、雷射筆與藤條固定顯示": "La colonne Favoris est indépendante ; Sélection, Laser et Baguette restent toujours épinglés",
+  "按住滑鼠左鍵並移動即可指示，放開左鍵立即消失。選取「光點」時不顯示尾跡；切換其他工具可停止。雷射不會加入作品或匯出檔案。": "Maintenez le bouton gauche enfoncé et déplacez pour pointer ; relâchez pour masquer immédiatement. Le mode Point n’affiche pas de traînée. Le laser n’est ni enregistré ni exporté.",
+  "移至圖層頂端": "Mettre au premier plan",
+  "上移圖層": "Avancer d'un plan",
+  "下移圖層": "Reculer d'un plan",
+  "移至圖層底端": "Mettre à l'arrière-plan"
 }
