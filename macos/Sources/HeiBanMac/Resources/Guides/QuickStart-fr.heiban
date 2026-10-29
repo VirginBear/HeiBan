@@ -930,7 +930,7 @@
       "createdAt": "2026-10-23T00:00:00Z",
       "updatedAt": "2026-10-23T00:00:00Z",
       "isLocked": false,
-      "text": "Glissez la poignée vers un des quatre côtés. Plus → Personnaliser propose icônes seules ou onglets Favoris, Dessin, Insertion et Gestion. Sélection reste visible ; des flèches changent de groupe si nécessaire. Affichage, ordre, Tout sélectionner, Défauts et Favoris sont indépendants. Les outils masqués restent dans Plus. L’onglet Propriétés est aussi déplaçable.\nLa barre horizontale est placée légèrement à gauche du centre selon la largeur de Dessin et conserve son bord gauche lors du changement de page. Les deux canevas partagent pages, style et défilement.",
+      "text": "Glissez la poignée vers un des quatre côtés. Plus → Personnaliser propose icônes seules ou onglets Favoris, Dessin, Insertion et Gestion. Sélection reste visible ; des flèches changent de groupe si nécessaire. Affichage, ordre, Tout sélectionner, Défauts et Favoris sont indépendants. Les outils masqués restent dans Plus. L’onglet Propriétés est aussi déplaçable.\nLa barre horizontale est placée légèrement à gauche du centre selon la largeur de Dessin et conserve son bord gauche lors du changement de page. Les deux canevas partagent pages, style et défilement.\nSélection et Laser restent avant toutes les pages sans doublon ; seul l’outil actif affiche son trait coloré. Glissez avec le bouton central ou Espace pour déplacer la vue ; les vues verrouillées et le canevas d’écran ne se déplacent pas.",
       "fontSize": 20,
       "fontFamily": "PingFang TC",
       "align": "left"
@@ -1031,7 +1031,7 @@
       "createdAt": "2026-10-23T00:00:00Z",
       "updatedAt": "2026-10-23T00:00:00Z",
       "isLocked": false,
-      "text": "Le cercle de couleur ouvre pinceau, couleur, Hex, couleurs récentes, épaisseur et opacité. Une sélection modifie ses styles compatibles ; sinon les prochains traits. L’aperçu suit le zoom. Immobilisez un trait presque droit une seconde pour le redresser. Le laser se règle sur son bouton et sa trace n’est pas enregistrée.",
+      "text": "Le cercle de couleur ouvre couleur, Hex, couleurs récentes, épaisseur et opacité. Une sélection modifie ses styles compatibles ; sinon les prochains traits. L’aperçu suit le zoom. Immobilisez un trait presque droit une seconde pour le redresser. Le laser se règle sur son bouton et sa trace n’est pas enregistrée.\nLe panneau pinceau possède une seule zone de défilement pour couleur, épaisseur et opacité, sans menu de matériaux. + enregistre la couleur ; gérer ou clic droit la supprime ; restaurer rétablit huit couleurs. Une palette vide est conservée. Les deux canevas partagent Settings/palette.json. Un échec de lecture préserve le fichier ; un échec de sauvegarde affiche un message. Hex accepte #RRGGBB et #RRGGBBAA avec alpha final, sans doublons de casse ou FF.",
       "fontSize": 20,
       "fontFamily": "PingFang TC",
       "align": "left"
@@ -1335,7 +1335,7 @@
       "createdAt": "2026-10-23T00:00:00Z",
       "updatedAt": "2026-10-23T00:00:00Z",
       "isLocked": false,
-      "text": "Le cercle de couleur ouvre pinceau, couleur, Hex, couleurs récentes, épaisseur et opacité. Une sélection modifie ses styles compatibles ; sinon les prochains traits. L’aperçu suit le zoom. Immobilisez un trait presque droit une seconde pour le redresser. Le laser se règle sur son bouton et sa trace n’est pas enregistrée.",
+      "text": "Le cercle de couleur ouvre couleur, Hex, couleurs récentes, épaisseur et opacité. Une sélection modifie ses styles compatibles ; sinon les prochains traits. L’aperçu suit le zoom. Immobilisez un trait presque droit une seconde pour le redresser. Le laser se règle sur son bouton et sa trace n’est pas enregistrée.",
       "fontSize": 20,
       "fontFamily": "PingFang TC",
       "align": "left"
@@ -1842,7 +1842,7 @@
       "createdAt": "2026-10-23T00:00:00Z",
       "updatedAt": "2026-10-23T00:00:00Z",
       "isLocked": false,
-      "text": "Le cercle de couleur ouvre pinceau, couleur, Hex, couleurs récentes, épaisseur et opacité. Une sélection modifie ses styles compatibles ; sinon les prochains traits. L’aperçu suit le zoom. Immobilisez un trait presque droit une seconde pour le redresser. Le laser se règle sur son bouton et sa trace n’est pas enregistrée.\nLe laser utilise un contour continu et lissé avec une lueur douce. Taille du point, largeur de trace et durée restent réglables séparément.",
+      "text": "Le cercle de couleur ouvre couleur, Hex, couleurs récentes, épaisseur et opacité. Une sélection modifie ses styles compatibles ; sinon les prochains traits. L’aperçu suit le zoom. Immobilisez un trait presque droit une seconde pour le redresser. Le laser se règle sur son bouton et sa trace n’est pas enregistrée.\nLe laser utilise un contour continu et lissé avec une lueur douce. Taille du point, largeur de trace et durée restent réglables séparément.",
       "fontSize": 20,
       "fontFamily": "PingFang TC",
       "align": "left"

@@ -28,7 +28,7 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
     public var extraFields: [String: AnyCodableValue]?
 
     public static let defaultCommonItemIds: [String] = [
-        "pen", "highlighter", "eraser", "color", "lineStyle", "undoRedo", "magnet", "clearAll",
+        "pen", "highlighter", "eraser", "color", "lineStyle", "undoRedo", "magnet", "clearAll", "laser",
     ]
 
     private enum CodingKeys: String, CodingKey, CaseIterable {
@@ -82,6 +82,7 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
 
     public static let allDefinitions: [ToolbarItemDefinition] = [
         ToolbarItemDefinition(id: "select", displayName: "選取 / 導航", icon: "cursorarrow", isEssential: true),
+        ToolbarItemDefinition(id: "laser", displayName: "雷射筆", icon: "rays", isEssential: true),
         ToolbarItemDefinition(id: "pen", displayName: "鋼筆 / 向量筆", icon: "pencil"),
         ToolbarItemDefinition(
             id: "curve", displayName: "曲線筆", icon: "point.topleft.down.to.point.bottomright.curvepath"),
@@ -93,7 +94,6 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
         ToolbarItemDefinition(id: "shapes", displayName: "幾何圖形", icon: "square.on.circle"),
         ToolbarItemDefinition(id: "sticky", displayName: "便條紙", icon: "note.text"),
         ToolbarItemDefinition(id: "text", displayName: "文字", icon: "textformat"),
-        ToolbarItemDefinition(id: "laser", displayName: "雷射筆", icon: "rays"),
         ToolbarItemDefinition(id: "tape", displayName: "遮題膠帶", icon: "eye.slash"),
         ToolbarItemDefinition(id: "lasso", displayName: "套索工具", icon: "lasso"),
         ToolbarItemDefinition(id: "screenshot", displayName: "截圖置入", icon: "camera.viewfinder"),
@@ -157,35 +157,6 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
     public mutating func normalize() {
         let discoverBoardEraser = !activeItemIds.contains("boardEraser") && !hiddenItemIds.contains("boardEraser")
         let allKnown = Set(Self.allDefinitions.map(\.id))
-        var activeSeen = Set<String>()
-        var hiddenSeen = Set<String>()
-
-        // One-time discovery: 舊偏好若兩份清單皆缺 layers，補入可見列。使用者明確隱藏時維持隱藏。
-        if !activeItemIds.contains("layers") && !hiddenItemIds.contains("layers") {
-            activeItemIds.append("layers")
-        }
-
-        if !activeItemIds.contains("magnet") && !hiddenItemIds.contains("magnet") {
-            activeItemIds.append("magnet")
-        }
-        hiddenItemIds.removeAll { $0 == "select" }
-        activeItemIds.removeAll { $0 == "select" }
-        activeItemIds.insert("select", at: 0)
-        if displayMode != "labels" { displayMode = "icons" }
-        var commonSeen = Set<String>()
-        commonItemIds = commonItemIds.filter {
-            allKnown.contains($0) && $0 != "select" && commonSeen.insert($0).inserted
-        }
-        activeItemIds = activeItemIds.filter { allKnown.contains($0) && activeSeen.insert($0).inserted }
-        hiddenItemIds = hiddenItemIds.filter { allKnown.contains($0) && hiddenSeen.insert($0).inserted }
-
-        // 其餘新增工具收納進 hiddenItemIds (更多)，避免破壞使用者既有配置
-        for def in Self.allDefinitions {
-            if def.id != "boardEraser", !activeSeen.contains(def.id) && !hiddenSeen.contains(def.id) {
-                hiddenItemIds.append(def.id)
-                hiddenSeen.insert(def.id)
-            }
-        }
 
         // Upgrade untouched earlier streamlined defaults once; preserve custom order or explicit hidden choices.
         if defaultToolsRevision < 1 {
@@ -215,6 +186,41 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
             }
             defaultCommonRevision = 1
         }
+
+        // One-time discovery: 舊偏好若兩份清單皆缺 layers，補入可見列。使用者明確隱藏時維持隱藏。
+        if !activeItemIds.contains("layers") && !hiddenItemIds.contains("layers") {
+            activeItemIds.append("layers")
+        }
+
+        if !activeItemIds.contains("magnet") && !hiddenItemIds.contains("magnet") {
+            activeItemIds.append("magnet")
+        }
+
+        hiddenItemIds.removeAll { $0 == "select" || $0 == "laser" }
+        activeItemIds.removeAll { $0 == "select" || $0 == "laser" }
+        activeItemIds.insert("laser", at: 0)
+        activeItemIds.insert("select", at: 0)
+        if !commonItemIds.contains("laser") {
+            commonItemIds.append("laser")
+        }
+        if displayMode != "labels" { displayMode = "icons" }
+        var commonSeen = Set<String>()
+        commonItemIds = commonItemIds.filter {
+            allKnown.contains($0) && $0 != "select" && commonSeen.insert($0).inserted
+        }
+        var activeSeen = Set<String>()
+        var hiddenSeen = Set<String>()
+        activeItemIds = activeItemIds.filter { allKnown.contains($0) && activeSeen.insert($0).inserted }
+        hiddenItemIds = hiddenItemIds.filter { allKnown.contains($0) && hiddenSeen.insert($0).inserted }
+
+        // 其餘新增工具收納進 hiddenItemIds (更多)，避免破壞使用者既有配置
+        for def in Self.allDefinitions {
+            if def.id != "boardEraser", def.id != "laser", !activeSeen.contains(def.id) && !hiddenSeen.contains(def.id) {
+                hiddenItemIds.append(def.id)
+                hiddenSeen.insert(def.id)
+            }
+        }
+
         // 首次提供板擦入口放在橡皮擦旁；日後明確隱藏仍尊重使用者設定。
         if discoverBoardEraser && !activeItemIds.contains("boardEraser") {
             activeItemIds.insert("boardEraser", at: (activeItemIds.firstIndex(of: "eraser") ?? 0) + 1)
@@ -233,7 +239,7 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
     }
 
     public mutating func setItemHidden(id: String, hidden: Bool) {
-        guard id != "select" else { return }
+        guard id != "select", id != "laser" else { return }
         if hidden {
             if !hiddenItemIds.contains(id) {
                 hiddenItemIds.append(id)
@@ -247,8 +253,8 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
     }
 
     public mutating func moveItem(from sourceIndex: Int, to destinationIndex: Int) {
-        guard sourceIndex > 0, sourceIndex < activeItemIds.count,
-            destinationIndex > 0, destinationIndex < activeItemIds.count,
+        guard sourceIndex >= 2, sourceIndex < activeItemIds.count,
+            destinationIndex >= 2, destinationIndex < activeItemIds.count,
             sourceIndex != destinationIndex
         else { return }
         let item = activeItemIds.remove(at: sourceIndex)
@@ -256,8 +262,8 @@ public struct ToolbarPreferences: Codable, Equatable, Sendable {
     }
 
     public mutating func moveItem(id: String, to destinationIndex: Int) {
-        guard id != "select", let sourceIndex = activeItemIds.firstIndex(of: id) else { return }
-        let target = max(1, min(activeItemIds.count - 1, destinationIndex))
+        guard id != "select", id != "laser", let sourceIndex = activeItemIds.firstIndex(of: id) else { return }
+        let target = max(2, min(activeItemIds.count - 1, destinationIndex))
         moveItem(from: sourceIndex, to: target)
     }
 }

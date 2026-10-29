@@ -88,6 +88,12 @@ struct HeiBanApp: App {
             }
             CommandMenu(L10n.t("螢幕畫布")) {
                 Button(screenCanvas.isActive ? "切換作畫／操作　⌘⌥⇧D" : "我的螢幕就是我的畫布　⌘⌥⇧D") { screenCanvas.toggleDrawing() }
+                Button(L10n.t("操作螢幕")) { screenCanvas.setDrawing(false) }
+                    .disabled(!screenCanvas.isActive || !screenCanvas.isDrawing || screenCanvas.isCapturing)
+                Button(L10n.t("繼續作畫")) { screenCanvas.setDrawing(true) }
+                    .disabled(!screenCanvas.isActive || screenCanvas.isDrawing || screenCanvas.isCapturing)
+                Button(L10n.t("顯示螢幕畫布工具列")) { screenCanvas.showControlsForInteraction() }
+                    .disabled(!screenCanvas.isActive || screenCanvas.isCapturing)
                 Button(L10n.t("截圖並儲存　⌘⌥⇧S")) { screenCanvas.captureScreen() }.disabled(!screenCanvas.isActive || screenCanvas.isCapturing)
                 Button(L10n.t("儲存可編輯註記…")) { screenCanvas.saveEditable() }.disabled(!screenCanvas.isActive)
                 Button(L10n.t("一鍵清空螢幕畫布（可復原）")) { screenCanvas.clearAnnotations() }.disabled(!screenCanvas.isActive || screenCanvas.isCapturing)
@@ -105,6 +111,12 @@ struct HeiBanApp: App {
         }
         MenuBarExtra("黑板螢幕畫布", systemImage: "pencil.tip.crop.circle") {
             Button(screenCanvas.isActive ? "切換作畫／操作　⌘⌥⇧D" : "開啟螢幕畫布　⌘⌥⇧D") { screenCanvas.toggleDrawing() }
+            Button(L10n.t("操作螢幕")) { screenCanvas.setDrawing(false) }
+                .disabled(!screenCanvas.isActive || !screenCanvas.isDrawing || screenCanvas.isCapturing)
+            Button(L10n.t("繼續作畫")) { screenCanvas.setDrawing(true) }
+                .disabled(!screenCanvas.isActive || screenCanvas.isDrawing || screenCanvas.isCapturing)
+            Button(L10n.t("顯示螢幕畫布工具列")) { screenCanvas.showControlsForInteraction() }
+                .disabled(!screenCanvas.isActive || screenCanvas.isCapturing)
             Button(L10n.t("截圖並儲存　⌘⌥⇧S")) { screenCanvas.captureScreen() }.disabled(!screenCanvas.isActive || screenCanvas.isCapturing)
             Button(L10n.t("一鍵清空螢幕畫布（可復原）")) { screenCanvas.clearAnnotations() }.disabled(!screenCanvas.isActive || screenCanvas.isCapturing)
             Button(L10n.t("結束螢幕畫布　⌘⌥⇧X")) { screenCanvas.stop() }.disabled(!screenCanvas.isActive)

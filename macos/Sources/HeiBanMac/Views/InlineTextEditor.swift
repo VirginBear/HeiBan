@@ -447,17 +447,8 @@ struct InlineTextEditorPanel: View {
 
 private extension NSColor {
     convenience init(heibanHex: String) {
-        let hex = heibanHex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-        var value: UInt64 = 0
-        Scanner(string: hex).scanHexInt64(&value)
-        let red, green, blue: UInt64
-        if hex.count >= 6 {
-            red = (value >> 16) & 0xff
-            green = (value >> 8) & 0xff
-            blue = value & 0xff
-        } else {
-            red = 134; green = 239; blue = 172
-        }
-        self.init(srgbRed: CGFloat(red) / 255, green: CGFloat(green) / 255, blue: CGFloat(blue) / 255, alpha: 1)
+        let components = HexColorComponents(hex: heibanHex) ?? HexColorComponents(hex: "#86EFAC")!
+        self.init(srgbRed: components.red, green: components.green,
+                  blue: components.blue, alpha: components.alpha)
     }
 }

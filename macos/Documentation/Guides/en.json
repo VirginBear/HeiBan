@@ -31,15 +31,17 @@
       "title": "Navigation and toolbars",
       "paragraphs": [
         "Drag the grip to dock on any side. More → Customize toolbar offers icons only or labeled Common, Draw, Insert and Organize pages. Selection stays visible. Arrows switch groups when space is short. Show/hide, order, Select all, Defaults and separate Common checkboxes are available. Hidden tools remain accessible in More. Drag the Properties tab to dock its panel.",
-        "The horizontal toolbar uses the Draw page width to sit slightly left of center; changing pages keeps its left edge fixed. Both canvases share pages, styling and scrolling."
+        "The horizontal toolbar uses the Draw page width to sit slightly left of center; changing pages keeps its left edge fixed. Both canvases share pages, styling and scrolling.",
+        "Selection and Laser stay before all pages, without duplicates; only the active drawing tool shows its color underline. Middle-button or Space-drag pans; locked views and screen canvas do not pan."
       ]
     },
     {
       "id": "brush",
       "title": "Pen and brush choices",
       "paragraphs": [
-        "The color circle opens brush presets, color, Hex, recent colors, width and opacity. With a selection it changes applicable object styles; without a selection it sets future strokes. The size preview follows canvas zoom. Hold a nearly straight pen stroke still for one second to straighten it. Laser settings are beside Laser; its transient trail is not saved.",
-        "The laser trail uses a continuous smooth outline and soft glow. Point size, trail width and fade duration remain separately adjustable."
+        "The color circle opens color, Hex, recent colors, width and opacity. With a selection it changes applicable object styles; without a selection it sets future strokes. The size preview follows canvas zoom. Hold a nearly straight pen stroke still for one second to straighten it. Laser settings are beside Laser; its transient trail is not saved.",
+        "The laser trail uses a continuous smooth outline and soft glow. Point size, trail width and fade duration remain separately adjustable.",
+        "The brush panel has one scroll area for color, width and opacity, with no material dropdown. Press + to save the current color, manage or right-click to remove, or restore the eight defaults. An empty palette is saved. Both canvases share Settings/palette.json. Load failures preserve the original file; save failures show a message. Hex supports #RRGGBB and #RRGGBBAA with alpha last; case and FF-alpha equivalents are deduplicated."
       ]
     },
     {

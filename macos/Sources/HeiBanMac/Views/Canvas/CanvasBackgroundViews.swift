@@ -89,14 +89,8 @@ struct GridPatternView: View {
     var gridColor: String? = nil
 
     private var isLightBackground: Bool {
-        guard let bg = backgroundColor, bg.hasPrefix("#"), bg.count >= 7 else { return false }
-        let hex = bg.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-        var int: UInt64 = 0
-        Scanner(string: hex).scanHexInt64(&int)
-        let r = Double((int >> 16) & 0xFF)
-        let g = Double((int >> 8) & 0xFF)
-        let b = Double(int & 0xFF)
-        return (r * 0.299 + g * 0.587 + b * 0.114) > 130
+        guard let bg = backgroundColor, let components = HexColorComponents(hex: bg) else { return false }
+        return (components.red * 0.299 + components.green * 0.587 + components.blue * 0.114) > 130.0 / 255
     }
 
     var body: some View {

@@ -12,6 +12,8 @@ struct NativePointerSurface: NSViewRepresentable {
     static func dismantleNSView(_ view: PointerView, coordinator: ()) {
         view.engine.holdTimer?.invalidate()
         view.engine.cancelEraserSwipe()
+        if view.engine.pointerGesture == .pan { view.engine.handleWindowBlur() }
+        view.clearPanFeedback()
     }
 
     // 螢幕註記覆寫空白區域／首點命中，仍共用同一套筆畫、選取與鍵盤路由。
@@ -152,18 +154,32 @@ struct NativePointerSurface: NSViewRepresentable {
 
         override func otherMouseDown(with event: NSEvent) {
             guard event.buttonNumber == 2 else { super.otherMouseDown(with: event); return }
+            guard !engine.viewportLocked, !engine.inlineTextEditing, !engine.showTextEditor,
+                  start == nil else { return }
+            onInteraction?()
+            window?.makeFirstResponder(self)
             middleStart = point(event)
             engine.endPanGesture()
+            NSCursor.closedHand.set()
         }
         override func otherMouseDragged(with event: NSEvent) {
             guard event.buttonNumber == 2, let middleStart else { super.otherMouseDragged(with: event); return }
+            guard !engine.viewportLocked else { clearPanFeedback(); return }
             let location = point(event)
+            NSCursor.closedHand.set()
             engine.updatePanGesture(translation: CGSize(width: location.x - middleStart.x, height: location.y - middleStart.y))
         }
         override func otherMouseUp(with event: NSEvent) {
-            guard event.buttonNumber == 2 else { super.otherMouseUp(with: event); return }
+            guard event.buttonNumber == 2, middleStart != nil else { super.otherMouseUp(with: event); return }
+            clearPanFeedback()
+            updateTransformCursor(event)
+        }
+
+        /// 原生抓取狀態不能在失焦／Esc／拆除後殘留，否則下一次拖曳會跳到舊錨點。
+        func clearPanFeedback() {
             middleStart = nil
             engine.endPanGesture()
+            NSCursor.arrow.set()
         }
 
         private func updateEraserCursor(_ event: NSEvent) {
@@ -173,11 +189,15 @@ struct NativePointerSurface: NSViewRepresentable {
             engine.updatePolygonDraftCursor(at: Point(point(event)))
         }
         private func updateTransformCursor(_ event: NSEvent) {
+            if !engine.viewportLocked && (middleStart != nil || engine.pointerGesture == .pan) {
+                NSCursor.closedHand.set()
+                return
+            }
             if engine.laserEngine.isEnabled && !engine.isHoldingSpace {
                 NSCursor.crosshair.set()
                 return
             }
-            if engine.readingMode || engine.isHoldingSpace { NSCursor.openHand.set(); return }
+            if !engine.viewportLocked && (engine.readingMode || engine.isHoldingSpace) { NSCursor.openHand.set(); return }
             let loc = point(event)
             let pt = Point(loc)
             engine.updateHoveredHandle(at: pt)
@@ -281,6 +301,8 @@ struct NativePointerSurface: NSViewRepresentable {
                 engine.holdTimer?.invalidate()
                 engine.cancelTransientInteraction()
                 start = nil
+                clearPanFeedback()
+                updateTransformCursor(event)
             case .spaceDown:
                 engine.isHoldingSpace = true
             case .spaceUp:
@@ -321,7 +343,7 @@ struct NativePointerSurface: NSViewRepresentable {
                         guard event.keyCode == 49, !self.engine.inlineTextEditing, !self.engine.showTextEditor,
                               !(self.window?.firstResponder is NSTextView) else { return event }
                         self.engine.isHoldingSpace = event.type == .keyDown
-                        if event.type == .keyDown { NSCursor.openHand.set() } else { NSCursor.arrow.set() }
+                        self.updateTransformCursor(event)
                         return nil
                     }
                     let location = self.point(event)
@@ -336,6 +358,8 @@ struct NativePointerSurface: NSViewRepresentable {
                 }
                 windowObserver = NotificationCenter.default.addObserver(forName: NSWindow.didResignKeyNotification, object: window, queue: .main) { [weak self] _ in
                     self?.engine.handleWindowBlur()
+                    self?.start = nil
+                    self?.clearPanFeedback()
                     self?.engine.updateEraserCursor(at: nil)
                     self?.engine.updateHoverCursor(at: nil, diameter: nil)
                 }
@@ -380,6 +404,8 @@ struct NativePointerSurface: NSViewRepresentable {
 
         override func resignFirstResponder() -> Bool {
             engine.handleWindowBlur()
+            start = nil
+            clearPanFeedback()
             return super.resignFirstResponder()
         }
     }

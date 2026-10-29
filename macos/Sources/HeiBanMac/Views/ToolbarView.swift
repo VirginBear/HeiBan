@@ -191,7 +191,7 @@ struct ToolbarToolsView: View {
             engine.toolbarPreferences, screen: screenController != nil, page: activePage)
     }
     private var toolsAvailableLength: CGFloat {
-        max(ToolbarContentPolicy.horizontalTileWidth, availableLength - (vertical ? 148 : 140))
+        max(ToolbarContentPolicy.horizontalTileWidth, availableLength - (vertical ? ToolbarContentPolicy.verticalChrome : ToolbarContentPolicy.horizontalChrome))
     }
     private var pageCapacity: Int {
         ToolbarContentPolicy.pageCapacity(
@@ -209,7 +209,7 @@ struct ToolbarToolsView: View {
     private var shownPageIDs: [String] {
         Array(pageIDs.dropFirst(currentPageOffset).prefix(pageCapacity))
     }
-    private var renderedIDs: [String] { usesLabels ? ["select"] + shownPageIDs : visibleIDs }
+    private var renderedIDs: [String] { usesLabels ? ["select", "laser"] + shownPageIDs : visibleIDs }
     private typealias ToolSettings = BoardToolSettings
 
     private var overflowIDs: [String] {
@@ -285,6 +285,7 @@ struct ToolbarToolsView: View {
         let shell = vertical ? AnyLayout(VStackLayout(spacing: 4)) : AnyLayout(HStackLayout(spacing: 6))
         return shell {
             labeledToolTile(id: "select")
+            labeledToolTile(id: "laser")
             VStack(alignment: .leading, spacing: 4) {
                 pageSelector
                 // 移除內部捲動拉桿（ScrollView），直接以單列平鋪顯示目前分頁工具。
@@ -401,15 +402,27 @@ struct ToolbarToolsView: View {
 
     private func toolTileLabel(id: String) -> some View {
         let tile = vertical ? AnyLayout(HStackLayout(spacing: 6)) : AnyLayout(VStackLayout(spacing: 2))
+        let hasColorLine = ToolbarContentPolicy.hasToolColor(id)
+        let isColorActive = ToolbarContentPolicy.isToolColorActive(toolKey: id, currentTool: engine.currentTool)
         return tile {
-            toolGlyph(id).frame(width: 28, height: 28)
+            VStack(spacing: 2) {
+                toolGlyph(id).frame(width: 28, height: 22)
+                if hasColorLine {
+                    RoundedRectangle(cornerRadius: 1.5)
+                        .fill(Color(hex: engine.activeColor))
+                        .overlay(RoundedRectangle(cornerRadius: 1.5).stroke(Color.primary.opacity(0.2), lineWidth: 0.5))
+                        .frame(width: 22, height: 3)
+                        .opacity(isColorActive ? 1.0 : 0.0)
+                }
+            }
+            .frame(width: 28, height: 28)
             Text(L10n.t(toolTitle(id))).font(.system(size: 10)).lineLimit(2)
                 .multilineTextAlignment(vertical ? .leading : .center)
             if vertical { Spacer(minLength: 0) }
         }
         .padding(.horizontal, vertical ? 6 : 2)
         .frame(
-            width: vertical ? 124 : (id == "select" ? 48 : ToolbarContentPolicy.horizontalTileWidth),
+            width: vertical ? 124 : ((id == "select" || id == "laser") ? 48 : ToolbarContentPolicy.horizontalTileWidth),
             height: vertical ? ToolbarContentPolicy.verticalTileHeight : 58
         )
         .background(
@@ -459,10 +472,12 @@ struct ToolbarToolsView: View {
             screenController?.setDrawing(true)
             presentSettings(.shapes)
         case "laser":
-            if engine.currentTool == .laser {
+            let resumingScreen = screenController?.isDrawing == false
+            screenController?.setDrawing(true)
+            if engine.currentTool == .laser && !resumingScreen {
                 presentSettings(.laser)
             } else {
-                selectTool(.laser)
+                if engine.currentTool != .laser { selectTool(.laser) }
                 engine.laserEngine.isEnabled = true
             }
         case "screenshot": captureScreenshot()
@@ -638,12 +653,24 @@ struct ToolbarToolsView: View {
             Button {
                 performToolAction(id)
             } label: {
-                toolGlyph(id).frame(width: 32, height: 32)
-                    .background(
-                        toolSelected(id) ? Color.accentColor.opacity(0.2) : Color.clear,
-                        in: RoundedRectangle(cornerRadius: 6)
-                    )
-                    .contentShape(Rectangle())
+                let hasColor = ToolbarContentPolicy.hasToolColor(id)
+                let isColorActive = ToolbarContentPolicy.isToolColorActive(toolKey: id, currentTool: engine.currentTool)
+                VStack(spacing: 1) {
+                    toolGlyph(id).frame(width: 32, height: 26)
+                    if hasColor {
+                        RoundedRectangle(cornerRadius: 1)
+                            .fill(Color(hex: engine.activeColor))
+                            .overlay(RoundedRectangle(cornerRadius: 1).stroke(Color.primary.opacity(0.2), lineWidth: 0.5))
+                            .frame(width: 18, height: 2.5)
+                            .opacity(isColorActive ? 1.0 : 0.0)
+                    }
+                }
+                .frame(width: 32, height: 32)
+                .background(
+                    toolSelected(id) ? Color.accentColor.opacity(0.2) : Color.clear,
+                    in: RoundedRectangle(cornerRadius: 6)
+                )
+                .contentShape(Rectangle())
             }.buttonStyle(.plain).disabled(toolDisabled(id)).help(L10n.t(toolTitle(id)))
                 .contextMenu { toolContextMenu(id) }
         }

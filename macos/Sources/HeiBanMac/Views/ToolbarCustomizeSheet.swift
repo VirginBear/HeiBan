@@ -53,7 +53,7 @@ struct ToolbarCustomizeSheet: View {
                 Text(L10n.t("只有圖示")).tag("icons")
                 Text(L10n.t("圖示與文字（分頁）")).tag("labels")
             }
-            Text(L10n.t("常用欄可獨立勾選；選取工具固定顯示")).font(.caption).foregroundStyle(.secondary)
+            Text(L10n.t("常用欄可獨立勾選；選取與雷射筆固定顯示")).font(.caption).foregroundStyle(.secondary)
             ScrollView {
                 VStack(spacing: 6) {
                     ForEach(Array(allOrderedKeys.enumerated()), id: \.element) { index, id in
@@ -67,8 +67,8 @@ struct ToolbarCustomizeSheet: View {
                                     }
                                 ))
                                 .labelsHidden()
-                                .disabled(id=="select")
-                                if id != "select" {
+                                .disabled(id == "select" || id == "laser")
+                                if id != "select" && id != "laser" {
                                     Toggle(L10n.t("常用"),isOn:Binding(get:{engine.toolbarPreferences.commonItemIds.contains(id)},set:{ value in
                                         if value { engine.toolbarPreferences.commonItemIds.append(id);engine.toolbarPreferences.setItemHidden(id:id,hidden:false) }
                                         else { engine.toolbarPreferences.commonItemIds.removeAll { $0==id } }
@@ -88,14 +88,14 @@ struct ToolbarCustomizeSheet: View {
                                 Spacer()
 
                                 Button {
-                                    if let currentIdx = engine.toolbarPreferences.activeItemIds.firstIndex(of: id), currentIdx > 0 {
+                                    if let currentIdx = engine.toolbarPreferences.activeItemIds.firstIndex(of: id), currentIdx > 2 {
                                         engine.moveToolbarItem(id: id, to: currentIdx - 1)
                                     }
                                 } label: {
                                     Image(systemName: "chevron.up")
                                 }
                                 .buttonStyle(.borderless)
-                                .disabled(!isVisible || (engine.toolbarPreferences.activeItemIds.firstIndex(of: id) ?? 0) == 0)
+                                .disabled(id == "select" || id == "laser" || !isVisible || (engine.toolbarPreferences.activeItemIds.firstIndex(of: id) ?? 0) <= 2)
 
                                 Button {
                                     if let currentIdx = engine.toolbarPreferences.activeItemIds.firstIndex(of: id),
@@ -106,7 +106,7 @@ struct ToolbarCustomizeSheet: View {
                                     Image(systemName: "chevron.down")
                                 }
                                 .buttonStyle(.borderless)
-                                .disabled(!isVisible || (engine.toolbarPreferences.activeItemIds.firstIndex(of: id) ?? 0) >= engine.toolbarPreferences.activeItemIds.count - 1)
+                                .disabled(id == "select" || id == "laser" || !isVisible || (engine.toolbarPreferences.activeItemIds.firstIndex(of: id) ?? 0) >= engine.toolbarPreferences.activeItemIds.count - 1)
                             }
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)

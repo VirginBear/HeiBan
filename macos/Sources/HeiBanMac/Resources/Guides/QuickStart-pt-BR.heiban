@@ -930,7 +930,7 @@
       "createdAt": "2026-10-23T00:00:00Z",
       "updatedAt": "2026-10-23T00:00:00Z",
       "isLocked": false,
-      "text": "Arraste a alça para qualquer borda. Mais → Personalizar oferece ícones ou abas Frequentes, Desenhar, Inserir e Organizar. Seleção fica visível; setas mudam grupos se faltar espaço. Exibição, ordem, Selecionar tudo, Padrões e Frequentes são independentes. Ferramentas ocultas ficam em Mais. A aba Propriedades também pode ser movida.\nA barra horizontal fica um pouco à esquerda do centro com base na largura de Desenhar e mantém a borda esquerda ao trocar de página. As duas telas compartilham páginas, estilo e rolagem.",
+      "text": "Arraste a alça para qualquer borda. Mais → Personalizar oferece ícones ou abas Frequentes, Desenhar, Inserir e Organizar. Seleção fica visível; setas mudam grupos se faltar espaço. Exibição, ordem, Selecionar tudo, Padrões e Frequentes são independentes. Ferramentas ocultas ficam em Mais. A aba Propriedades também pode ser movida.\nA barra horizontal fica um pouco à esquerda do centro com base na largura de Desenhar e mantém a borda esquerda ao trocar de página. As duas telas compartilham páginas, estilo e rolagem.\nSeleção e Laser ficam antes de todas as páginas sem duplicação; só a ferramenta ativa mostra a linha de cor. Arraste com o botão central ou Espaço para mover; vistas bloqueadas e a tela de anotação não se movem.",
       "fontSize": 20,
       "fontFamily": "PingFang TC",
       "align": "left"
@@ -1031,7 +1031,7 @@
       "createdAt": "2026-10-23T00:00:00Z",
       "updatedAt": "2026-10-23T00:00:00Z",
       "isLocked": false,
-      "text": "O círculo de cor abre pincel, cor, Hex, recentes, espessura e opacidade. Com seleção, muda estilos compatíveis; sem seleção, define próximos traços. A amostra acompanha o zoom. Pare um traço quase reto por um segundo para endireitar. O laser é ajustado no próprio botão e seu rastro não é salvo.",
+      "text": "O círculo de cor abre cor, Hex, recentes, espessura e opacidade. Com seleção, muda estilos compatíveis; sem seleção, define próximos traços. A amostra acompanha o zoom. Pare um traço quase reto por um segundo para endireitar. O laser é ajustado no próprio botão e seu rastro não é salvo.\nO painel de pincel tem uma única área de rolagem para cor, largura e opacidade, sem menu de materiais. + salva a cor; gerenciar ou clicar com o botão direito remove; restaurar retorna oito cores. Uma paleta vazia é salva. As duas telas compartilham Settings/palette.json. Falhas de leitura preservam o arquivo; falhas ao salvar mostram aviso. Hex aceita #RRGGBB e #RRGGBBAA com alfa no fim, sem duplicatas por maiúsculas ou FF.",
       "fontSize": 20,
       "fontFamily": "PingFang TC",
       "align": "left"
@@ -1335,7 +1335,7 @@
       "createdAt": "2026-10-23T00:00:00Z",
       "updatedAt": "2026-10-23T00:00:00Z",
       "isLocked": false,
-      "text": "O círculo de cor abre pincel, cor, Hex, recentes, espessura e opacidade. Com seleção, muda estilos compatíveis; sem seleção, define próximos traços. A amostra acompanha o zoom. Pare um traço quase reto por um segundo para endireitar. O laser é ajustado no próprio botão e seu rastro não é salvo.",
+      "text": "O círculo de cor abre cor, Hex, recentes, espessura e opacidade. Com seleção, muda estilos compatíveis; sem seleção, define próximos traços. A amostra acompanha o zoom. Pare um traço quase reto por um segundo para endireitar. O laser é ajustado no próprio botão e seu rastro não é salvo.",
       "fontSize": 20,
       "fontFamily": "PingFang TC",
       "align": "left"
@@ -1842,7 +1842,7 @@
       "createdAt": "2026-10-23T00:00:00Z",
       "updatedAt": "2026-10-23T00:00:00Z",
       "isLocked": false,
-      "text": "O círculo de cor abre pincel, cor, Hex, recentes, espessura e opacidade. Com seleção, muda estilos compatíveis; sem seleção, define próximos traços. A amostra acompanha o zoom. Pare um traço quase reto por um segundo para endireitar. O laser é ajustado no próprio botão e seu rastro não é salvo.\nO laser usa um contorno contínuo e suave com brilho difuso. Tamanho do ponto, largura do rastro e duração podem ser ajustados separadamente.",
+      "text": "O círculo de cor abre cor, Hex, recentes, espessura e opacidade. Com seleção, muda estilos compatíveis; sem seleção, define próximos traços. A amostra acompanha o zoom. Pare um traço quase reto por um segundo para endireitar. O laser é ajustado no próprio botão e seu rastro não é salvo.\nO laser usa um contorno contínuo e suave com brilho difuso. Tamanho do ponto, largura do rastro e duração podem ser ajustados separadamente.",
       "fontSize": 20,
       "fontFamily": "PingFang TC",
       "align": "left"

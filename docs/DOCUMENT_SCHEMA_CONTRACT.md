@@ -66,7 +66,7 @@ HeiBan 為高效能向量黑板／白板協作系統，在 Web（TypeScript / Re
 - `x1`, `y1`, `x2`, `y2`: `Double?` (A/B 點線段與箭頭專用端點座標，反向繪製時不翻轉端點)
 - `extension`: `"none" | "start" | "end" | "both"` (A/B 線段向兩端射線延伸模式)
 - `points`: `String?` (筆跡點陣列之 JSON 字串，支援壓力值 `pressure?: Double`)
-- `strokeColor`, `fillColor`: `String`
+- `strokeColor`, `fillColor`: `String`（`#RRGGBB` 或 `#RRGGBBAA`，alpha 在最後兩碼；`none` 表示無填色。RGB 與全不透明 FF alpha 等價，不能以 ARGB 解讀或根據色碼猜測來源。）
 - `strokeWidth`: `Double`
 - `lineStyle`: `"solid" | "dashed"`
 - `opacity`: `Double` (0.0 ~ 1.0)

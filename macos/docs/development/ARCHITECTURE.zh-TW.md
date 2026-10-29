@@ -131,3 +131,17 @@ QuickStart由HomeView讀取Mac bundle，再寫本機library與marker；目前資
 - LaserTrailGeometry只做唯讀螢幕座標幾何。LaserOverlayView以Timeline讀暫態樣本，按手勢畫連續柔光，不產生BoardObject。
 - BoardEraserArtwork共用工具圖示與畫布圖片，以資源URL快取載入；BoardEraserOverlay同時掛普通與螢幕畫布，仍沿用BoardEraserState預覽及既有放開提交交易。
 - 舊AnnotationToolbarLayout展開幾何保留為相容API／歷史runner依賴；目前螢幕展開走共用policy，收合仍用其尺寸。尚未移除不影響產品的相容入口。
+
+
+## 2026-10-24 1.0.17同步邊界
+
+PalettePreferencesStore.shared屬profile設定，路徑HeiBan/Settings/palette.json，與作品Undo／保存分開；原子寫成功後發布，失敗留原色票／原檔並給UI分類提示。Windows背景隊列不直接搬入Mac，小型設定目前同步保存，未使用的queue已移除。
+
+HexColorComponents純值解析統一SwiftUI與AppKit文字／背景對比；八碼是RRGGBBAA，作品與額外欄位不改寫。ToolbarContentPolicy同時擁有常駐工具預算及目前工具色線判斷；ToolbarBrushSettings一個ScrollView及同一Store服務兩種畫布。NativePointerSurface擁有中鍵抓取、Core擁有實際pan狀態，生命週期取消必須清掉兩邊。
+
+Windows swapchain／XAML／input worker屬該平台實作，Mac仍原生Pointer與隔離預覽；功能對照見WINDOWS_SYNC_REVIEW_2026-10-24。未將來源同步視作性能驗收。
+
+
+## 2026-10-24 螢幕模式修復（build20261024.3）
+
+ScreenAnnotationController.setDrawing協調全顯示器實際輸入模式與UI狀態；ScreenAnnotationSession只收束／恢復該顯示器工具、ignoresMouseEvents與key資格。選取屬BoardEngine工具，穿透屬NSPanel，不混用。固定命令區由AnnotationToolbarLayout共用尺寸、ScreenAnnotationControls給共享工具明確邊界，模式／退出留外面。操作模式釋放鍵盤焦點；控制列可由原生選單找回，找回不會隱式恢復畫布輸入。雷射恢復走同一模式入口。相關取捨見ADR-M37。

@@ -1,5 +1,43 @@
 # Mac 目前開發狀態
 
+## 2026-10-24 — Mac 1.0.17 / 20261024.3 開發來源已上傳GitHub
+
+依使用者明確授權，Mac同步補齊與螢幕畫布模式修復、十語資源／指南、使用手冊及開發／排錯紀錄已推送至 [VirginBear/HeiBan main](https://github.com/VirginBear/HeiBan/tree/main/macos)。來源提交 [64dad31](https://github.com/VirginBear/HeiBan/commit/64dad31)，git ls-remote核對相同完整SHA；本段與日誌為後續同步證據提交。Windows沒有變更，沒有新增二進位Release／DMG／ZIP。先前日誌的「尚未推送」為當時歷史狀態，實作及待驗收範圍仍依下方與[上傳日誌04](logs/2026-10-24/04.zh-TW.md)。
+
+## 2026-10-24 — 螢幕畫布操作切換修復，build20261024.3已實機確認
+
+最新本機App **1.0.17 / 20261024.3**：`macos/dist/HeiBan.app`。固定模式按鈕橫排明示「操作螢幕／繼續作畫」，左右圖示，和註記選取分開；模式／退出有獨立區域，收合也保留。操作時畫布釋放滑鼠與鍵盤key／first responder；原生螢幕畫布選單提供獨立操作／繼續／找回工具列。Esc在控制列也能暫停；雷射暫停後再按會恢復作畫。
+
+本批CUA實際確認：頂端展開模式切換、Finder收到滑鼠及Down鍵、繼續後canvas取回key、收合切換與按鈕完整可見、左側恢復、雷射暫停後恢復、Esc及固定退出。已還原原工具列位置／收合與Finder選取；未畫測試線、未清空註記。右側／底部、多螢幕、特殊全螢幕／所有外部App與輸入法仍待驗收。
+
+Release封裝62.90秒成功、嚴格簽章與App／.build UUID核同，十語指南及詞庫與來源相符。沒有跑整套runner、不沿用1906數字；本批原始碼尚在本機工作樹，Windows未改／未推送。詳[修復及操作證據](logs/2026-10-24/03.zh-TW.md)／M48／ADR-M37。前批同步功能與限制保留如下。
+
+## 2026-10-24 — Windows 1.0.17操作同步補齊，本機試用build20261024.2
+
+Mac產品維持 **1.0.17**，本機 **20261024.2**；最新成品 `macos/dist/HeiBan.app`。公開庫fetch後da357e4已含前批移植，本輪在該來源上補缺口；沒有修改Windows或Store。
+
+- 常用色盤：一般／螢幕共用新增、管理／右鍵移除、空列表保存與還原；缺少／null colors、非法元素、未來版本拒載保原檔。原子保存成功才發布，重複與保存失敗分開提示；8色預設首色#86EFAC，profile路徑為HeiBan/Settings/palette.json。
+- 色彩：共用RGB／RGBA解析，8碼alpha在尾端；Hex／系統色輪支援alpha及sRGB轉換，原生文字與筆跡同語意，沒有改寫既有作品或brushKind。
+- 工具列：選取／雷射跨頁固定、只有目前繪圖工具有色線、筆刷單一捲動；固定區預算改唯一194／196pt常數。中鍵／空白平移依實際pan顯示握手，鎖定拒絕，取消／失焦／拆除清除參考。
+- 十語介面、離線手冊及可編輯指南供應來源同步；既有指南練習不被覆寫。414個接線UI字面值在10份catalog沒有缺鍵，動態文字／母語品質仍待人工審閱。
+
+最後Release編譯／封裝 **52.84秒** 成功，嚴格深度簽章通過，App與.build ARM64 UUID相同；10語HTML、10語QuickStart SHA及manifest與來源一致，10語catalog、板擦PNG與來源一致。App檔案內容合計 **16,902,396bytes**，主執行檔SHA `9d74e874dbdcf9d0098367e2e3e5b18e9a47c30c471255b5a345a0c271263c96`。仍有既有NSParagraphStyle Sendable與工具鏈搜尋路徑警告。
+
+本批**沒有新增或執行測試套件／App操作／性能量測**，僅校準既有build fixture兩處常值。下方1906為前批文件記載，Windows2365同屬其原機紀錄，均不當本輪通過數字。細節由使用者試用後修正；[對照與試用清單](WINDOWS_SYNC_REVIEW_2026-10-24.zh-TW.md)／[完整日誌02](logs/2026-10-24/02.zh-TW.md)。本批來源尚在工作樹，未推送或發布新成品。
+
+## 2026-10-24 — 同步 Windows 1.0.17：常用色盤 Store、常駐雷射、筆色底線與手形平移 (完成封裝與立靶驗收)
+
+Mac 產品版號升級至 **1.0.17**，最新本機 build **20261024.1**，成品位於 `macos/dist/HeiBan.app`。`windows/` 目錄嚴格保持零修改。
+
+- **常用色盤 Store (`PalettePreferencesStore`)**：持久化於 `Settings/palette.json`（schemaVersion 1），一般與螢幕畫布共用。支援 8 色預設、增刪、管理模式、還原、大寫標準化、去重與壞檔安全保護。
+- **常駐雷射與選取**：所有分頁前置固定為選取（第 0 位）與雷射（第 1 位），常用工具列預設納入雷射；防禦隱藏與換位。
+- **作用中筆刷色彩底線**：繪圖工具（`pen`, `highlighter`, `paint`, `curve`, `shapes`）選用時於圖示下方顯示 22×3 pt 當前筆色底線，未啟用時透明佔位無抖動。
+- **筆刷設定面板精簡**：移除 8 種混淆筆刷材質下拉選單，整合常用色盤管理與單一滾動視圖。
+- **中鍵拖曳平移手勢回饋**：中鍵拖曳畫布時設定為閉合手形游標 (`closedHand`)。
+- **先靶後箭檢驗**：`HeiBanTestRunner` 新增 `[測試 52]`，全套件 **1906 項斷言 100% 通過（0 失敗）**。
+- **封裝與簽章**：`build_app.sh` 封裝成功，`codesign --verify --deep --strict` 檢驗合格。
+- 詳見[日誌01](logs/2026-10-24/01.zh-TW.md)。
+
 ## 2026-10-23 — GitHub 開發來源已同步
 
 依使用者授權，Mac **1.0.16 / 20261023.2**來源、資源、十語指南與開發文件已推送至 [VirginBear/HeiBan main](https://github.com/VirginBear/HeiBan/tree/main/macos)。來源提交 [26ea834](https://github.com/VirginBear/HeiBan/commit/26ea834)及前兩筆Mac提交已上傳，git ls-remote核對成功；本段與推送證據另以文件提交保存。本批沒有發布新的DMG／ZIP或改Windows；下方實作與待驗收狀態保留。詳[同步日誌04](logs/2026-10-23/04.zh-TW.md)。

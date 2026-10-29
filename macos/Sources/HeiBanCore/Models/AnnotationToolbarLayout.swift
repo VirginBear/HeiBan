@@ -24,6 +24,10 @@ public enum AnnotationToolbarCatalog {
 }
 
 public struct AnnotationToolbarLayout {
+    public static let horizontalModeButtonWidth: CGFloat = 112
+    /// 共享一般工具區之外的模式＋退出；橫排模式含文字，左右只留圖示。
+    public static func expandedCommandLength(vertical: Bool) -> CGFloat { vertical ? 80 : 160 }
+
     public static let inset: CGFloat = 12
 
     public static func availableFrame(for visibleFrame: NSRect) -> NSRect {
@@ -46,7 +50,7 @@ public struct AnnotationToolbarLayout {
         if collapsed {
             preferred = dock.isVertical
                 ? NSSize(width: 64, height: 252)
-                : NSSize(width: min(284, availableSize.width), height: 60)
+                : NSSize(width: min(328, availableSize.width), height: 60)
         } else if dock.isVertical {
             // 「更多」已併入共用網格；尾端只留下清空／退出，不累積舊工具列空白。
             let fixedHeight: CGFloat = itemCount == nil ? 212 : 176

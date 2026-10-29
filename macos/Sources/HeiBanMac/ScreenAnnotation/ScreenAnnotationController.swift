@@ -83,7 +83,7 @@ final class ScreenAnnotationController: ObservableObject {
                 self.performShortcut(UInt32(index + 1))
                 return nil
             }
-            guard self.isActive, self.sessions.contains(where: { $0.panel == event.window }),
+            guard self.isActive, self.controls == event.window || self.sessions.contains(where: { $0.panel == event.window }),
                 event.keyCode == 53
             else { return event }
             // 文字編輯器先處理 Esc／中文組字；不能被全域暫停作畫攔走。
@@ -193,25 +193,38 @@ final class ScreenAnnotationController: ObservableObject {
 
     func setDrawing(_ drawing: Bool) {
         guard isActive, !isCapturing else { return }
-        guard isDrawing != drawing else {
-            raiseOverlayWindows()
-            return
-        }
-        if !drawing {
-            commitTextDrafts()
-        }
-        isDrawing = drawing
-        for session in sessions {
+        let changed = isDrawing != drawing
+        if changed && !drawing { commitTextDrafts() }
+        // 控制器狀態相同也核對實際視窗，避免一次視窗重建後仍保留錯誤輸入模式。
+        // 正常視窗不重跑cancel/restore，不能因點設定而取消正在畫的筆跡。
+        for session in sessions where changed || session.panel.ignoresMouseEvents != !drawing {
             session.setDrawing(drawing)
         }
-        message =
-            drawing
-            ? drawingMessage : (shortcutsAvailable ? "操作中 · 滑鼠可穿透；⌘⌥⇧D 繼續作畫" : "操作中 · 滑鼠可穿透；請用控制列繼續作畫")
+        isDrawing = drawing
+        controls?.ignoresMouseEvents = false
+        message = drawing ? drawingMessage
+            : (shortcutsAvailable ? "操作中 · 滑鼠可穿透；⌘⌥⇧D 繼續作畫" : "操作中 · 滑鼠可穿透；請用控制列繼續作畫")
         if drawing {
-            selectScreenUnderMouse()
             raiseOverlayWindows()
-            focusDrawingCanvas()
-        } else { lastExternalApp?.activate(options: []) }
+            if changed { selectScreenUnderMouse(); focusDrawingCanvas() }
+        } else {
+            // ignoresMouseEvents只管滑鼠，原生key panel及first responder也必須放掉。
+            for session in sessions {
+                session.panel.makeFirstResponder(nil)
+                if session.panel.isKeyWindow { session.panel.resignKey() }
+            }
+            if controls?.isKeyWindow == true { controls?.resignKey() }
+            if let app = lastExternalApp, !app.isTerminated, app.activate(options: []) { return }
+            NSApp.deactivate()
+        }
+    }
+
+    /// 模式／退出永遠有原生選單備援；只提高控制列，不把整屏輸入層重新開啟。
+    func showControlsForInteraction() {
+        guard isActive, !isCapturing else { return }
+        if controls == nil { showControls() }
+        controls?.ignoresMouseEvents = false
+        controls?.makeKeyAndOrderFront(nil)
     }
 
     func stop() {
@@ -403,8 +416,8 @@ final class ScreenAnnotationController: ObservableObject {
         if controlsCollapsed {
             return AnnotationToolbarLayout.size(for: dock, collapsed: true, availableSize: area.size)
         }
-        // 共用一般畫布尺寸；只為作畫／穿透與退出兩個必要命令保留 80pt。
-        let extra: CGFloat = 80
+        // 使用與UI一致的固定區尺寸，工具內容不得擠掉模式／退出。
+        let extra = AnnotationToolbarLayout.expandedCommandLength(vertical: dock.isVertical)
         let virtualWindow = CGSize(width: area.width + 32 - (dock.isVertical ? 0 : extra),
                                    height: area.height + 88 - (dock.isVertical ? extra : 0))
         let common = ToolbarContentPolicy.panelSize(preferences: activeEngine.toolbarPreferences,
