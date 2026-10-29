@@ -1,0 +1,30 @@
+{
+  "label": "tool-cursor-laser-2026-10-29-r1",
+  "version": "1.0.17",
+  "runtime": "win-x64",
+  "sourceCommit": "152c9e0c573997870da69de82473945c69c5bf6c",
+  "zip": "windows/dist/trials/HeiBan-Windows-Portable-1.0.17-tool-cursor-laser-2026-10-29-r1-win-x64.zip",
+  "bytes": 132918771,
+  "sha256": "d2640965a2ccfae543ed409f38607ff9852fb1140d0b4c87e016feb3f327ad20",
+  "payloadFilesChecked": 586,
+  "sourceFilesChecked": 196,
+  "archiveFiles": 588,
+  "zipUserDataFiles": 0,
+  "portableDataFiles": 0,
+  "zipCrcAndPayloadShaMatch": true,
+  "peArchitecture": "x64",
+  "preservedStoreFiles": 51,
+  "storeFilesUnchanged": true,
+  "dataHandoff": {
+    "copied": false,
+    "mode": "Independent portable Data; running Store app left untouched"
+  },
+  "appExecuted": false,
+  "implementationTestsExecuted": false,
+  "coreTestsExecuted": false,
+  "performanceCaptured": false,
+  "storeRepackaged": false,
+  "formalVersionIncremented": false,
+  "runtimeTestRecord": null,
+  "developmentRecord": "windows/docs/TOOL_CURSOR_LASER_2026-10-29.zh-TW.md"
+}

@@ -4,6 +4,8 @@
 
 一般／螢幕畫布共用Toolbar向量的工具游標：精準十字熱點加工具圖示，選取為箭頭，保留中鍵握手及縮放／旋轉游標。雷射改Press／MovePressed／Release暫態手勢，只捕捉左鍵按住才發光；放開、取消／捕捉遺失、離開主畫布或切工具清空，停住保留光點。兩host右鍵／雙擊／圖層點選不再在雷射模式選取／編輯物件。十語手冊與新建指南同步；不改文件schema。初輪x64 build62.65秒0warning0error，最終封裝結果另補；本批App／實作測試／性能採樣未執行。仍1.0.17／1.0.17.0，未重包或提交Store。 [日誌](TOOL_CURSOR_LASER_2026-10-29.zh-TW.md)。
 
+x64免安裝`tool-cursor-laser-2026-10-29-r1`已完成，來源`152c9e0c573997870da69de82473945c69c5bf6c`；ZIP 132918771bytes／SHA256 `d2640965a2ccfae543ed409f38607ff9852fb1140d0b4c87e016feb3f327ad20`。586 payload／196 source SHA及588 archive entries CRC核同，兩EXE x64，ZIP與交付Data使用者檔=0；本批使用獨立作品庫，沒有複製目前執行中的Store資料。51份Store檔SHA不變。App／實機／核心及實作測試／性能採樣未執行；待使用者試用，無Store重包／進版／上傳。 [產物紀錄](TOOL_CURSOR_LASER_ARTIFACT_2026-10-29.json)。
+
 
 ## 2026-10-24 — Store 1.0.17.0已提交更新審查（使用者回報）
 

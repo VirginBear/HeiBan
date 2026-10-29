@@ -27,3 +27,13 @@ dotnet build windows/HeiBan.Windows/HeiBan.Windows.csproj -c Release -r win-x64 
 目前觀察到使用者Store版1.0.17.0程序正在執行。本批不關閉或操作它、不複製其即時作品資料；新Portable使用獨立Data。未根據已安裝程序推論Store最新認證狀態。未執行本批App／測試／性能／WACK，游標實際外觀、混合DPI與操作手感待使用者試用。
 
 變更檔案：Core LaserPointerEngine；Views ToolIcons／ToolCursor／ShapeCursor；MainWindow.Input／Chrome／xaml／xaml.cs；ScreenAnnotation NativeOverlayWindow／ScreenAnnotationWindow與Chrome／Objects／Panels／原Performance合成呼叫；共用renderer Laser；九語手冊來源及十語生成資產、平台狀態／日誌／架構／決策。沒有其他平台／文件契約修改。原生滑鼠cursor的軟體surface生成失敗只提供十字回退，不宣稱已驗收特殊顯卡／資源壓力情況。
+
+## 封裝及交付結果
+
+x64免安裝`tool-cursor-laser-2026-10-29-r1`已完成，來源`152c9e0c573997870da69de82473945c69c5bf6c`；ZIP 132918771bytes／SHA256 `d2640965a2ccfae543ed409f38607ff9852fb1140d0b4c87e016feb3f327ad20`。586 payload／196 source SHA及588 archive entries CRC核同，兩EXE x64，ZIP與交付Data使用者檔=0；本批使用獨立作品庫，沒有複製目前執行中的Store資料。51份Store檔SHA不變。App／實機／核心及實作測試／性能採樣未執行；待使用者試用，無Store重包／進版／上傳。 [產物紀錄](TOOL_CURSOR_LASER_ARTIFACT_2026-10-29.json)。
+
+Package-PortableTrial.ps1 -Runtime win-x64 -Label tool-cursor-laser-2026-10-29-r1成功，來源152c9e0c573997870da69de82473945c69c5bf6c；最終publish紀錄windows/.build/portable-trial-f87579f204744cf0bb569b588647a58b。inspect_delivery.py核對ZIP CRC／payload與來源SHA、x64PE、空Data與全部51Store檔SHA成功。只執行封裝完整性核對，沒有App／測試或性能驗收。
+
+同步時發現遠端main已增加Mac提交到670a7003a1bd1bab0783c3deaf8912c03f22d036。git fetch後核對檔案範圍：Mac與共用文件，無Windows檔；以git merge --no-edit origin/main整合，無衝突，保留152c9e0封裝來源commit與所有遠端歷史，不rebase／force。新開發索引已讀，沒有本批編寫Mac程式。Windows封裝來源byte不受merge影響。
+
+未驗收：游標圖示實際視覺、混合DPI／多螢幕、快速按放與切工具、失焦／取消、物件／圖釘／圖層在laser下不能選取、長按靜止與放開即清除、ARM64、WACK／Store安裝升級及新性能數字。版本1.0.17／1.0.17.0沿用，沒有新正式Release或商店作業；沒有刪任何作品、SDK、舊試用或已上傳商店套件。原未提交6／8／4行及三YouTube檔保留。公開原碼／記錄與私人壓縮交接分開推送。
