@@ -20,11 +20,11 @@ r1 caneSlot為Stretch容器內的Top子項，與直接加入shell的Select／Las
 
 首次x64 build48.72秒、0warning0error；後續補平滑揮動與手冊，最終依Portable publish。未執行App／測試。
 
-素材以內建imagegen參照自有BoardEraser.png生成；已查看原圖與生成結果，透明1536×1024俯視原創藤條、右下象牙白／鼠尾草握柄，未裁切或重新繪製PNG。保存Assets/Cane.png。生成提示完整紀錄如下。
+素材以內建imagegen參照自有BoardEraser.png生成；已查看原圖與生成結果，透明俯視原創藤條（IHDR核對1599×984）、右下象牙白／鼠尾草握柄，未裁切或重新繪製PNG。保存Assets/Cane.png。生成提示完整紀錄如下。
 
 > Create one original UI asset: a slender teacher's rattan pointer/cane, NOT the eraser itself. The supplied image is only a STYLE reference: same soft, tactile, gently shaded realistic top-down educational tool aesthetic, quiet HeiBan palette. Orthographic top view, cane lies flat against the board, no product perspective. One straight slightly organic golden tan rattan rod with subtle nodes, elegant ivory and muted sage wrapped grip at the LOWER RIGHT end; fine rounded bare rattan tip at UPPER LEFT. Diagonal runs upper left to lower right at exactly 45 degrees. Slender rod, approximately length to shaft thickness 25:1, grip thicker but still slender. Entire object visible with small padding, center the cane along the square diagonal. Restrained dimensional edge highlights and tiny contact shadow, no detached cast shadow, no white square, no button frame, no board background, no text, no hand, no eraser. Transparent RGBA background. This is an app shortcut sprite matching the referenced eraser's material style.
 
-生成結果為3:2橫圖，實際方向為左上至右下，非精確45°；保持素材原比例、不扭曲成正方形。共用render以右下握柄座標(.92,.90)旋轉；快捷沿用透明物件圖、無方形按鈕框，右鍵隱藏，更多顯示藤條還原。`CaneVisible`為選擇性偏好欄位（缺少時true），clone路徑同步，未改作品schema。既有已編輯操作指南不覆寫。
+生成結果為1599×984橫圖，實際方向為左上至右下，非精確45°；保持素材原比例、不扭曲成正方形。共用render以右下握柄座標(.92,.90)旋轉；快捷沿用透明物件圖、無方形按鈕框，右鍵隱藏，更多顯示藤條還原。`CaneVisible`為選擇性偏好欄位（缺少時true），clone路徑同步，未改作品schema。既有已編輯操作指南不覆寫。
 
 ## 來源整理與交付前紀錄
 
@@ -37,3 +37,5 @@ r1 caneSlot為Stretch容器內的Top子項，與直接加入shell的Select／Las
 實際命令：image_gen（技能內建工具）、複製原創PNG、Generate-CaneSound.py、Build-LocalizationCatalogs.py、Build-UserGuides.py、dotnet build（48.72秒0warning0error）；接續以獨立label執行Portable publish及靜態檔案完整性核對。尚未執行App、音效試聽、自動測試、性能採樣、ARM64、WACK；握點／跟隨／聲音／視覺對齊及顯示設定保存待實際使用驗收，不能僅由編譯成功推論已聽到聲音。
 
 來源凍結前git diff --cached --check偵測新增阿拉伯文最後欄位的尾端空白；改為既有catalog的\s顯式空格格式。外層操作仍啟動r2封裝，已辨識來源commit尚未凍結；r2不交付。最終改用獨立cane-refine-2026-10-29-r3，在正式來源commit後重新publish。這是產物來源追溯修正，並非正式產品進版。r2如已完成只在確認本批建立且Data空後清除，保留建置失敗／處理紀錄。
+
+最終素材靜態核對確認IHDR1599×984，與初看預覽估計1536×1024不同；r3的固定180×120渲染會小幅拉伸，改讀bitmap Bounds長寬比保留原形，打擊提示點亦依比例調整。r3已完成587以上檔案SHA／CRC核對但不作最終交付，最終另標cane-refine-2026-10-29-r4；舊r2清除在CreateProcess階段遭自動核准審查拒絕，僅回blocked by policy，沒有執行刪除、不換工具繞過。r2／r3中間包保留，不當作最新包；原Store與使用者Data未動。

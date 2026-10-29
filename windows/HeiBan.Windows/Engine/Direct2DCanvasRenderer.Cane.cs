@@ -24,14 +24,16 @@ public sealed partial class Direct2DCanvasRenderer
         var swinging=cane.IsActive(now);
         var angle=!swinging?0:elapsed<.035?-.55*Math.Sin(elapsed/.035*Math.PI*.5):elapsed<.075?-.55*(1-Math.Sin((elapsed-.035)/.04*Math.PI*.5)):-.14*Math.Sin(Math.Min(1,(elapsed-.075)/.185)*Math.PI);
         var rotation=Matrix3x2.CreateRotation((float)angle);
-        var tip=grip+Vector2.Transform(new Vector2(-156,-98)*scale,rotation);
+        var restHeight=_caneArt is { } art?180*(float)(art.Bounds.Height/art.Bounds.Width)*.83f:98;
+        var tip=grip+Vector2.Transform(new Vector2(-156,-restHeight)*scale,rotation);
         var bend=(tip+grip)/2+Vector2.Transform(new Vector2(-3,3)*scale,rotation);
         const float opacity=1;
         if(_caneArt is { } sprite)
         {
             var old=ds.Transform;
             ds.Transform=Matrix3x2.CreateTranslation(-grip)*rotation*Matrix3x2.CreateTranslation(grip)*old;
-            try{ds.DrawImage(sprite,new Rect(grip.X-165.6*scale,grip.Y-108*scale,180*scale,120*scale),sprite.Bounds);}
+            var width=180*scale;var height=width*sprite.Bounds.Height/sprite.Bounds.Width;
+            try{ds.DrawImage(sprite,new Rect(grip.X-width*.92,grip.Y-height*.90,width,height),sprite.Bounds);}
             finally{ds.Transform=old;}
         }
         else
