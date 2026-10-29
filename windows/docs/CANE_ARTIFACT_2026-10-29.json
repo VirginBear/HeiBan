@@ -1,0 +1,40 @@
+{
+  "caneAudio": {
+    "format": "PCM16 mono",
+    "sampleRate": 32000,
+    "frames": 7040,
+    "durationSeconds": 0.22,
+    "bytes": 14124,
+    "sha256": "38ccce49cdb2242ceef0ce44e90a679f4876ac615e510385f012766a0da0e943",
+    "source": "Original deterministic synthesis, scripts/Generate-CaneSound.py",
+    "auditioned": false
+  },
+  "label": "cane-2026-10-29-r1",
+  "version": "1.0.17",
+  "runtime": "win-x64",
+  "sourceCommit": "b354d6b97ce2cde009374b9a67379554d96f6cd3",
+  "zip": "windows/dist/trials/HeiBan-Windows-Portable-1.0.17-cane-2026-10-29-r1-win-x64.zip",
+  "bytes": 132938149,
+  "sha256": "1b80703c38b45bc1a4c0775d890cf8861bcdd1b6bc5469b1ddf967957fc8f746",
+  "payloadFilesChecked": 587,
+  "sourceFilesChecked": 202,
+  "archiveFiles": 589,
+  "zipUserDataFiles": 0,
+  "portableDataFiles": 0,
+  "zipCrcAndPayloadShaMatch": true,
+  "peArchitecture": "x64",
+  "preservedStoreFiles": 51,
+  "storeFilesUnchanged": true,
+  "dataHandoff": {
+    "copied": false,
+    "mode": "Independent portable Data; running Store app left untouched"
+  },
+  "appExecuted": false,
+  "implementationTestsExecuted": false,
+  "coreTestsExecuted": false,
+  "performanceCaptured": false,
+  "storeRepackaged": false,
+  "formalVersionIncremented": false,
+  "runtimeTestRecord": null,
+  "developmentRecord": "windows/docs/CANE_TOOL_2026-10-29.zh-TW.md"
+}
