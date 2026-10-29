@@ -48,7 +48,7 @@ public sealed partial class Direct2DCanvasRenderer
         var t=BoardEraserGeometry.ImageTransform;var old=ds.Transform;
         // Match the centered XAML transform and the physical contact footprint.
         // During dragging, the sprite shares the immediate ink presentation path.
-        ds.Transform=Matrix3x2.CreateTranslation(-w/2,-h/2)*new Matrix3x2((float)t.M11,(float)t.M12,(float)t.M21,(float)t.M22,0,0)
+        ds.Transform=Matrix3x2.CreateTranslation(-w/2,-h/2)*new Matrix3x2((float)t.M11,(float)t.M12,(float)t.M21,(float)t.M22,(float)t.M31,(float)t.M32)
             *Matrix3x2.CreateTranslation((float)left+w/2,(float)top+h/2)*old;
         try{ds.DrawImage(bitmap,new Rect(0,0,w,h),bitmap.Bounds,opacity);}
         finally{ds.Transform=old;}

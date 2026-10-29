@@ -17,7 +17,9 @@ public sealed class ToolbarPreferences
     public int DefaultToolsRevision { get; set; }
     public int DefaultPresentationRevision { get; set; }
     public int DefaultCommonRevision { get; set; }
-    public static readonly string[] DefaultCommonTools = ["pen","highlighter","eraser","brush","dash","undo","redo","magnet","clearAll","laser"];
+    public static readonly string[] FixedTools = ["select","laser","cane"];
+    public static bool IsFixedTool(string key)=>key is "select" or "laser" or "cane";
+    public static readonly string[] DefaultCommonTools = ["select","laser","cane","pen","highlighter","eraser","brush","dash","undo","redo","magnet","clearAll"];
     public List<string> CommonTools { get; set; } = [.. DefaultCommonTools];
     [System.Text.Json.Serialization.JsonExtensionData] public Dictionary<string,JsonElement>? ExtraFields { get; set; }
 
@@ -68,7 +70,7 @@ public sealed class ToolbarPreferences
         DefaultToolsRevision = 1,
         DefaultPresentationRevision = 1,
         DefaultCommonRevision = 1,
-        VisibleTools = [.. AllDefaultTools],
+        VisibleTools = [..FixedTools,..AllDefaultTools.Where(t=>!IsFixedTool(t))],
         HiddenTools = []
     };
 
@@ -111,19 +113,18 @@ public sealed class ToolbarPreferences
             DefaultCommonRevision=1;
         }
         var allKnown = AllDefaultTools.ToHashSet();
-        CommonTools = (CommonTools ?? [..DefaultCommonTools]).Where(t=>allKnown.Contains(t)&&t is not("select" or "extension")).Distinct().ToList();
+        CommonTools = (CommonTools ?? [..DefaultCommonTools]).Where(t=>allKnown.Contains(t)&&t!="extension").Distinct().ToList();
         VisibleTools ??= [];
         HiddenTools ??= [];
 
         // One-time discovery: old preferences lack layers in both lists. A later explicit hide remains respected.
         if(!VisibleTools.Contains("layers")&&!HiddenTools.Contains("layers"))VisibleTools.Add("layers");
         if(!VisibleTools.Contains("magnet")&&!HiddenTools.Contains("magnet"))VisibleTools.Add("magnet");
-        // Discover the new teaching cue once, without making it a forced favorite.
-        if(!VisibleTools.Contains("cane")&&!HiddenTools.Contains("cane"))VisibleTools.Add("cane");
-        // Selection and laser are fixed controls in every page, per the current UI contract.
-        HiddenTools.RemoveAll(t=>t is "select" or "laser");
-        VisibleTools.RemoveAll(t=>t is "select" or "laser");VisibleTools.InsertRange(0,["select","laser"]);
-        if(!CommonTools.Contains("laser"))CommonTools.Add("laser");
+        // These are structural controls, independent from per-page favorites.
+        // Restore older hidden preferences without discarding any other user order.
+        HiddenTools.RemoveAll(IsFixedTool);
+        VisibleTools.RemoveAll(IsFixedTool);VisibleTools.InsertRange(0,FixedTools);
+        CommonTools=FixedTools.Concat(CommonTools.Where(t=>!IsFixedTool(t))).ToList();
         var seen = new HashSet<string>();
         VisibleTools = VisibleTools.Where(t => allKnown.Contains(t) && seen.Add(t)).ToList();
         HiddenTools = HiddenTools.Where(t => allKnown.Contains(t) && seen.Add(t)).ToList();
@@ -147,20 +148,22 @@ public sealed class ToolbarPreferences
         DisplayMode="labels";MagnetEnabled=false;
         CommonTools=[..DefaultCommonTools];
         DockSide = "上方";
-        VisibleTools = [.. AllDefaultTools];
+        VisibleTools = [..FixedTools,..AllDefaultTools.Where(t=>!IsFixedTool(t))];
         HiddenTools = [];
     }
 
     public bool MoveToolUp(string toolKey)
     {
+        if(IsFixedTool(toolKey))return false;
         int idx = VisibleTools.IndexOf(toolKey);
-        if (idx <= 0) return false;
+        if (idx <= FixedTools.Length) return false;
         (VisibleTools[idx - 1], VisibleTools[idx]) = (VisibleTools[idx], VisibleTools[idx - 1]);
         return true;
     }
 
     public bool MoveToolDown(string toolKey)
     {
+        if(IsFixedTool(toolKey))return false;
         int idx = VisibleTools.IndexOf(toolKey);
         if (idx < 0 || idx >= VisibleTools.Count - 1) return false;
         (VisibleTools[idx + 1], VisibleTools[idx]) = (VisibleTools[idx], VisibleTools[idx + 1]);
@@ -169,7 +172,7 @@ public sealed class ToolbarPreferences
 
     public void HideTool(string toolKey)
     {
-        if(toolKey is "select" or "laser")return;
+        if(IsFixedTool(toolKey))return;
         if (VisibleTools.Remove(toolKey))
         {
             if (!HiddenTools.Contains(toolKey))

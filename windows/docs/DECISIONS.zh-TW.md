@@ -1,5 +1,9 @@
 # Windows 開發決策
 
+## 2026-10-29 — 固定工具、可見輪廓布局與選取圖層交易
+
+ToolbarPreferences.FixedTools是結構規則，三項永遠可見／勾選，排列、正規化、重設與自訂同源；CaneVisible只控制右下快捷。Arrange三按鈕同層，不再為某個頁面重掛藤條。BoardEraserGeometry的6項affine包含45°旋轉、host fit與中心偏移，Core輪廓／Win2D Matrix3x2／XAML Matrix.OffsetX,Y共享；Cane alpha hull只讀校正供可見底緣／尺度，旋轉後透明padding保留點擊區。雷射採同一ProfilePalette與PaletteEditor，選色只改laser，沒有每點指標訂閱。LayerReorder.MoveSelection只移動當頁可編輯選取、保留選取和未選取內部順序；全域當頁slots替換後一次正規化ZIndex與Undo，無實際變更不新增Undo，不跨舊文件／頁面回呼。原拖曳排序API保留。無新作品欄位或PNG／WAV。 [日誌](TEACHING_TOOLS_2026-10-29.zh-TW.md)。
+
 ## 2026-10-29 — 姿態基準與音效來源契約
 
 CanePose按水平線定義休止45°／揚起75°，素材方向以tip／grip及實際bitmap比例補償，快捷ImageOpened與共用renderer一致；缺圖向量亦45°，握點／PNG原比例保留。時間曲線沿用35ms揚起、75ms接觸、260ms回彈，最大回彈8°。聲音資產固定0.26秒單次摘錄、48kHz PCM16；75.729ms峰對應動畫接觸，不改音高／速度。Source JSON與notice是實際素材來源，舊合成器只輸出.build歷史檔，避免覆蓋主素材。整段參考MP3不進repo，無文件schema／Undo變更。音訊分析與App驗收分開記錄。 [日誌](CANE_SAMPLE_2026-10-29.zh-TW.md)。

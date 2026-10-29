@@ -77,7 +77,7 @@ internal sealed partial class ScreenAnnotationWindow
         _chromeStart.Measure(unbounded);_chromeEnd.Measure(unbounded);
         var workWidth=Math.Max(1,available.Width/_dpiScale-24);var workHeight=Math.Max(1,available.Height/_dpiScale-24);
         _chromeTools.RunLength=VerticalChrome?Math.Max(32,workHeight-_chromeStart.DesiredSize.Height-_chromeEnd.DesiredSize.Height-30):Math.Max(32,workWidth-_chromeStart.DesiredSize.Width-_chromeEnd.DesiredSize.Width-38);
-        if(_labeledScreenFlow is { } labeled){var extra=_toolbarPreferences.CommonTools.Contains("cane")&&_toolbarPreferences.VisibleTools.Contains("cane")?90:0;labeled.RunLength=VerticalChrome?Math.Max(72,workHeight-_chromeStart.DesiredSize.Height-_chromeEnd.DesiredSize.Height-398-extra):Math.Max(84,workWidth-_chromeStart.DesiredSize.Width-_chromeEnd.DesiredSize.Width-310-extra);labeled.InvalidateMeasure();}
+        if(_labeledScreenFlow is { } labeled){const int extra=90;labeled.RunLength=VerticalChrome?Math.Max(72,workHeight-_chromeStart.DesiredSize.Height-_chromeEnd.DesiredSize.Height-398-extra):Math.Max(84,workWidth-_chromeStart.DesiredSize.Width-_chromeEnd.DesiredSize.Width-310-extra);labeled.InvalidateMeasure();}
         _chromeTools.InvalidateMeasure();_chromeTools.Measure(unbounded);
         var start=_chromeStart.DesiredSize;var tools=_collapsed?new global::Windows.Foundation.Size():_chromeTools.DesiredSize;var end=_chromeEnd.DesiredSize;
         var desiredWidth=VerticalChrome?Math.Max(76,Math.Max(start.Width,Math.Max(tools.Width,end.Width))+32):start.Width+tools.Width+end.Width+38;

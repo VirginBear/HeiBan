@@ -712,7 +712,14 @@ public partial class MainWindow
         var menu=new MenuFlyout();void Add(string name,Action action){var item=new MenuFlyoutItem{Text=name};item.Click+=(_,_)=>action();menu.Items.Add(item);}
         if(pin is not null){Add(T("重新命名圖釘"),()=>StartPinRename(pin));Add(T("圖釘與文字配色…"),()=>PinAppearance(pin));Add(T("刪除圖釘"),()=>{_session.Begin();_session.Document.Board.Pins!.Remove(pin);_session.Commit();RefreshEditor();});}
         if(_session.Selected is not null){Add(T("複製"),CopySelected);Add(T("製作副本"),DuplicateSelected);Add(T("刪除"),()=>Delete_Click(this,new RoutedEventArgs()));
-            var selection=_session.SelectedIds.ToHashSet();var board=_session.Document.Board.Id;bool Current()=>board==_session.Document.Board.Id&&_session.SelectedIds.SetEquals(selection);
+            var selection=_session.SelectedIds.ToHashSet();var epoch=_session.DocumentEpoch;var page=_session.Document.Board.ActivePageId;
+            bool Current()=>epoch==_session.DocumentEpoch&&page==_session.Document.Board.ActivePageId&&_session.SelectedIds.SetEquals(selection);
+            menu.Items.Add(new MenuFlyoutSeparator());
+            foreach(var (label,move) in new[]{("移至圖層頂端",LayerMove.Front),("上移圖層",LayerMove.Up),("下移圖層",LayerMove.Down),("移至圖層底端",LayerMove.Back)})
+            {
+                var item=new MenuFlyoutItem{Text=T(label),IsEnabled=_session.SelectedObjects.Any(o=>o.IsLocked!=true)};
+                item.Click+=(_,_)=>{if(!Current())return;CommitPropertyEdit();FinishText();if(_gesture)CancelGesture();if(LayerReorder.MoveSelection(_session,move))RefreshEditor();};menu.Items.Add(item);
+            }
             TextStyleMenu.Append(menu,_session.SelectedObjects.ToArray(),change=>{CommitPropertyEdit();if(Current()){TextStyles.ApplySelection(_session,change);RefreshEditor();}},flyout=>{flyout.ShouldConstrainToRootBounds=false;flyout.ShowAt(CanvasSurface,new Microsoft.UI.Xaml.Controls.Primitives.FlyoutShowOptions{Position=new Point(screen.X,screen.Y)});},Current,()=>{if(_session.SelectedObjects.FirstOrDefault(o=>o.Type is "text" or "sticky"&&o.IsLocked!=true) is { } text)StartText(text);});}
         Add(T("貼上"),PasteObject);menu.OverlayInputPassThroughElement=ToolBorder;menu.ShowAt(CanvasSurface,new Microsoft.UI.Xaml.Controls.Primitives.FlyoutShowOptions{Position=new Point(screen.X,screen.Y)});
     }

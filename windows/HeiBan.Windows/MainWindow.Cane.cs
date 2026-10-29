@@ -34,9 +34,26 @@ public partial class MainWindow
     private void RefreshCaneQuick()
     {
         if(CaneQuickButton is null)return;
-        var occupied=_toolbarPrefs.BoardEraserVisible?BoardEraserGeometry.DisplayWidth+12:0;
-        Canvas.SetLeft(CaneQuickButton,Math.Max(8,DrawingArea.ActualWidth-occupied-124));
-        Canvas.SetTop(CaneQuickButton,Math.Max(8,DrawingArea.ActualHeight-118));
+        var eraser=BoardEraserGeometry.DisplayBounds;
+        var right=DrawingArea.ActualWidth-20;var bottom=DrawingArea.ActualHeight-40;
+        if(_boardEraserDraft is null)
+        {
+            Canvas.SetLeft(BoardEraserDock,Math.Max(-eraser.Left,right-eraser.Right));
+            Canvas.SetTop(BoardEraserDock,Math.Max(-eraser.Top,bottom-eraser.Bottom));
+        }
+        // Match visible-body size and bottom edge rather than transparent image frames.
+        var unscaled=CanePose.DockBounds(BoardEraserGeometry.DisplayWidth,BoardEraserGeometry.DisplayHeight);
+        var scale=Math.Max(eraser.Width,eraser.Height)/Math.Max(unscaled.Width,unscaled.Height);
+        var width=BoardEraserGeometry.DisplayWidth*scale;var height=BoardEraserGeometry.DisplayHeight*scale;
+        var cane=CanePose.DockBounds(width,height);
+        var padLeft=Math.Max(0,-cane.Left);var padTop=Math.Max(0,-cane.Top);
+        var padRight=Math.Max(0,cane.Right-width);var padBottom=Math.Max(0,cane.Bottom-height);
+        // Keep rotated tip/grip pixels inside the clickable host, without clipping.
+        CaneQuickButton.Padding=new Thickness(padLeft,padTop,padRight,padBottom);
+        CaneQuickButton.Width=width+padLeft+padRight;CaneQuickButton.Height=height+padTop+padBottom;
+        if(_toolbarPrefs.BoardEraserVisible)right-=eraser.Width+18;
+        Canvas.SetLeft(CaneQuickButton,Math.Max(-cane.Left-padLeft,right-cane.Right-padLeft));
+        Canvas.SetTop(CaneQuickButton,Math.Max(-cane.Top-padTop,bottom-cane.Bottom-padTop));
         CaneQuickButton.Visibility=_toolbarPrefs.CaneVisible?Visibility.Visible:Visibility.Collapsed;
         CaneQuickButton.Opacity=_tool=="cane"?1:.9;
         CaneQuickButton.IsHitTestVisible=!_readingMode;

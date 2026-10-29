@@ -40,8 +40,9 @@ internal sealed partial class ScreenAnnotationWindow
         menu.Items.Add(new MenuFlyoutSeparator());
         Add("delete",T("刪除物件"),DeleteScreenSelection,selected is {IsLocked:not true});
         Add(selected?.IsLocked==true?"unlock":"lock",selected?.IsLocked==true?T("解除鎖定"):T("鎖定物件"),()=>{if(_session.Selected is not { } o)return;_session.Begin();o.IsLocked=o.IsLocked!=true;_session.Commit();Changed();});
-        Add("layers",T("移到最上層"),()=>ChangeScreenLayer(true),selected is {IsLocked:not true});
-        Add("layers",T("移到最下層"),()=>ChangeScreenLayer(false),selected is {IsLocked:not true});
+        var epoch=_session.DocumentEpoch;var page=_session.Document.Board.ActivePageId;var ids=_session.SelectedIds.ToHashSet();
+        foreach(var (label,move) in new[]{("移至圖層頂端",LayerMove.Front),("上移圖層",LayerMove.Up),("下移圖層",LayerMove.Down),("移至圖層底端",LayerMove.Back)})
+            Add("layers",T(label),()=>{if(epoch==_session.DocumentEpoch&&page==_session.Document.Board.ActivePageId&&_session.SelectedIds.SetEquals(ids))ChangeScreenLayer(move);},_session.SelectedObjects.Any(o=>o.IsLocked!=true));
         AppendScreenTextMenu(menu);return menu;
     }
     private string? SerializeScreenSelection()=>_session.Selected is { } selected?"HEIBAN_OBJECTS:"+JsonSerializer.Serialize(_session.SelectedObjects.ToArray(),DocumentCodec.Options):null;
@@ -84,8 +85,8 @@ internal sealed partial class ScreenAnnotationWindow
         }
     }
     private void DeleteScreenSelection(){DamageSelectedObjects();CancelGesture();_session.DeleteSelected();RefreshScreenStyleButtons();Changed();}
-    private void ChangeScreenLayer(bool front)
-    {if(_session.Selected is not {IsLocked:not true} o)return;CancelGesture();_session.Begin();o.ZIndex=front?_session.Document.Objects.Max(item=>item.ZIndex)+1:_session.Document.Objects.Min(item=>item.ZIndex)-1;_session.Commit();Changed();}
+    private void ChangeScreenLayer(LayerMove move)
+    {CancelGesture();if(LayerReorder.MoveSelection(_session,move))Changed();}
     private async void ClearScreenObjects()
     {
         if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();

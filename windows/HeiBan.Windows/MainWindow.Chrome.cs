@@ -580,7 +580,6 @@ public partial class MainWindow
         menu.Items.Add(boardEraserItem);
         var caneVisible=new ToggleMenuFlyoutItem{Text=T("顯示藤條"),IsChecked=_toolbarPrefs.CaneVisible};
         caneVisible.Click+=async(_,_)=>{caneVisible.IsEnabled=false;try{await SetCaneVisibleAsync(caneVisible.IsChecked);}finally{caneVisible.IsChecked=_toolbarPrefs.CaneVisible;caneVisible.IsEnabled=true;}};menu.Items.Add(caneVisible);
-        var caneTool=new MenuFlyoutItem{Text=T("藤條"),Icon=ToolIcons.CreateIcon("cane")};caneTool.Click+=(_,_)=>ActivateTool("cane");menu.Items.Add(caneTool);
         menu.Items.Add(new MenuFlyoutSeparator());
 
         // 隱藏工具清單
@@ -699,27 +698,27 @@ public partial class MainWindow
                 var cb = new CheckBox
                 {
                     Content = new StackPanel{Orientation=Orientation.Horizontal,Spacing=10,Children={ToolIcons.Create(key),new TextBlock{Text=T(ToolbarPreferences.ToolNames.GetValueOrDefault(key,key)),MaxWidth=160,TextWrapping=TextWrapping.Wrap,VerticalAlignment=VerticalAlignment.Center}}},
-                    IsEnabled=key is not("select" or "laser"),IsChecked = key is "select" or "laser"||visibleSet.Contains(key)
+                    IsEnabled=!ToolbarPreferences.IsFixedTool(key),IsChecked = ToolbarPreferences.IsFixedTool(key)||visibleSet.Contains(key)
                 };
                 cb.Checked += (_, _) => visibleSet.Add(key);
                 cb.Unchecked += (_, _) => visibleSet.Remove(key);
                 Grid.SetColumn(cb, 0);
                 grid.Children.Add(cb);
 
-                var upBtn = new Button { Content = "↑", Padding = new Thickness(6, 2, 6, 2), IsEnabled = idx > 0 };
+                var upBtn = new Button { Content = "↑", Padding = new Thickness(6, 2, 6, 2), IsEnabled = !ToolbarPreferences.IsFixedTool(key)&&idx > ToolbarPreferences.FixedTools.Length };
                 upBtn.Click += (_, _) =>
                 {
                     (allKeys[idx - 1], allKeys[idx]) = (allKeys[idx], allKeys[idx - 1]);
                     RebuildList();
                 };
-                var common=new CheckBox{Content=T("常用"),IsChecked=commonSet.Contains(key),IsEnabled=key is not("select" or "laser"),MinWidth=72};
+                var common=new CheckBox{Content=T("常用"),IsChecked=ToolbarPreferences.IsFixedTool(key)||commonSet.Contains(key),IsEnabled=!ToolbarPreferences.IsFixedTool(key),MinWidth=72};
                 common.Checked+=(_,_)=>{commonSet.Add(key);visibleSet.Add(key);cb.IsChecked=true;};
                 common.Unchecked+=(_,_)=>commonSet.Remove(key);
                 Grid.SetColumn(common,1);grid.Children.Add(common);
                 Grid.SetColumn(upBtn, 2);
                 grid.Children.Add(upBtn);
 
-                var downBtn = new Button { Content = "↓", Padding = new Thickness(6, 2, 6, 2), IsEnabled = idx < allKeys.Count - 1 };
+                var downBtn = new Button { Content = "↓", Padding = new Thickness(6, 2, 6, 2), IsEnabled = !ToolbarPreferences.IsFixedTool(key)&&idx < allKeys.Count - 1 };
                 downBtn.Click += (_, _) =>
                 {
                     (allKeys[idx + 1], allKeys[idx]) = (allKeys[idx], allKeys[idx + 1]);
@@ -738,7 +737,7 @@ public partial class MainWindow
         var dialog = new ContentDialog
         {FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,
             Title = T("自訂工具列"),
-            Content = new StackPanel{Spacing=10,Children={CustomizeToolbarHeader(visibleSet,allKeys,RebuildList,displayMode,value=>displayMode=value,()=>{commonSet.Clear();commonSet.UnionWith(new ToolbarPreferences().CommonTools);}),new TextBlock{Text=T("左側勾選顯示工具，勾選「常用」加入常用分頁；選取與雷射會持續顯示。"),TextWrapping=TextWrapping.Wrap,FontSize=12,Foreground=Brush("#65746A")},scroll}},
+            Content = new StackPanel{Spacing=10,Children={CustomizeToolbarHeader(visibleSet,allKeys,RebuildList,displayMode,value=>displayMode=value,()=>{commonSet.Clear();commonSet.UnionWith(new ToolbarPreferences().CommonTools);}),new TextBlock{Text=T("左側勾選顯示工具，勾選「常用」加入常用分頁；選取、雷射與藤條固定顯示。"),TextWrapping=TextWrapping.Wrap,FontSize=12,Foreground=Brush("#65746A")},scroll}},
             PrimaryButtonText = T("儲存"),
             CloseButtonText = T("取消"),
             XamlRoot = Root.XamlRoot

@@ -91,9 +91,9 @@ internal sealed partial class ScreenAnnotationWindow
         Command("預設",()=>_toolbarPreferences.ResetToDefault());
         Command("只有圖示",()=>_toolbarPreferences.DisplayMode="icons");Command("圖示與文字（分頁）",()=>_toolbarPreferences.DisplayMode="labels");
         var common=new MenuFlyoutSubItem{Text=T("常用")};
-        foreach(var key in ToolbarContentPolicy.ScreenCanvasTools.Where(key=>key is not("select" or "laser")))
+        foreach(var key in ToolbarContentPolicy.ScreenCanvasTools)
         {
-            var favorite=new ToggleMenuFlyoutItem{Text=T(ToolbarPreferences.ToolNames.GetValueOrDefault(key,key)),IsChecked=_toolbarPreferences.CommonTools.Contains(key)};
+            var favorite=new ToggleMenuFlyoutItem{Text=T(ToolbarPreferences.ToolNames.GetValueOrDefault(key,key)),IsChecked=ToolbarPreferences.IsFixedTool(key)||_toolbarPreferences.CommonTools.Contains(key),IsEnabled=!ToolbarPreferences.IsFixedTool(key)};
             favorite.Click+=async(_,_)=>
             {
                 var oldCommon=_toolbarPreferences.CommonTools.ToList();var oldVisible=_toolbarPreferences.VisibleTools.ToList();var oldHidden=_toolbarPreferences.HiddenTools.ToList();
@@ -107,7 +107,7 @@ internal sealed partial class ScreenAnnotationWindow
         submenu.Items.Add(new MenuFlyoutSeparator());
         foreach(var key in ToolbarContentPolicy.VisibleTools(_toolbarPreferences,screenCanvas:true).Concat(ToolbarContentPolicy.HiddenTools(_toolbarPreferences,screenCanvas:true)))
         {
-            var item=new ToggleMenuFlyoutItem{Text=T(ToolbarPreferences.ToolNames.GetValueOrDefault(key,key)),IsEnabled=key is not("select" or "laser"),IsChecked=_toolbarPreferences.VisibleTools.Contains(key)};
+            var item=new ToggleMenuFlyoutItem{Text=T(ToolbarPreferences.ToolNames.GetValueOrDefault(key,key)),IsEnabled=!ToolbarPreferences.IsFixedTool(key),IsChecked=_toolbarPreferences.VisibleTools.Contains(key)};
             item.Click+=async(_,_)=>
             {
                 var previousVisible=_toolbarPreferences.VisibleTools.ToList();var previousHidden=_toolbarPreferences.HiddenTools.ToList();
@@ -190,7 +190,6 @@ internal sealed partial class ScreenAnnotationWindow
         Item("save",T("儲存註記"),async()=>{if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();FinishScreenText();CancelGesture();if(await SaveAsync()){_status.Text=_session.IsDirty?T("尚有變更"):T("已儲存");RefreshMode();}});
         var dockMenu=new MenuFlyoutSubItem{Text=T("工具列位置")};
         foreach(var pair in new[]{("top","上方"),("bottom","下方"),("left","左側"),("right","右側")}){var side=pair.Item1;var item=new MenuFlyoutItem{Text=T(pair.Item2)};item.Click+=(_,_)=>DockChrome(side);dockMenu.Items.Add(item);}menu.Items.Add(dockMenu);menu.Items.Add(new MenuFlyoutSeparator());
-        Item("cane",T("藤條"),()=>ChooseScreenTool("cane"));
         Item("palette",T("調色盤"),ShowScreenPalette);
         menu.Items.Add(ScreenToolbarCustomization());
         Item("export",T("儲存可編輯註記／透明 PNG…"),async()=>await ExportAnnotationsAsync());Item("delete",T("一鍵清空畫布（可復原）"),ClearScreenObjects);Item("reading",T("使用說明（正體中文）"),async()=>await global::Windows.System.Launcher.LaunchUriAsync(new Uri(Path.Combine(AppContext.BaseDirectory,"Assets","HeiBanUserGuide.html"))));

@@ -54,7 +54,7 @@ public partial class MainWindow
         var panel=new StackPanel{Width=280,Spacing=8};
         var mode=new ComboBox{Header=T("雷射模式"),ItemsSource=new[]{T("光點"),T("短尾跡"),T("線條")},SelectedIndex=Array.IndexOf(new[]{"point","shortTrail","line"},_laser.Mode)};
         mode.SelectionChanged+=(_,_)=>{_laser.Mode=new[]{"point","shortTrail","line"}[Math.Max(0,mode.SelectedIndex)];_laser.Clear();};panel.Children.Add(mode);
-        var wheel=ColorWheel(_laser.Color);wheel.ColorChanged+=(_,e)=>_laser.Color=ColorHex(e.NewColor);panel.Children.Add(wheel);
+        var wheel=ColorWheel(_laser.Color);wheel.ColorChanged+=(_,e)=>_laser.Color=ColorHex(e.NewColor);panel.Children.Add(new Views.PaletteEditor(ProfilePalette,()=>ColorHex(wheel.Color),c=>wheel.Color=Direct2DCanvasRenderer.HexToColor(c),wheel));panel.Children.Add(wheel);
         var diameter=new Slider{Header=T("光點直徑"),Minimum=4,Maximum=64,Value=_laser.PointDiameter};diameter.ValueChanged+=(_,_)=>_laser.PointDiameter=diameter.Value;panel.Children.Add(diameter);
         var width=new Slider{Header=T("尾跡粗細"),Minimum=1,Maximum=32,Value=_laser.Width};width.ValueChanged+=(_,_)=>_laser.Width=width.Value;panel.Children.Add(width);
         var fade=new Slider{Header=T("消退時間（秒）"),Minimum=.1,Maximum=5,StepFrequency=.1,Value=_laser.FadeDuration};fade.ValueChanged+=(_,_)=>_laser.FadeDuration=fade.Value;panel.Children.Add(fade);

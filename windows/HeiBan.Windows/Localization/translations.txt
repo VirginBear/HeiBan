@@ -557,3 +557,8 @@ PDF、PPT、PPTX 會另外產生圖片頁面放進畫布，不會直接編輯原
 顯示藤條|Show cane|指示棒を表示|지시봉 표시|Mostrar varilla|Afficher la baguette|Zeigestock anzeigen|Mostrar vareta|إظهار العصا
 隱藏藤條|Hide cane|指示棒を隠す|지시봉 숨기기|Ocultar varilla|Masquer la baguette|Zeigestock ausblenden|Ocultar vareta|إخفاء العصا
 藤條音效無法播放：|Cane sound could not play: |指示棒の音声を再生できません：|지시봉 소리를 재생할 수 없습니다: |No se pudo reproducir el sonido de la varilla: |Impossible de lire le son de la baguette : |Zeigestock-Ton konnte nicht abgespielt werden: |Não foi possível tocar o som da vareta: |تعذر تشغيل صوت العصا:\s
+移至圖層頂端|Bring to front|最前面へ移動|맨 앞으로 이동|Traer al frente|Placer au premier plan|In den Vordergrund|Trazer para a frente|نقل إلى المقدمة
+上移圖層|Bring forward|一つ前面へ|한 단계 앞으로|Adelantar una capa|Avancer d’un plan|Eine Ebene nach vorne|Avançar uma camada|تقديم طبقة واحدة
+下移圖層|Send backward|一つ背面へ|한 단계 뒤로|Retroceder una capa|Reculer d’un plan|Eine Ebene nach hinten|Recuar uma camada|إرجاع طبقة واحدة
+移至圖層底端|Send to back|最背面へ移動|맨 뒤로 이동|Enviar al fondo|Placer à l’arrière-plan|In den Hintergrund|Enviar para trás|نقل إلى الخلف
+左側勾選顯示工具，勾選「常用」加入常用分頁；選取、雷射與藤條固定顯示。|Choose visible tools on the left and favorites under Common. Selection, Laser and Cane are always shown.|左で表示するツールを選び、常用に追加します。選択・レーザー・指示棒は常に表示されます。|왼쪽에서 표시할 도구와 자주 사용할 도구를 선택합니다. 선택, 레이저, 지시봉은 항상 표시됩니다.|Elige las herramientas visibles y frecuentes. Selección, Láser y Varilla siempre se muestran.|Choisissez les outils visibles et courants. Sélection, Laser et Baguette restent toujours affichés.|Sichtbare und häufig verwendete Werkzeuge wählen. Auswahl, Laser und Zeigestock bleiben sichtbar.|Escolha as ferramentas visíveis e frequentes. Seleção, Laser e Vareta ficam sempre visíveis.|اختر الأدوات الظاهرة والشائعة. يظل التحديد والليزر والعصا ظاهرين دائمًا.

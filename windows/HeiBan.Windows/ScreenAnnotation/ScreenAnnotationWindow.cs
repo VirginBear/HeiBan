@@ -425,11 +425,15 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     private Task LaserSettingsAsync()
     {
         var panel=new StackPanel{Spacing=8,Width=260};panel.Children.Add(new TextBlock{Text=T("雷射設定"),FontSize=16});
+        var wheel=new ColorPicker{Color=Direct2DCanvasRenderer.HexToColor(_laser.Color),Width=248,ColorSpectrumShape=ColorSpectrumShape.Ring,IsHexInputVisible=true,IsColorChannelTextInputVisible=false,IsAlphaEnabled=true,IsAlphaSliderVisible=true};
+        wheel.ColorChanged+=(_,e)=>{_laser.Color=$"#{e.NewColor.R:X2}{e.NewColor.G:X2}{e.NewColor.B:X2}{e.NewColor.A:X2}";_laser.Clear();_dirty=true;};
+        panel.Children.Add(new PaletteEditor(_owner.ProfilePalette,()=>$"#{wheel.Color.R:X2}{wheel.Color.G:X2}{wheel.Color.B:X2}{wheel.Color.A:X2}",c=>wheel.Color=Direct2DCanvasRenderer.HexToColor(c),wheel));panel.Children.Add(wheel);
         var modes=new[]{"point","shortTrail","line"};var mode=new ComboBox{Header=T("模式"),ItemsSource=new[]{T("光點"),T("短尾跡"),T("線條")},SelectedIndex=Math.Max(0,Array.IndexOf(modes,_laser.Mode))};panel.Children.Add(mode);
         var diameter=new Slider{Header=T("光點直徑"),Minimum=4,Maximum=64,Value=_laser.PointDiameter};
         var width=new Slider{Header=T("尾跡粗細"),Minimum=1,Maximum=32,Value=_laser.Width};var fade=new Slider{Header=T("消退時間（秒）"),Minimum=.1,Maximum=5,StepFrequency=.1,Value=_laser.FadeDuration};var white=new CheckBox{Content=T("白色光芯"),IsChecked=_laser.WhiteCore};
         panel.Children.Add(diameter);panel.Children.Add(width);panel.Children.Add(fade);panel.Children.Add(white);
         var flyout=new Flyout{Content=panel};var apply=new Button{Content=T("套用")};apply.Click+=(_,_)=>{_laser.Mode=modes[Math.Max(0,mode.SelectedIndex)];_laser.PointDiameter=diameter.Value;_laser.Width=width.Value;_laser.FadeDuration=fade.Value;_laser.WhiteCore=white.IsChecked==true;_laser.Clear();_dirty=true;flyout.Hide();};panel.Children.Add(apply);
+        flyout.Closed+=async(_,_)=>await _owner.SaveTeachingSettingsAsync();
         ShowChromeFlyout(flyout,_mode);return Task.CompletedTask;
     }
     internal async Task ValidateNativeSessionAsync(string outputDirectory)

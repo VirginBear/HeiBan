@@ -36,7 +36,7 @@ public partial class MainWindow
         catch(Exception e) when(e is IOException or JsonException or ArgumentException){StatusText.Text=T("教學工具偏好未載入：")+e.Message;}
     }
     private static double FiniteClamp(double value,double min,double max,double fallback)=>double.IsFinite(value)?Math.Clamp(value,min,max):fallback;
-    private async Task SaveTeachingSettingsAsync()
+    internal async Task SaveTeachingSettingsAsync()
     {
         _teachingSaveTimer.Stop();
         var snapshot=JsonSerializer.Serialize(new TeachingSettings{LaserMode=_laser.Mode,LaserColor=_laser.Color,LaserWidth=_laser.Width,LaserDiameter=_laser.PointDiameter,LaserFade=_laser.FadeDuration,WhiteCore=_laser.WhiteCore,RulerLengthPercent=_rulerLengthPercent,InspectorDock=_inspectorDock,Styles=_toolStyles},TeachingJson);

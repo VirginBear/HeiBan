@@ -56,13 +56,9 @@ internal static partial class ToolbarUi
         DetachButtons(buttons.Select(item=>item.Button));
         host.Children.Clear();
         foreach(var (key,button) in buttons)LabelMode(button,key,labels,iconSize);
-        var favoriteCane=commonTools?.Contains("cane")==true;
-        if(!labels){foreach(var (_,button) in buttons.OrderBy(b=>b.Key=="select"?0:b.Key=="laser"?1:b.Key=="cane"&&favoriteCane?2:3))host.Children.Add(button);return null;}
+        if(!labels){foreach(var (_,button) in buttons.OrderBy(b=>b.Key=="select"?0:b.Key=="laser"?1:b.Key=="cane"?2:3))host.Children.Add(button);return null;}
         var shell=new StackPanel{Orientation=vertical?Orientation.Vertical:Orientation.Horizontal,Spacing=6};
-        foreach(var key in new[]{"select","laser"})if(buttons.FirstOrDefault(b=>b.Key==key).Button is { } pinned)shell.Children.Add(pinned);
-        var caneButton=buttons.FirstOrDefault(b=>b.Key=="cane").Button;
-        var caneSlot=new StackPanel{Visibility=Visibility.Collapsed,VerticalAlignment=VerticalAlignment.Center,HorizontalAlignment=HorizontalAlignment.Center};
-        if(favoriteCane&&caneButton is not null)shell.Children.Add(caneSlot);
+        foreach(var key in ToolbarPreferences.FixedTools)if(buttons.FirstOrDefault(b=>b.Key==key).Button is { } pinned)shell.Children.Add(pinned);
         var body=new StackPanel{Spacing=4};
         var tabs=new StackPanel{Orientation=vertical?Orientation.Vertical:Orientation.Horizontal,Spacing=3};
         var flow=new ToolbarFlowPanel{Orientation=vertical?Orientation.Vertical:Orientation.Horizontal,RunLength=vertical?600:900,Spacing=3,SingleRun=true};
@@ -70,11 +66,7 @@ internal static partial class ToolbarUi
         void Show(string page)
         {
             flow.Children.Clear();flow.PageOffset=0;
-            // Detach both former parents before moving the one cane button between pages.
-            caneSlot.Children.Clear();caneSlot.Visibility=Visibility.Collapsed;
-            var pinCane=page=="common"&&favoriteCane&&caneButton is not null;
-            if(pinCane){caneSlot.Children.Add(caneButton!);caneSlot.Visibility=Visibility.Visible;}
-            foreach(var (key,button) in buttons.Where(b=>b.Key is not("select" or "laser" or "more")&&!(pinCane&&b.Key=="cane")&&(page=="common"?(commonTools?.Contains(b.Key)??PageFor(b.Key)=="common"):PageFor(b.Key)==page)))flow.Children.Add(button);
+            foreach(var (key,button) in buttons.Where(b=>b.Key!="more"&&!ToolbarPreferences.IsFixedTool(b.Key)&&(page=="common"?(commonTools?.Contains(b.Key)??PageFor(b.Key)=="common"):PageFor(b.Key)==page)))flow.Children.Add(button);
             foreach(var pair in tabButtons)pair.Value.Background=new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(pair.Key==page?(byte)45:(byte)0,57,115,90));
             changePage(page);
         }
