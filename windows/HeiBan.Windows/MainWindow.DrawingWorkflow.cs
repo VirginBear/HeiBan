@@ -69,7 +69,7 @@ public partial class MainWindow
             finally{_arrangingToolbar=false;}
         }
         if(_labeledToolbarFlow is { } flow)
-        {flow.RunLength=vertical?Math.Max(72,DrawingArea.ActualHeight-538):Math.Max(84,DrawingArea.ActualWidth-410);flow.InvalidateMeasure();}
+        {var extra=_toolbarPrefs.CommonTools.Contains("cane")&&_toolbarPrefs.VisibleTools.Contains("cane")?90:0;flow.RunLength=vertical?Math.Max(72,DrawingArea.ActualHeight-538-extra):Math.Max(84,DrawingArea.ActualWidth-410-extra);flow.InvalidateMeasure();}
     }
     private FrameworkElement CustomizeToolbarHeader(HashSet<string> visible,List<string> order,Action rebuild,string mode,Action<string> setMode,Action resetCommon)
     {

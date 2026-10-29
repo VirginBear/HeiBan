@@ -159,7 +159,7 @@ internal sealed partial class ScreenAnnotationWindow
         _chromeFlyout?.Hide();FinishScreenText();if(key==_tool&&key=="laser"){_ = LaserSettingsAsync();return;}if(key==_tool&&key=="eraser"){ShowEraserSettings();return;}
         var selectionVisuals=(_tool=="select"||key=="select")&&_session.SelectedIds.Count>0;
         if(selectionVisuals)DamageSelectedObjects();CancelGesture();_tool=key;
-        if(key=="laser")_session.SelectedId=null;
+        if(key is "laser" or "cane")_session.SelectedId=null;
         if(!_drawing)SetDrawing(true);else if(selectionVisuals)_dirty=true;
         _overlay.SetManipulationCursor(null,null,_tool);RefreshButtons();
     }

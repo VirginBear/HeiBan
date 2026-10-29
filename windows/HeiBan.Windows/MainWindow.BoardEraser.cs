@@ -39,6 +39,7 @@ public partial class MainWindow
     private void RefreshBoardEraser()
     {
         if(BoardEraserDock is null)return;
+        RefreshCaneQuick();
         if(!_boardEraserTransformApplied)
         {
             var t=BoardEraserGeometry.ImageTransform;

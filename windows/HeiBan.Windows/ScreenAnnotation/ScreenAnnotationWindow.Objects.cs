@@ -15,7 +15,7 @@ internal sealed partial class ScreenAnnotationWindow
 {
     private void ScreenRightClick(InkPoint point)
     {
-        if(!_drawing||_tool=="laser")return;
+        if(!_drawing||_tool is "laser" or "cane")return;
         _chromeFlyout?.Hide();CancelGesture();
         var hit=_session.Hit(point,6);if(hit is null)return;
         // Right-click edits the hit object; preserve a multi-selection when it already contains it.

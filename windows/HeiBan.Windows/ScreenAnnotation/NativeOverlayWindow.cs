@@ -109,7 +109,7 @@ internal sealed partial class NativeOverlayWindow : IDisposable
                 // Message coordinates belong to this sample; querying the current cursor can skip queued movement.
                 var coordinates=lParam.ToInt64();var p=new Point{X=(short)(coordinates&0xffff),Y=(short)((coordinates>>16)&0xffff)};
                 var kind=message switch {0x0201=>"down",0x0202=>"up",0x0205=>"right",0x0203=>"double",_=>"move"};
-                if(message==0x0201||(message==0x0203&&_cursorTool=="laser")){_pointerCaptured=true;SetCapture(hwnd);}
+                if(message==0x0201||(message==0x0203&&_cursorTool is "laser" or "cane")){_pointerCaptured=true;SetCapture(hwnd);}
                 if(message==0x0202){_pointerCaptured=false;ReleaseCapture();}
                 Pointer?.Invoke(new(kind,p.X,p.Y,(wParam&4)!=0,(wParam&1)!=0));return 0;
             }

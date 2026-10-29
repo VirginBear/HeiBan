@@ -47,80 +47,80 @@
       "file": "zh-TW.html",
       "sections": 25,
       "paragraphs": 64,
-      "bytes": 30020,
-      "sha256": "6928098ca7e9e90cd5cf3b61ec0753c6c588d128530914e44f84c0400544b996"
+      "bytes": 30399,
+      "sha256": "ce0952d049e1320eca563ddcce815fd8f53896e1776411764ccf0ab8de2933b7"
     },
     {
       "language": "zh-CN",
       "file": "zh-CN.html",
       "sections": 25,
       "paragraphs": 64,
-      "bytes": 30008,
-      "sha256": "810e90f093d1151d78246da2883a308a3e6ff745532b99831e0533305e86b94a"
+      "bytes": 30387,
+      "sha256": "aeed677a4fae0448c38e9311eee452472d4475da340af2783a3ce53b46c5ecbe"
     },
     {
       "language": "en",
       "file": "en.html",
       "sections": 25,
       "paragraphs": 64,
-      "bytes": 35017,
-      "sha256": "edad32813b694aa8c3ce8543221430ca6c2c20c4e91b21f30372795203a9a69b"
+      "bytes": 35455,
+      "sha256": "71cadac993a6ad88288a156e3faff3889f679d6a2213fa2521ff10d91db8688f"
     },
     {
       "language": "ja",
       "file": "ja.html",
       "sections": 25,
       "paragraphs": 64,
-      "bytes": 38368,
-      "sha256": "19c51238416cda0be95750469d93af87dee3d835f6fdaa7c15e5c353fb849258"
+      "bytes": 39032,
+      "sha256": "bad6672b0690998c040b724381b28a7341075d4dc43c27f11ae5cb644fa0e3b9"
     },
     {
       "language": "ko",
       "file": "ko.html",
       "sections": 25,
       "paragraphs": 64,
-      "bytes": 36848,
-      "sha256": "9db80127b8053d5a005be0e68634f46095b3a0602dc47130b7a7b9eeb0b8015a"
+      "bytes": 37468,
+      "sha256": "c09a7e0656327a3d8db0c3318e156a33ef70c5ffeacad44a12338018aa56218b"
     },
     {
       "language": "es",
       "file": "es.html",
       "sections": 25,
       "paragraphs": 64,
-      "bytes": 33909,
-      "sha256": "f042478e096d6e3f3f1e9cd6d40d12d6b382df5a114e6536e7c6bb981049a4aa"
+      "bytes": 34403,
+      "sha256": "058cac5b985bca438a06f8fd21f1916f12b776cfc22f5a104650cc9277c45c36"
     },
     {
       "language": "fr",
       "file": "fr.html",
       "sections": 25,
       "paragraphs": 64,
-      "bytes": 34526,
-      "sha256": "922828119c5a58fd10c75c47414a7720665a1df168e9f3c488cc53fa08e04577"
+      "bytes": 35053,
+      "sha256": "f31ebdb91f29ac32dafe451d2eae3e9c98791c4c40c9d04d9aad57c13337d136"
     },
     {
       "language": "de",
       "file": "de.html",
       "sections": 25,
       "paragraphs": 64,
-      "bytes": 33266,
-      "sha256": "0e85b43576b32343e2d3c259e1f857fc8b5d54c8f8881295175c7b761869eb80"
+      "bytes": 33826,
+      "sha256": "0462bde46d1d8a5b12faf4103bed5d1ccab6c8b41b0d87c9f03857206794a7ae"
     },
     {
       "language": "pt-BR",
       "file": "pt-BR.html",
       "sections": 25,
       "paragraphs": 64,
-      "bytes": 31650,
-      "sha256": "fdc484db882497e34c0ad8602a8c87291df7609f3c49f7c23d46d51839c7bb4c"
+      "bytes": 32123,
+      "sha256": "68ad563f0b6eb4201377e0f543f06bc595f9ebb79b1fdad316da49700c901995"
     },
     {
       "language": "ar",
       "file": "ar.html",
       "sections": 25,
       "paragraphs": 64,
-      "bytes": 43405,
-      "sha256": "0cb6f8df04869618548190cd328cf74177450e698dc987908bbfc437c9d2b17a"
+      "bytes": 44135,
+      "sha256": "514d5d37b47f7bdf0769a5fb0657c632abceffc2b305adc05703cfedeacd5ab3"
     }
   ],
   "screenshots": [
@@ -145,8 +145,8 @@
     {
       "language": "zh-TW",
       "file": "QuickStart-zh-TW.heiban",
-      "bytes": 98291,
-      "sha256": "55971bae4a0006292bc74ed86f889c58cf9f9295c4ab20f15dfaa9aee678691c",
+      "bytes": 98702,
+      "sha256": "37b4323b97b5d00a19681fc130ec5506054d311d67327a47763560d666b8a871",
       "canvasMode": "infinite",
       "chapters": 25,
       "toolKeys": [
@@ -172,6 +172,7 @@
         "redo",
         "dock",
         "laser",
+        "cane",
         "tape",
         "lasso",
         "extension",
@@ -184,8 +185,8 @@
     {
       "language": "zh-CN",
       "file": "QuickStart-zh-CN.heiban",
-      "bytes": 98291,
-      "sha256": "fdeabebe6b00794f081a691ea9deed6a90d8c8737d17bdebe019f13895e74d18",
+      "bytes": 98702,
+      "sha256": "d8c435252c75aa2efe1fcc34084c4a4550fc9a5b3aa909098dce93849bd7a3e8",
       "canvasMode": "infinite",
       "chapters": 25,
       "toolKeys": [
@@ -211,6 +212,7 @@
         "redo",
         "dock",
         "laser",
+        "cane",
         "tape",
         "lasso",
         "extension",
@@ -223,8 +225,8 @@
     {
       "language": "en",
       "file": "QuickStart-en.heiban",
-      "bytes": 103125,
-      "sha256": "7f321a15e9d36db4d416b0f343eaefabeaee4c38417d4dcd1350cf0d280a45ee",
+      "bytes": 103594,
+      "sha256": "25ba9b7b0cb39a0da3633b65521f41f854199f3596a32b0f3ce756baa856d196",
       "canvasMode": "infinite",
       "chapters": 25,
       "toolKeys": [
@@ -250,6 +252,7 @@
         "redo",
         "dock",
         "laser",
+        "cane",
         "tape",
         "lasso",
         "extension",
@@ -262,8 +265,8 @@
     {
       "language": "ja",
       "file": "QuickStart-ja.heiban",
-      "bytes": 106656,
-      "sha256": "a862e1a2673c6bd3977cf0a68d91faea1c8630a0f96faffc8582359546574c6e",
+      "bytes": 107357,
+      "sha256": "bc67db33805e84a29f4dfcd12dd5170013c4e294cf988ed47c93a7d02c2cafac",
       "canvasMode": "infinite",
       "chapters": 25,
       "toolKeys": [
@@ -289,6 +292,7 @@
         "redo",
         "dock",
         "laser",
+        "cane",
         "tape",
         "lasso",
         "extension",
@@ -301,8 +305,8 @@
     {
       "language": "ko",
       "file": "QuickStart-ko.heiban",
-      "bytes": 104982,
-      "sha256": "4e30699ff4323ba1fb00302ee06e044e149705859f2301adb70631da1a1d1ac2",
+      "bytes": 105643,
+      "sha256": "4a5b2d71bbe2f9e6311de23097ab833db1692af9f93f56a33df1d03af2d97010",
       "canvasMode": "infinite",
       "chapters": 25,
       "toolKeys": [
@@ -328,6 +332,7 @@
         "redo",
         "dock",
         "laser",
+        "cane",
         "tape",
         "lasso",
         "extension",
@@ -340,8 +345,8 @@
     {
       "language": "es",
       "file": "QuickStart-es.heiban",
-      "bytes": 102201,
-      "sha256": "6bc758657c11850f0c85111368829c6c2d86c4b049ad66d47836500669a79a70",
+      "bytes": 102735,
+      "sha256": "2c09ce653643799f19626d53dfaac1d7c3ce7e83e8cdf596cd6c65fb14616324",
       "canvasMode": "infinite",
       "chapters": 25,
       "toolKeys": [
@@ -367,6 +372,7 @@
         "redo",
         "dock",
         "laser",
+        "cane",
         "tape",
         "lasso",
         "extension",
@@ -379,8 +385,8 @@
     {
       "language": "fr",
       "file": "QuickStart-fr.heiban",
-      "bytes": 102400,
-      "sha256": "a9a04f181f91bee690237d1efe07dcb5bcb5cc880c4028fd41cb23cbd4802425",
+      "bytes": 102971,
+      "sha256": "d810ac35bfce6ff7b36a8243bf37a94264d2b10561f299555d69c39bb2be57e4",
       "canvasMode": "infinite",
       "chapters": 25,
       "toolKeys": [
@@ -406,6 +412,7 @@
         "redo",
         "dock",
         "laser",
+        "cane",
         "tape",
         "lasso",
         "extension",
@@ -418,8 +425,8 @@
     {
       "language": "de",
       "file": "QuickStart-de.heiban",
-      "bytes": 101517,
-      "sha256": "6d280a5978584433e4f41704ee9ffda2554f5c639ca7997702b6cd39634bfbf3",
+      "bytes": 102125,
+      "sha256": "f5d512134ae1d538b9c465ab7ee807981aedc36d59868caf6d262af39f92356c",
       "canvasMode": "infinite",
       "chapters": 25,
       "toolKeys": [
@@ -445,6 +452,7 @@
         "redo",
         "dock",
         "laser",
+        "cane",
         "tape",
         "lasso",
         "extension",
@@ -457,8 +465,8 @@
     {
       "language": "pt-BR",
       "file": "QuickStart-pt-BR.heiban",
-      "bytes": 100301,
-      "sha256": "3a7096cdf6f779eb4ab46948bbbc4e03e0dc24b78c4b8fcf650ca493d1ec423b",
+      "bytes": 100808,
+      "sha256": "470b46c3d51417f6085b2a32282dcbec41450ccf82384f9130b9b8ef7e71c6ce",
       "canvasMode": "infinite",
       "chapters": 25,
       "toolKeys": [
@@ -484,6 +492,7 @@
         "redo",
         "dock",
         "laser",
+        "cane",
         "tape",
         "lasso",
         "extension",
@@ -496,8 +505,8 @@
     {
       "language": "ar",
       "file": "QuickStart-ar.heiban",
-      "bytes": 112095,
-      "sha256": "39405083e32dc9ef89fccdc5ea52a281107b02ab4e3ba993b7ea2b811f524a35",
+      "bytes": 112877,
+      "sha256": "f7366c2a15eb159ab5937839035627a580115ee0a53af5fc61df59f096063e43",
       "canvasMode": "infinite",
       "chapters": 25,
       "toolKeys": [
@@ -523,6 +532,7 @@
         "redo",
         "dock",
         "laser",
+        "cane",
         "tape",
         "lasso",
         "extension",

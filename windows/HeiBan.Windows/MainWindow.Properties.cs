@@ -37,7 +37,7 @@ public partial class MainWindow
         Show(StrokeSection,line||text||type=="tape");Show(LineSection,line);Show(FillSection,fill);Show(FillToggle,type!="sticky");
         Show(ObjectSection,line||text||type is "image" or "tape");
         Show(RotationBox,o is not null&&type is not("line" or "arrow"));Show(FontSizeBox,text);
-        Show(EraserSection,o is null&&_tool=="eraser");Show(RulerSection,o is null&&_rulerEnabled);
+        Show(EraserSection,o is null&&_tool=="eraser");Show(RulerSection,o is null&&_rulerEnabled&&_tool is not("laser" or "cane"));
         var context=$"{_session.DocumentEpoch}:{o?.Id}:{type}";
         if(_inspectorContext!=context||!ReferenceEquals(_inspectorDocument,_session.Document))
         {
@@ -47,6 +47,8 @@ public partial class MainWindow
             {var button=new Button{Content=T("直線延伸設定")};button.Click+=(_,_)=>ShowExtensionSettings(button);ExtendedSection.Children.Add(button);}
             else if(type=="laser")
             {var button=new Button{Content=T("雷射：顏色、大小與消退")};button.Click+=(_,_)=>ShowLaserSettings(button);ExtendedSection.Children.Add(button);}
+            else if(type=="cane")
+            {ExtendedSection.Children.Add(new TextBlock{Text=T("藤條：點一下選用，再點畫布揮動發聲"),TextWrapping=TextWrapping.Wrap});}
         }
         Show(ExtendedSection,ExtendedSection.Children.Count>0);
         SelectionSummary.Text=o is null?(type=="none"?T("選取物件後調整屬性"):T("目前工具 · 設定即時生效")):$"{LayerPresentation.Build(new[]{o}, Localization.Strings.T)[0].Description} · {T(o.IsLocked==true?"已鎖定":"設定即時生效")}";

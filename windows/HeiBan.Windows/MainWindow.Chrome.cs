@@ -394,7 +394,7 @@ public partial class MainWindow
 
             switch (key)
             {
-                case "laser" or "tape" or "lasso":
+                case "laser" or "cane" or "tape" or "lasso":
                     Tool(key,key=="laser"?T("雷射：再次點擊開啟設定"):T(ToolbarPreferences.ToolNames[key]),key);break;
                 case "extension": break; // 延伸屬性改由線段設定提供；保留舊偏好欄位。
                 case "magnet":
@@ -614,7 +614,7 @@ public partial class MainWindow
         {
             case "magnet": ToggleMagnet();break;
             case "laser": if(_tool=="laser")ShowLaserSettings(GetToolAnchor(key));else ActivateTool(key);break;
-            case "tape" or "lasso" or "select" or "pen" or "curve" or "highlighter" or "paint" or "sticky" or "text" or "star":
+            case "cane" or "tape" or "lasso" or "select" or "pen" or "curve" or "highlighter" or "paint" or "sticky" or "text" or "star":
                 ActivateTool(key);
                 break;
             case "extension": Inspector.Visibility=Visibility.Visible;RefreshProperties();RefreshChrome();break;
@@ -800,7 +800,7 @@ public partial class MainWindow
         _polygon.Clear();
         _session.SelectedId = null;_objectDetailsId=null;
         _tool = tool;
-        if (tool is not ("select" or "eraser"))
+        if (tool is not ("select" or "eraser" or "cane"))
         {
             _styleTool = tool;
             CurrentStyle.Color=color;CurrentStyle.Dash=dash;

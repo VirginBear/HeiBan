@@ -1,5 +1,9 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-29 — 藤條為單次暫態提示
+
+CaneFeedback只保存單一位置／起始時間，點擊替換、不累積點或Undo；兩畫布在命中測試前攔截輸入，使用同一Win2D向量動畫。主畫布動畫timer僅有效期啟用；螢幕畫布合併前後保守damage並在最後清除，不使永久scene失效。音效為可重建原創PCM WAV，WinMM非同步播放；缺檔靜默回退、快速再點取代前音，不調整系統音量。快捷只選用，不發聲；一般畫布板擦旁獨立click target，與板擦拖動區域分開。管理按鈕可移至常用雷射旁，切頁先detach，舊偏好一次發現新工具且保留使用者後續隱藏／Common選擇。無新文件欄位或依賴套件。 [日誌](CANE_TOOL_2026-10-29.zh-TW.md)。
+
 ## 2026-10-29 — 游標資源與雷射輸入邊界
 
 ToolCursor共用ToolIcons原向量，按工具／DPI實體size快取owned HCURSOR；software surface首次生成後釋放，不綁定文件GPU或指標每點重建。失敗快取cross fallback，ShapeCursor保留操控柄優先權；主host沿用ProtectedCursor拷貝，native overlay沿用WM_SETCURSOR，退出釋放owned資源。LaserPointerEngine新增暫態Press／MovePressed／Release，捕捉與實體左鍵由host把關；按住保留靜止光點，放開連尾跡即清除，不走文件／Undo。保留原Add／EndTrail供既有合成使用，UI入口不再以hover呼叫Add。雷射路由先於右鍵／double選取，兩host圖層入口亦拒收laser選取。 [日誌](TOOL_CURSOR_LASER_2026-10-29.zh-TW.md)。

@@ -30,7 +30,7 @@ public sealed class ToolbarPreferences
         "select", "pen", "curve", "highlighter", "paint", "eraser",
         "ruler", "shapes", "sticky", "text", "screenshot", "image",
         "brush", "dash", "pins", "calculator", "timer", "compass",
-        "undo", "redo", "dock", "laser", "tape", "lasso", "extension", "clearAll", "viewLock", "layers", "magnet"
+        "undo", "redo", "dock", "laser", "cane", "tape", "lasso", "extension", "clearAll", "viewLock", "layers", "magnet"
     ];
 
     public static readonly Dictionary<string, string> ToolNames = new()
@@ -55,7 +55,7 @@ public sealed class ToolbarPreferences
         ["compass"] = "圓規",
         ["undo"] = "復原",
         ["redo"] = "重做",
-        ["laser"]="雷射", ["tape"]="遮題膠帶", ["lasso"]="套索多選", ["extension"]="延伸直線", ["clearAll"]="清除本頁", ["viewLock"]="鎖定視角",
+        ["laser"]="雷射", ["cane"]="藤條", ["tape"]="遮題膠帶", ["lasso"]="套索多選", ["extension"]="延伸直線", ["clearAll"]="清除本頁", ["viewLock"]="鎖定視角",
         ["layers"] = "物件圖層",
         ["dock"] = "停靠位置"
         ,["magnet"] = "磁鐵"
@@ -78,7 +78,8 @@ public sealed class ToolbarPreferences
         if(DefaultToolsRevision<1)
         {
             if(VisibleTools is not null&&HiddenTools is not null&&VisibleTools.SequenceEqual(StreamlinedTools)&&
-                HiddenTools.ToHashSet().SetEquals(AllDefaultTools.Except(StreamlinedTools)))
+                (HiddenTools.ToHashSet().SetEquals(AllDefaultTools.Except(StreamlinedTools))||
+                 HiddenTools.ToHashSet().SetEquals(AllDefaultTools.Except(StreamlinedTools).Where(key=>key!="cane"))))
             {VisibleTools=[..AllDefaultTools];HiddenTools=[];}
             DefaultToolsRevision=1;
         }
@@ -90,7 +91,7 @@ public sealed class ToolbarPreferences
             {
                 CommonTools=[..DefaultCommonTools];
                 if(DisplayMode=="icons"&&VisibleTools is not null&&HiddenTools is not null&&
-                    VisibleTools.SequenceEqual(AllDefaultTools)&&HiddenTools.Count==0)DisplayMode="labels";
+                    (VisibleTools.SequenceEqual(AllDefaultTools)||VisibleTools.SequenceEqual(AllDefaultTools.Where(key=>key!="cane")))&&HiddenTools.Count==0)DisplayMode="labels";
             }
             DefaultPresentationRevision=1;
         }
@@ -116,6 +117,8 @@ public sealed class ToolbarPreferences
         // One-time discovery: old preferences lack layers in both lists. A later explicit hide remains respected.
         if(!VisibleTools.Contains("layers")&&!HiddenTools.Contains("layers"))VisibleTools.Add("layers");
         if(!VisibleTools.Contains("magnet")&&!HiddenTools.Contains("magnet"))VisibleTools.Add("magnet");
+        // Discover the new teaching cue once, without making it a forced favorite.
+        if(!VisibleTools.Contains("cane")&&!HiddenTools.Contains("cane"))VisibleTools.Add("cane");
         // Selection and laser are fixed controls in every page, per the current UI contract.
         HiddenTools.RemoveAll(t=>t is "select" or "laser");
         VisibleTools.RemoveAll(t=>t is "select" or "laser");VisibleTools.InsertRange(0,["select","laser"]);

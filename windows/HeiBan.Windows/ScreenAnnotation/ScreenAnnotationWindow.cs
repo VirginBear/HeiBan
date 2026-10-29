@@ -24,6 +24,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     private readonly Direct2DCanvasRenderer _renderer=new();
     private readonly ViewportTransform _viewport=new();
     private readonly LaserPointerEngine _laser;
+    private readonly CaneFeedback _cane=new();
     // The screen host reads the same user toolbar file as the board, then applies host filtering without rewriting that preference.
     private ToolbarPreferences _toolbarPreferences;
     private nint _lastExternal;
@@ -42,7 +43,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     private readonly Dictionary<string,Button> _buttons=[];
     private CanvasRenderTarget? _target,_committed;
     private bool _committedDirty=true,_fullDamage=true,_benchmarkFullFrames;
-    private global::Windows.Foundation.Rect? _damage,_lastLaserDamage;
+    private global::Windows.Foundation.Rect? _damage,_lastLaserDamage,_lastCaneDamage;
     private long _presentedBytes,_renderedFrames,_committedBuilds;
     private BoardObject? _preview,_manipulation;
     private ObjectHandles.Handle? _handle;
@@ -82,7 +83,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         var failed=0;
         foreach(var key in new[]{(1,0x41u),(2,0x44u),(3,0x53u),(4,0x51u),(5,0x4Bu)})if(!_overlay.RegisterShortcut(key.Item1,0x0002|0x0001,key.Item2))failed++;
         _hotkeyRegistrationFailed=failed>0;if(failed>0)_status.Text=T("部分快捷鍵被其他程式占用，請使用控制列按鈕。");
-        _renderTimer.Tick+=(_,_)=>{if(!IsActive)return;try{UpdateScreenEraser();UpdateScreenMagnetHover();if(_dirty||_laser.Samples.Count>0)Render();}catch(Exception e){_renderTimer.Stop();_overlay.Hide();_status.Text=T("螢幕繪圖已停止：")+e.Message;}};
+        _renderTimer.Tick+=(_,_)=>{if(!IsActive)return;try{UpdateScreenEraser();UpdateScreenMagnetHover();if(_dirty||_laser.Samples.Count>0||_cane.IsActive(Now)||_lastCaneDamage is not null)Render();}catch(Exception e){_renderTimer.Stop();_overlay.Hide();_status.Text=T("螢幕繪圖已停止：")+e.Message;}};
         _focusRememberTimer.Tick+=(_,_)=>{if(IsActive)RememberExternalFocus();};
         _straightenTimer.Tick+=(_,_)=>
         {
@@ -138,6 +139,15 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         if(input.Kind=="cancel"){CancelGesture();return;}
         if(!_drawing)return;
         var p=new InkPoint(input.X,input.Y,1);
+        // Like the laser, the cane owns clicks before object hit tests; holding
+        // or moving never repeats its sound or creates document objects.
+        if(_tool=="cane")
+        {
+            UpdateScreenShapeCursor(p);
+            if(input.Kind is "down" or "double"&&input.LeftDown){_cane.Strike(p,Now);CaneSound.Play();_dirty=true;}
+            else if(input.Kind=="right"){_cane.Clear();CaneSound.Stop();_dirty=true;}
+            return;
+        }
         // Laser owns this whole input route: hover/right/double never reach object hit tests.
         if(_tool=="laser")
         {
@@ -311,6 +321,14 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         if(_target is null||_committed is null)return;
         var sceneSession=_circularEraser?.Preview??_session;
         _laser.Prune(Now);
+        if(!_cane.IsActive(Now))_cane.Clear();
+        global::Windows.Foundation.Rect? caneDamage=null;
+        if(Direct2DCanvasRenderer.CaneBounds(_cane,_viewport,Now,_dpiScale) is { } caneBounds)
+        {
+            var left=Math.Max(0,Math.Floor(caneBounds.Left));var top=Math.Max(0,Math.Floor(caneBounds.Top));
+            var right=Math.Min(_overlay.Width,Math.Ceiling(caneBounds.Right));var bottom=Math.Min(_overlay.Height,Math.Ceiling(caneBounds.Bottom));
+            if(right>left&&bottom>top)caneDamage=new(left,top,right-left,bottom-top);
+        }
         global::Windows.Foundation.Rect? laserDamage=null;
         if(_laser.Samples.Count>0)
         {
@@ -330,7 +348,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         global::Windows.Foundation.Rect? magnetDamage=null;
         if(_screenMagnetTarget is { } snap)
         {var left=Math.Max(0,Math.Floor(snap.X-10*_dpiScale));var top=Math.Max(0,Math.Floor(snap.Y-10*_dpiScale));var right=Math.Min(_overlay.Width,Math.Ceiling(snap.X+10*_dpiScale));var bottom=Math.Min(_overlay.Height,Math.Ceiling(snap.Y+10*_dpiScale));if(right>left&&bottom>top)magnetDamage=new(left,top,right-left,bottom-top);}
-        foreach(var bounds in new[]{_lastLaserDamage,laserDamage,_lastEraserDamage,eraserDamage,_lastMagnetDamage,magnetDamage})if(bounds is { } rect)
+        foreach(var bounds in new[]{_lastCaneDamage,caneDamage,_lastLaserDamage,laserDamage,_lastEraserDamage,eraserDamage,_lastMagnetDamage,magnetDamage})if(bounds is { } rect)
         {
             if(_damage is { } old){var left=Math.Min(old.Left,rect.Left);var top=Math.Min(old.Top,rect.Top);_damage=new(left,top,Math.Max(old.Right,rect.Right)-left,Math.Max(old.Bottom,rect.Bottom)-top);}
             else _damage=rect;
@@ -359,17 +377,19 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             }
             if(_tool=="select")foreach(var selected in _session.SelectedObjects)_renderer.RenderSelection(ds,selected,_viewport,_session.SelectedIds.Count==1);
             _renderer.RenderLaser(ds,_laser,_viewport,Now,_dpiScale);
+            _renderer.RenderCane(ds,_cane,_viewport,Now,_dpiScale);
             if(_screenMagnetTarget is { } target)ds.DrawCircle((float)target.X,(float)target.Y,(float)(7*_dpiScale),Direct2DCanvasRenderer.HexToColor("#10B981"),2);
             if(_screenEraserPointer is { } eraser)_renderer.RenderHover(ds,eraser,true,_eraserSize*_dpiScale,_viewport);
         }
         var x=(int)region.X;var y=(int)region.Y;var width=(int)region.Width;var height=(int)region.Height;
         _overlay.PresentBitmap(_target,x,y,width,height);_presentedBytes+=(long)width*height*4;_renderedFrames++;
-        _dirty=false;_fullDamage=false;_damage=null;_lastLaserDamage=laserDamage;_lastEraserDamage=eraserDamage;_lastMagnetDamage=magnetDamage;
+        _dirty=false;_fullDamage=false;_damage=null;_lastCaneDamage=caneDamage;_lastLaserDamage=laserDamage;_lastEraserDamage=eraserDamage;_lastMagnetDamage=magnetDamage;
     }
     public void ApplySavingPreferences(){_saveTimer.Stop();if(_owner.AutoSaveEnabled&&IsActive&&!_stopping&&_session.IsDirty)_saveTimer.Start();}
     private void Changed(){_dirty=_fullDamage=_committedDirty=true;RefreshScreenLayers();ApplySavingPreferences();}
     private void CancelGesture()
     {
+        if(_cane.Point is not null){_cane.Clear();CaneSound.Stop();_dirty=true;}
         if(_laser.Samples.Count>0){_laser.Release();_dirty=true;}
         CancelCircularEraser();
         CommitScreenStyle();var committedChanged=_session.HasTransaction;var previewVisible=_preview is not null||_points.Count>0;

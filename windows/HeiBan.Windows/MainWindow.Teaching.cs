@@ -16,12 +16,13 @@ public partial class MainWindow
         {
             if(_tool=="pen"&&_ink.TrySnapStraight(_viewport.Zoom)){_renderer.ResetLive();InvalidateCanvas(false);}
             if(_laser.Samples.Count>0){_laser.Prune(LaserNow);if(_workspaceOpen)InvalidateCanvas(false);}
+            if(_cane.Point is not null){if(!_cane.IsActive(LaserNow))_cane.Clear();if(_workspaceOpen)InvalidateCanvas(false);}
             UpdateTeachingTimer();
         };
     }
     private void UpdateTeachingTimer()
     {
-        var laser=_laser.Samples.Count>0;
+        var laser=_laser.Samples.Count>0||_cane.IsActive(LaserNow);
         if(laser||(_workspaceOpen&&_tool=="pen"&&_ink.IsDrawing&&!_ink.IsStraight&&_ink.Projection is null))
         {
             // A one-second hold does not need a permanent 60 Hz UI wake-up.

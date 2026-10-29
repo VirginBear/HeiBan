@@ -78,7 +78,7 @@ public partial class MainWindow : Window
         ApplyLanguageChrome();
         App.StartupStage="設定主視窗";
         ExtendsContentIntoTitleBar=true;SetTitleBar(AppTitleBar);SystemBackdrop=null;
-        Activated+=(_,e)=>{if(e.WindowActivationState==WindowActivationState.Deactivated&&_tool=="laser"&&_gesture)CancelGesture();};
+        Activated+=(_,e)=>{if(e.WindowActivationState==WindowActivationState.Deactivated&&_tool is "laser" or "cane"&&_gesture)CancelGesture();};
         AppWindow.TitleBar.ButtonForegroundColor=Direct2DCanvasRenderer.HexToColor("#26372F");
         AppWindow.TitleBar.ButtonBackgroundColor=global::Windows.UI.Color.FromArgb(0,0,0,0);
         AppWindow.TitleBar.ButtonHoverBackgroundColor=Direct2DCanvasRenderer.HexToColor("#DCEBDD");
@@ -118,7 +118,7 @@ public partial class MainWindow : Window
             catch(Exception error){await Error(error);}
             finally{if(!_closing){ShowSavingOverlay(false);_preparingClose=false;ApplySavingPreferences();}}
         };
-        Closed+=(_,_)=>{_boardEraserWorking?.Cancel();_inputLatencyHeartbeat?.Stop();_layerPreview?.End();CanvasCursorHost.ReleaseCursor();_shapeCursor.Dispose();_updates?.Dispose();_autosave.Stop();_thumbnailTimer.Stop();_inkUiTimer.Stop();_searchTimer.Stop();_teachingSaveTimer.Stop();CancelScreenshotCapture("視窗關閉");_timerTickTimer?.Stop();_laserTimer.Stop();_propertyCommitTimer.Stop();_headerHideTimer.Stop();ClearScene();CanvasSurface.RemoveFromVisualTree();_renderer.Dispose();_screenAnnotation?.Dispose();};
+        Closed+=(_,_)=>{CaneSound.Stop();_boardEraserWorking?.Cancel();_inputLatencyHeartbeat?.Stop();_layerPreview?.End();CanvasCursorHost.ReleaseCursor();_shapeCursor.Dispose();_updates?.Dispose();_autosave.Stop();_thumbnailTimer.Stop();_inkUiTimer.Stop();_searchTimer.Stop();_teachingSaveTimer.Stop();CancelScreenshotCapture("視窗關閉");_timerTickTimer?.Stop();_laserTimer.Stop();_propertyCommitTimer.Stop();_headerHideTimer.Stop();ClearScene();CanvasSurface.RemoveFromVisualTree();_renderer.Dispose();_screenAnnotation?.Dispose();};
         App.StartupStage="顯示首頁";
         try { EnsureScreenAnnotation(); } catch(Exception e) { StatusText.Text=T("螢幕畫布初始化失敗：")+e.Message; }
     }
@@ -336,7 +336,7 @@ public partial class MainWindow : Window
         _session.Begin();board.BackgroundColor=nextColor;board.GridStyle=nextPattern;_session.Commit();InvalidateCanvas();
     }
     private void Layer_Changed(object sender,SelectionChangedEventArgs e)
-    {if(_changingLayers)return;if(_tool=="laser"){SyncLayerSelection();return;}CommitPropertyEdit();_session.SetSelection(LayerList.SelectedItems.OfType<LayerCard>().Select(row=>row.ObjectId));RefreshProperties();InvalidateCanvas(false);}
+    {if(_changingLayers)return;if(_tool is "laser" or "cane"){SyncLayerSelection();return;}CommitPropertyEdit();_session.SetSelection(LayerList.SelectedItems.OfType<LayerCard>().Select(row=>row.ObjectId));RefreshProperties();InvalidateCanvas(false);}
     private void SyncLayerSelection()
     {
         var changing=_changingLayers;_changingLayers=true;

@@ -13,6 +13,7 @@ internal static class ToolIcons
     internal static string? CursorPath(string tool)=>Paths.GetValueOrDefault(tool);
     private static readonly Dictionary<string,string> Paths=new()
     {
+        ["cane"]="M3,3 Q11,10 22,22 M5,4 L4,6 M9,8 L8,10 M13,12 L12,14 M17,16 L16,18 M21,20 L20,22",
         ["screen"]="M3,3 L23,3 L23,17 L3,17 Z M13,17 L13,22 M8,22 L18,22 M7,11 L11,7 L15,11 L19,7",
         ["laser"]="M12,7 L12,1 M12,17 L12,23 M7,12 L1,12 M17,12 L23,12 M4,4 L8,8 M16,16 L20,20 M4,20 L8,16 M16,8 L20,4",
         ["tape"]="M3,6 L23,6 L23,19 L3,19 Z M5,7 L10,18 M12,7 L17,18 M19,7 L22,13",
