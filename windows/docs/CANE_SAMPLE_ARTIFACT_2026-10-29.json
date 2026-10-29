@@ -1,0 +1,82 @@
+{
+  "audioProvenance": {
+    "kind": "User-provided reference excerpt; not HeiBan-original synthesis",
+    "referenceName": "棍子聲音 藤條揮打聲│77音效_320k.mp3",
+    "referenceSha256": "ecf805861c57d188e361ae3a40e2200838b5786f528f355037b6f9a96380c681",
+    "requestedWindowSeconds": [
+      30,
+      33
+    ],
+    "selectedSourceSeconds": [
+      31.99,
+      32.25
+    ],
+    "purpose": "One isolated cane swing, replacing the previously synthesized cue",
+    "creditFromFilename": "77音效",
+    "license": "No license information in supplied MP3 metadata; no claim of original authorship or independent rights verification",
+    "processing": {
+      "channels": 1,
+      "sampleRate": 48000,
+      "bitsPerSample": 16,
+      "durationSeconds": 0.26,
+      "linearGain": 3.058943533697632,
+      "gainDb": 9.71142920474836,
+      "peakTarget": 0.82,
+      "fadeInSeconds": 0.002,
+      "fadeOutSeconds": 0.01,
+      "pitchChanged": false,
+      "speedChanged": false,
+      "fullReferenceIncluded": false
+    },
+    "outputSha256": "4dae6536c771acb84b85adf54e506df8e2f6aa01ebcc4ae4e179f5a78b684602"
+  },
+  "referenceMp3Included": false,
+  "audioAnalysisPerformed": true,
+  "caneArtwork": {
+    "file": "Assets/Cane.png",
+    "bytes": 252166,
+    "sha256": "af42206733b3f65df6fd082893146c30c047c5c3fbd118dbd1728c5434140718",
+    "width": 1599,
+    "height": 984,
+    "alpha": true,
+    "source": "Built-in imagegen; own BoardEraser.png used only as style reference"
+  },
+  "caneAudio": {
+    "format": "PCM16 mono",
+    "sampleRate": 48000,
+    "frames": 12480,
+    "durationSeconds": 0.26,
+    "bytes": 25004,
+    "sha256": "4dae6536c771acb84b85adf54e506df8e2f6aa01ebcc4ae4e179f5a78b684602",
+    "source": "User-provided reference excerpt 31.990–32.250s; scripts/Extract-CaneSample.py",
+    "auditioned": false
+  },
+  "label": "cane-sample-2026-10-29-r1",
+  "version": "1.0.17",
+  "runtime": "win-x64",
+  "sourceCommit": "1a909a0f212c5f3adbf4c4ee567e749554f6b7ab",
+  "zip": "windows/dist/trials/HeiBan-Windows-Portable-1.0.17-cane-sample-2026-10-29-r1-win-x64.zip",
+  "bytes": 133164432,
+  "sha256": "9e71a2487ad98b0e7ae4a1260ff5c4181aee52cb06e47c929ae14d9fff1064fa",
+  "payloadFilesChecked": 590,
+  "sourceFilesChecked": 207,
+  "archiveFiles": 592,
+  "zipUserDataFiles": 0,
+  "portableDataFiles": 0,
+  "zipCrcAndPayloadShaMatch": true,
+  "peArchitecture": "x64",
+  "preservedStoreFiles": 51,
+  "storeFilesUnchanged": true,
+  "dataHandoff": {
+    "copied": false,
+    "mode": "Independent portable Data; running Store app left untouched"
+  },
+  "appExecuted": false,
+  "implementationTestsExecuted": false,
+  "coreTestsExecuted": false,
+  "performanceCaptured": false,
+  "storeRepackaged": false,
+  "formalVersionIncremented": false,
+  "runtimeTestRecord": null,
+  "developmentRecord": "windows/docs/CANE_SAMPLE_2026-10-29.zh-TW.md"
+}

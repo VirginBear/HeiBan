@@ -27,3 +27,13 @@ CanePose統一45°休止／75°揚起／75ms接觸及8°小幅回彈；原升降
 初次x64 Release build50.75秒、0warning0error；十語手冊同步45°／75°及單次取樣。後續正式來源freeze後再Portable publish。未執行自動測試／App／WACK／性能；沿用1.0.17，無Store作業、無清理。
 
 本次攻擊段功率頻譜重心約1176Hz；來源語意仍依使用者指定的揮擊取樣，不宣稱已人耳聽辨。
+
+## 封裝與交付
+
+x64 `cane-sample-2026-10-29-r1` 已完成，來源 `1a909a0f212c5f3adbf4c4ee567e749554f6b7ab`；ZIP 133164432bytes／SHA256 `9e71a2487ad98b0e7ae4a1260ff5c4181aee52cb06e47c929ae14d9fff1064fa`。590 payload／207 source SHA及592 archive CRC核同，兩EXE x64；取樣WAV與來源metadata／notice在包內且SHA一致，完整MP3不在包內、原參考檔SHA未變。PNG原圖SHA不變；Data使用者檔=0、獨立作品庫，51份Store檔SHA不變。未執行App／實機播放／自動測試／性能採樣。 [產物紀錄](CANE_SAMPLE_ARTIFACT_2026-10-29.json)。
+
+`Package-PortableTrial.ps1 -Runtime win-x64 -Label cane-sample-2026-10-29-r1` 成功，最終publish紀錄`windows/.build/portable-trial-2702dc3df2e64f00ad062180c99ef19d/publish.log`。`python windows/.build/cane-sample-20261029-r1/inspect_delivery.py` 完成來源／payload／ZIP SHA與CRC、x64PE、PNG alpha／IHDR、WAV PCM header、source metadata／notice及原MP3未變的核對。這些是音訊分析／剪輯與封裝靜態檢查，非App實機驗收。
+
+變更檔案：Core CanePose；MainWindow.Cane／XAML快捷角度、共用Direct2DCanvasRenderer.Cane；CaneSnap.wav及source JSON／notice；Extract-CaneSample.py及歷史Generate-CaneSound.py防覆寫；Portable來源指紋；九語手冊來源與十語輸出、平台紀錄。沒有更動PNG／作品schema／其他平台程式；沒有清理、進版、Store打包／上傳或發布。未執行App、自動測試、ARM64、WACK、性能與裝置試聽；待使用者實機確認音量／延遲與45°／75°視覺感受。
+
+原三文件6／8／4行、YouTube三檔、使用者作品、參考MP3及所有舊試用／Store保持原樣。公開來源／紀錄與私人壓縮交接分開commit／push；PRIVATE及遠端HEAD核對，受保護產品欄位deep-equal，無憑證、整段參考音檔、使用者作品內容或外部排程。

@@ -2,7 +2,9 @@
 
 ## 2026-10-29 — 藤條單次揮擊取樣與45°／75°姿態（開發試用）
 
-依使用者提供MP3的30～33秒，波形定位後取31.990～32.250一次揮擊（0.260秒、48kHz mono PCM16／25004bytes），無變速變調，峰75.729ms對齊75ms接觸。原MP3不改寫／不納入Git，來源credit／處理寫metadata與notice，不再誤標原創合成音。CanePose統一45°休止、75°揚起並保留8°小幅回彈；一般／螢幕畫布與右下快捷同一素材角度補償，右下握點／原比例不變。十語指南更新。x64 build50.75秒0warning0error；封裝另補。音檔分析與剪輯已執行，App／實機試聽／自動測試未執行，仍1.0.17，不進Store、不清理舊包。 [日誌](CANE_SAMPLE_2026-10-29.zh-TW.md)。
+依使用者提供MP3的30～33秒，波形定位後取31.990～32.250一次揮擊（0.260秒、48kHz mono PCM16／25004bytes），無變速變調，峰75.729ms對齊75ms接觸。原MP3不改寫／不納入Git，來源credit／處理寫metadata與notice，不再誤標原創合成音。CanePose統一45°休止、75°揚起並保留8°小幅回彈；一般／螢幕畫布與右下快捷同一素材角度補償，右下握點／原比例不變。十語指南更新。x64 build50.75秒0warning0error；最終封裝完成，詳下列紀錄。音檔分析與剪輯已執行，App／實機試聽／自動測試未執行，仍1.0.17，不進Store、不清理舊包。 [日誌](CANE_SAMPLE_2026-10-29.zh-TW.md)。
+
+x64 `cane-sample-2026-10-29-r1` 已完成，來源 `1a909a0f212c5f3adbf4c4ee567e749554f6b7ab`；ZIP 133164432bytes／SHA256 `9e71a2487ad98b0e7ae4a1260ff5c4181aee52cb06e47c929ae14d9fff1064fa`。590 payload／207 source SHA及592 archive CRC核同，兩EXE x64；取樣WAV與來源metadata／notice在包內且SHA一致，完整MP3不在包內、原參考檔SHA未變。PNG原圖SHA不變；Data使用者檔=0、獨立作品庫，51份Store檔SHA不變。未執行App／實機播放／自動測試／性能採樣。 [產物紀錄](CANE_SAMPLE_ARTIFACT_2026-10-29.json)。
 
 ## 2026-10-29 — 藤條持續握持與入口修整（開發試用）
 
