@@ -1,5 +1,10 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-29 — 游標資源與雷射輸入邊界
+
+ToolCursor共用ToolIcons原向量，按工具／DPI實體size快取owned HCURSOR；software surface首次生成後釋放，不綁定文件GPU或指標每點重建。失敗快取cross fallback，ShapeCursor保留操控柄優先權；主host沿用ProtectedCursor拷貝，native overlay沿用WM_SETCURSOR，退出釋放owned資源。LaserPointerEngine新增暫態Press／MovePressed／Release，捕捉與實體左鍵由host把關；按住保留靜止光點，放開連尾跡即清除，不走文件／Undo。保留原Add／EndTrail供既有合成使用，UI入口不再以hover呼叫Add。雷射路由先於右鍵／double選取，兩host圖層入口亦拒收laser選取。 [日誌](TOOL_CURSOR_LASER_2026-10-29.zh-TW.md)。
+
+
 ## 2026-10-24 — 單一捲動擁有者與活動色線
 
 筆刷／色盤Flyout的限高與捲動由原生FlyoutPresenter負責，Content不再嵌套另一ScrollViewer；其他視窗不作全域替換。ColorIcon以當前工具key與共用ShapeTools判斷活動筆色線，Opacity隱藏保留量測空間；非活動色線不重建chip。只更新Chrome狀態，不進入指標／Draw熱路徑，不改文件schema與獨立工具記色規則。 [日誌](BRUSH_FOCUS_2026-10-24.zh-TW.md)。

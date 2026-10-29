@@ -810,6 +810,7 @@ public partial class MainWindow
         RefreshChrome();
         RefreshSelectionBar();
         FocusCanvasSurface();
+        if(_hover)UpdateShapeCursor();
         InvalidateCanvas(false);
     }
 

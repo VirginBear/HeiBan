@@ -134,10 +134,10 @@ internal sealed partial class ScreenAnnotationWindow
             if(!broadRegional.AsSpan().SequenceEqual(_overlay.ReadPresentedPixels()))throw new InvalidOperationException("大幅彎曲筆跡拖曳留下邊界外殘影。");
             OnPointer(new("up",862,508));_session.Undo();_session.Undo();Changed();CancelGesture();Render();
             _tool="laser";_laser.Mode="point";_laser.FadeDuration=.1;
-            var laserBytesBefore=_presentedBytes;OnPointer(new("move",1000,500));Render();OnPointer(new("move",1010,505));Render();
+            var laserBytesBefore=_presentedBytes;OnPointer(new("down",1000,500,LeftDown:true));Render();OnPointer(new("move",1010,505,LeftDown:true));Render();
             var laserReadbackBytes=_presentedBytes-laserBytesBefore;
             if(laserReadbackBytes>_overlay.Width*_overlay.Height*4/10)throw new InvalidOperationException("雷射未使用局部傳輸。");
-            _laser.Clear();Render();var cleared=_overlay.ReadPresentedPixels();_benchmarkFullFrames=true;Render();_benchmarkFullFrames=false;
+            OnPointer(new("up",1010,505));Render();var cleared=_overlay.ReadPresentedPixels();_benchmarkFullFrames=true;Render();_benchmarkFullFrames=false;
             if(!cleared.AsSpan().SequenceEqual(_overlay.ReadPresentedPixels()))throw new InvalidOperationException("雷射消退後殘影。");
             _tool="pen";var frames=_renderedFrames;OnPointer(new("move",700,700));
             if(_dirty||_renderedFrames!=frames)throw new InvalidOperationException("畫筆懸停造成無效重繪。");

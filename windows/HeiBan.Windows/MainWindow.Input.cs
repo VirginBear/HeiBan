@@ -104,10 +104,11 @@ public partial class MainWindow
         if(_editor is not null)FinishText();
         FocusCanvasSurface();
         var p=e.GetCurrentPoint(CanvasSurface);var screen=new Vector2((float)p.Position.X,(float)p.Position.Y);
-        if(p.Properties.IsRightButtonPressed){if(_rulerEnabled&&(RulerHit(screen)||RulerRotationHit(screen)))ShowRulerSettings(CanvasSurface,new Point(screen.X,screen.Y));else ShowContext(screen);e.Handled=true;return;}
+        if(p.Properties.IsRightButtonPressed){if(_tool=="laser"){CancelGesture();e.Handled=true;return;}if(_rulerEnabled&&(RulerHit(screen)||RulerRotationHit(screen)))ShowRulerSettings(CanvasSurface,new Point(screen.X,screen.Y));else ShowContext(screen);e.Handled=true;return;}
         if(p.PointerDeviceType==PointerDeviceType.Touch)return;
+        if(_tool=="laser"&&!p.Properties.IsLeftButtonPressed&&!p.Properties.IsMiddleButtonPressed){e.Handled=true;return;}
         CommitPropertyEdit();
-        if(_rulerEnabled&&RulerAngleHit(screen)&&!p.Properties.IsMiddleButtonPressed){ShowRulerSettings(CanvasSurface,new Point(screen.X,screen.Y));e.Handled=true;return;}
+        if(_tool!="laser"&&_rulerEnabled&&RulerAngleHit(screen)&&!p.Properties.IsMiddleButtonPressed){ShowRulerSettings(CanvasSurface,new Point(screen.X,screen.Y));e.Handled=true;return;}
         if(IsDrawingTool(_tool))BeginDrawingWorkflow();
         else if(_compass.IsEnabled)EnsureMagnetIndex(force:true);
         _pointerId=p.PointerId;_lastScreen=_mouse=screen;_start=_lastWorld=_viewport.ScreenToWorld(screen.X,screen.Y);
@@ -115,7 +116,7 @@ public partial class MainWindow
         _panning=p.Properties.IsMiddleButtonPressed || KeyIsDown(VirtualKey.Space) || _readingMode;
         _gesture=true;CanvasSurface.CapturePointer(e.Pointer);
         if(_panning){UpdateShapeCursor();e.Handled=true;return;}
-        if(_tool=="laser"){_panning=false;_laser.Add(_start,LaserNow);UpdateTeachingTimer();InvalidateCanvas(false);e.Handled=true;return;}
+        if(_tool=="laser"){_panning=false;_laser.Press(_start,LaserNow);UpdateTeachingTimer();PresentInteraction();e.Handled=true;return;}
         if(_tool=="lasso"){_lasso.Clear();_lasso.Add(_start);e.Handled=true;return;}
         if(_rulerEnabled&&RulerPivotHit(screen)){_rulerPivotMoving=true;e.Handled=true;return;}
         if(_rulerEnabled&&RulerRotationHit(screen)){BeginRulerRotation(screen);e.Handled=true;return;}
@@ -242,9 +243,15 @@ public partial class MainWindow
             if(!_viewLocked){_viewport.X+=panDelta.X;_viewport.Y+=panDelta.Y;PresentInteraction(true);}
             e.Handled=true;return;
         }
-        if(_tool=="select")UpdateShapeCursor();
+        if(!_gesture||_tool=="select")UpdateShapeCursor();
         if(!_gesture&&MagnetSnapIndex.SupportsConstructionTool(_tool)){EnsureMagnetIndex();SnapDrawingPoint(_viewport.ScreenToWorld(_mouse.X,_mouse.Y));InvalidateCanvas(false);}
-        if(_tool=="laser"&&!_panning){_laser.Add(_viewport.ScreenToWorld(_mouse.X,_mouse.Y),LaserNow);UpdateTeachingTimer();PresentInteraction();return;}
+        if(_tool=="laser"&&!_panning)
+        {
+            if(_gesture&&p.PointerId==_pointerId&&p.Properties.IsLeftButtonPressed)
+            {_laser.MovePressed(_viewport.ScreenToWorld(_mouse.X,_mouse.Y),LaserNow);if(_laser.IsPressed)PresentInteraction();}
+            else if(_laser.IsPressed)CancelGesture();
+            e.Handled=true;return;
+        }
         if(_tool=="lasso"&&_gesture){var lp=_viewport.ScreenToWorld(_mouse.X,_mouse.Y);if(_lasso.Count==0||Math.Sqrt(Math.Pow(lp.X-_lasso[^1].X,2)+Math.Pow(lp.Y-_lasso[^1].Y,2))>2/_viewport.Zoom)_lasso.Add(lp);InvalidateCanvas(false);return;}
         if(!_gesture||p.PointerId!=_pointerId)
         {
@@ -338,7 +345,7 @@ public partial class MainWindow
         HideHUD();
         if(!_gesture||e.Pointer.PointerId!=_pointerId)return;
         if(_panning){ResetGesture();CanvasSurface.ReleasePointerCaptures();InvalidateCanvas(false);e.Handled=true;return;}
-        if(_tool=="laser"){_laser.EndTrail();ResetGesture();CanvasSurface.ReleasePointerCaptures();return;}
+        if(_tool=="laser"){_laser.Release();ResetGesture();CanvasSurface.ReleasePointerCaptures();PresentInteraction();e.Handled=true;return;}
         if(_tool=="lasso"){
             _session.SetSelection(_session.VisibleObjects.Where(o=>LassoSelection.Intersects(o,_lasso)).Select(o=>o.Id));
             _lasso.Clear();_tool="select";ResetGesture();CanvasSurface.ReleasePointerCaptures();RefreshEditor();return;
@@ -441,11 +448,13 @@ public partial class MainWindow
             }
         }
         var dpi=(uint)Math.Round((Root.XamlRoot?.RasterizationScale??1)*96);
-        _shapeCursor.Update(selected,handle,dpi);CanvasCursorHost.SetNativeCursor(_shapeCursor.Current,dpi);
+        _shapeCursor.Update(selected,handle,dpi,tool:_readingMode?"reading":_tool);CanvasCursorHost.SetNativeCursor(_shapeCursor.Current,dpi);
     }
     private void ResetShapeCursor()
     {var dpi=(uint)Math.Round((Root.XamlRoot?.RasterizationScale??1)*96);_shapeCursor.Update(null,null,dpi);CanvasCursorHost.SetNativeCursor(_shapeCursor.Current,dpi);}
-    private void CanvasSurface_PointerExited(object sender,PointerRoutedEventArgs e){HideHUD();_laser.EndTrail();_hover=false;if(!_gesture){_magnetTarget=null;ResetShapeCursor();}InvalidateCanvas(false);}
+    private void CanvasSurface_PointerEntered(object sender,PointerRoutedEventArgs e)
+    {var p=e.GetCurrentPoint(CanvasSurface);_mouse=new((float)p.Position.X,(float)p.Position.Y);_hover=true;UpdateShapeCursor();}
+    private void CanvasSurface_PointerExited(object sender,PointerRoutedEventArgs e){HideHUD();_laser.Release();UpdateTeachingTimer();_hover=false;if(!_gesture){_magnetTarget=null;ResetShapeCursor();}InvalidateCanvas(false);}
     private void CanvasSurface_PointerWheelChanged(object sender,PointerRoutedEventArgs e)
     {
         if(_editor is not null||_gesture||_viewLocked||_boardEraserDraft is not null)return;
@@ -455,7 +464,7 @@ public partial class MainWindow
         ZoomText.Text=$"{_viewport.Zoom:P0}";RefreshProperties();InvalidateCanvas();e.Handled=true;
     }
     private void CanvasSurface_DoubleTapped(object sender,DoubleTappedRoutedEventArgs e)
-    {if(!CanvasSurface.IsRenderingAvailable){e.Handled=true;return;}var p=e.GetPosition(CanvasSurface);if(PinAt(new((float)p.X,(float)p.Y)) is { } pin){CancelGesture();StartPinRename(pin);e.Handled=true;return;}var o=_session.Hit(_viewport.ScreenToWorld(p.X,p.Y),6/_viewport.Zoom);if(o?.Type=="tape"&&o.IsLocked!=true){_session.Begin();o.IsRevealed=o.IsRevealed!=true;_session.Commit();RefreshEditor();e.Handled=true;}else if(o is {IsLocked:not true}){CancelGesture();_tool="select";_polygon.Clear();_session.SelectedId=o.Id;_objectDetailsId=o.Id;Inspector.Visibility=Visibility.Visible;RefreshEditor();if(o.Type is "text" or "sticky")StartText(o);e.Handled=true;}}
+    {if(_tool=="laser"||!CanvasSurface.IsRenderingAvailable){e.Handled=true;return;}var p=e.GetPosition(CanvasSurface);if(PinAt(new((float)p.X,(float)p.Y)) is { } pin){CancelGesture();StartPinRename(pin);e.Handled=true;return;}var o=_session.Hit(_viewport.ScreenToWorld(p.X,p.Y),6/_viewport.Zoom);if(o?.Type=="tape"&&o.IsLocked!=true){_session.Begin();o.IsRevealed=o.IsRevealed!=true;_session.Commit();RefreshEditor();e.Handled=true;}else if(o is {IsLocked:not true}){CancelGesture();_tool="select";_polygon.Clear();_session.SelectedId=o.Id;_objectDetailsId=o.Id;Inspector.Visibility=Visibility.Visible;RefreshEditor();if(o.Type is "text" or "sticky")StartText(o);e.Handled=true;}}
     private bool _editingNew;
     private string? _editingBoard,_editingPage;
     private void StartText(BoardObject o,bool isNew=false)
@@ -693,6 +702,7 @@ public partial class MainWindow
 
     private void ShowContext(Vector2 screen)
     {
+        if(_tool=="laser")return;
         var pin=PinAt(screen);
         var hit=_session.Hit(_viewport.ScreenToWorld(screen.X,screen.Y),6/_viewport.Zoom);if(hit is null||!_session.SelectedIds.Contains(hit.Id))Select(hit);
         var menu=new MenuFlyout();void Add(string name,Action action){var item=new MenuFlyoutItem{Text=name};item.Click+=(_,_)=>action();menu.Items.Add(item);}

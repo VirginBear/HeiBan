@@ -123,7 +123,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     {
         if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();
         if(!value)RememberExternalFocus();
-        FinishScreenText();CancelGesture();_drawing=value;_overlay.SetDrawing(value);_overlay.SetManipulationCursor(null,null);UpdateScreenEraser();RefreshMode();
+        FinishScreenText();CancelGesture();_drawing=value;_overlay.SetDrawing(value);_overlay.SetManipulationCursor(null,null,_tool);UpdateScreenEraser();RefreshMode();
         _status.Text=value?T("作畫中 · 右鍵物件可編輯"):T("操作中 · Ctrl+Alt+D 繼續作畫");
         RefreshMode();ResizeChrome();PositionChrome();
         _laser.Clear();_dirty=_fullDamage=_committedDirty=true;if(!value)NativeOverlayWindow.RestoreFocus(_lastExternal);
@@ -136,7 +136,17 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     {
         if(!IsActive||_stopping||_captureCancellation is not null)return;
         if(input.Kind=="cancel"){CancelGesture();return;}
+        if(!_drawing)return;
         var p=new InkPoint(input.X,input.Y,1);
+        // Laser owns this whole input route: hover/right/double never reach object hit tests.
+        if(_tool=="laser")
+        {
+            UpdateScreenShapeCursor(p);
+            if(input.Kind is "down" or "double"&&input.LeftDown){_laser.Press(p,Now);_dirty=true;}
+            else if(input.Kind=="move"&&input.LeftDown){_laser.MovePressed(p,Now);if(_laser.IsPressed)_dirty=true;}
+            else if(_laser.IsPressed){_laser.Release();_dirty=true;}
+            return;
+        }
         if(HandleCircularEraser(input,p))return;
         if(input.Kind=="down"&&_tool is "pen" or "highlighter" or "paint")
         {_screenMagnetIndex=null;_screenMagnetTarget=null;} // No snap lookup or stale reference index during freehand ink.
@@ -169,10 +179,6 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             _preview.X=bounds.MinX;_preview.Y=bounds.MinY;_preview.Width=bounds.Width;_preview.Height=bounds.Height;_preview.Points=JsonSerializer.Serialize(points,DocumentCodec.Options);
             if(_curveAnchors.Count==needed){_session.Begin();_session.Add(_preview);_session.Commit();_preview=null;_curveAnchors.Clear();Changed();}
             DamagePreview();_dirty=true;return;
-        }
-        if(_tool=="laser")
-        {
-            if(input.Kind=="up")_laser.EndTrail();else _laser.Add(p,Now);_dirty=true;return;
         }
         if(_tool=="lasso")
         {
@@ -280,7 +286,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             selected=_start is not null?_manipulation??o:o;
             handle=_start is not null?_handle:ObjectHandles.Get(o,1).Where(h=>Math.Sqrt(Math.Pow(h.Point.X-pointer.X,2)+Math.Pow(h.Point.Y-pointer.Y,2))<14).Select(h=>(ObjectHandles.Handle?)h).FirstOrDefault();
         }
-        _overlay.SetManipulationCursor(selected,handle);
+        _overlay.SetManipulationCursor(selected,handle,_tool);
     }
     private BoardObject Styled(BoardObject item)
     {item.StrokeColor=_color;if(item.Type is "line" or "arrow")item.Extension=_screenExtension;item.StrokeWidth=_width*_dpiScale;item.Opacity=_tool=="highlighter"?_opacity*.4:_opacity;item.LineStyle=_dash;if(item.Type is "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star")item.FillColor=_fill;if(item.Type=="tape"){item.StrokeColor=item.FillColor="#F59E0B";item.IsRevealed=false;}return item;}
@@ -364,6 +370,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     private void Changed(){_dirty=_fullDamage=_committedDirty=true;RefreshScreenLayers();ApplySavingPreferences();}
     private void CancelGesture()
     {
+        if(_laser.Samples.Count>0){_laser.Release();_dirty=true;}
         CancelCircularEraser();
         CommitScreenStyle();var committedChanged=_session.HasTransaction;var previewVisible=_preview is not null||_points.Count>0;
         _straightenTimer.Stop();_penHoldAnchor=null;_screenPenStraight=false;DamagePreview();_session.Cancel();_curveAnchors.Clear();_marquee=false;_points.Clear();_start=_last=null;_preview=null;_handle=null;_renderer.ResetLive();

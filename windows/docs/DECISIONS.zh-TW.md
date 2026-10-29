@@ -1,5 +1,10 @@
 # Windows 開發決策
 
+## 2026-10-29 — 游標資源與雷射輸入邊界
+
+ToolCursor共用ToolIcons原向量，按工具／DPI實體size快取owned HCURSOR；software surface首次生成後釋放，不綁定文件GPU或指標每點重建。失敗快取cross fallback，ShapeCursor保留操控柄優先權；主host沿用ProtectedCursor拷貝，native overlay沿用WM_SETCURSOR，退出釋放owned資源。LaserPointerEngine新增暫態Press／MovePressed／Release，捕捉與實體左鍵由host把關；按住保留靜止光點，放開連尾跡即清除，不走文件／Undo。保留原Add／EndTrail供既有合成使用，UI入口不再以hover呼叫Add。雷射路由先於右鍵／double選取，兩host圖層入口亦拒收laser選取。 [日誌](TOOL_CURSOR_LASER_2026-10-29.zh-TW.md)。
+
+
 ## 2026-10-24 — 核准Store 1.0.17.0（封裝中）
 
 本次使用者明確回覆「採用1.0.17／1.0.17.0」，可以提高Windows正式版號與製作商店套件。身份、免費策略與受限功能模型不變；核准只適用此批，不推論後續版本或自行送審授權。 [本批日誌](STORE_RELEASE_1.0.17_2026-10-24.zh-TW.md)。

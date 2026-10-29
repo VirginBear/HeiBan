@@ -29,11 +29,11 @@ public sealed partial class Direct2DCanvasRenderer
             {
                 if(sample.StartsTrail&&_laserRaw.Count>0){RenderLaserTrail(ds,laser,width,now,lifetime,(float)density);_laserRaw.Clear();}
                 var at=vp.WorldToScreen(sample.Point.X,sample.Point.Y);
-                _laserRaw.Add(new(new((float)at.X,(float)at.Y),sample.Timestamp));
+                _laserRaw.Add(new(new((float)at.X,(float)at.Y),laser.IsPressed&&ReferenceEquals(sample,samples[^1])?now:sample.Timestamp));
             }
             if(_laserRaw.Count>0)RenderLaserTrail(ds,laser,width,now,lifetime,(float)density);
         }
-        var last=samples[^1];var opacity=LaserFreshness(now,last.Timestamp,lifetime);
+        var last=samples[^1];var opacity=laser.IsPressed?1:LaserFreshness(now,last.Timestamp,lifetime);
         if(opacity<=0)return;
         var position=vp.WorldToScreen(last.Point.X,last.Point.Y);
         if(_laserTipBrush is null||_laserTipStyle!=(laser.Color,laser.WhiteCore))

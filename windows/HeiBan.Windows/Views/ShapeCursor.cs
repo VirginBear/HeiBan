@@ -10,8 +10,9 @@ internal sealed class ShapeCursor : IDisposable
     private int _rotationSize;
     private nint _grab;
     private int _grabSize;
+    private readonly ToolCursor _tools=new();
     internal nint Current {get;private set;}
-    internal void Update(BoardObject? selected,ObjectHandles.Handle? handle,uint dpi=96,int defaultResource=32512,bool grabbing=false)
+    internal void Update(BoardObject? selected,ObjectHandles.Handle? handle,uint dpi=96,int defaultResource=32512,bool grabbing=false,string? tool=null)
     {
         var resource=defaultResource; // Borrowed shared Windows cursors must never be destroyed.
         if(handle is {Kind:"resize"} resize&&selected is not null)
@@ -33,6 +34,11 @@ internal sealed class ShapeCursor : IDisposable
             var size=Math.Clamp((int)Math.Ceiling(GetSystemMetricsForDpi(13,dpi)/8d)*8,32,128);
             if(_rotationSize!=size){SetCursor(LoadCursor(0,new nint(32512)));if(_rotation!=0)DestroyCursor(_rotation);_rotation=CreateRotation(size);_rotationSize=size;}
             Current=_rotation!=0?_rotation:LoadCursor(0,new nint(32646));
+        }
+        else if(handle is null&&tool is not null&&tool!="select")
+        {
+            var size=Math.Clamp((int)Math.Ceiling(GetSystemMetricsForDpi(13,dpi)/8d)*8,32,128);
+            var cursor=_tools.Get(tool,size);Current=cursor!=0?cursor:LoadCursor(0,new nint(32515));
         }
         else Current=LoadCursor(0,new nint(resource));
         SetCursor(Current);
@@ -82,6 +88,7 @@ internal sealed class ShapeCursor : IDisposable
     public void Dispose()
     {
         SetCursor(LoadCursor(0,new nint(32512)));
+        _tools.Dispose();
         if(_rotation!=0)DestroyCursor(_rotation);if(_grab!=0)DestroyCursor(_grab);_rotation=_grab=Current=0;_rotationSize=_grabSize=0;
     }
     [DllImport("user32.dll",CharSet=CharSet.Unicode)] private static extern nint LoadCursor(nint instance,nint name);

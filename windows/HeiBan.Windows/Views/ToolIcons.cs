@@ -9,6 +9,8 @@ namespace HeiBan.Windows.Views;
 /// No Apple symbol font or external icon asset is required on Windows.</summary>
 internal static class ToolIcons
 {
+    // Cursor artwork shares the toolbar's original vectors; no second icon catalog.
+    internal static string? CursorPath(string tool)=>Paths.GetValueOrDefault(tool);
     private static readonly Dictionary<string,string> Paths=new()
     {
         ["screen"]="M3,3 L23,3 L23,17 L3,17 Z M13,17 L13,22 M8,22 L18,22 M7,11 L11,7 L15,11 L19,7",

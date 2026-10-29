@@ -78,6 +78,7 @@ public partial class MainWindow : Window
         ApplyLanguageChrome();
         App.StartupStage="設定主視窗";
         ExtendsContentIntoTitleBar=true;SetTitleBar(AppTitleBar);SystemBackdrop=null;
+        Activated+=(_,e)=>{if(e.WindowActivationState==WindowActivationState.Deactivated&&_tool=="laser"&&_gesture)CancelGesture();};
         AppWindow.TitleBar.ButtonForegroundColor=Direct2DCanvasRenderer.HexToColor("#26372F");
         AppWindow.TitleBar.ButtonBackgroundColor=global::Windows.UI.Color.FromArgb(0,0,0,0);
         AppWindow.TitleBar.ButtonHoverBackgroundColor=Direct2DCanvasRenderer.HexToColor("#DCEBDD");
@@ -335,7 +336,7 @@ public partial class MainWindow : Window
         _session.Begin();board.BackgroundColor=nextColor;board.GridStyle=nextPattern;_session.Commit();InvalidateCanvas();
     }
     private void Layer_Changed(object sender,SelectionChangedEventArgs e)
-    {if(_changingLayers)return;CommitPropertyEdit();_session.SetSelection(LayerList.SelectedItems.OfType<LayerCard>().Select(row=>row.ObjectId));RefreshProperties();InvalidateCanvas(false);}
+    {if(_changingLayers)return;if(_tool=="laser"){SyncLayerSelection();return;}CommitPropertyEdit();_session.SetSelection(LayerList.SelectedItems.OfType<LayerCard>().Select(row=>row.ObjectId));RefreshProperties();InvalidateCanvas(false);}
     private void SyncLayerSelection()
     {
         var changing=_changingLayers;_changingLayers=true;

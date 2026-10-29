@@ -5,7 +5,7 @@ namespace HeiBan.Windows.ScreenAnnotation;
 
 internal sealed partial class NativeOverlayWindow : IDisposable
 {
-    public readonly record struct PointerEvent(string Kind,double X,double Y,bool Shift=false);
+    public readonly record struct PointerEvent(string Kind,double X,double Y,bool Shift=false,bool LeftDown=false);
     public event Action<PointerEvent>? Pointer;
     public event Action? BoundsChanged;
     public event Action<int>? Hotkey;
@@ -15,7 +15,9 @@ internal sealed partial class NativeOverlayWindow : IDisposable
     private nint _window,_dc,_bitmap,_oldBitmap,_pixels;
     private readonly nint _instance=GetModuleHandle(null);
     private readonly HeiBan.Windows.Views.ShapeCursor _shapeCursor=new();
-    internal void SetManipulationCursor(HeiBan.Windows.Models.BoardObject? selected,HeiBan.Windows.Engine.ObjectHandles.Handle? handle)=>_shapeCursor.Update(selected,handle,(uint)Math.Round(DpiScale(_window)*96),32515);
+    private string _cursorTool="pen";
+    internal void SetManipulationCursor(HeiBan.Windows.Models.BoardObject? selected,HeiBan.Windows.Engine.ObjectHandles.Handle? handle,string tool)
+    {_cursorTool=tool;_shapeCursor.Update(selected,handle,(uint)Math.Round(DpiScale(_window)*96),tool:tool);}
     private bool _drawing,_disposed,_pointerCaptured;
     public int Left { get; private set; }
     public int Top { get; private set; }
@@ -48,10 +50,11 @@ internal sealed partial class NativeOverlayWindow : IDisposable
     }
     public bool RegisterShortcut(int id,uint modifiers,uint key)=>RegisterHotKey(_window,id,modifiers|0x4000,key);
     public void Show(bool drawing){SetDrawing(drawing);ShowWindow(_window,4);}
-    public void Hide(){ShowWindow(_window,0);ReleaseReadback();}
+    public void Hide(){CancelPointerCapture();ShowWindow(_window,0);ReleaseReadback();}
     public void SetDrawing(bool value)
     {
         _drawing=value;
+        if(!value)CancelPointerCapture();
         var style=GetWindowLongPtr(_window,-20).ToInt64();
         style=value?style&~0x20L:style|0x20L;
         SetWindowLongPtr(_window,-20,new nint(style));
@@ -106,9 +109,9 @@ internal sealed partial class NativeOverlayWindow : IDisposable
                 // Message coordinates belong to this sample; querying the current cursor can skip queued movement.
                 var coordinates=lParam.ToInt64();var p=new Point{X=(short)(coordinates&0xffff),Y=(short)((coordinates>>16)&0xffff)};
                 var kind=message switch {0x0201=>"down",0x0202=>"up",0x0205=>"right",0x0203=>"double",_=>"move"};
-                if(message==0x0201){_pointerCaptured=true;SetCapture(hwnd);}
+                if(message==0x0201||(message==0x0203&&_cursorTool=="laser")){_pointerCaptured=true;SetCapture(hwnd);}
                 if(message==0x0202){_pointerCaptured=false;ReleaseCapture();}
-                Pointer?.Invoke(new(kind,p.X,p.Y,(wParam&4)!=0));return 0;
+                Pointer?.Invoke(new(kind,p.X,p.Y,(wParam&4)!=0,(wParam&1)!=0));return 0;
             }
         }
         catch(Exception e){Failed?.Invoke(e);}
@@ -121,6 +124,8 @@ internal sealed partial class NativeOverlayWindow : IDisposable
         if(_bitmap!=0){DeleteObject(_bitmap);_bitmap=0;}
         if(_dc!=0){DeleteDC(_dc);_dc=0;}_pixels=0;
     }
+    private void CancelPointerCapture()
+    {if(!_pointerCaptured)return;_pointerCaptured=false;ReleaseCapture();Pointer?.Invoke(new("cancel",0,0));}
     public void Dispose()
     {
         if(_disposed)return;_disposed=true;_shapeCursor.Dispose();

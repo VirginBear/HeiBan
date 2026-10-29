@@ -51,6 +51,7 @@ internal sealed partial class ScreenAnnotationWindow
         _screenLayers.SelectionChanged+=(_,_)=>
         {
             if(_refreshingScreenLayers||_screenLayers is null)return;
+            if(_tool=="laser"){RefreshScreenLayers();return;}
             FinishScreenText();CancelGesture();_session.SetSelection(_screenLayers.SelectedItems.OfType<LayerCard>().Select(row=>row.ObjectId));
             _tool="select";if(!_drawing)SetDrawing(true);RefreshButtons();_dirty=_fullDamage=true;
         };
