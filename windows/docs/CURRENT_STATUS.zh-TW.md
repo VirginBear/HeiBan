@@ -1,5 +1,11 @@
 # Windows 目前開發狀態
 
+## 2026-10-29 — 使用者核准Store 1.0.18.0封裝完成（待使用者提交）
+
+使用者「很棒 打包吧」並確認「採用1.0.18／1.0.18.0」。正式x64＋ARM64 bundle已完成（197254394bytes／SHA `ef2d7cd7a9af894486764fb704b298ce012def7df269515269fcd09acb111070`），兩架構EXE／DLL的1.0.18.0及來源`a1d5bd6`一致。最終build 55.82／78.61秒，各0warning0error；306來源SHA、兩包CRC／PRI／10語catalog及指南／26法律文件核同，50既有Store檔（21包）保留。僅runFullTrust，不含Data／standalone updater。首輪編譯前commit順序造成內嵌來源不同，保留候選後重包；檢查來源notice路徑與console編碼失敗亦已記錄。
+
+十語更新文案及精簡runFullTrust理由備妥。未執行App／自動測試／WACK／安裝升級／性能採樣；未上傳／送審／發布，使用者接續Partner Center。已核准進版不等於Microsoft認證。 [完整日誌](STORE_RELEASE_1.0.18_2026-10-29.zh-TW.md)／[靜態核對](STORE_INSPECTION_1.0.18.0_2026-10-29.json)／[十語更新說明](STORE_WHATS_NEW_1.0.18_2026-10-29.md)。
+
 ## 2026-10-29 — 固定教學工具／右下布局／雷射色盤／右鍵圖層（開發試用）
 
 選取、雷射、藤條固定相鄰常駐各頁，自訂不可取消或拆開；Normalize／Hide／Reset與兩host UI一致。更多移除重複藤條工具，保留顯示藤條。板擦與藤條約45°，按可見輪廓底端與最大邊匹配；板擦XAML／GPU／抓取／擦除共用6項affine，藤條透明padding容納旋轉像素。兩host雷射接共用常用色管理並保存；右鍵新增頂端／上移／下移／底端，支援未鎖多選、相對次序與一筆Undo、頁面及陳舊回呼界線。首次build因Matrix平移欄位名稱失敗，改OffsetX／Y後30.60秒0warning0error；十語647key／25節指南。仍1.0.17；App／自動測試／實機未執行，最終封裝完成，詳下列紀錄。 [日誌](TEACHING_TOOLS_2026-10-29.zh-TW.md)。

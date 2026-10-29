@@ -1,0 +1,116 @@
+{
+  "schema": 1,
+  "date": "2026-10-29",
+  "kind": "Static Store package integrity and PRI inspection; no App, installation or implementation tests executed",
+  "sourceGitHead": "a1d5bd6309f9bbcecd907a2547b663382b89869e",
+  "sourceFilesMatched": 306,
+  "peVersions": [
+    {
+      "fileVersion": "1.0.18.0",
+      "architecture": "x64",
+      "binary": "HeiBan.exe",
+      "productVersion": "1.0.18+a1d5bd6309f9bbcecd907a2547b663382b89869e"
+    },
+    {
+      "fileVersion": "1.0.18.0",
+      "architecture": "x64",
+      "binary": "HeiBan.dll",
+      "productVersion": "1.0.18+a1d5bd6309f9bbcecd907a2547b663382b89869e"
+    },
+    {
+      "fileVersion": "1.0.18.0",
+      "architecture": "arm64",
+      "binary": "HeiBan.exe",
+      "productVersion": "1.0.18+a1d5bd6309f9bbcecd907a2547b663382b89869e"
+    },
+    {
+      "fileVersion": "1.0.18.0",
+      "architecture": "arm64",
+      "binary": "HeiBan.dll",
+      "productVersion": "1.0.18+a1d5bd6309f9bbcecd907a2547b663382b89869e"
+    }
+  ],
+  "embeddedSourceHeadMatchesBothArchitectures": true,
+  "packages": [
+    {
+      "architecture": "x64",
+      "nativeMachine": "0x8664",
+      "entries": 636,
+      "version": "1.0.18.0",
+      "manifestLanguages": [
+        "ar",
+        "de",
+        "en",
+        "es",
+        "fr",
+        "ja",
+        "ko",
+        "pt-br",
+        "zh-cn",
+        "zh-tw"
+      ],
+      "runFullTrustOnly": true,
+      "embeddedCatalogsMatch": 10,
+      "storeIconAssetsMatch": 51,
+      "targetSizeIconVariants": 42,
+      "packagedPriUnplatedFormsRecognized": true,
+      "icoFrames": 14,
+      "guideDocumentsMatch": true,
+      "practiceCanvasMode": "infinite",
+      "practiceChapters": 25,
+      "practiceToolbarTools": 30,
+      "teachingToolAssetsAndAudioCreditMatch": true,
+      "fullReferenceMp3Excluded": true,
+      "unsignedForStoreSubmission": true,
+      "appExecuted": false
+    },
+    {
+      "architecture": "arm64",
+      "nativeMachine": "0xaa64",
+      "entries": 632,
+      "version": "1.0.18.0",
+      "manifestLanguages": [
+        "ar",
+        "de",
+        "en",
+        "es",
+        "fr",
+        "ja",
+        "ko",
+        "pt-br",
+        "zh-cn",
+        "zh-tw"
+      ],
+      "runFullTrustOnly": true,
+      "embeddedCatalogsMatch": 10,
+      "storeIconAssetsMatch": 51,
+      "targetSizeIconVariants": 42,
+      "packagedPriUnplatedFormsRecognized": true,
+      "icoFrames": 14,
+      "guideDocumentsMatch": true,
+      "practiceCanvasMode": "infinite",
+      "practiceChapters": 25,
+      "practiceToolbarTools": 30,
+      "teachingToolAssetsAndAudioCreditMatch": true,
+      "fullReferenceMp3Excluded": true,
+      "unsignedForStoreSubmission": true,
+      "appExecuted": false
+    }
+  ],
+  "artifactHashesAndSidecarsMatched": true,
+  "zipCrcValid": true,
+  "bundleInnerPackageBytesMatch": true,
+  "oldStoreFilesPreserved": 50,
+  "oldStorePackagesPreserved": 21,
+  "oldStoreBundle1_0_17Sha256": "f4caf4d9611ab901f236ec2640e0e0de2242d62f0b628ad48bbc7ec0f076ad78",
+  "formalVersionApproved": true,
+  "appExecutionChecked": false,
+  "testsExecuted": false,
+  "wackExecuted": false,
+  "storeSubmitted": false,
+  "storePublished": false,
+  "staticInspectionTools": {
+    "inspect-store.py": "5003d472d0730f5730cc821dc44a5d6a5f90aebeb5be0a5e420d843b598ffdfe",
+    "check-pe-versions.ps1": "340b01c59519f4dd2e3a3808c966e3c41f75b014bab78c14a45d8a552d30f550"
+  }
+}

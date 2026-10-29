@@ -1,5 +1,9 @@
 # Windows 開發決策
 
+## 2026-10-29 — 明確核准1.0.18與雙架構來源一致性
+
+本批依使用者明確版號回覆正式進1.0.18／1.0.18.0，產品身份與資料格式不變，沒有自動開下一版。csproj／manifest／StoreIdentity／十語指南同步；相同來源commit下製作x64＋ARM64未簽章Store bundle，二進位PE內嵌ProductVersion亦必須對應同一來源。只看檔名、manifest或事後sourceSnapshot不足以排除編譯前commit順序錯誤，故加讀四份EXE／DLL版本資源；錯誤候選留本機證據，重包不改程式來源、不覆寫歷史版本。來源及提交資料推GitHub；包交使用者上傳，不以封裝成功宣稱認證／發布。 [證據](STORE_RELEASE_1.0.18_2026-10-29.zh-TW.md)。
+
 ## 2026-10-29 — 固定工具、可見輪廓布局與選取圖層交易
 
 ToolbarPreferences.FixedTools是結構規則，三項永遠可見／勾選，排列、正規化、重設與自訂同源；CaneVisible只控制右下快捷。Arrange三按鈕同層，不再為某個頁面重掛藤條。BoardEraserGeometry的6項affine包含45°旋轉、host fit與中心偏移，Core輪廓／Win2D Matrix3x2／XAML Matrix.OffsetX,Y共享；Cane alpha hull只讀校正供可見底緣／尺度，旋轉後透明padding保留點擊區。雷射採同一ProfilePalette與PaletteEditor，選色只改laser，沒有每點指標訂閱。LayerReorder.MoveSelection只移動當頁可編輯選取、保留選取和未選取內部順序；全域當頁slots替換後一次正規化ZIndex與Undo，無實際變更不新增Undo，不跨舊文件／頁面回呼。原拖曳排序API保留。無新作品欄位或PNG／WAV。 [日誌](TEACHING_TOOLS_2026-10-29.zh-TW.md)。
