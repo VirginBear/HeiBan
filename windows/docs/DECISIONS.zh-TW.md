@@ -1,5 +1,9 @@
 # Windows 開發決策
 
+## 2026-10-29 — 姿態基準與音效來源契約
+
+CanePose按水平線定義休止45°／揚起75°，素材方向以tip／grip及實際bitmap比例補償，快捷ImageOpened與共用renderer一致；缺圖向量亦45°，握點／PNG原比例保留。時間曲線沿用35ms揚起、75ms接觸、260ms回彈，最大回彈8°。聲音資產固定0.26秒單次摘錄、48kHz PCM16；75.729ms峰對應動畫接觸，不改音高／速度。Source JSON與notice是實際素材來源，舊合成器只輸出.build歷史檔，避免覆蓋主素材。整段參考MP3不進repo，無文件schema／Undo變更。音訊分析與App驗收分開記錄。 [日誌](CANE_SAMPLE_2026-10-29.zh-TW.md)。
+
 ## 2026-10-29 — 持續握持工具與單次提示分離
 
 CaneFeedback.Point表示休止握點，StartedAt只控制一次揮動；移動、按住與揮動完成不提交永久物件。主畫布即時呈現位置、僅動畫期間timer；screen有最後動畫影格旗標、舊新damage與native leave清除，不能因手持圖常駐導致永久全屏重畫。Sprite保留原比例，以右下握柄(.92,.90)旋轉；兩host共用原創圖，缺圖回退向量。CaneVisible為optional工具偏好，缺值true，與工具Common／VisibleTools分開；右鍵／更多保存同一profile，clone保留未知欄。常用槽置中，cane不對應管理頁。MediaPlayer預載SoundEffects、不開網路，MediaFailed記有限診斷並退回生命週期固定的memory PlaySound，停止與釋放防止晚到播放。這不是實機音效通過證據。 [日誌](CANE_REFINEMENT_2026-10-29.zh-TW.md)。

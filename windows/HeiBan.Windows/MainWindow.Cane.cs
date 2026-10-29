@@ -3,12 +3,19 @@ using HeiBan.Windows.Engine;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace HeiBan.Windows;
 
 public partial class MainWindow
 {
     private readonly CaneFeedback _cane=new();
+    private void CaneQuickImage_Opened(object sender,RoutedEventArgs e)
+    {
+        if(sender is Image{Source:BitmapSource bitmap} image&&bitmap.PixelWidth>0&&bitmap.PixelHeight>0)
+            image.RenderTransform=new RotateTransform{Angle=CanePose.ArtworkRestRotationDegrees(bitmap.PixelWidth,bitmap.PixelHeight)};
+    }
     private void CaneQuick_Tapped(object sender,TappedRoutedEventArgs e){ActivateTool("cane");e.Handled=true;}
     private void CaneQuick_RightTapped(object sender,RightTappedRoutedEventArgs e)
     {

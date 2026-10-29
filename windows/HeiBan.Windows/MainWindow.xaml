@@ -103,7 +103,7 @@
      </Border>
      <Button x:Name="InspectorBookmark" Click="Properties_Click" HorizontalAlignment="Right" VerticalAlignment="Center" CornerRadius="12,0,0,12" Background="#FCFCFA" BorderBrush="#D4DBD1" Padding="9,14" loc:Ui.ToolTip="展開屬性檢查器"/>
      <Canvas x:Name="BoardEraserOverlay">
-      <Border x:Name="CaneQuickButton" Width="104" Height="78" Background="Transparent" Tapped="CaneQuick_Tapped" RightTapped="CaneQuick_RightTapped" loc:Ui.ToolTip="藤條：點一下選用，再點畫布揮動發聲"><Image Source="Assets/Cane.png" Stretch="Uniform" IsHitTestVisible="False"/></Border>
+      <Border x:Name="CaneQuickButton" Width="104" Height="78" Background="Transparent" Tapped="CaneQuick_Tapped" RightTapped="CaneQuick_RightTapped" loc:Ui.ToolTip="藤條：點一下選用，再點畫布揮動發聲"><Image Source="Assets/Cane.png" Stretch="Uniform" RenderTransformOrigin="0.5,0.5" ImageOpened="CaneQuickImage_Opened" IsHitTestVisible="False"/></Border>
       <Border x:Name="BoardEraserDock" Width="160" Height="98.461538" PointerPressed="BoardEraser_Pressed" PointerMoved="BoardEraser_Moved" PointerReleased="BoardEraser_Released" PointerCanceled="BoardEraser_Canceled" PointerCaptureLost="BoardEraser_Canceled" RightTapped="BoardEraser_RightTapped" loc:Ui.ToolTip="拖曳板擦擦除；右鍵調整模式或隱藏">
        <Grid>
         <Path x:Name="BoardEraserHitSurface" Fill="Transparent"/>

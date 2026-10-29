@@ -1,4 +1,4 @@
-"""Create HeiBan's original short rattan/board snap. No third-party audio samples."""
+"""Historical original synth. Current app cue is rebuilt with Extract-CaneSample.py."""
 from pathlib import Path
 import math, random, struct, wave
 
@@ -20,7 +20,8 @@ for index in range(int(rate*duration)):
     fade=min(1,t/.003,(duration-t)/.015)
     samples.append((swish+snap+knock)*max(0,fade))
 peak=max(abs(s) for s in samples)
-target=Path(__file__).resolve().parents[1]/'HeiBan.Windows/Assets/CaneSnap.wav'
+target=Path(__file__).resolve().parents[1]/'.build/cane-synth/CaneSnapSynthesized.wav'
+target.parent.mkdir(parents=True,exist_ok=True)
 with wave.open(str(target),'wb') as output:
     output.setnchannels(1)
     output.setsampwidth(2)
