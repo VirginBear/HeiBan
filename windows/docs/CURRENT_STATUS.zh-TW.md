@@ -2,7 +2,9 @@
 
 ## 2026-10-29 — 固定教學工具／右下布局／雷射色盤／右鍵圖層（開發試用）
 
-選取、雷射、藤條固定相鄰常駐各頁，自訂不可取消或拆開；Normalize／Hide／Reset與兩host UI一致。更多移除重複藤條工具，保留顯示藤條。板擦與藤條約45°，按可見輪廓底端與最大邊匹配；板擦XAML／GPU／抓取／擦除共用6項affine，藤條透明padding容納旋轉像素。兩host雷射接共用常用色管理並保存；右鍵新增頂端／上移／下移／底端，支援未鎖多選、相對次序與一筆Undo、頁面及陳舊回呼界線。首次build因Matrix平移欄位名稱失敗，改OffsetX／Y後30.60秒0warning0error；十語647key／25節指南。仍1.0.17；App／自動測試／實機未執行，封裝另補。 [日誌](TEACHING_TOOLS_2026-10-29.zh-TW.md)。
+選取、雷射、藤條固定相鄰常駐各頁，自訂不可取消或拆開；Normalize／Hide／Reset與兩host UI一致。更多移除重複藤條工具，保留顯示藤條。板擦與藤條約45°，按可見輪廓底端與最大邊匹配；板擦XAML／GPU／抓取／擦除共用6項affine，藤條透明padding容納旋轉像素。兩host雷射接共用常用色管理並保存；右鍵新增頂端／上移／下移／底端，支援未鎖多選、相對次序與一筆Undo、頁面及陳舊回呼界線。首次build因Matrix平移欄位名稱失敗，改OffsetX／Y後30.60秒0warning0error；十語647key／25節指南。仍1.0.17；App／自動測試／實機未執行，最終封裝完成，詳下列紀錄。 [日誌](TEACHING_TOOLS_2026-10-29.zh-TW.md)。
+
+x64 `teaching-tools-2026-10-29-r1` 已完成，來源 `149027fb1b35098a5daf8a3d290664d16b45c291`；ZIP 133177925bytes／SHA256 `e65d3b122d9fbf1c58d6d9fc25a325cddf0fa876ff2dbb5db096f4f739a0a7c2`。590 payload／208 source SHA及592 archive CRC核同，兩EXE x64；兩PNG、取樣WAV／來源metadata／notice與來源一致，完整參考MP3不在包內。Data使用者檔=0、獨立作品庫，51份既有Store檔SHA不變。App／實機／自動測試／性能採樣未執行。 [產物紀錄](TEACHING_TOOLS_ARTIFACT_2026-10-29.json)。
 
 ## 2026-10-29 — 藤條單次揮擊取樣與45°／75°姿態（開發試用）
 

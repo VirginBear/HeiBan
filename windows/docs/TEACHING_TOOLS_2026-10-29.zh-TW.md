@@ -29,3 +29,11 @@ Build-LocalizationCatalogs.py：十語647key、650authoring rows、missing=0；B
 移除前已查cane額外slot／更多手動工具入口及ChangeScreenLayer舊bool方法引用，所有正式呼叫改用固定工具／LayerMove；既有LayerReorder.Move拖曳入口與歷史文件保留。變更Core ToolbarPreferences／BoardEraserGeometry／CanePose／ToolArtBounds／LayerReorder；Views ToolbarUi.Presentation；MainWindow Chrome／Cane／BoardEraser／Input／DrawingWorkflow／Teaching／TeachingPreferences；ScreenAnnotation Chrome／Docking／Objects／Window；renderer ToolArt；九語手冊來源與十語catalog／指南、平台紀錄。沒有改PNG／WAV／作品schema／其他平台、版號或Store。
 
 待實機：三固定工具在各頁／各停靠／圖示模式與自訂／重設／舊偏好遷移；右下兩物件底緣／大小、板擦抓取／拖動擦除與GPU預覽一致；雷射常用色增刪／跨畫布同步／重開保存且不改筆色；右鍵多選／鎖定／共享頁／非當頁／相同ZIndex／極端ZIndex、上下邊界與undo／redo；DPI／小視窗與性能。沒有聲稱這些已驗收。只編譯及封裝靜態核對，沿用1.0.17、獨立試用Data、不清理或Store作業。
+
+## 最終封裝
+
+x64 `teaching-tools-2026-10-29-r1` 已完成，來源 `149027fb1b35098a5daf8a3d290664d16b45c291`；ZIP 133177925bytes／SHA256 `e65d3b122d9fbf1c58d6d9fc25a325cddf0fa876ff2dbb5db096f4f739a0a7c2`。590 payload／208 source SHA及592 archive CRC核同，兩EXE x64；兩PNG、取樣WAV／來源metadata／notice與來源一致，完整參考MP3不在包內。Data使用者檔=0、獨立作品庫，51份既有Store檔SHA不變。App／實機／自動測試／性能採樣未執行。 [產物紀錄](TEACHING_TOOLS_ARTIFACT_2026-10-29.json)。
+
+`Package-PortableTrial.ps1 -Runtime win-x64 -Label teaching-tools-2026-10-29-r1` 成功，完整publish log：`windows/.build/portable-trial-5832709972074cd7ba92c6e44c7d5faa/publish.log`。`python windows/.build/teaching-tools-20261029-r1/inspect_delivery.py`核對來源／payload／ZIP SHA及CRC、x64PE、PNG／WAV header及metadata／notice來源byte、空Data及51Store檔成功。只有封裝靜態檢查；沒有執行App、實機／核心與實作測試／性能、ARM64／WACK，不能當作對齊、擦除精度或Undo的實機證明。
+
+公開與PRIVATE庫分開記錄並push，核對遠端HEAD與私庫visibility；產品四保護欄deep-equal。原未提交三文件6／8／4行及三YouTube新檔保留，不移動使用者作品／參考音檔／舊trial，不清理、不進版或Store作業，無外部訊息／排程。
