@@ -2,7 +2,9 @@
 
 ## 2026-10-29 — 藤條持續握持與入口修整（開發試用）
 
-依使用者回報改右下握點、選用後跟隨游標並保持休止圖，單擊揮動、不增作品／Undo。原創俯視透明藤條與板擦同材質風格，快捷無框、右鍵隱藏／更多顯示藤條、CaneVisible保存。常用槽置中與選取／雷射對齊，移除管理入口，更多仍可選工具。聲音改預載MediaPlayer SoundEffects與memory PlaySound備援，失敗狀態列／有限診斷；素材0.25秒、峰值0.85。無聲確切執行原因尚未驗證，不宣稱已試聽。十語642key／25節指南更新；首次x64 build48.72秒0warning0error。仍1.0.17，不進Store；App／自動測試／音效／實機未執行，最終封裝另補。 [日誌](CANE_REFINEMENT_2026-10-29.zh-TW.md)。
+依使用者回報改右下握點、選用後跟隨游標並保持休止圖，單擊揮動、不增作品／Undo。原創俯視透明藤條與板擦同材質風格，快捷無框、右鍵隱藏／更多顯示藤條、CaneVisible保存。常用槽置中與選取／雷射對齊，移除管理入口，更多仍可選工具。聲音改預載MediaPlayer SoundEffects與memory PlaySound備援，失敗狀態列／有限診斷；素材0.25秒、峰值0.85。無聲確切執行原因尚未驗證，不宣稱已試聽。十語642key／25節指南更新；首次x64 build48.72秒0warning0error。仍1.0.17，不進Store；App／自動測試／音效／實機未執行，最終r4封裝完成，詳下列紀錄。 [日誌](CANE_REFINEMENT_2026-10-29.zh-TW.md)。
+
+x64 `cane-refine-2026-10-29-r4` 已封裝，來源 `e26d83cb9d24e8ef489d00453a075a20ad9cc72e`；ZIP 133155250bytes／SHA256 `b8abfd4c8db5661dbe9cfa4d08a26e85ae6d8f3d543ca596b45d7c894b0f31ac`。588 payload／203 source SHA及590 archive CRC核同，兩EXE x64；PNG1599×984透明原創圖252166bytes、WAV32000Hz mono PCM16／0.25s來源與payload一致。ZIP及Data使用者檔=0、獨立作品庫；51份Store檔SHA不變。沒有App／音效試聽／實機／自動測試或性能採樣。 [產物紀錄](CANE_REFINEMENT_ARTIFACT_2026-10-29.json)。
 
 ## 2026-10-29 — 藤條提醒工具（開發試用）
 

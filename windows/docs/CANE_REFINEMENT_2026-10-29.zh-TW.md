@@ -39,3 +39,13 @@ r1 caneSlot為Stretch容器內的Top子項，與直接加入shell的Select／Las
 來源凍結前git diff --cached --check偵測新增阿拉伯文最後欄位的尾端空白；改為既有catalog的\s顯式空格格式。外層操作仍啟動r2封裝，已辨識來源commit尚未凍結；r2不交付。最終改用獨立cane-refine-2026-10-29-r3，在正式來源commit後重新publish。這是產物來源追溯修正，並非正式產品進版。r2如已完成只在確認本批建立且Data空後清除，保留建置失敗／處理紀錄。
 
 最終素材靜態核對確認IHDR1599×984，與初看預覽估計1536×1024不同；r3的固定180×120渲染會小幅拉伸，改讀bitmap Bounds長寬比保留原形，打擊提示點亦依比例調整。r3已完成587以上檔案SHA／CRC核對但不作最終交付，最終另標cane-refine-2026-10-29-r4；舊r2清除在CreateProcess階段遭自動核准審查拒絕，僅回blocked by policy，沒有執行刪除、不換工具繞過。r2／r3中間包保留，不當作最新包；原Store與使用者Data未動。
+
+## 最終封裝結果
+
+x64 `cane-refine-2026-10-29-r4` 已封裝，來源 `e26d83cb9d24e8ef489d00453a075a20ad9cc72e`；ZIP 133155250bytes／SHA256 `b8abfd4c8db5661dbe9cfa4d08a26e85ae6d8f3d543ca596b45d7c894b0f31ac`。588 payload／203 source SHA及590 archive CRC核同，兩EXE x64；PNG1599×984透明原創圖252166bytes、WAV32000Hz mono PCM16／0.25s來源與payload一致。ZIP及Data使用者檔=0、獨立作品庫；51份Store檔SHA不變。沒有App／音效試聽／實機／自動測試或性能採樣。 [產物紀錄](CANE_REFINEMENT_ARTIFACT_2026-10-29.json)。
+
+`Package-PortableTrial.ps1 -Runtime win-x64 -Label cane-refine-2026-10-29-r4` 成功，最終publish log為`windows/.build/portable-trial-ff1863269ecf43b895242f854ed69596/publish.log`。`python windows/.build/cane-refine-20261029-r2/inspect_delivery.py` 核對全來源／payload SHA、ZIP CRC、x64PE、PNG IHDR／alpha、WAV header與source byte、空Data及51份Store檔SHA成功。本批沒有實機／音效／自動測試，沒有Store封裝／發布／進版。
+
+待使用者試用：右下握點／持續跟隨、畫布離開再進入、快速連點／切工具、單擊聲音是否可聽與實際延遲／音量、更多與右鍵保存後重開、常用在不同停靠方向對齊及素材風格。播放失敗會回報有限錯誤碼；實際硬體無聲原因仍不能從編譯推論。
+
+中間r2、r3包保持原檔。嘗試清除本批未交付空Data的r2時，exec_command CreateProcess被自動核准審查拒絕，僅回覆blocked by policy；沒有執行刪除、沒有改用其他工具繞過。清除bytes=0。正式Store、所有原作品／舊trial與原三文件6／8／4行及三YouTube新檔保留。GitHub公開來源／紀錄與私人壓縮交接另庫提交推送，不含使用者作品或憑證；最終遠端HEAD另核對，無外部訊息或排程。

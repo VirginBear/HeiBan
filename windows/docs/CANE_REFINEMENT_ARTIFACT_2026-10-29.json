@@ -1,0 +1,60 @@
+{
+  "caneArtwork": {
+    "file": "Assets/Cane.png",
+    "bytes": 252166,
+    "sha256": "af42206733b3f65df6fd082893146c30c047c5c3fbd118dbd1728c5434140718",
+    "width": 1599,
+    "height": 984,
+    "alpha": true,
+    "source": "Built-in imagegen; own BoardEraser.png used only as style reference"
+  },
+  "caneAudio": {
+    "format": "PCM16 mono",
+    "sampleRate": 32000,
+    "frames": 8000,
+    "durationSeconds": 0.25,
+    "bytes": 16044,
+    "sha256": "0664db5092801bbab459b994e2d57050ce15156503acb6ee967d9ddc114f04da",
+    "source": "Original deterministic synthesis, scripts/Generate-CaneSound.py",
+    "auditioned": false
+  },
+  "label": "cane-refine-2026-10-29-r4",
+  "version": "1.0.17",
+  "runtime": "win-x64",
+  "sourceCommit": "e26d83cb9d24e8ef489d00453a075a20ad9cc72e",
+  "zip": "windows/dist/trials/HeiBan-Windows-Portable-1.0.17-cane-refine-2026-10-29-r4-win-x64.zip",
+  "bytes": 133155250,
+  "sha256": "b8abfd4c8db5661dbe9cfa4d08a26e85ae6d8f3d543ca596b45d7c894b0f31ac",
+  "payloadFilesChecked": 588,
+  "sourceFilesChecked": 203,
+  "archiveFiles": 590,
+  "zipUserDataFiles": 0,
+  "portableDataFiles": 0,
+  "zipCrcAndPayloadShaMatch": true,
+  "peArchitecture": "x64",
+  "preservedStoreFiles": 51,
+  "storeFilesUnchanged": true,
+  "dataHandoff": {
+    "copied": false,
+    "mode": "Independent portable Data; running Store app left untouched"
+  },
+  "appExecuted": false,
+  "implementationTestsExecuted": false,
+  "coreTestsExecuted": false,
+  "performanceCaptured": false,
+  "storeRepackaged": false,
+  "formalVersionIncremented": false,
+  "runtimeTestRecord": null,
+  "developmentRecord": "windows/docs/CANE_REFINEMENT_2026-10-29.zh-TW.md",
+  "cleanup": {
+    "attempted": true,
+    "executed": false,
+    "automaticApprovalReviewRejected": true,
+    "reason": "blocked by policy",
+    "removedBytes": 0,
+    "retainedIntermediateLabels": [
+      "cane-refine-2026-10-29-r2",
+      "cane-refine-2026-10-29-r3"
+    ]
+  }
+}
