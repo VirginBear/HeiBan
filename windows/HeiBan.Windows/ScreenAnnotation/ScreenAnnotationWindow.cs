@@ -490,9 +490,10 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         var ring=new ProgressRing{IsActive=true,Width=30,Height=30};
         try
         {
-            _radialSettings?.Close();CancelRadial();_radialSaveTimer.Stop();await _owner.RadialTools.SaveAsync();
+            _radialSettings?.Close();CancelRadial();_radialSaveTimer.Stop();
             _saveTimer.Stop();_renderTimer.Stop();_focusRememberTimer.Stop();_dockTimer.Stop();_chromeFlyout?.Hide();
             _captureCancellation?.Cancel();if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();FinishScreenText();CancelGesture();
+            _radialSaveTimer.Stop();await _owner.RadialTools.SaveAsync();
             // Replace only the chrome while the native annotation session is frozen.
             Content=new Border{Background=ChromeBrush(255,247,250,246),Padding=new Thickness(12),CornerRadius=new CornerRadius(16),Child=new StackPanel{FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,Orientation=Orientation.Horizontal,Spacing=12,Children={ring,new TextBlock{Text=T("正在儲存…"),VerticalAlignment=VerticalAlignment.Center}}}};
             AppWindow.Resize(new SizeInt32((int)(320*_dpiScale),(int)(72*_dpiScale)));AppWindow.Show();Activate();await Task.Delay(32);

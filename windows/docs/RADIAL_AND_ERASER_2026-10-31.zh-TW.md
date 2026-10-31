@@ -26,3 +26,5 @@
 - 指南第一次生成失敗：來源新增radial列放在末尾，但generator嚴格要求META+SECTIONS順序；將九語radial列移至workspace後，第二次與最終生成成功。git diff --check指出九份作者文字有EOF空白行，清理後通過。十語每語653來源missing0，指南26節67段。
 - 結構清單＋精確20行重複掃描讀取144個Windows C#來源；引用舊graphify關聯圖導航並核對現行方法，沒有把舊圖當更新後驗收。沒有20行字面重複不等於沒有可整理的邏輯；手動合併四處damage union，並把正式DamageSelectedObjects／DamagePreview從Performance檔移出。
 - 未啟動App、不自動關閉使用者程式；本批沒有搬移或覆寫作品。試用包將附空白獨立Data及生成測試文件，供使用者驗收。
+
+- 關閉路徑最後核對：螢幕文字完成也可能改工具，將輪盤最終保存移至FinishScreenText／CancelGesture之後，並再次停止偏好計時器，避免在最後狀態之前就宣稱保存完成。正式封裝採此後續修正來源。

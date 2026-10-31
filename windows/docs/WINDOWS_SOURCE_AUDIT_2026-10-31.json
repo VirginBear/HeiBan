@@ -1,8 +1,8 @@
 {
   "scope": "Windows Git source + this batch new C# files; exact 20-line repeats are navigation hints, not dead-code proof",
   "files": 144,
-  "sourceBytes": 1092504,
-  "sourceLines": 16987,
+  "sourceBytes": 1092542,
+  "sourceLines": 16988,
   "largest": [
     {
       "file": "windows/HeiBan.Windows/MainWindow.Chrome.cs",
@@ -21,8 +21,8 @@
     },
     {
       "file": "windows/HeiBan.Windows/ScreenAnnotation/ScreenAnnotationWindow.cs",
-      "lines": 511,
-      "bytes": 42365
+      "lines": 512,
+      "bytes": 42403
     },
     {
       "file": "windows/HeiBan.Windows/MainWindow.xaml.cs",
