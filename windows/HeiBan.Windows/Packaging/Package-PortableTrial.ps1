@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
     [ValidateSet('win-x64','win-arm64')][string]$Runtime='win-x64',
-    [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$')][string]$Label='perf2-2026-10-11'
+    [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$')][string]$Label='perf2-2026-10-11',
+    [string]$PracticeFilesDirectory
 )
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'Publish-Common.ps1')
@@ -53,6 +54,13 @@ try {
     [ordered]@{label=$Label;runtime=$Runtime;version=$version;sourceCommit=$source;sourceFiles=$sourceFiles;
         capturedUtc=[DateTime]::UtcNow.ToString('o');scope='Local Portable trial, source commit plus recorded Windows working tree; no release publication'} |
         ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $payload 'TRIAL-SOURCE.json') -Encoding UTF8
+    if($PracticeFilesDirectory){
+        $practice=Join-Path $payload 'PracticeFiles';New-Item -ItemType Directory -Path $practice | Out-Null
+        # Only these deterministic generated documents are included, never a Data directory.
+        foreach($practiceName in @('practice-100.heiban','practice-5000.heiban')){
+            Copy-Item -LiteralPath (Join-Path $PracticeFilesDirectory $practiceName) -Destination (Join-Path $practice $practiceName) -ErrorAction Stop
+        }
+    }
     Write-HeiBanUpdateInventory $payload
     # The empty portable Data tree and runtime payload travel together; no user's files are copied.
     Compress-Archive -Path (Join-Path $payload '*') -DestinationPath $zip -CompressionLevel Optimal
