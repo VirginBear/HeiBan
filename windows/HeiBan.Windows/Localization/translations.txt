@@ -568,3 +568,6 @@ PDF、PPT、PPTX 會另外產生圖片頁面放進畫布，不會直接編輯原
 輪盤設定尚未保存：|Wheel settings have not been saved:\s|ホイール設定を保存できていません：|휠 설정이 저장되지 않았습니다:\s|No se ha guardado la configuración:\s|Les réglages de la roue ne sont pas enregistrés :\s|Werkzeugrad-Einstellungen wurden nicht gespeichert:\s|As configurações da roda não foram salvas:\s|لم تُحفظ إعدادات العجلة:\s
 設定已儲存|Settings saved|設定を保存しました|설정이 저장되었습니다|Configuración guardada|Réglages enregistrés|Einstellungen gespeichert|Configurações salvas|تم حفظ الإعدادات
 五邊形|Pentagon|五角形|오각형|Pentágono|Pentagone|Fünfeck|Pentágono|خماسي الأضلاع
+設定工具輪盤|Configure tool wheel|ツールホイール設定|도구 휠 설정|Configurar rueda de herramientas|Configurer la roue des outils|Werkzeugrad konfigurieren|Configurar roda de ferramentas|إعداد عجلة الأدوات
+進階色輪與色碼|Advanced color wheel & hex|高度なカラーホイールとカラーコード|고급 컬러 휠 및 색상 코드|Rueda de color avanzada y código hex|Roue des couleurs avancée et code hex|Erweitertes Farbrad und Hex-Code|Roda de cores avançada e código hex|عجلة الألوان المتقدمة والرمز السداسي
+收合色輪與色碼|Collapse color wheel|カラーホイールを折りたたむ|컬러 휠 접기|Contraer rueda de color|Réduire la roue des couleurs|Farbrad einklappen|Recolher roda de cores|طي عجلة الألوان

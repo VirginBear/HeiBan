@@ -55,7 +55,7 @@ internal sealed partial class ScreenAnnotationWindow
         ToolTipService.SetToolTip(_chromeGrip,T("拖曳到螢幕上下左右；放開後停靠"));ExtendsContentIntoTitleBar=true;SetTitleBar(_chromeGrip);
         _mode.Height=32;_mode.MinWidth=_mode.MinHeight=0;_mode.Padding=new Thickness(3);_mode.BorderThickness=new Thickness(0);_mode.CornerRadius=new CornerRadius(6);_mode.Background=ChromeBrush(0,0,0,0);_mode.Click+=(_,_)=>SetDrawing(!_drawing);
         foreach(var pair in ToolbarUi.ScreenTools.Where(pair=>pair.Key is not("undo" or "redo" or "screenshot" or "layers" or "brush" or "dash" or "clearAll")))
-        {var key=pair.Key;var button=ChromeButton(key,T(pair.Label));button.Tag=key;_screenCommands[key]=()=>{if(key=="shapes")ShowScreenShapes();else if(key=="magnet")ToggleScreenMagnet();else ChooseScreenTool(key);};button.Click+=(_,_)=>_screenCommands[key]();_buttons[key]=button;}
+        {var key=pair.Key;var button=ChromeButton(key,T(pair.Label));button.Tag=key;_screenCommands[key]=()=>{if(key=="shapes")ShowScreenShapes();else if(key=="magnet")ToggleScreenMagnet();else if(key=="radialSettings")ShowRadialSettings();else ChooseScreenTool(key);};button.Click+=(_,_)=>_screenCommands[key]();_buttons[key]=button;}
         _chromeActions.Add(ActionButton("undo",T("復原這個螢幕的註記"),async()=>await UndoScreenAsync(false),"undo"));
         _chromeActions.Add(ActionButton("redo",T("重做"),async()=>await UndoScreenAsync(true),"redo"));
         _chromeActions.Add(ActionButton("screenshot",T("截圖加入螢幕畫布 · Ctrl+Alt+S"),async()=>await CaptureAsync(),"screenshot"));
@@ -122,25 +122,85 @@ internal sealed partial class ScreenAnnotationWindow
     private void ShowBrushSettings()
     {
         var selected=StyleSelection;var currentColor=selected?.StrokeColor??_color;var currentWidth=(selected?.StrokeWidth/_dpiScale)??_width;var currentAlpha=selected?.Opacity??_opacity;
-        var panel=new StackPanel{Width=248,Spacing=14,RequestedTheme=ElementTheme.Light};panel.Children.Add(new TextBlock{Text=selected is null?T("顏色與筆刷"):T("選取物件樣式"),FontSize=16});
+        var panel=new StackPanel{Width=360,Spacing=12,RequestedTheme=ElementTheme.Light};
+        panel.Children.Add(new TextBlock{Text=selected is null?T("顏色與筆刷"):T("選取物件樣式"),FontSize=16,FontWeight=Microsoft.UI.Text.FontWeights.SemiBold});
         var type=selected?.Type??_tool;
-        var controls=ToolbarUi.AddBrushControls(panel,_owner.ProfilePalette,currentColor,currentWidth,currentAlpha,248,type is not("text" or "sticky" or "image"));
+        var controls=ToolbarUi.AddBrushControls(panel,_owner.ProfilePalette,currentColor,currentWidth,currentAlpha,320,type is not("text" or "sticky" or "image"));
         var wheel=controls.Color;var width=controls.Width;var alpha=controls.Opacity;
         wheel.ColorChanged+=(_,e)=>SetScreenColor($"#{e.NewColor.R:X2}{e.NewColor.G:X2}{e.NewColor.B:X2}{e.NewColor.A:X2}");
         width.ValueChanged+=(_,_)=>{if(StyleSelection is not null)EditScreenStyle(o=>o.StrokeWidth=width.Value*_dpiScale);else{_width=width.Value;_laser.Width=_width;}};
         alpha.ValueChanged+=(_,_)=>{if(StyleSelection is not null)EditScreenStyle(o=>o.Opacity=alpha.Value);else _opacity=alpha.Value;};
-        if(selected?.Type=="arrow")
+
+        if(type is not("text" or "image" or "sticky" or "eraser" or "laser" or "cane"))
         {
-            var headLength=ChromeSlider(4,128,(selected.ArrowHeadLength??16)/_dpiScale,T("箭頭頭部長度（pt）"));headLength.ValueChanged+=(_,_)=>EditScreenStyle(o=>{if(o.Type=="arrow")o.ArrowHeadLength=headLength.Value*_dpiScale;});panel.Children.Add(headLength);
-            var headWidth=ChromeSlider(4,96,(selected.ArrowHeadWidth??10)/_dpiScale,T("箭頭頭部寬度（pt）"));headWidth.ValueChanged+=(_,_)=>EditScreenStyle(o=>{if(o.Type=="arrow")o.ArrowHeadWidth=headWidth.Value*_dpiScale;});panel.Children.Add(headWidth);
-        }
-        if(type is "line" or "arrow")
-        {
-            var options=new[]{"none","start","end","both"};var extension=new ComboBox{Header=T("直線延伸"),ItemsSource=new[]{T("線段"),T("向 A 延伸"),T("向 B 延伸"),T("雙向延伸")},SelectedIndex=Math.Max(0,Array.IndexOf(options,selected?.Extension??_screenExtension))};
-            extension.SelectionChanged+=(_,_)=>{var value=options[Math.Max(0,extension.SelectedIndex)];if(StyleSelection is not null)EditScreenStyle(o=>{if(o.Type is "line" or "arrow")o.Extension=value;});else _screenExtension=value;};panel.Children.Add(extension);
+            var currentDash=selected?.LineStyle??_dash;
+            panel.Children.Add(ToolbarUi.CreateDashComboBox(currentDash,SetScreenDash));
         }
 
-        panel.Children.Add(new TextBlock{Text=_status.Text,FontSize=10,TextWrapping=TextWrapping.Wrap});ShowChromeFlyout(new Flyout{Content=panel},_brushButton);
+        if(type is "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star" or "arc" or "sticky")
+        {
+            var isFilled=selected is null?(_fill!="none"):(selected.FillColor!="none");
+            var currentFill=(selected?.FillColor is not null&&selected.FillColor!="none")?selected.FillColor:(_fill!="none"?_fill:"#3B82F6");
+            var currentFillAlpha=selected?.FillOpacity??1.0;
+            ToolbarUi.AddFillControls(
+                panel,
+                _owner.ProfilePalette,
+                isFilled,
+                currentFill,
+                currentFillAlpha,
+                onToggleFilled:filled=>
+                {
+                    if(filled){var targetFill=_fill!="none"?_fill:"#3B82F6";SetScreenFill(targetFill);}
+                    else SetScreenFill("none");
+                },
+                onFillColorChanged:SetScreenFill,
+                onFillOpacityChanged:op=>{if(StyleSelection is not null)EditScreenStyle(o=>o.FillOpacity=op,true);},
+                onFillGradient:(g1,g2)=>
+                {
+                    if(StyleSelection is not null)EditScreenStyle(o=>{o.FillColor=g1;o.FillGradientStart=g1;o.FillGradientEnd=g2;},true);
+                    else{_fill=g1;RefreshScreenStyleButtons();_dirty=true;}
+                },
+                onCustomColorClick:btn=>ShowScreenFill(btn));
+        }
+
+        if(selected is not null&&type is not("line" or "arrow" or "laser" or "cane"))
+        {
+            panel.Children.Add(ToolbarUi.CreateRotationSlider(selected.Rotation,rot=>EditScreenStyle(o=>o.Rotation=rot)));
+        }
+
+        if(selected?.Type=="arrow"||type=="arrow")
+        {
+            var headLength=ToolbarUi.BrushSlider(T("箭頭頭部長度（pt）"),4,128,(selected?.ArrowHeadLength??16)/_dpiScale,1);
+            headLength.ValueChanged+=(_,_)=>EditScreenStyle(o=>{if(o.Type=="arrow")o.ArrowHeadLength=headLength.Value*_dpiScale;});
+            panel.Children.Add(headLength);
+
+            var headWidth=ToolbarUi.BrushSlider(T("箭頭頭部寬度（pt）"),4,96,(selected?.ArrowHeadWidth??10)/_dpiScale,1);
+            headWidth.ValueChanged+=(_,_)=>EditScreenStyle(o=>{if(o.Type=="arrow")o.ArrowHeadWidth=headWidth.Value*_dpiScale;});
+            panel.Children.Add(headWidth);
+        }
+
+        if(type is "line" or "arrow")
+        {
+            var options=new[]{"none","start","end","both"};
+            var extension=new ComboBox
+            {
+                Header=T("直線延伸"),
+                ItemsSource=new[]{T("線段"),T("向 A 延伸"),T("向 B 延伸"),T("雙向延伸")},
+                SelectedIndex=Math.Max(0,Array.IndexOf(options,selected?.Extension??_screenExtension)),
+                HorizontalAlignment=HorizontalAlignment.Stretch,
+                Margin=new Thickness(0,2,0,4)
+            };
+            extension.SelectionChanged+=(_,_)=>
+            {
+                var value=options[Math.Max(0,extension.SelectedIndex)];
+                if(StyleSelection is not null)EditScreenStyle(o=>{if(o.Type is "line" or "arrow")o.Extension=value;});
+                else _screenExtension=value;
+            };
+            panel.Children.Add(extension);
+        }
+
+        panel.Children.Add(new TextBlock{Text=_status.Text,FontSize=10,TextWrapping=TextWrapping.Wrap});
+        ShowChromeFlyout(new Flyout{Content=panel},_brushButton);
     }
     private static Slider ChromeSlider(double min,double max,double value,string label)
     {
@@ -180,7 +240,7 @@ internal sealed partial class ScreenAnnotationWindow
     {
         var menu=new MenuFlyout();
         void Item(string icon,string label,Action action){var item=new MenuFlyoutItem{Text=label,Icon=ToolIcons.CreateIcon(icon)};item.Click+=(_,_)=>action();menu.Items.Add(item);}
-        Item("shapes",T("右鍵工具輪盤"),ShowRadialSettings);
+        Item("radialSettings",T("設定工具輪盤"),ShowRadialSettings);
         if(StyleSelection is not null){Item("select",T("選取物件：樣式、複製、刪除…"),()=>ShowChromeFlyout(CreateObjectMenu(),_moreButton));menu.Items.Add(new MenuFlyoutSeparator());}
         var automatic=new ToggleMenuFlyoutItem{Text=T("自動存檔"),IsChecked=_owner.AutoSaveEnabled};
         automatic.Click+=async(_,_)=>{automatic.IsEnabled=false;try{await _owner.SetAutoSaveEnabledAsync(automatic.IsChecked);}catch(Exception error){automatic.IsChecked=_owner.AutoSaveEnabled;_status.Text=T("儲存設定未保存，請確認資料夾可寫入。")+"\n"+error.Message;}finally{automatic.IsEnabled=true;}};menu.Items.Add(automatic);

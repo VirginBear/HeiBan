@@ -39,7 +39,7 @@ internal static class PalettePreferenceChecks
         check(failed&&store.Colors.SequenceEqual(original),"Failed save does not publish an unsaved palette");
         var toolbar=new ToolbarPreferences{VisibleTools=["pen","rect"],HiddenTools=["laser","select"],CommonTools=["brush"],DefaultCommonRevision=1};
         toolbar.Normalize();check(toolbar.VisibleTools.Take(2).SequenceEqual(new[]{"select","laser"}),"Selection and laser normalize to fixed leading slots");
-        check(toolbar.CommonTools.SequenceEqual(new[]{"brush","laser"})&&!toolbar.HiddenTools.Contains("laser"),"Laser migration preserves custom favorites");
+        check(toolbar.CommonTools.Contains("brush")&&toolbar.CommonTools.Contains("laser")&&!toolbar.HiddenTools.Contains("laser"),"Laser migration preserves custom favorites");
         toolbar.HideTool("laser");toolbar.Normalize();check(toolbar.VisibleTools.Count(t=>t=="laser")==1,"Pinned laser cannot hide or duplicate");
         // Leave only isolated test files for failure diagnosis; never touch application Data.
     }

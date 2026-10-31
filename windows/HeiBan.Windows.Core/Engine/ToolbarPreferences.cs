@@ -33,7 +33,7 @@ public sealed class ToolbarPreferences
         "select", "pen", "curve", "highlighter", "paint", "eraser",
         "ruler", "shapes", "sticky", "text", "screenshot", "image",
         "brush", "dash", "pins", "calculator", "timer", "compass",
-        "undo", "redo", "dock", "laser", "cane", "tape", "lasso", "extension", "clearAll", "viewLock", "layers", "magnet"
+        "undo", "redo", "dock", "laser", "cane", "tape", "lasso", "extension", "clearAll", "viewLock", "layers", "magnet", "radialSettings"
     ];
 
     public static readonly Dictionary<string, string> ToolNames = new()
@@ -62,6 +62,7 @@ public sealed class ToolbarPreferences
         ["layers"] = "物件圖層",
         ["dock"] = "停靠位置"
         ,["magnet"] = "磁鐵"
+        ,["radialSettings"] = "設定工具輪盤"
     };
 
     public static ToolbarPreferences CreateDefault() => new()
@@ -120,6 +121,7 @@ public sealed class ToolbarPreferences
         // One-time discovery: old preferences lack layers in both lists. A later explicit hide remains respected.
         if(!VisibleTools.Contains("layers")&&!HiddenTools.Contains("layers"))VisibleTools.Add("layers");
         if(!VisibleTools.Contains("magnet")&&!HiddenTools.Contains("magnet"))VisibleTools.Add("magnet");
+        if(!VisibleTools.Contains("radialSettings")&&!HiddenTools.Contains("radialSettings"))VisibleTools.Add("radialSettings");
         // These are structural controls, independent from per-page favorites.
         // Restore older hidden preferences without discarding any other user order.
         HiddenTools.RemoveAll(IsFixedTool);

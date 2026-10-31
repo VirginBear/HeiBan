@@ -299,10 +299,11 @@ Check(streamPrefs.VisibleTools.Count == ToolbarPreferences.AllDefaultTools.Lengt
 Check(streamPrefs.VisibleTools.Contains("calculator"), "Calculator is visible by default");
 Check(streamPrefs.VisibleTools.Contains("timer"), "Timer is visible by default");
 Check(streamPrefs.VisibleTools.Contains("compass"), "Compass is visible by default");
-Check(streamPrefs.MoveToolDown("select"), "Move select down succeeded");
-Check(streamPrefs.VisibleTools[1] == "select", "Select moved to index 1");
-Check(streamPrefs.MoveToolUp("select"), "Move select up succeeded");
-Check(streamPrefs.VisibleTools[0] == "select", "Select restored to index 0");
+var penIdx = streamPrefs.VisibleTools.IndexOf("pen");
+Check(streamPrefs.MoveToolDown("pen"), "Move pen down succeeded");
+Check(streamPrefs.VisibleTools[penIdx + 1] == "pen", "Pen moved down");
+Check(streamPrefs.MoveToolUp("pen"), "Move pen up succeeded");
+Check(streamPrefs.VisibleTools[penIdx] == "pen", "Pen restored");
 
 // 3. SelectionQuickActionCoordinator: star 與 arc 納入幾何形狀
 var starObj = new BoardObject { Type = "star" };
@@ -516,10 +517,10 @@ Check(calcTest.Display == "123.45", "SetResult updates display value");
 
 // 5. 工具列自訂排序 (ToolbarPreferences MoveToolUp / MoveToolDown)
 var tpTest = ToolbarPreferences.CreateDefault();
-var firstTool = tpTest.VisibleTools[0];
-var secondTool = tpTest.VisibleTools[1];
-Check(tpTest.MoveToolDown(firstTool), "MoveToolDown succeeds on first tool");
-Check(tpTest.VisibleTools[0] == secondTool && tpTest.VisibleTools[1] == firstTool, "First and second tools swapped");
+var firstTool = tpTest.VisibleTools[ToolbarPreferences.FixedTools.Length];
+var secondTool = tpTest.VisibleTools[ToolbarPreferences.FixedTools.Length + 1];
+Check(tpTest.MoveToolDown(firstTool), "MoveToolDown succeeds on first movable tool");
+Check(tpTest.VisibleTools[ToolbarPreferences.FixedTools.Length] == secondTool && tpTest.VisibleTools[ToolbarPreferences.FixedTools.Length + 1] == firstTool, "First and second movable tools swapped");
 Check(tpTest.MoveToolUp(firstTool), "MoveToolUp restores order");
 // 6. Arc 物件控制點、等比 Resize 與端點互動驗收 (W-N04)
 var testArc = new BoardObject

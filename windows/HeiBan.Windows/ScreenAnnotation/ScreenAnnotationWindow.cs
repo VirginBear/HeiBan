@@ -182,7 +182,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             else if(hit is {IsLocked:not true}){CancelGesture();_tool="select";_session.SelectedId=hit.Id;RefreshButtons();Changed();ShowBrushSettings();}
             return;
         }
-        if(input.Kind=="down"){FinishScreenText();if(_tool is "text" or "sticky"){BeginScreenText(p,type:_tool);return;}}
+        if(input.Kind=="down"){if(_chromeFlyout is not null){CommitScreenStyle();_chromeFlyout.Hide();_chromeFlyout=null;}FinishScreenText();if(_tool is "text" or "sticky"){BeginScreenText(p,type:_tool);return;}}
         if(_preview is not null)DamagePreview();
         if(_tool is "curve" or "triangle" or "quadrilateral")
         {
@@ -453,7 +453,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             var interactions=await ValidateInteractionChangesAsync(outputDirectory);var previewPerformance=ValidatePreviewPerformance();var performance=ValidateStrokePerformance();var objectCommands=ValidateObjectCommands();var docking=ValidateChromeDocking();var text=ValidateScreenText();
             var expanded=AppWindow.Size;SetChromeCollapsed(false);
             if(expanded.Height>62*_dpiScale)throw new InvalidOperationException("螢幕工具列不是60pt單排。");
-            await Task.Delay(160);Activate();await Task.Delay(80);ShowBrushSettings();await Task.Delay(100);var brushPanel=_chromeFlyout is Microsoft.UI.Xaml.Controls.Flyout brushFlyout&&brushFlyout.Content is StackPanel brush&&brush.Width==248&&brush.Children.OfType<Microsoft.UI.Xaml.Controls.Slider>().Count()==2;
+            await Task.Delay(160);Activate();await Task.Delay(80);ShowBrushSettings();await Task.Delay(100);var brushPanel=_chromeFlyout is Microsoft.UI.Xaml.Controls.Flyout brushFlyout&&brushFlyout.Content is StackPanel brush&&brush.Width==360&&brush.Children.OfType<Microsoft.UI.Xaml.Controls.Slider>().Count()>=2;
             if(!brushPanel)throw new InvalidOperationException("共用色圓設定面板未接線："+(_chromeFlyout?.GetType().Name??"closed")+" / "+((_chromeFlyout as Flyout)?.Content is StackPanel actual?actual.Width.ToString():"no panel"));_chromeFlyout?.Hide();
             await LaserSettingsAsync();await Task.Delay(100);
             var settingsOutsideRoot=_chromeFlyout?.IsConstrainedToRootBounds==false;

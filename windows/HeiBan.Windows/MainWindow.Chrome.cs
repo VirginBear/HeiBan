@@ -203,7 +203,7 @@ public partial class MainWindow
 
         menu.Items.Add(new MenuFlyoutSeparator());
 
-        var radialItem=new MenuFlyoutItem{Text=T("右鍵工具輪盤"),Icon=ToolIcons.CreateIcon("shapes")};radialItem.Click+=(_,_)=>ShowRadialSettings();menu.Items.Add(radialItem);
+        var radialItem=new MenuFlyoutItem{Text=T("設定工具輪盤"),Icon=ToolIcons.CreateIcon("radialSettings")};radialItem.Click+=(_,_)=>ShowRadialSettings();menu.Items.Add(radialItem);
 
         var customizeItem = new MenuFlyoutItem { Text = T("自訂工具列…") };
         customizeItem.Click += async (_, _) => await ShowCustomizeToolbarDialog();
@@ -333,7 +333,7 @@ public partial class MainWindow
         return button;
     }
 
-    private void ShowExclusiveFlyout(FlyoutBase flyout, FrameworkElement anchor)
+    private void ShowExclusiveFlyout(FlyoutBase flyout, FrameworkElement anchor, FrameworkElement? passThrough = null)
     {
         ToolbarUi.ApplyReadingDirection(flyout);
         if (_activeFlyout != null && _activeFlyout != flyout)
@@ -342,7 +342,7 @@ public partial class MainWindow
         }
         _activeFlyout = flyout;
         flyout.Closed += (_, _) => { if (_activeFlyout == flyout) _activeFlyout = null; };
-        flyout.OverlayInputPassThroughElement=ToolBorder;
+        flyout.OverlayInputPassThroughElement=passThrough ?? ToolBorder;
         flyout.ShowAt(anchor);
     }
 
@@ -401,6 +401,8 @@ public partial class MainWindow
                 case "extension": break; // 延伸屬性改由線段設定提供；保留舊偏好欄位。
                 case "magnet":
                     var magnet=IconButton("magnet",T("磁鐵"),ToggleMagnet,"magnet");_toolButtons[key]=magnet;Tools.Children.Add(magnet);break;
+                case "radialSettings":
+                    var radial=IconButton("radialSettings",T("設定工具輪盤"),ShowRadialSettings,"radialSettings");_toolButtons[key]=radial;Tools.Children.Add(radial);break;
                 case "layers":
                     var layers=IconButton("layers",T("物件圖層"),()=>Layers_Click(this,new RoutedEventArgs()),"layers");
                     _toolButtons[key]=layers;Tools.Children.Add(layers);break;
@@ -617,6 +619,7 @@ public partial class MainWindow
         switch (key)
         {
             case "magnet": ToggleMagnet();break;
+            case "radialSettings": ShowRadialSettings();break;
             case "laser": if(_tool=="laser")ShowLaserSettings(GetToolAnchor(key));else ActivateTool(key);break;
             case "cane" or "tape" or "lasso" or "select" or "pen" or "curve" or "highlighter" or "paint" or "sticky" or "text" or "star":
                 ActivateTool(key);
@@ -985,19 +988,11 @@ public partial class MainWindow
         var selected = _session.Selected;
         if(selected is not null){Inspector.Visibility=Visibility.Visible;RefreshProperties();RefreshChrome();return;}
         if(_tool=="laser"){ShowLaserSettings(anchor);return;}
-        var panel = new StackPanel { Width = 286, Spacing = 12 };
+        var panel = new StackPanel { Width = 360, Spacing = 12 };
         panel.Children.Add(new TextBlock { Text = selected is null ? F($"繪圖設定（{T(ToolbarPreferences.ToolNames.GetValueOrDefault(_styleTool,_styleTool))}）") : T("已選取物件設定"), FontSize = 16, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
         AddExtendedObjectSettings(panel,selected);
-        var controls=ToolbarUi.AddBrushControls(panel,ProfilePalette,selected?.StrokeColor??CurrentStyle.Color,selected?.StrokeWidth??CurrentStyle.Width,selected?.Opacity??CurrentStyle.Opacity);
+        var controls=ToolbarUi.AddBrushControls(panel,ProfilePalette,selected?.StrokeColor??CurrentStyle.Color,selected?.StrokeWidth??CurrentStyle.Width,selected?.Opacity??CurrentStyle.Opacity,320);
         var wheel=controls.Color;var width=controls.Width;var alpha=controls.Opacity;
-        var presets = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4 };
-        foreach (var n in new[] { 2d, 3.5, 6, 10, 18, 32 })
-        {
-            var b = new Button { Content = $"{n:0.#}", Padding = new Thickness(7, 4, 7, 4) };
-            b.Click += (_, _) => width.Value = n;
-            presets.Children.Add(b);
-        }
-        panel.Children.Add(presets);
 
 
         CheckBox? filled = null;
@@ -1059,7 +1054,7 @@ public partial class MainWindow
         // another one gives this long brush panel two independent vertical bars.
         var flyout = new Flyout { Content = panel };
         flyout.Closed += (_, _) => CommitPropertyEdit();
-        ShowExclusiveFlyout(flyout, anchor);
+        ShowExclusiveFlyout(flyout, anchor, DrawingArea);
     }
 
     private void ShowEraserSettings(FrameworkElement anchor)

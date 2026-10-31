@@ -105,6 +105,7 @@ public partial class MainWindow
         if(_boardEraserDraft is not null||_circularEraser is not null){e.Handled=true;return;}
         FinishPinRename();
         if(_editor is not null)FinishText();
+        _activeFlyout?.Hide();
         FocusCanvasSurface();
         var p=e.GetCurrentPoint(CanvasSurface);var screen=new Vector2((float)p.Position.X,(float)p.Position.Y);
         if(p.Properties.IsRightButtonPressed){BeginRadial(e);return;}
