@@ -3,9 +3,18 @@ using System.Text.Json.Serialization;
 using HeiBan.Windows.Models;
 namespace HeiBan.Windows.Engine;
 
+public sealed class RadialToolPreset
+{
+    public string Name {get;set;}="";
+    public List<string> Slots {get;set;}=[];
+    [JsonExtensionData] public Dictionary<string,JsonElement>? ExtraFields {get;set;}
+}
+
 public sealed class RadialToolProfile
 {
     public List<string> Slots {get;set;}=[];
+    public List<RadialToolPreset> Presets {get;set;}=[];
+    public string ActivePreset {get;set;}="";
     public string LastActive {get;set;}="pen";
     public string LastShape {get;set;}="line";
     [JsonExtensionData] public Dictionary<string,JsonElement>? ExtraFields {get;set;}
@@ -14,13 +23,49 @@ public sealed class RadialToolProfile
     public static bool IsTool(string key)=>IsShape(key)||key is "curve" or "select" or "pen" or "highlighter" or "paint" or "eraser" or "laser" or "cane" or "lasso" or "tape" or "text" or "sticky";
     public static bool Allowed(string key,bool screen)=>key is not("operate" or "extension")&&(ToolbarPreferences.AllDefaultTools.Contains(key)||IsShape(key))&&(!screen||IsShape(key)||ToolbarContentPolicy.IsAvailableOnScreen(key));
     public static string[] Defaults(bool screen)=>screen?["select","laser","cane","highlighter","eraser","line","brush","operate"]:["select","laser","cane","highlighter","eraser","line","rect","brush"];
+    public static IReadOnlyList<(string Key,string Name,string[] Slots)> BuiltInPresets(bool screen)=>
+    [
+        ("default","預設組合",Defaults(screen)),
+        ("teaching","教學講解",screen?["select","pen","highlighter","laser","cane","eraser","rect","operate"]:["select","pen","highlighter","laser","cane","eraser","rect","brush"]),
+        ("geometry","幾何繪圖",screen?["select","pen","line","arrow","rect","circle","triangle","operate"]:["select","pen","line","arrow","rect","circle","triangle","eraser"])
+    ];
     public void Normalize(bool screen)
     {
         var defaults=Defaults(screen);var source=Slots??[];var seen=new HashSet<string>();
         Slots=Enumerable.Range(0,Count).Select(i=>{if(screen&&i==7)return "operate";var key=i<source.Count?source[i]:defaults[i];return Allowed(key,screen)&&seen.Add(key)?key:"";}).ToList();
+        Presets=(Presets??[]).Where(p=>!string.IsNullOrWhiteSpace(p?.Name)).Select(p=>{
+            var presetSeen=new HashSet<string>();var presetSource=p.Slots??[];
+            p.Name=p.Name.Trim();
+            p.Slots=Enumerable.Range(0,Count).Select(i=>{if(screen&&i==7)return "operate";var key=i<presetSource.Count?presetSource[i]:"";return Allowed(key,screen)&&presetSeen.Add(key)?key:"";}).ToList();
+            return p;
+        }).ToList();
         if(!IsTool(LastActive))LastActive="pen";if(!IsShape(LastShape))LastShape="line";
     }
-    public void Reset(bool screen){var current=LastActive;Slots=[..Defaults(screen)];LastActive="pen";LastShape="line";Reconcile(current);}
+    public RadialToolPreset? SavePreset(string name,bool screen)
+    {
+        name=(name??"").Trim();if(string.IsNullOrEmpty(name))return null;
+        Normalize(screen);
+        var existing=Presets.FirstOrDefault(p=>string.Equals(p.Name,name,StringComparison.OrdinalIgnoreCase));
+        if(existing is not null){existing.Name=name;existing.Slots=[..Slots];ActivePreset=name;return existing;}
+        var created=new RadialToolPreset{Name=name,Slots=[..Slots]};Presets.Add(created);ActivePreset=name;return created;
+    }
+    public bool ApplyPreset(string nameOrKey,bool screen)
+    {
+        nameOrKey=(nameOrKey??"").Trim();if(string.IsNullOrEmpty(nameOrKey))return false;
+        var builtIn=BuiltInPresets(screen).FirstOrDefault(b=>string.Equals(b.Key,nameOrKey,StringComparison.OrdinalIgnoreCase)||string.Equals(b.Name,nameOrKey,StringComparison.OrdinalIgnoreCase));
+        if(!string.IsNullOrEmpty(builtIn.Key)){var current=LastActive;Slots=[..builtIn.Slots];ActivePreset=builtIn.Key;Normalize(screen);Reconcile(current);return true;}
+        var custom=Presets.FirstOrDefault(p=>string.Equals(p.Name,nameOrKey,StringComparison.OrdinalIgnoreCase));
+        if(custom is null)return false;
+        var active=LastActive;Slots=[..custom.Slots];ActivePreset=custom.Name;Normalize(screen);Reconcile(active);return true;
+    }
+    public bool DeletePreset(string name)
+    {
+        name=(name??"").Trim();if(string.IsNullOrEmpty(name))return false;
+        var removed=Presets.RemoveAll(p=>string.Equals(p.Name,name,StringComparison.OrdinalIgnoreCase));
+        if(removed>0&&string.Equals(ActivePreset,name,StringComparison.OrdinalIgnoreCase))ActivePreset="";
+        return removed>0;
+    }
+    public void Reset(bool screen){var current=LastActive;Slots=[..Defaults(screen)];ActivePreset="default";LastActive="pen";LastShape="line";Reconcile(current);}
     public bool Assign(int index,string key,bool screen)
     {
         if(index<0||index>=Count||screen&&index==7||!Allowed(key,screen))return false;

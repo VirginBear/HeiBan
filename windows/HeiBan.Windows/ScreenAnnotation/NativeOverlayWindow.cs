@@ -5,7 +5,7 @@ namespace HeiBan.Windows.ScreenAnnotation;
 
 internal sealed partial class NativeOverlayWindow : IDisposable
 {
-    public readonly record struct PointerEvent(string Kind,double X,double Y,bool Shift=false,bool LeftDown=false,bool RightDown=false);
+    public readonly record struct PointerEvent(string Kind,double X,double Y,bool Shift=false,bool LeftDown=false,bool RightDown=false,bool Live=false);
     public event Action<PointerEvent>? Pointer;
     public event Action? BoundsChanged;
     public event Action<int>? Hotkey;
@@ -118,7 +118,7 @@ internal sealed partial class NativeOverlayWindow : IDisposable
                 var kind=message switch {0x0201=>"down",0x0202=>"up",0x0204=>"rightdown",0x0205=>"rightup",0x0206=>"rightdouble",0x0203=>"double",_=>"move"};
                 if(message is 0x0201 or 0x0204 or 0x0206||(message==0x0203&&_cursorTool is "laser" or "cane")){_pointerCaptured=true;SetCapture(hwnd);}
                 if(message is 0x0202 or 0x0205){_pointerCaptured=false;ReleaseCapture();}
-                Pointer?.Invoke(new(kind,p.X,p.Y,(wParam&4)!=0,(wParam&1)!=0,(wParam&2)!=0));return 0;
+                Pointer?.Invoke(new(kind,p.X,p.Y,(wParam&4)!=0,(wParam&1)!=0,(wParam&2)!=0,Live:true));return 0;
             }
         }
         catch(Exception e){Failed?.Invoke(e);}

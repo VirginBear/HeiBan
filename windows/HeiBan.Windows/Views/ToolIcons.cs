@@ -11,9 +11,10 @@ internal static class ToolIcons
 {
     // Cursor artwork shares the toolbar's original vectors; no second icon catalog.
     internal static string? CursorPath(string tool)=>Paths.GetValueOrDefault(tool);
-    internal static string? CommandPath(string key)=>CursorPath(key switch{"brush"=>"settings","clearAll"=>"delete","viewLock"=>"lock","radialSettings"=>"radial",_=>key});
+    internal static string? CommandPath(string key)=>CursorPath(key switch{"brush"=>"settings","clearAll"=>"delete","viewLock"=>"lock","radialSettings"=>"radial","operate"=>"select",""=>"empty",_=>key});
     private static readonly Dictionary<string,string> Paths=new()
     {
+        ["empty"]="M6,13 L20,13",
         ["radial"]="M12,2 A10,10 0 1,0 12,22 A10,10 0 1,0 12,2 M12,12 L12,4 M12,12 L18,6 M12,12 L20,12 M12,12 L18,18 M12,12 L12,20 M12,12 L6,18 M12,12 L4,12 M12,12 L6,6",
         ["cane"]="M3,3 Q11,10 22,22 M5,4 L4,6 M9,8 L8,10 M13,12 L12,14 M17,16 L16,18 M21,20 L20,22",
         ["screen"]="M3,3 L23,3 L23,17 L3,17 Z M13,17 L13,22 M8,22 L18,22 M7,11 L11,7 L15,11 L19,7",

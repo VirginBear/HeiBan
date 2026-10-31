@@ -23,8 +23,11 @@ internal sealed partial class ScreenAnnotationWindow
         var targets=_session.SelectedObjects.Where(o=>o.IsLocked!=true&&(!fillOnly||o.Type is "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star" or "arc" or "sticky")).ToArray();
         if(targets.Length==0)return;
         if(!_styleEditing){_session.Begin();_styleEditing=true;}
+        DamageSelectedObjects();
         foreach(var o in targets)apply(o);
-        _styleCommitTimer.Stop();_styleCommitTimer.Start();_dirty=_fullDamage=_committedDirty=true;RefreshScreenStyleButtons();
+        DamageSelectedObjects();
+        _styleCommitTimer.Stop();_styleCommitTimer.Start();_dirty=_committedDirty=true;RefreshScreenStyleButtons();
+        PresentScreenImmediate();
     }
     private void SetScreenColor(string color)
     {

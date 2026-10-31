@@ -42,7 +42,7 @@ public sealed partial class Direct2DCanvasRenderer
         for(var i=0;i<profile.Slots.Count;i++)
         {
             var key=profile.Slots[i];var point=RadialGesture.SlotCenter(i,center,scale);var size=(float)((i==hover?30:25)*scale);
-            var path=ToolIcons.CommandPath(key=="operate"?"select":key);var label=RadialLabel(key);
+            var path=string.IsNullOrEmpty(key)?null:ToolIcons.CommandPath(key=="operate"?"select":key);var label=RadialLabel(key);
             if(path is not null)
             {
                 if(!_radialIcons.TryGetValue(key,out var svg))_radialIcons[key]=svg=CanvasSvgDocument.LoadFromXml(ds,$"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'><path d='{path}' fill='none' stroke='#28543F' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");

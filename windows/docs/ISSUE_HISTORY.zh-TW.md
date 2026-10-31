@@ -1,5 +1,14 @@
 # Windows 問題與排解紀錄
 
+## 2026-10-31 — 工具輪盤純文字選單與螢幕畫布繪圖操控延遲
+
+1. **工具輪盤設定僅有純文字下拉選單且無法保存多組配置**：原 `RadialWheelSettingsWindow` 使用純字串 `ComboBox`，缺乏圖示辨識且僅能覆寫單一配置。排解：`RadialToolProfile` 新增 `Presets` 組合清單與內建模板，視窗頂端加入組合切換（含 8 格圖示預覽）與命名存檔／刪除功能；1～8 格改為圖示＋名稱按鈕，點擊展開三欄式明確向量圖示挑選浮窗。
+2. **螢幕畫布繪圖與操控順暢度不及一般畫布**：
+   - 原因 A（排程延遲）：一般畫布由 `ImmediateCanvas.PresentNow` 在指標事件內直接呈現 SwapChain（最高 240Hz）；螢幕畫布 `OnPointer` 原本只設 `_dirty = true`，等待 16ms `DispatcherTimer`（Win32 最低優先權 `WM_TIMER`），在滑鼠連續移動時被 `WM_MOUSEMOVE` 訊息插隊延後。
+   - 原因 B（分層視窗回讀）：螢幕畫布為 `WS_EX_LAYERED` 透明視窗，每幀需由 GPU `GetPixelBytes` 回讀至系統記憶體再呼叫 `UpdateLayeredWindowIndirect`；而 `EditScreenStyle` 調整物件樣式時原本標記 `_fullDamage = true`，導致每次拖動滑桿皆回讀整張桌面。
+   - 原因 C（游標重設）：`ShapeCursor.Update` 原本於每次 `WM_MOUSEMOVE` 無條件呼叫 `SetCursor`。
+   - 排解：`NativeOverlayWindow` 標記實體輸入 `Live: true`，`ScreenAnnotationWindow` 新增 `PresentScreenImmediate` 於指標事件內直推最高 120Hz 局部渲染；`EditScreenStyle` 改用 `DamageSelectedObjects()` 局部區域更新；`ShapeCursor.Update` 僅在游標控制代碼變更時呼叫 `SetCursor`。
+
 ## 2026-10-31 — 筆刷浮窗攔截畫布點擊與螢幕圖形參數分歧
 
 1. **筆刷浮窗攔截畫布輸入導致卡頓**：WinUI 3 Flyout 預設在點擊外部時由 light-dismiss overlay 攔截並吞掉指標事件，造成使用者點擊畫布時第一下被用來關閉浮窗而無法作畫。排解：將 `ShowBrushSettings` 的 `OverlayInputPassThroughElement` 指定為包含畫布與工具列的 `DrawingArea`，並在 `CanvasSurface_PointerPressed` 立即關閉浮窗並提交屬性；螢幕標註畫布則在 `OnPointer` 接收到 `down` 事件時立即提交樣式並關閉浮窗，第一下點擊立即流暢作畫。

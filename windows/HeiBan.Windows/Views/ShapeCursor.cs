@@ -23,25 +23,26 @@ internal sealed class ShapeCursor : IDisposable
             resource=direction switch {0=>32644,1=>32642,2=>32645,_=>32643};
         }
         else if(handle is {Kind:"endpoint" or "vertex" or "arc_start" or "arc_end"})resource=32515;
+        nint next;
         if(grabbing)
         {
             var size=Math.Clamp((int)Math.Ceiling(GetSystemMetricsForDpi(13,dpi)/8d)*8,32,128);
             if(_grabSize!=size){SetCursor(LoadCursor(0,new nint(32512)));if(_grab!=0)DestroyCursor(_grab);_grab=CreateGrab(size);_grabSize=size;}
-            Current=_grab!=0?_grab:LoadCursor(0,new nint(32649));
+            next=_grab!=0?_grab:LoadCursor(0,new nint(32649));
         }
         else if(handle is {Kind:"rotate"})
         {
             var size=Math.Clamp((int)Math.Ceiling(GetSystemMetricsForDpi(13,dpi)/8d)*8,32,128);
             if(_rotationSize!=size){SetCursor(LoadCursor(0,new nint(32512)));if(_rotation!=0)DestroyCursor(_rotation);_rotation=CreateRotation(size);_rotationSize=size;}
-            Current=_rotation!=0?_rotation:LoadCursor(0,new nint(32646));
+            next=_rotation!=0?_rotation:LoadCursor(0,new nint(32646));
         }
         else if(handle is null&&tool is not null&&tool!="select")
         {
             var size=Math.Clamp((int)Math.Ceiling(GetSystemMetricsForDpi(13,dpi)/8d)*8,32,128);
-            var cursor=_tools.Get(tool,size);Current=cursor!=0?cursor:LoadCursor(0,new nint(32515));
+            var cursor=_tools.Get(tool,size);next=cursor!=0?cursor:LoadCursor(0,new nint(32515));
         }
-        else Current=LoadCursor(0,new nint(resource));
-        SetCursor(Current);
+        else next=LoadCursor(0,new nint(resource));
+        if(Current!=next){Current=next;SetCursor(Current);}
     }
     internal void Apply(){if(Current!=0)SetCursor(Current);}
     private static nint CreateRotation(int size)

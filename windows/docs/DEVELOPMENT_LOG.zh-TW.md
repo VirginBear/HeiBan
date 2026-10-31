@@ -1,5 +1,12 @@
 # Windows 開發日誌
 
+## 2026-10-31 — 工具輪盤組合儲存與圖示選單／螢幕畫布流暢度診斷與即時渲染優化
+
+依使用者 2 項要求完成：
+1. 工具輪盤組合管理與明確圖示選單：`RadialToolProfile` 擴充 `Presets`、`SavePreset`、`ApplyPreset`、`DeletePreset` 及內建三組預設（「預設組合」、「教學講解」、「幾何繪圖」）；`RadialWheelSettingsWindow` 新增頂端組合管理卡（支援命名存檔、8 格縮圖預覽切換、刪除自訂組合），並將 1～8 格純文字 `ComboBox` 替換為「圖示＋名稱」按鈕與三欄式明確圖示挑選浮窗（點擊左側輪盤扇區亦可直接開啟該格圖示選單）。
+2. 螢幕畫布順暢度分析與改善：定位出 `DispatcherTimer`（`WM_TIMER`）遭連續 `WM_MOUSEMOVE` 延遲、`WS_EX_LAYERED` 全螢幕回讀成本、`EditScreenStyle` 全畫面重繪及 `ShapeCursor` 重複 `SetCursor` 四項原因；於 `ScreenAnnotationWindow` 實作 `PresentScreenImmediate`（實體輸入直推最高 120Hz 局部渲染）、`EditScreenStyle` 局部損傷更新與 `ShapeCursor` 變更守衛。
+3. 十語 679 條目錄同步編譯；Core 測試 2,365 項、OptimizationChecks 65 項通過，x64 Release 編譯 0 警告 0 錯誤。版本維持 1.0.18。
+
 ## 2026-10-31 — 工具輪盤設定按鈕／筆刷畫布穿透／螢幕圖形參數對齊／調色盤收合加寬
 
 依使用者 4 項操作改善要求完成：

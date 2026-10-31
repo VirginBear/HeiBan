@@ -137,7 +137,21 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     {var current=NativeOverlayWindow.CurrentForeground;if(current!=0&&current!=_overlay.Handle&&current!=WinRT.Interop.WindowNative.GetWindowHandle(this)&&current!=WinRT.Interop.WindowNative.GetWindowHandle(_owner)&&current!=(_radialSettings?.Handle??0))_lastExternal=current;}
     private void RefreshButtons()
     {foreach(var pair in _buttons)pair.Value.Background=new SolidColorBrush(pair.Key==_tool?Color.FromArgb(70,116,156,141):Color.FromArgb(0,0,0,0));RefreshScreenStyleButtons();foreach(var pair in _buttons){ToolbarUi.LabelMode(pair.Value,pair.Key,_toolbarPreferences.DisplayMode=="labels",32);if(pair.Key=="magnet")pair.Value.Background=ChromeBrush(_toolbarPreferences.MagnetEnabled?(byte)70:(byte)0,116,156,141);}}
+    private long _lastRenderTimestamp;
+    private static readonly long MinImmediateFrameTicks=(long)(Stopwatch.Frequency/120.0);
+    internal void PresentScreenImmediate(bool force=false)
+    {
+        if(!IsActive||_stopping||!_dirty||!_renderTimer.IsEnabled)return;
+        var now=Stopwatch.GetTimestamp();
+        if(!force&&_lastRenderTimestamp!=0&&(now-_lastRenderTimestamp)<MinImmediateFrameTicks)return;
+        Render();
+    }
     private void OnPointer(NativeOverlayWindow.PointerEvent input)
+    {
+        OnPointerCore(input);
+        if(input.Live&&_dirty)PresentScreenImmediate(input.Kind is "down" or "up" or "rightup");
+    }
+    private void OnPointerCore(NativeOverlayWindow.PointerEvent input)
     {
         if(!IsActive||_stopping||_captureCancellation is not null)return;
         if(input.Kind=="cancel"){if(_radialGesture.Holding)CancelRadial();else CancelGesture();return;}
@@ -386,7 +400,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             if(!_radialGesture.Holding&&_screenEraserPointer is { } eraser)_renderer.RenderHover(ds,eraser,true,_eraserSize*_dpiScale,_viewport);
         }
         var x=(int)region.X;var y=(int)region.Y;var width=(int)region.Width;var height=(int)region.Height;
-        _overlay.PresentBitmap(_target,x,y,width,height);_presentedBytes+=(long)width*height*4;_renderedFrames++;
+        _overlay.PresentBitmap(_target,x,y,width,height);_presentedBytes+=(long)width*height*4;_renderedFrames++;_lastRenderTimestamp=Stopwatch.GetTimestamp();
         _dirty=false;_fullDamage=false;_damage=null;_lastCaneDamage=caneDamage;_lastLaserDamage=laserDamage;_lastEraserDamage=eraserDamage;_lastMagnetDamage=magnetDamage;
     }
     public void ApplySavingPreferences(){_saveTimer.Stop();if(_owner.AutoSaveEnabled&&IsActive&&!_stopping&&_session.IsDirty)_saveTimer.Start();}

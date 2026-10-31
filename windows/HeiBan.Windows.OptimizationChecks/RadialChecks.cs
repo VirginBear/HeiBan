@@ -45,9 +45,13 @@ internal static class RadialChecks
         store.Value.ExtraFields=new(){["futureRoot"]=JsonSerializer.SerializeToElement(new{keep=true})};
         store.Value.Canvas.ExtraFields=new(){["futureProfile"]=JsonSerializer.SerializeToElement(7)};
         store.Value.Canvas.Assign(2,"rect",false);var canvasSlot=store.Value.Canvas.Slots[2];
+        store.Value.Canvas.SavePreset("我的常用",false);
         store.Value.Screen.Assign(2,"arrow",true);await store.SaveAsync();
         var restored=new RadialPreferencesStore(Path.Combine(directory,"wheel-settings"));
         check(restored.Value.Canvas.Slots[2]==canvasSlot&&restored.Value.Screen.Slots[2]=="arrow"&&restored.Value.Screen.Slots[7]=="operate","Independent configurations did not survive restart");
+        check(restored.Value.Canvas.Presets.Count==1&&restored.Value.Canvas.Presets[0].Name=="我的常用"&&restored.Value.Canvas.Presets[0].Slots[2]==canvasSlot,"Saved radial preset did not survive restart");
+        check(restored.Value.Canvas.ApplyPreset("geometry",false)&&restored.Value.Canvas.Slots.Contains("triangle")&&restored.Value.Canvas.ApplyPreset("我的常用",false)&&restored.Value.Canvas.Slots[2]==canvasSlot,"Built-in and custom preset switching failed");
+        check(restored.Value.Canvas.DeletePreset("我的常用")&&restored.Value.Canvas.Presets.Count==0,"Deleting custom radial preset failed");
         check(restored.Value.ExtraFields!["futureRoot"].GetProperty("keep").GetBoolean()&&restored.Value.Canvas.ExtraFields!["futureProfile"].GetInt32()==7,"Unknown settings fields lost");
         var jobs=new List<Task>();for(var i=0;i<12;i++){store.Value.Canvas.LastShape=i%2==0?"circle":"arrow";jobs.Add(store.SaveAsync());}await Task.WhenAll(jobs);
         check(new RadialPreferencesStore(Path.Combine(directory,"wheel-settings")).Value.Canvas.LastShape=="arrow","Queued settings save overwrote latest change");

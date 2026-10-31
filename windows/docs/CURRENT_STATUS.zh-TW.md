@@ -1,5 +1,17 @@
 # Windows 目前開發狀態
 
+## 2026-10-31 — 工具輪盤組合儲存與圖示選單／螢幕畫布流暢度診斷與即時渲染優化（1.0.18 開發試用待實機）
+
+依使用者 2 項追加要求完成：
+1. **工具輪盤組合存檔／切換與明確圖示選單**：
+   - `RadialToolProfile` 新增 `Presets`（`RadialToolPreset`）與 `ActivePreset`，內建三組預設模板（「預設組合」、「教學講解」、「幾何繪圖」），並支援使用者輸入名稱儲存自訂組合（`SavePreset`）、一鍵切換套用（`ApplyPreset`）與刪除自訂組合（`DeletePreset`），完整持久化於 `Settings/radial.json` 並保留未知欄位。
+   - `RadialWheelSettingsWindow` 改版：頂端新增「輪盤組合」管理卡，組合選擇器展開時同步預覽每組的 8 格工具圖示；右側 1～8 格及左側輪盤扇區點擊改用搭配明確向量圖示的三欄視覺化工具挑選浮窗（`ShowSlotToolPicker`），取代原本純文字下拉選單。
+2. **螢幕畫布流暢度原因分析與即時輸入渲染優化**：
+   - 查明螢幕畫布較一般畫布不順暢的三大架構原因：(a) 螢幕畫布 `OnPointer` 原本僅設 `_dirty = true`，依賴 16ms `DispatcherTimer`（Win32 最低優先權 `WM_TIMER`）輪詢重繪，在滑鼠連續高頻移動時遭 `WM_MOUSEMOVE` 餓死而延遲 16～32ms+（一般畫布則由 `ImmediateCanvas.PresentNow` 於指標事件內直推 GPU SwapChain）；(b) 透明分層視窗（`WS_EX_LAYERED`）每幀需經 GPU→CPU `GetPixelBytes` 回讀與 `UpdateLayeredWindowIndirect` 合成；(c) 螢幕畫布調整物件樣式（`EditScreenStyle`）原本設 `_fullDamage = true` 強制全螢幕回讀，且 `ShapeCursor.Update` 每步移動皆無條件呼叫 Win32 `SetCursor`。
+   - 優化實作：`NativeOverlayWindow` 標記實體指標事件 `Live: true`，`ScreenAnnotationWindow.OnPointer` 新增 `PresentScreenImmediate`（最高 120Hz / ~8.3ms 節流，按下與放開立即刷新），於指標事件內直接完成局部重繪，消除 `WM_TIMER` 排程延遲；`EditScreenStyle` 與圓形橡皮擦改用局部損傷範圍（`DamageSelectedObjects`）與即時刷新；`ShapeCursor.Update` 僅於游標控制代碼實際改變時才呼叫 `SetCursor`。
+
+十語 679 詞彙目錄同步編譯；Core 測試 2,365 項、OptimizationChecks 65 項通過，x64 Release 編譯 0 警告 0 錯誤。版本維持 1.0.18。
+
 ## 2026-10-31 — 工具輪盤設定按鈕／筆刷畫布穿透／螢幕圖形參數對齊／調色盤收合加寬（1.0.18 開發試用待實機）
 
 依使用者 4 項操作改善要求完成：
