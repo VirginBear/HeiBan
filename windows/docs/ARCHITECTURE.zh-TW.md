@@ -1,5 +1,11 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-31 — 擦除worker候選／只讀起始預覽／增量形狀與owned保存
+
+擦除索引只在worker第一次Apply建立，>=512物件啟用，256格／64membership上限，無界／大物件保守global，片段增刪同步更新；密集候選回退倒序slot，避免逐個IndexOf退化。精確擦除沿用原幾何，circle／footprint共享保守bounds。UI起始preview只讀主文件，worker保留一份獨占clone，改變由publisher隔離發布；epoch／cancel仍把關。AppendShape與AppendInk共用added-object memento，保留不同selection與型別入口；一般混合交易仍完整snapshot。SaveOwnedSnapshotAsync僅接收已隔離且保存期間不再讀寫的snapshot，保留普通SaveAsync、revision衝突、原子寫入與失敗行為。
+
+兩host共用ToolbarUi.Brush基本控制與範圍，DPI／編輯交易仍host負責。框架相依只可用DevelopmentLabel，正式預設SelfContained不變；SDK ML native抑制同步到publish資產清單，並核對manifest framework provider，不能手工刪未知DLL。[實作／限制](PONYTAIL_IMPLEMENTATION_2026-10-31.zh-TW.md)。
+
 ## 2026-10-29 — 固定工具、可見輪廓布局與選取圖層交易
 
 ToolbarPreferences.FixedTools是結構規則，三項永遠可見／勾選，排列、正規化、重設與自訂同源；CaneVisible只控制右下快捷。Arrange三按鈕同層，不再為某個頁面重掛藤條。BoardEraserGeometry的6項affine包含45°旋轉、host fit與中心偏移，Core輪廓／Win2D Matrix3x2／XAML Matrix.OffsetX,Y共享；Cane alpha hull只讀校正供可見底緣／尺度，旋轉後透明padding保留點擊區。雷射採同一ProfilePalette與PaletteEditor，選色只改laser，沒有每點指標訂閱。LayerReorder.MoveSelection只移動當頁可編輯選取、保留選取和未選取內部順序；全域當頁slots替換後一次正規化ZIndex與Undo，無實際變更不新增Undo，不跨舊文件／頁面回呼。原拖曳排序API保留。無新作品欄位或PNG／WAV。 [日誌](TEACHING_TOOLS_2026-10-29.zh-TW.md)。

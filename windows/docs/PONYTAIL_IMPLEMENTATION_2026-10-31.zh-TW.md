@@ -137,3 +137,14 @@
 較早的ponytail-r2／FD-r3保留為歷史候選；查來源發現EditorSession、OptimizationChecks、csproj及Store script在其封裝後有追加修改，因此不把舊包作最後交付。最後加入密集擦除回退（直接倒序槽位，避免大量刪除逐件IndexOf）與延伸線全域候選驗證；`checks-final-r1`實際26項通過（前24項與新增2項），實際走訪次數不是端到端性能數字。checks-r4因資料夾已存在被保護入口拒絕，未覆寫；改用新final-r1。
 
 十語指南同步兩畫布0.5～128pt／0～100%。新增[最終實機測試指南](OPTIMIZATION_TEST_GUIDE_2026-10-31.zh-TW.md)含一般／螢幕、物件／像素、Undo／取消／存檔與Capture步驟及成功標準。最終來源先commit，再用新的optimization-final標籤封裝，避免內嵌來源commit混用。新包使用獨立作品庫與生成測試文件，不把已存在的使用者Data打入ZIP。未啟動GUI；FD仍待乾淨機安裝／升級驗收，不替代正式10/29商店包。
+
+## 最終實際命令與結果追加
+
+- 新增密集回退及延伸線後，`dotnet run --project windows/HeiBan.Windows.OptimizationChecks/HeiBan.Windows.OptimizationChecks.csproj -c Release --artifacts-path windows/.build/optimization-20261031/check-build -- <checks-final-r1>`實際26項通過。此前24項是較早來源；目錄重用會被拒絕，不以覆寫檢查結果處理。
+- 正確免安裝封裝命令：先把`windows/.build/tools/dotnet`放入本次process PATH，再`Package-PortableTrial.ps1 -Runtime win-x64 -Label optimization-final-2026-10-31-r1 -PracticeFilesDirectory <checks-final-r1>`。此script不接受早期記錄中的Configuration／DotnetPath參數。最終ZIP133327091bytes；5cc1f7ce07c4b083500d6f5baa6ae2b8f156cbdaf18ee9a0f4d4d718c9fb050c。測試文件在建立inventory與ZIP前納入，沒有封裝後再改ZIP。未拷貝任何使用者Data，舊版作品可匯出副本測試。
+- `Package-Store.ps1 -Configuration Release -DotnetPath <本機SDK> -DevelopmentLabel optimization-final-fd-2026-10-31-r1 -RuntimeMode FrameworkDependent`完成；x64 65.24秒、ARM64 46.65秒，各0warning0error。build batch `.build/store-5533bd973a634fef960332be3928f321`。
+- `python windows/.build/optimization-20261031/inspect-final.py`：最終310份Store來源、212份Portable來源、592 payload、ZIP／bundle CRC及包內兩arch byte、十語guide／26法律文件／素材、依賴身份／版本／三native provider均核同。FileVersionInfo只讀6份PE版本，皆1.0.18.0及來源96bf6ac，不啟動App。
+- 58份舊Store檔全部SHA未變；正式1.0.18.0及較早開發候選未刪除。最終package來源以96bf6ac為準。README／日誌／驗收指南變更不進入runtime source hash。
+- 源碼、指南與紀錄分別提交；公開與私人repo同步結果見交付及私人交接。不覆寫既有YouTube檔及三文件原6／8／4行。
+
+[最終驗收指南](OPTIMIZATION_TEST_GUIDE_2026-10-31.zh-TW.md)／[最終數據](OPTIMIZATION_FINAL_ARTIFACT_2026-10-31.json)。未執行GUI、實機效能、WACK或安裝／升級。候選本體縮小47.76%不能套用到首次下載總量：x64 App52,187,730bytes＋本次SDK提供的Runtime48,675,401bytes合計約100.86MB（僅套件檔案加總，不是Store實際流量），是否已有可共用runtime很重要。未通過安裝驗收前正式預設保留自包含。

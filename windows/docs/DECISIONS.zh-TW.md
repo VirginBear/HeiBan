@@ -1,5 +1,11 @@
 # Windows 開發決策
 
+## 2026-10-31 — 擦除worker候選／只讀起始預覽／增量形狀與owned保存
+
+擦除索引只在worker第一次Apply建立，>=512物件啟用，256格／64membership上限，無界／大物件保守global，片段增刪同步更新；密集候選回退倒序slot，避免逐個IndexOf退化。精確擦除沿用原幾何，circle／footprint共享保守bounds。UI起始preview只讀主文件，worker保留一份獨占clone，改變由publisher隔離發布；epoch／cancel仍把關。AppendShape與AppendInk共用added-object memento，保留不同selection與型別入口；一般混合交易仍完整snapshot。SaveOwnedSnapshotAsync僅接收已隔離且保存期間不再讀寫的snapshot，保留普通SaveAsync、revision衝突、原子寫入與失敗行為。
+
+兩host共用ToolbarUi.Brush基本控制與範圍，DPI／編輯交易仍host負責。框架相依只可用DevelopmentLabel，正式預設SelfContained不變；SDK ML native抑制同步到publish資產清單，並核對manifest framework provider，不能手工刪未知DLL。[實作／限制](PONYTAIL_IMPLEMENTATION_2026-10-31.zh-TW.md)。
+
 ## 2026-10-29 — 明確核准1.0.18與雙架構來源一致性
 
 本批依使用者明確版號回覆正式進1.0.18／1.0.18.0，產品身份與資料格式不變，沒有自動開下一版。csproj／manifest／StoreIdentity／十語指南同步；相同來源commit下製作x64＋ARM64未簽章Store bundle，二進位PE內嵌ProductVersion亦必須對應同一來源。只看檔名、manifest或事後sourceSnapshot不足以排除編譯前commit順序錯誤，故加讀四份EXE／DLL版本資源；錯誤候選留本機證據，重包不改程式來源、不覆寫歷史版本。來源及提交資料推GitHub；包交使用者上傳，不以封裝成功宣稱認證／發布。 [證據](STORE_RELEASE_1.0.18_2026-10-29.zh-TW.md)。

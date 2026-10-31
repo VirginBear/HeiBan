@@ -1,5 +1,17 @@
 # Windows 問題與排解紀錄
 
+## 2026-10-31 — 六項優化最終驗收包（維持1.0.18，待使用者實機）
+
+依使用者要求實作並提供測試步驟／成功標準。最終來源`96bf6ac1c43b1fcf3702a7dc7e1361aa6687cfe0`，免安裝`optimization-final-2026-10-31-r1`成功，ZIP 133327091bytes，592 payload／212來源SHA及CRC核同，Data為空白獨立作品庫；內含100／5000物件生成測試文件。26項Core資料檢查通過（含密集回退／延伸線），6份EXE／DLL版本來源核同。較早ponytail-r2／FD-r3只保留歷史，請以最終標籤驗收。
+
+FD最終候選`optimization-final-fd-2026-10-31-r1`完成，x64／ARM64各0warning0error，bundle103042610bytes（本體-47.76%）；依賴另計，已核對框架含移出的native檔，不宣稱首次下載總量減半。58份既有Store檔SHA不變，未提高版號／送審。App／實機／安裝升級／WACK／端到端性能未執行。 [測試步驟與成功標準](OPTIMIZATION_TEST_GUIDE_2026-10-31.zh-TW.md)／[最終證據](OPTIMIZATION_FINAL_ARTIFACT_2026-10-31.json)。
+
+## 2026-10-31 — Ponytail六項Windows優化實作與Store框架相依候選（開發試用，待實機）
+
+1. **擦除候選索引建立時機**：初版在 `BoardEraserWork` 建構子建索引會落在 UI `PointerPressed`；改於背景 `Apply` 首批次才呼叫 `EnableEraserCandidateIndex()`。
+2. **Windows PowerShell 5.1 的 `utf8BOM` 參數相容**：`Package-PortableTrial.ps1` 第 41 行 `Set-Content -Encoding utf8BOM` 於 PowerShell 5.1 失敗（保留 `ponytail-2026-10-31-r1` 證據），改用 `[IO.File]::WriteAllText(..., [Text.UTF8Encoding]::new($true))` 後 `r2` 成功。
+3. **Store 框架相依模式仍殘留 `DirectML.dll`／`onnxruntime.dll`**：`ponytail-fd-2026-10-31-r1` 因 `Dependencies\*.msix` 被一併枚舉失敗；排除 `Dependencies` 後，`r2` 被 `Package-Store.ps1` 第 65 行攔下，發現 `Microsoft.WindowsAppSDK.ML 2.1.94` 的 `_SuppressWindowsMLNativeCopyLocal` 雖移除了 `NativeCopyLocalItems` 與 `ReferenceCopyLocalPaths`，卻漏移除 `_ResolvedCopyLocalBuildAssets`，導致 MSIX 發布目標 `_ResolveCopyLocalAssetsForPublish` 再次把 `DirectML.dll` 與 `onnxruntime.dll` 打包進 MSIX。於 `HeiBan.Windows.csproj` 新增 `ExcludeSuppressedWindowsMLNativeFromPublish` 後，`r3` 成功將 x64 MSIX 由 `99,910,569` bytes 降至 `52,186,552` bytes（-47.77%）。 [實作與測試指南](PONYTAIL_IMPLEMENTATION_2026-10-31.zh-TW.md)。
+
 ## 2026-10-31 — Ponytail方法對照與六項Windows優化方案（分析，未實作）
 
 依使用者參考外部ponytail要求，對目前1.0.18輸入／渲染／擦除／UI／儲存／封裝靜態審視。PT-01擦除全表掃描、PT-02起步雙份UI快照優先；PT-03筆刷面板範圍分歧、PT-04一般形狀全文件Undo、PT-05儲存快照、PT-06 Store框架相依另列最小改法與驗收條件。x64 MSIX99.911MB，其中自身三binary entry壓縮0.775MB、平台／其他相依95.688MB，含onnx／DirectML，未使用API不等於可直接刪DLL。統計對照既有SHA與306來源核同；沒有動產品程式或包。

@@ -1,5 +1,23 @@
 # Windows 目前開發狀態
 
+## 2026-10-31 — 六項優化最終驗收包（維持1.0.18，待使用者實機）
+
+依使用者要求實作並提供測試步驟／成功標準。最終來源`96bf6ac1c43b1fcf3702a7dc7e1361aa6687cfe0`，免安裝`optimization-final-2026-10-31-r1`成功，ZIP 133327091bytes，592 payload／212來源SHA及CRC核同，Data為空白獨立作品庫；內含100／5000物件生成測試文件。26項Core資料檢查通過（含密集回退／延伸線），6份EXE／DLL版本來源核同。較早ponytail-r2／FD-r3只保留歷史，請以最終標籤驗收。
+
+FD最終候選`optimization-final-fd-2026-10-31-r1`完成，x64／ARM64各0warning0error，bundle103042610bytes（本體-47.76%）；依賴另計，已核對框架含移出的native檔，不宣稱首次下載總量減半。58份既有Store檔SHA不變，未提高版號／送審。App／實機／安裝升級／WACK／端到端性能未執行。 [測試步驟與成功標準](OPTIMIZATION_TEST_GUIDE_2026-10-31.zh-TW.md)／[最終證據](OPTIMIZATION_FINAL_ARTIFACT_2026-10-31.json)。
+
+## 2026-10-31 — Ponytail六項Windows優化實作與Store框架相依候選（開發試用，待實機）
+
+依使用者「改動 然後告訴我我要測試哪些項目以及怎麼測試 並且說明何謂成功」完成 PT-01～PT-06：
+1. **PT-01 擦除候選空間索引**：新增 worker 獨占 256×256 `EraserCandidateIndex`（物件 `>= 512` 時於背景首批次啟用），850 物件 30 步擦除候選走訪由 `25,530` 降至 `55～95` 次（減少 >99.6%），輸出簽章與全掃描 100% 一致。
+2. **PT-02 擦除起步單快照**：圓形橡皮擦與板擦在 `PointerPressed` 時預覽層先以只讀參考指向原文件，僅為背景 worker 複製 1 份快照，消除 UI 起步雙重深拷貝。
+3. **PT-03 共用筆刷設定控制項**：抽離 `ToolbarUi.Brush.cs`，一般與螢幕標註畫布共用色輪、常用色列、粗細（統一 `0.5～128`）與不透明度（`0～1`）滑桿。
+4. **PT-04 形狀增量 Undo**：新增 `EditorSession.AppendShape`，單一形狀／圓規弧／膠帶完成時改存單物件 `Added` memento，不再整份作品快照。
+5. **PT-05 存檔快照擁有權**：新增 `SaveOwnedSnapshotAsync`，對呼叫端已隔離的獨占快照僅備份輕量 `BoardMetadata`，免除第二次完整 `Objects` 深拷貝。
+6. **PT-06 Store 框架相依減重實驗**：`Package-Store.ps1` 新增 `-RuntimeMode FrameworkDependent`，並於 `HeiBan.Windows.csproj` 補上 `ExcludeSuppressedWindowsMLNativeFromPublish` 修補 `Microsoft.WindowsAppSDK.ML 2.1.94` 未從 `_ResolvedCopyLocalBuildAssets` 移除 `DirectML.dll`／`onnxruntime.dll` 的問題。框架相依候選 `ponytail-fd-2026-10-31-r3` 將 x64 MSIX 由 `99,910,569` bytes 降至 **`52,186,552` bytes（-47.77%）**、ARM64 MSIX 由 `97,341,788` bytes 降至 **`50,851,669` bytes（-47.76%）**、雙架構 bundle 由 `197,254,394` bytes 降至 **`103,040,256` bytes（-47.76%）**；既有正式 `1.0.18.0` 商店包 50 檔 SHA 完全未變。
+
+x64 免安裝試用包 `ponytail-2026-10-31-r2` 已完成（ZIP `129,278,115` bytes／SHA256 `36495c090f0059e8d0487e0f5a707c0448a0a412df9dc26032602c357227c6a5`，590 payload／212 source SHA 核同），已接續前一版 18 份使用者 `Data`（前後 SHA 100% 一致）並附 `PracticeFiles/practice-100.heiban` 與 `practice-5000.heiban`。24 項目標資料／幾何隔離自檢全數通過；WinUI 實機手感、框架相依 MSIX 安裝升級與 WACK 待使用者驗收。 [實作與測試指南](PONYTAIL_IMPLEMENTATION_2026-10-31.zh-TW.md)／[產物紀錄](PONYTAIL_IMPLEMENTATION_ARTIFACT_2026-10-31.json)。
+
 ## 2026-10-31 — Ponytail方法對照與六項Windows優化方案（分析，未實作）
 
 依使用者參考外部ponytail要求，對目前1.0.18輸入／渲染／擦除／UI／儲存／封裝靜態審視。PT-01擦除全表掃描、PT-02起步雙份UI快照優先；PT-03筆刷面板範圍分歧、PT-04一般形狀全文件Undo、PT-05儲存快照、PT-06 Store框架相依另列最小改法與驗收條件。x64 MSIX99.911MB，其中自身三binary entry壓縮0.775MB、平台／其他相依95.688MB，含onnx／DirectML，未使用API不等於可直接刪DLL。統計對照既有SHA與306來源核同；沒有動產品程式或包。

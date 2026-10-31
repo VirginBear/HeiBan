@@ -1,0 +1,130 @@
+{
+  "date": "2026-10-31",
+  "sourceCommit": "96bf6ac1c43b1fcf3702a7dc7e1361aa6687cfe0",
+  "version": "1.0.18",
+  "label": "optimization-final-2026-10-31-r1",
+  "targetedCoreChecks": {
+    "assertions": 26,
+    "passed": true,
+    "measurements": [
+      {
+        "whole": false,
+        "rectangle": false,
+        "scanVisits": 25530,
+        "indexedVisits": 84
+      },
+      {
+        "whole": false,
+        "rectangle": true,
+        "scanVisits": 25530,
+        "indexedVisits": 95
+      },
+      {
+        "whole": true,
+        "rectangle": false,
+        "scanVisits": 25464,
+        "indexedVisits": 55
+      },
+      {
+        "whole": true,
+        "rectangle": true,
+        "scanVisits": 25462,
+        "indexedVisits": 60
+      }
+    ],
+    "scope": "Isolated Core checks; candidate visits are operation counts, not latency measurements; App/manual/device tests not run"
+  },
+  "portable": {
+    "directory": "dist\\trials\\HeiBan-Windows-Portable-1.0.18-optimization-final-2026-10-31-r1-win-x64",
+    "zip": "HeiBan-Windows-Portable-1.0.18-optimization-final-2026-10-31-r1-win-x64.zip",
+    "bytes": 133327091,
+    "sha256": "5cc1f7ce07c4b083500d6f5baa6ae2b8f156cbdaf18ee9a0f4d4d718c9fb050c",
+    "sourceFilesMatched": 212,
+    "payloadFilesMatched": 592,
+    "zipEntriesCrcValid": 599,
+    "dataFiles": 0,
+    "practiceDocuments": [
+      100,
+      5000
+    ]
+  },
+  "storeFrameworkDependentCandidate": {
+    "directory": "dist\\store\\candidates\\optimization-final-fd-2026-10-31-r1",
+    "artifacts": [
+      {
+        "file": "HeiBan-Store-1.0.18.0-x64.msix",
+        "bytes": 52187730,
+        "sha256": "ad756c62f2664fdc4121c08e77fafbab8667e2164b868304f7b60db69bbcf94f"
+      },
+      {
+        "file": "HeiBan-Store-1.0.18.0-arm64.msix",
+        "bytes": 50852840,
+        "sha256": "6488a8d84c2c9dd24aefc8371e0c28d85141b87e9e400d6c396d513d9dddee41"
+      },
+      {
+        "file": "HeiBan-Store-1.0.18.0-x64-arm64.msixbundle",
+        "bytes": 103042610,
+        "sha256": "77269919a01a85f83b37284c9de298a123da912621d3550094ea9a87c7f94ff4"
+      }
+    ],
+    "sourceFilesMatched": 310,
+    "packages": [
+      {
+        "architecture": "x64",
+        "entries": 351,
+        "runtimeDependency": {
+          "Name": "Microsoft.WindowsAppRuntime.2",
+          "MinVersion": "2.5.1.0",
+          "Publisher": "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
+        },
+        "matchingFrameworkPackage": {
+          "file": "Microsoft.WindowsAppRuntime.2.msix",
+          "bytes": 48675401,
+          "sha256": "c1f5c71cf3a87cfb824c6257f4c1ee8787833b84fcc7dbd18c129786574f11b9",
+          "identity": {
+            "Name": "Microsoft.WindowsAppRuntime.2",
+            "Publisher": "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+            "ProcessorArchitecture": "x64",
+            "Version": "2.5.1.0"
+          }
+        },
+        "guidesAndNoticesMatch": true,
+        "runtimeNativeFilesMovedToFramework": true
+      },
+      {
+        "architecture": "arm64",
+        "entries": 351,
+        "runtimeDependency": {
+          "Name": "Microsoft.WindowsAppRuntime.2",
+          "MinVersion": "2.5.1.0",
+          "Publisher": "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
+        },
+        "matchingFrameworkPackage": {
+          "file": "Microsoft.WindowsAppRuntime.2.msix",
+          "bytes": 47422505,
+          "sha256": "cbd61bfa868269a57cab6725c046e2f1661bd00d2f185f62cc5ae35642c5d3c1",
+          "identity": {
+            "Name": "Microsoft.WindowsAppRuntime.2",
+            "Publisher": "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+            "ProcessorArchitecture": "arm64",
+            "Version": "2.5.1.0"
+          }
+        },
+        "guidesAndNoticesMatch": true,
+        "runtimeNativeFilesMovedToFramework": true
+      }
+    ],
+    "originalBundleBytes": 197254394,
+    "candidateBundleBytes": 103042610,
+    "bundleReductionPercent": 47.76,
+    "firstInstallRuntimeDownloadExcluded": true,
+    "appInstallAndUpgradeVerified": false
+  },
+  "oldStoreFilesPreserved": 58,
+  "appExecuted": false,
+  "uiTested": false,
+  "performanceLatencyMeasured": false,
+  "wackExecuted": false,
+  "storeSubmitted": false,
+  "embeddedVersionSourceMatched": 6
+}
