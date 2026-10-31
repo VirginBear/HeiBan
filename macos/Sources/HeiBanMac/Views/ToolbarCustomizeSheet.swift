@@ -53,12 +53,13 @@ struct ToolbarCustomizeSheet: View {
                 Text(L10n.t("只有圖示")).tag("icons")
                 Text(L10n.t("圖示與文字（分頁）")).tag("labels")
             }
-            Text(L10n.t("常用欄可獨立勾選；選取與雷射筆固定顯示")).font(.caption).foregroundStyle(.secondary)
+            Text(L10n.t("常用欄可獨立勾選；選取、雷射筆與藤條固定顯示")).font(.caption).foregroundStyle(.secondary)
             ScrollView {
                 VStack(spacing: 6) {
                     ForEach(Array(allOrderedKeys.enumerated()), id: \.element) { index, id in
                         if let def = ToolbarPreferences.allDefinitions.first(where: { $0.id == id }) {
                             let isVisible = !engine.toolbarPreferences.hiddenItemIds.contains(id) && engine.toolbarPreferences.activeItemIds.contains(id)
+                            let isFixed = ToolbarPreferences.isFixedTool(id)
                             HStack(spacing: 10) {
                                 Toggle("", isOn: Binding(
                                     get: { isVisible },
@@ -67,8 +68,8 @@ struct ToolbarCustomizeSheet: View {
                                     }
                                 ))
                                 .labelsHidden()
-                                .disabled(id == "select" || id == "laser")
-                                if id != "select" && id != "laser" {
+                                .disabled(isFixed)
+                                if !isFixed {
                                     Toggle(L10n.t("常用"),isOn:Binding(get:{engine.toolbarPreferences.commonItemIds.contains(id)},set:{ value in
                                         if value { engine.toolbarPreferences.commonItemIds.append(id);engine.toolbarPreferences.setItemHidden(id:id,hidden:false) }
                                         else { engine.toolbarPreferences.commonItemIds.removeAll { $0==id } }
@@ -79,6 +80,7 @@ struct ToolbarCustomizeSheet: View {
                                 Group {
                                     if id=="magnet" { HeiBanMagnetIcon() }
                                     else if id=="compass" { HeiBanCompassIcon() }
+                                    else if id=="cane" { HeiBanCaneIcon() }
                                     else { Image(systemName:def.icon) }
                                 }.frame(width:22).foregroundColor(.accentColor)
 
@@ -88,14 +90,14 @@ struct ToolbarCustomizeSheet: View {
                                 Spacer()
 
                                 Button {
-                                    if let currentIdx = engine.toolbarPreferences.activeItemIds.firstIndex(of: id), currentIdx > 2 {
+                                    if let currentIdx = engine.toolbarPreferences.activeItemIds.firstIndex(of: id), currentIdx > ToolbarPreferences.fixedTools.count {
                                         engine.moveToolbarItem(id: id, to: currentIdx - 1)
                                     }
                                 } label: {
                                     Image(systemName: "chevron.up")
                                 }
                                 .buttonStyle(.borderless)
-                                .disabled(id == "select" || id == "laser" || !isVisible || (engine.toolbarPreferences.activeItemIds.firstIndex(of: id) ?? 0) <= 2)
+                                .disabled(isFixed || !isVisible || (engine.toolbarPreferences.activeItemIds.firstIndex(of: id) ?? 0) <= ToolbarPreferences.fixedTools.count)
 
                                 Button {
                                     if let currentIdx = engine.toolbarPreferences.activeItemIds.firstIndex(of: id),
@@ -106,7 +108,7 @@ struct ToolbarCustomizeSheet: View {
                                     Image(systemName: "chevron.down")
                                 }
                                 .buttonStyle(.borderless)
-                                .disabled(id == "select" || id == "laser" || !isVisible || (engine.toolbarPreferences.activeItemIds.firstIndex(of: id) ?? 0) >= engine.toolbarPreferences.activeItemIds.count - 1)
+                                .disabled(isFixed || !isVisible || (engine.toolbarPreferences.activeItemIds.firstIndex(of: id) ?? 0) >= engine.toolbarPreferences.activeItemIds.count - 1)
                             }
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)

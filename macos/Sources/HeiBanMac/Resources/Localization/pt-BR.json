@@ -965,5 +965,17 @@
   "繼續作畫": "Voltar a desenhar",
   "顯示螢幕畫布工具列": "Mostrar barra do desenho na tela",
   "作畫中": "Desenhando",
-  "操作中・滑鼠穿透": "Interagindo · Clique através"
+  "操作中・滑鼠穿透": "Interagindo · Clique através",
+  "藤條": "Vara de rattan",
+  "顯示藤條": "Mostrar vara de rattan",
+  "隱藏藤條": "Ocultar vara de rattan",
+  "隱藏右下藤條快捷": "Ocultar atalho da vara no canto inferior direito",
+  "顯示右下藤條快捷": "Mostrar atalho da vara no canto inferior direito",
+  "藤條：點擊切換教學拍打工具；右鍵可隱藏": "Vara de rattan: clique para alternar para a ferramenta de toque de ensino; clique direito para ocultar",
+  "常用欄可獨立勾選；選取、雷射筆與藤條固定顯示": "A coluna Comum pode ser marcada separadamente; Selecionar, Laser e Vara de rattan são sempre fixos",
+  "按住滑鼠左鍵並移動即可指示，放開左鍵立即消失。選取「光點」時不顯示尾跡；切換其他工具可停止。雷射不會加入作品或匯出檔案。": "Segure o botão esquerdo do mouse e mova para apontar; solte para ocultar imediatamente. O modo Ponto não exibe rastro. O laser não é salvo nem exportado.",
+  "移至圖層頂端": "Trazer para a frente",
+  "上移圖層": "Avançar",
+  "下移圖層": "Recuar",
+  "移至圖層底端": "Enviar para trás"
 }

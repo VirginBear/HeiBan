@@ -1,8 +1,69 @@
 import CoreGraphics
 import Foundation
 
+public enum LayerMove: String, CaseIterable, Sendable {
+    case front
+    case up
+    case down
+    case back
+}
+
 /// 物件圖層、群組、選取與剪貼簿操作；幾何、歷史與儲存沿用同一份作品資料。
 extension BoardEngine {
+    /// 四向圖層移動：僅調整當前頁面的未鎖定選取物件，保持多選相對順序，且僅在順序實際變更時寫入單筆 Undo。
+    @discardableResult
+    public func moveSelectedLayers(_ move: LayerMove) -> Bool {
+        guard !readingMode, !selectedIds.isEmpty else { return false }
+        let pageItems = currentPageObjects
+        let scope = Set(pageItems.map(\.id))
+        let chosen = Set(pageItems.filter { selectedIds.contains($0.id) && $0.isLocked != true && $0.isVisible != false }.map(\.id))
+        guard !chosen.isEmpty, Set(objects.map(\.id)).count == objects.count else { return false }
+
+        let prev = objects
+        var all = objects.enumerated().sorted { a, b in
+            let za = a.element.zIndex
+            let zb = b.element.zIndex
+            return za == zb ? a.offset < b.offset : za < zb
+        }.map(\.element)
+
+        var page = all.filter { scope.contains($0.id) }
+        guard page.count > 1 else { return false }
+        let originalPageIds = page.map(\.id)
+
+        switch move {
+        case .front:
+            page = page.filter { !chosen.contains($0.id) } + page.filter { chosen.contains($0.id) }
+        case .back:
+            page = page.filter { chosen.contains($0.id) } + page.filter { !chosen.contains($0.id) }
+        case .up:
+            for n in stride(from: page.count - 2, through: 0, by: -1) {
+                if chosen.contains(page[n].id) && !chosen.contains(page[n + 1].id) {
+                    page.swapAt(n, n + 1)
+                }
+            }
+        case .down:
+            for n in 0..<(page.count - 1) {
+                if !chosen.contains(page[n].id) && chosen.contains(page[n + 1].id) {
+                    page.swapAt(n, n + 1)
+                }
+            }
+        }
+
+        guard page.map(\.id) != originalPageIds else { return false }
+        var p = 0
+        for i in all.indices where scope.contains(all[i].id) {
+            all[i] = page[p]
+            p += 1
+        }
+        for i in all.indices {
+            all[i].zIndex = i + 1
+        }
+        objects = all
+        transactionManager.push(.reorderObjects(before: prev, after: objects))
+        scheduleAutosave()
+        return true
+    }
+
     /// 圖層列表由上往下代表前景到背景。拖曳只在放下時呼叫，一次復原整個排序。
     public func moveLayer(id: String, relativeTo targetID: String, above: Bool) {
         // 非法重複 ID 不能交給既有 reorderObjects 的 ID map，否則可能覆蓋物件。

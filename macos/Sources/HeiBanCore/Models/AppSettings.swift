@@ -85,10 +85,10 @@ public struct ChangelogEntry: Codable, Equatable, Identifiable {
 public struct AboutInfo: Equatable {
     public static let appName = "HeiBan 黑板"
     public static var appVersion: String {
-        (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "1.0.17"
+        (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "1.0.18"
     }
     public static var buildNumber: String {
-        (Bundle.main.infoDictionary?["CFBundleVersion"] as? String) ?? "20261024.3"
+        (Bundle.main.infoDictionary?["CFBundleVersion"] as? String) ?? "20261029.1"
     }
     public static let engineVersion = "HeiBan Blackboard Vector Engine 1.0"
     public static let copyright = "© 2026 HeiBan Team. All rights reserved."
@@ -96,6 +96,13 @@ public struct AboutInfo: Equatable {
     public static let supportEmail = "support@heiban.app"
 
     public static let changelog: [ChangelogEntry] = [
+        ChangelogEntry(version: "1.0.18", releaseDate: "2026-10-29", highlights: [
+            "新增藤條教學工具：支援 45° 教學握持跟隨、點擊拍打揮動、清脆擊中音效與震波提示，不改動任何畫布作品物件",
+            "選取、雷射筆、藤條跨分頁固定常駐：三款教學指向工具常駐於常用／繪圖／插入／管理分頁前段",
+            "一般畫布右下角工具架：板擦校正為 45° 斜角並與藤條快捷底邊對齊，支援右鍵快速隱藏及「更多」開關恢復",
+            "工具專屬游標與按住顯示雷射筆：繪圖與教學工具顯示十字準心加工具圖示，雷射筆改為按住左鍵顯示光點與尾跡、放開立即消失且支援常用色盤管理",
+            "物件右鍵新增四向圖層順序調整：支援移至圖層頂端、上移圖層、下移圖層、移至圖層底端並維持單步 Undo 復原"
+        ]),
         ChangelogEntry(version: "1.0.17", releaseDate: "2026-10-24", highlights: [
             "新增常用色盤管理：支援保存、管理刪除與還原預設色，一般畫布與螢幕畫布即時共用",
             "選取與雷射筆跨分頁常駐：各工具分頁均可隨時切換選取與雷射筆",

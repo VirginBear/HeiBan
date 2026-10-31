@@ -14,7 +14,7 @@ public enum ToolbarContentPolicy {
     public static func page(for id: String) -> String {
         if [
             "pen", "curve", "highlighter", "paint", "eraser", "boardEraser", "ruler", "shapes", "color", "lineStyle",
-            "magnet", "compass", "laser",
+            "magnet", "compass", "laser", "cane",
         ].contains(id) {
             return "drawing"
         }
@@ -25,7 +25,7 @@ public enum ToolbarContentPolicy {
     }
     public static func pageIDs(_ preferences: ToolbarPreferences, screen: Bool, page: String) -> [String] {
         visibleIDs(preferences, screen: screen).filter { id in
-            guard id != "select", id != "laser" else { return false }
+            guard !ToolbarPreferences.isFixedTool(id) else { return false }
             if page != "common" { return Self.page(for: id) == page }
             return preferences.commonItemIds.contains(id)
                 || (["undo", "redo"].contains(id) && preferences.commonItemIds.contains("undoRedo"))
@@ -64,8 +64,8 @@ public enum ToolbarContentPolicy {
     }
 
     /// 橫排每個工具磚寬度（含圖示與雙行文字），確保 12 個繪圖工具也能在一般電腦螢幕一列完整平鋪無捲軸。
-    public static let horizontalChrome: CGFloat = 194 // 原140 + 雷射48 + 新間距6
-    public static let verticalChrome: CGFloat = 196
+    public static let horizontalChrome: CGFloat = 248 // 原194 + 藤條48 + 新間距6
+    public static let verticalChrome: CGFloat = 243
     public static let horizontalTileWidth: CGFloat = 62
     public static let horizontalTileSpacing: CGFloat = 4
     public static let verticalTileHeight: CGFloat = 44

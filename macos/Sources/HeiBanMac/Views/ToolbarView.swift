@@ -209,7 +209,7 @@ struct ToolbarToolsView: View {
     private var shownPageIDs: [String] {
         Array(pageIDs.dropFirst(currentPageOffset).prefix(pageCapacity))
     }
-    private var renderedIDs: [String] { usesLabels ? ["select", "laser"] + shownPageIDs : visibleIDs }
+    private var renderedIDs: [String] { usesLabels ? ToolbarPreferences.fixedTools + shownPageIDs : visibleIDs }
     private typealias ToolSettings = BoardToolSettings
 
     private var overflowIDs: [String] {
@@ -286,6 +286,7 @@ struct ToolbarToolsView: View {
         return shell {
             labeledToolTile(id: "select")
             labeledToolTile(id: "laser")
+            labeledToolTile(id: "cane")
             VStack(alignment: .leading, spacing: 4) {
                 pageSelector
                 // 移除內部捲動拉桿（ScrollView），直接以單列平鋪顯示目前分頁工具。
@@ -422,7 +423,7 @@ struct ToolbarToolsView: View {
         }
         .padding(.horizontal, vertical ? 6 : 2)
         .frame(
-            width: vertical ? 124 : ((id == "select" || id == "laser") ? 48 : ToolbarContentPolicy.horizontalTileWidth),
+            width: vertical ? 124 : (ToolbarPreferences.isFixedTool(id) ? 48 : ToolbarContentPolicy.horizontalTileWidth),
             height: vertical ? ToolbarContentPolicy.verticalTileHeight : 58
         )
         .background(
@@ -446,7 +447,7 @@ struct ToolbarToolsView: View {
 
     private func drawingTool(_ id: String) -> ToolType? {
         [
-            "select": ToolType.select, "pen": .pen, "curve": .curve, "highlighter": .highlighter,
+            "select": ToolType.select, "cane": .cane, "pen": .pen, "curve": .curve, "highlighter": .highlighter,
             "paint": .paint, "sticky": .sticky, "text": .text, "tape": .tape, "lasso": .lasso,
         ][id]
     }
@@ -546,6 +547,13 @@ struct ToolbarToolsView: View {
                         isOn: Binding(
                             get: { engine.toolbarPreferences.boardEraserVisible },
                             set: { engine.setBoardEraserVisible($0) }))
+                    if screenController == nil {
+                        Toggle(
+                            L10n.t("顯示藤條"),
+                            isOn: Binding(
+                                get: { engine.toolbarPreferences.caneVisible },
+                                set: { engine.setCaneVisible($0) }))
+                    }
                     Button(L10n.t("自訂工具列…")) {
                         showMorePopover = false
                         DispatchQueue.main.async { showCustomizeSheet = true }
@@ -698,6 +706,8 @@ struct ToolbarToolsView: View {
     @ViewBuilder private func toolGlyph(_ id: String) -> some View {
         if id == "boardEraser" {
             BoardEraserArtwork().frame(width: 28, height: 20)
+        } else if id == "cane" {
+            HeiBanCaneIcon().frame(width: 18, height: 18)
         } else if id == "magnet" {
             HeiBanMagnetIcon().frame(width: 18, height: 18)
         } else if id == "pins" {
@@ -757,6 +767,11 @@ struct ToolbarToolsView: View {
         if id == "laser" {
             Button(L10n.t("雷射筆設定…")) { presentSettings(.laser) }
             Button(L10n.t("停止雷射筆")) { selectTool(.select) }
+        }
+        if id == "cane" && screenController == nil {
+            Button(L10n.t(engine.toolbarPreferences.caneVisible ? "隱藏右下藤條快捷" : "顯示右下藤條快捷")) {
+                engine.setCaneVisible(!engine.toolbarPreferences.caneVisible)
+            }
         }
     }
 

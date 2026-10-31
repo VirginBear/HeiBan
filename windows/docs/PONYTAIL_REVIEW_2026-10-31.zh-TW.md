@@ -119,3 +119,7 @@ x64 MSIX本身99,910,569bytes，ARM64 97,341,788bytes，bundle197,254,394bytes�
 已執行：git status／來源與平台規則讀取、GitHub connector讀外部repo／版本與技能文本、web查閱Microsoft官方文件；rg呼叫／依賴搜尋；graphify detect／AST serial extract／build／cluster／report／HTML／query及health檢查；Python zipfile中央目錄byte統計／SHA對照。工具失敗與限制如上。新圖譜、cost與工具暫存僅在.build，其他電腦不可假定存在。
 
 未執行：產品程式修改、編譯、App啟動、性能採樣、自動測試、安裝／WACK、新封裝、刪檔、版號調升、Store提交、Ponytail安裝／hooks或修改其他平台。預期改善均為方案；沒有宣稱修好或提高特定百分比。
+
+## GitHub同步與既有工作保護
+
+本批分析文件先commit為0991056，首次git push回non-fast-forward（fetch first）；未force push。git fetch origin取得6d74d15，檢視後確認為其他電腦的Mac1.0.18同步與共用index。git merge --no-commit origin/main自動合併成功，Mac檔與origin/main逐項保持同一內容，本批沒有編寫Mac程式或重跑其測試。同步後檢查Windows既有未提交三文件仍6／8／4新增行與三份YouTube未追蹤檔；僅本批分析／byte統計／平台日誌及index加入公開紀錄。私人交接分庫保存，不推私人資料到公開repo。

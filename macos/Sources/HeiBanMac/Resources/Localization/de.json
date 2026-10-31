@@ -965,5 +965,17 @@
   "繼續作畫": "Weiterzeichnen",
   "顯示螢幕畫布工具列": "Bildschirm-Werkzeugleiste anzeigen",
   "作畫中": "Zeichnen",
-  "操作中・滑鼠穿透": "Bedienen · Durchklicken"
+  "操作中・滑鼠穿透": "Bedienen · Durchklicken",
+  "藤條": "Rohrstock",
+  "顯示藤條": "Rohrstock anzeigen",
+  "隱藏藤條": "Rohrstock ausblenden",
+  "隱藏右下藤條快捷": "Rohrstock-Kurzbefehl unten rechts ausblenden",
+  "顯示右下藤條快捷": "Rohrstock-Kurzbefehl unten rechts anzeigen",
+  "藤條：點擊切換教學拍打工具；右鍵可隱藏": "Rohrstock: Klicken für das Unterrichts-Klopfwerkzeug; Rechtsklick zum Ausblenden",
+  "常用欄可獨立勾選；選取、雷射筆與藤條固定顯示": "Spalte „Häufig“ ist separat wählbar; Auswahl, Laser und Rohrstock sind immer fest angeheftet",
+  "按住滑鼠左鍵並移動即可指示，放開左鍵立即消失。選取「光點」時不顯示尾跡；切換其他工具可停止。雷射不會加入作品或匯出檔案。": "Linke Maustaste gedrückt halten und bewegen zum Zeigen; beim Loslassen sofort ausgeblendet. Punkt-Modus zeigt keine Spur. Laser wird nicht gespeichert oder exportiert.",
+  "移至圖層頂端": "Ganz nach vorne",
+  "上移圖層": "Eine Ebene nach vorne",
+  "下移圖層": "Eine Ebene nach hinten",
+  "移至圖層底端": "Ganz nach hinten"
 }
