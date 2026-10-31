@@ -24,9 +24,10 @@ internal sealed class ToolCursor : IDisposable
         if(path is null)return 0;
         try
         {
-            // An isolated software surface avoids depending on the document's GPU resources.
+            // A shared software device avoids recreating a D3D device for every new tool
+            // or DPI size. Cursor pixels remain independent of document GPU resources.
             // The small cross is the exact input hotspot; the tool badge sits below/right.
-            using var device=new CanvasDevice(true);
+            var device=CanvasDevice.GetSharedDevice(true);
             using var surface=new CanvasRenderTarget(device,size,size,96);
             using var svg=CanvasSvgDocument.LoadFromXml(device,
                 $"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><g fill='none' stroke-linecap='round' stroke-linejoin='round'><path d='M1,4 L7,4 M4,1 L4,7' stroke='white' stroke-width='3'/><path d='M1,4 L7,4 M4,1 L4,7' stroke='black' stroke-width='1'/><g transform='translate(8 8) scale(.85)'><path d='{path}' stroke='white' stroke-width='3.7'/><path d='{path}' stroke='black' stroke-width='1.7'/></g></g></svg>");

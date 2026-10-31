@@ -13,30 +13,6 @@ internal sealed partial class ScreenAnnotationWindow
         try { return new { width=_overlay.Width,height=_overlay.Height,pixelDpi=96,dpiScale=_dpiScale,preview = ValidatePreviewPerformance(), stroke = ValidateStrokePerformance() }; }
         finally { await StopAsync(); }
     }
-    // Opt-in native validation only: isolated data, deterministic samples, no hardware input claim.
-    private void DamageSelectedObjects()
-    {
-        foreach(var o in _session.SelectedObjects)
-        {
-            if(o.Extension is "start" or "end" or "both"){_fullDamage=true;continue;}
-            var corners=ObjectHandles.Outline(o);var pad=Math.Max(40*_dpiScale,o.StrokeWidth+(o.ArrowHeadLength??0));
-            // Catmull-Rom curves can extend beyond point bounds; include their control hull after rotation.
-            if(o.Type is "stroke" or "pen" or "highlighter" or "paint" or "curve")pad+=Math.Sqrt(o.Width*o.Width+o.Height*o.Height)/3;
-            var left=Math.Max(0,Math.Floor(corners.Min(p=>p.X)-pad));var top=Math.Max(0,Math.Floor(corners.Min(p=>p.Y)-pad));
-            var right=Math.Min(_overlay.Width,Math.Ceiling(corners.Max(p=>p.X)+pad));var bottom=Math.Min(_overlay.Height,Math.Ceiling(corners.Max(p=>p.Y)+pad));
-            if(right<=left||bottom<=top)continue;
-            if(_damage is { } old){left=Math.Min(left,old.Left);top=Math.Min(top,old.Top);right=Math.Max(right,old.Right);bottom=Math.Max(bottom,old.Bottom);}
-            _damage=new(left,top,right-left,bottom-top);
-        }
-    }
-    private void DamagePreview()
-    {
-        if(_preview is null)return;var corners=ObjectHandles.Outline(_preview);var pad=_preview.StrokeWidth+40*_dpiScale;
-        var left=Math.Max(0,Math.Floor(corners.Min(p=>p.X)-pad));var top=Math.Max(0,Math.Floor(corners.Min(p=>p.Y)-pad));
-        var right=Math.Min(_overlay.Width,Math.Ceiling(corners.Max(p=>p.X)+pad));var bottom=Math.Min(_overlay.Height,Math.Ceiling(corners.Max(p=>p.Y)+pad));
-        if(_damage is { } old){left=Math.Min(left,old.Left);top=Math.Min(top,old.Top);right=Math.Max(right,old.Right);bottom=Math.Max(bottom,old.Bottom);}
-        if(right>left&&bottom>top)_damage=new(left,top,right-left,bottom-top);
-    }
     private object ValidatePreviewPerformance()
     {
         var saved=DocumentCodec.Clone(_session.Document);var tool=_tool;_renderTimer.Stop();var frames=0;var bytes=0L;var regionalTimes=new List<double>();var fullTimes=new List<double>();

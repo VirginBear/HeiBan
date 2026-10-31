@@ -23,7 +23,7 @@ internal sealed partial class ScreenAnnotationWindow
     private void UpdateScreenMagnetHover()
     {
         HeiBan.Windows.Models.InkPoint? target=null;
-        if(_drawing&&_toolbarPreferences.MagnetEnabled&&IsMagnetDrawingTool(_tool)&&_chromeFlyout is null&&_captureCancellation is null)
+        if(_drawing&&!_radialGesture.Holding&&_toolbarPreferences.MagnetEnabled&&IsMagnetDrawingTool(_tool)&&_chromeFlyout is null&&_captureCancellation is null)
         {
             var cursor=NativeOverlayWindow.CurrentPointer;var chrome=AppWindow.Position;var size=AppWindow.Size;
             if(!(cursor.X>=chrome.X&&cursor.X<chrome.X+size.Width&&cursor.Y>=chrome.Y&&cursor.Y<chrome.Y+size.Height))

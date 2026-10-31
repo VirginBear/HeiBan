@@ -18,7 +18,7 @@ internal sealed partial class ScreenAnnotationWindow
         FinishScreenText();CancelGesture();_session.SelectedId=null;_start=_last=point;
         _circularEraserCompletion=null;
         var gesture=_circularEraser=new(_session,_eraserSize*_dpiScale/2,_eraserWhole);
-        gesture.PreviewChanged+=()=>{if(ReferenceEquals(_circularEraser,gesture)){_dirty=_fullDamage=_committedDirty=true;}};
+        gesture.PreviewChanged+=()=>{if(ReferenceEquals(_circularEraser,gesture)){MarkEraserDamage(gesture.Damage,gesture.FullDamage); }};
         gesture.Queue(point);PumpCircularEraser();return true;
     }
     private async void PumpCircularEraser()

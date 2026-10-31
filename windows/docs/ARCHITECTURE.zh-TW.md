@@ -1,5 +1,12 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-10-31 — 共用輪盤與螢幕損傷邊界
+
+RadialToolbox/Core持有交換與八格幾何；兩host以DIP／physical-pixel adapter處理指標，shared Win2D renderer使用原ToolIcons向量，非模態WinUI設定窗接受實際toolbar drag。Settings/radial.json是獨立偏好，兩模式分開，與.heiban契約無關；未知欄位保留，空閒原子寫入，關閉等待。
+
+EraserPreviewPublisher以worker-reference→凍結UI-reference建立初始對照；僅新片段clone，刪除與新增幾何輸出保守damage。Screen在96DPI物理像素暫存GPU面以平移viewport補畫相交各層，copy exact region到committed後局部readback；無界與一般full invalidation保持整屏回退，裝置／尺寸／停止釋放暫存面。未在drawing hot path改永久文件或增加Undo交易。
+
+
 ## 2026-10-31 — 擦除worker候選／只讀起始預覽／增量形狀與owned保存
 
 擦除索引只在worker第一次Apply建立，>=512物件啟用，256格／64membership上限，無界／大物件保守global，片段增刪同步更新；密集候選回退倒序slot，避免逐個IndexOf退化。精確擦除沿用原幾何，circle／footprint共享保守bounds。UI起始preview只讀主文件，worker保留一份獨占clone，改變由publisher隔離發布；epoch／cancel仍把關。AppendShape與AppendInk共用added-object memento，保留不同selection與型別入口；一般混合交易仍完整snapshot。SaveOwnedSnapshotAsync僅接收已隔離且保存期間不再讀寫的snapshot，保留普通SaveAsync、revision衝突、原子寫入與失敗行為。

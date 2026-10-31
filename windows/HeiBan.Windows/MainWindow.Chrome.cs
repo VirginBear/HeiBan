@@ -203,6 +203,8 @@ public partial class MainWindow
 
         menu.Items.Add(new MenuFlyoutSeparator());
 
+        var radialItem=new MenuFlyoutItem{Text=T("右鍵工具輪盤"),Icon=ToolIcons.CreateIcon("shapes")};radialItem.Click+=(_,_)=>ShowRadialSettings();menu.Items.Add(radialItem);
+
         var customizeItem = new MenuFlyoutItem { Text = T("自訂工具列…") };
         customizeItem.Click += async (_, _) => await ShowCustomizeToolbarDialog();
         menu.Items.Add(customizeItem);

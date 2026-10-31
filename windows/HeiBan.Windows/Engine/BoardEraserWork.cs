@@ -17,11 +17,13 @@ internal sealed class BoardEraserWork
     private int _cancelled;
     private bool _indexPrepared;
     public bool Changed {get;private set;}
+    internal VectorMath.RectBounds? Damage=>_publisher.Damage;
+    internal bool FullDamage=>_publisher.FullDamage;
     internal void Cancel()=>Volatile.Write(ref _cancelled,1);
-    internal BoardEraserWork(HeiBanDocument document,ViewportTransform viewport,double gripX,double gripY,bool whole)
-    {_editor.Open(document);_viewport=viewport;_gripX=gripX;_gripY=gripY;_whole=whole;}
-    internal BoardEraserWork(HeiBanDocument document,double radius,bool whole)
-        :this(document,new ViewportTransform(),0,0,whole){_circleRadius=Math.Max(.01,radius);}
+    internal BoardEraserWork(HeiBanDocument document,ViewportTransform viewport,double gripX,double gripY,bool whole,HeiBanDocument? preview=null)
+    {_editor.Open(document);_viewport=viewport;_gripX=gripX;_gripY=gripY;_whole=whole;if(preview is not null)_publisher.Seed(document,preview);}
+    internal BoardEraserWork(HeiBanDocument document,double radius,bool whole,HeiBanDocument? preview=null)
+        :this(document,new ViewportTransform(),0,0,whole,preview){_circleRadius=Math.Max(.01,radius);}
 
     internal HeiBanDocument? Apply(IReadOnlyList<InkPoint> samples)
     {

@@ -55,14 +55,14 @@ internal sealed partial class ScreenAnnotationWindow
         ToolTipService.SetToolTip(_chromeGrip,T("拖曳到螢幕上下左右；放開後停靠"));ExtendsContentIntoTitleBar=true;SetTitleBar(_chromeGrip);
         _mode.Height=32;_mode.MinWidth=_mode.MinHeight=0;_mode.Padding=new Thickness(3);_mode.BorderThickness=new Thickness(0);_mode.CornerRadius=new CornerRadius(6);_mode.Background=ChromeBrush(0,0,0,0);_mode.Click+=(_,_)=>SetDrawing(!_drawing);
         foreach(var pair in ToolbarUi.ScreenTools.Where(pair=>pair.Key is not("undo" or "redo" or "screenshot" or "layers" or "brush" or "dash" or "clearAll")))
-        {var key=pair.Key;var button=ChromeButton(key,T(pair.Label));button.Tag=key;button.Click+=(_,_)=>{if(key=="shapes")ShowScreenShapes();else if(key=="magnet")ToggleScreenMagnet();else ChooseScreenTool(key);};_buttons[key]=button;}
+        {var key=pair.Key;var button=ChromeButton(key,T(pair.Label));button.Tag=key;_screenCommands[key]=()=>{if(key=="shapes")ShowScreenShapes();else if(key=="magnet")ToggleScreenMagnet();else ChooseScreenTool(key);};button.Click+=(_,_)=>_screenCommands[key]();_buttons[key]=button;}
         _chromeActions.Add(ActionButton("undo",T("復原這個螢幕的註記"),async()=>await UndoScreenAsync(false),"undo"));
         _chromeActions.Add(ActionButton("redo",T("重做"),async()=>await UndoScreenAsync(true),"redo"));
         _chromeActions.Add(ActionButton("screenshot",T("截圖加入螢幕畫布 · Ctrl+Alt+S"),async()=>await CaptureAsync(),"screenshot"));
         _chromeActions.Add(ActionButton("layers",T("物件圖層：選取、排序與顯示"),ShowScreenLayers,"layers"));
         _paletteButton=ActionButton("palette",T("調色盤：色票與自訂色輪"),ShowScreenPalette);_chromeActions.Add(_paletteButton);
-        _dashButton=ChromeButton("dash-solid",T("線條樣式"));_dashButton.Tag="dash";_dashButton.Click+=(_,_)=>ShowScreenLineStyles();_buttons["dash"]=_dashButton;
-        _brushButton=ChromeButton("pen",T("顏色、粗細與透明度"));_brushButton.Tag="brush";_brushButton.Click+=(_,_)=>ShowBrushSettings();_buttons["brush"]=_brushButton;
+        _dashButton=ChromeButton("dash-solid",T("線條樣式"));_dashButton.Tag="dash";_screenCommands["dash"]=ShowScreenLineStyles;_dashButton.Click+=(_,_)=>_screenCommands["dash"]();_buttons["dash"]=_dashButton;
+        _brushButton=ChromeButton("pen",T("顏色、粗細與透明度"));_brushButton.Tag="brush";_screenCommands["brush"]=ShowBrushSettings;_brushButton.Click+=(_,_)=>_screenCommands["brush"]();_buttons["brush"]=_brushButton;
         _styleCommitTimer.Tick+=(_,_)=>CommitScreenStyle();
         _clearButton=ActionButton("delete",T("一鍵清空所有螢幕註記 · Ctrl+Alt+K · 可復原"),ClearScreenObjects,"clearAll");_buttons["clearAll"]=_clearButton;
         _closeButton=ActionButton("close",T("結束螢幕畫布 · Ctrl+Alt+Q"),async()=>await StopAsync());
@@ -73,7 +73,7 @@ internal sealed partial class ScreenAnnotationWindow
         Content=content;
         InitializeChromeDocking();SystemBackdrop=new DesktopAcrylicBackdrop();
     }
-    private static Button ActionButton(string icon,string label,Action action,string? key=null){var button=ChromeButton(icon,label);button.Tag=key;button.Click+=(_,_)=>action();return button;}
+    private Button ActionButton(string icon,string label,Action action,string? key=null){var button=ChromeButton(icon,label);button.Tag=key;if(key is not null)_screenCommands[key]=action;button.Click+=(_,_)=>action();return button;}
     private void RefreshBrushButton()=>RefreshScreenStyleButtons();
     private void ShowScreenLineStyles()
     {
@@ -154,7 +154,7 @@ internal sealed partial class ScreenAnnotationWindow
         using var trace=global::HeiBan.Windows.Diagnostics.InputLatencyTrace.Measure(global::HeiBan.Windows.Diagnostics.InputStage.ToolSwitch);
         _chromeFlyout?.Hide();FinishScreenText();if(key==_tool&&key=="laser"){_ = LaserSettingsAsync();return;}if(key==_tool&&key=="eraser"){ShowEraserSettings();return;}
         var selectionVisuals=(_tool=="select"||key=="select")&&_session.SelectedIds.Count>0;
-        if(selectionVisuals)DamageSelectedObjects();CancelGesture();_tool=key;if(key=="cane")CaneSound.Prepare();
+        if(selectionVisuals)DamageSelectedObjects();CancelGesture();_tool=key;if(key=="cane"){CaneSound.Prepare();RestoreRadialCursor();}
         if(key is "laser" or "cane")_session.SelectedId=null;
         if(!_drawing)SetDrawing(true);else if(selectionVisuals)_dirty=true;
         _overlay.SetManipulationCursor(null,null,_tool);RefreshButtons();
@@ -180,6 +180,7 @@ internal sealed partial class ScreenAnnotationWindow
     {
         var menu=new MenuFlyout();
         void Item(string icon,string label,Action action){var item=new MenuFlyoutItem{Text=label,Icon=ToolIcons.CreateIcon(icon)};item.Click+=(_,_)=>action();menu.Items.Add(item);}
+        Item("shapes",T("右鍵工具輪盤"),ShowRadialSettings);
         if(StyleSelection is not null){Item("select",T("選取物件：樣式、複製、刪除…"),()=>ShowChromeFlyout(CreateObjectMenu(),_moreButton));menu.Items.Add(new MenuFlyoutSeparator());}
         var automatic=new ToggleMenuFlyoutItem{Text=T("自動存檔"),IsChecked=_owner.AutoSaveEnabled};
         automatic.Click+=async(_,_)=>{automatic.IsEnabled=false;try{await _owner.SetAutoSaveEnabledAsync(automatic.IsChecked);}catch(Exception error){automatic.IsChecked=_owner.AutoSaveEnabled;_status.Text=T("儲存設定未保存，請確認資料夾可寫入。")+"\n"+error.Message;}finally{automatic.IsEnabled=true;}};menu.Items.Add(automatic);

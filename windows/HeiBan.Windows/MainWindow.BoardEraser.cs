@@ -72,7 +72,7 @@ public partial class MainWindow
         _boardEraserWhole=EraserModeBox.SelectedIndex==0;_boardEraserPointer=pointer.PointerId;_boardEraserLast=pointer.Position;
         _boardEraserEpoch++;_boardEraserBaseGeneration=_session.Generation;_boardEraserDocumentEpoch=_session.DocumentEpoch;
         _boardEraserWorking=new BoardEraserWork(DocumentCodec.Clone(_session.Document),
-            new ViewportTransform{X=_viewport.X,Y=_viewport.Y,Zoom=_viewport.Zoom},grip.X,grip.Y,_boardEraserWhole);
+            new ViewportTransform{X=_viewport.X,Y=_viewport.Y,Zoom=_viewport.Zoom},grip.X,grip.Y,_boardEraserWhole,_session.Document);
         _boardEraserPending.Clear();_boardEraserWorkTask=_boardEraserCompletion=null;_boardEraserFinishing=false;
         BoardEraserDock.CapturePointer(e.Pointer);BoardEraserDock.Opacity=.78;
         _boardEraserGpuPreview=_renderer.HasBoardEraserArt;BoardEraserImage.Opacity=_boardEraserGpuPreview?0:1;

@@ -91,21 +91,24 @@ public partial class MainWindow
         {if(_boardEraserGpuPreview)_renderer.RenderBoardEraser(ds,_boardEraserLast.X-_boardEraserGripOffset.X,_boardEraserLast.Y-_boardEraserGripOffset.Y,.78f);var contact=BoardEraserContact(_boardEraserLast);for(var i=0;i<contact.Length;i++){var a=contact[i];var b=contact[(i+1)%contact.Length];ds.DrawLine((float)a.X,(float)a.Y,(float)b.X,(float)b.Y,Direct2DCanvasRenderer.HexToColor("#39735A"),2);}}
         if(_rulerEnabled)DrawRuler(ds);
         if(_compass.IsEnabled)_renderer.RenderCompass(ds,_compass,_viewport);
-        if(_tool=="cane"&&_hover&&!_panning&&!_readingMode){_cane.Move(_viewport.ScreenToWorld(_mouse.X,_mouse.Y));_renderer.RenderCane(ds,_cane,_viewport,LaserNow);}
-        if(!_panning&&_boardEraserDraft is null&&_hover&&_editor is null&&_tool is "pen" or "highlighter" or "paint" or "eraser")
+        if(_tool=="cane"&&_hover&&!_panning&&!_readingMode&&!_radialGesture.Holding){_cane.Move(_viewport.ScreenToWorld(_mouse.X,_mouse.Y));_renderer.RenderCane(ds,_cane,_viewport,LaserNow);}
+        if(!_panning&&!_radialGesture.Holding&&_boardEraserDraft is null&&_hover&&_editor is null&&_tool is "pen" or "highlighter" or "paint" or "eraser")
             _renderer.RenderHover(ds,_mouse,_tool=="eraser",_tool=="eraser"?EraserSizeSlider.Value:EffectiveWidth,_viewport);
+        if(_radialGesture.Visible)_renderer.RenderRadialWheel(ds,RadialProfile,_radialGesture.Center,_radialGesture.Hover);
     }
     private double EffectiveWidth=>_strokeWidth;
     private void CanvasSurface_PointerPressed(object sender,PointerRoutedEventArgs e)
     {
         if(!CanvasSurface.IsRenderingAvailable){e.Handled=true;CanvasSurface.Invalidate();return;}
         using var trace=InputLatencyTrace.Measure(InputStage.PointerDown);
+        if(e.GetCurrentPoint(CanvasSurface).Properties.IsRightButtonPressed&&_boardEraserDraft is null){BeginRadial(e);return;}
         if(_boardEraserDraft is not null||_circularEraser is not null){e.Handled=true;return;}
         FinishPinRename();
         if(_editor is not null)FinishText();
         FocusCanvasSurface();
         var p=e.GetCurrentPoint(CanvasSurface);var screen=new Vector2((float)p.Position.X,(float)p.Position.Y);
-        if(p.Properties.IsRightButtonPressed){if(_tool is "laser" or "cane"){CancelGesture();e.Handled=true;return;}if(_rulerEnabled&&(RulerHit(screen)||RulerRotationHit(screen)))ShowRulerSettings(CanvasSurface,new Point(screen.X,screen.Y));else ShowContext(screen);e.Handled=true;return;}
+        if(p.Properties.IsRightButtonPressed){BeginRadial(e);return;}
+        if(_radialGesture.Holding){e.Handled=true;return;}
         if(p.PointerDeviceType==PointerDeviceType.Touch)return;
         if(_tool is "laser" or "cane"&&!p.Properties.IsLeftButtonPressed&&!p.Properties.IsMiddleButtonPressed){e.Handled=true;return;}
         CommitPropertyEdit();
@@ -217,6 +220,7 @@ public partial class MainWindow
         if(!CanvasSurface.IsRenderingAvailable){if(_gesture)CancelGesture();e.Handled=true;return;}
         using var trace=InputLatencyTrace.Measure(InputStage.PointerMove);
         var arrival=InputLatencyTrace.Enabled?System.Diagnostics.Stopwatch.GetTimestamp():0;
+        if(MoveRadial(e))return;
         var p=e.GetCurrentPoint(CanvasSurface);_mouse=new((float)p.Position.X,(float)p.Position.Y);_hover=true;
         if(_circularEraser is { } eraser)
         {
@@ -338,6 +342,7 @@ public partial class MainWindow
     }
     private async void CanvasSurface_PointerReleased(object sender,PointerRoutedEventArgs e)
     {
+        if(ReleaseRadial(e))return;
         if(!CanvasSurface.IsRenderingAvailable){if(_gesture)CancelGesture();e.Handled=true;return;}
         if(_circularEraser is { } eraser&&_gesture&&e.Pointer.PointerId==_pointerId)
         {
@@ -428,10 +433,11 @@ public partial class MainWindow
     }
     private static InkPoint ConstrainLine(InkPoint anchor,InkPoint point)=>KeyIsDown(VirtualKey.Shift)?ObjectHandles.ConstrainOrthogonal(anchor,point):point;
     private void ResetGesture(){HideHUD();_renderer.ResetLive();_gesture=_panning=_rulerMoving=_rulerRotating=_rulerPivotMoving=_shapeGesture=_lineCompleting=_marquee=false;_compassCenterMoving=_compassCenterMoved=_compassRadiusMoving=_compassPencilMoving=false;_objectHandle=null;_manipulationStart=null;_movingPin=null;_snapEdge=null;_ink.Projection=null;_magnetTarget=null;UpdateTeachingTimer();if(_hover)UpdateShapeCursor();else ResetShapeCursor();}
-    private void CancelGesture(){_cane.Clear();CaneSound.Stop();CancelCircularEraser();var changed=_session.HasTransaction;_lasso.Clear();_laser.Clear();HideHUD();_ink.Cancel();_session.Cancel();_preview=null;_lineAnchor=null;_compass.Prepare();ResetGesture();CanvasSurface.ReleasePointerCaptures();if(changed)RefreshProperties();InvalidateCanvas(changed);}
-    private void CanvasSurface_PointerCanceled(object sender,PointerRoutedEventArgs e){HideHUD();if(_gesture)CancelGesture();}
+    private void CancelGesture(){CancelRadial();_cane.Clear();CaneSound.Stop();CancelCircularEraser();var changed=_session.HasTransaction;_lasso.Clear();_laser.Clear();HideHUD();_ink.Cancel();_session.Cancel();_preview=null;_lineAnchor=null;_compass.Prepare();ResetGesture();CanvasSurface.ReleasePointerCaptures();if(changed)RefreshProperties();InvalidateCanvas(changed);}
+    private void CanvasSurface_PointerCanceled(object sender,PointerRoutedEventArgs e){HideHUD();CancelRadial();if(_gesture)CancelGesture();}
     private void UpdateShapeCursor()
     {
+        if(_radialGesture.Holding){var wheelDpi=(uint)Math.Round((Root.XamlRoot?.RasterizationScale??1)*96);_shapeCursor.Update(null,null,wheelDpi,tool:"select");CanvasCursorHost.SetNativeCursor(_shapeCursor.Current,wheelDpi);return;}
         if(_panning&&!_viewLocked)
         {
             var panDpi=(uint)Math.Round((Root.XamlRoot?.RasterizationScale??1)*96);

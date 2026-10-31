@@ -53,7 +53,9 @@ public partial class MainWindow : Window
     private readonly ScreenshotCaptureCoordinator _screenshotCoordinator=new();
     private readonly DispatcherTimer _screenshotWatchTimer=new(){Interval=TimeSpan.FromMilliseconds(250)};
     private List<LibraryCard> _library=[];
-    private string _tool="select", _strokeColor="#24533d", _fillColor="#b8d4b2";
+    private string _toolValue="select";
+    private string _tool{get=>_toolValue;set{var previous=_toolValue;_toolValue=value;if(RadialTools is not null&&previous!=value)TrackRadialTool(previous,value);}}
+    private string _strokeColor="#24533d", _fillColor="#b8d4b2";
     private double _strokeWidth=4,_opacity=1;
     private bool _workspaceOpen,_closing,_preparingClose,_changingLayers,_readingMode;
     private bool _saveFailed,_saving;
@@ -74,7 +76,7 @@ public partial class MainWindow : Window
         App.StartupStage="載入主視窗 XAML";
         InitializeComponent();
         Root.Loaded+=(_,_)=>{if(VisualTreeHelper.GetParent(Root) is UIElement rootHost){rootHost.KeyDown-=Root_KeyDown;rootHost.KeyDown+=Root_KeyDown;}};
-        InitializeLibraryChrome();BuildChrome();InitializeTeachingTools();InitializeDeferredWork();InitializeInputLatencyTrace();
+        InitializeRadialInput();InitializeLibraryChrome();BuildChrome();InitializeTeachingTools();InitializeDeferredWork();InitializeInputLatencyTrace();
         ApplyLanguageChrome();
         App.StartupStage="設定主視窗";
         ExtendsContentIntoTitleBar=true;SetTitleBar(AppTitleBar);SystemBackdrop=null;
@@ -104,6 +106,7 @@ public partial class MainWindow : Window
                 if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();
                 if(_boardEraserFinishing)await CompleteBoardEraserAsync();else CancelBoardEraser();
                 await SaveTeachingSettingsAsync();
+                _radialSaveTimer.Stop();_radialSettings?.Close();CancelRadial();await RadialTools.SaveAsync();
                 await ProfilePalette.FlushAsync();
                 if(_screenAnnotation?.IsActive==true&&!await _screenAnnotation.StopAsync())return;
                 if(_workspaceOpen&&_session.IsDirty&&!await SaveAsync())return;
@@ -420,6 +423,7 @@ public partial class MainWindow : Window
     private void Root_KeyDown(object sender,KeyRoutedEventArgs e)
     {
         if(e.Handled)return;
+        if(_radialGesture.Holding&&e.Key==VirtualKey.Escape){CancelRadial();CanvasSurface.ReleasePointerCaptures();e.Handled=true;return;}
         if(_boardEraserDraft is not null){if(e.Key==VirtualKey.Escape)CancelBoardEraser();e.Handled=true;return;}
         if(_preparingClose||_saveBoundaryBusy){e.Handled=true;return;}
         if(e.OriginalSource is TextBox or NumberBox or RichEditBox || _editor is not null || _pinNameEditor is not null)return;

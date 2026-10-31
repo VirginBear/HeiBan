@@ -64,7 +64,7 @@ public static class RectangularEraser
 
     // Shared rejection envelope for the worker index and exact footprint path.
     // Unbounded or malformed geometry stays global; rejection must never lose ink.
-    internal static VectorMath.RectBounds? ConservativeBounds(BoardObject item)
+    public static VectorMath.RectBounds? ConservativeBounds(BoardObject item)
     {
         if(item.Type is "line" or "arrow"&&item.Extension is "start" or "end" or "both")return null;
         // Use actual endpoints / cached curve bounds for imported works whose

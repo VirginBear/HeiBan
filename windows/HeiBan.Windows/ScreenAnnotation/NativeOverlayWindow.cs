@@ -5,7 +5,7 @@ namespace HeiBan.Windows.ScreenAnnotation;
 
 internal sealed partial class NativeOverlayWindow : IDisposable
 {
-    public readonly record struct PointerEvent(string Kind,double X,double Y,bool Shift=false,bool LeftDown=false);
+    public readonly record struct PointerEvent(string Kind,double X,double Y,bool Shift=false,bool LeftDown=false,bool RightDown=false);
     public event Action<PointerEvent>? Pointer;
     public event Action? BoundsChanged;
     public event Action<int>? Hotkey;
@@ -26,6 +26,8 @@ internal sealed partial class NativeOverlayWindow : IDisposable
     public nint Handle=>_window;
     public static double DpiScale(nint window)=>Math.Max(1,GetDpiForWindow(window)/96d);
     public static nint CurrentForeground=>GetForegroundWindow();
+    public static uint DoubleClickMilliseconds=>GetDoubleClickTime();
+    public static bool EscapeDown=>(GetAsyncKeyState(0x1B)&0x8000)!=0;
     public static bool MouseButtonDown=>(GetAsyncKeyState(1)&0x8000)!=0;
     public static (int X,int Y) CurrentPointer {get{GetCursorPos(out var p);return(p.X,p.Y);}}
     public static void RestoreFocus(nint window){if(window!=0&&IsWindowVisible(window))SetForegroundWindow(window);}
@@ -109,14 +111,14 @@ internal sealed partial class NativeOverlayWindow : IDisposable
             if(message==0x0084)return _drawing?new nint(1):new nint(-1);
             if(message==0x0010){Hide();return 0;}
             if((message is 0x0215 or 0x001F)&&_pointerCaptured){_pointerCaptured=false;Pointer?.Invoke(new("cancel",0,0));}
-            if(_drawing&&message is 0x0201 or 0x0200 or 0x0202 or 0x0205 or 0x0203)
+            if(_drawing&&message is 0x0201 or 0x0200 or 0x0202 or 0x0204 or 0x0205 or 0x0206 or 0x0203)
             {
                 // Message coordinates belong to this sample; querying the current cursor can skip queued movement.
                 var coordinates=lParam.ToInt64();var p=new Point{X=(short)(coordinates&0xffff),Y=(short)((coordinates>>16)&0xffff)};
-                var kind=message switch {0x0201=>"down",0x0202=>"up",0x0205=>"right",0x0203=>"double",_=>"move"};
-                if(message==0x0201||(message==0x0203&&_cursorTool is "laser" or "cane")){_pointerCaptured=true;SetCapture(hwnd);}
-                if(message==0x0202){_pointerCaptured=false;ReleaseCapture();}
-                Pointer?.Invoke(new(kind,p.X,p.Y,(wParam&4)!=0,(wParam&1)!=0));return 0;
+                var kind=message switch {0x0201=>"down",0x0202=>"up",0x0204=>"rightdown",0x0205=>"rightup",0x0206=>"rightdouble",0x0203=>"double",_=>"move"};
+                if(message is 0x0201 or 0x0204 or 0x0206||(message==0x0203&&_cursorTool is "laser" or "cane")){_pointerCaptured=true;SetCapture(hwnd);}
+                if(message is 0x0202 or 0x0205){_pointerCaptured=false;ReleaseCapture();}
+                Pointer?.Invoke(new(kind,p.X,p.Y,(wParam&4)!=0,(wParam&1)!=0,(wParam&2)!=0));return 0;
             }
         }
         catch(Exception e){Failed?.Invoke(e);}
@@ -129,6 +131,7 @@ internal sealed partial class NativeOverlayWindow : IDisposable
         if(_bitmap!=0){DeleteObject(_bitmap);_bitmap=0;}
         if(_dc!=0){DeleteDC(_dc);_dc=0;}_pixels=0;
     }
+    internal void ReleasePointerCapture(){if(!_pointerCaptured)return;_pointerCaptured=false;ReleaseCapture();}
     private void CancelPointerCapture()
     {if(!_pointerCaptured)return;_pointerCaptured=false;ReleaseCapture();Pointer?.Invoke(new("cancel",0,0));}
     public void Dispose()
@@ -152,6 +155,7 @@ internal sealed partial class NativeOverlayWindow : IDisposable
     [DllImport("user32.dll",CharSet=CharSet.Unicode)] private static extern bool UnregisterClass(string name,nint instance);
     [DllImport("user32.dll",CharSet=CharSet.Unicode,SetLastError=true)] private static extern nint CreateWindowEx(uint exStyle,string className,string title,uint style,int x,int y,int width,int height,nint parent,nint menu,nint instance,nint parameter);
     [DllImport("user32.dll",CharSet=CharSet.Unicode)] private static extern nint LoadCursor(nint instance,nint name);
+    [DllImport("user32.dll")] private static extern uint GetDoubleClickTime();
     [DllImport("user32.dll")] private static extern short GetAsyncKeyState(int key);
     [DllImport("user32.dll")] private static extern uint GetDpiForWindow(nint window);
     [DllImport("user32.dll")] private static extern nint GetForegroundWindow();

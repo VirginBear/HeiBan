@@ -12,6 +12,8 @@ internal sealed class CircularEraserGesture
     private Task<HeiBanDocument?>? _completion;
     private bool _cancelled;
     internal EditorSession Preview {get;}=new();
+    internal VectorMath.RectBounds? Damage {get;private set;}
+    internal bool FullDamage {get;private set;}
     internal bool IsFinishing {get;private set;}
     internal event Action? PreviewChanged;
     internal CircularEraserGesture(EditorSession session,double radius,bool whole)
@@ -20,7 +22,7 @@ internal sealed class CircularEraserGesture
         // The UI preview only reads this starting document. The worker owns the
         // independent clone below; changed previews cross via EraserPreviewPublisher.
         Preview.Open(session.Document);
-        _worker=new(DocumentCodec.Clone(session.Document),radius,whole);
+        _worker=new(DocumentCodec.Clone(session.Document),radius,whole,session.Document);
     }
     internal bool Matches(EditorSession session)=>!_cancelled&&session.Generation==_generation&&session.DocumentEpoch==_epoch;
     internal void Queue(InkPoint point){if(!_cancelled&&!IsFinishing)_pending.Add(point);}
@@ -40,7 +42,7 @@ internal sealed class CircularEraserGesture
         var points=_pending.ToArray();_pending.Clear();
         var snapshot=await Task.Run(()=>_worker.Apply(points));
         if(_cancelled||snapshot is null)return;
-        Preview.Open(snapshot);PreviewChanged?.Invoke();
+        Damage=_worker.Damage;FullDamage=_worker.FullDamage;Preview.Open(snapshot);PreviewChanged?.Invoke();
     }
     internal Task<HeiBanDocument?> CompleteAsync()=>_completion??=CompleteCoreAsync();
     private async Task<HeiBanDocument?> CompleteCoreAsync()

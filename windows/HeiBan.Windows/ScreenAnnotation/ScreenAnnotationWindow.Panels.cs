@@ -122,7 +122,7 @@ internal sealed partial class ScreenAnnotationWindow
     private void UpdateScreenEraser()
     {
         System.Numerics.Vector2? point=null;
-        if(_drawing&&_tool=="eraser"&&_chromeFlyout is null&&_captureCancellation is null)
+        if(_drawing&&!_radialGesture.Holding&&_tool=="eraser"&&_chromeFlyout is null&&_captureCancellation is null)
         {
             var p=NativeOverlayWindow.CurrentPointer;var chrome=AppWindow.Position;var size=AppWindow.Size;
             if(!(p.X>=chrome.X&&p.X<chrome.X+size.Width&&p.Y>=chrome.Y&&p.Y<chrome.Y+size.Height))point=new(p.X-_overlay.Left,p.Y-_overlay.Top);

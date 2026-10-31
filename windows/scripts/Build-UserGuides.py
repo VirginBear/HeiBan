@@ -19,7 +19,7 @@ TARGET = ROOT / 'HeiBan.Windows/Assets/Guides'
 LANGUAGES = {'zh-TW': '正體中文', 'zh-CN': '简体中文', 'en': 'English', 'ja': '日本語',
              'ko': '한국어', 'es': 'Español', 'fr': 'Français', 'de': 'Deutsch',
              'pt-BR': 'Português (Brasil)', 'ar': 'العربية'}
-SECTIONS = ['language', 'start', 'library', 'paper', 'navigate', 'workspace', 'brush',
+SECTIONS = ['language', 'start', 'library', 'paper', 'navigate', 'workspace', 'radial', 'brush',
             'shapes', 'selection', 'properties', 'text', 'eraser', 'ruler', 'compass',
             'laser', 'utilities', 'images', 'pins', 'screen', 'files', 'shortcuts',
             'updates', 'status', 'canvas-setup', 'ux20']

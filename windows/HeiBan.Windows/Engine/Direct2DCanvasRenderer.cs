@@ -62,7 +62,7 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
     }
     public void ClearCache()
     {
-        _imageEpoch++;ClearLaserResources();ResetLive();ClearWetResources();ClearTextCache();_viewportCandidates.Clear();
+        _imageEpoch++;ClearRadialResources();ClearLaserResources();ResetLive();ClearWetResources();ClearTextCache();_viewportCandidates.Clear();
         foreach(var value in _geometry.Values)value.Geometry.Dispose(); _geometry.Clear();
         foreach(var value in _images.Values)value.Dispose(); _images.Clear();
     }

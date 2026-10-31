@@ -54,7 +54,10 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     private double _penHoldSince;
     private bool _screenPenStraight;
     private string _screenExtension="none";
-    private string _tool="pen",_color="#EF4444",_dash="solid",_fill="none";
+    private bool _radialInitialized;
+    private string _toolValue="pen";
+    private string _tool{get=>_toolValue;set{var previous=_toolValue;_toolValue=value;if(_radialInitialized&&previous!=value)TrackRadialTool(previous,value);}}
+    private string _color="#EF4444",_dash="solid",_fill="none";
     private readonly List<InkPoint> _curveAnchors=[];
     private double _width=4,_opacity=1,_eraserSize=24;
     private bool _eraserWhole=true,_marquee;
@@ -68,7 +71,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         _owner=owner;_requestStart=requestStart;_laser=laser;_toolbarPreferences=ToolbarPreferencesStore.Load(dataDirectory);
         _recoveryPath=Path.Combine(dataDirectory,"ScreenAnnotations","session.heiban");
         Title=T("我的螢幕就是我的畫布");
-        InitializeChrome();
+        InitializeChrome();InitializeScreenRadial();
         if(AppWindow.Presenter is OverlappedPresenter presenter){presenter.PreferredMinimumWidth=1;presenter.PreferredMinimumHeight=1;presenter.IsAlwaysOnTop=true;presenter.IsResizable=false;presenter.SetBorderAndTitleBar(false,false);}
         _dpiScale=NativeOverlayWindow.DpiScale(WinRT.Interop.WindowNative.GetWindowHandle(this));ResizeChrome();
         AppWindow.Closing+=async(_,e)=>{if(_disposed)return;e.Cancel=true;await StopAsync();};
@@ -84,7 +87,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         var failed=0;
         foreach(var key in new[]{(1,0x41u),(2,0x44u),(3,0x53u),(4,0x51u),(5,0x4Bu)})if(!_overlay.RegisterShortcut(key.Item1,0x0002|0x0001,key.Item2))failed++;
         _hotkeyRegistrationFailed=failed>0;if(failed>0)_status.Text=T("部分快捷鍵被其他程式占用，請使用控制列按鈕。");
-        _renderTimer.Tick+=(_,_)=>{if(!IsActive)return;try{UpdateScreenEraser();UpdateScreenMagnetHover();if(_dirty||_laser.Samples.Count>0||_cane.IsActive(Now)||_caneWasAnimating)Render();}catch(Exception e){_renderTimer.Stop();_overlay.Hide();_status.Text=T("螢幕繪圖已停止：")+e.Message;}};
+        _renderTimer.Tick+=(_,_)=>{if(!IsActive)return;try{PollScreenRadial();UpdateScreenEraser();UpdateScreenMagnetHover();if(_dirty||_laser.Samples.Count>0||_cane.IsActive(Now)||_caneWasAnimating)Render();}catch(Exception e){_renderTimer.Stop();_overlay.Hide();_status.Text=T("螢幕繪圖已停止：")+e.Message;}};
         _focusRememberTimer.Tick+=(_,_)=>{if(IsActive)RememberExternalFocus();};
         _straightenTimer.Tick+=(_,_)=>
         {
@@ -103,7 +106,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             Directory.CreateDirectory(Path.GetDirectoryName(_recoveryPath)!);_sessionLease=new FileStream(_recoveryPath+".lock",FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
             var doc=File.Exists(_recoveryPath)?DocumentCodec.Decode(await File.ReadAllTextAsync(_recoveryPath)):new HeiBanDocument{Board=new BoardMetadata{Title=T("螢幕註記"),CanvasMode="fixed",BackgroundColor="transparent",GridStyle="blank"}};
             _session.Open(doc);CreateTarget();await _renderer.LoadCaneArtAsync(_target!);await _renderer.LoadImagesAsync(_target!,doc.Objects);
-            IsActive=true;_laser.Clear();_owner.AppWindow.Hide();RememberExternalFocus();_overlay.Show(true);SetDrawing(true);Render();
+            IsActive=true;_laser.Clear();_owner.CloseRadialSettings();_owner.AppWindow.Hide();RememberExternalFocus();_overlay.Show(true);SetDrawing(true);Render();
             ResizeChrome();RefreshButtons();
             PositionChrome();AppWindow.Show();Activate();_renderTimer.Start();_focusRememberTimer.Start();
         }
@@ -111,7 +114,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     }
     private void CreateTarget()
     {
-        _target?.Dispose();_committed?.Dispose();_target=new CanvasRenderTarget(CanvasDevice.GetSharedDevice(),_overlay.Width,_overlay.Height,96);
+        DisposeEraserPatch();_target?.Dispose();_committed?.Dispose();_target=new CanvasRenderTarget(CanvasDevice.GetSharedDevice(),_overlay.Width,_overlay.Height,96);
         _committed=new CanvasRenderTarget(CanvasDevice.GetSharedDevice(),_overlay.Width,_overlay.Height,96);_committedDirty=_fullDamage=true;_damage=null;
         var board=_session.Document.Board;board.ExtraFields??=[];
         var oldX=board.ExtraFields.TryGetValue("windowsScreenOriginX",out var x)&&x.TryGetInt32(out var xx)?xx:_overlay.Left;
@@ -125,22 +128,23 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     {
         if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();
         if(!value)RememberExternalFocus();
-        FinishScreenText();CancelGesture();_drawing=value;_overlay.SetDrawing(value);_overlay.SetManipulationCursor(null,null,_tool);UpdateScreenEraser();RefreshMode();
+        FinishScreenText();CancelGesture();_drawing=value;_overlay.SetDrawing(value);_overlay.SetManipulationCursor(null,null,_tool);UpdateScreenEraser();
         _status.Text=value?T("作畫中 · 右鍵物件可編輯"):T("操作中 · Ctrl+Alt+D 繼續作畫");
         RefreshMode();ResizeChrome();PositionChrome();
         _laser.Clear();_dirty=_fullDamage=_committedDirty=true;if(!value)NativeOverlayWindow.RestoreFocus(_lastExternal);
     }
     private void RememberExternalFocus()
-    {var current=NativeOverlayWindow.CurrentForeground;if(current!=0&&current!=_overlay.Handle&&current!=WinRT.Interop.WindowNative.GetWindowHandle(this)&&current!=WinRT.Interop.WindowNative.GetWindowHandle(_owner))_lastExternal=current;}
+    {var current=NativeOverlayWindow.CurrentForeground;if(current!=0&&current!=_overlay.Handle&&current!=WinRT.Interop.WindowNative.GetWindowHandle(this)&&current!=WinRT.Interop.WindowNative.GetWindowHandle(_owner)&&current!=(_radialSettings?.Handle??0))_lastExternal=current;}
     private void RefreshButtons()
     {foreach(var pair in _buttons)pair.Value.Background=new SolidColorBrush(pair.Key==_tool?Color.FromArgb(70,116,156,141):Color.FromArgb(0,0,0,0));RefreshScreenStyleButtons();foreach(var pair in _buttons){ToolbarUi.LabelMode(pair.Value,pair.Key,_toolbarPreferences.DisplayMode=="labels",32);if(pair.Key=="magnet")pair.Value.Background=ChromeBrush(_toolbarPreferences.MagnetEnabled?(byte)70:(byte)0,116,156,141);}}
     private void OnPointer(NativeOverlayWindow.PointerEvent input)
     {
         if(!IsActive||_stopping||_captureCancellation is not null)return;
-        if(input.Kind=="cancel"){CancelGesture();return;}
+        if(input.Kind=="cancel"){if(_radialGesture.Holding)CancelRadial();else CancelGesture();return;}
         if(!_drawing)return;
         if(input.Kind=="leave"){if(_cane.Point is not null){_cane.Clear();_dirty=true;}return;}
         var p=new InkPoint(input.X,input.Y,1);
+        if(HandleRadialInput(input,p))return;
         // Like the laser, the cane owns clicks before object hit tests; holding
         // or moving never repeats its sound or creates document objects.
         if(_tool=="cane")
@@ -314,8 +318,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         {var point=_points[i];left=Math.Min(left,point.X);top=Math.Min(top,point.Y);right=Math.Max(right,point.X);bottom=Math.Max(bottom,point.Y);}
         var pad=Math.Max(right-left,bottom-top)/3+_width*_dpiScale+4;
         left=Math.Max(0,Math.Floor(left-pad));top=Math.Max(0,Math.Floor(top-pad));right=Math.Min(_overlay.Width,Math.Ceiling(right+pad));bottom=Math.Min(_overlay.Height,Math.Ceiling(bottom+pad));
-        if(_damage is { } old){left=Math.Min(left,old.Left);top=Math.Min(top,old.Top);right=Math.Max(right,old.Right);bottom=Math.Max(bottom,old.Bottom);}
-        if(right>left&&bottom>top)_damage=new(left,top,right-left,bottom-top);
+        if(right>left&&bottom>top)AddScreenDamage(new(left,top,right-left,bottom-top));
     }
     private void Render()
     {
@@ -350,19 +353,17 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         global::Windows.Foundation.Rect? magnetDamage=null;
         if(_screenMagnetTarget is { } snap)
         {var left=Math.Max(0,Math.Floor(snap.X-10*_dpiScale));var top=Math.Max(0,Math.Floor(snap.Y-10*_dpiScale));var right=Math.Min(_overlay.Width,Math.Ceiling(snap.X+10*_dpiScale));var bottom=Math.Min(_overlay.Height,Math.Ceiling(snap.Y+10*_dpiScale));if(right>left&&bottom>top)magnetDamage=new(left,top,right-left,bottom-top);}
+        if(_radialGesture.Visible)DamageRadial();
         foreach(var bounds in new[]{_lastCaneDamage,caneDamage,_lastLaserDamage,laserDamage,_lastEraserDamage,eraserDamage,_lastMagnetDamage,magnetDamage})if(bounds is { } rect)
         {
-            if(_damage is { } old){var left=Math.Min(old.Left,rect.Left);var top=Math.Min(old.Top,rect.Top);_damage=new(left,top,Math.Max(old.Right,rect.Right)-left,Math.Max(old.Bottom,rect.Bottom)-top);}
-            else _damage=rect;
+            AddScreenDamage(rect);
         }
         var full=_fullDamage||_benchmarkFullFrames||_damage is null;
         var region=full?new global::Windows.Foundation.Rect(0,0,_overlay.Width,_overlay.Height):_damage!.Value;
         var blank=Color.FromArgb(_drawing?(byte)1:(byte)0,0,0,0);
         if(_committedDirty&&!_benchmarkFullFrames)
         {
-            _renderer.Prune(sceneSession.Document.Objects);
-            using var ds=_committed.CreateDrawingSession();ds.Clear(blank);
-            _renderer.RenderObjects(ds,sceneSession.DrawingObjects,_viewport,_overlay.Width,_overlay.Height);_committedDirty=false;_committedBuilds++;
+            RebuildCommitted(sceneSession,blank);
         }
         // Both targets use the same device, BGRA format and 96 DPI; damage bounds are integral pixels.
         // Copy bitmap pixels without a sampling/compositing pass that can round translucent edge colors.
@@ -381,7 +382,8 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             _renderer.RenderLaser(ds,_laser,_viewport,Now,_dpiScale);
             _renderer.RenderCane(ds,_cane,_viewport,Now,_dpiScale);
             if(_screenMagnetTarget is { } target)ds.DrawCircle((float)target.X,(float)target.Y,(float)(7*_dpiScale),Direct2DCanvasRenderer.HexToColor("#10B981"),2);
-            if(_screenEraserPointer is { } eraser)_renderer.RenderHover(ds,eraser,true,_eraserSize*_dpiScale,_viewport);
+            if(_radialGesture.Visible)_renderer.RenderRadialWheel(ds,RadialProfile,_radialGesture.Center,_radialGesture.Hover,_dpiScale);
+            if(!_radialGesture.Holding&&_screenEraserPointer is { } eraser)_renderer.RenderHover(ds,eraser,true,_eraserSize*_dpiScale,_viewport);
         }
         var x=(int)region.X;var y=(int)region.Y;var width=(int)region.Width;var height=(int)region.Height;
         _overlay.PresentBitmap(_target,x,y,width,height);_presentedBytes+=(long)width*height*4;_renderedFrames++;
@@ -391,6 +393,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     private void Changed(){_dirty=_fullDamage=_committedDirty=true;RefreshScreenLayers();ApplySavingPreferences();}
     private void CancelGesture()
     {
+        CancelRadial();
         if(_cane.Point is not null){_cane.Clear();CaneSound.Stop();_dirty=true;}
         if(_laser.Samples.Count>0){_laser.Release();_dirty=true;}
         CancelCircularEraser();
@@ -487,6 +490,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         var ring=new ProgressRing{IsActive=true,Width=30,Height=30};
         try
         {
+            _radialSettings?.Close();CancelRadial();_radialSaveTimer.Stop();await _owner.RadialTools.SaveAsync();
             _saveTimer.Stop();_renderTimer.Stop();_focusRememberTimer.Stop();_dockTimer.Stop();_chromeFlyout?.Hide();
             _captureCancellation?.Cancel();if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();FinishScreenText();CancelGesture();
             // Replace only the chrome while the native annotation session is frozen.
@@ -494,7 +498,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             AppWindow.Resize(new SizeInt32((int)(320*_dpiScale),(int)(72*_dpiScale)));AppWindow.Show();Activate();await Task.Delay(32);
             if(!await SaveAsync())return false;
             if(_session.IsDirty){_status.Text=T("尚有變更");return false;}
-            IsActive=false;_renderTimer.Stop();_focusRememberTimer.Stop();_saveTimer.Stop();_dockTimer.Stop();await SaveChromePreferencesAsync();_overlay.Hide();AppWindow.Hide();_laser.Clear();_target?.Dispose();_target=null;_committed?.Dispose();_committed=null;_renderer.ClearCache();_sessionLease?.Dispose();_sessionLease=null;
+            IsActive=false;_renderTimer.Stop();_focusRememberTimer.Stop();_saveTimer.Stop();_dockTimer.Stop();await SaveChromePreferencesAsync();_overlay.Hide();AppWindow.Hide();_laser.Clear();DisposeEraserPatch();_target?.Dispose();_target=null;_committed?.Dispose();_committed=null;_renderer.ClearCache();_sessionLease?.Dispose();_sessionLease=null;
             _owner.AppWindow.Show();_owner.Activate();return true;
         }
         catch(Exception error){_status.Text=T("註記保存失敗，內容仍保留：")+error.Message;return false;}
@@ -502,6 +506,6 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     }
     public void Dispose()
     {
-        if(_disposed)return;CancelCircularEraser();FinishScreenText();_disposed=true;_captureCancellation?.Cancel();_renderTimer.Stop();_focusRememberTimer.Stop();_straightenTimer.Stop();_saveTimer.Stop();_styleCommitTimer.Stop();_dockTimer.Stop();_target?.Dispose();_committed?.Dispose();_renderer.Dispose();_sessionLease?.Dispose();_sessionLease=null;_overlay.Dispose();Close();
+        if(_disposed)return;_radialSaveTimer.Stop();_radialSettings?.Close();CancelRadial();CancelCircularEraser();FinishScreenText();_disposed=true;_captureCancellation?.Cancel();_renderTimer.Stop();_focusRememberTimer.Stop();_straightenTimer.Stop();_saveTimer.Stop();_styleCommitTimer.Stop();_dockTimer.Stop();DisposeEraserPatch();_target?.Dispose();_committed?.Dispose();_renderer.Dispose();_sessionLease?.Dispose();_sessionLease=null;_overlay.Dispose();Close();
     }
 }

@@ -82,6 +82,7 @@ var before=await File.ReadAllBytesAsync(manager.BoardPath(owned.Board.Id));
 try{await manager.SaveOwnedSnapshotAsync(DocumentCodec.Clone(baseDoc));throw new Exception("Stale save accepted");}catch(IOException){}
 var after=await File.ReadAllBytesAsync(manager.BoardPath(owned.Board.Id));
 Check(before.AsSpan().SequenceEqual(after),"Conflict overwrote a newer board");
+await RadialChecks.Run(Check,output);
 foreach(var count in new[]{100,5000})await File.WriteAllTextAsync(Path.Combine(output,$"practice-{count}.heiban"),DocumentCodec.Encode(Fixture(count)));
 await File.WriteAllTextAsync(Path.Combine(output,"results.json"),JsonSerializer.Serialize(new{assertions,passed=true,measurements,scope="Isolated Core checks; candidate visits are operation counts, not latency measurements; App/manual/device tests not run"},new JsonSerializerOptions{WriteIndented=true}));
 Console.WriteLine($"Passed {assertions} targeted data checks. Evidence: {output}");

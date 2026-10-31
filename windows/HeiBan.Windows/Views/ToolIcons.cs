@@ -11,6 +11,7 @@ internal static class ToolIcons
 {
     // Cursor artwork shares the toolbar's original vectors; no second icon catalog.
     internal static string? CursorPath(string tool)=>Paths.GetValueOrDefault(tool);
+    internal static string? CommandPath(string key)=>CursorPath(key switch{"brush"=>"settings","clearAll"=>"delete","viewLock"=>"lock",_=>key});
     private static readonly Dictionary<string,string> Paths=new()
     {
         ["cane"]="M3,3 Q11,10 22,22 M5,4 L4,6 M9,8 L8,10 M13,12 L12,14 M17,16 L16,18 M21,20 L20,22",
@@ -93,13 +94,13 @@ internal static class ToolIcons
 
     public static UIElement Create(string name)
     {
-        var path=Paths.GetValueOrDefault(name,Paths["settings"]);
+        var path=CommandPath(name)??Paths["settings"];
         return (UIElement)XamlReader.Load($"<Viewbox xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' Width='18' Height='18'><Canvas Width='26' Height='26'><Path Data='{path}' Stroke='#26372F' StrokeThickness='1.7' StrokeStartLineCap='Round' StrokeEndLineCap='Round' StrokeLineJoin='Round'/></Canvas></Viewbox>");
     }
 
     public static IconElement CreateIcon(string name)
     {
-        var path=Paths.GetValueOrDefault(name,Paths["settings"]);
+        var path=CommandPath(name)??Paths["settings"];
         var geom=(Geometry)XamlReader.Load($"<Geometry xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'>{path}</Geometry>");
         return new PathIcon { Data = geom };
     }

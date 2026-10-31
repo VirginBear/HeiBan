@@ -1,0 +1,70 @@
+{
+  "scope": "Windows Git source + this batch new C# files; exact 20-line repeats are navigation hints, not dead-code proof",
+  "files": 144,
+  "sourceBytes": 1092504,
+  "sourceLines": 16987,
+  "largest": [
+    {
+      "file": "windows/HeiBan.Windows/MainWindow.Chrome.cs",
+      "lines": 1725,
+      "bytes": 90948
+    },
+    {
+      "file": "windows/HeiBan.Windows.Core.Tests/Program.cs",
+      "lines": 938,
+      "bytes": 77916
+    },
+    {
+      "file": "windows/HeiBan.Windows/MainWindow.Input.cs",
+      "lines": 870,
+      "bytes": 55767
+    },
+    {
+      "file": "windows/HeiBan.Windows/ScreenAnnotation/ScreenAnnotationWindow.cs",
+      "lines": 511,
+      "bytes": 42365
+    },
+    {
+      "file": "windows/HeiBan.Windows/MainWindow.xaml.cs",
+      "lines": 451,
+      "bytes": 35530
+    },
+    {
+      "file": "windows/HeiBan.Windows/Engine/Direct2DCanvasRenderer.cs",
+      "lines": 392,
+      "bytes": 26001
+    },
+    {
+      "file": "windows/HeiBan.Windows/Engine/RegionScreenshotService.cs",
+      "lines": 308,
+      "bytes": 20443
+    },
+    {
+      "file": "windows/HeiBan.Windows.Core/Models/BoardModels.cs",
+      "lines": 495,
+      "bytes": 19816
+    },
+    {
+      "file": "windows/HeiBan.Windows/ScreenAnnotation/ScreenAnnotationWindow.Chrome.cs",
+      "lines": 201,
+      "bytes": 19242
+    },
+    {
+      "file": "windows/HeiBan.Windows.Core/Engine/CalculatorModel.cs",
+      "lines": 597,
+      "bytes": 18242
+    },
+    {
+      "file": "windows/HeiBan.Windows/MainWindow.Home.cs",
+      "lines": 141,
+      "bytes": 14644
+    },
+    {
+      "file": "windows/HeiBan.Windows.Core/Engine/EditorSession.cs",
+      "lines": 236,
+      "bytes": 14543
+    }
+  ],
+  "exactRepeatedBlocks": [],
+  "note": "Existing graph query reused for navigation; checked current source. No automatic deletion or GUI/device test."
+}

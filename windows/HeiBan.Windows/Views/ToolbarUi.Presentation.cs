@@ -55,7 +55,7 @@ internal static partial class ToolbarUi
         // Detach from their former page before reparenting on dock/language/preference changes.
         DetachButtons(buttons.Select(item=>item.Button));
         host.Children.Clear();
-        foreach(var (key,button) in buttons)LabelMode(button,key,labels,iconSize);
+        foreach(var (key,button) in buttons){LabelMode(button,key,labels,iconSize);EnableRadialDrag(button,key);}
         if(!labels){foreach(var (_,button) in buttons.OrderBy(b=>b.Key=="select"?0:b.Key=="laser"?1:b.Key=="cane"?2:3))host.Children.Add(button);return null;}
         var shell=new StackPanel{Orientation=vertical?Orientation.Vertical:Orientation.Horizontal,Spacing=6};
         foreach(var key in ToolbarPreferences.FixedTools)if(buttons.FirstOrDefault(b=>b.Key==key).Button is { } pinned)shell.Children.Add(pinned);

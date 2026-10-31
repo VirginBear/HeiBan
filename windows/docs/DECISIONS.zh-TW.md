@@ -1,5 +1,12 @@
 # Windows 開發決策
 
+## 2026-10-31 — 輪盤工具箱及區域擦除
+
+採八格、兩套記憶，螢幕固定操作格；工具交換是持有工具與槽位的交換，設定／Undo命令不交換。短右鍵保留舊選單，螢幕延遲至系統雙擊時限，原生雙擊只在前手勢不是輪盤時切操作。非模態自訂避免ContentDialog阻擋上方圖示drag，另提供鍵盤選單。
+
+擦除採保守changed-object damage＋可重用GPU暫存面，避免opacity layer透明覆寫語意與每批全屏readback；不丟樣本、不把多筆永久合併來隱藏成本。未知／無界幾何全屏回退。正式版本與Store依賴模式不變；手感驗收由獨立試用接續。
+
+
 ## 2026-10-31 — 擦除worker候選／只讀起始預覽／增量形狀與owned保存
 
 擦除索引只在worker第一次Apply建立，>=512物件啟用，256格／64membership上限，無界／大物件保守global，片段增刪同步更新；密集候選回退倒序slot，避免逐個IndexOf退化。精確擦除沿用原幾何，circle／footprint共享保守bounds。UI起始preview只讀主文件，worker保留一份獨占clone，改變由publisher隔離發布；epoch／cancel仍把關。AppendShape與AppendInk共用added-object memento，保留不同selection與型別入口；一般混合交易仍完整snapshot。SaveOwnedSnapshotAsync僅接收已隔離且保存期間不再讀寫的snapshot，保留普通SaveAsync、revision衝突、原子寫入與失敗行為。
