@@ -6,6 +6,8 @@
 
 報告：`RADIAL_REVIEW_2026-10-31.zh-TW.md`；實測步驟與成功標準：`RADIAL_TEST_GUIDE_2026-10-31.zh-TW.md`；進行中證據／封裝結果：`RADIAL_AND_ERASER_2026-10-31.zh-TW.md`。
 
+最終試用 `radial-eraser-2026-10-31-r1`，來源 `e443b4919ee9468e15d60037f5ab0fef7a2e95a3`；ZIP 133364604 bytes，592內容／220來源SHA及CRC核同，空白Data＋100／5000測試文件。明細見 `RADIAL_ARTIFACT_2026-10-31.json`。
+
 
 ## 2026-10-31 — 六項優化最終驗收包（維持1.0.18，待使用者實機）
 

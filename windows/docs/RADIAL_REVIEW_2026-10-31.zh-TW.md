@@ -40,3 +40,7 @@
 - App／實機／GPU逐像素對照／螢幕錄影端到端延遲／實際拖放／Store/WACK：**未執行**，不可把 Core 次數、傳輸面積或編譯當作手感已驗收。
 
 失敗與修正、實際封裝命令／來源／雜湊會接續記在 `RADIAL_AND_ERASER_2026-10-31.zh-TW.md`；實際測法與成功標準見 `RADIAL_TEST_GUIDE_2026-10-31.zh-TW.md`。
+
+## 最終交付
+
+來源 `e443b4919ee9468e15d60037f5ab0fef7a2e95a3`，試用標籤 `radial-eraser-2026-10-31-r1`。ZIP 133,364,604 bytes，較上一包增加37,513 bytes。592 payload／220來源SHA及CRC核同；細項見 `RADIAL_ARTIFACT_2026-10-31.json`。最終來源ARM64再編通過、免安裝x64 publish成功；GUI仍待實測。

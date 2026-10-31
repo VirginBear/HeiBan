@@ -1,0 +1,42 @@
+{
+  "version": "1.0.18",
+  "label": "radial-eraser-2026-10-31-r1",
+  "sourceCommit": "e443b4919ee9468e15d60037f5ab0fef7a2e95a3",
+  "runtime": "win-x64",
+  "zip": "windows/dist/trials/HeiBan-Windows-Portable-1.0.18-radial-eraser-2026-10-31-r1-win-x64.zip",
+  "bytes": 133364604,
+  "sha256": "65196f7e4d108006f0dcd03effa0a3aa6a8fb7a2f7f3df657ef9ba331eb726d8",
+  "payloadFilesVerified": 592,
+  "sourceFilesVerified": 220,
+  "zipCrcAndPayloadVerified": true,
+  "coreAssertions": 62,
+  "builds": [
+    "win-x64 Release publish",
+    "win-arm64 Release, 0 warnings 0 errors"
+  ],
+  "guideLanguages": [
+    "zh-TW",
+    "zh-CN",
+    "en",
+    "ja",
+    "ko",
+    "es",
+    "fr",
+    "de",
+    "pt-BR",
+    "ar"
+  ],
+  "sectionsPerGuide": 26,
+  "stringsPerLanguage": 653,
+  "appExecuted": false,
+  "guiDragDropVerified": false,
+  "gpuPixelComparisonExecuted": false,
+  "endToEndLatencyMeasured": false,
+  "dataHandoff": false,
+  "dataFilesInArchive": 0,
+  "newStorePackageCreated": false,
+  "formalReleaseApproved": false,
+  "binaryUploadedToGitHub": false,
+  "previousTrialZipBytes": 133327091,
+  "zipBytesChange": 37513
+}

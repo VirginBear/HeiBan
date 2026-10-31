@@ -28,3 +28,13 @@
 - 未啟動App、不自動關閉使用者程式；本批沒有搬移或覆寫作品。試用包將附空白獨立Data及生成測試文件，供使用者驗收。
 
 - 關閉路徑最後核對：螢幕文字完成也可能改工具，將輪盤最終保存移至FinishScreenText／CancelGesture之後，並再次停止偏好計時器，避免在最後狀態之前就宣稱保存完成。正式封裝採此後續修正來源。
+
+## 最終封裝與靜態核對
+
+- 固定來源 `e443b4919ee9468e15d60037f5ab0fef7a2e95a3`。`Package-PortableTrial.ps1 -Runtime win-x64 -Label radial-eraser-2026-10-31-r1 -PracticeFilesDirectory "D:/Game/HaiBan x64/windows/.build/radial-20261031/checks-r2"` 成功；PATH先指定本機 `.build/tools/dotnet`。
+- 最終ARM64來源編譯 `--artifacts-path windows/.build/radial-20261031/build-arm64 -p:Platform=ARM64 -p:WindowsPackageType=None -p:AppxPackageSigningEnabled=false`：0警告0錯誤，42.10秒。免安裝publish亦成功，Main EXE／DLL的ProductVersion為1.0.18+上述來源；Core保留本身1.0.0庫版本且來源SHA相同。
+- ZIP `133364604` bytes；SHA256 `65196f7e4d108006f0dcd03effa0a3aa6a8fb7a2f7f3df657ef9ba331eb726d8`。592 payload SHA、220 source SHA、ZIP每檔bytes與CRC核同；十語HTML均有radial節，隨包QuickStart仍infinite；100／5000生成文件數目正確，Data未含使用者檔案。
+- ZIP相較上一試用增加37,513 bytes（約36.6KiB），本批重點是執行工作量／共用程式，沒有宣稱下載體積縮小。
+- 核對腳本第一次因Path.with_suffix把版本中的小數點當副檔名，找錯ZIP路徑而停止；改為完整資料夾名加「.zip」，第二次全部核對通過。此失敗未改動應用程式或產物。
+- 證據：`.build/radial-20261031/package.log`、`.build/portable-trial-15b3ebb0d00a42ed88af9385a783e26f/publish.log`、`build-frozen-arm64.log`、`verify-package.py`，正式摘要 `RADIAL_ARTIFACT_2026-10-31.json`。
+- App啟動、實機拖拉、GPU逐像素、端到端延遲、WACK／Store送審：未執行。資料不搬移，沒有覆蓋舊試用、已發布套件或使用者作品。新試用標籤與來源供跨電腦重建；產物未上傳GitHub。
