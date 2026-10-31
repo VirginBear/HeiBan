@@ -94,7 +94,7 @@ public partial class MainWindow
         if(_tool=="cane"&&_hover&&!_panning&&!_readingMode&&!_radialGesture.Holding){_cane.Move(_viewport.ScreenToWorld(_mouse.X,_mouse.Y));_renderer.RenderCane(ds,_cane,_viewport,LaserNow);}
         if(!_panning&&!_radialGesture.Holding&&_boardEraserDraft is null&&_hover&&_editor is null&&_tool is "pen" or "highlighter" or "paint" or "eraser")
             _renderer.RenderHover(ds,_mouse,_tool=="eraser",_tool=="eraser"?EraserSizeSlider.Value:EffectiveWidth,_viewport);
-        if(_radialGesture.Visible)_renderer.RenderRadialWheel(ds,RadialProfile,_radialGesture.Center,_radialGesture.Hover);
+        if(_radialGesture.Visible)_renderer.RenderRadialWheel(ds,RadialProfile,_radialGesture.Center,_radialGesture.Hover,1,IsRadialToolActive);
     }
     private double EffectiveWidth=>_strokeWidth;
     private void CanvasSurface_PointerPressed(object sender,PointerRoutedEventArgs e)

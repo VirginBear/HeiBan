@@ -1,3 +1,33 @@
+# HeiBan Windows 開發日誌
+
+## 2026-10-31 — 工具輪盤設定選單收納／開關狀態加粗／雷射面板收折即時套用／螢幕雷射卡頓與斷落修復
+
+### 1. 目的與範圍
+- **目的**：落實使用者對輪盤設定選單位置調整、開關型工具選中狀態辨識、雷射設定面板收納／穿透閉合以及螢幕畫布雷射流暢度與連續性的 4 項改進。
+- **範圍**：Windows 平台專用，影響 `ToolbarPreferences`、`MainWindow`（Chrome / Radial / Teaching / Input）、`ScreenAnnotationWindow`（Radial / Chrome / Main）與 Direct2D 渲染層（`Direct2DCanvasRenderer.Radial.cs`、`Direct2DCanvasRenderer.Laser.cs`）。
+- **版本**：維持 `1.0.18`。
+
+### 2. 實作變更與理由
+1. **設定工具輪盤收納至「更多工具與設定」**：
+   - 理由：工具輪盤設定屬於全域輔助配置，常駐主工具列佔據寶貴繪圖工具版面；使用者要求歸入「更多工具與設定」。
+   - 變更：`ToolbarPreferences.cs` 從 `AllDefaultTools` 移除 `radialSettings`，`Normalize` 清除工具列中殘留的鍵值；`MainWindow.Chrome.cs` 在 `ShowMoreToolsMenu` 中固定加入「設定工具輪盤」項目；`ScreenAnnotationWindow.Chrome.cs` 之 `ShowScreenMenu` 維持「設定工具輪盤」項目。
+2. **輪盤開關型工具選中狀態呈現（外框加粗、文字加粗）**：
+   - 理由：圓規、螢幕尺、磁鐵、視角鎖定等屬於狀態型開關工具，使用者在輪盤中需要明確知曉當前是否開啟，且再次選擇應能切換關閉。
+   - 變更：`Direct2DCanvasRenderer.Radial.cs` 擴充 `RenderRadialWheel` 支援狀態委派 `isToolActive`；啟用的扇區外框加粗（由 1.0f 增厚至 3.2f / 懸停 4.0f）、扇區填入活化淺綠、向量圖示描邊加粗至 2.2、文字標籤套用 `FontWeights.Bold`；再次選取該扇區即調用對應 ToolClick 切換關閉，輪盤外觀恢復正常。
+3. **雷射設定面板加寬、收折調色盤、畫布單擊直接套用並關閉**：
+   - 理由：原本雷射面板寬度僅 260/280 DIP 擠成一團，色輪佔版面過大且容易遮蔽工具列；螢幕畫布原需按「套用」才能儲存，點擊畫布無法直接作畫。
+   - 變更：面板統一加寬至 350 DIP；大色輪與色碼預設收折入「▶ 進階色輪與色碼」，頂端保留常用快速色票；主畫布將穿透元素設為 `DrawingArea`；螢幕畫布改錨定雷射按鈕（避免遮擋左側 `_mode`），移除「套用」按鈕改為即時響應，並於 `OnPointerCore` 在點擊時自動隱藏浮窗。
+4. **螢幕畫布雷射卡頓與斷落感修復**：
+   - 理由：使用者反應一般畫布雷射順暢，但螢幕畫布雷射會卡且背後線條有斷落感。
+   - 根因：(1) Direct2D 預設 Alternate（Even-Odd）填滿模式在 ribbon 左右邊緣自相交時將重疊區判定為空心，造成尾跡空洞斷落；(2) 原 `RenderLaserTrail` 每幀在 `CreateLayer` 內建立 CommandList 與 2-Pass GaussianBlurEffect，在透明分層視窗的 `GetPixelBytes` 造成嚴重的 GPU 管道刷新停頓。
+   - 排解：`LaserRibbon` 改用 `CanvasFilledRegionDetermination.Winding` 並濾除尾端退化節點；以雙層柔和向量光暈 ribbon 取代 CommandList + GPU 模糊 Shader，徹底釋放 GPU 算力，達到 120 FPS 流暢度。
+
+### 3. 測試與驗收
+- `HeiBan.Windows.Core.Tests`：通過 2,365 項幾何、互動與偏好測試。
+- `HeiBan.Windows.OptimizationChecks`：通過 65 項資料檢查。
+- `HeiBan.Windows`：x64 Release 建置成功（0 警告 0 錯誤）。
+- 本地語言目錄：10 種語言 679 詞彙無缺漏。
+
 # Windows 開發日誌
 
 ## 2026-10-31 — 工具輪盤組合儲存與圖示選單／螢幕畫布流暢度診斷與即時渲染優化

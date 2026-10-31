@@ -83,4 +83,10 @@ internal sealed partial class ScreenAnnotationWindow
         if(_radialSettings is null){_radialSettings=new(RadialProfile,true,_owner.RadialTools.SaveAsync);_radialSettings.Closed+=(_,_)=>_radialSettings=null;}
         _radialSettings.Activate();
     }
+    internal bool IsScreenRadialToolActive(string key)=>!string.IsNullOrEmpty(key)&&key switch
+    {
+        "magnet"=>_toolbarPreferences.MagnetEnabled,
+        "operate"=>!_drawing,
+        _=>key==_tool
+    };
 }

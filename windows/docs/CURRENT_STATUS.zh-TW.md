@@ -1,5 +1,24 @@
 # Windows 目前開發狀態
 
+## 2026-10-31 — 工具輪盤設定選單收納／開關狀態加粗／雷射面板收折即時套用／螢幕雷射卡頓與斷落修復（1.0.18 開發試用待實機）
+
+依使用者 4 項操作反饋與畫布體驗要求完成：
+1. **設定工具輪盤收納至「更多工具與設定」**：
+   - 移除主工具列預設按鈕，`ToolbarPreferences.cs` 從 `AllDefaultTools` 剝離 `radialSettings`，`Normalize` 自動清除工具列歷史殘留。
+   - 主畫布於「更多工具與設定」（`ShowMoreToolsMenu`）選單固定提供「設定工具輪盤」（附專屬圖示）；螢幕畫布於更多選單（`ShowScreenMenu`）亦提供「設定工具輪盤」，維持工具列整潔不擁擠。
+2. **輪盤開關型工具選中狀態呈現（外框加粗、文字加粗）**：
+   - `Direct2DCanvasRenderer.Radial.cs` 之 `RenderRadialWheel` 支援狀態回呼 `isToolActive`。
+   - 當開關型工具（圓規 `compass`、螢幕尺 `ruler`、磁鐵 `magnet`、視角鎖定 `viewLock`、圖層 `layers` 等）開啟時，輪盤對應扇區外框顯著加粗（3.2f / 懸停 4.0f）、扇區填入淺綠活化色（`#E1F3EA` / `#B5E3CB`）、向量圖示描邊加粗至 2.2、文字套用 `FontWeights.Bold`。再次於輪盤中選取即切換關閉，恢復常態。
+3. **雷射設定面板加寬、收折調色盤、畫布單擊直接套用並關閉**：
+   - 雙畫布雷射面板由 260/280 DIP 加寬至 350 DIP，大型色輪與色碼預設收折至「▶ 進階色輪與色碼」容器中，頂端保留常用色票。
+   - 主畫布指定 `OverlayInputPassThroughElement = DrawingArea`，點擊畫布即時提交並關閉浮窗，不阻礙連續作畫。
+   - 螢幕畫布改錨定至雷射按鈕（不再覆蓋左側 `_mode` 與工具列）；移除阻礙性「套用」按鈕，參數滑桿即時反應；螢幕畫布 `OnPointerCore` 在點擊時主動隱藏浮窗，單擊畫布立即生效並直接進入雷射或繪圖。
+4. **螢幕畫布雷射卡頓與斷落感修復**：
+   - **斷落感修復**：`LaserRibbon` 啟用 `CanvasFilledRegionDetermination.Winding`（非零環繞填滿），濾除尾端已過期與微小退化節點，徹底解決 Direct2D 預設 Alternate（Even-Odd）因輪廓自相交導致中間掏空形成斷線缺口的問題。
+   - **卡頓修復**：以雙層柔和向量光暈 ribbon（外光暈 2.5x / 內光暈 1.55x）取代每幀 `CanvasCommandList` 與 `GaussianBlurEffect` 雙通道 GPU Shader，徹底避免在透明分層視窗的後續 `GetPixelBytes` 引起 GPU 管道刷新停頓（Pipeline Stall），螢幕雷射達到極致流暢。
+
+十語 679 詞彙目錄與指南同步編譯；Core 測試 2,365 項、OptimizationChecks 65 項通過，x64 Release 編譯 0 警告 0 錯誤。版本維持 1.0.18。
+
 ## 2026-10-31 — 工具輪盤組合儲存與圖示選單／螢幕畫布流暢度診斷與即時渲染優化（1.0.18 開發試用待實機）
 
 依使用者 2 項追加要求完成：

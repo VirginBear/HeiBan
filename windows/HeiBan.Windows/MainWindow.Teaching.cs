@@ -51,15 +51,41 @@ public partial class MainWindow
     }
     private void ShowLaserSettings(FrameworkElement anchor)
     {
-        var panel=new StackPanel{Width=280,Spacing=8};
-        var mode=new ComboBox{Header=T("雷射模式"),ItemsSource=new[]{T("光點"),T("短尾跡"),T("線條")},SelectedIndex=Array.IndexOf(new[]{"point","shortTrail","line"},_laser.Mode)};
-        mode.SelectionChanged+=(_,_)=>{_laser.Mode=new[]{"point","shortTrail","line"}[Math.Max(0,mode.SelectedIndex)];_laser.Clear();};panel.Children.Add(mode);
-        var wheel=ColorWheel(_laser.Color);wheel.ColorChanged+=(_,e)=>_laser.Color=ColorHex(e.NewColor);panel.Children.Add(new Views.PaletteEditor(ProfilePalette,()=>ColorHex(wheel.Color),c=>wheel.Color=Direct2DCanvasRenderer.HexToColor(c),wheel));panel.Children.Add(wheel);
-        var diameter=new Slider{Header=T("光點直徑"),Minimum=4,Maximum=64,Value=_laser.PointDiameter};diameter.ValueChanged+=(_,_)=>_laser.PointDiameter=diameter.Value;panel.Children.Add(diameter);
-        var width=new Slider{Header=T("尾跡粗細"),Minimum=1,Maximum=32,Value=_laser.Width};width.ValueChanged+=(_,_)=>_laser.Width=width.Value;panel.Children.Add(width);
-        var fade=new Slider{Header=T("消退時間（秒）"),Minimum=.1,Maximum=5,StepFrequency=.1,Value=_laser.FadeDuration};fade.ValueChanged+=(_,_)=>_laser.FadeDuration=fade.Value;panel.Children.Add(fade);
-        var white=new CheckBox{Content=T("白色光芯"),IsChecked=_laser.WhiteCore};white.Checked+=(_,_)=>_laser.WhiteCore=true;white.Unchecked+=(_,_)=>_laser.WhiteCore=false;panel.Children.Add(white);
-        var flyout=new Flyout{Content=panel};flyout.Closed+=async(_,_)=>await SaveTeachingSettingsAsync();ShowExclusiveFlyout(flyout,anchor);
+        var panel=new StackPanel{Width=350,Spacing=8};
+        var mode=new ComboBox{Header=T("雷射模式"),ItemsSource=new[]{T("光點"),T("短尾跡"),T("線條")},SelectedIndex=Array.IndexOf(new[]{"point","shortTrail","line"},_laser.Mode),HorizontalAlignment=HorizontalAlignment.Stretch};
+        mode.SelectionChanged+=(_,_)=>{_laser.Mode=new[]{"point","shortTrail","line"}[Math.Max(0,mode.SelectedIndex)];_laser.Clear();};
+        panel.Children.Add(mode);
+
+        var wheel=Views.ToolbarUi.CreateColorWheel(_laser.Color,280);
+        wheel.ColorChanged+=(_,e)=>_laser.Color=ColorHex(e.NewColor);
+        panel.Children.Add(new Views.PaletteEditor(ProfilePalette,()=>ColorHex(wheel.Color),c=>wheel.Color=Direct2DCanvasRenderer.HexToColor(c),wheel));
+        var wheelContainer=new StackPanel{Visibility=Visibility.Collapsed,Spacing=6,HorizontalAlignment=HorizontalAlignment.Center};
+        wheelContainer.Children.Add(wheel);
+        var toggleBtn=new Button{Content=T("▶ 進階色輪與色碼"),Padding=new Thickness(10,4,10,4),Margin=new Thickness(0,2,0,4),HorizontalAlignment=HorizontalAlignment.Left,FontSize=12};
+        toggleBtn.Click+=(_,_)=>{var show=wheelContainer.Visibility!=Visibility.Visible;wheelContainer.Visibility=show?Visibility.Visible:Visibility.Collapsed;toggleBtn.Content=T(show?"▼ 收合色輪與色碼":"▶ 進階色輪與色碼");};
+        panel.Children.Add(toggleBtn);
+        panel.Children.Add(wheelContainer);
+
+        var diameter=Views.ToolbarUi.BrushSlider(T("光點直徑"),4,64,_laser.PointDiameter,1);
+        diameter.ValueChanged+=(_,_)=>_laser.PointDiameter=diameter.Value;
+        panel.Children.Add(diameter);
+
+        var width=Views.ToolbarUi.BrushSlider(T("尾跡粗細"),1,32,_laser.Width,1);
+        width.ValueChanged+=(_,_)=>_laser.Width=width.Value;
+        panel.Children.Add(width);
+
+        var fade=Views.ToolbarUi.BrushSlider(T("消退時間（秒）"),.1,5,_laser.FadeDuration,.1);
+        fade.ValueChanged+=(_,_)=>_laser.FadeDuration=fade.Value;
+        panel.Children.Add(fade);
+
+        var white=new CheckBox{Content=T("白色光芯"),IsChecked=_laser.WhiteCore};
+        white.Checked+=(_,_)=>_laser.WhiteCore=true;
+        white.Unchecked+=(_,_)=>_laser.WhiteCore=false;
+        panel.Children.Add(white);
+
+        var flyout=new Flyout{Content=panel};
+        flyout.Closed+=async(_,_)=>await SaveTeachingSettingsAsync();
+        ShowExclusiveFlyout(flyout,anchor,DrawingArea);
     }
     private void AddExtendedObjectSettings(StackPanel panel,BoardObject? selected)
     {

@@ -589,7 +589,7 @@ public partial class MainWindow
         // 隱藏工具清單
         if (_toolbarPrefs.HiddenTools.Count > 0)
         {
-            foreach (var key in _toolbarPrefs.HiddenTools.Where(key=>key is not("extension" or "cane")))
+            foreach (var key in _toolbarPrefs.HiddenTools.Where(key=>key is not("extension" or "cane" or "radialSettings")))
             {
                 var toolKey = key;
                 var item = new MenuFlyoutItem
@@ -602,6 +602,10 @@ public partial class MainWindow
             }
             menu.Items.Add(new MenuFlyoutSeparator());
         }
+
+        var radialSettingsItem = new MenuFlyoutItem { Text = T("設定工具輪盤"), Icon = ToolIcons.CreateIcon("radialSettings") };
+        radialSettingsItem.Click += (_, _) => ShowRadialSettings();
+        menu.Items.Add(radialSettingsItem);
 
         var customizeItem = new MenuFlyoutItem { Text = T("自訂工具列…") };
         customizeItem.Click += async (_, _) => await ShowCustomizeToolbarDialog();

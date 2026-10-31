@@ -3,7 +3,6 @@ using HeiBan.Windows.Diagnostics;
 using HeiBan.Windows.Models;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Brushes;
-using Microsoft.Graphics.Canvas.Effects;
 using Microsoft.Graphics.Canvas.Geometry;
 
 namespace HeiBan.Windows.Engine;
@@ -59,21 +58,21 @@ public sealed partial class Direct2DCanvasRenderer
         if(_laserRaw.Count<2)return;
         var opacity=LaserFreshness(now,_laserRaw[^1].Timestamp,lifetime);if(opacity<=0)return;
         SmoothLaser(density);
-        // One continuous ribbon avoids per-segment seams. A quadratic midpoint
-        // construction stays inside the input hull instead of overshooting corners.
-        using var glow=LaserRibbon(ds,width*2,now,lifetime);
-        using(var commands=new CanvasCommandList(ds))
-        {
-            using(var draw=commands.CreateDrawingSession())draw.FillGeometry(glow,HexToColor(laser.Color,opacity*.55f));
-            using var blur=new GaussianBlurEffect{Source=commands,BlurAmount=Math.Max(2*density,width*.8f),Optimization=EffectOptimization.Speed,BorderMode=EffectBorderMode.Soft};
-            ds.DrawImage(blur);
-        }
+
+        // Layered vector glow ribbons avoid intermediate GPU blur buffers and CPU stalls on transparent windows
+        using var outerGlow=LaserRibbon(ds,width*2.5f,now,lifetime);
+        if(outerGlow is not null)ds.FillGeometry(outerGlow,HexToColor(laser.Color,opacity*.22f));
+
+        using var innerGlow=LaserRibbon(ds,width*1.55f,now,lifetime);
+        if(innerGlow is not null)ds.FillGeometry(innerGlow,HexToColor(laser.Color,opacity*.48f));
+
         using var body=LaserRibbon(ds,width,now,lifetime);
-        ds.FillGeometry(body,HexToColor(laser.Color,opacity));
+        if(body is not null)ds.FillGeometry(body,HexToColor(laser.Color,opacity));
+
         if(laser.WhiteCore)
         {
-            using var core=LaserRibbon(ds,Math.Max(.5f*density,width*.24f),now,lifetime);
-            ds.FillGeometry(core,HexToColor("#FFFFFF",opacity*.85f));
+            using var core=LaserRibbon(ds,Math.Max(.5f*density,width*.28f),now,lifetime);
+            if(core is not null)ds.FillGeometry(core,HexToColor("#FFFFFF",opacity*.88f));
         }
     }
 
@@ -96,28 +95,56 @@ public sealed partial class Direct2DCanvasRenderer
         }
     }
     private static LaserKnot MixLaser(LaserKnot a,LaserKnot b,float t)=>new(Vector2.Lerp(a.Point,b.Point,t),a.Timestamp+(b.Timestamp-a.Timestamp)*t);
-    private Vector2 LaserTangent(int i)
+    private Vector2 LaserTangent(int i,int startIdx,int count)
     {
-        var vector=_laserSmooth[Math.Min(i+1,_laserSmooth.Count-1)].Point-_laserSmooth[Math.Max(i-1,0)].Point;
-        return vector/Math.Max(.001f,vector.Length());
-    }
-    private CanvasGeometry LaserRibbon(ICanvasResourceCreator device,float width,double now,double lifetime)
-    {
-        _laserLeft.Clear();_laserRight.Clear();
-        for(var i=0;i<_laserSmooth.Count;i++)
+        var prev=_laserSmooth[Math.Max(i-1,startIdx)].Point;
+        var next=_laserSmooth[Math.Min(i+1,startIdx+count-1)].Point;
+        var vector=next-prev;
+        var len=vector.Length();
+        if(len<0.001f)
         {
-            var knot=_laserSmooth[i];var tangent=LaserTangent(i);
-            var radius=width*.5f*MathF.Sqrt(LaserFreshness(now,knot.Timestamp,lifetime));
+            for(var step=2;step<=4;step++)
+            {
+                prev=_laserSmooth[Math.Max(i-step,startIdx)].Point;
+                next=_laserSmooth[Math.Min(i+step,startIdx+count-1)].Point;
+                vector=next-prev;
+                len=vector.Length();
+                if(len>=0.001f)break;
+            }
+        }
+        return len>0.0001f?vector/len:new Vector2(1,0);
+    }
+    private CanvasGeometry? LaserRibbon(ICanvasResourceCreator device,float width,double now,double lifetime)
+    {
+        if(_laserSmooth.Count<2)return null;
+        var firstActive=0;
+        while(firstActive<_laserSmooth.Count-1&&LaserFreshness(now,_laserSmooth[firstActive].Timestamp,lifetime)<=0.005f)firstActive++;
+        var activeCount=_laserSmooth.Count-firstActive;
+        if(activeCount<2)return null;
+
+        _laserLeft.Clear();_laserRight.Clear();
+        for(var i=firstActive;i<_laserSmooth.Count;i++)
+        {
+            var knot=_laserSmooth[i];var tangent=LaserTangent(i,firstActive,activeCount);
+            var radius=Math.Max(0.3f,width*.5f*MathF.Sqrt(LaserFreshness(now,knot.Timestamp,lifetime)));
             var offset=new Vector2(-tangent.Y,tangent.X)*radius;
             _laserLeft.Add(knot.Point+offset);_laserRight.Add(knot.Point-offset);
         }
-        using var path=new CanvasPathBuilder(device);path.BeginFigure(_laserLeft[0]);
+        if(_laserLeft.Count<2)return null;
+
+        using var path=new CanvasPathBuilder(device);
+        path.SetFilledRegionDetermination(CanvasFilledRegionDetermination.Winding);
+        path.BeginFigure(_laserLeft[0]);
         for(var i=1;i<_laserLeft.Count;i++)path.AddLine(_laserLeft[i]);
-        var head=_laserSmooth[^1];var headRadius=width*.5f*MathF.Sqrt(LaserFreshness(now,head.Timestamp,lifetime));
-        path.AddQuadraticBezier(head.Point+LaserTangent(_laserSmooth.Count-1)*headRadius*2,_laserRight[^1]);
+        var lastIdx=_laserSmooth.Count-1;
+        var head=_laserSmooth[lastIdx];
+        var headRadius=Math.Max(0.5f,width*.5f*MathF.Sqrt(LaserFreshness(now,head.Timestamp,lifetime)));
+        path.AddQuadraticBezier(head.Point+LaserTangent(lastIdx,firstActive,activeCount)*headRadius*1.5f,_laserRight[^1]);
         for(var i=_laserRight.Count-2;i>=0;i--)path.AddLine(_laserRight[i]);
-        var tail=_laserSmooth[0];var tailRadius=width*.5f*MathF.Sqrt(LaserFreshness(now,tail.Timestamp,lifetime));
-        path.AddQuadraticBezier(tail.Point-LaserTangent(0)*tailRadius*2,_laserLeft[0]);path.EndFigure(CanvasFigureLoop.Closed);
+        var tail=_laserSmooth[firstActive];
+        var tailRadius=Math.Max(0.5f,width*.5f*MathF.Sqrt(LaserFreshness(now,tail.Timestamp,lifetime)));
+        path.AddQuadraticBezier(tail.Point-LaserTangent(firstActive,firstActive,activeCount)*tailRadius*1.5f,_laserLeft[0]);
+        path.EndFigure(CanvasFigureLoop.Closed);
         return CanvasGeometry.CreatePath(path);
     }
     private void ClearLaserResources(){_laserTipBrush?.Dispose();_laserTipBrush=null;_laserRaw.Clear();_laserSmooth.Clear();_laserLeft.Clear();_laserRight.Clear();}

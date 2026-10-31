@@ -457,3 +457,20 @@ r1填滿Undo檢查讀Selected，但Core Restore會清選取，native helper保�
 症狀與證據：原 preview.5 Portable 無 license entries；GitHub來源MIT不代表NuGet二進位全部MIT。NuGetregistration直接解析會UnicodeDecodeError（gzip）。舊licenseUrl有deprecated／無關轉址。
 
 處理：gzip解壓、HTTP Range讀官方精確nupkg的license／notice；Win2D轉址缺口保留。擁有者同意限定WindowsSDK例外；HeiBan本身與衍生仍須GPL開源。新InstallerZIP／Portable附GPL、exception、元件terms與原始notice；原EXE／payload／Data邊界保持，新公開SHA另計。公開採prerelease，沒有重跑功能／安裝流程。防止再犯：發行清單記精確版本及licenseFiles，公開打包檢查原包SHA，缺exception立即停止。
+
+## 2026-10-31 — 工具輪盤狀態指示與螢幕雷射渲染排查
+
+1. **螢幕畫布雷射尾跡斷落感（背後的線條有斷落缺口）**：
+   - 症狀：螢幕畫布移動雷射指引時，後方光跡在轉彎或變速處呈現斷斷續續的空洞或白色凹痕。
+   - 原因：`LaserRibbon` 建立封閉多邊形幾何時未指定填滿規則，Direct2D 預設使用 `CanvasFilledRegionDetermination.Alternate`（Even-Odd 奇偶規則）。當筆跡劇烈轉折時，左右平移 offset 生成的邊緣發生自相交（Self-intersection），環繞計數為 2 的重疊區域被判定在幾何外部，產生空心洞。此外尾端過期節點半徑歸零，退化為重合的線段。
+   - 排解：`LaserRibbon` 明確調用 `SetFilledRegionDetermination(CanvasFilledRegionDetermination.Winding)`（非零環繞填滿），並在構建前濾除已過期與微小退化節點，徹底消除自相交造成的空洞斷落。
+
+2. **螢幕畫布雷射移動卡頓**：
+   - 症狀：一般畫布雷射極其流暢，但螢幕畫布雷射移動時有明顯頓挫感。
+   - 原因：螢幕畫布依賴 `WS_EX_LAYERED` 透明分層視窗與 `GetPixelBytes` 進行 GPU→CPU 像素回讀。原 `RenderLaserTrail` 每幀在 `ds.CreateLayer` 裁剪層內建立 `CanvasCommandList` 並執行 `GaussianBlurEffect` 雙通道 GPU Shader，使得 CPU 在回讀前必須等待 GPU 管道刷新（Pipeline Stall），幀率驟降。
+   - 排解：移除每幀臨時 CommandList 與高斯模糊 Shader，改採兩層柔和向量光暈 ribbon（外光暈 2.5x / 內光暈 1.55x）直接以向量幾何與 Alpha 混合渲染，完全不使用額外 GPU 中間紋理，消除了 GPU 停頓。
+
+3. **雷射設定面板阻塞畫布點擊與覆蓋工具列**：
+   - 症狀：螢幕畫布開啟雷射設定時錨定於頂部左側 `_mode` 按鈕，遮擋常用工具；調整滑桿後點擊畫布不會自動套用且被阻擋。
+   - 原因：螢幕畫布浮窗錨定對象固定傳入 `_mode`，且只有在點擊「套用」按鈕時才把滑桿數值存入 `_laser` 物件；指標進入 `OnPointerCore` 時先被雷射分支攔截，未關閉 `_chromeFlyout`。
+   - 排解：錨定對象改為雷射按鈕（若無則更多按鈕）；移除「套用」按鈕，參數變更即時生效；`OnPointerCore` 在點擊時主動提交並關閉浮窗，主畫布亦設定 `DrawingArea` 穿透，點擊畫布即時套用並進入作畫。

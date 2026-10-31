@@ -20,7 +20,7 @@ public sealed partial class Direct2DCanvasRenderer
         foreach(var item in _radialLabels.Values)item.Dispose();_radialLabels.Clear();
     }
     internal static string RadialLabel(string key)=>key=="operate"?T("操作"):key==""?"—":T(ToolbarPreferences.ToolNames.GetValueOrDefault(key,key switch{"line"=>"直線","arrow"=>"箭頭","rect"=>"矩形","circle"=>"圓形","triangle"=>"三角形","quadrilateral"=>"四邊形","diamond"=>"菱形","pentagon"=>"五邊形","star"=>"星形",_=>key}));
-    internal void RenderRadialWheel(CanvasDrawingSession ds,RadialToolProfile profile,InkPoint center,int hover,double scale=1)
+    internal void RenderRadialWheel(CanvasDrawingSession ds,RadialToolProfile profile,InkPoint center,int hover,double scale=1,Func<string,bool>? isToolActive=null)
     {
         if(_radialSectors.Count==0)for(var i=0;i<RadialToolProfile.Count;i++)
         {
@@ -34,29 +34,41 @@ public sealed partial class Direct2DCanvasRenderer
         ds.Transform=Matrix3x2.CreateScale(radius)*Matrix3x2.CreateTranslation((float)center.X,(float)center.Y)*old;
         for(var i=0;i<_radialSectors.Count;i++)
         {
-            if(i==hover)ds.DrawGeometry(_radialSectors[i],HexToColor("#58B98B",.3f),9/radius);
-            ds.FillGeometry(_radialSectors[i],HexToColor(i==hover?"#C5E8D7":"#F7FAF6",.97f));
-            ds.DrawGeometry(_radialSectors[i],HexToColor(i==hover?"#39735A":"#BFCFC4"),(i==hover?2.5f:1)/radius);
+            var key=i<profile.Slots.Count?profile.Slots[i]:"";
+            var isActive=!string.IsNullOrEmpty(key)&&isToolActive?.Invoke(key)==true;
+            if(i==hover)ds.DrawGeometry(_radialSectors[i],HexToColor("#58B98B",.35f),9/radius);
+            var fillColor=i==hover?(isActive?"#B5E3CB":"#C5E8D7"):(isActive?"#E1F3EA":"#F7FAF6");
+            ds.FillGeometry(_radialSectors[i],HexToColor(fillColor,.97f));
+            var strokeColor=isActive?"#24553E":(i==hover?"#39735A":"#BFCFC4");
+            var strokeWidth=(isActive?(i==hover?4f:3.2f):(i==hover?2.5f:1f))/radius;
+            ds.DrawGeometry(_radialSectors[i],HexToColor(strokeColor),strokeWidth);
         }
         ds.Transform=old;
         for(var i=0;i<profile.Slots.Count;i++)
         {
             var key=profile.Slots[i];var point=RadialGesture.SlotCenter(i,center,scale);var size=(float)((i==hover?30:25)*scale);
             var path=string.IsNullOrEmpty(key)?null:ToolIcons.CommandPath(key=="operate"?"select":key);var label=RadialLabel(key);
+            var isActive=!string.IsNullOrEmpty(key)&&isToolActive?.Invoke(key)==true;
             if(path is not null)
             {
-                if(!_radialIcons.TryGetValue(key,out var svg))_radialIcons[key]=svg=CanvasSvgDocument.LoadFromXml(ds,$"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'><path d='{path}' fill='none' stroke='#28543F' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+                var iconKey=key+(isActive?":active":"");
+                if(!_radialIcons.TryGetValue(iconKey,out var svg))
+                {
+                    var strokeWidth=isActive?"2.2":"1.6";
+                    var strokeColor=isActive?"#184530":"#28543F";
+                    _radialIcons[iconKey]=svg=CanvasSvgDocument.LoadFromXml(ds,$"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'><path d='{path}' fill='none' stroke='{strokeColor}' stroke-width='{strokeWidth}' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+                }
                 ds.DrawSvg(svg,new Size(size,size),new Vector2((float)point.X-size/2,(float)point.Y-size/2-5*(float)scale));
             }
-            var labelKey=Language+":"+label;
+            var labelKey=(isActive?"B:":"N:")+Language+":"+label;
             if(!_radialLabels.TryGetValue(labelKey,out var layout))
             {
                 if(_radialLabels.Count>=96){foreach(var item in _radialLabels.Values)item.Dispose();_radialLabels.Clear();}
-                using var format=new CanvasTextFormat{FontFamily="Segoe UI",FontSize=10,HorizontalAlignment=CanvasHorizontalAlignment.Center,WordWrapping=CanvasWordWrapping.NoWrap,TrimmingGranularity=CanvasTextTrimmingGranularity.Character};
+                using var format=new CanvasTextFormat{FontFamily="Segoe UI",FontSize=10,FontWeight=isActive?Microsoft.UI.Text.FontWeights.Bold:Microsoft.UI.Text.FontWeights.Normal,HorizontalAlignment=CanvasHorizontalAlignment.Center,WordWrapping=CanvasWordWrapping.NoWrap,TrimmingGranularity=CanvasTextTrimmingGranularity.Character};
                 _radialLabels[labelKey]=layout=new CanvasTextLayout(ds,label,format,88,20);
             }
             ds.Transform=Matrix3x2.CreateScale((float)scale)*Matrix3x2.CreateTranslation((float)(point.X-44*scale),(float)(point.Y+12*scale))*old;
-            ds.DrawTextLayout(layout,0,0,HexToColor("#28543F"));ds.Transform=old;
+            ds.DrawTextLayout(layout,0,0,HexToColor(isActive?"#184530":"#28543F"));ds.Transform=old;
         }
         ds.FillCircle((float)center.X,(float)center.Y,(float)(25*scale),HexToColor("#EEF4EE",.96f));
         ds.DrawCircle((float)center.X,(float)center.Y,(float)(25*scale),HexToColor("#ABC3B0"));

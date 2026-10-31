@@ -70,4 +70,13 @@ public partial class MainWindow
         _radialSettings.Activate();
     }
     internal void CloseRadialSettings()=>_radialSettings?.Close();
+    internal bool IsRadialToolActive(string key)=>!string.IsNullOrEmpty(key)&&key switch
+    {
+        "compass"=>_compass.IsEnabled,
+        "ruler"=>_rulerEnabled,
+        "magnet"=>_toolbarPrefs.MagnetEnabled,
+        "viewLock"=>_viewLocked,
+        "layers"=>LayersPanel.Visibility==Visibility.Visible,
+        _=>key==_tool
+    };
 }

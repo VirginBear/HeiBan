@@ -156,6 +156,12 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         if(!IsActive||_stopping||_captureCancellation is not null)return;
         if(input.Kind=="cancel"){if(_radialGesture.Holding)CancelRadial();else CancelGesture();return;}
         if(!_drawing)return;
+        if(input.Kind is "down" or "double" or "rightdown"&&_chromeFlyout is not null)
+        {
+            CommitScreenStyle();
+            _chromeFlyout.Hide();
+            _chromeFlyout=null;
+        }
         if(input.Kind=="leave"){if(_cane.Point is not null){_cane.Clear();_dirty=true;}return;}
         var p=new InkPoint(input.X,input.Y,1);
         if(HandleRadialInput(input,p))return;
@@ -396,7 +402,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             _renderer.RenderLaser(ds,_laser,_viewport,Now,_dpiScale);
             _renderer.RenderCane(ds,_cane,_viewport,Now,_dpiScale);
             if(_screenMagnetTarget is { } target)ds.DrawCircle((float)target.X,(float)target.Y,(float)(7*_dpiScale),Direct2DCanvasRenderer.HexToColor("#10B981"),2);
-            if(_radialGesture.Visible)_renderer.RenderRadialWheel(ds,RadialProfile,_radialGesture.Center,_radialGesture.Hover,_dpiScale);
+            if(_radialGesture.Visible)_renderer.RenderRadialWheel(ds,RadialProfile,_radialGesture.Center,_radialGesture.Hover,_dpiScale,IsScreenRadialToolActive);
             if(!_radialGesture.Holding&&_screenEraserPointer is { } eraser)_renderer.RenderHover(ds,eraser,true,_eraserSize*_dpiScale,_viewport);
         }
         var x=(int)region.X;var y=(int)region.Y;var width=(int)region.Width;var height=(int)region.Height;
@@ -441,17 +447,43 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     }
     private Task LaserSettingsAsync()
     {
-        var panel=new StackPanel{Spacing=8,Width=260};panel.Children.Add(new TextBlock{Text=T("雷射設定"),FontSize=16});
-        var wheel=new ColorPicker{Color=Direct2DCanvasRenderer.HexToColor(_laser.Color),Width=248,ColorSpectrumShape=ColorSpectrumShape.Ring,IsHexInputVisible=true,IsColorChannelTextInputVisible=false,IsAlphaEnabled=true,IsAlphaSliderVisible=true};
+        var panel=new StackPanel{Spacing=8,Width=350};panel.Children.Add(new TextBlock{Text=T("雷射設定"),FontSize=16});
+        var modes=new[]{"point","shortTrail","line"};
+        var mode=new ComboBox{Header=T("模式"),ItemsSource=new[]{T("光點"),T("短尾跡"),T("線條")},SelectedIndex=Math.Max(0,Array.IndexOf(modes,_laser.Mode)),HorizontalAlignment=HorizontalAlignment.Stretch};
+        mode.SelectionChanged+=(_,_)=>{_laser.Mode=modes[Math.Max(0,mode.SelectedIndex)];_laser.Clear();_dirty=true;};
+        panel.Children.Add(mode);
+
+        var wheel=ToolbarUi.CreateColorWheel(_laser.Color,280);
         wheel.ColorChanged+=(_,e)=>{_laser.Color=$"#{e.NewColor.R:X2}{e.NewColor.G:X2}{e.NewColor.B:X2}{e.NewColor.A:X2}";_laser.Clear();_dirty=true;};
-        panel.Children.Add(new PaletteEditor(_owner.ProfilePalette,()=>$"#{wheel.Color.R:X2}{wheel.Color.G:X2}{wheel.Color.B:X2}{wheel.Color.A:X2}",c=>wheel.Color=Direct2DCanvasRenderer.HexToColor(c),wheel));panel.Children.Add(wheel);
-        var modes=new[]{"point","shortTrail","line"};var mode=new ComboBox{Header=T("模式"),ItemsSource=new[]{T("光點"),T("短尾跡"),T("線條")},SelectedIndex=Math.Max(0,Array.IndexOf(modes,_laser.Mode))};panel.Children.Add(mode);
-        var diameter=new Slider{Header=T("光點直徑"),Minimum=4,Maximum=64,Value=_laser.PointDiameter};
-        var width=new Slider{Header=T("尾跡粗細"),Minimum=1,Maximum=32,Value=_laser.Width};var fade=new Slider{Header=T("消退時間（秒）"),Minimum=.1,Maximum=5,StepFrequency=.1,Value=_laser.FadeDuration};var white=new CheckBox{Content=T("白色光芯"),IsChecked=_laser.WhiteCore};
-        panel.Children.Add(diameter);panel.Children.Add(width);panel.Children.Add(fade);panel.Children.Add(white);
-        var flyout=new Flyout{Content=panel};var apply=new Button{Content=T("套用")};apply.Click+=(_,_)=>{_laser.Mode=modes[Math.Max(0,mode.SelectedIndex)];_laser.PointDiameter=diameter.Value;_laser.Width=width.Value;_laser.FadeDuration=fade.Value;_laser.WhiteCore=white.IsChecked==true;_laser.Clear();_dirty=true;flyout.Hide();};panel.Children.Add(apply);
+        panel.Children.Add(new PaletteEditor(_owner.ProfilePalette,()=>$"#{wheel.Color.R:X2}{wheel.Color.G:X2}{wheel.Color.B:X2}{wheel.Color.A:X2}",c=>wheel.Color=Direct2DCanvasRenderer.HexToColor(c),wheel));
+        var wheelContainer=new StackPanel{Visibility=Visibility.Collapsed,Spacing=6,HorizontalAlignment=HorizontalAlignment.Center};
+        wheelContainer.Children.Add(wheel);
+        var toggleBtn=new Button{Content=T("▶ 進階色輪與色碼"),Padding=new Thickness(10,4,10,4),Margin=new Thickness(0,2,0,4),HorizontalAlignment=HorizontalAlignment.Left,FontSize=12};
+        toggleBtn.Click+=(_,_)=>{var show=wheelContainer.Visibility!=Visibility.Visible;wheelContainer.Visibility=show?Visibility.Visible:Visibility.Collapsed;toggleBtn.Content=T(show?"▼ 收合色輪與色碼":"▶ 進階色輪與色碼");};
+        panel.Children.Add(toggleBtn);
+        panel.Children.Add(wheelContainer);
+
+        var diameter=ToolbarUi.BrushSlider(T("光點直徑"),4,64,_laser.PointDiameter,1);
+        diameter.ValueChanged+=(_,_)=>{_laser.PointDiameter=diameter.Value;_dirty=true;};
+        panel.Children.Add(diameter);
+
+        var width=ToolbarUi.BrushSlider(T("尾跡粗細"),1,32,_laser.Width,1);
+        width.ValueChanged+=(_,_)=>{_laser.Width=width.Value;_dirty=true;};
+        panel.Children.Add(width);
+
+        var fade=ToolbarUi.BrushSlider(T("消退時間（秒）"),.1,5,_laser.FadeDuration,.1);
+        fade.ValueChanged+=(_,_)=>{_laser.FadeDuration=fade.Value;_dirty=true;};
+        panel.Children.Add(fade);
+
+        var white=new CheckBox{Content=T("白色光芯"),IsChecked=_laser.WhiteCore};
+        white.Checked+=(_,_)=>{_laser.WhiteCore=true;_dirty=true;};
+        white.Unchecked+=(_,_)=>{_laser.WhiteCore=false;_dirty=true;};
+        panel.Children.Add(white);
+
+        var flyout=new Flyout{Content=panel};
         flyout.Closed+=async(_,_)=>await _owner.SaveTeachingSettingsAsync();
-        ShowChromeFlyout(flyout,_mode);return Task.CompletedTask;
+        var anchor=_buttons.TryGetValue("laser",out var b)?b:(_moreButton??_mode);
+        ShowChromeFlyout(flyout,anchor);return Task.CompletedTask;
     }
     internal async Task ValidateNativeSessionAsync(string outputDirectory)
     {
