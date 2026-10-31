@@ -1,6 +1,6 @@
 # HeiBan 開發紀錄入口
 
-更新：2026-10-29。歷史計畫、實作與驗收是三種不同狀態。
+更新：2026-10-31。歷史計畫、實作與驗收是三種不同狀態。
 
 ## Mac維護與目前交付
 
@@ -36,6 +36,8 @@
 - [使用手冊](../macos/docs/USER_GUIDE.zh-TW.html)
 
 ## Windows端減重評估接手
+
+- [2026-10-31 Ponytail對照與Windows六項優化方案](../windows/docs/PONYTAIL_REVIEW_2026-10-31.zh-TW.md)：擦除候選／快照、共用筆刷設定、增量Undo與Store相依減重；僅靜態分析，未實作／未進版。
 
 - [2026-10-29 Windows 1.0.18.0正式Store提交包](../windows/docs/STORE_RELEASE_1.0.18_2026-10-29.zh-TW.md)：已獲使用者版號核准，x64＋ARM64封裝與靜態核對完成，未上傳／送審；附十語更新文案，保留歷史包。
 

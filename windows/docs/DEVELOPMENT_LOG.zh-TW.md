@@ -1,5 +1,11 @@
 # Windows 開發日誌
 
+## 2026-10-31 — Ponytail方法對照與六項Windows優化方案（分析，未實作）
+
+依使用者參考外部ponytail要求，對目前1.0.18輸入／渲染／擦除／UI／儲存／封裝靜態審視。PT-01擦除全表掃描、PT-02起步雙份UI快照優先；PT-03筆刷面板範圍分歧、PT-04一般形狀全文件Undo、PT-05儲存快照、PT-06 Store框架相依另列最小改法與驗收條件。x64 MSIX99.911MB，其中自身三binary entry壓縮0.775MB、平台／其他相依95.688MB，含onnx／DirectML，未使用API不等於可直接刪DLL。統計對照既有SHA與306來源核同；沒有動產品程式或包。
+
+graphify限83份C#，serial AST後1397nodes／3135edges；detect0、stdin multiprocessing失敗與292 dangling等限制完整記錄，所有結論再回原碼確認。外部skills僅研究資料，不安裝／啟用hooks、不覆寫規則。App／測試／性能採樣／build／新包／Store／其他平台未執行；未進版。 [完整分析與工作清單](PONYTAIL_REVIEW_2026-10-31.zh-TW.md)／[新包體byte統計](PONYTAIL_SIZE_REVIEW_2026-10-31.json)。
+
 ## 2026-10-29 — 使用者核准Store 1.0.18.0封裝完成（待使用者提交）
 
 使用者「很棒 打包吧」並確認「採用1.0.18／1.0.18.0」。正式x64＋ARM64 bundle已完成（197254394bytes／SHA `ef2d7cd7a9af894486764fb704b298ce012def7df269515269fcd09acb111070`），兩架構EXE／DLL的1.0.18.0及來源`a1d5bd6`一致。最終build 55.82／78.61秒，各0warning0error；306來源SHA、兩包CRC／PRI／10語catalog及指南／26法律文件核同，50既有Store檔（21包）保留。僅runFullTrust，不含Data／standalone updater。首輪編譯前commit順序造成內嵌來源不同，保留候選後重包；檢查來源notice路徑與console編碼失敗亦已記錄。

@@ -1,0 +1,156 @@
+{
+  "date": "2026-10-31",
+  "scope": "Static 1.0.18.0 package central-directory byte accounting; not a runtime benchmark",
+  "packages": [
+    {
+      "architecture": "x64",
+      "file": "HeiBan-Store-1.0.18.0-x64.msix",
+      "bytes": 99910569,
+      "sha256": "f233f70a9c5350b4c780c8e0d6dee13bc18eadb70e9b612c4376b5d5aa777633",
+      "groups": {
+        "platform_dependencies_and_other_files": {
+          "files": 520,
+          "uncompressed_bytes": 243494298,
+          "compressed_entry_bytes": 95688018
+        },
+        "app_assets_and_guides": {
+          "files": 84,
+          "uncompressed_bytes": 4197713,
+          "compressed_entry_bytes": 2949557
+        },
+        "licenses": {
+          "files": 26,
+          "uncompressed_bytes": 947729,
+          "compressed_entry_bytes": 192849
+        },
+        "app_binaries": {
+          "files": 3,
+          "uncompressed_bytes": 2331136,
+          "compressed_entry_bytes": 774909
+        },
+        "packaging": {
+          "files": 3,
+          "uncompressed_bytes": 376131,
+          "compressed_entry_bytes": 179470
+        }
+      },
+      "largest_entries": [
+        {
+          "file": "Microsoft.Windows.SDK.NET.dll",
+          "bytes": 26341408,
+          "compressed_bytes": 6599825
+        },
+        {
+          "file": "onnxruntime.dll",
+          "bytes": 21659280,
+          "compressed_bytes": 7360275
+        },
+        {
+          "file": "DirectML.dll",
+          "bytes": 18700224,
+          "compressed_bytes": 9514151
+        },
+        {
+          "file": "System.Private.CoreLib.dll",
+          "bytes": 16033576,
+          "compressed_bytes": 6728944
+        },
+        {
+          "file": "Microsoft.ui.xaml.dll",
+          "bytes": 15324472,
+          "compressed_bytes": 5924009
+        },
+        {
+          "file": "System.Private.Xml.dll",
+          "bytes": 7788328,
+          "compressed_bytes": 3482587
+        },
+        {
+          "file": "Microsoft.WinUI.dll",
+          "bytes": 7336760,
+          "compressed_bytes": 1844396
+        },
+        {
+          "file": "Microsoft.UI.Xaml.Controls.dll",
+          "bytes": 6943032,
+          "compressed_bytes": 2767012
+        }
+      ]
+    },
+    {
+      "architecture": "arm64",
+      "file": "HeiBan-Store-1.0.18.0-arm64.msix",
+      "bytes": 97341788,
+      "sha256": "564d81b79ba9876af63cbd44c0847aac95a158bef32b5e903f5aade621a41ce4",
+      "groups": {
+        "platform_dependencies_and_other_files": {
+          "files": 516,
+          "uncompressed_bytes": 260127487,
+          "compressed_entry_bytes": 93123122
+        },
+        "app_assets_and_guides": {
+          "files": 84,
+          "uncompressed_bytes": 4197713,
+          "compressed_entry_bytes": 2949557
+        },
+        "licenses": {
+          "files": 26,
+          "uncompressed_bytes": 947729,
+          "compressed_entry_bytes": 192849
+        },
+        "app_binaries": {
+          "files": 3,
+          "uncompressed_bytes": 2308608,
+          "compressed_entry_bytes": 762156
+        },
+        "packaging": {
+          "files": 3,
+          "uncompressed_bytes": 394548,
+          "compressed_entry_bytes": 189046
+        }
+      },
+      "largest_entries": [
+        {
+          "file": "Microsoft.Windows.SDK.NET.dll",
+          "bytes": 26341408,
+          "compressed_bytes": 6599825
+        },
+        {
+          "file": "onnxruntime.dll",
+          "bytes": 21854440,
+          "compressed_bytes": 7068352
+        },
+        {
+          "file": "DirectML.dll",
+          "bytes": 18616640,
+          "compressed_bytes": 9385726
+        },
+        {
+          "file": "System.Private.CoreLib.dll",
+          "bytes": 17729320,
+          "compressed_bytes": 6431977
+        },
+        {
+          "file": "Microsoft.ui.xaml.dll",
+          "bytes": 16903480,
+          "compressed_bytes": 5782719
+        },
+        {
+          "file": "Microsoft.UI.Xaml.Controls.dll",
+          "bytes": 9352504,
+          "compressed_bytes": 3076254
+        },
+        {
+          "file": "System.Private.Xml.dll",
+          "bytes": 9021224,
+          "compressed_bytes": 3329716
+        },
+        {
+          "file": "Microsoft.WinUI.dll",
+          "bytes": 7336760,
+          "compressed_bytes": 1844396
+        }
+      ]
+    }
+  ]
+}
