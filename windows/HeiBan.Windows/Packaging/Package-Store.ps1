@@ -1,8 +1,10 @@
 param([ValidateSet('Debug','Release')][string]$Configuration='Release',[string]$DotnetPath='dotnet',
       [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$')][string]$DevelopmentLabel,
-      [switch]$FormalVersionApproved)
+      [switch]$FormalVersionApproved,
+      [ValidateSet('SelfContained','FrameworkDependent')][string]$RuntimeMode='SelfContained')
 $ErrorActionPreference='Stop'
 if($FormalVersionApproved -and $DevelopmentLabel){throw 'Approved Store packages and development labels must be recorded separately.'}
+if($RuntimeMode -eq 'FrameworkDependent' -and -not $DevelopmentLabel){throw 'Framework-dependent deployment is experimental; use a DevelopmentLabel until install/upgrade acceptance.'}
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
 $project=Join-Path $PSScriptRoot '..\HeiBan.Windows.csproj'
@@ -54,7 +56,15 @@ function Read-StorePackage([string]$path,[string]$architecture) {
         if($actual.Package.Dependencies.TargetDeviceFamily.MinVersion -cne '10.0.19041.0'){throw 'Built Store minimum OS version mismatch.'}
         if($actual.Package.Properties.PublisherDisplayName -cne $identity.publisherDisplayName){throw 'Built publisher display name mismatch.'}
         if(@($zip.Entries | Where-Object {$_.FullName -match '(^|/)(Data|Updater)(/|$)|portable\.dat$|update-files\.json$|\.pdb$'}).Count){throw 'Store package contains standalone updater/data/debug payload.'}
-        foreach($required in @('HeiBan.exe','HeiBan.dll','HeiBan.Windows.Core.dll','resources.pri','coreclr.dll','Microsoft.ui.xaml.dll','Microsoft.Graphics.Canvas.dll','Assets/Store/StoreLogo.png','Assets/Store/Square44x44Logo.png','Assets/Store/Square150x150Logo.png')){
+        $requiredPayload=@('HeiBan.exe','HeiBan.dll','HeiBan.Windows.Core.dll','resources.pri','coreclr.dll','Microsoft.Graphics.Canvas.dll','Assets/Store/StoreLogo.png','Assets/Store/Square44x44Logo.png', 'Assets/Store/Square150x150Logo.png')
+        $runtimeDependencies=@($actual.Package.Dependencies.PackageDependency | Where-Object {$_.Name -match '^Microsoft\.WindowsAppRuntime\.'})
+        if($RuntimeMode -eq 'SelfContained'){$requiredPayload+='Microsoft.ui.xaml.dll'}
+        else {
+            if($runtimeDependencies.Count -eq 0){throw 'Framework-dependent candidate lacks Windows App Runtime manifest dependency.'}
+            foreach($dependency in $runtimeDependencies){$null=[Version]::Parse($dependency.MinVersion);if(-not $dependency.Publisher){throw 'Runtime dependency lacks publisher.'}}
+            if($zip.GetEntry('Microsoft.ui.xaml.dll') -or $zip.GetEntry('onnxruntime.dll') -or $zip.GetEntry('DirectML.dll')){throw 'Framework-dependent candidate still embeds SDK native runtime.'}
+        }
+        foreach($required in $requiredPayload){
             $file=$zip.GetEntry($required)
             if(-not $file -or $file.Length -eq 0){throw "Store package is missing $required"}
         }
@@ -74,7 +84,7 @@ function Read-StorePackage([string]$path,[string]$architecture) {
             try {$hash=[BitConverter]::ToString($sha.ComputeHash($stream)).Replace('-','')}finally{$stream.Dispose();$sha.Dispose()}
             if($hash -ne (Get-FileHash -LiteralPath $file.source -Algorithm SHA256).Hash){throw "Changed original document: $($file.entry)"}
         }
-        return @{architecture=$architecture;entries=$zip.Entries.Count;legalDocuments=$sourceFiles.Count-2-$guideFiles.Count;guideDocuments=$guideFiles.Count;identityMatched=$true;requiredPayloadPresent=$true;originalDocumentsMatched=$true;noUserDataOrStandaloneUpdater=$true;appExecutionChecked=$false}
+        return @{architecture=$architecture;entries=$zip.Entries.Count;legalDocuments=$sourceFiles.Count-2-$guideFiles.Count;guideDocuments=$guideFiles.Count;identityMatched=$true;runtimeMode=$RuntimeMode;runtimeDependencies=@($runtimeDependencies | ForEach-Object {@{name=$_.Name;publisher=$_.Publisher;minVersion=$_.MinVersion}});requiredPayloadPresent=$true;originalDocumentsMatched=$true;noUserDataOrStandaloneUpdater=$true;appExecutionChecked=$false}
     }finally{$zip.Dispose()}
 }
 foreach($arch in @('x64','arm64')) {
@@ -82,11 +92,11 @@ foreach($arch in @('x64','arm64')) {
     $sdkOutput=Join-Path $batch "packages-$arch"
     $buildLog=Join-Path $batch "build-$arch.log"
     & $dotnet build $project -c $Configuration -r "win-$arch" --artifacts-path (Join-Path $batch "artifacts-$arch") `
-        "-p:Platform=$platform" -p:HeiBanStoreBuild=true -p:AppxPackageSigningEnabled=false `
+        "-p:Platform=$platform" "-p:WindowsAppSDKSelfContained=$(($RuntimeMode -eq 'SelfContained').ToString().ToLowerInvariant())" -p:HeiBanStoreBuild=true -p:AppxPackageSigningEnabled=false `
         -p:DebugType=none -p:DebugSymbols=false -p:AppxPackageValidationEnabled=true -p:AppxStrictManifestValidationEnabled=true `
         "-p:AppxPackageDir=$sdkOutput/" *> $buildLog
     if($LASTEXITCODE -ne 0){Get-Content $buildLog -Tail 25;throw "Store $arch build failed: $LASTEXITCODE"}
-    $packages=@(Get-ChildItem -LiteralPath $sdkOutput -Filter '*.msix' -File -Recurse)
+    $packages=@(Get-ChildItem -LiteralPath $sdkOutput -Filter '*.msix' -File -Recurse | Where-Object {$_.FullName -notmatch '[\\/]Dependencies[\\/]'})
     if($packages.Count -ne 1){throw "Expected exactly one $arch MSIX, got $($packages.Count)."}
     $payloadChecks+=Read-StorePackage $packages[0].FullName $arch
     $destination=Join-Path $dist "HeiBan-Store-$($identity.packageVersion)-$arch.msix"
@@ -132,7 +142,7 @@ foreach($path in ($sourcePaths | Sort-Object -Unique)){
     }
 }
 $sourceHead=& git -C (Split-Path $root -Parent) rev-parse HEAD
-$report=[ordered]@{schema=1;identity=$identity;configuration=$Configuration;developmentLabel=$DevelopmentLabel;formalVersionApproved=[bool]$FormalVersionApproved;signed=$false;storeSubmitted=$false;sourceGitHead=$sourceHead;sourceSnapshot=$sourceHashes;payloadChecks=$payloadChecks;bundleIdentityAndArchitecturesMatched=$true;bundlePackageBytesMatched=$true;artifacts=@()}
+$report=[ordered]@{schema=1;identity=$identity;configuration=$Configuration;runtimeMode=$RuntimeMode;developmentLabel=$DevelopmentLabel;formalVersionApproved=[bool]$FormalVersionApproved;signed=$false;storeSubmitted=$false;sourceGitHead=$sourceHead;sourceSnapshot=$sourceHashes;payloadChecks=$payloadChecks;bundleIdentityAndArchitecturesMatched=$true;bundlePackageBytesMatched=$true;artifacts=@()}
 foreach($artifact in $artifacts){
     $hash=(Get-FileHash -LiteralPath $artifact.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
     "$hash  $($artifact.Name)" | Set-Content -LiteralPath ($artifact.FullName+'.sha256') -Encoding ASCII

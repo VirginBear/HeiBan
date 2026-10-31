@@ -76,6 +76,19 @@
     <WriteLinesToFile File="$(_FilteredLayoutResfilesPath)" Lines="@(_HeiBanStoreIndexedFiles)" Overwrite="true" Encoding="UTF-8" />
   </Target>
 
+  <!-- Microsoft.WindowsAppSDK.ML 2.1.94 _SuppressWindowsMLNativeCopyLocal runs after
+       ResolveLockFileCopyLocalFiles and removes Microsoft.Windows.AI.MachineLearning native
+       DLLs from NativeCopyLocalItems and ReferenceCopyLocalPaths, but leaves them in
+       _ResolvedCopyLocalBuildAssets, which _ResolveCopyLocalAssetsForPublish then re-adds
+       to MSIX publish outputs even though Microsoft.WindowsAppRuntime.2 already ships them. -->
+  <Target Name="ExcludeSuppressedWindowsMLNativeFromPublish" AfterTargets="_SuppressWindowsMLNativeCopyLocal"
+          Condition="'$(HeiBanStoreBuild)' == 'true' and '$(WindowsAppSDKSelfContained)' != 'true'">
+    <ItemGroup>
+      <_ResolvedCopyLocalBuildAssets Remove="@(_ResolvedCopyLocalBuildAssets)"
+        Condition="'%(_ResolvedCopyLocalBuildAssets.NuGetPackageId)' == 'Microsoft.Windows.AI.MachineLearning' and '%(_ResolvedCopyLocalBuildAssets.AssetType)' == 'native'" />
+    </ItemGroup>
+  </Target>
+
   <ItemGroup>
     <!-- Windows App SDK & Fluent Design 核心庫 -->
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.5.1" />

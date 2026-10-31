@@ -189,7 +189,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             var points=_curveAnchors.Count==needed?_curveAnchors.ToArray():_tool=="curve"?CurvePreview.Points(_curveAnchors,p):_curveAnchors.Concat(new[]{p}).ToArray();
             var bounds=VectorMath.ComputeBoundingBox(_tool=="curve"?CurvePreview.Flatten(points):points,_width*_dpiScale);
             _preview.X=bounds.MinX;_preview.Y=bounds.MinY;_preview.Width=bounds.Width;_preview.Height=bounds.Height;_preview.Points=JsonSerializer.Serialize(points,DocumentCodec.Options);
-            if(_curveAnchors.Count==needed){_session.Begin();_session.Add(_preview);_session.Commit();_preview=null;_curveAnchors.Clear();Changed();}
+            if(_curveAnchors.Count==needed){_session.AppendShape(_preview);_preview=null;_curveAnchors.Clear();Changed();}
             DamagePreview();_dirty=true;return;
         }
         if(_tool=="lasso")
@@ -221,7 +221,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         if(input.Kind=="down")
         {
             if(_tool=="select")DamageSelectedObjects(); // Remove the previous selection adorners even when the new gesture starts on blank space.
-            _start=_last=p;if(_tool is not("select" or "pen" or "highlighter" or "paint"))_session.Begin();_points.Clear();_points.Add(p);
+            _start=_last=p;if(_tool is not("select" or "pen" or "highlighter" or "paint")&&!ScreenShapeTools.Contains(_tool)&&_tool!="tape")_session.Begin();_points.Clear();_points.Add(p);
             _screenPenStraight=false;_penHoldAnchor=_tool=="pen"?p:null;_penHoldSince=Now;_straightenTimer.Stop();if(_penHoldAnchor is not null)_straightenTimer.Start();
             if(_tool=="select")
             {
@@ -267,7 +267,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             if(partialCommit&&!previewCommit)DamageStrokeTail(true);
             if(_marquee)DamageSelectedObjects();var strokeDamage=_damage;
             if(_marquee&&_preview is not null)_session.SetSelection(_session.VisibleObjects.Where(o=>WindowSelection.Matches(o,_start,p)).Select(o=>o.Id).Concat(_marqueeSelection));
-            else if(_preview is not null)_session.Add(_preview);
+            else if(_preview is not null)_session.AppendShape(_preview);
             else if(_points.Count>0&&_tool is "pen" or "highlighter" or "paint")
             {
                 var bounds=VectorMath.ComputeBoundingBox(_points,_width*_dpiScale);

@@ -17,7 +17,9 @@ internal sealed class CircularEraserGesture
     internal CircularEraserGesture(EditorSession session,double radius,bool whole)
     {
         _generation=session.Generation;_epoch=session.DocumentEpoch;
-        Preview.Open(DocumentCodec.Clone(session.Document));
+        // The UI preview only reads this starting document. The worker owns the
+        // independent clone below; changed previews cross via EraserPreviewPublisher.
+        Preview.Open(session.Document);
         _worker=new(DocumentCodec.Clone(session.Document),radius,whole);
     }
     internal bool Matches(EditorSession session)=>!_cancelled&&session.Generation==_generation&&session.DocumentEpoch==_epoch;

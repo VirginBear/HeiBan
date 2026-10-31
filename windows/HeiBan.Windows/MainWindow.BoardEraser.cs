@@ -68,7 +68,7 @@ public partial class MainWindow
         _session.SelectedId=null;_objectDetailsId=null;SelectionBar.Visibility=Visibility.Collapsed;Inspector.Visibility=Visibility.Collapsed;
         // The main document and its undo history stay untouched during pointer movement.
         // Only the draft is rendered; release installs its object list in one transaction.
-        _boardEraserDraft=new EditorSession();_boardEraserDraft.Open(DocumentCodec.Clone(_session.Document));
+        _boardEraserDraft=new EditorSession();_boardEraserDraft.Open(_session.Document); // Read-only until the isolated worker publishes its first result.
         _boardEraserWhole=EraserModeBox.SelectedIndex==0;_boardEraserPointer=pointer.PointerId;_boardEraserLast=pointer.Position;
         _boardEraserEpoch++;_boardEraserBaseGeneration=_session.Generation;_boardEraserDocumentEpoch=_session.DocumentEpoch;
         _boardEraserWorking=new BoardEraserWork(DocumentCodec.Clone(_session.Document),

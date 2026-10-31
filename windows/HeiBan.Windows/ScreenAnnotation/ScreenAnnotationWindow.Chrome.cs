@@ -123,15 +123,12 @@ internal sealed partial class ScreenAnnotationWindow
     {
         var selected=StyleSelection;var currentColor=selected?.StrokeColor??_color;var currentWidth=(selected?.StrokeWidth/_dpiScale)??_width;var currentAlpha=selected?.Opacity??_opacity;
         var panel=new StackPanel{Width=248,Spacing=14,RequestedTheme=ElementTheme.Light};panel.Children.Add(new TextBlock{Text=selected is null?T("顏色與筆刷"):T("選取物件樣式"),FontSize=16});
-        var wheel=new ColorPicker{Color=Direct2DCanvasRenderer.HexToColor(currentColor),Width=248,ColorSpectrumShape=ColorSpectrumShape.Ring,IsHexInputVisible=true,IsColorChannelTextInputVisible=false,IsAlphaEnabled=true,IsAlphaSliderVisible=true,IsAlphaTextInputVisible=true};
-        wheel.ColorChanged+=(_,e)=>{SetScreenColor($"#{e.NewColor.R:X2}{e.NewColor.G:X2}{e.NewColor.B:X2}{e.NewColor.A:X2}");};
-        panel.Children.Add(new PaletteEditor(_owner.ProfilePalette,()=>$"#{wheel.Color.R:X2}{wheel.Color.G:X2}{wheel.Color.B:X2}{wheel.Color.A:X2}",color=>wheel.Color=Direct2DCanvasRenderer.HexToColor(color),wheel));
-        panel.Children.Add(wheel);
         var type=selected?.Type??_tool;
-        if(type is not("text" or "sticky" or "image"))
-        {
-        var widthValue=new TextBlock{Text=$"{currentWidth:0.0} pt",FontSize=12};panel.Children.Add(BrushCaption(T("粗細"),widthValue));var width=ChromeSlider(1,32,currentWidth,"");width.ValueChanged+=(_,_)=>{if(StyleSelection is not null)EditScreenStyle(o=>o.StrokeWidth=width.Value*_dpiScale);else{_width=width.Value;_laser.Width=_width;}widthValue.Text=$"{width.Value:0.0} pt";};panel.Children.Add(width);
-        }
+        var controls=ToolbarUi.AddBrushControls(panel,_owner.ProfilePalette,currentColor,currentWidth,currentAlpha,248,type is not("text" or "sticky" or "image"));
+        var wheel=controls.Color;var width=controls.Width;var alpha=controls.Opacity;
+        wheel.ColorChanged+=(_,e)=>SetScreenColor($"#{e.NewColor.R:X2}{e.NewColor.G:X2}{e.NewColor.B:X2}{e.NewColor.A:X2}");
+        width.ValueChanged+=(_,_)=>{if(StyleSelection is not null)EditScreenStyle(o=>o.StrokeWidth=width.Value*_dpiScale);else{_width=width.Value;_laser.Width=_width;}};
+        alpha.ValueChanged+=(_,_)=>{if(StyleSelection is not null)EditScreenStyle(o=>o.Opacity=alpha.Value);else _opacity=alpha.Value;};
         if(selected?.Type=="arrow")
         {
             var headLength=ChromeSlider(4,128,(selected.ArrowHeadLength??16)/_dpiScale,T("箭頭頭部長度（pt）"));headLength.ValueChanged+=(_,_)=>EditScreenStyle(o=>{if(o.Type=="arrow")o.ArrowHeadLength=headLength.Value*_dpiScale;});panel.Children.Add(headLength);
@@ -142,10 +139,9 @@ internal sealed partial class ScreenAnnotationWindow
             var options=new[]{"none","start","end","both"};var extension=new ComboBox{Header=T("直線延伸"),ItemsSource=new[]{T("線段"),T("向 A 延伸"),T("向 B 延伸"),T("雙向延伸")},SelectedIndex=Math.Max(0,Array.IndexOf(options,selected?.Extension??_screenExtension))};
             extension.SelectionChanged+=(_,_)=>{var value=options[Math.Max(0,extension.SelectedIndex)];if(StyleSelection is not null)EditScreenStyle(o=>{if(o.Type is "line" or "arrow")o.Extension=value;});else _screenExtension=value;};panel.Children.Add(extension);
         }
-        var alphaValue=new TextBlock{Text=$"{currentAlpha:P0}",FontSize=12};panel.Children.Add(BrushCaption(T("透明度"),alphaValue));var alpha=ChromeSlider(.1,1,currentAlpha,"");alpha.StepFrequency=.05;alpha.ValueChanged+=(_,_)=>{if(StyleSelection is not null)EditScreenStyle(o=>o.Opacity=alpha.Value);else _opacity=alpha.Value;alphaValue.Text=$"{alpha.Value:P0}";};panel.Children.Add(alpha);
+
         panel.Children.Add(new TextBlock{Text=_status.Text,FontSize=10,TextWrapping=TextWrapping.Wrap});ShowChromeFlyout(new Flyout{Content=panel},_brushButton);
     }
-    private static Grid BrushCaption(string text,TextBlock value){var row=new Grid();row.ColumnDefinitions.Add(new(){Width=new GridLength(1,GridUnitType.Star)});row.ColumnDefinitions.Add(new(){Width=GridLength.Auto});row.Children.Add(new TextBlock{Text=text,FontSize=12});Grid.SetColumn(value,1);row.Children.Add(value);return row;}
     private static Slider ChromeSlider(double min,double max,double value,string label)
     {
         var slider=new Slider{Header=label,Minimum=min,Maximum=max,Value=value,StepFrequency=1,HorizontalAlignment=HorizontalAlignment.Stretch};

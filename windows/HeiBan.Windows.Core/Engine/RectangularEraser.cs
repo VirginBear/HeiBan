@@ -55,7 +55,18 @@ public static class RectangularEraser
 
     public static bool MayIntersect(BoardObject item,EraserFootprint footprint)
     {
-        if(item.Type is "line" or "arrow"&&item.Extension is "start" or "end" or "both")return true;
+        var bounds=ConservativeBounds(item);
+        if(bounds is null)return true;
+        var left=footprint.Corners.Min(p=>p.X);var top=footprint.Corners.Min(p=>p.Y);
+        var right=footprint.Corners.Max(p=>p.X);var bottom=footprint.Corners.Max(p=>p.Y);
+        return bounds.Value.Intersects(new(left,top,right,bottom));
+    }
+
+    // Shared rejection envelope for the worker index and exact footprint path.
+    // Unbounded or malformed geometry stays global; rejection must never lose ink.
+    internal static VectorMath.RectBounds? ConservativeBounds(BoardObject item)
+    {
+        if(item.Type is "line" or "arrow"&&item.Extension is "start" or "end" or "both")return null;
         // Use actual endpoints / cached curve bounds for imported works whose
         // metadata bounds may be stale. This is only a conservative rejection.
         var width=Math.Abs(item.Width);var height=Math.Abs(item.Height);
@@ -74,10 +85,7 @@ public static class RectangularEraser
         }
         if(item.Type=="arrow")radius+=Math.Max(item.ArrowHeadLength??16,item.ArrowHeadWidth??10);
         if(item.Type=="arc")radius=Math.Max(radius,Math.Abs(item.ArcRadius??0)*2+Math.Abs(item.StrokeWidth)+4);
-        foreach(var corner in footprint.Corners)
-            if(corner.X>=centerX-radius&&corner.X<=centerX+radius&&corner.Y>=centerY-radius&&corner.Y<=centerY+radius)return true;
-        var left=double.PositiveInfinity;var top=double.PositiveInfinity;var right=double.NegativeInfinity;var bottom=double.NegativeInfinity;
-        foreach(var corner in footprint.Corners){left=Math.Min(left,corner.X);right=Math.Max(right,corner.X);top=Math.Min(top,corner.Y);bottom=Math.Max(bottom,corner.Y);}
-        return right>=centerX-radius&&left<=centerX+radius&&bottom>=centerY-radius&&top<=centerY+radius;
+        var envelope=new VectorMath.RectBounds(centerX-radius,centerY-radius,centerX+radius,centerY+radius);
+        return double.IsFinite(envelope.MinX)&&double.IsFinite(envelope.MinY)&&double.IsFinite(envelope.MaxX)&&double.IsFinite(envelope.MaxY)?envelope:null;
     }
 }

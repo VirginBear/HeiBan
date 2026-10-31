@@ -965,7 +965,7 @@ public partial class MainWindow
         ShowExclusiveFlyout(menu, anchor);
     }
 
-    private ColorPicker ColorWheel(string current) => new() { Color = Direct2DCanvasRenderer.HexToColor(current), ColorSpectrumShape = ColorSpectrumShape.Ring, IsAlphaEnabled = true, IsAlphaSliderVisible = true, IsAlphaTextInputVisible = true, IsColorChannelTextInputVisible = false, IsHexInputVisible = true, Width = 260 };
+    private ColorPicker ColorWheel(string current) => ToolbarUi.CreateColorWheel(current);
     private static string ColorHex(global::Windows.UI.Color c) => $"#{c.R:X2}{c.G:X2}{c.B:X2}{c.A:X2}";
 
     private void ShowColorWheel(FrameworkElement anchor, string current, Action<string> update)
@@ -986,11 +986,8 @@ public partial class MainWindow
         var panel = new StackPanel { Width = 286, Spacing = 12 };
         panel.Children.Add(new TextBlock { Text = selected is null ? F($"繪圖設定（{T(ToolbarPreferences.ToolNames.GetValueOrDefault(_styleTool,_styleTool))}）") : T("已選取物件設定"), FontSize = 16, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
         AddExtendedObjectSettings(panel,selected);
-        var wheel = ColorWheel(selected?.StrokeColor ?? CurrentStyle.Color);
-        panel.Children.Add(new PaletteEditor(ProfilePalette,()=>ColorHex(wheel.Color),c=>wheel.Color=Direct2DCanvasRenderer.HexToColor(c),wheel));
-        panel.Children.Add(wheel);
-        var width = new Slider { Header = T("線條粗細（pt）"), Minimum = .5, Maximum = 128, Value = selected?.StrokeWidth ?? CurrentStyle.Width, StepFrequency = .5 };
-        panel.Children.Add(width);
+        var controls=ToolbarUi.AddBrushControls(panel,ProfilePalette,selected?.StrokeColor??CurrentStyle.Color,selected?.StrokeWidth??CurrentStyle.Width,selected?.Opacity??CurrentStyle.Opacity);
+        var wheel=controls.Color;var width=controls.Width;var alpha=controls.Opacity;
         var presets = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4 };
         foreach (var n in new[] { 2d, 3.5, 6, 10, 18, 32 })
         {
@@ -999,8 +996,7 @@ public partial class MainWindow
             presets.Children.Add(b);
         }
         panel.Children.Add(presets);
-        var alpha = new Slider { Header = T("筆畫透明度"), Minimum = 0, Maximum = 1, StepFrequency = .01, Value = selected?.Opacity ?? CurrentStyle.Opacity };
-        panel.Children.Add(alpha);
+
 
         CheckBox? filled = null;
         if ((selected?.Type ?? _styleTool) is "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star" or "arc" or "sticky")
@@ -1596,6 +1592,7 @@ public partial class MainWindow
         var circleBtn = new Button { Content = T("一鍵繪製整圓 (360°)"), Style = (Style)Application.Current.Resources["AccentButtonStyle"], HorizontalAlignment = HorizontalAlignment.Stretch };
         circleBtn.Click += (_, _) =>
         {
+            CommitPropertyEdit();if(_gesture)CancelGesture();
             var board = _session.Document.Board;
             _compass.StrokeColor = _strokeColor;
             _compass.StrokeWidth = EffectiveWidth;
@@ -1605,10 +1602,7 @@ public partial class MainWindow
             obj.FillOpacity = CurrentStyle.FillOpacity;
             obj.FillGradientStart = CurrentStyle.FillGradientStart;
             obj.FillGradientEnd = CurrentStyle.FillGradientEnd;
-            _session.Begin();
-            _session.Add(obj);
-            _session.SelectedId = obj.Id;
-            _session.Commit();
+            _session.AppendShape(obj);
             RefreshEditor();
             StatusText.Text = T("已生成整圓物件");
         };
@@ -1617,6 +1611,7 @@ public partial class MainWindow
         var arcBtn = new Button { Content = T("繪製設定圓弧"), HorizontalAlignment = HorizontalAlignment.Stretch };
         arcBtn.Click += (_, _) =>
         {
+            CommitPropertyEdit();if(_gesture)CancelGesture();
             var board = _session.Document.Board;
             _compass.StrokeColor = _strokeColor;
             _compass.StrokeWidth = EffectiveWidth;
@@ -1626,10 +1621,7 @@ public partial class MainWindow
             obj.FillOpacity = CurrentStyle.FillOpacity;
             obj.FillGradientStart = CurrentStyle.FillGradientStart;
             obj.FillGradientEnd = CurrentStyle.FillGradientEnd;
-            _session.Begin();
-            _session.Add(obj);
-            _session.SelectedId = obj.Id;
-            _session.Commit();
+            _session.AppendShape(obj);
             RefreshEditor();
             StatusText.Text = F($"已生成圓弧（半徑 {_compass.Radius:0.#}pt，掃角 {_compass.SweepAngle:0.#}°）");
         };

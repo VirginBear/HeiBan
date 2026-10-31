@@ -162,8 +162,8 @@ public partial class MainWindow
             _polygon.Add(_start);
             if(_polygon.Count==(_tool=="quadrilateral"?4:3))
             {
-                _session.Begin();var box=VectorMath.ComputeBoundingBox(_tool=="curve"?CurvePreview.Flatten(_polygon):_polygon,_strokeWidth);
-                _session.Add(Styled(new BoardObject{Type=_tool,X=box.MinX,Y=box.MinY,Width=box.Width,Height=box.Height,Points=JsonSerializer.Serialize(_polygon,DocumentCodec.Options)}));
+                var box=VectorMath.ComputeBoundingBox(_tool=="curve"?CurvePreview.Flatten(_polygon):_polygon,_strokeWidth);
+                _session.AppendShape(Styled(new BoardObject{Type=_tool,X=box.MinX,Y=box.MinY,Width=box.Width,Height=box.Height,Points=JsonSerializer.Serialize(_polygon,DocumentCodec.Options)}));
                 _session.Commit();_polygon.Clear();ResetGesture();CanvasSurface.ReleasePointerCaptures();RefreshEditor();
             }
         }
@@ -373,7 +373,6 @@ public partial class MainWindow
                 _compass.FinishArcDrawing();
                 if(Math.Abs(_compass.SweepAngle)>=0.5)
                 {
-                    _session.Begin();
                     _compass.StrokeColor=_strokeColor;
                     _compass.StrokeWidth=EffectiveWidth;
                     _compass.LineStyle=CurrentStyle.Dash;
@@ -383,9 +382,7 @@ public partial class MainWindow
                     arcObj.FillOpacity=CurrentStyle.FillOpacity;
                     arcObj.FillGradientStart=CurrentStyle.FillGradientStart;
                     arcObj.FillGradientEnd=CurrentStyle.FillGradientEnd;
-                    _session.Add(arcObj);
-                    _session.SelectedId=arcObj.Id;
-                    _session.Commit();
+                    _session.AppendShape(arcObj);
                     _compass.Prepare();
                     RefreshEditor();
                     StatusText.Text=F($"已生成圓弧（半徑 {_compass.Radius:0.#}pt，掃角 {_compass.SweepAngle:0.#}°）");
@@ -417,7 +414,7 @@ public partial class MainWindow
             var line=_preview.Type is "line" or "arrow";
             var enough=line?Math.Sqrt(_preview.Width*_preview.Width+_preview.Height*_preview.Height)*_viewport.Zoom>3:Math.Max(_preview.Width,_preview.Height)*_viewport.Zoom>3;
             if(enough&&(!line||_lineCompleting||_start is not null&&Math.Sqrt(Math.Pow(world.X-_start.X,2)+Math.Pow(world.Y-_start.Y,2))*_viewport.Zoom>3))
-            {_session.Begin();_session.Add(_preview);_preview=null;_lineAnchor=null;}
+            {_session.AppendShape(_preview);_preview=null;_lineAnchor=null;}
             else if(!line){_preview=null;}
         }
         _session.Commit();ResetGesture();CanvasSurface.ReleasePointerCaptures();RefreshEditor();e.Handled=true;

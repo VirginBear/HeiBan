@@ -30,10 +30,26 @@ public sealed class EditorSession
     public IEnumerable<BoardObject> PageObjects => Document.Objects.Where(o => Document.Board.CanvasMode != "notebook" || o.PageId is null || o.PageId == Document.Board.ActivePageId);
     public IEnumerable<BoardObject> VisibleObjects => PageObjects.Where(o=>o.IsVisible!=false);
     private readonly ObjectOrderCache _order = new();
+    private EraserCandidateIndex? _eraserIndex;
+    public long EraserCandidateVisits {get;private set;}
+    public void EnableEraserCandidateIndex()
+    {_eraserIndex=Document.Objects.Count>=512?new(Document.Objects):null;EraserCandidateVisits=0;}
+    private IEnumerable<(BoardObject Item,int Index)> EraseCandidates(VectorMath.RectBounds bounds)
+    {
+        var candidates=_eraserIndex?.Query(bounds);
+        // Dense contacts retain backward traversal and direct slots, avoiding a
+        // linear IndexOf for every object when most of the document is erased.
+        if(candidates is not null&&candidates.Count<Document.Objects.Count/4)
+        {foreach(var item in candidates){EraserCandidateVisits++;yield return(item,-1);}}
+        else for(var i=Document.Objects.Count-1;i>=0;i--){EraserCandidateVisits++;yield return(Document.Objects[i],i);}
+    }
+    private int RemoveErased(BoardObject item,int hint)
+    {var index=hint>=0&&hint<Document.Objects.Count&&ReferenceEquals(Document.Objects[hint],item)?hint:Document.Objects.IndexOf(item);if(index<0)return -1;_eraserIndex?.Remove(item);Document.Objects.RemoveAt(index);return index;}
+    private void InsertFragment(int index,BoardObject item){Document.Objects.Insert(index,item);_eraserIndex?.Add(item);}
     public OrderedBoardObjects DrawingObjects => _order.Ascending(Document);
     public void Open(HeiBanDocument doc)
     {
-        ClearPreviewMoves();_order.Clear();DocumentEpoch++;Document = doc; SelectedId = null; _undo.Clear(); _redo.Clear(); _transaction = null;
+        ClearPreviewMoves();_order.Clear();_eraserIndex=null;EraserCandidateVisits=0;DocumentEpoch++;Document = doc; SelectedId = null; _undo.Clear(); _redo.Clear(); _transaction = null;
         Generation = SavedGeneration = 0;
     }
     public void Begin() => _transaction ??= DocumentCodec.Clone(Document);
@@ -62,7 +78,7 @@ public sealed class EditorSession
         var entry=from[^1];
         if(entry.Added is { } added)
         {
-            // Completed ink only appends a top-level object. Store just that object's
+            // A completed addition appends a top-level object. Store just that object's
             // isolated snapshot; mixed edits still use full-document transactions.
             var index=Document.Objects.FindIndex(o=>o.Id==added.Id);
             if(undo){if(index<0)return;Document.Objects.RemoveAt(index);}
@@ -118,9 +134,18 @@ public sealed class EditorSession
     }
     public BoardObject AppendInk(BoardObject item)
     {
-        if(HasTransaction||_previewMoves.Count!=0)throw new InvalidOperationException("Complete or cancel the current transaction before appending ink.");
         if(item.Type is not("stroke" or "pen" or "highlighter" or "paint" or "line"))throw new ArgumentException("Only completed ink or its held-line result can use this transaction.",nameof(item));
-        var added=Add(item);SelectedId=null;
+        return AppendCompletedObject(item,true);
+    }
+    public BoardObject AppendShape(BoardObject item)
+    {
+        if(item.Type is not("line" or "arrow" or "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star" or "curve" or "arc" or "tape"))throw new ArgumentException("Only a completed construction shape can use this transaction.",nameof(item));
+        return AppendCompletedObject(item,false);
+    }
+    private BoardObject AppendCompletedObject(BoardObject item,bool clearSelection)
+    {
+        if(HasTransaction||_previewMoves.Count!=0)throw new InvalidOperationException("Complete or cancel the current transaction before appending an object.");
+        var added=Add(item);if(clearSelection)SelectedId=null;
         using var trace=global::HeiBan.Windows.Diagnostics.InputLatencyTrace.Measure(global::HeiBan.Windows.Diagnostics.InputStage.InkSnapshot);
         var snapshot=DocumentCodec.Clone(added);
         _undo.Add(new(null,DocumentSnapshot.EstimatedBytes(snapshot),snapshot,Document.Objects.Count-1));
@@ -147,25 +172,25 @@ public sealed class EditorSession
     public bool EraseChanged(InkPoint center,double radius,bool wholeObject)
     {
         var changed=false;
-        for(var objectIndex=Document.Objects.Count-1;objectIndex>=0;objectIndex--)
+        foreach(var candidate in EraseCandidates(new(center.X-radius,center.Y-radius,center.X+radius,center.Y+radius)))
         {
-            var o=Document.Objects[objectIndex];
+            var o=candidate.Item;
             if(o.IsVisible==false||o.IsLocked==true||!o.IsErasable||Document.Board.CanvasMode=="notebook"&&o.PageId is not null&&o.PageId!=Document.Board.ActivePageId)continue;
             if (!wholeObject && o.Type is not ("stroke" or "pen" or "highlighter" or "paint")) continue;
             if (!VectorMath.IsPointInObject(center, o, radius)) continue;
-            if (wholeObject || o.ParsedPoints.Count == 0) { Document.Objects.RemoveAt(objectIndex);changed=true;continue; }
+            if (wholeObject || o.ParsedPoints.Count == 0) { RemoveErased(o,candidate.Index);changed=true;continue; }
             IReadOnlyList<InkPoint> world=o.Rotation==0?o.ParsedPoints:o.ParsedPoints.Select(p=>{var copy=p.Snapshot();var at=ObjectHandles.ToWorld(o,p);copy.X=at.X;copy.Y=at.Y;return copy;}).ToArray();
             var fragments = StrokeGeometry.Erase(world, center, radius + o.StrokeWidth / 2);
             if (fragments.Count == 1 && fragments[0].Count == world.Count &&
                 fragments[0].Zip(world).All(p => p.First.X == p.Second.X && p.First.Y == p.Second.Y)) continue;
-            Document.Objects.RemoveAt(objectIndex);changed=true;var index=objectIndex;
+            var index=RemoveErased(o,candidate.Index);changed=true;
             foreach (var fragment in fragments)
             {
                 var copy = DocumentCodec.Clone(o); copy.Id = Guid.NewGuid().ToString();copy.Rotation=0;
                 copy.SetOwnedInkPoints(fragment);
                 var box = VectorMath.ComputeBoundingBox(fragment, o.StrokeWidth);
                 copy.X = box.MinX; copy.Y = box.MinY; copy.Width = box.Width; copy.Height = box.Height;
-                Document.Objects.Insert(index++,copy);
+                InsertFragment(index++,copy);
             }
         }
         return changed;
@@ -181,14 +206,15 @@ public sealed class EditorSession
         var changed=false;
         // Walk backward so newly inserted fragments are skipped in this contact.
         // Avoid allocating a full eligible-object array for each swept sample.
-        for(var objectIndex=Document.Objects.Count-1;objectIndex>=0;objectIndex--)
+        var bounds=new VectorMath.RectBounds(footprint.Corners.Min(p=>p.X),footprint.Corners.Min(p=>p.Y),footprint.Corners.Max(p=>p.X),footprint.Corners.Max(p=>p.Y));
+        foreach(var candidate in EraseCandidates(bounds))
         {
-            var item=Document.Objects[objectIndex];
+            var item=candidate.Item;
             if(item.IsVisible==false||item.IsLocked==true||!item.IsErasable||
                 Document.Board.CanvasMode=="notebook"&&item.PageId is not null&&item.PageId!=Document.Board.ActivePageId)continue;
             if(!wholeObject&&item.Type is not("stroke" or "pen" or "highlighter" or "paint"))continue;
             if(!RectangularEraser.Intersects(item,footprint))continue;
-            if(wholeObject||item.ParsedPoints.Count==0){Document.Objects.RemoveAt(objectIndex);changed=true;continue;}
+            if(wholeObject||item.ParsedPoints.Count==0){RemoveErased(item,candidate.Index);changed=true;continue;}
             // Bake the old rotation into points before computing fragment bounds. Leaving
             // rotation on each fragment would rotate it around a different center.
             IReadOnlyList<InkPoint> world=item.Rotation==0?item.ParsedPoints:
@@ -196,13 +222,13 @@ public sealed class EditorSession
             var pad=item.StrokeWidth/2;
             var fragments=footprint.Split(world,pad);
             if(fragments.Count==1&&fragments[0].Count==world.Count&&fragments[0].Zip(world).All(pair=>pair.First.X==pair.Second.X&&pair.First.Y==pair.Second.Y))continue;
-            var index=objectIndex;Document.Objects.RemoveAt(index);changed=true;
+            var index=RemoveErased(item,candidate.Index);changed=true;
             foreach(var fragment in fragments)
             {
                 var copy=DocumentCodec.Clone(item);copy.Id=Guid.NewGuid().ToString();copy.Rotation=0;
                 copy.SetOwnedInkPoints(fragment);
-                var bounds=VectorMath.ComputeBoundingBox(fragment,item.StrokeWidth);copy.X=bounds.MinX;copy.Y=bounds.MinY;copy.Width=bounds.Width;copy.Height=bounds.Height;
-                Document.Objects.Insert(index++,copy);
+                var box=VectorMath.ComputeBoundingBox(fragment,item.StrokeWidth);copy.X=box.MinX;copy.Y=box.MinY;copy.Width=box.Width;copy.Height=box.Height;
+                InsertFragment(index++,copy);
             }
         }
         return changed;

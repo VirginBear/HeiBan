@@ -25,7 +25,12 @@ public sealed class DocumentSessionManager
     public string BoardPath(string id) => Path.Combine(DataDirectory, "Boards", Key(id) + ".blackboard.json");
     public string ThumbnailPath(string id) => Path.Combine(DataDirectory, "Thumbnails", Key(id) + ".png");
     private static string Key(string id) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(id))).ToLowerInvariant();
-    public async Task SaveAsync(HeiBanDocument snapshot, CancellationToken cancellationToken = default)
+    public Task SaveAsync(HeiBanDocument document,CancellationToken cancellationToken=default)
+        =>SaveCoreAsync(document,false,cancellationToken);
+    /// <summary>The caller must not read or mutate this isolated snapshot until the task finishes.</summary>
+    public Task SaveOwnedSnapshotAsync(HeiBanDocument snapshot,CancellationToken cancellationToken=default)
+        =>SaveCoreAsync(snapshot,true,cancellationToken);
+    private async Task SaveCoreAsync(HeiBanDocument snapshot,bool owned,CancellationToken cancellationToken)
     {
         await _gate.WaitAsync(cancellationToken);
         try
@@ -39,11 +44,12 @@ public sealed class DocumentSessionManager
                 if (disk.Board.Revision > snapshot.Board.Revision)
                     throw new IOException("磁碟上的黑板較新；請重新開啟，或匯出副本以保留目前內容。");
             }
-            var next = DocumentCodec.Clone(snapshot);
-            next.Board.Revision++;
-            next.Board.UpdatedAt = next.ExportedAt = DateTime.UtcNow.ToString("o");
-            next.Board.ItemCount = next.Objects.Count;
-            await WriteAtomicAsync(path, DocumentCodec.Encode(next), cancellationToken);
+            var next = owned ? snapshot : DocumentCodec.Clone(snapshot);
+            var previousBoard=next.Board;var previousExported=next.ExportedAt;
+            next.Board=DocumentCodec.Clone(previousBoard);next.Board.Revision++;
+            next.Board.UpdatedAt=next.ExportedAt=DateTime.UtcNow.ToString("o");next.Board.ItemCount=next.Objects.Count;
+            try{await WriteAtomicAsync(path,DocumentCodec.Encode(next),cancellationToken);}
+            catch{next.Board=previousBoard;next.ExportedAt=previousExported;throw;}
             snapshot.Board.Revision = next.Board.Revision;
             snapshot.Board.UpdatedAt = next.Board.UpdatedAt;
             // Metadata is recoverable derived data. The board remains the source of truth.

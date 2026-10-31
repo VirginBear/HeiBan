@@ -193,7 +193,7 @@ public partial class MainWindow : Window
         {
             var generation=_session.Generation;var epoch=_session.DocumentEpoch;
             var snapshot=DocumentCodec.Clone(_session.Document);_saving=true;StatusText.Text=T("儲存中…");
-            await Task.Run(()=>_storage.SaveAsync(snapshot));
+            await Task.Run(()=>_storage.SaveOwnedSnapshotAsync(snapshot));
             if(epoch==_session.DocumentEpoch)
             {
                 _session.MarkSaved(generation,snapshot.Board.Revision);_saveFailed=false;_saving=false;

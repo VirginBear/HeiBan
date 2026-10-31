@@ -15,6 +15,7 @@ internal sealed class BoardEraserWork
     private readonly double? _circleRadius;
     private InkPoint? _last;
     private int _cancelled;
+    private bool _indexPrepared;
     public bool Changed {get;private set;}
     internal void Cancel()=>Volatile.Write(ref _cancelled,1);
     internal BoardEraserWork(HeiBanDocument document,ViewportTransform viewport,double gripX,double gripY,bool whole)
@@ -25,6 +26,9 @@ internal sealed class BoardEraserWork
     internal HeiBanDocument? Apply(IReadOnlyList<InkPoint> samples)
     {
         using var trace=InputLatencyTrace.Measure(InputStage.EraserApply);
+        // Index construction can inspect old geometry. Keep it on this worker,
+        // never on the pointer-down/UI constructor path.
+        if(!_indexPrepared){_editor.EnableEraserCandidateIndex();_indexPrepared=true;}
         var changed=false;
         foreach(var point in samples)
         {
