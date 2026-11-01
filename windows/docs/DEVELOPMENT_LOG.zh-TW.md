@@ -1,5 +1,31 @@
 # HeiBan Windows 開發日誌
 
+## 2026-11-01 — 螢幕畫布工具列能力全對齊／尺規・圓規・計算機・計時器・膠帶／自訂工具列對齊／套索修復／移除多餘調色盤
+
+### 1. 目的與範圍
+- **目的**：全面落實使用者對螢幕畫布工具列的嚴格對齊要求（以一般畫布為準，除排除「圖釘」「鎖定視角」並增加「作畫/操作切換」「結束」外，其餘能力與概念完全相同）；補齊尺規、圓規、計算機、計時器、膠帶、圖片匯入、停靠選單、延伸線；修復套索多選無法使用與判定缺陷；移除獨立調色盤按鈕。
+- **範圍**：Windows 平台專用，修改 `ToolbarContentPolicy.cs`、`LassoSelection.cs`、`RadialChecks.cs`、`ScreenAnnotationWindow.Chrome.cs`、`ScreenAnnotationWindow.Docking.cs`、`ScreenAnnotationWindow.Panels.cs`、`ScreenAnnotationWindow.cs`，新增 `ScreenAnnotationWindow.Ruler.cs`、`ScreenAnnotationWindow.Compass.cs`、`ScreenAnnotationWindow.Teaching.cs`。
+- **版本**：維持 `1.0.18`。
+
+### 2. 實作變更與理由
+1. **螢幕畫布工具能力全對齊（尺規、圓規、計算機、計時器、膠帶、圖片匯入、停靠、延伸線）**：
+   - 理由：先前螢幕畫布被過度限縮在 22 項工具（`ScreenCanvasToolSet`），缺少教學重要工具。
+   - 變更：`ToolbarContentPolicy.IsAvailableOnScreen` 調整為 `!ScreenNavigationOnly.Contains(key) && (ToolbarPreferences.AllDefaultTools.Contains(key) || key == "radialSettings")`；為螢幕畫布撰寫尺規、圓規、計算機、計時器實體處理邏輯，並串接遮題膠帶、圖片匯入、停靠位置與延伸直線。
+2. **自訂工具列對齊主畫布**：
+   - 理由：螢幕畫布原有的自訂工具列僅為簡單子選單，無法上下調整順序、無常用設定、無法直觀管理。
+   - 變更：實作 `ShowScreenCustomizeToolbarDialog`，以 WinUI `ContentDialog` 提供完整上下順序調整（↑/↓）、常用核取、啟用切換、顯示格式切換與批次重設。
+3. **移除螢幕畫布獨立調色盤**：
+   - 理由：一般畫布工具列無獨立調色盤按鈕，顏色由筆刷浮窗提供；螢幕畫布額外存在的 `palette` 造成使用者疑惑。
+   - 變更：刪除 `_paletteButton`、`ShowScreenPalette` 與相關引用。
+4. **修復螢幕畫布套索多選無法使用**：
+   - 理由：使用者反應螢幕畫布套索根本無法使用。
+   - 變更：在套索放開時將 `_tool` 設為 `"select"`、游標切換為選取、呼叫 `RefreshButtons()` 與 `Changed()` 呈現選取框與手柄；並於 `LassoSelection.Intersects` 增加對筆跡點列 `ParsedPoints` 內部檢查。
+
+### 3. 測試與驗收
+- `HeiBan.Windows.Core.Tests`：2,365 項測試全數 PASS。
+- `HeiBan.Windows.OptimizationChecks`：65 項檢查全數通過。
+- `HeiBan.Windows`：x64 Release 建置成功（0 警告 0 錯誤）。
+
 ## 2026-10-31 — 工具輪盤設定選單收納／開關狀態加粗／雷射面板收折即時套用／螢幕雷射卡頓與斷落修復
 
 ### 1. 目的與範圍

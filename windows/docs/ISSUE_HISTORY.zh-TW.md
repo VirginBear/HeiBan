@@ -1,5 +1,13 @@
 # Windows 問題與排解紀錄
 
+## 2026-11-01 — 螢幕畫布工具功能缺失、調色盤重複與套索選取失效
+
+1. **螢幕畫布功能缺失（尺規、圓規、計算機、計時器、膠帶等）**：先前 `ToolbarContentPolicy.ScreenCanvasToolSet` 為保守隔離名單，未接入尺規、圓規、計算機與計時器實體處理。排解：解除硬編碼清單，為螢幕畫布新增 `ScreenAnnotationWindow.Ruler.cs`、`ScreenAnnotationWindow.Compass.cs`、`ScreenAnnotationWindow.Teaching.cs`，並接入膠帶、圖片匯入與延伸直線，使雙畫布除圖釘與鎖定視角外全面對齊。
+2. **螢幕畫布多出非標準的 PALETTE 按鈕**：先前於螢幕畫布額外掛載獨立調色盤按鈕。排解：移除該按鈕與選單項，顏色調整統一回歸筆刷與物件樣式面板。
+3. **螢幕畫布套索多選無法使用之缺陷**：
+   - 原因：套索放開時未將 `_tool` 切換為 `"select"`，導致 Direct2D 不繪製選取外框與控制把手，且後續滑鼠操作皆被當成重新套索；另 `LassoSelection.Intersects` 對內部筆跡缺少點列相交比對。
+   - 排解：套索放開後切換為選取工具、更新游標並呈現選取框；`LassoSelection.Intersects` 新增對 `ParsedPoints` 點列的包含與交錯判定。
+
 ## 2026-10-31 — 工具輪盤純文字選單與螢幕畫布繪圖操控延遲
 
 1. **工具輪盤設定僅有純文字下拉選單且無法保存多組配置**：原 `RadialWheelSettingsWindow` 使用純字串 `ComboBox`，缺乏圖示辨識且僅能覆寫單一配置。排解：`RadialToolProfile` 新增 `Presets` 組合清單與內建模板，視窗頂端加入組合切換（含 8 格圖示預覽）與命名存檔／刪除功能；1～8 格改為圖示＋名稱按鈕，點擊展開三欄式明確向量圖示挑選浮窗。

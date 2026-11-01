@@ -15,7 +15,7 @@ internal static class RadialChecks
         var original=canvas.Slots.ToArray();var a=0;var b=4;canvas.Assign(a,original[b],false);
         check(canvas.Slots[a]==original[b]&&canvas.Slots[b]==original[a],"Dragging an existing tool must exchange positions");
         var before=string.Join(",",screen.Slots);
-        check(!screen.Assign(1,"pins",true)&&!screen.Assign(1,"calculator",true)&&!screen.Assign(1,"arbitrary.exe",true)&&!screen.Assign(-1,"pen",true)&&before==string.Join(",",screen.Slots),"Unsupported drag modified screen profile");
+        check(!screen.Assign(1,"pins",true)&&!screen.Assign(1,"viewLock",true)&&!screen.Assign(1,"arbitrary.exe",true)&&!screen.Assign(-1,"pen",true)&&before==string.Join(",",screen.Slots),"Unsupported drag modified screen profile");
         check(!RadialToolProfile.Allowed("extension",false),"Deprecated toolbar action exposed");
         var brush=screen.Slots.IndexOf("brush");before=string.Join(",",screen.Slots);
         check(screen.Take(brush,"laser")=="brush"&&before==string.Join(",",screen.Slots),"Settings command incorrectly exchanges held tool");

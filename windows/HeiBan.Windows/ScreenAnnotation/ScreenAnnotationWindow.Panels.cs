@@ -19,7 +19,6 @@ internal sealed partial class ScreenAnnotationWindow
     private string? _screenDragId,_screenDropId;
     private bool _screenDropAfter;
     private long _screenDragEpoch;
-    private Button _paletteButton=null!;
     private void ShowScreenLayers()
     {
         _screenLayerPreview?.End();_screenDragId=_screenDropId=null;
@@ -107,15 +106,6 @@ internal sealed partial class ScreenAnnotationWindow
         if(_screenDragEpoch==_session.DocumentEpoch&&id is not null&&target is not null&&LayerReorder.Move(_session,id,target,after))Changed();e.Handled=true;
     }
     private void ScreenLayerGrip_Canceled(object sender,PointerRoutedEventArgs e){_screenDragId=_screenDropId=null;_screenLayerPreview?.End();if(_screenLayerHint is not null)_screenLayerHint.Text=T("上層在前；拖曳灰色雙槓調整順序");}
-
-    private void ShowScreenPalette()
-    {
-        var panel=new StackPanel{Width=260,Spacing=10,Children={new TextBlock{Text=T("調色盤 · 線條／文字色"),FontSize=16}}};
-        var wheel=new ColorPicker{Color=Direct2DCanvasRenderer.HexToColor(StyleSelection?.StrokeColor??_color),Width=260,ColorSpectrumShape=ColorSpectrumShape.Ring,IsHexInputVisible=true,IsColorChannelTextInputVisible=false,IsAlphaEnabled=true};
-        panel.Children.Add(new PaletteEditor(_owner.ProfilePalette,()=>$"#{wheel.Color.R:X2}{wheel.Color.G:X2}{wheel.Color.B:X2}{wheel.Color.A:X2}",c=>wheel.Color=Direct2DCanvasRenderer.HexToColor(c),wheel));
-        wheel.ColorChanged+=(_,e)=>SetScreenColor($"#{e.NewColor.R:X2}{e.NewColor.G:X2}{e.NewColor.B:X2}{e.NewColor.A:X2}");panel.Children.Add(wheel);
-        panel.Children.Add(new TextBlock{Text=T("填色請使用工具列的填滿按鈕。"),FontSize=12});ShowChromeFlyout(new Flyout{Content=panel},_paletteButton);
-    }
 
     private System.Numerics.Vector2? _screenEraserPointer;
     private Rect? _lastEraserDamage;

@@ -4,18 +4,12 @@ namespace HeiBan.Windows.Engine;
 public static class ToolbarContentPolicy
 {
     private static readonly HashSet<string> ScreenNavigationOnly = ["pins", "viewLock"];
-    // This is the screen host's implemented capability set, not a second toolbar definition.
-    // New catalog entries stay hidden there until a real command/session adapter exists.
-    private static readonly HashSet<string> ScreenCanvasToolSet =
-    [
-        "select", "pen", "curve", "highlighter", "paint", "eraser", "shapes", "sticky", "text",
-        "screenshot", "brush", "dash", "undo", "redo", "laser", "cane", "layers", "lasso", "tape", "magnet", "clearAll", "radialSettings"
-    ];
 
     public static IReadOnlyList<string> ScreenCanvasTools { get; } =
-        ToolbarPreferences.AllDefaultTools.Where(ScreenCanvasToolSet.Contains).ToArray();
+        ToolbarPreferences.AllDefaultTools.Where(IsAvailableOnScreen).ToArray();
 
-    public static bool IsAvailableOnScreen(string key) => ScreenCanvasToolSet.Contains(key);
+    public static bool IsAvailableOnScreen(string key) =>
+        !ScreenNavigationOnly.Contains(key) && (ToolbarPreferences.AllDefaultTools.Contains(key) || key == "radialSettings");
 
     /// <summary>Returns the saved order after applying only host capabilities; it never mutates or persists preferences.</summary>
     public static IReadOnlyList<string> VisibleTools(ToolbarPreferences preferences, bool screenCanvas)

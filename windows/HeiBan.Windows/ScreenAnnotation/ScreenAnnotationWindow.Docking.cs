@@ -58,7 +58,7 @@ internal sealed partial class ScreenAnnotationWindow
         foreach(var button in _buttons.Where(pair=>!ToolbarPreferences.AllDefaultTools.Contains(pair.Key)).Select(pair=>pair.Value)
                     .Concat(_chromeActions.Where(button=>button.Tag is null||!ToolbarPreferences.AllDefaultTools.Contains((string)button.Tag))))
             if(!ordered.Contains(button))ordered.Add(button);
-        _labeledScreenFlow=ToolbarUi.Arrange(_chromeTools,ordered.Select(b=>(b.Tag as string??"palette",b)),_toolbarPreferences.DisplayMode=="labels",vertical,_toolbarPage,p=>{_toolbarPage=p;DispatcherQueue.TryEnqueue(()=>{ResizeChrome();PositionChrome();});},32,_toolbarPreferences.CommonTools);
+        _labeledScreenFlow=ToolbarUi.Arrange(_chromeTools,ordered.Select(b=>(b.Tag as string??"",b)),_toolbarPreferences.DisplayMode=="labels",vertical,_toolbarPage,p=>{_toolbarPage=p;DispatcherQueue.TryEnqueue(()=>{ResizeChrome();PositionChrome();});},32,_toolbarPreferences.CommonTools);
         if(!vertical&&!_collapsed)_chromeTools.Children.Add(_moreButton);
         _chromeEnd=new StackPanel{Orientation=orientation,Spacing=4,VerticalAlignment=VerticalAlignment.Center,HorizontalAlignment=HorizontalAlignment.Center};
         if(_collapsed)_chromeEnd.Children.Add(_clearButton);if(vertical||_collapsed)_chromeEnd.Children.Add(_moreButton);_chromeEnd.Children.Add(_closeButton);

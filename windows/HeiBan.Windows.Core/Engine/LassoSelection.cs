@@ -13,8 +13,21 @@ public static class LassoSelection
     {
         if(polygon.Count<3||o.IsVisible==false)return false;
         var corners=new[]{new InkPoint(o.X,o.Y),new InkPoint(o.X+o.Width,o.Y),new InkPoint(o.X+o.Width,o.Y+o.Height),new InkPoint(o.X,o.Y+o.Height)}.Select(p=>ObjectHandles.ToWorld(o,p)).ToArray();
-        if(corners.Any(p=>Contains(p,polygon))||Contains(ObjectHandles.Center(o),polygon)||polygon.Any(p=>VectorMath.IsPointInObject(p,o,0)))return true;
+        if(corners.Any(p=>Contains(p,polygon))||Contains(ObjectHandles.Center(o),polygon)||polygon.Any(p=>VectorMath.IsPointInObject(p,o,6)))return true;
         for(var i=0;i<polygon.Count;i++)for(var j=0;j<4;j++)if(Crosses(polygon[i],polygon[(i+1)%polygon.Count],corners[j],corners[(j+1)%4]))return true;
+        if(o.ParsedPoints.Count>0)
+        {
+            var pts=o.Rotation==0?o.ParsedPoints:o.ParsedPoints.Select(p=>ObjectHandles.ToWorld(o,p)).ToArray();
+            if(pts.Any(p=>Contains(p,polygon)))return true;
+            for(var i=0;i<polygon.Count;i++)
+            {
+                var p1=polygon[i];var p2=polygon[(i+1)%polygon.Count];
+                for(var j=0;j<pts.Count-1;j++)
+                {
+                    if(Crosses(p1,p2,pts[j],pts[j+1]))return true;
+                }
+            }
+        }
         return false;
     }
     private static bool Crosses(InkPoint a,InkPoint b,InkPoint c,InkPoint d)
