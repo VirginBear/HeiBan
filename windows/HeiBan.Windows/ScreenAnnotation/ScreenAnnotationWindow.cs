@@ -134,7 +134,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         _laser.Clear();_dirty=_fullDamage=_committedDirty=true;if(!value)NativeOverlayWindow.RestoreFocus(_lastExternal);
     }
     private void RememberExternalFocus()
-    {var current=NativeOverlayWindow.CurrentForeground;if(current!=0&&current!=_overlay.Handle&&current!=WinRT.Interop.WindowNative.GetWindowHandle(this)&&current!=WinRT.Interop.WindowNative.GetWindowHandle(_owner)&&current!=(_radialSettings?.Handle??0))_lastExternal=current;}
+    {var current=NativeOverlayWindow.CurrentForeground;if(current!=0&&current!=_overlay.Handle&&current!=WinRT.Interop.WindowNative.GetWindowHandle(this)&&current!=WinRT.Interop.WindowNative.GetWindowHandle(_owner)&&current!=(_radialSettings?.Handle??0)&&!IsAuxiliaryToolWindow(current))_lastExternal=current;}
     private void RefreshButtons()
     {
         foreach(var pair in _buttons)
@@ -194,7 +194,6 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             else if(_laser.IsPressed){_laser.Release();_dirty=true;}
             return;
         }
-        if(HandleCircularEraser(input,p))return;
         var vp=new System.Numerics.Vector2((float)p.X,(float)p.Y);
         if(_rulerEnabled)
         {
@@ -258,8 +257,8 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             }
             if(_tool is "pen" or "highlighter" or "paint")
             {
-                LatchRuler(vp);
-                p=ProjectOnRuler(p);
+                if(input.Kind=="down")LatchRuler(vp);
+                if(input.Kind=="down"||_start is not null&&input.Kind is "move" or "up")p=ProjectOnRuler(p);
             }
         }
         if(_compass.IsEnabled)
@@ -310,6 +309,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
                 }
             }
         }
+        if(HandleCircularEraser(input,p))return;
         if(input.Kind=="down"&&_tool is "pen" or "highlighter" or "paint")
         {_screenMagnetIndex=null;_screenMagnetTarget=null;} // No snap lookup or stale reference index during freehand ink.
         if(IsMagnetDrawingTool(_tool))
@@ -553,7 +553,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         if(_laser.Samples.Count>0){_laser.Release();_dirty=true;}
         CancelCircularEraser();
         CommitScreenStyle();var committedChanged=_session.HasTransaction;var previewVisible=_preview is not null||_points.Count>0;
-        _rulerMoving=_rulerRotating=_rulerPivotMoving=_rulerResizingLeft=_rulerResizingRight=false;_compassCenterMoving=_compassCenterMoved=_compassRadiusMoving=_compassPencilMoving=false;_compass.Prepare();_straightenTimer.Stop();_penHoldAnchor=null;_screenPenStraight=false;DamagePreview();_session.Cancel();_curveAnchors.Clear();_marquee=false;_points.Clear();_start=_last=null;_preview=null;_handle=null;_renderer.ResetLive();
+        _snapEdge=null;_rulerMoving=_rulerRotating=_rulerPivotMoving=_rulerResizingLeft=_rulerResizingRight=false;_compassCenterMoving=_compassCenterMoved=_compassRadiusMoving=_compassPencilMoving=false;_compass.Prepare();_straightenTimer.Stop();_penHoldAnchor=null;_screenPenStraight=false;DamagePreview();_session.Cancel();_curveAnchors.Clear();_marquee=false;_points.Clear();_start=_last=null;_preview=null;_handle=null;_renderer.ResetLive();
         if(committedChanged){_dirty=_fullDamage=_committedDirty=true;_damage=null;}else if(previewVisible)_dirty=true;
     }
     private async Task<bool> SaveAsync()
@@ -688,6 +688,6 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     }
     public void Dispose()
     {
-        if(_disposed)return;_radialSaveTimer.Stop();_radialSettings?.Close();CancelRadial();CancelCircularEraser();FinishScreenText();_disposed=true;_captureCancellation?.Cancel();_renderTimer.Stop();_focusRememberTimer.Stop();_straightenTimer.Stop();_saveTimer.Stop();_styleCommitTimer.Stop();_dockTimer.Stop();DisposeEraserPatch();_target?.Dispose();_committed?.Dispose();_renderer.Dispose();_sessionLease?.Dispose();_sessionLease=null;_overlay.Dispose();Close();
+        if(_disposed)return;CloseFloatingTeachingTools();_customizeToolbarWindow?.Close();_customizeToolbarWindow=null;_radialSaveTimer.Stop();_radialSettings?.Close();CancelRadial();CancelCircularEraser();FinishScreenText();_disposed=true;_captureCancellation?.Cancel();_renderTimer.Stop();_focusRememberTimer.Stop();_straightenTimer.Stop();_saveTimer.Stop();_styleCommitTimer.Stop();_dockTimer.Stop();DisposeEraserPatch();_target?.Dispose();_committed?.Dispose();_renderer.Dispose();_sessionLease?.Dispose();_sessionLease=null;_overlay.Dispose();Close();
     }
 }

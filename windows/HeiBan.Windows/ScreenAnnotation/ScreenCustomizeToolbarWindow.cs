@@ -14,7 +14,7 @@ internal sealed class ScreenCustomizeToolbarWindow : Window
 {
     internal nint Handle => WinRT.Interop.WindowNative.GetWindowHandle(this);
 
-    internal ScreenCustomizeToolbarWindow(ToolbarPreferences preferences, Func<Task> onSaved)
+    internal ScreenCustomizeToolbarWindow(ToolbarPreferences preferences, Func<Action<ToolbarPreferences>,Task> onSaved)
     {
         Title = T("自訂工具列 · 螢幕畫布");
 
@@ -194,51 +194,35 @@ internal sealed class ScreenCustomizeToolbarWindow : Window
             Padding = new Thickness(2)
         };
 
-        void ApplyChanges()
-        {
-            var newVisible = new List<string>();
-            var newHidden = new List<string>();
-            foreach (var key in allKeys)
-            {
-                if (visibleSet.Contains(key)) newVisible.Add(key);
-                else newHidden.Add(key);
-            }
-            if (newVisible.Count == 0) newVisible.Add("select");
-
-            preferences.DisplayMode = displayMode;
-            preferences.CommonTools = allKeys.Where(commonSet.Contains).ToList();
-            preferences.VisibleTools = newVisible;
-            preferences.HiddenTools = newHidden;
-        }
-
+        var status=new TextBlock{TextWrapping=TextWrapping.Wrap,Visibility=Visibility.Collapsed};
         var bottomBar = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Spacing = 8, Margin = new Thickness(0, 10, 0, 0) };
         var cancelBtn = new Button { Content = T("取消"), MinWidth = 80 };
         var applyBtn = new Button { Content = T("套用"), MinWidth = 80 };
         var saveBtn = new Button { Content = T("儲存"), MinWidth = 80, Style = (Style)Application.Current.Resources["AccentButtonStyle"] };
-
+        var saving=false;var closed=false;Closed+=(_,_)=>closed=true;
+        async Task SaveChangesAsync(bool close)
+        {
+            if(saving)return;saving=true;applyBtn.IsEnabled=saveBtn.IsEnabled=cancelBtn.IsEnabled=scroll.IsEnabled=false;
+            var order=allKeys.ToArray();var visible=visibleSet.ToHashSet();var common=commonSet.ToHashSet();var mode=displayMode;
+            try
+            {
+                await onSaved(prefs=>prefs.ApplyToolSubset(order,visible,common,mode));
+                if(!closed){status.Text=T("設定已儲存");status.Visibility=Visibility.Visible;if(close)Close();}
+            }
+            catch(Exception error){if(!closed){status.Text=T("工具列設定未保存：")+error.Message;status.Visibility=Visibility.Visible;}}
+            finally{saving=false;if(!closed)applyBtn.IsEnabled=saveBtn.IsEnabled=cancelBtn.IsEnabled=scroll.IsEnabled=true;}
+        }
         cancelBtn.Click += (_, _) => Close();
-        applyBtn.Click += async (_, _) =>
-        {
-            ApplyChanges();
-            await onSaved();
-        };
-        saveBtn.Click += async (_, _) =>
-        {
-            ApplyChanges();
-            await onSaved();
-            Close();
-        };
+        applyBtn.Click += async (_, _) => await SaveChangesAsync(false);
+        saveBtn.Click += async (_, _) => await SaveChangesAsync(true);
 
         bottomBar.Children.Add(cancelBtn);
         bottomBar.Children.Add(applyBtn);
         bottomBar.Children.Add(saveBtn);
 
-        var mainLayout = new StackPanel
-        {
-            Spacing = 10,
-            Padding = new Thickness(16),
-            Children = { header, hint, scroll, bottomBar }
-        };
+        scroll.MaxHeight=double.PositiveInfinity;
+        var mainLayout=new Grid{RowSpacing=10,Padding=new Thickness(16),RowDefinitions={new(){Height=GridLength.Auto},new(){Height=GridLength.Auto},new(){Height=new GridLength(1,GridUnitType.Star)},new(){Height=GridLength.Auto},new(){Height=GridLength.Auto}}};
+        foreach(var (element,row) in new (FrameworkElement,int)[]{(header,0),(hint,1),(scroll,2),(status,3),(bottomBar,4)}){Grid.SetRow(element,row);mainLayout.Children.Add(element);}
 
         var root = new Grid
         {
@@ -247,6 +231,7 @@ internal sealed class ScreenCustomizeToolbarWindow : Window
                 new RowDefinition { Height = GridLength.Auto },
                 new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }
             },
+            FlowDirection=RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,
             RequestedTheme = ElementTheme.Light,
             Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 252, 252, 250))
         };

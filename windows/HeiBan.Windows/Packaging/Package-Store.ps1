@@ -77,6 +77,9 @@ function Read-StorePackage([string]$path,[string]$architecture) {
         $guideRoot=Join-Path $PSScriptRoot '..\Assets\Guides'
         $guideFiles=@(Get-ChildItem -LiteralPath $guideRoot -File)
         foreach($guideFile in $guideFiles){$sourceFiles+=@{source=$guideFile.FullName;entry='Assets/Guides/'+$guideFile.Name}}
+        $iconRoot=Join-Path $PSScriptRoot '..\Assets\MenuIcons'
+        $menuIcons=@(Get-ChildItem -LiteralPath $iconRoot -Filter '*.svg' -File)
+        foreach($icon in $menuIcons){$sourceFiles+=@{source=$icon.FullName;entry='Assets/MenuIcons/'+$icon.Name}}
         foreach($file in $sourceFiles){
             $entry=$zip.GetEntry($file.entry)
             if(-not $entry){throw "Missing original document: $($file.entry)"}
@@ -84,7 +87,7 @@ function Read-StorePackage([string]$path,[string]$architecture) {
             try {$hash=[BitConverter]::ToString($sha.ComputeHash($stream)).Replace('-','')}finally{$stream.Dispose();$sha.Dispose()}
             if($hash -ne (Get-FileHash -LiteralPath $file.source -Algorithm SHA256).Hash){throw "Changed original document: $($file.entry)"}
         }
-        return @{architecture=$architecture;entries=$zip.Entries.Count;legalDocuments=$sourceFiles.Count-2-$guideFiles.Count;guideDocuments=$guideFiles.Count;identityMatched=$true;runtimeMode=$RuntimeMode;runtimeDependencies=@($runtimeDependencies | ForEach-Object {@{name=$_.Name;publisher=$_.Publisher;minVersion=$_.MinVersion}});requiredPayloadPresent=$true;originalDocumentsMatched=$true;noUserDataOrStandaloneUpdater=$true;appExecutionChecked=$false}
+        return @{architecture=$architecture;entries=$zip.Entries.Count;legalDocuments=$sourceFiles.Count-2-$guideFiles.Count-$menuIcons.Count;guideDocuments=$guideFiles.Count;menuIcons=$menuIcons.Count;identityMatched=$true;runtimeMode=$RuntimeMode;runtimeDependencies=@($runtimeDependencies | ForEach-Object {@{name=$_.Name;publisher=$_.Publisher;minVersion=$_.MinVersion}});requiredPayloadPresent=$true;originalDocumentsMatched=$true;noUserDataOrStandaloneUpdater=$true;appExecutionChecked=$false}
     }finally{$zip.Dispose()}
 }
 foreach($arch in @('x64','arm64')) {

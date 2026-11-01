@@ -83,6 +83,7 @@ internal sealed class ScreenFloatingToolWindow : Window
                 new RowDefinition { Height = GridLength.Auto },
                 new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }
             },
+            FlowDirection=RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,
             RequestedTheme = ElementTheme.Light,
             Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 252, 252, 250))
         };
@@ -129,10 +130,12 @@ internal sealed class ScreenFloatingToolWindow : Window
         var isCollapsed = false;
         collapseBtn.Click += (_, _) =>
         {
+            scale=NativeOverlayWindow.DpiScale(Handle);
+            area=DisplayArea.GetFromWindowId(AppWindow.Id,DisplayAreaFallback.Nearest).WorkArea;
             isCollapsed = !isCollapsed;
             scroll.Visibility = isCollapsed ? Visibility.Collapsed : Visibility.Visible;
             var targetHeight = isCollapsed ? (int)(38 * scale) : Math.Min(area.Height - 24, (int)(heightDips * scale));
-            AppWindow.Resize(new SizeInt32(AppWindow.Size.Width, targetHeight));
+            AppWindow.Resize(new SizeInt32(Math.Min(area.Width-24,AppWindow.Size.Width), targetHeight));
         };
 
         closeBtn.Click += (_, _) =>

@@ -11,7 +11,8 @@ internal static class ToolIcons
 {
     // Cursor artwork shares the toolbar's original vectors; no second icon catalog.
     internal static string? CursorPath(string tool)=>Paths.GetValueOrDefault(tool);
-    internal static string? CommandPath(string key)=>CursorPath(key switch{"brush"=>"settings","clearAll"=>"delete","viewLock"=>"lock","radialSettings"=>"radial","operate"=>"select",""=>"empty",_=>key});
+    private static string CommandKey(string key)=>key switch{"brush"=>"settings","clearAll"=>"delete","viewLock"=>"lock","radialSettings"=>"radial","operate"=>"select",""=>"empty",_=>key};
+    internal static string? CommandPath(string key)=>CursorPath(CommandKey(key));
     private static readonly Dictionary<string,string> Paths=new()
     {
         ["empty"]="M6,13 L20,13",
@@ -98,6 +99,14 @@ internal static class ToolIcons
     {
         var path=CommandPath(name)??Paths["settings"];
         return (UIElement)XamlReader.Load($"<Viewbox xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' Width='18' Height='18'><Canvas Width='26' Height='26'><Path Data='{path}' Stroke='#26372F' StrokeThickness='1.7' StrokeStartLineCap='Round' StrokeEndLineCap='Round' StrokeLineJoin='Round'/></Canvas></Viewbox>");
+    }
+
+    public static IconElement CreateMenuIcon(string name)
+    {
+        var key=CommandKey(name);if(!Paths.ContainsKey(key))key="settings";
+        // MenuFlyout expects IconElement; ImageIcon keeps the original open paths
+        // stroked instead of filling them as PathIcon does. SVG stays sharp at 4K DPI.
+        return new ImageIcon{Width=20,Height=20,Source=new Microsoft.UI.Xaml.Media.Imaging.SvgImageSource(new Uri("ms-appx:///Assets/MenuIcons/"+key+".svg"))};
     }
 
     public static IconElement CreateIcon(string name)

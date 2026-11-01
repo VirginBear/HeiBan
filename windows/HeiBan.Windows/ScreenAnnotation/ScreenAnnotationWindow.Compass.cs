@@ -92,12 +92,14 @@ internal sealed partial class ScreenAnnotationWindow
         panel.Children.Add(lockToggle);
 
         var fullCircleBtn = new Button { Content = T("生成整圓（360°）"), Style = (Style)Application.Current.Resources["AccentButtonStyle"], HorizontalAlignment = HorizontalAlignment.Stretch };
-        fullCircleBtn.Click += (_, _) =>
+        fullCircleBtn.Click += async (_, _) =>
         {
             _compass.StrokeColor = _color;
             _compass.StrokeWidth = _width * _dpiScale;
             _compass.LineStyle = _dash;
-            var circleObj = _compass.CreateArcObject("screen", "screen_page", fullCircle: true);
+            var epoch=_session.DocumentEpoch;
+            if(!await PrepareScreenEditAsync(epoch))return;
+            var circleObj = _compass.CreateArcObject(_session.Document.Board.Id, "screen_page", fullCircle: true);
             _session.Begin();
             _session.Add(circleObj);
             _session.SelectedId = circleObj.Id;

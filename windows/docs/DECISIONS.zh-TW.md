@@ -1,5 +1,10 @@
 # Windows 開發決策
 
+## 2026-11-01 — 1.1.0 子集合偏好、命令交易與選單向量
+
+螢幕工具列編輯僅合併可編輯子集合，不能以過濾後清單取代跨平台工具偏好。插入命令等待已結束手勢提交且驗證DocumentEpoch，不移除Generation護欄；仍按住的手勢不被延遲命令取消。隱藏WinUI樹重掛保留明確Children擁有者（弱鍵），不依賴未載入時的Parent。MenuFlyout的IconElement改用SVG ImageIcon保存原創開放描邊，避免PathIcon填色；工具列既有向量與操作入口沿用。驗證hook僅在明確HeiBanValidationBuild編入，與HeiBanStoreBuild同時指定會拒絕建置。Store維持SelfContained；FD與更大幅拆分另驗，不為宣稱減肥破壞安裝相容。
+
+
 ## 2026-11-01 — 工具列回歸經典邊界停靠／螢幕自訂工具列即時套用／浮動視窗純美化按鈕
 
 1. **撤除圖釘與方向按鈕，回歸經典邊界停靠**：

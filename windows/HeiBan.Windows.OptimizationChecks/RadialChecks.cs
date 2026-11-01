@@ -5,6 +5,14 @@ internal static class RadialChecks
 {
     internal static async Task Run(Action<bool,string> check,string directory)
     {
+        var preferences=ToolbarPreferences.CreateDefault();preferences.CommonTools.AddRange(new[]{"pins","viewLock"});
+        preferences.ExtraFields=new(){["futureLayout"]=JsonSerializer.SerializeToElement(5)};
+        var editable=preferences.VisibleTools.Concat(preferences.HiddenTools).Where(k=>k!="extension"&&ToolbarContentPolicy.IsAvailableOnScreen(k)).Distinct().Reverse().ToArray();
+        var visible=editable.Where(k=>k!="paint").ToHashSet();var common=editable.Where(k=>k is "pen" or "eraser").ToHashSet();
+        preferences.ApplyToolSubset(editable,visible,common,"icons");
+        check(preferences.VisibleTools.Contains("pins")&&preferences.VisibleTools.Contains("viewLock"),"Screen edits hide main-only tools");
+        check(preferences.CommonTools.Contains("pins")&&preferences.CommonTools.Contains("viewLock"),"Screen edits erase main-only favorites");
+        check(preferences.HiddenTools.Contains("paint")&&preferences.DisplayMode=="icons"&&preferences.ExtraFields["futureLayout"].GetInt32()==5,"Subset edit lost own choices/future fields");
         var canvas=new RadialToolProfile();canvas.Normalize(false);canvas.Reconcile("select");
         var screen=new RadialToolProfile();screen.Normalize(true);
         check(canvas.Slots.Count==8&&screen.Slots.Count==8&&canvas.Slots.Contains("pen")&&!canvas.Slots.Contains("operate")&&screen.Slots[7]=="operate","Host presets/startup reconciliation");

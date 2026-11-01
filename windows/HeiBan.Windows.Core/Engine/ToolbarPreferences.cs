@@ -144,6 +144,21 @@ public sealed class ToolbarPreferences
         }
     }
 
+    public void ApplyToolSubset(IReadOnlyList<string> order,IReadOnlySet<string> visible,IReadOnlySet<string> common,string displayMode)
+    {
+        var editable=order.Where(AllDefaultTools.Contains).Distinct().ToArray();var scope=editable.ToHashSet();
+        static List<string> Merge(IEnumerable<string> original,IEnumerable<string> replacement,HashSet<string> scope)
+        {
+            var pending=new Queue<string>(replacement);var result=new List<string>();
+            foreach(var key in original){if(!scope.Contains(key))result.Add(key);else if(pending.TryDequeue(out var next))result.Add(next);}
+            result.AddRange(pending);return result;
+        }
+        VisibleTools=Merge(VisibleTools,editable.Where(visible.Contains),scope);
+        HiddenTools=Merge(HiddenTools,editable.Where(k=>!visible.Contains(k)),scope);
+        CommonTools=Merge(CommonTools,editable.Where(common.Contains),scope);
+        DisplayMode=displayMode;Normalize();
+    }
+
     public void ResetToDefault()
     {
         DefaultToolsRevision=1;

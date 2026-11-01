@@ -16,9 +16,11 @@ internal sealed partial class ScreenAnnotationWindow
     private DispatcherTimer? _screenTimerTick;
     private ScreenFloatingToolWindow? _screenCalcWindow;
     private ScreenFloatingToolWindow? _screenTimerWindow;
+    private Action? _screenTimerDisplayUpdater;
 
     internal void CloseFloatingTeachingTools()
     {
+        _screenTimerTick?.Stop();_timerCoordinator.Pause();_screenTimerDisplayUpdater=null;
         _screenCalcWindow?.Close();
         _screenCalcWindow = null;
         _screenTimerWindow?.Close();
@@ -27,20 +29,18 @@ internal sealed partial class ScreenAnnotationWindow
 
     private void EnsureScreenTimerTick()
     {
-        if (_screenTimerTick is not null) return;
-        _screenTimerTick = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
-        _screenTimerTick.Tick += (_, _) =>
+        if(_screenTimerTick is null)
         {
-            if (_timerCoordinator.Status == TimerStatus.Running)
+            _screenTimerTick=new DispatcherTimer{Interval=TimeSpan.FromMilliseconds(100)};
+            _screenTimerTick.Tick+=(_,_)=>
             {
-                _timerCoordinator.UpdateDisplayTimes();
-                if (_timerCoordinator.DidAlertTimesUp)
-                {
-                    _status.Text = T("計時器：時間到！");
-                }
-            }
-        };
-        _screenTimerTick.Start();
+                if(!IsActive||_stopping){_screenTimerTick.Stop();return;}
+                _timerCoordinator.UpdateDisplayTimes();_screenTimerDisplayUpdater?.Invoke();
+                if(_timerCoordinator.DidAlertTimesUp)_status.Text=T("計時器：時間到！");
+                if(_timerCoordinator.Status!=TimerStatus.Running)_screenTimerTick.Stop();
+            };
+        }
+        if(IsActive&&_timerCoordinator.Status==TimerStatus.Running)_screenTimerTick.Start();else _screenTimerTick.Stop();
     }
 
     private void ShowScreenCalculatorPanel(FrameworkElement? anchor = null)
@@ -167,19 +167,11 @@ internal sealed partial class ScreenAnnotationWindow
 
         var actionsRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Margin = new Thickness(0, 6, 0, 0) };
         var insertBtn = new Button { Content = T("插入畫布"), Style = (Style)Application.Current.Resources["AccentButtonStyle"], FontSize = 12 };
-        insertBtn.Click += (_, _) =>
+        insertBtn.Click += async (_, _) =>
         {
-            var center = new InkPoint(_overlay.Width / 2, _overlay.Height / 2);
-            var textObj = _calculator.CreateBoardObject(center.X, center.Y, "screen", "screen_page", asExpression: true);
-            _session.Begin();
-            _session.Add(textObj);
-            _session.SelectedId = textObj.Id;
-            _session.Commit();
-            _tool = "select";
-            _overlay.SetManipulationCursor(null, null, _tool);
-            RefreshButtons();
-            Changed();
-            _status.Text = T("計算結果已插入畫布");
+            var epoch=_session.DocumentEpoch;var board=_session.Document.Board;
+            var textObj=_calculator.CreateBoardObject(_overlay.Width/2,_overlay.Height/2,board.Id,board.ActivePageId,asExpression:true);
+            await InsertScreenObjectAsync(textObj,epoch);
         };
         actionsRow.Children.Add(insertBtn);
 
@@ -276,7 +268,7 @@ internal sealed partial class ScreenAnnotationWindow
         {
             if (!double.IsFinite(customDuration.Value)) return;
             _timerCoordinator.Mode = TimerMode.Countdown;
-            _timerCoordinator.Reset();
+            _timerCoordinator.Reset();EnsureScreenTimerTick();
             _timerCoordinator.SetCountdownDuration(customDuration.Value);
             timeDisplay.Text = _timerCoordinator.FormattedTimeString();
         };
@@ -294,24 +286,22 @@ internal sealed partial class ScreenAnnotationWindow
         };
         var resetBtn = new Button { Content = T("重設"), HorizontalAlignment = HorizontalAlignment.Stretch };
 
-        DispatcherTimer? activeUpdater = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
-        activeUpdater.Tick += (_, _) =>
+        _screenTimerDisplayUpdater=()=>
         {
-            timeDisplay.Text = _timerCoordinator.FormattedTimeString();
-            playBtn.Content = _timerCoordinator.Status == TimerStatus.Running ? T("暫停") : T("開始");
+            timeDisplay.Text=_timerCoordinator.FormattedTimeString();
+            playBtn.Content=_timerCoordinator.Status==TimerStatus.Running?T("暫停"):T("開始");
         };
-        activeUpdater.Start();
 
         playBtn.Click += (_, _) =>
         {
-            _timerCoordinator.TogglePlayPause();
+            _timerCoordinator.TogglePlayPause();EnsureScreenTimerTick();
             playBtn.Content = _timerCoordinator.Status == TimerStatus.Running ? T("暫停") : T("開始");
             timeDisplay.Text = _timerCoordinator.FormattedTimeString();
         };
 
         resetBtn.Click += (_, _) =>
         {
-            _timerCoordinator.Reset();
+            _timerCoordinator.Reset();EnsureScreenTimerTick();
             playBtn.Content = T("開始");
             timeDisplay.Text = _timerCoordinator.FormattedTimeString();
         };
@@ -319,7 +309,7 @@ internal sealed partial class ScreenAnnotationWindow
         swBtn.Click += (_, _) =>
         {
             _timerCoordinator.Mode = TimerMode.Stopwatch;
-            _timerCoordinator.Reset();
+            _timerCoordinator.Reset();EnsureScreenTimerTick();
             swBtn.Background = ChromeBrush(255, 220, 235, 221);
             cdBtn.Background = ChromeBrush(255, 252, 252, 250);
             countdownPresets.Visibility = Visibility.Collapsed;
@@ -331,7 +321,7 @@ internal sealed partial class ScreenAnnotationWindow
         cdBtn.Click += (_, _) =>
         {
             _timerCoordinator.Mode = TimerMode.Countdown;
-            _timerCoordinator.Reset();
+            _timerCoordinator.Reset();EnsureScreenTimerTick();
             cdBtn.Background = ChromeBrush(255, 220, 235, 221);
             swBtn.Background = ChromeBrush(255, 252, 252, 250);
             countdownPresets.Visibility = Visibility.Visible;
@@ -350,26 +340,17 @@ internal sealed partial class ScreenAnnotationWindow
         panel.Children.Add(ctrlRow);
 
         var insertTimerBtn = new Button { Content = T("插入畫布"), HorizontalAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(0, 4, 0, 0) };
-        insertTimerBtn.Click += (_, _) =>
+        insertTimerBtn.Click += async (_, _) =>
         {
-            var center = new InkPoint(_overlay.Width / 2, _overlay.Height / 2);
-            var textObj = _timerCoordinator.CreateBoardObject(center.X, center.Y, "screen", "screen_page");
-            _session.Begin();
-            _session.Add(textObj);
-            _session.SelectedId = textObj.Id;
-            _session.Commit();
-            _tool = "select";
-            _overlay.SetManipulationCursor(null, null, _tool);
-            RefreshButtons();
-            Changed();
-            _status.Text = T("計時器文字已插入畫布");
+            var epoch=_session.DocumentEpoch;var board=_session.Document.Board;
+            var textObj=_timerCoordinator.CreateBoardObject(_overlay.Width/2,_overlay.Height/2,board.Id,board.ActivePageId);
+            await InsertScreenObjectAsync(textObj,epoch);
         };
         panel.Children.Add(insertTimerBtn);
 
         _screenTimerWindow = new ScreenFloatingToolWindow(T("計時器"), panel, 320, 460, () =>
         {
-            activeUpdater?.Stop();
-            activeUpdater = null;
+            _screenTimerDisplayUpdater=null;
             _screenTimerWindow = null;
         });
         _screenTimerWindow.Activate();

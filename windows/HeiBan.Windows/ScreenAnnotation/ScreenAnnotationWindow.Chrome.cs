@@ -132,19 +132,22 @@ internal sealed partial class ScreenAnnotationWindow
     {
         try
         {
+            var epoch=_session.DocumentEpoch;if(!IsCurrentScreenSession(epoch))return;
             var picker=new global::Windows.Storage.Pickers.FileOpenPicker();
             WinRT.Interop.InitializeWithWindow.Initialize(picker,WinRT.Interop.WindowNative.GetWindowHandle(this));
             foreach(var ext in new[]{".png",".jpg",".jpeg",".bmp",".gif",".webp"})picker.FileTypeFilter.Add(ext);
             var file=await picker.PickSingleFileAsync();
-            if(file is not null)
+            if(file is not null&&IsCurrentScreenSession(epoch))
             {
                 var bytes=await File.ReadAllBytesAsync(file.Path);
+                if(!IsCurrentScreenSession(epoch))return;
                 var ext=Path.GetExtension(file.Path).TrimStart('.').ToLowerInvariant();
                 var imageType=ext=="jpg"?"jpeg":string.IsNullOrEmpty(ext)?"png":ext;
                 var dataUri=$"data:image/{imageType};base64,"+Convert.ToBase64String(bytes);
                 using var stream=new MemoryStream(bytes);
                 using var ras=stream.AsRandomAccessStream();
                 var decoder=await global::Windows.Graphics.Imaging.BitmapDecoder.CreateAsync(ras);
+                if(!IsCurrentScreenSession(epoch))return;
                 var width=(double)decoder.PixelWidth;
                 var height=(double)decoder.PixelHeight;
                 var maxW=_overlay.Width*0.6;
@@ -164,10 +167,7 @@ internal sealed partial class ScreenAnnotationWindow
                     Opacity=1,Name=file.Name
                 };
                 if(_target is not null)await _renderer.LoadImagesAsync(_target,new[]{image});
-                CancelGesture();
-                _session.Begin();_session.Add(image);_session.SelectedId=image.Id;_session.Commit();
-                _tool="select";_overlay.SetManipulationCursor(null,null,_tool);
-                RefreshButtons();Changed();
+                await InsertScreenObjectAsync(image,epoch);
             }
         }
         catch(Exception ex){_status.Text=ex.Message;}
@@ -181,20 +181,12 @@ internal sealed partial class ScreenAnnotationWindow
             _customizeToolbarWindow.Activate();
             return;
         }
-        _customizeToolbarWindow=new ScreenCustomizeToolbarWindow(_toolbarPreferences,async()=>
+        _customizeToolbarWindow=new ScreenCustomizeToolbarWindow(_toolbarPreferences,async apply=>
         {
-            try
-            {
-                await _owner.SaveToolbarPreferencesAsync(_toolbarPreferences);
-                RebuildChromeLayout();
-                ResizeChrome();
-                PositionChrome();
-                RefreshButtons();
-            }
-            catch(Exception error)
-            {
-                _status.Text=T("工具列設定未保存：")+error.Message;
-            }
+            var draft=DocumentCodec.Clone(_toolbarPreferences);apply(draft);
+            await _owner.SaveToolbarPreferencesAsync(draft);
+            _toolbarPreferences=draft;
+            RebuildChromeLayout();ResizeChrome();PositionChrome();RefreshButtons();
         });
         _customizeToolbarWindow.Closed+=(_,_)=>_customizeToolbarWindow=null;
         _customizeToolbarWindow.Activate();
@@ -319,7 +311,7 @@ internal sealed partial class ScreenAnnotationWindow
     private void ShowScreenMenu(FrameworkElement anchor)
     {
         var menu=new MenuFlyout();
-        void Item(string icon,string label,Action action){var item=new MenuFlyoutItem{Text=label,Icon=ToolIcons.CreateIcon(icon)};item.Click+=(_,_)=>action();menu.Items.Add(item);}
+        void Item(string icon,string label,Action action){var item=new MenuFlyoutItem{Text=label,Icon=ToolIcons.CreateMenuIcon(icon)};item.Click+=(_,_)=>action();menu.Items.Add(item);}
         Item("radialSettings",T("設定工具輪盤"),ShowRadialSettings);
         if(StyleSelection is not null){Item("select",T("選取物件：樣式、複製、刪除…"),()=>ShowChromeFlyout(CreateObjectMenu(),_moreButton));menu.Items.Add(new MenuFlyoutSeparator());}
         var automatic=new ToggleMenuFlyoutItem{Text=T("自動存檔"),IsChecked=_owner.AutoSaveEnabled};

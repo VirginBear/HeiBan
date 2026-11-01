@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using static HeiBan.Windows.Localization.Strings;
 using HeiBan.Windows.Engine;
 using Microsoft.UI.Xaml;
@@ -44,10 +45,23 @@ internal static partial class ToolbarUi
         else if(button.Content is ColorIcon colored)colored.Icon.Content=icon;
         else button.Content=icon;
     }
+    private sealed class ButtonParent {internal Panel? Owner;}
+    private static readonly ConditionalWeakTable<Button,ButtonParent> ButtonParents=new();
+    private static void AttachButton(Panel parent,Button button)
+    {
+        var link=ButtonParents.GetValue(button,_=>new());
+        if(link.Owner is { } old&&old!=parent)old.Children.Remove(button);
+        parent.Children.Add(button);link.Owner=parent;
+    }
     internal static void DetachButtons(IEnumerable<Button> buttons)
     {
-        foreach(var button in buttons)
-            if((button.Parent??VisualTreeHelper.GetParent(button)) is Panel parent)parent.Children.Remove(button);
+        foreach(var button in buttons.Distinct())
+        {
+            // Hidden/not-yet-loaded WinUI trees can report Parent=null while their
+            // Children collection still owns the control. Remember that collection.
+            if(ButtonParents.TryGetValue(button,out var link)&&link.Owner is { } known){known.Children.Remove(button);link.Owner=null;}
+            else if((button.Parent??VisualTreeHelper.GetParent(button)) is Panel parent)parent.Children.Remove(button);
+        }
     }
     internal static ToolbarFlowPanel? Arrange(Panel host,IEnumerable<(string Key,Button Button)> source,bool labels,bool vertical,string activePage,Action<string> changePage,double iconSize,IReadOnlyCollection<string>? commonTools=null,string dockSide="top")
     {
@@ -56,9 +70,9 @@ internal static partial class ToolbarUi
         DetachButtons(buttons.Select(item=>item.Button));
         host.Children.Clear();
         foreach(var (key,button) in buttons){LabelMode(button,key,labels,iconSize);EnableRadialDrag(button,key);}
-        if(!labels){foreach(var (_,button) in buttons.OrderBy(b=>b.Key=="select"?0:b.Key=="laser"?1:b.Key=="cane"?2:3))host.Children.Add(button);return null;}
+        if(!labels){foreach(var (_,button) in buttons.OrderBy(b=>b.Key=="select"?0:b.Key=="laser"?1:b.Key=="cane"?2:3))AttachButton(host,button);return null;}
         var shell=new StackPanel{Orientation=vertical?Orientation.Vertical:Orientation.Horizontal,Spacing=6};
-        foreach(var key in ToolbarPreferences.FixedTools)if(buttons.FirstOrDefault(b=>b.Key==key).Button is { } pinned)shell.Children.Add(pinned);
+        foreach(var key in ToolbarPreferences.FixedTools)if(buttons.FirstOrDefault(b=>b.Key==key).Button is { } pinned)AttachButton(shell,pinned);
         var body=new StackPanel{Spacing=vertical?6:4};
         var tabs=new StackPanel{Orientation=vertical?Orientation.Vertical:Orientation.Horizontal,Spacing=3};
         var flow=new ToolbarFlowPanel{Orientation=vertical?Orientation.Vertical:Orientation.Horizontal,RunLength=vertical?600:900,Spacing=3,SingleRun=true};
@@ -66,7 +80,7 @@ internal static partial class ToolbarUi
         void Show(string page)
         {
             flow.Children.Clear();flow.PageOffset=0;
-            foreach(var (key,button) in buttons.Where(b=>b.Key!="more"&&!ToolbarPreferences.IsFixedTool(b.Key)&&(page=="common"?(commonTools?.Contains(b.Key)??PageFor(b.Key)=="common"):PageFor(b.Key)==page)))flow.Children.Add(button);
+            foreach(var (key,button) in buttons.Where(b=>b.Key!="more"&&!ToolbarPreferences.IsFixedTool(b.Key)&&(page=="common"?(commonTools?.Contains(b.Key)??PageFor(b.Key)=="common"):PageFor(b.Key)==page)))AttachButton(flow,button);
             foreach(var pair in tabButtons)pair.Value.Background=new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(pair.Key==page?(byte)45:(byte)0,57,115,90));
             changePage(page);
         }

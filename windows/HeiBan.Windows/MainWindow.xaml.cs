@@ -132,6 +132,11 @@ public partial class MainWindow : Window
             var workflow=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--drawing-workflow-output=",StringComparison.Ordinal));
             var validation=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--validation-output=",StringComparison.Ordinal));
             var performance=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--performance-output=",StringComparison.Ordinal));
+#if HEIBAN_RELEASE_VALIDATION
+            var releaseCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--release-validation-output=",StringComparison.Ordinal));
+            if(releaseCheck is not null)await RunRelease110ChecksAsync(releaseCheck["--release-validation-output=".Length..]);
+            else
+#endif
             if(guideView is not null)ConfigureGuideView(guideView[13..]);
             else if(workflow is not null)await RunDrawingWorkflowChecksAsync(workflow[26..]);
             else if(performance is not null)await RunPerformanceBatchAsync(performance[21..]);

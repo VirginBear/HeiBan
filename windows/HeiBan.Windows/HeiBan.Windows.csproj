@@ -21,9 +21,9 @@
     <AssemblyName>HeiBan</AssemblyName>
     <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
     <Product>HeiBan 黑板</Product>
-    <Version>1.0.18</Version>
-    <FileVersion>1.0.18.0</FileVersion>
-    <AssemblyVersion>1.0.18.0</AssemblyVersion>
+    <Version>1.1.0</Version>
+    <FileVersion>1.1.0.0</FileVersion>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
     <Company>HeiBan Team</Company>
     <Copyright>© 2026 HeiBan Team. All rights reserved.</Copyright>
     <Description>HeiBan 黑板 — Windows 原生開發預覽：向量手寫板與多頁筆記系統</Description>
@@ -36,6 +36,10 @@
     <PublishTrimmed Condition="'$(Configuration)' == 'Release' and '$(PublishAot)' == 'true'">true</PublishTrimmed>
     <TieredCompilation>true</TieredCompilation>
     <ServerGarbageCollection>false</ServerGarbageCollection>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(HeiBanValidationBuild)' == 'true'">
+    <DefineConstants>$(DefineConstants);HEIBAN_RELEASE_VALIDATION</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(HeiBanStoreBuild)' == 'true'">
@@ -124,5 +128,8 @@
         <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       </ResolvedFileToPublish>
     </ItemGroup>
+  </Target>
+  <Target Name="PreventValidationStoreBuild" BeforeTargets="BeforeBuild" Condition="'$(HeiBanStoreBuild)' == 'true' And '$(HeiBanValidationBuild)' == 'true'">
+    <Error Text="Release validation hooks must not be compiled into Microsoft Store packages." />
   </Target>
 </Project>

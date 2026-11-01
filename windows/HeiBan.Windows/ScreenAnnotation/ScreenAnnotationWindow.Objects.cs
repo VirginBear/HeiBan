@@ -29,7 +29,7 @@ internal sealed partial class ScreenAnnotationWindow
     private MenuFlyout CreateObjectMenu()
     {
         var menu=new MenuFlyout();var selected=_session.Selected;
-        void Add(string icon,string label,Action action,bool enabled=true){var item=new MenuFlyoutItem{Text=label,Icon=ToolIcons.CreateIcon(icon),IsEnabled=enabled};item.Click+=(_,_)=>action();menu.Items.Add(item);}
+        void Add(string icon,string label,Action action,bool enabled=true){var item=new MenuFlyoutItem{Text=label,Icon=ToolIcons.CreateMenuIcon(icon),IsEnabled=enabled};item.Click+=(_,_)=>action();menu.Items.Add(item);}
         Add("pen",T("顏色、粗細與透明度"),ShowBrushSettings,selected is {IsLocked:not true});
         Add("dash-solid",T("線條樣式"),ShowScreenLineStyles,selected is {IsLocked:not true});
         Add("paint",T("填滿"),ShowScreenFill,selected is {IsLocked:not true});

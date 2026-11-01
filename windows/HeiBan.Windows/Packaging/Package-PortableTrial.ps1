@@ -1,4 +1,4 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 param(
     [ValidateSet('win-x64','win-arm64')][string]$Runtime='win-x64',
     [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$')][string]$Label='perf2-2026-10-11',
@@ -46,7 +46,7 @@ try {
 試用標記：$Label / $Runtime。程式版本：$version。
 完整解壓到可寫入的資料夾，雙擊 HeiBan.exe 即可使用，不需安裝。
 作品保存在本資料夾的 Data；目前是空白試用資料庫，請保留整個資料夾。
-這份包包含封裝當時的Windows開發原始碼；批次標籤為 $Label，操作變更請參閱Windows開發紀錄。原有README的dist列表可能包含之前交付包。
+這份包提供Windows免安裝程式與來源版本／雜湊紀錄；原始碼位於 https://github.com/VirginBear/HeiBan/tree/$source/windows 。批次標籤為 $Label，操作變更請參閱Windows開發紀錄。原有README的dist列表可能包含之前交付包。
 本機試用包尚未發布至GitHub Release或Microsoft Store。
 來源commit：$source，加封裝時的Windows工作樹；實際byte來源記在TRIAL-SOURCE.json。
 關閉程式後才搬動資料夾；不要覆蓋舊版的Data或直接從ZIP內啟動。

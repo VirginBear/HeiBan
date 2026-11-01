@@ -128,41 +128,41 @@ public partial class MainWindow
     {
         var menu = new MenuFlyout();
 
-        var textItem = new MenuFlyoutItem { Text = T("文字（T）"), Icon = ToolIcons.CreateIcon("text") };
+        var textItem = new MenuFlyoutItem { Text = T("文字（T）"), Icon = ToolIcons.CreateMenuIcon("text") };
         textItem.Click += (_, _) => ActivateTool("text");
         menu.Items.Add(textItem);
 
-        var stickyItem = new MenuFlyoutItem { Text = T("便條紙"), Icon = ToolIcons.CreateIcon("sticky") };
+        var stickyItem = new MenuFlyoutItem { Text = T("便條紙"), Icon = ToolIcons.CreateMenuIcon("sticky") };
         stickyItem.Click += (_, _) => ActivateTool("sticky");
         menu.Items.Add(stickyItem);
 
-        var shotItem = new MenuFlyoutItem { Text = T("截圖置入…（Win+Shift+S）"), Icon = ToolIcons.CreateIcon("screenshot") };
+        var shotItem = new MenuFlyoutItem { Text = T("截圖置入…（Win+Shift+S）"), Icon = ToolIcons.CreateMenuIcon("screenshot") };
         shotItem.Click += (_, _) => Screenshot_Click(this, new RoutedEventArgs());
         menu.Items.Add(shotItem);
 
-        var imgItem = new MenuFlyoutItem { Text = T("圖片匯入…"), Icon = ToolIcons.CreateIcon("image") };
+        var imgItem = new MenuFlyoutItem { Text = T("圖片匯入…"), Icon = ToolIcons.CreateMenuIcon("image") };
         imgItem.Click += (_, _) => Image_Click(this, new RoutedEventArgs());
         menu.Items.Add(imgItem);
 
         menu.Items.Add(new MenuFlyoutSeparator());
 
-        var compassItem = new MenuFlyoutItem { Text = T("圓規（兩階段畫弧）"), Icon = ToolIcons.CreateIcon("compass") };
+        var compassItem = new MenuFlyoutItem { Text = T("圓規（兩階段畫弧）"), Icon = ToolIcons.CreateMenuIcon("compass") };
         compassItem.Click += (_, _) => Compass_Click(this, new RoutedEventArgs());
         menu.Items.Add(compassItem);
 
-        var calcItem = new MenuFlyoutItem { Text = T("計算機（科學與括號）"), Icon = ToolIcons.CreateIcon("calculator") };
+        var calcItem = new MenuFlyoutItem { Text = T("計算機（科學與括號）"), Icon = ToolIcons.CreateMenuIcon("calculator") };
         calcItem.Click += (_, _) => ShowCalculatorPanel(InsertNavButton);
         menu.Items.Add(calcItem);
 
-        var timerItem = new MenuFlyoutItem { Text = T("計時器（常駐倒數與碼表）"), Icon = ToolIcons.CreateIcon("timer") };
+        var timerItem = new MenuFlyoutItem { Text = T("計時器（常駐倒數與碼表）"), Icon = ToolIcons.CreateMenuIcon("timer") };
         timerItem.Click += (_, _) => ShowTimerPanel(InsertNavButton);
         menu.Items.Add(timerItem);
 
-        var rulerItem = new MenuFlyoutItem { Text = T("螢幕尺"), Icon = ToolIcons.CreateIcon("ruler") };
+        var rulerItem = new MenuFlyoutItem { Text = T("螢幕尺"), Icon = ToolIcons.CreateMenuIcon("ruler") };
         rulerItem.Click += (_, _) => Ruler_Click(this, new RoutedEventArgs());
         menu.Items.Add(rulerItem);
 
-        var screenAnnotateItem = new MenuFlyoutItem { Text = T("我的螢幕就是我的畫布"), Icon = ToolIcons.CreateIcon("infinite") };
+        var screenAnnotateItem = new MenuFlyoutItem { Text = T("我的螢幕就是我的畫布"), Icon = ToolIcons.CreateMenuIcon("infinite") };
         screenAnnotateItem.Click += async (_, _) => await StartScreenAnnotationAsync();
         menu.Items.Add(screenAnnotateItem);
 
@@ -173,43 +173,43 @@ public partial class MainWindow
     {
         var menu = new MenuFlyout();
 
-        var noteInfoItem = new MenuFlyoutItem { Text = T("筆記資訊與改名…"), Icon = ToolIcons.CreateIcon("info") };
+        var noteInfoItem = new MenuFlyoutItem { Text = T("筆記資訊與改名…"), Icon = ToolIcons.CreateMenuIcon("info") };
         noteInfoItem.Click += (_, _) => ShowNoteInfoDialog(MoreNavButton);
         menu.Items.Add(noteInfoItem);
 
         menu.Items.Add(new MenuFlyoutSeparator());
 
-        var bgItem = new MenuFlyoutItem { Text = T("畫布背景…"), Icon = ToolIcons.CreateIcon("background") };
+        var bgItem = new MenuFlyoutItem { Text = T("畫布背景…"), Icon = ToolIcons.CreateMenuIcon("background") };
         bgItem.Click += (_, _) => Background_Click(this, new RoutedEventArgs());
         menu.Items.Add(bgItem);
 
-        var layerItem = new MenuFlyoutItem { Text = T("物件圖層…"), Icon = ToolIcons.CreateIcon("layers") };
+        var layerItem = new MenuFlyoutItem { Text = T("物件圖層…"), Icon = ToolIcons.CreateMenuIcon("layers") };
         layerItem.Click += (_, _) => Layers_Click(this, new RoutedEventArgs());
         menu.Items.Add(layerItem);
 
-        var propItem = new MenuFlyoutItem { Text = T("屬性檢查器"), Icon = ToolIcons.CreateIcon("settings") };
+        var propItem = new MenuFlyoutItem { Text = T("屬性檢查器"), Icon = ToolIcons.CreateMenuIcon("settings") };
         propItem.Click += (_, _) => Properties_Click(this, new RoutedEventArgs());
         menu.Items.Add(propItem);
 
         menu.Items.Add(new MenuFlyoutSeparator());
 
-        var saveItem = new MenuFlyoutItem { Text = T("儲存作品（Ctrl+S）"), Icon = ToolIcons.CreateIcon("save") };
+        var saveItem = new MenuFlyoutItem { Text = T("儲存作品（Ctrl+S）"), Icon = ToolIcons.CreateMenuIcon("save") };
         saveItem.Click += (_, _) => Save_Click(this, new RoutedEventArgs());
         menu.Items.Add(saveItem);
 
-        var exportItem = new MenuFlyoutItem { Text = T("匯出文件或圖片…"), Icon = ToolIcons.CreateIcon("export") };
+        var exportItem = new MenuFlyoutItem { Text = T("匯出文件或圖片…"), Icon = ToolIcons.CreateMenuIcon("export") };
         exportItem.Click += (_, _) => Export_Click(this, new RoutedEventArgs());
         menu.Items.Add(exportItem);
 
         menu.Items.Add(new MenuFlyoutSeparator());
 
-        var radialItem=new MenuFlyoutItem{Text=T("設定工具輪盤"),Icon=ToolIcons.CreateIcon("radialSettings")};radialItem.Click+=(_,_)=>ShowRadialSettings();menu.Items.Add(radialItem);
+        var radialItem=new MenuFlyoutItem{Text=T("設定工具輪盤"),Icon=ToolIcons.CreateMenuIcon("radialSettings")};radialItem.Click+=(_,_)=>ShowRadialSettings();menu.Items.Add(radialItem);
 
-        var customizeItem = new MenuFlyoutItem { Text = T("自訂工具列…") };
+        var customizeItem = new MenuFlyoutItem { Text = T("自訂工具列…"),Icon=ToolIcons.CreateMenuIcon("settings") };
         customizeItem.Click += async (_, _) => await ShowCustomizeToolbarDialog();
         menu.Items.Add(customizeItem);
 
-        var resetItem = new MenuFlyoutItem { Text = T("恢復預設工具列") };
+        var resetItem = new MenuFlyoutItem { Text = T("恢復預設工具列"),Icon=ToolIcons.CreateMenuIcon("undo") };
         resetItem.Click += (_, _) => ResetToolbarToDefault();
         menu.Items.Add(resetItem);
 
@@ -223,7 +223,7 @@ public partial class MainWindow
         aboutItem.Click += (_, _) => About_Click(this, new RoutedEventArgs());
         menu.Items.Add(aboutItem);
 
-        var savingItem = new MenuFlyoutItem { Text = T("設定"), Icon = ToolIcons.CreateIcon("settings") };
+        var savingItem = new MenuFlyoutItem { Text = T("設定"), Icon = ToolIcons.CreateMenuIcon("settings") };
         savingItem.Click += async (_, _) => await ShowSavingSettingsAsync();menu.Items.Add(savingItem);
 
         var updatesItem = new MenuFlyoutItem { Text = T("檢查更新與更新設定…") };
@@ -571,7 +571,7 @@ public partial class MainWindow
     private void ShowMoreToolsMenu(FrameworkElement anchor)
     {
         var menu = new MenuFlyout();
-        var screenItem=new MenuFlyoutItem { Text=T("我的螢幕就是我的畫布"),Icon=ToolIcons.CreateIcon("screen") };
+        var screenItem=new MenuFlyoutItem { Text=T("我的螢幕就是我的畫布"),Icon=ToolIcons.CreateMenuIcon("screen") };
         screenItem.Click+=(_,_)=>ScreenCanvas_Click(this,new());menu.Items.Add(screenItem);menu.Items.Add(new MenuFlyoutSeparator());
 
         var boardEraserItem=new ToggleMenuFlyoutItem { Text=T("顯示板擦"),IsChecked=_toolbarPrefs.BoardEraserVisible };
@@ -595,7 +595,7 @@ public partial class MainWindow
                 var item = new MenuFlyoutItem
                 {
                     Text = T(ToolbarPreferences.ToolNames.GetValueOrDefault(toolKey, toolKey)),
-                    Icon = ToolIcons.CreateIcon(toolKey)
+                    Icon = ToolIcons.CreateMenuIcon(toolKey)
                 };
                 item.Click += (_, _) => InvokeToolByKey(toolKey);
                 menu.Items.Add(item);
@@ -603,15 +603,15 @@ public partial class MainWindow
             menu.Items.Add(new MenuFlyoutSeparator());
         }
 
-        var radialSettingsItem = new MenuFlyoutItem { Text = T("設定工具輪盤"), Icon = ToolIcons.CreateIcon("radialSettings") };
+        var radialSettingsItem = new MenuFlyoutItem { Text = T("設定工具輪盤"), Icon = ToolIcons.CreateMenuIcon("radialSettings") };
         radialSettingsItem.Click += (_, _) => ShowRadialSettings();
         menu.Items.Add(radialSettingsItem);
 
-        var customizeItem = new MenuFlyoutItem { Text = T("自訂工具列…") };
+        var customizeItem = new MenuFlyoutItem { Text = T("自訂工具列…"), Icon=ToolIcons.CreateMenuIcon("settings") };
         customizeItem.Click += async (_, _) => await ShowCustomizeToolbarDialog();
         menu.Items.Add(customizeItem);
 
-        var resetItem = new MenuFlyoutItem { Text = T("恢復預設工具列") };
+        var resetItem = new MenuFlyoutItem { Text = T("恢復預設工具列"), Icon=ToolIcons.CreateMenuIcon("undo") };
         resetItem.Click += (_, _) => ResetToolbarToDefault();
         menu.Items.Add(resetItem);
 

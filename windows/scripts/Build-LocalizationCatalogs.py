@@ -29,6 +29,16 @@ for number, line in enumerate((ROOT / "translations.txt").read_text(encoding="ut
             raise ValueError(f"Duplicate source at line {number}: {alias}")
         translations[alias] = dict(zip(CODES, values))
 
+# Check source literals too: a clean authoring table must not hide undeclared UI.
+literal_keys = set()
+for source_file in ROOT.parent.rglob("*.cs"):
+    if any(part in {"bin", "obj"} for part in source_file.parts): continue
+    for match in re.finditer(r'(?<![\w])T\(\s*("(?:[^"\\]|\\.)*")', source_file.read_text(encoding="utf-8-sig")):
+        literal_keys.add(json.loads(match.group(1)))
+undeclared = sorted(literal_keys - set(SOURCES))
+if undeclared:
+    raise ValueError("Undeclared literal UI keys: " + json.dumps(undeclared, ensure_ascii=False))
+
 missing = sorted(set(SOURCES) - set(translations))
 if missing:
     print(json.dumps(missing, ensure_ascii=False, indent=2))
