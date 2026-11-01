@@ -14,27 +14,18 @@ internal sealed partial class ScreenAnnotationWindow
 {
     private sealed class ChromePreferences
     {
-        public int X { get; set; } = -1;
-        public int Y { get; set; } = -1;
-        public bool IsVertical { get; set; }
-        public bool IsPinned { get; set; }
-        public bool Collapsed { get; set; }
-        public string? Dock { get; set; } = "top";
+        public string Dock { get; set; } = "top";
         public double Position { get; set; } = .5;
-        public bool IsFreeFloating { get; set; } = true;
-        public int CustomX { get; set; } = -1;
-        public int CustomY { get; set; } = -1;
+        public bool Collapsed { get; set; }
     }
 
     private ToolbarFlowPanel? _labeledScreenFlow;
     private string _chromeDock = "top";
-    private bool _isVertical;
-    private bool _isPinned;
-    private PointInt32? _chromePosition;
+    private double _chromePosition = .5;
     private PointInt32? _requestedChromePosition;
-    private readonly DispatcherTimer _dockTimer = new() { Interval = TimeSpan.FromMilliseconds(120) };
+    private readonly DispatcherTimer _dockTimer = new() { Interval = TimeSpan.FromMilliseconds(150) };
     private string ChromePreferencesPath => Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(_recoveryPath))!, "Settings", "screen-ui.json");
-    private bool VerticalChrome => _isVertical;
+    private bool VerticalChrome => _chromeDock is "left" or "right";
 
     private void InitializeChromeDocking()
     {
@@ -42,19 +33,14 @@ internal sealed partial class ScreenAnnotationWindow
         {
             if (File.Exists(ChromePreferencesPath) && JsonSerializer.Deserialize<ChromePreferences>(File.ReadAllText(ChromePreferencesPath), DocumentCodec.Options) is { } prefs)
             {
+                _chromeDock = prefs.Dock is "top" or "bottom" or "left" or "right" ? prefs.Dock : "top";
+                _chromePosition = double.IsFinite(prefs.Position) ? Math.Clamp(prefs.Position, 0, 1) : .5;
                 _collapsed = prefs.Collapsed;
-                _isPinned = prefs.IsPinned;
-                _isVertical = prefs.IsVertical || prefs.Dock is "left" or "right";
-                _chromeDock = _isVertical ? "left" : "top";
-                if (prefs.X >= 0 && prefs.Y >= 0)
-                    _chromePosition = new PointInt32(prefs.X, prefs.Y);
-                else if (prefs.CustomX >= 0 && prefs.CustomY >= 0)
-                    _chromePosition = new PointInt32(prefs.CustomX, prefs.CustomY);
             }
         }
         catch (Exception e) when (e is IOException or JsonException)
         {
-            _status.Text = T("工具列偏好讀取未完成，註記仍保留");
+            _status.Text = T("停靠偏好讀取未完成，註記仍保留");
         }
 
         RebuildChromeLayout();
@@ -64,7 +50,6 @@ internal sealed partial class ScreenAnnotationWindow
             if (!IsActive || !args.DidPositionChange) return;
             var p = AppWindow.Position;
             if (_requestedChromePosition is { } expected && p.X == expected.X && p.Y == expected.Y) return;
-            if (_isPinned) return;
             _dockTimer.Stop();
             _dockTimer.Start();
         };
@@ -80,16 +65,18 @@ internal sealed partial class ScreenAnnotationWindow
 
     private void RebuildChromeLayout()
     {
+        // Labeled pages nest buttons below the old root. Detach while that tree is still
+        // attached; clearing the root first hides Parent before the XAML collection releases ownership.
         ToolbarUi.DetachButtons(_buttons.Values.Concat(_chromeActions));
         if (_chromeToolHost is not null) _chromeToolHost.Child = null;
         _chromeStart?.Children.Clear(); _chromeEnd?.Children.Clear(); _chromeTools?.Children.Clear();
+
         var vertical = VerticalChrome; var orientation = vertical ? Orientation.Vertical : Orientation.Horizontal;
         _chromeStart = new StackPanel { Orientation = orientation, Spacing = 4, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center };
         _chromeStart.Children.Add(_chromeGrip);
-        _chromeStart.Children.Add(_pinButton);
-        _chromeStart.Children.Add(_orientationButton);
         _chromeStart.Children.Add(_mode);
-        RefreshPinButton(); RefreshOrientationButton(); RefreshMode();
+        RefreshMode();
+
         _chromeTools = new ToolbarFlowPanel { Orientation = orientation, Spacing = 4, VerticalAlignment = vertical ? VerticalAlignment.Top : VerticalAlignment.Center, HorizontalAlignment = vertical ? HorizontalAlignment.Center : HorizontalAlignment.Left };
 
         var ordered = new List<Button>();
@@ -105,18 +92,17 @@ internal sealed partial class ScreenAnnotationWindow
                     .Concat(_chromeActions.Where(button => button.Tag is null || !ToolbarPreferences.AllDefaultTools.Contains((string)button.Tag))))
             if (!ordered.Contains(button)) ordered.Add(button);
 
-        var area = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
-        var curX = _chromePosition?.X ?? AppWindow.Position.X;
-        var dockSide = curX >= area.X + area.Width / 2 ? "right" : "left";
-
-        _labeledScreenFlow = ToolbarUi.Arrange(_chromeTools, ordered.Select(b => (b.Tag as string ?? "", b)), _toolbarPreferences.DisplayMode == "labels", vertical, _toolbarPage, p => { _toolbarPage = p; DispatcherQueue.TryEnqueue(() => { ResizeChrome(); PositionChrome(); }); }, 32, _toolbarPreferences.CommonTools, dockSide);
+        _labeledScreenFlow = ToolbarUi.Arrange(_chromeTools, ordered.Select(b => (b.Tag as string ?? "", b)), _toolbarPreferences.DisplayMode == "labels", vertical, _toolbarPage, p => { _toolbarPage = p; DispatcherQueue.TryEnqueue(() => { ResizeChrome(); PositionChrome(); }); }, 32, _toolbarPreferences.CommonTools, _chromeDock);
         if (!vertical && !_collapsed) _chromeTools.Children.Add(_moreButton);
+
         _chromeEnd = new StackPanel { Orientation = orientation, Spacing = 4, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center };
         if (_collapsed) _chromeEnd.Children.Add(_clearButton); if (vertical || _collapsed) _chromeEnd.Children.Add(_moreButton); _chromeEnd.Children.Add(_closeButton);
         _chromeToolHost = new Border { Child = _chromeTools, Visibility = _collapsed ? Visibility.Collapsed : Visibility.Visible, MinWidth = 0, MinHeight = 0 };
+
         var root = new Grid { Padding = new Thickness(vertical ? 8 : 12), ColumnSpacing = 6, RowSpacing = 6, RequestedTheme = ElementTheme.Light };
         if (vertical) { root.RowDefinitions.Add(new() { Height = GridLength.Auto }); root.RowDefinitions.Add(new() { Height = new GridLength(1, GridUnitType.Star) }); root.RowDefinitions.Add(new() { Height = GridLength.Auto }); Grid.SetRow(_chromeToolHost, 1); Grid.SetRow(_chromeEnd, 2); }
         else { root.ColumnDefinitions.Add(new() { Width = GridLength.Auto }); root.ColumnDefinitions.Add(new() { Width = new GridLength(1, GridUnitType.Star) }); root.ColumnDefinitions.Add(new() { Width = GridLength.Auto }); Grid.SetColumn(_chromeToolHost, 1); Grid.SetColumn(_chromeEnd, 2); }
+
         root.Children.Add(_chromeStart); root.Children.Add(_chromeToolHost); root.Children.Add(_chromeEnd); ((Border)Content).Child = root;
     }
 
@@ -140,166 +126,48 @@ internal sealed partial class ScreenAnnotationWindow
     private void PositionChrome()
     {
         var area = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea; var size = AppWindow.Size; var gap = (int)(12 * _dpiScale);
-        if (_chromePosition is { } saved)
-        {
-            var cx = Math.Clamp(saved.X, area.X, Math.Max(area.X, area.X + area.Width - size.Width));
-            var cy = Math.Clamp(saved.Y, area.Y, Math.Max(area.Y, area.Y + area.Height - size.Height));
-            _requestedChromePosition = new(cx, cy);
-            AppWindow.Move(_requestedChromePosition.Value);
-            return;
-        }
-        var defX = area.X + (area.Width - size.Width) / 2;
-        var defY = area.Y + gap;
-        _requestedChromePosition = new(defX, defY);
-        AppWindow.Move(_requestedChromePosition.Value);
-        _chromePosition = _requestedChromePosition.Value;
+        var x = VerticalChrome ? (_chromeDock == "left" ? area.X + gap : area.X + area.Width - size.Width - gap) : area.X + (int)((area.Width - size.Width) * _chromePosition);
+        var y = VerticalChrome ? area.Y + (int)((area.Height - size.Height) * _chromePosition) : (_chromeDock == "top" ? area.Y + gap : area.Y + area.Height - size.Height - gap);
+        x = Math.Clamp(x, area.X, Math.Max(area.X, area.X + area.Width - size.Width)); y = Math.Clamp(y, area.Y, Math.Max(area.Y, area.Y + area.Height - size.Height)); _requestedChromePosition = new(x, y); AppWindow.Move(_requestedChromePosition.Value);
     }
 
     private void DockChrome(string side)
     {
         _dockTimer.Stop();
         _chromeDock = side;
-        _isVertical = side is "left" or "right";
         RebuildChromeLayout();
         ResizeChrome();
-
-        var area = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
-        var size = AppWindow.Size;
-        var gap = (int)(12 * _dpiScale);
-
-        int x, y;
-        switch (side)
-        {
-            case "left":
-                x = area.X + gap;
-                y = area.Y + (area.Height - size.Height) / 2;
-                break;
-            case "right":
-                x = area.X + area.Width - size.Width - gap;
-                y = area.Y + (area.Height - size.Height) / 2;
-                break;
-            case "bottom":
-                x = area.X + (area.Width - size.Width) / 2;
-                y = area.Y + area.Height - size.Height - gap;
-                break;
-            case "top":
-            default:
-                x = area.X + (area.Width - size.Width) / 2;
-                y = area.Y + gap;
-                break;
-        }
-
-        x = Math.Clamp(x, area.X, Math.Max(area.X, area.X + area.Width - size.Width));
-        y = Math.Clamp(y, area.Y, Math.Max(area.Y, area.Y + area.Height - size.Height));
-
-        _requestedChromePosition = new PointInt32(x, y);
-        AppWindow.Move(_requestedChromePosition.Value);
-        _chromePosition = _requestedChromePosition.Value;
-
-        RefreshOrientationButton();
-        RefreshPinButton();
-        _ = SaveChromePreferencesAsync();
-    }
-
-    private void ToggleChromeOrientation()
-    {
-        _dockTimer.Stop();
-        _isVertical = !_isVertical;
-        _chromeDock = _isVertical ? "left" : "top";
-        RebuildChromeLayout();
-        ResizeChrome();
-
-        var area = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
-        var size = AppWindow.Size;
-        var current = _chromePosition ?? AppWindow.Position;
-
-        var x = Math.Clamp(current.X, area.X, Math.Max(area.X, area.X + area.Width - size.Width));
-        var y = Math.Clamp(current.Y, area.Y, Math.Max(area.Y, area.Y + area.Height - size.Height));
-
-        _requestedChromePosition = new PointInt32(x, y);
-        AppWindow.Move(_requestedChromePosition.Value);
-        _chromePosition = _requestedChromePosition.Value;
-
-        RefreshOrientationButton();
-        RefreshPinButton();
+        PositionChrome();
         _ = SaveChromePreferencesAsync();
     }
 
     private void FinishChromeDrag()
     {
-        if (_isPinned) return;
-        var area = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
-        var size = AppWindow.Size;
-        var pos = AppWindow.Position;
-        var clampedX = Math.Clamp(pos.X, area.X, Math.Max(area.X, area.X + area.Width - size.Width));
-        var clampedY = Math.Clamp(pos.Y, area.Y, Math.Max(area.Y, area.Y + area.Height - size.Height));
-        if (clampedX != pos.X || clampedY != pos.Y)
-        {
-            _requestedChromePosition = new PointInt32(clampedX, clampedY);
-            AppWindow.Move(_requestedChromePosition.Value);
-            _chromePosition = _requestedChromePosition.Value;
-        }
-        else
-        {
-            _chromePosition = pos;
-        }
-        _ = SaveChromePreferencesAsync();
+        var pointer = NativeOverlayWindow.CurrentPointer; var area = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
+        var nearest = new[] { ("top", Math.Abs(pointer.Y - area.Y)), ("bottom", Math.Abs(pointer.Y - area.Y - area.Height)), ("left", Math.Abs(pointer.X - area.X)), ("right", Math.Abs(pointer.X - area.X - area.Width)) }.OrderBy(edge => edge.Item2).First().Item1;
+        _chromeDock = nearest; _chromePosition = VerticalChrome ? Math.Clamp((pointer.Y - area.Y) / (double)area.Height, 0, 1) : Math.Clamp((pointer.X - area.X) / (double)area.Width, 0, 1); DockChrome(nearest);
     }
 
     private async Task SaveChromePreferencesAsync()
     {
         try
         {
-            var p = _chromePosition ?? AppWindow.Position;
-            var toSave = new ChromePreferences
-            {
-                X = p.X,
-                Y = p.Y,
-                IsVertical = _isVertical,
-                IsPinned = _isPinned,
-                Collapsed = _collapsed,
-                Dock = _chromeDock,
-                CustomX = p.X,
-                CustomY = p.Y,
-                IsFreeFloating = true
-            };
-            await DocumentSessionManager.WriteAtomicAsync(ChromePreferencesPath, JsonSerializer.Serialize(toSave, DocumentCodec.Options));
+            await DocumentSessionManager.WriteAtomicAsync(ChromePreferencesPath, JsonSerializer.Serialize(new ChromePreferences { Dock = _chromeDock, Position = _chromePosition, Collapsed = _collapsed }, DocumentCodec.Options));
         }
-        catch (Exception e)
-        {
-            _status.Text = T("工具列偏好未保存：") + e.Message;
-        }
+        catch (Exception e) { _status.Text = T("停靠偏好未保存：") + e.Message; }
     }
 
     private object ValidateChromeDocking()
     {
-        var savedDock = _chromeDock;
-        var savedCollapsed = _collapsed;
-        var savedPosition = _chromePosition;
-        SetChromeCollapsed(false);
+        var savedDock = _chromeDock; var savedCollapsed = _collapsed; var savedPosition = _chromePosition; SetChromeCollapsed(false);
         try
         {
-            DockChrome("left");
-            var left = AppWindow.Size;
-            if (left.Width < 60 * _dpiScale || left.Width >= left.Height || _chromeTools.Orientation != Orientation.Vertical)
-                throw new InvalidOperationException($"左側直排未生效：{left.Width}×{left.Height}，DPI={_dpiScale}。");
-            SetChromeCollapsed(true);
-            var collapsed = AppWindow.Size;
-            if (collapsed.Height >= left.Height) throw new InvalidOperationException("直排收合未生效。");
-            SetChromeCollapsed(false);
-            DockChrome("right");
-            if (_chromeTools.Orientation != Orientation.Vertical) throw new InvalidOperationException("右側直排未生效。");
-            DockChrome("bottom");
-            if (_chromeTools.Orientation != Orientation.Horizontal) throw new InvalidOperationException("下方橫排未生效。");
-            DockChrome("top");
-            return new { fourSides = true, verticalWidth = left.Width, verticalHeight = left.Height, collapsedVerticalHeight = collapsed.Height, iconOnly = true, fixedClearClose = true, wrapsWithoutScrollbars = true, valuesAndHandlersRetained = true, dragHardware = "未執行" };
+            DockChrome("left"); var left = AppWindow.Size; if (left.Width < 60 * _dpiScale || left.Width >= left.Height || _chromeTools.Orientation != Orientation.Vertical) throw new InvalidOperationException($"左側直排未生效：{left.Width}×{left.Height}，DPI={_dpiScale}。");
+            SetChromeCollapsed(true); var collapsed = AppWindow.Size; if (collapsed.Height >= left.Height) throw new InvalidOperationException("直排收合未生效。");
+            SetChromeCollapsed(false); DockChrome("right"); if (_chromeTools.Orientation != Orientation.Vertical) throw new InvalidOperationException("右側直排未生效。");
+            DockChrome("bottom"); if (_chromeTools.Orientation != Orientation.Horizontal) throw new InvalidOperationException("下方橫排未生效。");
+            DockChrome("top"); return new { fourSides = true, verticalWidth = left.Width, verticalHeight = left.Height, collapsedVerticalHeight = collapsed.Height, iconOnly = true, fixedClearClose = true, wrapsWithoutScrollbars = true, valuesAndHandlersRetained = true, dragHardware = "未執行" };
         }
-        finally
-        {
-            _chromeDock = savedDock;
-            _chromePosition = savedPosition;
-            SetChromeCollapsed(savedCollapsed);
-            DockChrome(savedDock);
-        }
+        finally { _chromeDock = savedDock; _chromePosition = savedPosition; SetChromeCollapsed(savedCollapsed); DockChrome(savedDock); }
     }
 }

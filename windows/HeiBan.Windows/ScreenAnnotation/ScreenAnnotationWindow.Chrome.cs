@@ -40,7 +40,6 @@ internal sealed partial class ScreenAnnotationWindow
     private Grid _chromeGrip=null!;
     private Border _chromeToolHost=null!;
     private Button _dashButton=null!,_brushButton=null!,_clearButton=null!,_closeButton=null!,_moreButton=null!;
-    private Button _pinButton=null!,_orientationButton=null!;
     private ScreenCustomizeToolbarWindow? _customizeToolbarWindow;
     private readonly List<Button> _chromeActions=[];
     private bool _collapsed;
@@ -56,18 +55,7 @@ internal sealed partial class ScreenAnnotationWindow
     {
         _chromeGrip=new Grid{Width=24,Height=30,Background=ChromeBrush(0,0,0,0)};
         _chromeGrip.Children.Add(new TextBlock{Text="☰",FontSize=18,HorizontalAlignment=HorizontalAlignment.Center,VerticalAlignment=VerticalAlignment.Center,Foreground=ChromeBrush(255,62,81,69)});
-        ToolTipService.SetToolTip(_chromeGrip,T("拖曳移動工具列（未固定時）"));ExtendsContentIntoTitleBar=true;SetTitleBar(_isPinned?null:_chromeGrip);
-
-        _pinButton=ChromeButton("pins",T("固定／自由調整工具列位置"));
-        _pinButton.Click+=(_,_)=>
-        {
-            _isPinned=!_isPinned;
-            RefreshPinButton();
-            _ = SaveChromePreferencesAsync();
-        };
-
-        _orientationButton=ChromeButton("pins",T("切換工具列方向"));
-        _orientationButton.Click+=(_,_)=>ToggleChromeOrientation();
+        ToolTipService.SetToolTip(_chromeGrip,T("拖曳到螢幕上下左右；放開後停靠"));ExtendsContentIntoTitleBar=true;SetTitleBar(_chromeGrip);
 
         _mode.Height=32;_mode.MinWidth=_mode.MinHeight=0;_mode.Padding=new Thickness(3);_mode.BorderThickness=new Thickness(0);_mode.CornerRadius=new CornerRadius(6);_mode.Background=ChromeBrush(0,0,0,0);_mode.Click+=(_,_)=>SetDrawing(!_drawing);
         foreach(var pair in ToolbarUi.ScreenTools.Where(pair=>pair.Key is not("undo" or "redo" or "screenshot" or "layers" or "brush" or "dash" or "clearAll")))
@@ -210,38 +198,6 @@ internal sealed partial class ScreenAnnotationWindow
         });
         _customizeToolbarWindow.Closed+=(_,_)=>_customizeToolbarWindow=null;
         _customizeToolbarWindow.Activate();
-    }
-
-    private void RefreshPinButton()
-    {
-        var pinTransform=new RotateTransform{Angle=_isPinned?0:-60,CenterX=8,CenterY=8};
-        var icon=ToolIcons.CreateIcon("pins");
-        icon.Width=icon.Height=16;
-        icon.RenderTransform=pinTransform;
-        icon.Foreground=ChromeBrush(255,62,81,69);
-        _pinButton.Content=icon;
-        var tip=_isPinned?T("工具列位置已固定（點擊以解鎖自由拖曳）"):T("工具列可自由拖曳調整（點擊以固定位置）");
-        ToolTipService.SetToolTip(_pinButton,tip);
-        SetTitleBar(_isPinned?null:_chromeGrip);
-    }
-
-    private void RefreshOrientationButton()
-    {
-        var icon=new Viewbox{Width=16,Height=16};
-        var path=new Microsoft.UI.Xaml.Shapes.Path
-        {
-            Data=Microsoft.UI.Xaml.Markup.XamlBindingHelper.ConvertValue(typeof(Geometry),
-                VerticalChrome?"M4,12 L20,12 M14,6 L20,12 L14,18":"M12,4 L12,20 M6,14 L12,20 L18,14") as Geometry,
-            Stroke=ChromeBrush(255,62,81,69),
-            StrokeThickness=2,
-            StrokeLineJoin=PenLineJoin.Round,
-            StrokeStartLineCap=PenLineCap.Round,
-            StrokeEndLineCap=PenLineCap.Round
-        };
-        icon.Child=path;
-        _orientationButton.Content=icon;
-        var tip=VerticalChrome?T("轉為橫向工具列"):T("轉為直向工具列");
-        ToolTipService.SetToolTip(_orientationButton,tip);
     }
 
     private void ShowBrushSettings()

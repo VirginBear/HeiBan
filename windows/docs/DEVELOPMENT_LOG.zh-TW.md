@@ -1,6 +1,32 @@
 # HeiBan Windows 開發日誌
 
-## 2026-11-01 — 螢幕自訂工具列「套用」即時預覽／浮動視窗原生雙按鈕排解／工具列純自由拖曳與鎖定無雙邏輯
+## 2026-11-01 — 撤除工具列釘子與方向切換按鈕回歸經典邊界停靠／程式碼優化審視／Store MSIX 封裝
+
+### 1. 目的與範圍
+- **目的**：
+  1. 依使用者明確指示「第5項工具列位置與方向切換當作完全沒講過，整個弄掉、不要這個功能」，完全移除工具列圖釘（`_pinButton`）與方向切換按鈕（`_orientationButton`），恢復經典邊界停靠邏輯。
+  2. 審視程式碼進行優化改善，確保無死代碼、無資源洩漏、無不必要開銷。
+  3. 保留自訂工具列「套用」即時更新能力、浮動工具（計算機、計時器、自訂工具列）純美化按鍵（消除原生雙重按鈕衝突與 38px 緊湊收折）、垂直停靠分頁外側排列等核心改進。
+  4. 產出微軟商城專用之 MSIX / MSIXBundle 發布候選套件。
+- **範圍**：Windows 平台專用，修改 `ScreenAnnotationWindow.Chrome.cs`、`ScreenAnnotationWindow.Docking.cs`，執行 Store 封裝流程。
+- **版本**：維持 `1.0.18`。
+
+### 2. 實作變更與理由
+1. **完全撤除圖釘與方向切換按鈕**：
+   - 自 `ScreenAnnotationWindow.Chrome.cs` 與 `ScreenAnnotationWindow.Docking.cs` 中移除 `_pinButton`、`_orientationButton`、`RefreshPinButton()`、`RefreshOrientationButton()` 及 `ToggleChromeOrientation()`。
+   - `_chromeStart` 回歸僅包含握把 `_chromeGrip` 與模式切換 `_mode`。
+   - `ChromePreferences` 與拖曳停靠邏輯回歸 `_chromeDock`（"top", "bottom", "left", "right"）與 `_chromePosition`，拖曳放開自動對齊至最近邊界。
+   - 垂直停靠分頁外側排布（`ToolbarUi.Arrange` 之 `dockSide`）完整保留。
+2. **審視優化**：
+   - 浮動視窗（`ScreenFloatingToolWindow`、`ScreenCustomizeToolbarWindow`）之自訂標題列拖曳採直接 Win32 `WM_NCLBUTTONDOWN` 轉發，無需在 XAML 中逐幀計算或監聽指標移動，性能極佳。
+   - 關閉螢幕畫布時，`ScreenAnnotationWindow.cs` 自動安全關閉所有可能常駐的子視窗，避免程序駐留或記憶體洩漏。
+
+### 3. 測試與驗收
+- `HeiBan.Windows.Core.Tests`：2,365 項測試全數 PASS。
+- `HeiBan.Windows.OptimizationChecks`：65 項檢查全數通過。
+- `HeiBan.Windows`：x64 Release 建置成功（0 警告 0 錯誤）。
+
+## 2026-11-01 — 螢幕自訂工具列「套用」即時預覽／浮動視窗原生雙按鈕排解（1.0.18 歷史紀錄）
 
 ### 1. 目的與範圍
 - **目的**：針對使用者提出的三大關鍵問題進行精準重構：
