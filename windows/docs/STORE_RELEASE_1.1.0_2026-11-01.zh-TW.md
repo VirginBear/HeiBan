@@ -29,3 +29,7 @@
 - `git diff --check`：通過。舊Store所有MSIX／bundle已先取SHA，封裝後回核不刪不改。
 
 硬體指標端到端延遲、全部視覺情境／多DPI拖動、ARM64實機、WACK與Store安裝未執行；不宣稱這些已通過或Microsoft已認證。正式包維持SelfContained。來源凍結後再執行Package-Store.ps1 -FormalVersionApproved，結果於下方追加。
+
+## 來源凍結補正
+
+第一輪雙架構封裝成功（257ef60），最終相容性複核發現本輪修改Portable README時移除了原本刻意保留的UTF-8 BOM。恢復Package-PortableTrial.ps1的BOM，以保留Windows PowerShell5.1中文字串相容；Store腳本原本無BOM且使用英文，不需變更。雖不影響Store執行碼，為使完整sourceSnapshot與兩架構版本一致，首輪本批1.1.0產物移至.build/release-1.1.0-20261101/superseded-store-source257保留，再由補正commit重新正式封裝；未刪改既有已發布／已提交37個套件。
