@@ -49,7 +49,7 @@ internal static partial class ToolbarUi
         foreach(var button in buttons)
             if((button.Parent??VisualTreeHelper.GetParent(button)) is Panel parent)parent.Children.Remove(button);
     }
-    internal static ToolbarFlowPanel? Arrange(Panel host,IEnumerable<(string Key,Button Button)> source,bool labels,bool vertical,string activePage,Action<string> changePage,double iconSize,IReadOnlyCollection<string>? commonTools=null)
+    internal static ToolbarFlowPanel? Arrange(Panel host,IEnumerable<(string Key,Button Button)> source,bool labels,bool vertical,string activePage,Action<string> changePage,double iconSize,IReadOnlyCollection<string>? commonTools=null,string dockSide="top")
     {
         var buttons=source.ToArray();
         // Detach from their former page before reparenting on dock/language/preference changes.
@@ -59,7 +59,7 @@ internal static partial class ToolbarUi
         if(!labels){foreach(var (_,button) in buttons.OrderBy(b=>b.Key=="select"?0:b.Key=="laser"?1:b.Key=="cane"?2:3))host.Children.Add(button);return null;}
         var shell=new StackPanel{Orientation=vertical?Orientation.Vertical:Orientation.Horizontal,Spacing=6};
         foreach(var key in ToolbarPreferences.FixedTools)if(buttons.FirstOrDefault(b=>b.Key==key).Button is { } pinned)shell.Children.Add(pinned);
-        var body=new StackPanel{Spacing=4};
+        var body=new StackPanel{Spacing=vertical?6:4};
         var tabs=new StackPanel{Orientation=vertical?Orientation.Vertical:Orientation.Horizontal,Spacing=3};
         var flow=new ToolbarFlowPanel{Orientation=vertical?Orientation.Vertical:Orientation.Horizontal,RunLength=vertical?600:900,Spacing=3,SingleRun=true};
         var tabButtons=new Dictionary<string,Button>();
@@ -71,14 +71,46 @@ internal static partial class ToolbarUi
             changePage(page);
         }
         foreach(var (key,label) in Pages)
-        {var tab=new Button{Content=T(label),Padding=new Thickness(9,4,9,4),FontSize=12};tab.Click+=(_,_)=>Show(key);tabs.Children.Add(tab);tabButtons[key]=tab;}
+        {
+            var tab=new Button
+            {
+                Content=T(label),
+                Padding=vertical?new Thickness(6,4,6,4):new Thickness(9,4,9,4),
+                FontSize=vertical?11:12,
+                MinWidth=0
+            };
+            tab.Click+=(_,_)=>Show(key);tabs.Children.Add(tab);tabButtons[key]=tab;
+        }
         var strip=new StackPanel{Orientation=vertical?Orientation.Vertical:Orientation.Horizontal,Spacing=3};
         var previous=new Button{Content=vertical?"⌃":"‹",Width=24,Height=32,Padding=new Thickness(0),VerticalAlignment=VerticalAlignment.Center};
         var next=new Button{Content=vertical?"⌄":"›",Width=24,Height=32,Padding=new Thickness(0),VerticalAlignment=VerticalAlignment.Center};
         Label(previous,T("上一組工具"));Label(next,T("下一組工具"));previous.Click+=(_,_)=>flow.NextPage(-1);next.Click+=(_,_)=>flow.NextPage(1);
         flow.PageAvailabilityChanged=(canPrevious,canNext)=>{previous.IsEnabled=canPrevious;next.IsEnabled=canNext;};
         strip.Children.Add(previous);strip.Children.Add(flow);strip.Children.Add(next);
-        body.Children.Add(tabs);body.Children.Add(strip);shell.Children.Add(body);
+
+        if(vertical)
+        {
+            // Vertical dock side-by-side: place tabs on the side facing the drawing area/screen center
+            body.Orientation=Orientation.Horizontal;
+            if(dockSide=="right")
+            {
+                body.Children.Add(tabs);
+                body.Children.Add(strip);
+            }
+            else
+            {
+                body.Children.Add(strip);
+                body.Children.Add(tabs);
+            }
+        }
+        else
+        {
+            body.Orientation=Orientation.Vertical;
+            body.Children.Add(tabs);
+            body.Children.Add(strip);
+        }
+
+        shell.Children.Add(body);
         if(buttons.FirstOrDefault(b=>b.Key=="more").Button is { } more)shell.Children.Add(more);
         host.Children.Add(shell);Show(Pages.Any(p=>p.Key==activePage)?activePage:"common");
         return flow;

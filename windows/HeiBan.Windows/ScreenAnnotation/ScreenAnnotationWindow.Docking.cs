@@ -13,11 +13,22 @@ namespace HeiBan.Windows.ScreenAnnotation;
 internal sealed partial class ScreenAnnotationWindow
 {
     private sealed class ChromePreferences
-    {public string Dock {get;set;}="top";public double Position {get;set;}=.5;public bool Collapsed {get;set;}}
+    {
+        public string Dock {get;set;}="top";
+        public double Position {get;set;}=.5;
+        public bool Collapsed {get;set;}
+        public bool IsPinned {get;set;}
+        public bool IsFreeFloating {get;set;}
+        public int CustomX {get;set;}=-1;
+        public int CustomY {get;set;}=-1;
+    }
     private ToolbarFlowPanel? _labeledScreenFlow;
     private string _chromeDock="top";
     private double _chromePosition=.5;
     private PointInt32? _requestedChromePosition;
+    private bool _isPinned;
+    private bool _isFreeFloating;
+    private PointInt32? _customFloatingPosition;
     private readonly DispatcherTimer _dockTimer=new(){Interval=TimeSpan.FromMilliseconds(150)};
     private string ChromePreferencesPath=>Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(_recoveryPath))!,"Settings","screen-ui.json");
     private bool VerticalChrome=>_chromeDock is "left" or "right";
@@ -26,7 +37,15 @@ internal sealed partial class ScreenAnnotationWindow
         try
         {
             if(File.Exists(ChromePreferencesPath)&&JsonSerializer.Deserialize<ChromePreferences>(File.ReadAllText(ChromePreferencesPath),DocumentCodec.Options) is { } prefs)
-            {_chromeDock=prefs.Dock is "top" or "bottom" or "left" or "right"?prefs.Dock:"top";_chromePosition=double.IsFinite(prefs.Position)?Math.Clamp(prefs.Position,0,1):.5;_collapsed=prefs.Collapsed;}
+            {
+                _chromeDock=prefs.Dock is "top" or "bottom" or "left" or "right"?prefs.Dock:"top";
+                _chromePosition=double.IsFinite(prefs.Position)?Math.Clamp(prefs.Position,0,1):.5;
+                _collapsed=prefs.Collapsed;
+                _isPinned=prefs.IsPinned;
+                _isFreeFloating=prefs.IsFreeFloating;
+                if(prefs.IsFreeFloating&&prefs.CustomX>=0&&prefs.CustomY>=0)
+                    _customFloatingPosition=new PointInt32(prefs.CustomX,prefs.CustomY);
+            }
         }catch(Exception e) when(e is IOException or JsonException){_status.Text=T("停靠偏好讀取未完成，註記仍保留");}
         RebuildChromeLayout();
         AppWindow.Changed+=(_,args)=>{if(!IsActive||!args.DidPositionChange)return;var p=AppWindow.Position;if(_requestedChromePosition is { } expected&&p.X==expected.X&&p.Y==expected.Y)return;_dockTimer.Stop();_dockTimer.Start();};
@@ -42,7 +61,11 @@ internal sealed partial class ScreenAnnotationWindow
         _chromeStart?.Children.Clear();_chromeEnd?.Children.Clear();_chromeTools?.Children.Clear();
         var vertical=VerticalChrome;var orientation=vertical?Orientation.Vertical:Orientation.Horizontal;
         _chromeStart=new StackPanel{Orientation=orientation,Spacing=4,VerticalAlignment=VerticalAlignment.Center,HorizontalAlignment=HorizontalAlignment.Center};
-        _chromeStart.Children.Add(_chromeGrip);_chromeStart.Children.Add(_mode);RefreshMode();
+        _chromeStart.Children.Add(_chromeGrip);
+        _chromeStart.Children.Add(_pinButton);
+        _chromeStart.Children.Add(_orientationButton);
+        _chromeStart.Children.Add(_mode);
+        RefreshPinButton();RefreshOrientationButton();RefreshMode();
         _chromeTools=new ToolbarFlowPanel{Orientation=orientation,Spacing=4,VerticalAlignment=vertical?VerticalAlignment.Top:VerticalAlignment.Center,HorizontalAlignment=vertical?HorizontalAlignment.Center:HorizontalAlignment.Left};
         // Apply the same saved catalog order as the main canvas. Screen-only controls remain
         // local to this host and are appended; pins and viewport navigation are filtered by policy.
@@ -58,7 +81,7 @@ internal sealed partial class ScreenAnnotationWindow
         foreach(var button in _buttons.Where(pair=>!ToolbarPreferences.AllDefaultTools.Contains(pair.Key)).Select(pair=>pair.Value)
                     .Concat(_chromeActions.Where(button=>button.Tag is null||!ToolbarPreferences.AllDefaultTools.Contains((string)button.Tag))))
             if(!ordered.Contains(button))ordered.Add(button);
-        _labeledScreenFlow=ToolbarUi.Arrange(_chromeTools,ordered.Select(b=>(b.Tag as string??"",b)),_toolbarPreferences.DisplayMode=="labels",vertical,_toolbarPage,p=>{_toolbarPage=p;DispatcherQueue.TryEnqueue(()=>{ResizeChrome();PositionChrome();});},32,_toolbarPreferences.CommonTools);
+        _labeledScreenFlow=ToolbarUi.Arrange(_chromeTools,ordered.Select(b=>(b.Tag as string??"",b)),_toolbarPreferences.DisplayMode=="labels",vertical,_toolbarPage,p=>{_toolbarPage=p;DispatcherQueue.TryEnqueue(()=>{ResizeChrome();PositionChrome();});},32,_toolbarPreferences.CommonTools,_chromeDock);
         if(!vertical&&!_collapsed)_chromeTools.Children.Add(_moreButton);
         _chromeEnd=new StackPanel{Orientation=orientation,Spacing=4,VerticalAlignment=VerticalAlignment.Center,HorizontalAlignment=HorizontalAlignment.Center};
         if(_collapsed)_chromeEnd.Children.Add(_clearButton);if(vertical||_collapsed)_chromeEnd.Children.Add(_moreButton);_chromeEnd.Children.Add(_closeButton);
@@ -88,19 +111,79 @@ internal sealed partial class ScreenAnnotationWindow
     private void PositionChrome()
     {
         var area=DisplayArea.GetFromWindowId(AppWindow.Id,DisplayAreaFallback.Primary).WorkArea;var size=AppWindow.Size;var gap=(int)(12*_dpiScale);
+        if(_isFreeFloating&&_customFloatingPosition is { } custom)
+        {
+            var cx=Math.Clamp(custom.X,area.X,Math.Max(area.X,area.X+area.Width-size.Width));
+            var cy=Math.Clamp(custom.Y,area.Y,Math.Max(area.Y,area.Y+area.Height-size.Height));
+            _requestedChromePosition=new(cx,cy);
+            AppWindow.Move(_requestedChromePosition.Value);
+            return;
+        }
         var x=VerticalChrome?(_chromeDock=="left"?area.X+gap:area.X+area.Width-size.Width-gap):area.X+(int)((area.Width-size.Width)*_chromePosition);
         var y=VerticalChrome?area.Y+(int)((area.Height-size.Height)*_chromePosition):(_chromeDock=="top"?area.Y+gap:area.Y+area.Height-size.Height-gap);
         x=Math.Clamp(x,area.X,Math.Max(area.X,area.X+area.Width-size.Width));y=Math.Clamp(y,area.Y,Math.Max(area.Y,area.Y+area.Height-size.Height));_requestedChromePosition=new(x,y);AppWindow.Move(_requestedChromePosition.Value);
     }
-    private void DockChrome(string side){_dockTimer.Stop();_chromeDock=side;RebuildChromeLayout();ResizeChrome();PositionChrome();}
+    private void DockChrome(string side)
+    {
+        _dockTimer.Stop();
+        _isFreeFloating=false;
+        _customFloatingPosition=null;
+        _chromeDock=side;
+        RebuildChromeLayout();
+        ResizeChrome();
+        PositionChrome();
+        RefreshOrientationButton();
+        _ = SaveChromePreferencesAsync();
+    }
+    private void ToggleChromeOrientation()
+    {
+        var newVertical=!VerticalChrome;
+        if(_isFreeFloating)
+        {
+            _chromeDock=newVertical?"left":"top";
+            RebuildChromeLayout();
+            ResizeChrome();
+            if(_customFloatingPosition is { } pos)AppWindow.Move(pos);
+        }
+        else
+        {
+            DockChrome(newVertical?"left":"top");
+        }
+        RefreshPinButton();
+        RefreshOrientationButton();
+        _ = SaveChromePreferencesAsync();
+    }
     private void FinishChromeDrag()
     {
+        if(_isPinned)return;
+        if(_isFreeFloating)
+        {
+            _customFloatingPosition=AppWindow.Position;
+            _ = SaveChromePreferencesAsync();
+            return;
+        }
         var pointer=NativeOverlayWindow.CurrentPointer;var area=DisplayArea.GetFromWindowId(AppWindow.Id,DisplayAreaFallback.Primary).WorkArea;
         var nearest=new[]{("top",Math.Abs(pointer.Y-area.Y)),("bottom",Math.Abs(pointer.Y-area.Y-area.Height)),("left",Math.Abs(pointer.X-area.X)),("right",Math.Abs(pointer.X-area.X-area.Width))}.OrderBy(edge=>edge.Item2).First().Item1;
         _chromeDock=nearest;_chromePosition=VerticalChrome?Math.Clamp((pointer.Y-area.Y)/(double)area.Height,0,1):Math.Clamp((pointer.X-area.X)/(double)area.Width,0,1);DockChrome(nearest);
     }
     private async Task SaveChromePreferencesAsync()
-    {try{await DocumentSessionManager.WriteAtomicAsync(ChromePreferencesPath,JsonSerializer.Serialize(new ChromePreferences{Dock=_chromeDock,Position=_chromePosition,Collapsed=_collapsed},DocumentCodec.Options));}catch(Exception e){_status.Text=T("停靠偏好未保存：")+e.Message;}}
+    {
+        try
+        {
+            var p=AppWindow.Position;
+            var toSave=new ChromePreferences
+            {
+                Dock=_chromeDock,
+                Position=_chromePosition,
+                Collapsed=_collapsed,
+                IsPinned=_isPinned,
+                IsFreeFloating=_isFreeFloating,
+                CustomX=_isFreeFloating?p.X:-1,
+                CustomY=_isFreeFloating?p.Y:-1
+            };
+            await DocumentSessionManager.WriteAtomicAsync(ChromePreferencesPath,JsonSerializer.Serialize(toSave,DocumentCodec.Options));
+        }catch(Exception e){_status.Text=T("停靠偏好未保存：")+e.Message;}
+    }
     private object ValidateChromeDocking()
     {
         var savedDock=_chromeDock;var savedCollapsed=_collapsed;var savedPosition=_chromePosition;SetChromeCollapsed(false);

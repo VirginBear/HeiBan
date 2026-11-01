@@ -1,5 +1,38 @@
 # HeiBan Windows 開發日誌
 
+## 2026-11-01 — 螢幕畫布計算機/計時器獨立浮動視窗／螢幕伸縮尺（4方向移動+左右拉伸）／垂直分頁外側排布／自訂工具列獨立視窗／釘子固定與方向切換
+
+### 1. 目的與範圍
+- **目的**：針對使用者實機測試後提出的 5 項操作反饋進行徹底改善：
+  1. 螢幕計算機與計時器改為獨立浮動視窗，點擊畫布不自動收合，支援在螢幕上任意自由拖動移動。
+  2. 螢幕尺尺寸合理化（預設 640 pt，非 90% 全螢幕），中間移動圖示改為四方向箭頭（`IDC_SIZEALL`），左右兩端支援拖曳伸縮長度（`IDC_SIZEWE`，伸縮尺概念），兩端圓把手旋轉。
+  3. 工具列垂直停靠時，分頁按鈕並排於外側（靠畫布側），不再直向堆疊佔據工具列縱向高度。
+  4. 螢幕畫布自訂工具列由 60px 壓縮的 `ContentDialog` 升級為獨立視窗 `ScreenCustomizeToolbarWindow`（520×640），徹底擺脫彈窗擠壓問題。
+  5. 工具列握把旁新增釘子圖釘（向左傾斜代表自由調整，向下代表位置固定）與方向切換按鈕（橫豎一鍵旋轉），自由模式放開不強制吸附邊界。
+- **範圍**：Windows 平台專用，修改 `NativeOverlayWindow.cs`、`ScreenAnnotationWindow.Ruler.cs`、`ScreenAnnotationWindow.Teaching.cs`、`ScreenAnnotationWindow.Docking.cs`、`ScreenAnnotationWindow.Chrome.cs`、`ScreenAnnotationWindow.cs`、`ToolbarUi.Presentation.cs`、`MainWindow.DrawingWorkflow.cs`，新增 `ScreenFloatingToolWindow.cs`、`ScreenCustomizeToolbarWindow.cs`。
+- **版本**：維持 `1.0.18`。
+
+### 2. 實作變更與理由
+1. **`ScreenFloatingToolWindow` 承載計算機與計時器**：
+   - 以前使用 `Flyout` 具有 Light-Dismiss 特性，點擊畫布即消失，且被錨定在按鈕上無法位移。
+   - 改由 `ScreenFloatingToolWindow`（獨立 WinUI 3 Window，`IsAlwaysOnTop = true`）顯示，附帶標題拖曳欄（`SetTitleBar`）、最小化 `−` 與關閉 `×`。點擊畫布不收起，計算結果或倒數時間一鍵「插入畫布」，工具仍保持開啟可連續計算。
+2. **螢幕伸縮尺與游標**：
+   - 尺長由 `_rulerLengthPercent = 90` 改為 `_rulerPixelLength = 640`（預設合理尺寸）。
+   - 尺身中間移動標記由「↔」換為「✥」，游標對應 4 方向箭頭 `IDC_SIZEALL`。
+   - 尺身左右兩端偵測 `RulerLeftEdgeHit` / `RulerRightEdgeHit`，懸停游標為 `IDC_SIZEWE`，拖曳右端時左端錨定，拖曳左端時右端錨定，即時伸縮 `_rulerPixelLength`。
+3. **垂直停靠分頁外側橫向並排**：
+   - `ToolbarUi.Arrange` 增加 `dockSide` 參數。當 `vertical` 時，`body` 改為 `Horizontal` 排列：左側停靠時分頁置於右側；右側停靠時分頁置於左側，垂直按鈕條獲得完整縱向高度。
+4. **`ScreenCustomizeToolbarWindow` 解決自訂工具列擠壓**：
+   - 新建 520×640 頂層視窗，提供排序、常用勾選、顯示勾選、格式設定，點擊儲存寫入偏好並刷新螢幕工具列。
+5. **釘子固定按鈕與方向切換按鈕**：
+   - `_pinButton`：向左（`-60°`）代表未鎖定可自由拖曳（`SetTitleBar(_chromeGrip)`，放開維持自訂座標 `_customFloatingPosition`）；向下（`0°`）代表固定（`SetTitleBar(null)`）。
+   - `_orientationButton`：橫向時顯示下向箭頭轉直向；直向時顯示右向箭頭轉橫向。
+
+### 3. 測試與驗收
+- `HeiBan.Windows.Core.Tests`：2,365 項測試全數 PASS。
+- `HeiBan.Windows.OptimizationChecks`：65 項檢查全數通過。
+- `HeiBan.Windows`：x64 Release 建置成功（0 警告 0 錯誤）。
+
 ## 2026-11-01 — 螢幕畫布工具列能力全對齊／尺規・圓規・計算機・計時器・膠帶／自訂工具列對齊／套索修復／移除多餘調色盤
 
 ### 1. 目的與範圍

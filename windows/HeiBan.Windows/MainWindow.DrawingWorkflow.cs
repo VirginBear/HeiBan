@@ -63,7 +63,7 @@ public partial class MainWindow
             _arrangingToolbar=true;
             try
             {
-                _labeledToolbarFlow=ToolbarUi.Arrange(Tools,_toolButtons.Select(p=>(p.Key,p.Value)),labels,vertical,_toolbarPage,p=>_toolbarPage=p,40,_toolbarPrefs.CommonTools);
+                _labeledToolbarFlow=ToolbarUi.Arrange(Tools,_toolButtons.Select(p=>(p.Key,p.Value)),labels,vertical,_toolbarPage,p=>_toolbarPage=p,40,_toolbarPrefs.CommonTools,_dock=="右側"?"right":_dock=="左側"?"left":"top");
                 _arrangedSelectionButton=selection;_arrangedLabels=labels;_arrangedVertical=vertical;
             }
             finally{_arrangingToolbar=false;}

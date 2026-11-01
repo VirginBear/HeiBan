@@ -14,6 +14,16 @@ internal sealed partial class ScreenAnnotationWindow
     private readonly CalculatorModel _calculator = new();
     private readonly TimerCoordinator _timerCoordinator = new();
     private DispatcherTimer? _screenTimerTick;
+    private ScreenFloatingToolWindow? _screenCalcWindow;
+    private ScreenFloatingToolWindow? _screenTimerWindow;
+
+    internal void CloseFloatingTeachingTools()
+    {
+        _screenCalcWindow?.Close();
+        _screenCalcWindow = null;
+        _screenTimerWindow?.Close();
+        _screenTimerWindow = null;
+    }
 
     private void EnsureScreenTimerTick()
     {
@@ -33,8 +43,14 @@ internal sealed partial class ScreenAnnotationWindow
         _screenTimerTick.Start();
     }
 
-    private void ShowScreenCalculatorPanel(FrameworkElement anchor)
+    private void ShowScreenCalculatorPanel(FrameworkElement? anchor = null)
     {
+        if (_screenCalcWindow is not null)
+        {
+            _screenCalcWindow.Activate();
+            return;
+        }
+
         var panel = new StackPanel { Width = 310, Spacing = 8, Padding = new Thickness(4), RequestedTheme = ElementTheme.Light };
         var titleRow = new Grid();
         titleRow.Children.Add(new TextBlock { Text = T("計算機"), FontSize = 15, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center });
@@ -207,12 +223,19 @@ internal sealed partial class ScreenAnnotationWindow
         actionsRow.Children.Add(historyBtn);
         panel.Children.Add(actionsRow);
 
-        ShowChromeFlyout(new Flyout { Content = panel }, anchor);
+        _screenCalcWindow = new ScreenFloatingToolWindow(T("計算機"), panel, 340, 520, () => _screenCalcWindow = null);
+        _screenCalcWindow.Activate();
     }
 
-    private void ShowScreenTimerPanel(FrameworkElement anchor)
+    private void ShowScreenTimerPanel(FrameworkElement? anchor = null)
     {
         EnsureScreenTimerTick();
+        if (_screenTimerWindow is not null)
+        {
+            _screenTimerWindow.Activate();
+            return;
+        }
+
         var panel = new StackPanel { Width = 280, Spacing = 10, Padding = new Thickness(4), RequestedTheme = ElementTheme.Light };
         panel.Children.Add(new TextBlock { Text = T("計時器"), FontSize = 15, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
 
@@ -343,8 +366,12 @@ internal sealed partial class ScreenAnnotationWindow
         };
         panel.Children.Add(insertTimerBtn);
 
-        var flyout = new Flyout { Content = panel };
-        flyout.Closed += (_, _) => { activeUpdater?.Stop(); activeUpdater = null; };
-        ShowChromeFlyout(flyout, anchor);
+        _screenTimerWindow = new ScreenFloatingToolWindow(T("計時器"), panel, 320, 460, () =>
+        {
+            activeUpdater?.Stop();
+            activeUpdater = null;
+            _screenTimerWindow = null;
+        });
+        _screenTimerWindow.Activate();
     }
 }

@@ -202,18 +202,59 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             {
                 if(RulerAngleHit(vp)){ShowScreenRulerSettings(_buttons.TryGetValue("ruler",out var rb)?rb:_moreButton,new global::Windows.Foundation.Point(p.X,p.Y));return;}
                 if(RulerPivotHit(vp)){_rulerPivotMoving=true;DamageRuler();_dirty=true;return;}
+                if(RulerLeftEdgeHit(vp)){_rulerResizingLeft=true;DamageRuler();_dirty=true;return;}
+                if(RulerRightEdgeHit(vp)){_rulerResizingRight=true;DamageRuler();_dirty=true;return;}
                 if(RulerRotationHit(vp)){BeginRulerRotation(vp);DamageRuler();_dirty=true;return;}
                 if(RulerHit(vp)){_rulerMoving=true;_last=p;DamageRuler();_dirty=true;return;}
             }
-            else if(input.Kind=="move"&&(_rulerMoving||_rulerRotating||_rulerPivotMoving))
+            else if(input.Kind=="move")
             {
-                if(_rulerMoving&&_last is not null){var delta=vp-new System.Numerics.Vector2((float)_last.X,(float)_last.Y);_rulerCenter+=delta;_last=p;DamageRuler();_dirty=true;return;}
-                if(_rulerRotating){RotateRuler(vp);DamageRuler();_dirty=true;return;}
+                if(_rulerResizingRight)
+                {
+                    var local=RulerLocal(vp);
+                    var newLength=(float)Math.Clamp(local.X+RulerLength/2,200,_overlay.Width*1.5f);
+                    var deltaLen=newLength-RulerLength;
+                    _rulerPixelLength=newLength;
+                    _rulerCenter+=RulerDirection()*(deltaLen/2);
+                    _overlay.SetRulerCursor("resize");
+                    DamageRuler();_dirty=true;return;
+                }
+                if(_rulerResizingLeft)
+                {
+                    var local=RulerLocal(vp);
+                    var newLength=(float)Math.Clamp(RulerLength/2-local.X,200,_overlay.Width*1.5f);
+                    var deltaLen=newLength-RulerLength;
+                    _rulerPixelLength=newLength;
+                    _rulerCenter-=RulerDirection()*(deltaLen/2);
+                    _overlay.SetRulerCursor("resize");
+                    DamageRuler();_dirty=true;return;
+                }
+                if(_rulerMoving&&_last is not null)
+                {
+                    var delta=vp-new System.Numerics.Vector2((float)_last.X,(float)_last.Y);
+                    _rulerCenter+=delta;_last=p;
+                    _overlay.SetRulerCursor("move");
+                    DamageRuler();_dirty=true;return;
+                }
+                if(_rulerRotating)
+                {
+                    RotateRuler(vp);
+                    _overlay.SetRulerCursor("rotate");
+                    DamageRuler();_dirty=true;return;
+                }
                 if(_rulerPivotMoving){MoveRulerPivot(vp);DamageRuler();_dirty=true;return;}
+
+                if(!input.LeftDown&&!input.RightDown)
+                {
+                    if(RulerLeftEdgeHit(vp)||RulerRightEdgeHit(vp))_overlay.SetRulerCursor("resize");
+                    else if(RulerRotationHit(vp))_overlay.SetRulerCursor("rotate");
+                    else if(RulerHit(vp))_overlay.SetRulerCursor("move");
+                    else _overlay.SetRulerCursor(null);
+                }
             }
-            else if(input.Kind=="up"&&(_rulerMoving||_rulerRotating||_rulerPivotMoving))
+            else if(input.Kind=="up"&&(_rulerMoving||_rulerRotating||_rulerPivotMoving||_rulerResizingLeft||_rulerResizingRight))
             {
-                _rulerMoving=_rulerRotating=_rulerPivotMoving=false;_last=null;DamageRuler();_dirty=true;return;
+                _rulerMoving=_rulerRotating=_rulerPivotMoving=_rulerResizingLeft=_rulerResizingRight=false;_last=null;DamageRuler();_dirty=true;return;
             }
             if(_tool is "pen" or "highlighter" or "paint")
             {
@@ -512,7 +553,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         if(_laser.Samples.Count>0){_laser.Release();_dirty=true;}
         CancelCircularEraser();
         CommitScreenStyle();var committedChanged=_session.HasTransaction;var previewVisible=_preview is not null||_points.Count>0;
-        _rulerMoving=_rulerRotating=_rulerPivotMoving=false;_compassCenterMoving=_compassCenterMoved=_compassRadiusMoving=_compassPencilMoving=false;_compass.Prepare();_straightenTimer.Stop();_penHoldAnchor=null;_screenPenStraight=false;DamagePreview();_session.Cancel();_curveAnchors.Clear();_marquee=false;_points.Clear();_start=_last=null;_preview=null;_handle=null;_renderer.ResetLive();
+        _rulerMoving=_rulerRotating=_rulerPivotMoving=_rulerResizingLeft=_rulerResizingRight=false;_compassCenterMoving=_compassCenterMoved=_compassRadiusMoving=_compassPencilMoving=false;_compass.Prepare();_straightenTimer.Stop();_penHoldAnchor=null;_screenPenStraight=false;DamagePreview();_session.Cancel();_curveAnchors.Clear();_marquee=false;_points.Clear();_start=_last=null;_preview=null;_handle=null;_renderer.ResetLive();
         if(committedChanged){_dirty=_fullDamage=_committedDirty=true;_damage=null;}else if(previewVisible)_dirty=true;
     }
     private async Task<bool> SaveAsync()
@@ -630,7 +671,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         var ring=new ProgressRing{IsActive=true,Width=30,Height=30};
         try
         {
-            _radialSettings?.Close();CancelRadial();_radialSaveTimer.Stop();
+            _radialSettings?.Close();CloseFloatingTeachingTools();_customizeToolbarWindow?.Close();_customizeToolbarWindow=null;CancelRadial();_radialSaveTimer.Stop();
             _saveTimer.Stop();_renderTimer.Stop();_focusRememberTimer.Stop();_dockTimer.Stop();_chromeFlyout?.Hide();
             _captureCancellation?.Cancel();if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();FinishScreenText();CancelGesture();
             _radialSaveTimer.Stop();await _owner.RadialTools.SaveAsync();

@@ -40,6 +40,8 @@ internal sealed partial class ScreenAnnotationWindow
     private Grid _chromeGrip=null!;
     private Border _chromeToolHost=null!;
     private Button _dashButton=null!,_brushButton=null!,_clearButton=null!,_closeButton=null!,_moreButton=null!;
+    private Button _pinButton=null!,_orientationButton=null!;
+    private ScreenCustomizeToolbarWindow? _customizeToolbarWindow;
     private readonly List<Button> _chromeActions=[];
     private bool _collapsed;
     private string _toolbarPage="common";
@@ -55,6 +57,19 @@ internal sealed partial class ScreenAnnotationWindow
         _chromeGrip=new Grid{Width=24,Height=30,Background=ChromeBrush(0,0,0,0)};
         _chromeGrip.Children.Add(new TextBlock{Text="☰",FontSize=18,HorizontalAlignment=HorizontalAlignment.Center,VerticalAlignment=VerticalAlignment.Center,Foreground=ChromeBrush(255,62,81,69)});
         ToolTipService.SetToolTip(_chromeGrip,T("拖曳到螢幕上下左右；放開後停靠"));ExtendsContentIntoTitleBar=true;SetTitleBar(_chromeGrip);
+
+        _pinButton=ChromeButton("pins",T("固定／自由調整工具列位置"));
+        _pinButton.Click+=(_,_)=>
+        {
+            _isPinned=!_isPinned;
+            if(!_isPinned)_isFreeFloating=true;
+            RefreshPinButton();
+            _ = SaveChromePreferencesAsync();
+        };
+
+        _orientationButton=ChromeButton("pins",T("切換工具列方向"));
+        _orientationButton.Click+=(_,_)=>ToggleChromeOrientation();
+
         _mode.Height=32;_mode.MinWidth=_mode.MinHeight=0;_mode.Padding=new Thickness(3);_mode.BorderThickness=new Thickness(0);_mode.CornerRadius=new CornerRadius(6);_mode.Background=ChromeBrush(0,0,0,0);_mode.Click+=(_,_)=>SetDrawing(!_drawing);
         foreach(var pair in ToolbarUi.ScreenTools.Where(pair=>pair.Key is not("undo" or "redo" or "screenshot" or "layers" or "brush" or "dash" or "clearAll")))
         {
@@ -171,158 +186,63 @@ internal sealed partial class ScreenAnnotationWindow
         catch(Exception ex){_status.Text=ex.Message;}
     }
 
-    private async Task ShowScreenCustomizeToolbarDialog()
+    private void ShowScreenCustomizeToolbarWindow()
     {
         _chromeFlyout?.Hide();
-        var allKeys=_toolbarPreferences.VisibleTools
-            .Concat(_toolbarPreferences.HiddenTools)
-            .Concat(ToolbarContentPolicy.ScreenCanvasTools)
-            .Distinct().Where(key=>key!="extension"&&ToolbarContentPolicy.IsAvailableOnScreen(key))
-            .ToList();
-
-        var visibleSet=new HashSet<string>(_toolbarPreferences.VisibleTools.Where(ToolbarContentPolicy.IsAvailableOnScreen));
-        var commonSet=new HashSet<string>(_toolbarPreferences.CommonTools.Where(ToolbarContentPolicy.IsAvailableOnScreen));
-        var displayMode=_toolbarPreferences.DisplayMode;
-        var panel=new StackPanel{Spacing=6};
-
-        void RebuildList()
+        if(_customizeToolbarWindow is not null)
         {
-            panel.Children.Clear();
-            for(var i=0;i<allKeys.Count;i++)
+            _customizeToolbarWindow.Activate();
+            return;
+        }
+        _customizeToolbarWindow=new ScreenCustomizeToolbarWindow(_toolbarPreferences,async()=>
+        {
+            try
             {
-                var idx=i;
-                var key=allKeys[i];
-                var grid=new Grid{ColumnSpacing=8};
-                grid.ColumnDefinitions.Add(new ColumnDefinition{Width=new GridLength(1,GridUnitType.Star)});
-                grid.ColumnDefinitions.Add(new ColumnDefinition{Width=GridLength.Auto});
-                grid.ColumnDefinitions.Add(new ColumnDefinition{Width=GridLength.Auto});
-                grid.ColumnDefinitions.Add(new ColumnDefinition{Width=GridLength.Auto});
-
-                var cb=new CheckBox
-                {
-                    Content=new StackPanel
-                    {
-                        Orientation=Orientation.Horizontal,
-                        Spacing=10,
-                        Children={ToolIcons.Create(key),new TextBlock{Text=T(ToolbarPreferences.ToolNames.GetValueOrDefault(key,key)),MaxWidth=160,TextWrapping=TextWrapping.Wrap,VerticalAlignment=VerticalAlignment.Center}}
-                    },
-                    IsEnabled=!ToolbarPreferences.IsFixedTool(key),
-                    IsChecked=ToolbarPreferences.IsFixedTool(key)||visibleSet.Contains(key)
-                };
-                cb.Checked+=(_,_)=>visibleSet.Add(key);
-                cb.Unchecked+=(_,_)=>visibleSet.Remove(key);
-                Grid.SetColumn(cb,0);
-                grid.Children.Add(cb);
-
-                var common=new CheckBox{Content=T("常用"),IsChecked=ToolbarPreferences.IsFixedTool(key)||commonSet.Contains(key),IsEnabled=!ToolbarPreferences.IsFixedTool(key),MinWidth=72};
-                common.Checked+=(_,_)=>{commonSet.Add(key);visibleSet.Add(key);cb.IsChecked=true;};
-                common.Unchecked+=(_,_)=>commonSet.Remove(key);
-                Grid.SetColumn(common,1);
-                grid.Children.Add(common);
-
-                var upBtn=new Button{Content="↑",Padding=new Thickness(6,2,6,2),IsEnabled=!ToolbarPreferences.IsFixedTool(key)&&idx>ToolbarPreferences.FixedTools.Length};
-                upBtn.Click+=(_,_)=>
-                {
-                    (allKeys[idx-1],allKeys[idx])=(allKeys[idx],allKeys[idx-1]);
-                    RebuildList();
-                };
-                Grid.SetColumn(upBtn,2);
-                grid.Children.Add(upBtn);
-
-                var downBtn=new Button{Content="↓",Padding=new Thickness(6,2,6,2),IsEnabled=!ToolbarPreferences.IsFixedTool(key)&&idx<allKeys.Count-1};
-                downBtn.Click+=(_,_)=>
-                {
-                    (allKeys[idx+1],allKeys[idx])=(allKeys[idx],allKeys[idx+1]);
-                    RebuildList();
-                };
-                Grid.SetColumn(downBtn,3);
-                grid.Children.Add(downBtn);
-
-                panel.Children.Add(new Border{Background=ChromeBrush(255,240,244,236),BorderBrush=ChromeBrush(255,223,230,217),BorderThickness=new Thickness(1),CornerRadius=new CornerRadius(12),Padding=new Thickness(10,4,10,4),Child=grid});
+                await _owner.SaveToolbarPreferencesAsync(_toolbarPreferences);
+                RebuildChromeLayout();
+                ResizeChrome();
+                PositionChrome();
+                RefreshButtons();
             }
-        }
-
-        RebuildList();
-
-        var header=new StackPanel{Spacing=8};
-        var format=new ComboBox
-        {
-            Header=T("工具列格式"),
-            ItemsSource=new[]{T("只有圖示"),T("圖示與文字（分頁）")},
-            SelectedIndex=displayMode=="labels"?1:0,
-            HorizontalAlignment=HorizontalAlignment.Stretch
-        };
-        format.SelectionChanged+=(_,_)=>displayMode=format.SelectedIndex==1?"labels":"icons";
-        header.Children.Add(format);
-
-        var commands=new StackPanel{Orientation=Orientation.Horizontal,Spacing=8};
-        var all=new Button{Content=T("全選")};
-        all.Click+=(_,_)=>{visibleSet.UnionWith(allKeys);RebuildList();};
-        var defaults=new Button{Content=T("預設")};
-        defaults.Click+=(_,_)=>
-        {
-            visibleSet.Clear();
-            visibleSet.UnionWith(ToolbarContentPolicy.ScreenCanvasTools);
-            allKeys.Clear();
-            allKeys.AddRange(ToolbarContentPolicy.ScreenCanvasTools.Where(k=>k!="extension"));
-            format.SelectedIndex=1;
-            displayMode="labels";
-            commonSet.Clear();
-            commonSet.UnionWith(ToolbarPreferences.DefaultCommonTools.Where(ToolbarContentPolicy.IsAvailableOnScreen));
-            RebuildList();
-        };
-        commands.Children.Add(all);
-        commands.Children.Add(defaults);
-        header.Children.Add(commands);
-
-        var scroll=new ScrollViewer{Content=panel,MaxHeight=360,VerticalScrollBarVisibility=ScrollBarVisibility.Auto};
-        var dialog=new ContentDialog
-        {
-            FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,
-            Title=T("自訂工具列"),
-            Content=new StackPanel
+            catch(Exception error)
             {
-                Spacing=10,
-                Children=
-                {
-                    header,
-                    new TextBlock{Text=T("左側勾選顯示工具，勾選「常用」加入常用分頁；選取、雷射與藤條固定顯示。"),TextWrapping=TextWrapping.Wrap,FontSize=12,Foreground=ChromeBrush(255,101,116,106)},
-                    scroll
-                }
-            },
-            PrimaryButtonText=T("儲存"),
-            CloseButtonText=T("取消"),
-            XamlRoot=((FrameworkElement)Content).XamlRoot
+                _status.Text=T("工具列設定未保存：")+error.Message;
+            }
+        });
+        _customizeToolbarWindow.Closed+=(_,_)=>_customizeToolbarWindow=null;
+        _customizeToolbarWindow.Activate();
+    }
+
+    private void RefreshPinButton()
+    {
+        var pinTransform=new RotateTransform{Angle=_isPinned?0:-60,CenterX=8,CenterY=8};
+        var icon=ToolIcons.CreateIcon("pins");
+        icon.Width=icon.Height=16;
+        icon.RenderTransform=pinTransform;
+        icon.Foreground=ChromeBrush(255,62,81,69);
+        _pinButton.Content=icon;
+        var tip=_isPinned?T("工具列位置已固定（點擊以解鎖自由拖曳）"):T("工具列可自由拖曳調整（點擊以固定位置）");
+        ToolTipService.SetToolTip(_pinButton,tip);
+        SetTitleBar(_isPinned?null:_chromeGrip);
+    }
+
+    private void RefreshOrientationButton()
+    {
+        var icon=new Viewbox{Width=16,Height=16};
+        var path=new Microsoft.UI.Xaml.Shapes.Path
+        {
+            Data=Microsoft.UI.Xaml.Markup.XamlBindingHelper.ConvertValue(typeof(Geometry),
+                VerticalChrome?"M4,12 L20,12 M14,6 L20,12 L14,18":"M12,4 L12,20 M6,14 L12,20 L18,14") as Geometry,
+            Stroke=ChromeBrush(255,62,81,69),
+            StrokeThickness=2,
+            StrokeLineJoin=PenLineJoin.Round,
+            StrokeStartLineCap=PenLineCap.Round,
+            StrokeEndLineCap=PenLineCap.Round
         };
-
-        if(await dialog.ShowAsync()!=ContentDialogResult.Primary)return;
-
-        var newVisible=new List<string>();
-        var newHidden=new List<string>();
-        foreach(var key in allKeys)
-        {
-            if(visibleSet.Contains(key))newVisible.Add(key);
-            else newHidden.Add(key);
-        }
-        if(newVisible.Count==0)newVisible.Add("select");
-
-        _toolbarPreferences.DisplayMode=displayMode;
-        _toolbarPreferences.CommonTools=allKeys.Where(commonSet.Contains).ToList();
-        _toolbarPreferences.VisibleTools=newVisible;
-        _toolbarPreferences.HiddenTools=newHidden;
-
-        try
-        {
-            await _owner.SaveToolbarPreferencesAsync(_toolbarPreferences);
-            RebuildChromeLayout();
-            ResizeChrome();
-            PositionChrome();
-            RefreshButtons();
-        }
-        catch(Exception error)
-        {
-            _status.Text=T("工具列設定未保存：")+error.Message;
-        }
+        icon.Child=path;
+        _orientationButton.Content=icon;
+        var tip=VerticalChrome?T("轉為橫向工具列"):T("轉為直向工具列");
+        ToolTipService.SetToolTip(_orientationButton,tip);
     }
 
     private void ShowBrushSettings()
@@ -452,7 +372,7 @@ internal sealed partial class ScreenAnnotationWindow
         Item("save",T("儲存註記"),async()=>{if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();FinishScreenText();CancelGesture();if(await SaveAsync()){_status.Text=_session.IsDirty?T("尚有變更"):T("已儲存");RefreshMode();}});
         var dockMenu=new MenuFlyoutSubItem{Text=T("工具列位置")};
         foreach(var pair in new[]{("top","上方"),("bottom","下方"),("left","左側"),("right","右側")}){var side=pair.Item1;var item=new MenuFlyoutItem{Text=T(pair.Item2)};item.Click+=(_,_)=>DockChrome(side);dockMenu.Items.Add(item);}menu.Items.Add(dockMenu);menu.Items.Add(new MenuFlyoutSeparator());
-        Item("settings",T("自訂工具列…"),async()=>await ShowScreenCustomizeToolbarDialog());
+        Item("settings",T("自訂工具列…"),()=>ShowScreenCustomizeToolbarWindow());
         Item("export",T("儲存可編輯註記／透明 PNG…"),async()=>await ExportAnnotationsAsync());Item("delete",T("一鍵清空畫布（可復原）"),ClearScreenObjects);Item("reading",T("使用說明（正體中文）"),async()=>await global::Windows.System.Launcher.LaunchUriAsync(new Uri(Path.Combine(AppContext.BaseDirectory,"Assets","HeiBanUserGuide.html"))));
         Item("copy",T("貼上已複製物件"),async()=>await PasteScreenSelectionAsync());Item("select",_collapsed?T("展開工具區"):T("收合工具區"),()=>SetChromeCollapsed(!_collapsed));menu.Items.Add(new MenuFlyoutSeparator());menu.Items.Add(new MenuFlyoutItem{Text=_status.Text,IsEnabled=false});ShowChromeFlyout(menu,anchor);
     }

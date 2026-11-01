@@ -18,6 +18,27 @@ internal sealed partial class NativeOverlayWindow : IDisposable
     private string _cursorTool="pen";
     internal void SetManipulationCursor(HeiBan.Windows.Models.BoardObject? selected,HeiBan.Windows.Engine.ObjectHandles.Handle? handle,string tool)
     {_cursorTool=tool;_shapeCursor.Update(selected,handle,(uint)Math.Round(DpiScale(_window)*96),tool:tool);}
+    internal void SetRulerCursor(string? part)
+    {
+        if(part=="move")
+        {
+            var cur=LoadCursor(0,new nint(32646)); // IDC_SIZEALL: 4-directional move
+            if(cur!=0)SetCursor(cur);
+        }
+        else if(part is "resize" or "stretch")
+        {
+            var cur=LoadCursor(0,new nint(32644)); // IDC_SIZEWE: horizontal elongation/stretch
+            if(cur!=0)SetCursor(cur);
+        }
+        else if(part=="rotate")
+        {
+            _shapeCursor.Update(null,new HeiBan.Windows.Engine.ObjectHandles.Handle{Kind="rotate"},(uint)Math.Round(DpiScale(_window)*96));
+        }
+        else
+        {
+            _shapeCursor.Update(null,null,(uint)Math.Round(DpiScale(_window)*96),tool:_cursorTool);
+        }
+    }
     private bool _drawing,_disposed,_pointerCaptured;
     public int Left { get; private set; }
     public int Top { get; private set; }
@@ -155,6 +176,7 @@ internal sealed partial class NativeOverlayWindow : IDisposable
     [DllImport("user32.dll",CharSet=CharSet.Unicode)] private static extern bool UnregisterClass(string name,nint instance);
     [DllImport("user32.dll",CharSet=CharSet.Unicode,SetLastError=true)] private static extern nint CreateWindowEx(uint exStyle,string className,string title,uint style,int x,int y,int width,int height,nint parent,nint menu,nint instance,nint parameter);
     [DllImport("user32.dll",CharSet=CharSet.Unicode)] private static extern nint LoadCursor(nint instance,nint name);
+    [DllImport("user32.dll")] private static extern nint SetCursor(nint cursor);
     [DllImport("user32.dll")] private static extern uint GetDoubleClickTime();
     [DllImport("user32.dll")] private static extern short GetAsyncKeyState(int key);
     [DllImport("user32.dll")] private static extern uint GetDpiForWindow(nint window);
