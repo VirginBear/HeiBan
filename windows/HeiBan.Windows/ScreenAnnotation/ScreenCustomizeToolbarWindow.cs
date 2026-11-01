@@ -109,8 +109,44 @@ internal sealed class ScreenCustomizeToolbarWindow : Window
 
         RebuildList();
 
+        var headerBar = new Grid
+        {
+            Height = 36,
+            Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 232, 239, 230)),
+            Padding = new Thickness(12, 0, 8, 0)
+        };
+        headerBar.Children.Add(new TextBlock
+        {
+            Text = "⋮⋮  " + T("自訂工具列 · 螢幕畫布"),
+            VerticalAlignment = VerticalAlignment.Center,
+            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+            Foreground = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 45, 90, 70))
+        });
+        var closeBtn = new Button
+        {
+            Content = "✕",
+            Width = 28,
+            Height = 28,
+            Padding = new Thickness(0),
+            FontSize = 12,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Center,
+            Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(0, 0, 0, 0)),
+            BorderThickness = new Thickness(0),
+            CornerRadius = new CornerRadius(6)
+        };
+        ToolTipService.SetToolTip(closeBtn, T("關閉"));
+        closeBtn.Click += (_, _) => Close();
+        headerBar.Children.Add(closeBtn);
+
+        var headerBorder = new Border
+        {
+            Child = headerBar,
+            CornerRadius = new CornerRadius(10, 10, 0, 0),
+            Background = headerBar.Background
+        };
+
         var header = new StackPanel { Spacing = 8 };
-        header.Children.Add(new TextBlock { Text = T("自訂工具列"), FontSize = 20, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
 
         var format = new ComboBox
         {
@@ -153,17 +189,12 @@ internal sealed class ScreenCustomizeToolbarWindow : Window
         var scroll = new ScrollViewer
         {
             Content = panel,
-            MaxHeight = 400,
+            MaxHeight = 380,
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             Padding = new Thickness(2)
         };
 
-        var bottomBar = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Spacing = 8, Margin = new Thickness(0, 10, 0, 0) };
-        var cancelBtn = new Button { Content = T("取消"), MinWidth = 80 };
-        var saveBtn = new Button { Content = T("儲存"), MinWidth = 80, Style = (Style)Application.Current.Resources["AccentButtonStyle"] };
-
-        cancelBtn.Click += (_, _) => Close();
-        saveBtn.Click += async (_, _) =>
+        void ApplyChanges()
         {
             var newVisible = new List<string>();
             var newHidden = new List<string>();
@@ -178,36 +209,85 @@ internal sealed class ScreenCustomizeToolbarWindow : Window
             preferences.CommonTools = allKeys.Where(commonSet.Contains).ToList();
             preferences.VisibleTools = newVisible;
             preferences.HiddenTools = newHidden;
+        }
 
+        var bottomBar = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Spacing = 8, Margin = new Thickness(0, 10, 0, 0) };
+        var cancelBtn = new Button { Content = T("取消"), MinWidth = 80 };
+        var applyBtn = new Button { Content = T("套用"), MinWidth = 80 };
+        var saveBtn = new Button { Content = T("儲存"), MinWidth = 80, Style = (Style)Application.Current.Resources["AccentButtonStyle"] };
+
+        cancelBtn.Click += (_, _) => Close();
+        applyBtn.Click += async (_, _) =>
+        {
+            ApplyChanges();
+            await onSaved();
+        };
+        saveBtn.Click += async (_, _) =>
+        {
+            ApplyChanges();
             await onSaved();
             Close();
         };
 
         bottomBar.Children.Add(cancelBtn);
+        bottomBar.Children.Add(applyBtn);
         bottomBar.Children.Add(saveBtn);
 
         var mainLayout = new StackPanel
         {
             Spacing = 10,
-            Padding = new Thickness(20),
+            Padding = new Thickness(16),
             Children = { header, hint, scroll, bottomBar }
         };
 
+        var root = new Grid
+        {
+            RowDefinitions =
+            {
+                new RowDefinition { Height = GridLength.Auto },
+                new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }
+            },
+            RequestedTheme = ElementTheme.Light,
+            Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 252, 252, 250))
+        };
+        root.Children.Add(headerBorder);
+        Grid.SetRow(mainLayout, 1);
+        root.Children.Add(mainLayout);
+
         var border = new Border
         {
-            Child = mainLayout,
-            Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 252, 252, 250))
+            Child = root,
+            BorderBrush = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 212, 219, 209)),
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(10)
         };
 
         Content = border;
-        var scale = NativeOverlayWindow.DpiScale(Handle);
-        var area = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Nearest).WorkArea;
-        AppWindow.Resize(new SizeInt32(Math.Min(area.Width - 24, (int)(520 * scale)), Math.Min(area.Height - 24, (int)(640 * scale))));
+
         if (AppWindow.Presenter is OverlappedPresenter presenter)
         {
+            presenter.SetBorderAndTitleBar(false, false);
             presenter.IsAlwaysOnTop = true;
             presenter.IsResizable = false;
             presenter.IsMaximizable = false;
         }
+
+        var scale = NativeOverlayWindow.DpiScale(Handle);
+        var area = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Nearest).WorkArea;
+        AppWindow.Resize(new SizeInt32(Math.Min(area.Width - 24, (int)(520 * scale)), Math.Min(area.Height - 24, (int)(640 * scale))));
+
+        headerBar.PointerPressed += (_, e) =>
+        {
+            var pt = e.GetCurrentPoint(headerBar);
+            if (!pt.Properties.IsLeftButtonPressed) return;
+            var src = e.OriginalSource as DependencyObject;
+            while (src != null && src != headerBar)
+            {
+                if (src is Button) return;
+                src = VisualTreeHelper.GetParent(src);
+            }
+            NativeOverlayWindow.ReleaseCapture();
+            NativeOverlayWindow.SendMessage(Handle, 0x00A1, 2, 0); // WM_NCLBUTTONDOWN, HTCAPTION
+        };
     }
 }

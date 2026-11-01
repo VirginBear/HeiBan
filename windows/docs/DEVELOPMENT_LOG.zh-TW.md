@@ -1,5 +1,36 @@
 # HeiBan Windows 開發日誌
 
+## 2026-11-01 — 螢幕自訂工具列「套用」即時預覽／浮動視窗原生雙按鈕排解／工具列純自由拖曳與鎖定無雙邏輯
+
+### 1. 目的與範圍
+- **目的**：針對使用者提出的三大關鍵問題進行精準重構：
+  1. 自訂工具列新增「套用 (Apply)」按鈕，使用者修改顯示、常用、排序或格式後，點擊「套用」即時更新螢幕工具列，且視窗不關閉，可持續預覽並微調。
+  2. 計算機與計時器（`ScreenFloatingToolWindow`）以及自訂工具列視窗（`ScreenCustomizeToolbarWindow`）移除 WinUI 3 原生標題與邊框衝突，徹底選用美化按鍵（`−`、`✕`），消除按鈕重疊；點擊收折時視窗高度自適應縮為標題高度（38px），展開時自適應還原內容高度。
+  3. 工具列位置徹底去除邊緣吸附雙重邏輯：移除拖曳釋放時計算 nearest 邊緣的舊吸附行為與 `_isFreeFloating` 衝突標記。未釘選時任意拖曳隨放即停，釘選時位置鎖定；釘子旁方向按鈕一鍵原位旋轉橫豎；選單邊界預設移動後依然可自由拖曳。
+- **範圍**：Windows 平台專用，修改 `NativeOverlayWindow.cs`、`ScreenFloatingToolWindow.cs`、`ScreenCustomizeToolbarWindow.cs`、`ScreenAnnotationWindow.Docking.cs`、`ScreenAnnotationWindow.Chrome.cs`。
+- **版本**：維持 `1.0.18`。
+
+### 2. 實作變更與理由
+1. **`ScreenCustomizeToolbarWindow` 新增「套用」按鈕**：
+   - 提取 `ApplyChanges()` 共同邏輯，將選取的工具與常用順序寫入 `preferences`。
+   - 底部按鈕區排列為「取消」、「套用」、「儲存」；點擊「套用」執行 `await onSaved()` 刷新螢幕工具列而不呼叫 `Close()`。
+2. **移除原生標題與按鈕衝突，全面純美化**：
+   - 在 `ScreenFloatingToolWindow` 與 `ScreenCustomizeToolbarWindow` 呼叫 `presenter.SetBorderAndTitleBar(false, false)`，移除原生 Windows 標題列與最小化/關閉按鈕。
+   - 標題列接線 Win32 `WM_NCLBUTTONDOWN`（0x00A1, 2）訊息，點擊自訂標題列任意空白處均可平滑拖曳移動視窗。
+   - 美化收折按鈕（`−`）與關閉按鈕（`✕`）以無邊框微圓角現代風格呈現；收折時以 `AppWindow.Resize` 將視窗高度縮窄至 38px，展開時恢復完整高度。
+3. **工具列徹底去除邊緣吸附雙重邏輯**：
+   - 簡化 `ChromePreferences`：直接保存座標 `X`、`Y`、方向 `IsVertical`、釘選 `IsPinned` 與收折 `Collapsed`。
+   - 刪除 `FinishChromeDrag()` 中的 `nearest` 邊緣吸附運算；拖曳放開後僅將當前座標儲存至偏好檔。
+   - 釘選按鈕（`_pinButton`）：向左（`-60°`）可自由拖曳，向下（`0°`）鎖定位置禁止拖動。
+   - 方向按鈕（`_orientationButton`）：原位翻轉橫豎佈局，自動確保邊界留在螢幕可用範圍內。
+   - 「更多工具與設定」->「工具列位置」選單（上方、下方、左側、右側）作為一鍵定位輔助，就定位後後續拖曳仍維持純自由停放。
+
+### 3. 測試與驗收
+- `HeiBan.Windows.Core.Tests`：2,365 項測試全數 PASS。
+- `HeiBan.Windows.OptimizationChecks`：65 項檢查全數通過。
+- `HeiBan.Windows`：x64 Release 建置成功（0 警告 0 錯誤）。
+- 試用產物已封裝並同步至 `windows\dist\trials\HeiBan-Windows-Portable-1.0.18-screen-toolbar-floating-apply-2026-11-01-r2-win-x64`，使用者資料已完整保留複製。
+
 ## 2026-11-01 — 螢幕畫布計算機/計時器獨立浮動視窗／螢幕伸縮尺（4方向移動+左右拉伸）／垂直分頁外側排布／自訂工具列獨立視窗／釘子固定與方向切換
 
 ### 1. 目的與範圍

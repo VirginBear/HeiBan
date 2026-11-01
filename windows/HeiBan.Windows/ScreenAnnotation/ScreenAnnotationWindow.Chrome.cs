@@ -56,13 +56,12 @@ internal sealed partial class ScreenAnnotationWindow
     {
         _chromeGrip=new Grid{Width=24,Height=30,Background=ChromeBrush(0,0,0,0)};
         _chromeGrip.Children.Add(new TextBlock{Text="☰",FontSize=18,HorizontalAlignment=HorizontalAlignment.Center,VerticalAlignment=VerticalAlignment.Center,Foreground=ChromeBrush(255,62,81,69)});
-        ToolTipService.SetToolTip(_chromeGrip,T("拖曳到螢幕上下左右；放開後停靠"));ExtendsContentIntoTitleBar=true;SetTitleBar(_chromeGrip);
+        ToolTipService.SetToolTip(_chromeGrip,T("拖曳移動工具列（未固定時）"));ExtendsContentIntoTitleBar=true;SetTitleBar(_isPinned?null:_chromeGrip);
 
         _pinButton=ChromeButton("pins",T("固定／自由調整工具列位置"));
         _pinButton.Click+=(_,_)=>
         {
             _isPinned=!_isPinned;
-            if(!_isPinned)_isFreeFloating=true;
             RefreshPinButton();
             _ = SaveChromePreferencesAsync();
         };

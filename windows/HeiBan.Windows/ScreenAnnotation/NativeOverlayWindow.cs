@@ -192,7 +192,8 @@ internal sealed partial class NativeOverlayWindow : IDisposable
     [DllImport("user32.dll")] private static extern int GetSystemMetrics(int index);
     [DllImport("user32.dll")] private static extern bool GetCursorPos(out Point p);
     [DllImport("user32.dll")] private static extern nint SetCapture(nint hwnd);
-    [DllImport("user32.dll")] private static extern bool ReleaseCapture();
+    [DllImport("user32.dll")] internal static extern bool ReleaseCapture();
+    [DllImport("user32.dll",CharSet=CharSet.Unicode)] internal static extern nint SendMessage(nint hwnd,uint msg,nuint wParam,nint lParam);
     [DllImport("user32.dll",CharSet=CharSet.Unicode)] private static extern nint DefWindowProc(nint hwnd,uint message,nuint wParam,nint lParam);
     [DllImport("user32.dll",SetLastError=true)] private static extern bool RegisterHotKey(nint hwnd,int id,uint modifiers,uint key);
     [DllImport("user32.dll")] private static extern bool UnregisterHotKey(nint hwnd,int id);
