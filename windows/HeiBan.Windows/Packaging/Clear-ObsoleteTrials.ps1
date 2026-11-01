@@ -1,5 +1,6 @@
 [CmdletBinding()]
-param([Parameter(Mandatory)][ValidatePattern('^HeiBan-Windows-Portable-[A-Za-z0-9._-]+$')][string]$KeepTrial)
+param([Parameter(Mandatory)][ValidatePattern('^HeiBan-Windows-Portable-[A-Za-z0-9._-]+$')][string]$KeepTrial,
+      [ValidatePattern('^HeiBan-Windows-Portable-[A-Za-z0-9._-]+$')][string[]]$PreserveTrials=@())
 $ErrorActionPreference='Stop'
 $windowsRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
 $trialRoot=(Resolve-Path -LiteralPath (Join-Path $windowsRoot 'dist\trials')).Path
@@ -25,10 +26,10 @@ Assert-Within $backupRoot (Join-Path $windowsRoot 'dist\trial-data-backups') | O
 New-Item -ItemType Directory -Path $recordRoot | Out-Null
 $storePath=Join-Path $windowsRoot 'dist\store\HeiBan-Store-1.0.12.0-x64-arm64.msixbundle'
 $storeBefore=if(Test-Path -LiteralPath $storePath){Hash $storePath}else{$null}
-$report=[ordered]@{status='in progress';keepTrial=$KeepTrial;backupRelativePath='dist/trial-data-backups/'+$id;publishedAssetNames=$published;entries=@();removedBytes=0L;preservedBytes=0L;scope='Only obsolete unpublished trials; never Git history, release assets, Store or unrelated dist'}
+$report=[ordered]@{status='in progress';keepTrial=$KeepTrial;explicitlyPreservedTrials=@($PreserveTrials);backupRelativePath='dist/trial-data-backups/'+$id;publishedAssetNames=$published;entries=@();removedBytes=0L;preservedBytes=0L;scope='Only obsolete unpublished trials; never Git history, release assets, Store or unrelated dist'}
 try {
     foreach($folder in @(Get-ChildItem -LiteralPath $trialRoot -Directory -Force)) {
-        if($folder.Name -eq $KeepTrial -or $folder.Name -notmatch '^HeiBan-Windows-Portable-[A-Za-z0-9._-]+$'){continue}
+        if($folder.Name -eq $KeepTrial -or ($PreserveTrials -contains $folder.Name) -or $folder.Name -notmatch '^HeiBan-Windows-Portable-[A-Za-z0-9._-]+$'){continue}
         $source=(Resolve-Path -LiteralPath $folder.FullName).Path
         Assert-Within $source $trialRoot | Out-Null
         if($published -contains ($folder.Name+'.zip')){continue}
