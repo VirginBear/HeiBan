@@ -10,7 +10,7 @@
 
 已讀根開發入口、Windows規則、目前狀態／架構／問題／日誌。自上一份交付後又有輪盤、螢幕尺、計算機／計時器、自訂工具列及撤銷釘子／方向控制等改動，應審視9e8babb實際來源，不能只依10/31試用結果判斷可上架。既有graphify關聯圖僅輔助定位，新增功能以現行來源為準。
 
-## 審查進行紀錄（尚未完成驗收）
+## 審查進行紀錄（歷史）
 
 - 最新程式基準9e8babb，10/31交付後49個Windows檔案又新增約3348行、移除280行；最新Store候選為store-1.0.18-20261101-r1。fetch後本機較origin/main領先8個提交，尚須同步開發紀錄。
 - 已確認：ScreenCustomizeToolbarWindow把allKeys限定螢幕工具後，ApplyChanges整份替換共用VisibleTools／HiddenTools／CommonTools；正常畫布專用pins／viewLock因此失去原可見／常用選擇。主視窗SaveToolbarPreferencesAsync確實把同一組設定寫回全域並重建正常工具列，不是只在螢幕過濾。
@@ -31,3 +31,5 @@
 後續改善：①分不同GPU／4K與高DPI量測游標到筆跡延遲及大文件擦除p50/p95；②把兩host剩餘指令對映逐批共用，每批驗證座標／交易邊界，避免一次重寫；③FD候選須在乾淨裝置驗證相依安裝，再決定是否改正式通道；④十語母語校閱、螢幕閱讀器及多DPI視窗移動驗收。這些不宣稱本輪已做。x64展開約251.5MB，主程式約2.50MB，主要體積為SDK／.NET／圖形執行階段，不能把刪C#行數等同下載減重。
 
 MSIX上傳不要求自行付費簽署，Store會重新簽署；參考[官方套件要求](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/app-package-requirements)。WACK尚未執行；[官方驗證工具說明](https://learn.microsoft.com/en-us/windows/uwp/debug-test-perf/windows-app-certification-kit)。最終Store認證由Microsoft執行，本輪未代送審。
+
+1.1.0最終成品已完成，390來源與37歷史套件SHA核對通過。新的x64展開251.61MB，六個主程式／資源檔含resources.pri合計4.74MB（約1.9%）；上文2.50MB為舊候選不同檔案集合，不可當作前後程式增長量。正式SHA與限制以發行紀錄為準。
