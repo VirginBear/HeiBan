@@ -1,5 +1,9 @@
 # Windows 目前開發狀態
 
+## 2026-11-02 — 使用者核准1.1.1／準備正式Store套件
+
+使用者試用新版後明確指定1.1.1，採產品1.1.1／套件1.1.1.0；Windows metadata與manifest同步、產品身分保持。新跑Core2423／Optimization68、十語702keys與26節78段指南、診斷Store排除守衛通過。準備SelfContained x64＋ARM64正式封裝；已送審1.1.0.0等40舊包先取SHA保留，未代上傳／送審。完整封裝結果與十語更新文案依[STORE_RELEASE_1.1.1_2026-11-02.zh-TW.md](STORE_RELEASE_1.1.1_2026-11-02.zh-TW.md)追加。
+
 ## 2026-11-02 — 獨立拖動預覽／藤條再次點擊設定
 
 兩畫布物件平移改獨立offset，拖動不寫document／Undo；靜態繪圖段cache維持Z遮擋，最多兩bitmap且總64MiB，超額用command list。放開一次commit，取消不改作品。已用藤條時再點工具列藤條開靜音選項。Core2423、原生23＋screen adapter12、10幀GPU逐像素maxDiff0與5004物件實際拖動（0整景重建／1cache／1commit）通過；十語指南同步。正常x64試用object-drag-2026-11-02-r2完成（654 payload／244來源與CRC通過，獨立Data；來源ec86503補資源到達失效），維持1.1.0，已送審包不改。詳[OBJECT_DRAG_AND_CANE_SETTINGS_2026-11-02.zh-TW.md](OBJECT_DRAG_AND_CANE_SETTINGS_2026-11-02.zh-TW.md)。

@@ -1,5 +1,9 @@
 # HeiBan Windows 開發日誌
 
+## 2026-11-02 — 1.1.1正式商店封裝批次
+
+使用者接受object-drag-r2後指定1.1.1，記錄核准並同步Version／FileVersion／AssemblyVersion與Store manifest／identity的1.1.1.0；無業務邏輯變更。開工保存原三份dirty清理與YouTube文件，保護40份舊Store產物SHA。Core2423／Optimization68本批重跑通過，十語介面與指南生成通過；診斷Store target按預期拒絕，正常雙架構另封裝。十語更新文案與runFullTrust短文已備。WACK、ARM64實機、Store安裝／送審未執行；前批原生驗證不偽作本批重跑。完整命令／來源與產物待[STORE_RELEASE_1.1.1_2026-11-02.zh-TW.md](STORE_RELEASE_1.1.1_2026-11-02.zh-TW.md)追加。
+
 ## 2026-11-02 — 物件拖動工作量與藤條設定入口
 
 查到每sample PreviewMoveSelection仍改bounds並整景dirty、游標與SelectionBar更新；改Core ObjectDragPreview與共用ObjectDragRenderer，先獨立offset、釋放才一筆交易，按Z順序分靜態／移動段快取且有64MiB上限。一般fast path直接提交預覽，螢幕維持局部damage/readback，不在move Prune／clone／整景遍歷；resize／rotate另保留。藤條再次點擊開共用靜音選項，十語702keys／78段指南更新。
