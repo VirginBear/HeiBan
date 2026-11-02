@@ -1,5 +1,9 @@
 # Windows 目前開發狀態
 
+## 2026-11-02 — 畫布範圍截圖／框選避免整景重建
+
+有邊界整頁、無邊界拖曳範圍後直接複製標準Bitmap；含當頁可見物件與背景，不含工具列等操作介面。管理分頁新增入口並可自訂常用。一般框選移動專用預覽、按下與放開不再重建committed scene。Core2383、Optimization68、原生整頁／負座標／剪貼簿解碼及5003物件三個實際拖曳通過（sceneRebuilds／generationChanges皆0），十語指南同步。未量測硬體端到端延遲，免安裝包正在封裝；維持1.1.0開發批次，不動已送審Store包。詳[CANVAS_CAPTURE_AND_SELECTION_PERFORMANCE_2026-11-02.zh-TW.md](CANVAS_CAPTURE_AND_SELECTION_PERFORMANCE_2026-11-02.zh-TW.md)。
+
 ## 2026-11-02 — 一般畫布框選事件修正／手動清理清單
 
 使用者確認螢幕正常、一般畫布異常。PointerMoved誤接Complete造成拖曳初次移動就結束，移除四行錯誤分支，沿用移動Update／放開Complete。修正前原生拖曳確認preview提前消失；修正後三項真實指標路由手勢及2365 Core通過。72份4.82GiB重複套件已重核SHA，提供本機CSV／TXT供使用者自行刪除，未動檔。維持1.1.0開發批次，已送審包不改。修正免安裝版marquee-fix-2026-11-02-r1已完成（653 payload／229來源／CRC通過），來源22d2b6c，獨立Data供使用者複測。[工作與驗收紀錄](MARQUEE_AND_MANUAL_CLEANUP_2026-11-02.zh-TW.md)。

@@ -133,9 +133,11 @@ public partial class MainWindow : Window
             var validation=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--validation-output=",StringComparison.Ordinal));
             var performance=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--performance-output=",StringComparison.Ordinal));
 #if HEIBAN_RELEASE_VALIDATION
+            var captureCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--canvas-capture-validation-output=",StringComparison.Ordinal));
             var marqueeCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--marquee-validation-output=",StringComparison.Ordinal));
             var releaseCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--release-validation-output=",StringComparison.Ordinal));
-            if(marqueeCheck is not null)await PrepareMarqueeValidationAsync(marqueeCheck["--marquee-validation-output=".Length..]);
+            if(captureCheck is not null)await RunCanvasCaptureValidationAsync(captureCheck["--canvas-capture-validation-output=".Length..]);
+            else if(marqueeCheck is not null)await PrepareMarqueeValidationAsync(marqueeCheck["--marquee-validation-output=".Length..]);
             else if(releaseCheck is not null)await RunRelease110ChecksAsync(releaseCheck["--release-validation-output=".Length..]);
             else
 #endif
@@ -430,6 +432,7 @@ public partial class MainWindow : Window
     private void Root_KeyDown(object sender,KeyRoutedEventArgs e)
     {
         if(e.Handled)return;
+        if(_canvasCapture is not null){if(e.Key==VirtualKey.Escape){CancelGesture();StatusText.Text=T("已取消截圖");}e.Handled=true;return;}
         if(_radialGesture.Holding&&e.Key==VirtualKey.Escape){CancelRadial();CanvasSurface.ReleasePointerCaptures();e.Handled=true;return;}
         if(_boardEraserDraft is not null){if(e.Key==VirtualKey.Escape)CancelBoardEraser();e.Handled=true;return;}
         if(_preparingClose||_saveBoundaryBusy){e.Handled=true;return;}

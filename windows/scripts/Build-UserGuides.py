@@ -165,7 +165,7 @@ def practice_document(code, rows):
         'shapes':['shapes','curve','magnet'], 'selection':['select','lasso'],
         'properties':['dash','extension'], 'text':['text','sticky'], 'eraser':['eraser'],
         'ruler':['ruler'], 'compass':['compass'], 'laser':['laser','cane'],
-        'utilities':['calculator','timer'], 'images':['image','screenshot'],
+        'utilities':['calculator','timer'], 'images':['image','screenshot','canvasCapture'],
         'pins':['pins'], 'shortcuts':['undo','redo','clearAll'], 'ux20':['layers']}
     covered=[tool for tools in tool_sections.values() for tool in tools]
     if set(covered)!=actual or len(covered)!=len(actual):raise ValueError('Practice guide tool coverage differs from runtime catalog')

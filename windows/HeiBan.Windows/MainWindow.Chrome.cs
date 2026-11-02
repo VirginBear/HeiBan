@@ -436,6 +436,10 @@ public partial class MainWindow
                     Tools.Children.Add(IconButton("screenshot", T("截圖：拖曳框選後直接置入畫布"), () => Screenshot_Click(this, new()), "screenshot"));
                     _toolButtons["screenshot"] = (Button)Tools.Children[^1];
                     break;
+                case "canvasCapture":
+                    Tools.Children.Add(IconButton("canvasCapture",T("畫布範圍截圖"),()=>CanvasCapture_Click(this,new()),"canvasCapture"));
+                    _toolButtons["canvasCapture"]=(Button)Tools.Children[^1];
+                    break;
                 case "image":
                     Tools.Children.Add(IconButton("image", T("匯入圖片；也可拖入桌面截圖"), () => Image_Click(this, new()), "image"));
                     _toolButtons["image"] = (Button)Tools.Children[^1];
@@ -653,6 +657,9 @@ public partial class MainWindow
                 break;
             case "screenshot":
                 Screenshot_Click(this, new());
+                break;
+            case "canvasCapture":
+                CanvasCapture_Click(this,new());
                 break;
             case "image":
                 Image_Click(this, new());

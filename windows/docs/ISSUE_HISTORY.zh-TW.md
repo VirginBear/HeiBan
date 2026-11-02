@@ -1,5 +1,9 @@
 # Windows 問題與排解紀錄
 
+## 2026-11-02 — 框選開始／結束觸發不必要整景渲染
+
+PointerMoved未clone或保存文件；但按下generic tail把select當scene dirty，放開RefreshEditor又Prune並重畫全部，移動還經低priority佇列與重複游標設定。改marquee專用PresentInteraction與完成後選取UI更新，保留既有左右方向規則。5003物件三個真實路由手勢scene重建及文件generation變更皆0；不是硬體延遲保證。另記截圖測試自訂token／Title跨Clipboard.Flush不可靠，採診斷專用序號把關後讀自己圖片。詳[CANVAS_CAPTURE_AND_SELECTION_PERFORMANCE_2026-11-02.zh-TW.md](CANVAS_CAPTURE_AND_SELECTION_PERFORMANCE_2026-11-02.zh-TW.md)。
+
 ## 2026-11-02 — 一般畫布框選事件修正／手動清理清單
 
 使用者確認螢幕正常、一般畫布異常。PointerMoved誤接Complete造成拖曳初次移動就結束，移除四行錯誤分支，沿用移動Update／放開Complete。修正前原生拖曳確認preview提前消失；修正後三項真實指標路由手勢及2365 Core通過。72份4.82GiB重複套件已重核SHA，提供本機CSV／TXT供使用者自行刪除，未動檔。維持1.1.0開發批次，已送審包不改。[工作與驗收紀錄](MARQUEE_AND_MANUAL_CLEANUP_2026-11-02.zh-TW.md)。

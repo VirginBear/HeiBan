@@ -32,15 +32,9 @@ public partial class MainWindow
             switch(file.FileType.ToLowerInvariant())
             {
                 case ".png":
-                    var scale=Math.Min(2,Math.Min(16384/area.Width,16384/area.Height));
-                    scale=Math.Min(scale,Math.Sqrt(40_000_000/(area.Width*area.Height)));if(scale<=0)throw new InvalidOperationException("匯出範圍無效。");
-                    var vp=new ViewportTransform{Zoom=scale,X=-area.X*scale,Y=-area.Y*scale};
-                    using(var target=new CanvasRenderTarget(CanvasSurface,(float)Math.Max(1,area.Width*scale),(float)Math.Max(1,area.Height*scale),96))
-                    {
-                        await _renderer.LoadImagesAsync(target,objects);
-                        using(var ds=target.CreateDrawingSession()){_renderer.RenderBackground(ds,doc.Board,vp,(float)target.Size.Width,(float)target.Size.Height);_renderer.RenderObjects(ds,objects,vp,(float)target.Size.Width,(float)target.Size.Height);}
-                        await target.SaveAsync(file.Path,CanvasBitmapFileFormat.Png);
-                    }break;
+                    var image=await RenderCanvasImageAsync(doc.Board,objects,area);
+                    using(image.Bitmap)await image.Bitmap.SaveAsync(file.Path,CanvasBitmapFileFormat.Png);
+                    break;
                 case ".svg":await DocumentSessionManager.WriteAtomicAsync(file.Path,BoardExporter.Svg(doc,objects,area));break;
                 case ".html":await DocumentSessionManager.WriteAtomicAsync(file.Path,BoardExporter.Html(doc,objects,area));break;
                 case ".pdf":await ExportPdfAsync(doc,objects,area,file.Path,allPdf.IsChecked==true&&scope.SelectedIndex==0);break;

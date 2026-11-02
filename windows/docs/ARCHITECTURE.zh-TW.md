@@ -1,5 +1,9 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-11-02 — CanvasCapturePlan／共享圖片渲染
+
+Core CanvasCapturePlan持有文件範圍正規化、zoom對應最小手勢與像素限制；MainWindow.CanvasCapture持有命令與clipboard生命週期，PNG匯出共用RenderCanvasImageAsync。一般框選與截圖分別保留短暫預覽狀態，拖曳不進保存／clone／整景重建，完成才比對或渲染一次。僅驗證組態含Clipboard序號與路由觀察器；正常包不編入。詳[CANVAS_CAPTURE_AND_SELECTION_PERFORMANCE_2026-11-02.zh-TW.md](CANVAS_CAPTURE_AND_SELECTION_PERFORMANCE_2026-11-02.zh-TW.md)。
+
 ## 2026-10-31 — 共用輪盤與螢幕損傷邊界
 
 RadialToolbox/Core持有交換與八格幾何；兩host以DIP／physical-pixel adapter處理指標，shared Win2D renderer使用原ToolIcons向量，非模態WinUI設定窗接受實際toolbar drag。Settings/radial.json是獨立偏好，兩模式分開，與.heiban契約無關；未知欄位保留，空閒原子寫入，關閉等待。

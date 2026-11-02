@@ -1,5 +1,9 @@
 # Windows 開發決策
 
+## 2026-11-02 — 文件截圖與互動預覽邊界
+
+畫布範圍截圖是文件渲染命令，不讀螢幕：有邊界用完整當頁，無邊界用獨立短暫crop狀態。PointerMoved只記端點與預覽，放開才clone可見當頁一次並建立bitmap；與PNG匯出共用離屏renderer。標準DataPackage Bitmap＋Flush支援離開來源stream後貼上；40M像素與GPU維度自動限縮解析度、不裁掉文件範圍。epoch與頁碼在async前後驗證，不跨作品複製。螢幕畫布沒有此文件範圍命令。marquee只改選取，不破壞committed scene／文件generation；完成仍按物件幾何比對。診斷hook只可在HeiBanValidationBuild編入，正式Store同時指定仍拒絕。無.heiban格式變更，未知欄位與既有作品不遷移。詳[CANVAS_CAPTURE_AND_SELECTION_PERFORMANCE_2026-11-02.zh-TW.md](CANVAS_CAPTURE_AND_SELECTION_PERFORMANCE_2026-11-02.zh-TW.md)。
+
 ## 2026-11-02 — 框選回歸需覆蓋實際事件路由
 
 直接依序測Begin／Update／Complete不能抓出PointerMoved誤接Complete。加入僅HeiBanValidationBuild可編入的routed event觀察器，於實際生產事件處理後記錄手勢與preview生命週期，透過獨立合成畫布做真實拖曳。正常交付不編入觀察器，仍禁止Store診斷組態；保留Core幾何測試作不同層級證據。

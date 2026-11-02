@@ -934,6 +934,7 @@ var printPagesDoc=new HeiBanDocument{Board=new BoardMetadata{CanvasMode="noteboo
 var printedPages=BoardExporter.Html(printPagesDoc,[],new(0,0,595,842),true,printPagesDoc.Board.Pages.Select(p=>printPagesDoc.Objects.Where(o=>o.PageId==p.Id)));
 Check(System.Text.RegularExpressions.Regex.Matches(printedPages,"<svg ").Count==2&&printedPages.Contains("break-after:page"),"Printable multi-page output retains two separate pages");
 await PalettePreferenceChecks.Run(Check);
+CanvasCaptureChecks.Run(Check);
 Console.WriteLine($"PASS: {checks} Windows interaction geometry, screenshot coordinator, calculator, compass/arc, timer & offline guide checks");
 
 

@@ -3,20 +3,20 @@ namespace HeiBan.Windows.Engine;
 /// <summary>Host filtering for the shared toolbar preference. Hosts create their own controls and keep their own command/session handlers.</summary>
 public static class ToolbarContentPolicy
 {
-    private static readonly HashSet<string> ScreenNavigationOnly = ["pins", "viewLock"];
+    private static readonly HashSet<string> MainCanvasOnly = ["pins", "viewLock", "canvasCapture"];
 
     public static IReadOnlyList<string> ScreenCanvasTools { get; } =
         ToolbarPreferences.AllDefaultTools.Where(IsAvailableOnScreen).ToArray();
 
     public static bool IsAvailableOnScreen(string key) =>
-        !ScreenNavigationOnly.Contains(key) && (ToolbarPreferences.AllDefaultTools.Contains(key) || key == "radialSettings");
+        !MainCanvasOnly.Contains(key) && (ToolbarPreferences.AllDefaultTools.Contains(key) || key == "radialSettings");
 
     /// <summary>Returns the saved order after applying only host capabilities; it never mutates or persists preferences.</summary>
     public static IReadOnlyList<string> VisibleTools(ToolbarPreferences preferences, bool screenCanvas)
     {
         preferences.Normalize();
         return screenCanvas
-            ? preferences.VisibleTools.Where(IsAvailableOnScreen).Where(key => !ScreenNavigationOnly.Contains(key)).ToArray()
+            ? preferences.VisibleTools.Where(IsAvailableOnScreen).Where(key => !MainCanvasOnly.Contains(key)).ToArray()
             : preferences.VisibleTools.ToArray();
     }
 
@@ -25,7 +25,7 @@ public static class ToolbarContentPolicy
     {
         preferences.Normalize();
         return screenCanvas
-            ? preferences.HiddenTools.Where(IsAvailableOnScreen).Where(key => !ScreenNavigationOnly.Contains(key)).ToArray()
+            ? preferences.HiddenTools.Where(IsAvailableOnScreen).Where(key => !MainCanvasOnly.Contains(key)).ToArray()
             : preferences.HiddenTools.ToArray();
     }
 }

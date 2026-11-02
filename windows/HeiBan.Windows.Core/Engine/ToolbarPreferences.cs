@@ -31,7 +31,7 @@ public sealed class ToolbarPreferences
     public static readonly string[] AllDefaultTools =
     [
         "select", "pen", "curve", "highlighter", "paint", "eraser",
-        "ruler", "shapes", "sticky", "text", "screenshot", "image",
+        "ruler", "shapes", "sticky", "text", "screenshot", "canvasCapture", "image",
         "brush", "dash", "pins", "calculator", "timer", "compass",
         "undo", "redo", "dock", "laser", "cane", "tape", "lasso", "extension", "clearAll", "viewLock", "layers", "magnet"
     ];
@@ -49,6 +49,7 @@ public sealed class ToolbarPreferences
         ["sticky"] = "便條紙",
         ["text"] = "文字",
         ["screenshot"] = "截圖",
+        ["canvasCapture"] = "畫布範圍截圖",
         ["image"] = "匯入圖片",
         ["brush"] = "筆刷與物件設定",
         ["dash"] = "線條樣式",
@@ -121,6 +122,7 @@ public sealed class ToolbarPreferences
         // One-time discovery: old preferences lack layers in both lists. A later explicit hide remains respected.
         if(!VisibleTools.Contains("layers")&&!HiddenTools.Contains("layers"))VisibleTools.Add("layers");
         if(!VisibleTools.Contains("magnet")&&!HiddenTools.Contains("magnet"))VisibleTools.Add("magnet");
+        if(!VisibleTools.Contains("canvasCapture")&&!HiddenTools.Contains("canvasCapture"))VisibleTools.Add("canvasCapture");
         // radialSettings belongs to the More menu
         VisibleTools.Remove("radialSettings");
         HiddenTools.Remove("radialSettings");
