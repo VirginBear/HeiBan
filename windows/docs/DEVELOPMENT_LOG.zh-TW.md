@@ -4,7 +4,7 @@
 
 查到每sample PreviewMoveSelection仍改bounds並整景dirty、游標與SelectionBar更新；改Core ObjectDragPreview與共用ObjectDragRenderer，先獨立offset、釋放才一筆交易，按Z順序分靜態／移動段快取且有64MiB上限。一般fast path直接提交預覽，螢幕維持局部damage/readback，不在move Prune／clone／整景遍歷；resize／rotate另保留。藤條再次點擊開共用靜音選項，十語702keys／78段指南更新。
 
-2423 Core與原生23＋screen12斷言通過；10幀快取／全幅參考byte完全相同；真實5004物件拖動一次cache、preview原Doc不變、0整景重建、一次commit。原生fixture筆點設定不會自動算bounds，審查後補明確bounds重建；輸入保護關窗重新觀察後正常完成。完整命令、限制與正常包依[OBJECT_DRAG_AND_CANE_SETTINGS_2026-11-02.zh-TW.md](OBJECT_DRAG_AND_CANE_SETTINGS_2026-11-02.zh-TW.md)。
+2423 Core與原生23＋screen12斷言通過；10幀快取／全幅參考byte完全相同；真實5004物件拖動一次cache、preview原Doc不變、0整景重建、一次commit。原生fixture筆點設定不會自動算bounds，審查後補明確bounds重建；輸入保護關窗重新觀察後正常完成。正常x64試用object-drag-2026-11-02-r2已完成（654 payload／244來源與CRC通過，觀察器排除、獨立Data），來源ec86503；完整命令、限制與正常包依[OBJECT_DRAG_AND_CANE_SETTINGS_2026-11-02.zh-TW.md](OBJECT_DRAG_AND_CANE_SETTINGS_2026-11-02.zh-TW.md)。
 
 ## 2026-11-02 — 點選便利性與操作回饋
 

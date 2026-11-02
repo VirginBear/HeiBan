@@ -2,7 +2,7 @@
 
 ## 2026-11-02 — 獨立拖動預覽／藤條再次點擊設定
 
-兩畫布物件平移改獨立offset，拖動不寫document／Undo；靜態繪圖段cache維持Z遮擋，最多兩bitmap且總64MiB，超額用command list。放開一次commit，取消不改作品。已用藤條時再點工具列藤條開靜音選項。Core2423、原生23＋screen adapter12、10幀GPU逐像素maxDiff0與5004物件實際拖動（0整景重建／1cache／1commit）通過；十語指南同步。正常試用待封裝，維持1.1.0，已送審包不改。詳[OBJECT_DRAG_AND_CANE_SETTINGS_2026-11-02.zh-TW.md](OBJECT_DRAG_AND_CANE_SETTINGS_2026-11-02.zh-TW.md)。
+兩畫布物件平移改獨立offset，拖動不寫document／Undo；靜態繪圖段cache維持Z遮擋，最多兩bitmap且總64MiB，超額用command list。放開一次commit，取消不改作品。已用藤條時再點工具列藤條開靜音選項。Core2423、原生23＋screen adapter12、10幀GPU逐像素maxDiff0與5004物件實際拖動（0整景重建／1cache／1commit）通過；十語指南同步。正常x64試用object-drag-2026-11-02-r2完成（654 payload／244來源與CRC通過，獨立Data；來源ec86503補資源到達失效），維持1.1.0，已送審包不改。詳[OBJECT_DRAG_AND_CANE_SETTINGS_2026-11-02.zh-TW.md](OBJECT_DRAG_AND_CANE_SETTINGS_2026-11-02.zh-TW.md)。
 
 ## 2026-11-02 — 點選物件範圍／中央截圖提示／藤條靜音
 

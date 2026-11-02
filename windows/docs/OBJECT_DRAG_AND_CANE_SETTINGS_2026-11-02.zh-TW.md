@@ -28,3 +28,21 @@ Core2423（新增15）通過，含1000個preview sample無document／transaction
 ## 正常包檢查後補強
 
 第一份正常r1封裝核對通過（654 payload／244來源／CRC、觀察器排除），但交付前檢查發現：非同步圖片資源載入完成只InvalidateCanvas，獨立拖動static cache可能仍保留未載入的畫面到放開。補ResourcesChanged同時釋放拖動GPUcache，下一frame依現有preview重建；不改offset／文件。原生23＋screen12驗證在前一程式commit執行，此一行失效處理由r2正常Release建置涵蓋，未冒稱已做圖片載入中拖動的實機回歸。r1未交付、保留不覆寫，最終另包r2。
+
+## 最終正常免安裝交付
+
+- 最終程式來源`ec86503f951316d69a5b96ea2fbb82177f6390c2`，正常Release x64／產品1.1.0、EXE與DLL FileVersion1.1.0.0，ProductVersion含同來源SHA。前述原生驗證程式來源為`613708c6d3680a9577b681c3a163250dd9223c68`，兩者僅多ResourcesChanged快取失效一行；不混同驗證範圍。
+- 實際命令：將`.build/tools/dotnet`加到當次程序PATH後執行`windows/HeiBan.Windows/Packaging/Package-PortableTrial.ps1 -Runtime win-x64 -Label object-drag-2026-11-02-r2`，App＋Updater publish成功。證據`.build/portable-trial-4555ae1e844740909eb1ba323714d4a4/publish.log`。
+- EXE：`windows/dist/trials/HeiBan-Windows-Portable-1.1.0-object-drag-2026-11-02-r2-win-x64/HeiBan.exe`；ZIP同名加`.zip`，133339702bytes，SHA256`900d82009c7eb47f500a58080e7c13e1f13cd934dfc4d89c75ce757bf24025bd`，sidecar一致。
+- `python windows/.build/object-drag-20261102/Verify-Portable-r2.py`：654 payload本機／ZIP逐byte SHA核同、244來源raw-byte SHA、ZIP CRC、64SVG與10語HTML／練習／manifest核同；8個診斷方法／getter不含於正常HeiBan.dll。`portable-verification-r2.json`保留。
+- 正常包未啟動，使用全新獨立空白Data，不自動搬／覆寫原作品；由使用者試用。dist不入Git，其他電腦不能假設有此EXE。r1為未交付中間試用包，保留不覆寫；本輪不刪除任何舊檔。
+- 已送審`HeiBan-Store-1.1.0.0-x64-arm64.msixbundle` SHA仍`a7799085a7ccb5f7f0a23b37d0b12425a9def99ff366d8fa13686ee01eaade66`；未進版、未製作／上傳／送審新Store包。
+
+## 使用者驗收
+
+1. 選用藤條，再點工具列同一顆藤條：應出現「藤條靜音」勾選項；切換後動畫保留、設定重開保留，一般與螢幕畫布一致。更多與右下右鍵入口仍可用。
+2. 選筆畫／形狀，按住左鍵來回平移，觀察筆畫是否跟手、是否還有連續停頓。移動到其他物件下方／上方時，應依原圖層遮擋，不突然浮到最上。
+3. 放開後Ctrl+Z一次應回到原位；多選物件應一起復原。拖動中Esc應取消、物件回原位且不新增Undo；切換螢幕畫布也可同測。
+4. 本批專門優化平移，resize／rotate仍是各自路徑。尚未量測端到端ms／FPS，多DPI與剛載入圖片時的拖曳可再回報；不宣稱零延遲。
+
+公開原始碼／驗收日誌與私人壓縮交接分開推送；原有dirty清理文件與YouTube文件保留，不混入本批提交。
