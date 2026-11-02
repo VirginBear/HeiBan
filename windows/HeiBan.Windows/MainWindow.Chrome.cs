@@ -371,7 +371,7 @@ public partial class MainWindow
 
         void Tool(string icon, string tip, string key)
         {
-            var b = IconButton(icon, tip, () => {if(key=="laser"&&_tool=="laser")ShowLaserSettings(GetToolAnchor(key));else ActivateTool(key);}, key);
+            var b = IconButton(icon, tip, () => {if(key=="laser"&&_tool=="laser")ShowLaserSettings(GetToolAnchor(key));else if(key=="cane"&&_tool=="cane")ShowCaneSettings(GetToolAnchor(key));else ActivateTool(key);}, key);
             _toolButtons[key] = b;
             Tools.Children.Add(b);
         }
@@ -397,7 +397,7 @@ public partial class MainWindow
             switch (key)
             {
                 case "laser" or "cane" or "tape" or "lasso":
-                    Tool(key,key=="laser"?T("雷射：再次點擊開啟設定"):T(ToolbarPreferences.ToolNames[key]),key);break;
+                    Tool(key,key=="laser"?T("雷射：再次點擊開啟設定"):key=="cane"?T("藤條：再次點擊開啟設定"):T(ToolbarPreferences.ToolNames[key]),key);break;
                 case "extension": break; // 延伸屬性改由線段設定提供；保留舊偏好欄位。
                 case "magnet":
                     var magnet=IconButton("magnet",T("磁鐵"),ToggleMagnet,"magnet");_toolButtons[key]=magnet;Tools.Children.Add(magnet);break;
@@ -630,7 +630,8 @@ public partial class MainWindow
             case "magnet": ToggleMagnet();break;
             case "radialSettings": ShowRadialSettings();break;
             case "laser": if(_tool=="laser")ShowLaserSettings(GetToolAnchor(key));else ActivateTool(key);break;
-            case "cane" or "tape" or "lasso" or "select" or "pen" or "curve" or "highlighter" or "paint" or "sticky" or "text" or "star":
+            case "cane": if(_tool=="cane")ShowCaneSettings(GetToolAnchor(key));else ActivateTool(key);break;
+            case "tape" or "lasso" or "select" or "pen" or "curve" or "highlighter" or "paint" or "sticky" or "text" or "star":
                 ActivateTool(key);
                 break;
             case "extension": Inspector.Visibility=Visibility.Visible;RefreshProperties();RefreshChrome();break;

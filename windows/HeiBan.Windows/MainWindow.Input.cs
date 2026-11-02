@@ -61,7 +61,7 @@ public partial class MainWindow
     private void CanvasSurface_Draw(ImmediateCanvas sender,CanvasDrawingSession drawingSession)
     {
         using var trace=InputLatencyTrace.Measure(InputStage.CanvasDraw);
-        _canvasInvalidated=false;if(!_ink.IsDrawing&&!_marquee&&_canvasCapture is null)UpdateSaveStatusLight(StatusText.Text);
+        _canvasInvalidated=false;if(!_ink.IsDrawing&&!_marquee&&_canvasCapture is null&&_objectDrag is null)UpdateSaveStatusLight(StatusText.Text);
         var ds=drawingSession;var w=(float)sender.ActualWidth;var h=(float)sender.ActualHeight;
         RenderMainScene(sender,ds,w,h);
         var board=_session.Document.Board;
@@ -79,7 +79,7 @@ public partial class MainWindow
                 else _renderer.RenderPolyline(ds,preview,_viewport,_strokeColor,_strokeWidth,_opacity,CurrentStyle.Dash);
             }
             if((MagnetSnapIndex.SupportsConstructionTool(_tool)||_compassCenterMoving)&&_magnetTarget is { } snap){var at=_viewport.WorldToScreen(snap.X,snap.Y);ds.DrawCircle((float)at.X,(float)at.Y,7,Direct2DCanvasRenderer.HexToColor("#10B981"),2);}
-            foreach(var selected in _session.SelectedObjects)_renderer.RenderSelection(ds,selected,_viewport,_session.SelectedIds.Count==1);
+            foreach(var selected in _objectDrag?.Selected??_session.SelectedObjects)_renderer.RenderSelection(ds,selected,DragViewport(selected),_session.SelectedIds.Count==1);
             if(_lasso.Count>1)_renderer.RenderLiveStroke(ds,_lasso,_viewport,"#39735A",1/_viewport.Zoom,.8);
             _renderer.RenderLaser(ds,_laser,_viewport,LaserNow);
         }
@@ -168,9 +168,9 @@ public partial class MainWindow
             // Preserve a selected group's drag, but a plain click still ends with
             // exactly the topmost hit selected. Movement cancels this pending click.
             if(hit is not null&&_session.SelectedIds.Contains(hit.Id)&&_session.SelectedIds.Count>1)_selectionClickId=hit.Id;
-            else if(hit is not null||!additive)Select(hit);
+            else if(hit is not null&&!_session.SelectedIds.Contains(hit.Id)||hit is null&&!additive)Select(hit);
             if(hit is null)BeginWindowSelection(_start,additive);
-            else if(_session.SelectedObjects.Any(o=>o.IsLocked!=true))_session.Begin();
+            else if(_session.SelectedObjects.Any(o=>o.IsLocked!=true))_objectDragArmed=true;
         }
         else if(_tool is "triangle" or "quadrilateral" or "curve")
         {
@@ -205,7 +205,7 @@ public partial class MainWindow
             }
             else _preview=Styled(new BoardObject{Type=_tool,X=_start.X,Y=_start.Y,Width=1,Height=1});
         }
-        InvalidateCanvas(!_marquee&&_tool is not("pen" or "highlighter" or "paint"));e.Handled=true;
+        InvalidateCanvas(!_marquee&&!_objectDragArmed&&_tool is not("pen" or "highlighter" or "paint"));e.Handled=true;
     }
     private BoardObject Styled(BoardObject o)
     {
@@ -267,12 +267,7 @@ public partial class MainWindow
             UpdateWindowSelection(_viewport.ScreenToWorld(_mouse.X,_mouse.Y));
             PresentInteraction();e.Handled=true;return;
         }
-        if(_selectionClickId is not null&&_start is not null)
-        {
-            var point=_viewport.ScreenToWorld(_mouse.X,_mouse.Y);
-            if(Math.Abs(point.X-_start.X)*_viewport.Zoom<3&&Math.Abs(point.Y-_start.Y)*_viewport.Zoom<3){e.Handled=true;return;}
-            _selectionClickId=null;
-        }
+        if(MoveObjectDrag(e))return;
         if(!_gesture||_tool=="select")UpdateShapeCursor();
         if(_tool=="cane"){_cane.Move(_viewport.ScreenToWorld(_mouse.X,_mouse.Y));PresentInteraction();e.Handled=true;return;}
         if(!_gesture&&MagnetSnapIndex.SupportsConstructionTool(_tool)){EnsureMagnetIndex();SnapDrawingPoint(_viewport.ScreenToWorld(_mouse.X,_mouse.Y));InvalidateCanvas(false);}
@@ -380,6 +375,23 @@ public partial class MainWindow
             _session.SetSelection(_session.VisibleObjects.Where(o=>LassoSelection.Intersects(o,_lasso)).Select(o=>o.Id));
             _lasso.Clear();_tool="select";ResetGesture();CanvasSurface.ReleasePointerCaptures();RefreshEditor();return;
         }
+        if(_objectDragArmed&&_objectDrag is null&&_start is not null)
+        {
+            var released=e.GetCurrentPoint(CanvasSurface).Position;var end=_viewport.ScreenToWorld(released.X,released.Y);
+            if(Math.Max(Math.Abs(end.X-_start.X),Math.Abs(end.Y-_start.Y))*_viewport.Zoom>=3)_objectDrag=new(_session,_start);
+        }
+        if(_objectDrag is { } drag)
+        {
+            var position=e.GetCurrentPoint(CanvasSurface).Position;drag.Move(_viewport.ScreenToWorld(position.X,position.Y));
+            var changed=drag.Commit(_session);ResetGesture();CanvasSurface.ReleasePointerCaptures();
+            if(changed)RefreshEditor();else{SyncLayerSelection();RefreshProperties();PresentInteraction();}
+            e.Handled=true;return;
+        }
+        if(_objectDragArmed)
+        {
+            if(_selectionClickId is { } click)_session.SelectedId=click;
+            ResetGesture();CanvasSurface.ReleasePointerCaptures();SyncLayerSelection();RefreshProperties();PresentInteraction();e.Handled=true;return;
+        }
         if(_marquee&&_start is not null)
         {
             var end=e.GetCurrentPoint(CanvasSurface).Position;CompleteWindowSelection(_viewport.ScreenToWorld(end.X,end.Y));
@@ -463,7 +475,7 @@ public partial class MainWindow
         else ShapeConstruction.Drag(_preview,_start,world);
     }
     private static InkPoint ConstrainLine(InkPoint anchor,InkPoint point)=>KeyIsDown(VirtualKey.Shift)?ObjectHandles.ConstrainOrthogonal(anchor,point):point;
-    private void ResetGesture(){_selectionClickId=null;HideHUD();_renderer.ResetLive();_gesture=_panning=_rulerMoving=_rulerRotating=_rulerPivotMoving=_shapeGesture=_lineCompleting=_marquee=false;_compassCenterMoving=_compassCenterMoved=_compassRadiusMoving=_compassPencilMoving=false;_objectHandle=null;_manipulationStart=null;_movingPin=null;_snapEdge=null;_ink.Projection=null;_magnetTarget=null;UpdateTeachingTimer();if(_hover)UpdateShapeCursor();else ResetShapeCursor();}
+    private void ResetGesture(){ClearObjectDrag();_selectionClickId=null;HideHUD();_renderer.ResetLive();_gesture=_panning=_rulerMoving=_rulerRotating=_rulerPivotMoving=_shapeGesture=_lineCompleting=_marquee=false;_compassCenterMoving=_compassCenterMoved=_compassRadiusMoving=_compassPencilMoving=false;_objectHandle=null;_manipulationStart=null;_movingPin=null;_snapEdge=null;_ink.Projection=null;_magnetTarget=null;UpdateTeachingTimer();if(_hover)UpdateShapeCursor();else ResetShapeCursor();}
     private void CancelGesture(){ClearCanvasCapture();CancelRadial();_cane.Clear();CaneSound.Stop();CancelCircularEraser();var changed=_session.HasTransaction;_lasso.Clear();_laser.Clear();HideHUD();_ink.Cancel();_session.Cancel();_preview=null;_lineAnchor=null;_compass.Prepare();ResetGesture();CanvasSurface.ReleasePointerCaptures();if(changed)RefreshProperties();InvalidateCanvas(changed);}
     private void CanvasSurface_PointerCanceled(object sender,PointerRoutedEventArgs e){HideHUD();CancelRadial();if(_gesture)CancelGesture();}
     private void UpdateShapeCursor()

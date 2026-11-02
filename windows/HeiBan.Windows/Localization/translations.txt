@@ -617,3 +617,4 @@ PDF、PPT、PPTX 會另外產生圖片頁面放進畫布，不會直接編輯原
 
 畫布已截圖|Canvas captured|キャンバスをコピーしました|캔버스가 캡처되었습니다|Lienzo capturado|Capture du canevas effectuée|Zeichenfläche aufgenommen|Tela capturada|تم التقاط اللوحة
 藤條靜音|Mute cane sound|藤の棒の効果音をミュート|회초리 소리 끄기|Silenciar la vara|Couper le son de la baguette|Zeigestab stummschalten|Silenciar a vareta|كتم صوت العصا
+藤條：再次點擊開啟設定|Cane: click again for settings|藤の棒：再クリックで設定|회초리: 다시 클릭하여 설정|Vara: haz clic de nuevo para configurar|Baguette : recliquer pour les réglages|Zeigestab: erneut klicken für Einstellungen|Vareta: clique novamente para configurar|العصا: انقر مجددًا لفتح الإعدادات

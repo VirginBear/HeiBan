@@ -936,6 +936,7 @@ Check(System.Text.RegularExpressions.Regex.Matches(printedPages,"<svg ").Count==
 await PalettePreferenceChecks.Run(Check);
 CanvasCaptureChecks.Run(Check);
 PointSelectionChecks.Run(Check);
+ObjectDragChecks.Run(Check);
 Console.WriteLine($"PASS: {checks} Windows interaction geometry, screenshot coordinator, calculator, compass/arc, timer & offline guide checks");
 
 

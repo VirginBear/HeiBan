@@ -61,7 +61,7 @@ internal sealed partial class ScreenAnnotationWindow
         foreach(var pair in ToolbarUi.ScreenTools.Where(pair=>pair.Key is not("undo" or "redo" or "screenshot" or "layers" or "brush" or "dash" or "clearAll")))
         {
             var key=pair.Key;
-            var button=ChromeButton(key,T(pair.Label));
+            var button=ChromeButton(key,key=="cane"?T("藤條：再次點擊開啟設定"):T(pair.Label));
             button.Tag=key;
             _screenCommands[key]=()=>{
                 if(key=="shapes")ShowScreenShapes();
@@ -285,7 +285,7 @@ internal sealed partial class ScreenAnnotationWindow
     {
         if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();
         using var trace=global::HeiBan.Windows.Diagnostics.InputLatencyTrace.Measure(global::HeiBan.Windows.Diagnostics.InputStage.ToolSwitch);
-        _chromeFlyout?.Hide();FinishScreenText();if(key==_tool&&key=="laser"){_ = LaserSettingsAsync();return;}if(key==_tool&&key=="eraser"){ShowEraserSettings();return;}
+        _chromeFlyout?.Hide();FinishScreenText();if(key==_tool&&key=="laser"){_ = LaserSettingsAsync();return;}if(key==_tool&&key=="eraser"){ShowEraserSettings();return;}if(key==_tool&&key=="cane"){var menu=new MenuFlyout();menu.Items.Add(_owner.CreateCaneMuteMenuItem());ShowChromeFlyout(menu,_buttons["cane"]);return;}
         var selectionVisuals=(_tool=="select"||key=="select")&&_session.SelectedIds.Count>0;
         if(selectionVisuals)DamageSelectedObjects();CancelGesture();_tool=key;if(key=="cane"){CaneSound.Prepare();RestoreRadialCursor();}
         if(key is "laser" or "cane")_session.SelectedId=null;

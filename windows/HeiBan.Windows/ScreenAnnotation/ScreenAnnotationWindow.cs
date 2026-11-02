@@ -177,6 +177,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         if(input.Kind=="leave"){if(_cane.Point is not null){_cane.Clear();_dirty=true;}return;}
         var p=new InkPoint(input.X,input.Y,1);
         if(HandleRadialInput(input,p))return;
+        if(HandleObjectDrag(input,p))return;
         // Like the laser, the cane owns clicks before object hit tests; holding
         // or moving never repeats its sound or creates document objects.
         if(_tool=="cane")
@@ -374,7 +375,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         {
             var click=Math.Abs(p.X-_start.X)<3*_dpiScale&&Math.Abs(p.Y-_start.Y)<3*_dpiScale;
             if(click&&input.Kind=="move")return;
-            if(click){DamageSelectedObjects();_session.Commit();_session.SelectedId=clicked;_selectionClickId=null;_start=_last=null;_points.Clear();_manipulation=null;RefreshScreenStyleButtons();_dirty=_fullDamage=true;FocusScreenChrome();return;}
+            if(click){DamageSelectedObjects();_session.Commit();_session.SelectedId=clicked;ClearObjectDrag();_selectionClickId=null;_start=_last=null;_points.Clear();_manipulation=null;RefreshScreenStyleButtons();_dirty=_fullDamage=true;FocusScreenChrome();return;}
             _selectionClickId=null;
         }
         if(input.Kind=="move"&&_last is not null&&p.X==_last.X&&p.Y==_last.Y)return;
@@ -396,8 +397,8 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
                     if(hit is not null){if(additive){_session.ToggleSelection(hit.Id);_start=_last=null;_points.Clear();RefreshScreenStyleButtons();_dirty=_fullDamage=true;return;}else if(_session.SelectedIds.Count>1&&_session.SelectedIds.Contains(hit.Id))_selectionClickId=hit.Id;else _session.SelectedId=hit.Id;}
                     else{_marquee=true;_marqueeSelection=additive?_session.SelectedIds.ToArray():[];if(!additive)_session.SelectedId=null;_preview=new BoardObject{Type="rect",X=p.X,Y=p.Y,Width=1,Height=1,StrokeColor="#39735a",StrokeWidth=1,LineStyle="dashed",FillColor="none"};}
                 }
-                if(!_marquee&&_session.SelectedObjects.Any(o=>o.IsLocked!=true))_session.Begin();
-                RefreshScreenStyleButtons();_manipulation=_session.SelectedIds.Count==1&&_session.Selected is { } o?DocumentCodec.Clone(o):null;
+                if(!_marquee&&_handle is null&&_session.SelectedObjects.Any(o=>o.IsLocked!=true))_objectDragArmed=true;else if(_handle is not null)_session.Begin();
+                RefreshScreenStyleButtons();_manipulation=_handle is not null&&_session.SelectedIds.Count==1&&_session.Selected is { } o?DocumentCodec.Clone(o):null;
             }
             else if(ScreenShapeTools.Contains(_tool)||_tool=="tape")_preview=Styled(new BoardObject{Type=_tool,X=p.X,Y=p.Y,Width=1,Height=1});
         }
@@ -447,7 +448,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
                     item.SetCompletedInkPoints(_points);AppendScreenInk(item);
                 }
             }
-            _straightenTimer.Stop();_penHoldAnchor=null;_screenPenStraight=false;_session.Commit();if(_marquee)DamageSelectedObjects();var committedDamage=_damage;RefreshScreenStyleButtons();_marquee=false;_points.Clear();_start=_last=null;_preview=null;_handle=null;_renderer.ResetLive();Changed();
+            _straightenTimer.Stop();_penHoldAnchor=null;_screenPenStraight=false;_session.Commit();ClearObjectDrag();if(_marquee)DamageSelectedObjects();var committedDamage=_damage;RefreshScreenStyleButtons();_marquee=false;_points.Clear();_start=_last=null;_preview=null;_handle=null;_renderer.ResetLive();Changed();
             if(_tool=="select"&&_session.Selected is not null)FocusScreenChrome();
             if(partialCommit){_fullDamage=false;_damage=previewCommit?committedDamage:strokeDamage;}
         }
@@ -541,7 +542,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
                 IReadOnlyList<InkPoint> livePoints=_screenPenStraight&&_points.Count>1?new[]{_points[0],_points[^1]}:_points;
                 _renderer.RenderWetInk(ds,livePoints,_viewport,_tool=="lasso"?"#39735A":_color,_tool=="lasso"?1:_width*_dpiScale,_tool=="highlighter"?_opacity*.4:_opacity,_tool=="lasso"?"dashed":_dash,new global::Windows.Foundation.Size(_overlay.Width,_overlay.Height));
             }
-            if(_tool=="select")foreach(var selected in _session.SelectedObjects)_renderer.RenderSelection(ds,selected,_viewport,_session.SelectedIds.Count==1);
+            if(_tool=="select")foreach(var selected in _objectDrag?.Selected??_session.SelectedObjects)_renderer.RenderSelection(ds,selected,DragViewport(selected),_session.SelectedIds.Count==1);
             if(_rulerEnabled)DrawRuler(ds);
             if(_compass.IsEnabled)_renderer.RenderCompass(ds,_compass,_viewport);
             _renderer.RenderLaser(ds,_laser,_viewport,Now,_dpiScale);
@@ -559,12 +560,12 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     private void Changed(){_dirty=_fullDamage=_committedDirty=true;RefreshScreenLayers();ApplySavingPreferences();}
     private void CancelGesture()
     {
-        _selectionClickId=null;
+        var hadDrag=_objectDrag is not null;ClearObjectDrag();_selectionClickId=null;
         CancelRadial();
         if(_cane.Point is not null){_cane.Clear();CaneSound.Stop();_dirty=true;}
         if(_laser.Samples.Count>0){_laser.Release();_dirty=true;}
         CancelCircularEraser();
-        CommitScreenStyle();var committedChanged=_session.HasTransaction;var previewVisible=_preview is not null||_points.Count>0;
+        CommitScreenStyle();var committedChanged=_session.HasTransaction||hadDrag;var previewVisible=_preview is not null||_points.Count>0;
         _snapEdge=null;_rulerMoving=_rulerRotating=_rulerPivotMoving=_rulerResizingLeft=_rulerResizingRight=false;_compassCenterMoving=_compassCenterMoved=_compassRadiusMoving=_compassPencilMoving=false;_compass.Prepare();_straightenTimer.Stop();_penHoldAnchor=null;_screenPenStraight=false;DamagePreview();_session.Cancel();_curveAnchors.Clear();_marquee=false;_points.Clear();_start=_last=null;_preview=null;_handle=null;_renderer.ResetLive();
         if(committedChanged){_dirty=_fullDamage=_committedDirty=true;_damage=null;}else if(previewVisible)_dirty=true;
     }
@@ -700,6 +701,6 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     }
     public void Dispose()
     {
-        if(_disposed)return;CloseFloatingTeachingTools();_customizeToolbarWindow?.Close();_customizeToolbarWindow=null;_radialSaveTimer.Stop();_radialSettings?.Close();CancelRadial();CancelCircularEraser();FinishScreenText();_disposed=true;_captureCancellation?.Cancel();_renderTimer.Stop();_focusRememberTimer.Stop();_straightenTimer.Stop();_saveTimer.Stop();_styleCommitTimer.Stop();_dockTimer.Stop();DisposeEraserPatch();_target?.Dispose();_committed?.Dispose();_renderer.Dispose();_sessionLease?.Dispose();_sessionLease=null;_overlay.Dispose();Close();
+        if(_disposed)return;ClearObjectDrag();CloseFloatingTeachingTools();_customizeToolbarWindow?.Close();_customizeToolbarWindow=null;_radialSaveTimer.Stop();_radialSettings?.Close();CancelRadial();CancelCircularEraser();FinishScreenText();_disposed=true;_captureCancellation?.Cancel();_renderTimer.Stop();_focusRememberTimer.Stop();_straightenTimer.Stop();_saveTimer.Stop();_styleCommitTimer.Stop();_dockTimer.Stop();DisposeEraserPatch();_target?.Dispose();_committed?.Dispose();_renderer.Dispose();_sessionLease?.Dispose();_sessionLease=null;_overlay.Dispose();Close();
     }
 }

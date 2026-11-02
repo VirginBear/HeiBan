@@ -24,7 +24,7 @@ public partial class App : Application
     {
         try
         {
-            if(Environment.GetCommandLineArgs().Any(arg=>new[]{"--performance-output=","--validation-output=","--drawing-workflow-output=","--guide-view=","--release-validation-output=","--marquee-validation-output=","--canvas-capture-validation-output=","--selection-feedback-validation-output="}.Any(prefix=>arg.StartsWith(prefix,StringComparison.Ordinal))))
+            if(Environment.GetCommandLineArgs().Any(arg=>new[]{"--performance-output=","--validation-output=","--drawing-workflow-output=","--guide-view=","--release-validation-output=","--marquee-validation-output=","--canvas-capture-validation-output=","--selection-feedback-validation-output=","--object-drag-validation-output="}.Any(prefix=>arg.StartsWith(prefix,StringComparison.Ordinal))))
             {
                 var isolated=Environment.GetEnvironmentVariable("HEIBAN_WINDOWS_DATA_DIRECTORY");
                 // Check before storage/library initialization. Reusing an existing root could read or replace real recovery data.

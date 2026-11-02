@@ -36,11 +36,19 @@ public partial class MainWindow
         _canvasInvalidated=true;CanvasSurface.PresentNow();
     }
     private void ClearScene()
-    {_scene?.Dispose();_scene=null;_sceneDirty=true;_canvasInvalidated=false;_pendingInkScene.Clear();}
+    {_objectDragRenderer?.Dispose();_objectDragRenderer=null;_scene?.Dispose();_scene=null;_sceneDirty=true;_canvasInvalidated=false;_pendingInkScene.Clear();}
     private void RenderMainScene(HeiBan.Windows.Views.ImmediateCanvas surface,CanvasDrawingSession ds,float width,float height)
     {
         using var trace=InputLatencyTrace.Measure(InputStage.SceneRender);
         if(width<=0||height<=0)return;
+        if(_objectDrag is { } drag&&drag.Current(_session))
+        {
+            _renderer.RenderBackground(ds,_session.Document.Board,_viewport,width,height);
+            var board=_session.Document.Board;
+            var clip=board.CanvasMode=="infinite"?new Rect(0,0,width,height):new Rect(_viewport.X,_viewport.Y,(board.CanvasWidth??595)*_viewport.Zoom,(board.CanvasHeight??842)*_viewport.Zoom);
+            using var layer=board.CanvasMode=="infinite"?null:ds.CreateLayer(1,clip);
+            (_objectDragRenderer??=new()).Draw(ds,surface,_renderer,drag,_viewport,width,height);return;
+        }
         var sceneSession=_circularEraser?.Preview??_boardEraserDraft??_session;
         var key=new SceneKey(sceneSession.Document,sceneSession.Generation,sceneSession.Document.Board.ActivePageId,_viewport.X,_viewport.Y,_viewport.Zoom,width,height,surface.Dpi);
         if(_scene is null||_sceneKey.Width!=width||_sceneKey.Height!=height||_sceneKey.Dpi!=surface.Dpi)

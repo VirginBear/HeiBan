@@ -1,5 +1,9 @@
 # Windows 問題與排解紀錄
 
+## 2026-11-02 — 物件拖動反覆重畫整景
+
+原PreviewMoveSelection只延後筆跡JSON，仍逐sample修改bounds並InvalidateCanvas(true)，且重複游標／SelectionBar更新、SelectedObjects掃描。兩host平移改獨立preview offset與分段靜態cache，放開才提交，維持原Z。Core1000樣本不開交易、GPU10幀maxDiff0、實際5004物件0整景重建／一次cache通過；不把一次真實Move當高Hz／ms測量。快取預算與取消／失效防護另列，resize／rotate維持舊路徑。詳[OBJECT_DRAG_AND_CANE_SETTINGS_2026-11-02.zh-TW.md](OBJECT_DRAG_AND_CANE_SETTINGS_2026-11-02.zh-TW.md)。
+
 ## 2026-11-02 — 空心物件難點選與缺少完成回饋
 
 點選原共用精確paint幾何，空心內部或筆畫間隙不能命中；新增獨立外框點選，保留擦除幾何與方向框選。依實際paint order反向處理同Z，避免點到較下物件。Ctrl繞過handles且只toggle該物件，不移動其他已選取物件；群組普通點回單選與拖曳分流。截圖原僅角落狀態不明顯，改成功後中央短提示；藤條新增持久化共用靜音，含fallback守衛。測試、失敗及限制見[SELECTION_FEEDBACK_CANE_MUTE_2026-11-02.zh-TW.md](SELECTION_FEEDBACK_CANE_MUTE_2026-11-02.zh-TW.md)。

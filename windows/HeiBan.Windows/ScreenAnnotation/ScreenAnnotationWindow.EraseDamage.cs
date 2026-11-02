@@ -7,10 +7,10 @@ internal sealed partial class ScreenAnnotationWindow
 {
     private void DamageSelectedObjects()
     {
-        foreach(var o in _session.SelectedObjects)
+        foreach(var o in _objectDrag?.Selected??_session.SelectedObjects)
         {
             if(o.Extension is "start" or "end" or "both"){_fullDamage=true;continue;}
-            var corners=ObjectHandles.Outline(o);var pad=Math.Max(40*_dpiScale,o.StrokeWidth+(o.ArrowHeadLength??0));
+            var corners=ObjectHandles.Outline(o);if(_objectDrag is { } drag&&drag.IsMoving(o))corners=corners.Select(p=>new InkPoint(p.X+drag.X,p.Y+drag.Y)).ToArray();var pad=Math.Max(40*_dpiScale,o.StrokeWidth+(o.ArrowHeadLength??0));
             // Catmull-Rom curves can extend beyond point bounds; include their control hull after rotation.
             if(o.Type is "stroke" or "pen" or "highlighter" or "paint" or "curve")pad+=Math.Sqrt(o.Width*o.Width+o.Height*o.Height)/3;
             var left=Math.Max(0,Math.Floor(corners.Min(p=>p.X)-pad));var top=Math.Max(0,Math.Floor(corners.Min(p=>p.Y)-pad));
@@ -53,7 +53,7 @@ internal sealed partial class ScreenAnnotationWindow
     private void DisposeEraserPatch(){_eraserPatch?.Dispose();_eraserPatch=null;_eraserPatchWidth=_eraserPatchHeight=0;_committedDamage=null;}
     private void RebuildCommitted(EditorSession sceneSession,global::Windows.UI.Color blank)
     {
-        _renderer.Prune(sceneSession.Document.Objects);
+        if(_objectDrag is null)_renderer.Prune(sceneSession.Document.Objects);
         if(!_fullDamage&&_committedDamage is { } region)
         {
             var width=(int)region.Width;var height=(int)region.Height;
@@ -66,10 +66,20 @@ internal sealed partial class ScreenAnnotationWindow
             // Clear a separate reusable GPU surface, then copy its exact pixels. A
             // transparent fill inside an opacity layer cannot reliably erase old pixels.
             _eraserPatchView.X=_viewport.X-region.X;_eraserPatchView.Y=_viewport.Y-region.Y;_eraserPatchView.Zoom=_viewport.Zoom;
-            using(var ds=_eraserPatch.CreateDrawingSession()){ds.Clear(blank);_renderer.RenderObjects(ds,sceneSession.DrawingObjects,_eraserPatchView,width,height);}
+            using(var ds=_eraserPatch.CreateDrawingSession())
+            {
+                ds.Clear(blank);
+                if(_objectDrag is { } drag)(_objectDragRenderer??=new()).Draw(ds,_committed!,_renderer,drag,_viewport,_overlay.Width,_overlay.Height,new(-(float)region.X,-(float)region.Y));
+                else _renderer.RenderObjects(ds,sceneSession.DrawingObjects,_eraserPatchView,width,height);
+            }
             _committed!.CopyPixelsFromBitmap(_eraserPatch,(int)region.X,(int)region.Y,0,0,width,height);
         }
-        else{using var ds=_committed!.CreateDrawingSession();ds.Clear(blank);_renderer.RenderObjects(ds,sceneSession.DrawingObjects,_viewport,_overlay.Width,_overlay.Height);}
+        else
+        {
+            using var ds=_committed!.CreateDrawingSession();ds.Clear(blank);
+            if(_objectDrag is { } drag)(_objectDragRenderer??=new()).Draw(ds,_committed!,_renderer,drag,_viewport,_overlay.Width,_overlay.Height);
+            else _renderer.RenderObjects(ds,sceneSession.DrawingObjects,_viewport,_overlay.Width,_overlay.Height);
+        }
         _committedDamage=null;_committedDirty=false;_committedBuilds++;
     }
 }

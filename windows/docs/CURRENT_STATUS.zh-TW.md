@@ -1,5 +1,9 @@
 # Windows 目前開發狀態
 
+## 2026-11-02 — 獨立拖動預覽／藤條再次點擊設定
+
+兩畫布物件平移改獨立offset，拖動不寫document／Undo；靜態繪圖段cache維持Z遮擋，最多兩bitmap且總64MiB，超額用command list。放開一次commit，取消不改作品。已用藤條時再點工具列藤條開靜音選項。Core2423、原生23＋screen adapter12、10幀GPU逐像素maxDiff0與5004物件實際拖動（0整景重建／1cache／1commit）通過；十語指南同步。正常試用待封裝，維持1.1.0，已送審包不改。詳[OBJECT_DRAG_AND_CANE_SETTINGS_2026-11-02.zh-TW.md](OBJECT_DRAG_AND_CANE_SETTINGS_2026-11-02.zh-TW.md)。
+
 ## 2026-11-02 — 點選物件範圍／中央截圖提示／藤條靜音
 
 兩畫布點選使用旋轉外框範圍與最上層順序；Ctrl增減、普通點回單選，群組拖曳保留。截圖成功中央顯示「畫布已截圖」2秒；更多與右下藤條右鍵提供共用靜音偏好，主播放／fallback均守衛。十語701keys、26節76段指南同步。2408 Core、原生7＋螢幕adapter6斷言與實際空心點選／提示／靜音選項通過；正常x64試用selection-feedback-2026-11-02-r1已完成（654 payload／237來源與CRC通過，獨立空白Data），維持1.1.0，已送審包不改。詳[SELECTION_FEEDBACK_CANE_MUTE_2026-11-02.zh-TW.md](SELECTION_FEEDBACK_CANE_MUTE_2026-11-02.zh-TW.md)。

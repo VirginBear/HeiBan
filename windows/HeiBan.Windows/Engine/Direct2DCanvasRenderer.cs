@@ -118,6 +118,14 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
         }
         ds.Transform=old;
     }
+    internal void RenderOrderedRun(CanvasDrawingSession ds,IReadOnlyList<BoardObject> objects,ViewportTransform vp,float width,float height)
+    {
+        // Drag runs already retain exact paint order; sorting again per frame adds allocations.
+        var world=new VectorMath.RectBounds(-vp.X/vp.Zoom,-vp.Y/vp.Zoom,(width-vp.X)/vp.Zoom,(height-vp.Y)/vp.Zoom);
+        var old=ds.Transform;var view=Matrix3x2.CreateScale((float)vp.Zoom)*Matrix3x2.CreateTranslation((float)vp.X,(float)vp.Y);
+        foreach(var item in objects)RenderViewportObject(ds,item,vp,world,view);
+        ds.Transform=old;
+    }
     public void RenderPreview(CanvasDrawingSession ds,BoardObject item,ViewportTransform vp,float width,float height)
     {
         var world=new VectorMath.RectBounds(-vp.X/vp.Zoom,-vp.Y/vp.Zoom,(width-vp.X)/vp.Zoom,(height-vp.Y)/vp.Zoom);

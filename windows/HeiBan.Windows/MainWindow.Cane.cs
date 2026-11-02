@@ -31,6 +31,8 @@ public partial class MainWindow
         catch(Exception e){_toolbarPrefs.CaneVisible=previous;await Error(e);}
         finally{RefreshCaneQuick();}
     }
+    private void ShowCaneSettings(FrameworkElement anchor)
+    {var menu=new MenuFlyout();menu.Items.Add(CreateCaneMuteMenuItem());ShowExclusiveFlyout(menu,anchor);}
     internal ToggleMenuFlyoutItem CreateCaneMuteMenuItem()
     {
         var item=new ToggleMenuFlyoutItem{Text=T("藤條靜音"),IsChecked=_toolbarPrefs.CaneMuted};

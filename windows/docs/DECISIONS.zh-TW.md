@@ -1,5 +1,9 @@
 # Windows 開發決策
 
+## 2026-11-02 — 物件平移預覽與Z段繪圖快取
+
+平移與控制點編輯分開：ObjectDragPreview保存同document／epoch／generation／page的物件參考，Move只offset；放開一次Begin／Move／Commit，取消丟預覽即可。繪圖順序以static/moving連續段保存，不把選取一律提到最上。ObjectDragRenderer靜態段最多兩bitmap／總64MiB，其餘command list；GPU維度超限也用命令，版面／DPI／device變更重建與釋放。dynamic段保留原renderer與圖元快取，已排序run不每frame重排。一般拖動直接PresentInteraction，螢幕仍局部patch/readback並支援patch origin；取消標記committed需還原。無作品格式變更，resize/rotate不套用平移路徑。詳[OBJECT_DRAG_AND_CANE_SETTINGS_2026-11-02.zh-TW.md](OBJECT_DRAG_AND_CANE_SETTINGS_2026-11-02.zh-TW.md)。
+
 ## 2026-11-02 — 點選與精確幾何分離／教學音效偏好
 
 HitSelection只供選取相關UI，用旋轉local外框與螢幕等效padding，線／箭頭附精確備援；不能把寬鬆區域套到擦除／磁鐵／框選。反向實際升序繪製cache確保同Z視覺最上；Ctrl加減不啟動拖動交易，既選群組普通點up才折回單選，拖過3DIP維持原群組移動。CaneMuted加入既有toolbar.json，不變.heiban作品schema；未知偏好欄位保留。兩host經owner保存同步，CaneSound最終guard保護MediaPlayer與PlaySound fallback。截圖toast僅成功Flush後、非modal／不吃輸入，timer關窗停止。詳[SELECTION_FEEDBACK_CANE_MUTE_2026-11-02.zh-TW.md](SELECTION_FEEDBACK_CANE_MUTE_2026-11-02.zh-TW.md)。

@@ -1,5 +1,9 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-11-02 — ObjectDragPreview與ObjectDragRenderer
+
+Core隔離平移offset及一次提交；兩host用同一Win2D靜態／動態Z段cache，資源有64MiB額度及命令備援，螢幕透過destination origin沿用局部patch。主畫布PointerMoved不再修改Doc或刷新游標／SelectionBar／整景；GPUcache與Core preview各自有清除邊界。框選、磁鐵、擦除、resize／rotate仍獨立。詳[OBJECT_DRAG_AND_CANE_SETTINGS_2026-11-02.zh-TW.md](OBJECT_DRAG_AND_CANE_SETTINGS_2026-11-02.zh-TW.md)。
+
 ## 2026-11-02 — CanvasCapturePlan／共享圖片渲染
 
 Core CanvasCapturePlan持有文件範圍正規化、zoom對應最小手勢與像素限制；MainWindow.CanvasCapture持有命令與clipboard生命週期，PNG匯出共用RenderCanvasImageAsync。一般框選與截圖分別保留短暫預覽狀態，拖曳不進保存／clone／整景重建，完成才比對或渲染一次。僅驗證組態含Clipboard序號與路由觀察器；正常包不編入。詳[CANVAS_CAPTURE_AND_SELECTION_PERFORMANCE_2026-11-02.zh-TW.md](CANVAS_CAPTURE_AND_SELECTION_PERFORMANCE_2026-11-02.zh-TW.md)。
