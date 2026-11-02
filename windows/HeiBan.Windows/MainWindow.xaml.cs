@@ -92,7 +92,7 @@ public partial class MainWindow : Window
         AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory,"Assets","AppIcon.ico"));
         PortableBadge.Visibility=_storage.IsPortableMode?Visibility.Visible:Visibility.Collapsed;
         _updates=new Updating.GitHubUpdateService(_storage.IsPortableMode);
-        _renderer.ResourcesChanged+=()=>InvalidateCanvas();
+        _renderer.ResourcesChanged+=()=>{_objectDragRenderer?.Dispose();_objectDragRenderer=null;InvalidateCanvas();};
         _autosave.Tick+=async(_,_)=>{if(AutoSaveEnabled&&!_preparingClose&&!_saveBoundaryBusy&&_workspaceOpen&&_session.IsDirty&&_editor is null&&!_gesture&&_boardEraserDraft is null&&!_propertyEditing&&_saveGate.CurrentCount>0)await SaveAsync(deferThumbnail:true);};
         ApplySavingPreferences();
         _screenshotWatchTimer.Tick+=async(_,_)=>await OnScreenshotWatchTickAsync();

@@ -24,3 +24,7 @@ Core2423（新增15）通過，含1000個preview sample無document／transaction
 - Sky實際拖動5004物件fixture中的紅筆：1 move、1 preview frame，cacheBuilds=1、previewUnchanged=true、rebuildDuring=0、oneCommit=true、correct=true。`qa-results-r1/gestures.json`全成功；驗證的是路由與工作次數，不是高頻滑鼠／顯示延遲ms。
 - Sky選藤條，再點同工具按鈕，確實出現只有「藤條靜音」的設定選單；點選後讀toolbar.json caneMuted=true。關窗第一次因使用者輸入保護未送出，重新觀察後Alt+F4正常關閉PID15960，未強制覆蓋輸入。
 - 未執行：端到端ms／FPS、全DPI、多螢幕／GPU記憶體壓力、ARM64實機、resize／rotate性能改造、新Store包／送審。起始建立cache與放開提交仍有一次工作，不宣稱所有情境完全無延遲。沒有重跑前批Optimization68，不套用舊數字。
+
+## 正常包檢查後補強
+
+第一份正常r1封裝核對通過（654 payload／244來源／CRC、觀察器排除），但交付前檢查發現：非同步圖片資源載入完成只InvalidateCanvas，獨立拖動static cache可能仍保留未載入的畫面到放開。補ResourcesChanged同時釋放拖動GPUcache，下一frame依現有preview重建；不改offset／文件。原生23＋screen12驗證在前一程式commit執行，此一行失效處理由r2正常Release建置涵蓋，未冒稱已做圖片載入中拖動的實機回歸。r1未交付、保留不覆寫，最終另包r2。
