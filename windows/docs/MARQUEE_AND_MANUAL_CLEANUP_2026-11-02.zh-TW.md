@@ -26,3 +26,14 @@
 唯讀重新核對72份暫存MSIX／bundle與留存原件SHA完全相同，共5,172,729,420bytes（4.82GiB），沒有遺失／變更項。清單位於`windows/dist/manual-cleanup-2026-11-02/`，提供UTF-8 BOM CSV與每行一個絕對路徑TXT；CSV亦列出不可刪的原件及SHA，README提示僅刪列出的檔案，不刪父目錄。此次未移動／刪除任何副本，使用者手動處理；不再嘗試先前被審核拒絕的刪除。
 
 正式已送審1.1.0.0套件原byte保留。此修正維持1.1.0開發批次，以新的試用Label區別，未自行進版／重新送審。普通免安裝試用結果於下方追加。
+
+## 修正試用交付
+
+`Package-PortableTrial.ps1 -Runtime win-x64 -Label marquee-fix-2026-11-02-r1`完成。來源22d2b6c5ef2ccfd6f84c63dcb0aeaea47f3af368，產品1.1.0不增加；PE FileVersion1.1.0.0／ProductVersion1.1.0+來源。正常Release包不是含觀察器的QA執行檔。
+
+- EXE：`windows/dist/trials/HeiBan-Windows-Portable-1.1.0-marquee-fix-2026-11-02-r1-win-x64/HeiBan.exe`。
+- ZIP：同目錄名稱追加.zip，133303121bytes，SHA `f5b83ac3a2800acea120e885a0e26d2b6b112f74f355dbef04f3a08f0227b8bb`。
+- 653 payload SHA／229來源SHA／ZIP CRC一致；PrepareMarqueeValidationAsync未編入、Data空白獨立，未搬移作品。已送審bundle SHA仍為a7799085a7ccb5f7f0a23b37d0b12425a9def99ff366d8fa13686ee01eaade66。
+- 封裝紀錄`.build/portable-trial-ad4b0b8541aa4d30b73bfb4aafff2f47`，核對`.build/marquee-20261102/trial-verification.json`。無新Store包／送審／進版。
+
+本機手動清理資料夾另附「本次測試建置資料夾_可重建.txt」：只列baseline-build與fixed-build兩個編譯輸出，檢查不含Data／ScreenAnnotations等資料根、測試程式已正常關閉，供使用者自行清理；來源、結果與合成資料在同層其他資料夾，不列為刪除目標。此次沒有自動刪除或移動72份副本。
