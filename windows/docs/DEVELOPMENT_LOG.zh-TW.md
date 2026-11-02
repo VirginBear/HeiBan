@@ -1,5 +1,11 @@
 # HeiBan Windows 開發日誌
 
+## 2026-11-02 — 點選便利性與操作回饋
+
+建立日誌後分離PointSelection／HitSelection與精確擦除命中，反向沿實際paint order保證同Z亦選最上；Ctrl繞過handle toggle，普通群組點選延到up，超3DIP保留群組拖曳。Clipboard.Flush成功後中央非攔截toast顯示2秒。新增CaneMuted偏好，owner／screen保存同步，主播放與fallback一同靜音，動畫不變。十語介面與手冊更新。
+
+2408 Core／原生7＋螢幕adapter6斷言通過；真實滑鼠點空心內部／重疊topmost、更多靜音與中央提示可見。首次diagnostic缺using static造成CS0103與後續XAML解析失敗，第二輪輔助修正cp950解碼失敗，第三輪0警告0錯誤；失敗與未測項保留。只改Windows、不進版，完整記錄與試用包依[SELECTION_FEEDBACK_CANE_MUTE_2026-11-02.zh-TW.md](SELECTION_FEEDBACK_CANE_MUTE_2026-11-02.zh-TW.md)。
+
 ## 2026-11-02 — 畫布範圍截圖與框選順暢度
 
 開工先保存既有三份清理文件差異與三份YouTube未追蹤文件，不把他批清理記成自己執行。新增CanvasCapturePlan與MainWindow.CanvasCapture、共用PNG離屏渲染，加入標準Bitmap剪貼簿、單次手勢後快照、epoch／頁碼防護與GPU／40M像素限制。框選專用預覽去除低priority hop、重複游標與整景dirty／Prune；當頁比對仍在放開時執行。十語指南與工具偏好同步。

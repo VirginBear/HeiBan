@@ -6,6 +6,16 @@ namespace HeiBan.Windows.Engine;
 
 internal static class CaneSound
 {
+    private static volatile bool _muted;
+    internal static bool IsMuted
+    {
+        get=>_muted;
+        set
+        {
+            _muted=value;if(value)Stop();
+            if(_player is not null)_player.IsMuted=value;
+        }
+    }
     private static MediaPlayer? _player;
     private static MediaSource? _source;
     private static GCHandle _wave;
@@ -13,6 +23,9 @@ internal static class CaneSound
     private static volatile bool _opened,_mediaFailed,_requested;
     private static readonly object FallbackGate=new();
     private static Action<string>? _report;
+#if HEIBAN_RELEASE_VALIDATION
+    internal static bool ValidationRequested=>_requested;
+#endif
     internal static void Prepare()
     {
         if(_prepared)return;_prepared=true;
@@ -22,7 +35,7 @@ internal static class CaneSound
             // Retain a pinned in-memory fallback until playback is stopped at shutdown.
             // This also avoids PlaySound's filename-length limit in extracted trials.
             _wave=GCHandle.Alloc(File.ReadAllBytes(file),GCHandleType.Pinned);
-            var player=new MediaPlayer{AutoPlay=false,AudioCategory=MediaPlayerAudioCategory.SoundEffects,Volume=1,IsMuted=false};
+            var player=new MediaPlayer{AutoPlay=false,AudioCategory=MediaPlayerAudioCategory.SoundEffects,Volume=1,IsMuted=_muted};
             _player=player;player.CommandManager.IsEnabled=false;
             player.MediaOpened+=(sender,_)=>{if(ReferenceEquals(_player,sender))_opened=true;};
             player.MediaFailed+=(sender,args)=>
@@ -39,6 +52,7 @@ internal static class CaneSound
     }
     internal static void Play(Action<string> report)
     {
+        if(_muted)return;
         _report=report;_requested=true;Prepare();
         try
         {
@@ -49,7 +63,7 @@ internal static class CaneSound
         catch(Exception e) when(e is not OutOfMemoryException)
         {Diagnostics.CanvasSurfaceDiagnostics.Record("cane-play",e);if(!PlayFallback())Report(e);}
     }
-    private static bool PlayFallback(){lock(FallbackGate)return _requested&&_wave.IsAllocated&&PlaySound(_wave.AddrOfPinnedObject(),0,0x0004|0x0001|0x0002); }
+    private static bool PlayFallback(){lock(FallbackGate)return !_muted&&_requested&&_wave.IsAllocated&&PlaySound(_wave.AddrOfPinnedObject(),0,0x0004|0x0001|0x0002); }
     private static void Report(Exception e)=>_report?.Invoke($"0x{e.HResult:X8}");
     internal static void Stop()
     {

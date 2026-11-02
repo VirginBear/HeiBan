@@ -17,7 +17,7 @@ internal sealed partial class ScreenAnnotationWindow
     {
         if(!_drawing||_tool is "laser" or "cane")return;
         _chromeFlyout?.Hide();CancelGesture();
-        var hit=_session.Hit(point,6);if(hit is null)return;
+        var hit=_session.HitSelection(point,6);if(hit is null)return;
         // Right-click edits the hit object; preserve a multi-selection when it already contains it.
         DamageSelectedObjects();if(!_session.SelectedIds.Contains(hit.Id))_session.SelectedId=hit.Id;
         _tool="select";RefreshButtons();DamageSelectedObjects();_dirty=true;

@@ -935,6 +935,7 @@ var printedPages=BoardExporter.Html(printPagesDoc,[],new(0,0,595,842),true,print
 Check(System.Text.RegularExpressions.Regex.Matches(printedPages,"<svg ").Count==2&&printedPages.Contains("break-after:page"),"Printable multi-page output retains two separate pages");
 await PalettePreferenceChecks.Run(Check);
 CanvasCaptureChecks.Run(Check);
+PointSelectionChecks.Run(Check);
 Console.WriteLine($"PASS: {checks} Windows interaction geometry, screenshot coordinator, calculator, compass/arc, timer & offline guide checks");
 
 

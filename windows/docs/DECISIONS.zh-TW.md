@@ -1,5 +1,9 @@
 # Windows 開發決策
 
+## 2026-11-02 — 點選與精確幾何分離／教學音效偏好
+
+HitSelection只供選取相關UI，用旋轉local外框與螢幕等效padding，線／箭頭附精確備援；不能把寬鬆區域套到擦除／磁鐵／框選。反向實際升序繪製cache確保同Z視覺最上；Ctrl加減不啟動拖動交易，既選群組普通點up才折回單選，拖過3DIP維持原群組移動。CaneMuted加入既有toolbar.json，不變.heiban作品schema；未知偏好欄位保留。兩host經owner保存同步，CaneSound最終guard保護MediaPlayer與PlaySound fallback。截圖toast僅成功Flush後、非modal／不吃輸入，timer關窗停止。詳[SELECTION_FEEDBACK_CANE_MUTE_2026-11-02.zh-TW.md](SELECTION_FEEDBACK_CANE_MUTE_2026-11-02.zh-TW.md)。
+
 ## 2026-11-02 — 文件截圖與互動預覽邊界
 
 畫布範圍截圖是文件渲染命令，不讀螢幕：有邊界用完整當頁，無邊界用獨立短暫crop狀態。PointerMoved只記端點與預覽，放開才clone可見當頁一次並建立bitmap；與PNG匯出共用離屏renderer。標準DataPackage Bitmap＋Flush支援離開來源stream後貼上；40M像素與GPU維度自動限縮解析度、不裁掉文件範圍。epoch與頁碼在async前後驗證，不跨作品複製。螢幕畫布沒有此文件範圍命令。marquee只改選取，不破壞committed scene／文件generation；完成仍按物件幾何比對。診斷hook只可在HeiBanValidationBuild編入，正式Store同時指定仍拒絕。無.heiban格式變更，未知欄位與既有作品不遷移。詳[CANVAS_CAPTURE_AND_SELECTION_PERFORMANCE_2026-11-02.zh-TW.md](CANVAS_CAPTURE_AND_SELECTION_PERFORMANCE_2026-11-02.zh-TW.md)。

@@ -19,6 +19,17 @@ public partial class MainWindow
     private string? _lastCanvasCaptureToken;
     private uint _lastCanvasClipboardSequence;
 #endif
+    private DispatcherTimer? _canvasCaptureToastTimer;
+    private void ShowCanvasCapturedNotice()
+    {
+        if(_canvasCaptureToastTimer is null)
+        {
+            _canvasCaptureToastTimer=new DispatcherTimer{Interval=TimeSpan.FromSeconds(2)};
+            _canvasCaptureToastTimer.Tick+=(_,_)=>{_canvasCaptureToastTimer.Stop();CanvasCaptureToast.Visibility=Visibility.Collapsed;};
+        }
+        _canvasCaptureToastTimer.Stop();CanvasCaptureToastText.Text=T("畫布已截圖");
+        CanvasCaptureToast.Visibility=Visibility.Visible;_canvasCaptureToastTimer.Start();
+    }
     private bool CurrentCanvasCapture(CanvasCaptureContext context)=>_workspaceOpen&&_session.DocumentEpoch==context.Epoch&&_session.Document.Board.ActivePageId==context.Page;
 
     private async void CanvasCapture_Click(object sender,RoutedEventArgs e)
@@ -106,7 +117,7 @@ public partial class MainWindow
 #if HEIBAN_RELEASE_VALIDATION
             var token=Guid.NewGuid().ToString("N");
 #endif
-            Clipboard.SetContent(package);Clipboard.Flush();
+            Clipboard.SetContent(package);Clipboard.Flush();ShowCanvasCapturedNotice();
 #if HEIBAN_RELEASE_VALIDATION
             _lastCanvasCaptureToken=token;_lastCanvasClipboardSequence=GetCanvasClipboardSequence();
 #endif

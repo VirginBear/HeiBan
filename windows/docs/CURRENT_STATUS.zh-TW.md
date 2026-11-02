@@ -1,5 +1,9 @@
 # Windows 目前開發狀態
 
+## 2026-11-02 — 點選物件範圍／中央截圖提示／藤條靜音
+
+兩畫布點選使用旋轉外框範圍與最上層順序；Ctrl增減、普通點回單選，群組拖曳保留。截圖成功中央顯示「畫布已截圖」2秒；更多與右下藤條右鍵提供共用靜音偏好，主播放／fallback均守衛。十語701keys、26節76段指南同步。2408 Core、原生7＋螢幕adapter6斷言與實際空心點選／提示／靜音選項通過；尚待正常免安裝封裝，維持1.1.0，已送審包不改。詳[SELECTION_FEEDBACK_CANE_MUTE_2026-11-02.zh-TW.md](SELECTION_FEEDBACK_CANE_MUTE_2026-11-02.zh-TW.md)。
+
 ## 2026-11-02 — 畫布範圍截圖／框選避免整景重建
 
 有邊界整頁、無邊界拖曳範圍後直接複製標準Bitmap；含當頁可見物件與背景，不含工具列等操作介面。管理分頁新增入口並可自訂常用。一般框選移動專用預覽、按下與放開不再重建committed scene。Core2383、Optimization68、原生整頁／負座標／剪貼簿解碼及5003物件三個實際拖曳通過（sceneRebuilds／generationChanges皆0），十語指南同步。未量測硬體端到端延遲，正常x64免安裝canvas-capture-2026-11-02-r1已完成（654 payload／233來源SHA與CRC通過，獨立空白Data）；維持1.1.0開發批次，不動已送審Store包。詳[CANVAS_CAPTURE_AND_SELECTION_PERFORMANCE_2026-11-02.zh-TW.md](CANVAS_CAPTURE_AND_SELECTION_PERFORMANCE_2026-11-02.zh-TW.md)。

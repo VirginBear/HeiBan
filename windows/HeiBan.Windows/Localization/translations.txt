@@ -614,3 +614,6 @@ PDF、PPT、PPTX 會另外產生圖片頁面放進畫布，不會直接編輯原
 截圖範圍太小，請重新框選。|The capture region is too small. Drag a new region.|範囲が小さすぎます。もう一度範囲を指定してください。|캡처 영역이 너무 작습니다. 다시 선택하세요.|El área es demasiado pequeña. Selecciona otra.|La zone est trop petite. Sélectionnez-en une autre.|Der Bereich ist zu klein. Bitte erneut auswählen.|A área é muito pequena. Selecione outra.|منطقة الالتقاط صغيرة جدًا. حدد منطقة أخرى.
 畫布截圖未完成：|Canvas capture failed:\s|キャンバスのコピーに失敗しました：|캔버스 캡처 실패:\s|Error al capturar:\s|Échec de capture :\s|Aufnahme fehlgeschlagen:\s|Falha na captura:\s|تعذر التقاط اللوحة:\s
 已複製畫布圖片（{0} × {1}），可直接貼上。|Canvas image copied ({0} × {1}). Ready to paste.|キャンバス画像（{0} × {1}）をコピーしました。貼り付けできます。|캔버스 이미지({0} × {1})가 복사되었습니다. 붙여넣을 수 있습니다.|Imagen copiada ({0} × {1}). Lista para pegar.|Image copiée ({0} × {1}). Prête à coller.|Leinwandbild kopiert ({0} × {1}). Zum Einfügen bereit.|Imagem copiada ({0} × {1}). Pronta para colar.|نُسخت صورة اللوحة ({0} × {1}). جاهزة للصق.
+
+畫布已截圖|Canvas captured|キャンバスをコピーしました|캔버스가 캡처되었습니다|Lienzo capturado|Capture du canevas effectuée|Zeichenfläche aufgenommen|Tela capturada|تم التقاط اللوحة
+藤條靜音|Mute cane sound|藤の棒の効果音をミュート|회초리 소리 끄기|Silenciar la vara|Couper le son de la baguette|Zeigestab stummschalten|Silenciar a vareta|كتم صوت العصا

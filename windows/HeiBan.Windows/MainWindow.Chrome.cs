@@ -586,6 +586,7 @@ public partial class MainWindow
             finally{boardEraserItem.IsChecked=_toolbarPrefs.BoardEraserVisible;boardEraserItem.IsEnabled=true;}
         };
         menu.Items.Add(boardEraserItem);
+        menu.Items.Add(CreateCaneMuteMenuItem());
         var caneVisible=new ToggleMenuFlyoutItem{Text=T("顯示藤條"),IsChecked=_toolbarPrefs.CaneVisible};
         caneVisible.Click+=async(_,_)=>{caneVisible.IsEnabled=false;try{await SetCaneVisibleAsync(caneVisible.IsChecked);}finally{caneVisible.IsChecked=_toolbarPrefs.CaneVisible;caneVisible.IsEnabled=true;}};menu.Items.Add(caneVisible);
         menu.Items.Add(new MenuFlyoutSeparator());
@@ -791,10 +792,10 @@ public partial class MainWindow
     {
         // Screen canvas shares the settings file. Update the hidden owner in-memory too, or its
         // next toolbar rebuild could overwrite a choice just made in the screen session.
-        var updated=new ToolbarPreferences{DockSide=preferences.DockSide,DisplayMode=preferences.DisplayMode,MagnetEnabled=preferences.MagnetEnabled,BoardEraserVisible=preferences.BoardEraserVisible,CaneVisible=preferences.CaneVisible,DefaultToolsRevision=preferences.DefaultToolsRevision,DefaultPresentationRevision=preferences.DefaultPresentationRevision,DefaultCommonRevision=preferences.DefaultCommonRevision,CommonTools=[..preferences.CommonTools],ExtraFields=preferences.ExtraFields,VisibleTools=[..preferences.VisibleTools],HiddenTools=[..preferences.HiddenTools]};
+        var updated=new ToolbarPreferences{DockSide=preferences.DockSide,DisplayMode=preferences.DisplayMode,MagnetEnabled=preferences.MagnetEnabled,BoardEraserVisible=preferences.BoardEraserVisible,CaneVisible=preferences.CaneVisible,CaneMuted=preferences.CaneMuted,DefaultToolsRevision=preferences.DefaultToolsRevision,DefaultPresentationRevision=preferences.DefaultPresentationRevision,DefaultCommonRevision=preferences.DefaultCommonRevision,CommonTools=[..preferences.CommonTools],ExtraFields=preferences.ExtraFields,VisibleTools=[..preferences.VisibleTools],HiddenTools=[..preferences.HiddenTools]};
         updated.Normalize();
         await ToolbarPreferencesStore.SaveAsync(_storage.DataDirectory,updated);
-        _toolbarPrefs=updated;
+        _toolbarPrefs=updated;CaneSound.IsMuted=updated.CaneMuted;_screenAnnotation?.ApplyCaneMuted(updated.CaneMuted);
         BuildChrome();
     }
 

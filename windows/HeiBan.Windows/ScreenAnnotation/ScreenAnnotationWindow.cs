@@ -48,6 +48,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     private long _presentedBytes,_renderedFrames,_committedBuilds;
     private BoardObject? _preview,_manipulation;
     private ObjectHandles.Handle? _handle;
+    private string? _selectionClickId;
     private readonly List<InkPoint> _points=[];
     private InkPoint? _start,_last;
     private InkPoint? _penHoldAnchor;
@@ -322,7 +323,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         if(input.Kind=="right"){FinishScreenText();ScreenRightClick(p);return;}
         if(input.Kind=="double")
         {
-            FinishScreenText();var hit=_session.Hit(p,6);
+            FinishScreenText();var hit=_session.HitSelection(p,6);
             if(hit is {IsLocked:not true,Type:"tape"}){_session.Begin();hit.IsRevealed=hit.IsRevealed!=true;_session.Commit();Changed();}
             else if(hit is {IsLocked:not true,Type:"text" or "sticky"})BeginScreenText(p,hit);
             else if(hit is {IsLocked:not true}){CancelGesture();_tool="select";_session.SelectedId=hit.Id;RefreshButtons();Changed();ShowBrushSettings();}
@@ -369,6 +370,13 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             else _dirty=true;
             return;
         }
+        if(_selectionClickId is { } clicked&&_start is not null&&input.Kind is "move" or "up")
+        {
+            var click=Math.Abs(p.X-_start.X)<3*_dpiScale&&Math.Abs(p.Y-_start.Y)<3*_dpiScale;
+            if(click&&input.Kind=="move")return;
+            if(click){DamageSelectedObjects();_session.Commit();_session.SelectedId=clicked;_selectionClickId=null;_start=_last=null;_points.Clear();_manipulation=null;RefreshScreenStyleButtons();_dirty=_fullDamage=true;FocusScreenChrome();return;}
+            _selectionClickId=null;
+        }
         if(input.Kind=="move"&&_last is not null&&p.X==_last.X&&p.Y==_last.Y)return;
         var regionalSelection=input.Kind is "move" or "up"&&_start is not null&&_tool=="select"&&!_marquee;
         if(regionalSelection)DamageSelectedObjects();
@@ -380,11 +388,13 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             _screenPenStraight=false;_penHoldAnchor=_tool=="pen"?p:null;_penHoldSince=Now;_straightenTimer.Stop();if(_penHoldAnchor is not null)_straightenTimer.Start();
             if(_tool=="select")
             {
-                _handle=_session.SelectedIds.Count==1&&_session.Selected is {IsLocked:not true} selected?ObjectHandles.Get(selected,1).Where(h=>Math.Sqrt(Math.Pow(h.Point.X-p.X,2)+Math.Pow(h.Point.Y-p.Y,2))<14).Select(h=>(ObjectHandles.Handle?)h).FirstOrDefault():null;
+                var additive=input.Control||input.Shift;
+                var hit=_session.HitSelection(p,6);
+                _handle=!additive&&_session.SelectedIds.Count==1&&_session.Selected is {IsLocked:not true} selected&&(hit is null||hit.Id==selected.Id)?ObjectHandles.Get(selected,1).Where(h=>Math.Sqrt(Math.Pow(h.Point.X-p.X,2)+Math.Pow(h.Point.Y-p.Y,2))<14).Select(h=>(ObjectHandles.Handle?)h).FirstOrDefault():null;
                 if(_handle is null)
                 {
-                    var hit=_session.Hit(p,6);if(hit is not null){if(input.Shift)_session.ToggleSelection(hit.Id);else if(!_session.SelectedIds.Contains(hit.Id))_session.SelectedId=hit.Id;}
-                    else{_marquee=true;_marqueeSelection=input.Shift?_session.SelectedIds.ToArray():[];if(!input.Shift)_session.SelectedId=null;_preview=new BoardObject{Type="rect",X=p.X,Y=p.Y,Width=1,Height=1,StrokeColor="#39735a",StrokeWidth=1,LineStyle="dashed",FillColor="none"};}
+                    if(hit is not null){if(additive){_session.ToggleSelection(hit.Id);_start=_last=null;_points.Clear();RefreshScreenStyleButtons();_dirty=_fullDamage=true;return;}else if(_session.SelectedIds.Count>1&&_session.SelectedIds.Contains(hit.Id))_selectionClickId=hit.Id;else _session.SelectedId=hit.Id;}
+                    else{_marquee=true;_marqueeSelection=additive?_session.SelectedIds.ToArray():[];if(!additive)_session.SelectedId=null;_preview=new BoardObject{Type="rect",X=p.X,Y=p.Y,Width=1,Height=1,StrokeColor="#39735a",StrokeWidth=1,LineStyle="dashed",FillColor="none"};}
                 }
                 if(!_marquee&&_session.SelectedObjects.Any(o=>o.IsLocked!=true))_session.Begin();
                 RefreshScreenStyleButtons();_manipulation=_session.SelectedIds.Count==1&&_session.Selected is { } o?DocumentCodec.Clone(o):null;
@@ -544,10 +554,12 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         _overlay.PresentBitmap(_target,x,y,width,height);_presentedBytes+=(long)width*height*4;_renderedFrames++;_lastRenderTimestamp=Stopwatch.GetTimestamp();
         _dirty=false;_fullDamage=false;_damage=null;_lastCaneDamage=caneDamage;_lastLaserDamage=laserDamage;_lastEraserDamage=eraserDamage;_lastMagnetDamage=magnetDamage;_lastRulerDamage=rulerDamage;_lastCompassDamage=compassDamage;
     }
+    internal void ApplyCaneMuted(bool muted){_toolbarPreferences.CaneMuted=muted;}
     public void ApplySavingPreferences(){_saveTimer.Stop();if(_owner.AutoSaveEnabled&&IsActive&&!_stopping&&_session.IsDirty)_saveTimer.Start();}
     private void Changed(){_dirty=_fullDamage=_committedDirty=true;RefreshScreenLayers();ApplySavingPreferences();}
     private void CancelGesture()
     {
+        _selectionClickId=null;
         CancelRadial();
         if(_cane.Point is not null){_cane.Clear();CaneSound.Stop();_dirty=true;}
         if(_laser.Samples.Count>0){_laser.Release();_dirty=true;}

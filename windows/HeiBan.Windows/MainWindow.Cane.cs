@@ -21,6 +21,7 @@ public partial class MainWindow
     {
         var menu=new MenuFlyout();var hide=new MenuFlyoutItem{Text=T("隱藏藤條")};
         hide.Click+=async(_,_)=>await SetCaneVisibleAsync(false);menu.Items.Add(hide);
+        menu.Items.Add(CreateCaneMuteMenuItem());
         ShowExclusiveFlyout(menu,CaneQuickButton);e.Handled=true;
     }
     private async Task SetCaneVisibleAsync(bool value)
@@ -29,6 +30,22 @@ public partial class MainWindow
         try{await ToolbarPreferencesStore.SaveAsync(_storage.DataDirectory,_toolbarPrefs);}
         catch(Exception e){_toolbarPrefs.CaneVisible=previous;await Error(e);}
         finally{RefreshCaneQuick();}
+    }
+    internal ToggleMenuFlyoutItem CreateCaneMuteMenuItem()
+    {
+        var item=new ToggleMenuFlyoutItem{Text=T("藤條靜音"),IsChecked=_toolbarPrefs.CaneMuted};
+        item.Click+=async(_,_)=>
+        {
+            item.IsEnabled=false;
+            try
+            {
+                var draft=DocumentCodec.Clone(_toolbarPrefs);draft.CaneMuted=item.IsChecked;
+                await SaveToolbarPreferencesAsync(draft);
+            }
+            catch(Exception error){await Error(error);}
+            finally{item.IsChecked=_toolbarPrefs.CaneMuted;item.IsEnabled=true;}
+        };
+        return item;
     }
     private void PlayCaneSound()=>CaneSound.Play(error=>DispatcherQueue.TryEnqueue(()=>StatusText.Text=T("藤條音效無法播放：")+error));
     private void RefreshCaneQuick()

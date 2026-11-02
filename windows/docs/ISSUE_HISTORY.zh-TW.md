@@ -1,5 +1,9 @@
 # Windows 問題與排解紀錄
 
+## 2026-11-02 — 空心物件難點選與缺少完成回饋
+
+點選原共用精確paint幾何，空心內部或筆畫間隙不能命中；新增獨立外框點選，保留擦除幾何與方向框選。依實際paint order反向處理同Z，避免點到較下物件。Ctrl繞過handles且只toggle該物件，不移動其他已選取物件；群組普通點回單選與拖曳分流。截圖原僅角落狀態不明顯，改成功後中央短提示；藤條新增持久化共用靜音，含fallback守衛。測試、失敗及限制見[SELECTION_FEEDBACK_CANE_MUTE_2026-11-02.zh-TW.md](SELECTION_FEEDBACK_CANE_MUTE_2026-11-02.zh-TW.md)。
+
 ## 2026-11-02 — 框選開始／結束觸發不必要整景渲染
 
 PointerMoved未clone或保存文件；但按下generic tail把select當scene dirty，放開RefreshEditor又Prune並重畫全部，移動還經低priority佇列與重複游標設定。改marquee專用PresentInteraction與完成後選取UI更新，保留既有左右方向規則。5003物件三個真實路由手勢scene重建及文件generation變更皆0；不是硬體延遲保證。另記截圖測試自訂token／Title跨Clipboard.Flush不可靠，採診斷專用序號把關後讀自己圖片。詳[CANVAS_CAPTURE_AND_SELECTION_PERFORMANCE_2026-11-02.zh-TW.md](CANVAS_CAPTURE_AND_SELECTION_PERFORMANCE_2026-11-02.zh-TW.md)。

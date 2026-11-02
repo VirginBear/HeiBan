@@ -188,6 +188,9 @@
     </StackPanel>
    </Border>
    <Border Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="16" Padding="8,4" CornerRadius="10" Background="#DDFCFCFA"><TextBlock x:Name="StatusText" loc:Ui.Text="本機已存" MaxWidth="260" TextTrimming="CharacterEllipsis" FontSize="11" Foreground="#68756C"/></Border>
+   <Border x:Name="CanvasCaptureToast" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed" IsHitTestVisible="False" Background="#F00B4932" BorderBrush="#5D9879" BorderThickness="1" CornerRadius="16" Padding="28,18">
+    <StackPanel Orientation="Horizontal" Spacing="12"><TextBlock Text="✓" Foreground="White" FontSize="26" VerticalAlignment="Center"/><TextBlock x:Name="CanvasCaptureToastText" loc:Ui.Text="畫布已截圖" Foreground="White" FontSize="22" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel>
+   </Border>
   </Grid>
   </ContentControl>
   <Grid x:Name="SavingOverlay" Grid.RowSpan="2" Visibility="Collapsed" Background="#CFF2F4EF">

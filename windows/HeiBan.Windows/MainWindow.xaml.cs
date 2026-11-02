@@ -72,6 +72,7 @@ public partial class MainWindow : Window
         LoadSavingPreferences();
         ProfilePalette=new PalettePreferencesStore(_storage.DataDirectory);
         _toolbarPrefs=ToolbarPreferencesStore.Load(_storage.DataDirectory);
+        CaneSound.IsMuted=_toolbarPrefs.CaneMuted;
         _dock=_toolbarPrefs.DockSide;
         App.StartupStage="載入主視窗 XAML";
         InitializeComponent();
@@ -121,7 +122,7 @@ public partial class MainWindow : Window
             catch(Exception error){await Error(error);}
             finally{if(!_closing){ShowSavingOverlay(false);_preparingClose=false;ApplySavingPreferences();}}
         };
-        Closed+=(_,_)=>{CaneSound.Dispose();_boardEraserWorking?.Cancel();_inputLatencyHeartbeat?.Stop();_layerPreview?.End();CanvasCursorHost.ReleaseCursor();_shapeCursor.Dispose();_updates?.Dispose();_autosave.Stop();_thumbnailTimer.Stop();_inkUiTimer.Stop();_searchTimer.Stop();_teachingSaveTimer.Stop();CancelScreenshotCapture("視窗關閉");_timerTickTimer?.Stop();_laserTimer.Stop();_propertyCommitTimer.Stop();_headerHideTimer.Stop();ClearScene();CanvasSurface.RemoveFromVisualTree();_renderer.Dispose();_screenAnnotation?.Dispose();};
+        Closed+=(_,_)=>{_canvasCaptureToastTimer?.Stop();CaneSound.Dispose();_boardEraserWorking?.Cancel();_inputLatencyHeartbeat?.Stop();_layerPreview?.End();CanvasCursorHost.ReleaseCursor();_shapeCursor.Dispose();_updates?.Dispose();_autosave.Stop();_thumbnailTimer.Stop();_inkUiTimer.Stop();_searchTimer.Stop();_teachingSaveTimer.Stop();CancelScreenshotCapture("視窗關閉");_timerTickTimer?.Stop();_laserTimer.Stop();_propertyCommitTimer.Stop();_headerHideTimer.Stop();ClearScene();CanvasSurface.RemoveFromVisualTree();_renderer.Dispose();_screenAnnotation?.Dispose();};
         App.StartupStage="顯示首頁";
         try { EnsureScreenAnnotation(); } catch(Exception e) { StatusText.Text=T("螢幕畫布初始化失敗：")+e.Message; }
     }
@@ -133,10 +134,12 @@ public partial class MainWindow : Window
             var validation=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--validation-output=",StringComparison.Ordinal));
             var performance=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--performance-output=",StringComparison.Ordinal));
 #if HEIBAN_RELEASE_VALIDATION
+            var feedbackCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--selection-feedback-validation-output=",StringComparison.Ordinal));
             var captureCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--canvas-capture-validation-output=",StringComparison.Ordinal));
             var marqueeCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--marquee-validation-output=",StringComparison.Ordinal));
             var releaseCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--release-validation-output=",StringComparison.Ordinal));
-            if(captureCheck is not null)await RunCanvasCaptureValidationAsync(captureCheck["--canvas-capture-validation-output=".Length..]);
+            if(feedbackCheck is not null)await RunSelectionFeedbackValidationAsync(feedbackCheck["--selection-feedback-validation-output=".Length..]);
+            else if(captureCheck is not null)await RunCanvasCaptureValidationAsync(captureCheck["--canvas-capture-validation-output=".Length..]);
             else if(marqueeCheck is not null)await PrepareMarqueeValidationAsync(marqueeCheck["--marquee-validation-output=".Length..]);
             else if(releaseCheck is not null)await RunRelease110ChecksAsync(releaseCheck["--release-validation-output=".Length..]);
             else

@@ -161,6 +161,19 @@ public sealed class EditorSession
         if(!double.IsFinite(dx)||!double.IsFinite(dy)||(dx==0&&dy==0))return;
         MoveBounds(o,dx,dy);TranslatePoints(o,dx,dy);o.UpdatedAt=DateTime.UtcNow.ToString("o");
     }
+    public BoardObject? HitSelection(InkPoint point,double tolerance)
+    {
+        // Rendering is ascending and stable. Reverse that exact order, including
+        // equal-Z ties, so an overlap selects only the object visually on top.
+        var ordered=_order.Ascending(Document).Items;
+        for(var i=ordered.Length-1;i>=0;i--)
+        {
+            var item=ordered[i];
+            if(item.IsVisible==false||Document.Board.CanvasMode=="notebook"&&item.PageId is not null&&item.PageId!=Document.Board.ActivePageId)continue;
+            if(PointSelection.Contains(item,point,tolerance))return item;
+        }
+        return null;
+    }
     public BoardObject? Hit(InkPoint p, double tolerance)
     {
         foreach (var item in _order.Descending(Document))
