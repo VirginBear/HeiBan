@@ -4,7 +4,7 @@
 
 建立日誌後分離PointSelection／HitSelection與精確擦除命中，反向沿實際paint order保證同Z亦選最上；Ctrl繞過handle toggle，普通群組點選延到up，超3DIP保留群組拖曳。Clipboard.Flush成功後中央非攔截toast顯示2秒。新增CaneMuted偏好，owner／screen保存同步，主播放與fallback一同靜音，動畫不變。十語介面與手冊更新。
 
-2408 Core／原生7＋螢幕adapter6斷言通過；真實滑鼠點空心內部／重疊topmost、更多靜音與中央提示可見。首次diagnostic缺using static造成CS0103與後續XAML解析失敗，第二輪輔助修正cp950解碼失敗，第三輪0警告0錯誤；失敗與未測項保留。只改Windows、不進版，完整記錄與試用包依[SELECTION_FEEDBACK_CANE_MUTE_2026-11-02.zh-TW.md](SELECTION_FEEDBACK_CANE_MUTE_2026-11-02.zh-TW.md)。
+2408 Core／原生7＋螢幕adapter6斷言通過；真實滑鼠點空心內部／重疊topmost、更多靜音與中央提示可見。首次diagnostic缺using static造成CS0103與後續XAML解析失敗，第二輪輔助修正cp950解碼失敗，第三輪0警告0錯誤；失敗與未測項保留。只改Windows、不進版，正常x64試用selection-feedback-2026-11-02-r1已完成（654 payload／237來源與CRC通過，觀察器排除、獨立Data），來源6ffc073；完整記錄與試用包依[SELECTION_FEEDBACK_CANE_MUTE_2026-11-02.zh-TW.md](SELECTION_FEEDBACK_CANE_MUTE_2026-11-02.zh-TW.md)。
 
 ## 2026-11-02 — 畫布範圍截圖與框選順暢度
 
