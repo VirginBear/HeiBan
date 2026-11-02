@@ -2,7 +2,7 @@
 
 ## 2026-11-02 — 使用者核准1.1.1／準備正式Store套件
 
-使用者試用新版後明確指定1.1.1，採產品1.1.1／套件1.1.1.0；Windows metadata與manifest同步、產品身分保持。新跑Core2423／Optimization68、十語702keys與26節78段指南、診斷Store排除守衛通過。準備SelfContained x64＋ARM64正式封裝；已送審1.1.0.0等40舊包先取SHA保留，未代上傳／送審。完整封裝結果與十語更新文案依[STORE_RELEASE_1.1.1_2026-11-02.zh-TW.md](STORE_RELEASE_1.1.1_2026-11-02.zh-TW.md)追加。
+使用者試用新版後明確指定1.1.1，採產品1.1.1／套件1.1.1.0；Windows metadata與manifest同步、產品身分保持。新跑Core2423／Optimization68、十語702keys與26節78段指南、診斷Store排除守衛通過。SelfContained x64＋ARM64正式bundle已完成（197514657bytes，來源bb15888、407來源SHA與CRC核同，40舊包SHA全同），未代上傳／送審。完整封裝結果與十語更新文案依[STORE_RELEASE_1.1.1_2026-11-02.zh-TW.md](STORE_RELEASE_1.1.1_2026-11-02.zh-TW.md)追加。
 
 ## 2026-11-02 — 獨立拖動預覽／藤條再次點擊設定
 
