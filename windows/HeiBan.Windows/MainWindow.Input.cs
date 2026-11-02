@@ -271,10 +271,6 @@ public partial class MainWindow
         else if(_rulerMoving)_rulerCenter+=delta;
         else if(_rulerRotating)RotateRuler(_mouse);
         else if(_rulerPivotMoving)MoveRulerPivot(_mouse);
-        else if(_marquee&&_start is not null)
-        {
-            var end=e.GetCurrentPoint(CanvasSurface).Position;CompleteWindowSelection(_viewport.ScreenToWorld(end.X,end.Y));
-        }
         else if(_compassCenterMoving)
         {
             if(_start is not null&&Math.Sqrt(Math.Pow(world.X-_start.X,2)+Math.Pow(world.Y-_start.Y,2))*_viewport.Zoom>3)_compassCenterMoved=true;

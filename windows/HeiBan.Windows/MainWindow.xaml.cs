@@ -133,8 +133,10 @@ public partial class MainWindow : Window
             var validation=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--validation-output=",StringComparison.Ordinal));
             var performance=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--performance-output=",StringComparison.Ordinal));
 #if HEIBAN_RELEASE_VALIDATION
+            var marqueeCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--marquee-validation-output=",StringComparison.Ordinal));
             var releaseCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--release-validation-output=",StringComparison.Ordinal));
-            if(releaseCheck is not null)await RunRelease110ChecksAsync(releaseCheck["--release-validation-output=".Length..]);
+            if(marqueeCheck is not null)await PrepareMarqueeValidationAsync(marqueeCheck["--marquee-validation-output=".Length..]);
+            else if(releaseCheck is not null)await RunRelease110ChecksAsync(releaseCheck["--release-validation-output=".Length..]);
             else
 #endif
             if(guideView is not null)ConfigureGuideView(guideView[13..]);
