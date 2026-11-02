@@ -29,3 +29,21 @@ git status原有CURRENT_STATUS、DEVELOPMENT_LOG、MARQUEE_AND_MANUAL_CLEANUP三
 - 點「管理→畫布範圍截圖」實際拖曳：讀回自己新寫入的Bitmap550×230，`mouse-region.json` success；檢視PNG只有背景與兩矩形，不含工具列／板擦／藤條／游標。再次進入後Esc，畫面顯示已取消截圖；Alt+F4正常關閉測試程序（PID11028已結束）。
 - 尚未執行：硬體端到端延遲／FPS量測、多DPI／所有修飾鍵、實際貼到第三方對話軟體、ARM64執行與Store送審；不能把零scene重建當成零延遲。所有程序與測試資料均在獨立.build。
 - 不改版號1.1.0；本輪無刪除檔案、不複製原使用者作品，保留既有清理紀錄與已送審bundle。再次點同截圖命令亦顯示取消訊息（最終Normal Release編譯涵蓋此文字分支）。
+
+## 免安裝交付
+
+- 程式來源凍結 `d87c8a2c55972d53a3235e97b5a5125ddd279a59`；正常Release x64 Portable（非診斷組態），產品1.1.0、EXE／DLL FileVersion1.1.0.0，ProductVersion帶來源SHA。
+- 實際封裝命令：將`windows/.build/tools/dotnet`加入本程序PATH，再執行`windows/HeiBan.Windows/Packaging/Package-PortableTrial.ps1 -Runtime win-x64 -Label canvas-capture-2026-11-02-r1`。成功，App與Updater均完成publish，證據`.build/portable-trial-1785d23bbbe34aae9f4aee92773660ef/publish.log`。
+- EXE：`windows/dist/trials/HeiBan-Windows-Portable-1.1.0-canvas-capture-2026-11-02-r1-win-x64/HeiBan.exe`。
+- ZIP同名加`.zip`，133316109 bytes，SHA256 `17e14338e7e29cf727709eb6d41e52617ddc15f844d6b1f99b91ac9d1abcf202`，相鄰`.sha256`檔一致。
+- 實際執行`python windows/.build/canvas-capture-20261102/Verify-Portable.py`：654 payload SHA及ZIP內byte核同、233來源raw-byte SHA核同、ZIP CRC通過；64個SVG與十語HTML／QuickStart／manifest核同。Normal HeiBan.dll不含三個診斷觀察器方法。
+- 全新獨立空白Data，未自動搬移／覆寫原作品。正常試用程式尚未啟動，UI驗證使用前述獨立診斷build；請使用者實機試用。ZIP／dist不入Git，跨電腦需另取得本包或依來源重建。
+- 已送審1.1.0.0 bundle SHA仍`a7799085a7ccb5f7f0a23b37d0b12425a9def99ff366d8fa13686ee01eaade66`；本批不製作／上傳新Store包，不進版。
+
+## 使用者驗收
+
+1. 開有邊界／A4作品，放大只看局部，按「管理→畫布範圍截圖」，在其他支援圖片的軟體Ctrl+V。成功：整個當頁邊界內內容皆在，含背景；沒有工具列／選取框。若要常用入口，可從自訂工具列加入常用。
+2. 開無邊界筆記，點同命令後拖出範圍並放開，再Ctrl+V。成功：只含框內文件區域；反向拖曳亦同；Esc／右鍵可取消。極大範圍為限制記憶體會降低解析度，不改截圖邊界。
+3. 在有多個物件的作品，以選取工具從空白處拖曳。成功：框持續跟隨，放開才產生選取；左到右全包選取、右到左交叉選取維持。觀察是否仍有頓挫，若有請回報物件量、縮放與發生在按下／拖動／放開哪段；本輪未宣稱達到任何ms／FPS目標。
+
+公開與私人紀錄的後續docs commit另由Git歷史定位；已保存本批開工的既有未提交清理與YouTube文件，不將他批紀錄混入本批提交。

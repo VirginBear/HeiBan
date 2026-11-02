@@ -4,7 +4,7 @@
 
 開工先保存既有三份清理文件差異與三份YouTube未追蹤文件，不把他批清理記成自己執行。新增CanvasCapturePlan與MainWindow.CanvasCapture、共用PNG離屏渲染，加入標準Bitmap剪貼簿、單次手勢後快照、epoch／頁碼防護與GPU／40M像素限制。框選專用預覽去除低priority hop、重複游標與整景dirty／Prune；當頁比對仍在放開時執行。十語指南與工具偏好同步。
 
-Core2383／Optimization68通過，WinUI診斷Release 0警告0錯誤；整頁與負座標Bitmap真實解碼、來源序號防護、過期請求拒絕、5003物件三次路由拖曳及真實550×230框選截圖／Esc取消通過。診斷token兩種方案未能跨Flush保留，已改僅診斷序號檢查，正常程式不含觀察器。未量測端到端ms／FPS、未代貼到使用者對話軟體、未驗收所有DPI與修飾鍵。包與後續來源依[CANVAS_CAPTURE_AND_SELECTION_PERFORMANCE_2026-11-02.zh-TW.md](CANVAS_CAPTURE_AND_SELECTION_PERFORMANCE_2026-11-02.zh-TW.md)追加。
+Core2383／Optimization68通過，WinUI診斷Release 0警告0錯誤；整頁與負座標Bitmap真實解碼、來源序號防護、過期請求拒絕、5003物件三次路由拖曳及真實550×230框選截圖／Esc取消通過。診斷token兩種方案未能跨Flush保留，已改僅診斷序號檢查，正常程式不含觀察器。未量測端到端ms／FPS、未代貼到使用者對話軟體、未驗收所有DPI與修飾鍵。正常x64免安裝canvas-capture-2026-11-02-r1已完成（654 payload／233來源SHA與CRC通過、觀察器排除、獨立空白Data），程式來源d87c8a2；包與後續來源依[CANVAS_CAPTURE_AND_SELECTION_PERFORMANCE_2026-11-02.zh-TW.md](CANVAS_CAPTURE_AND_SELECTION_PERFORMANCE_2026-11-02.zh-TW.md)追加。
 
 ## 2026-11-02 — 一般畫布框選事件修正／手動清理清單
 
