@@ -25,3 +25,17 @@ A主要描邊降到1.1／generic1.25（26px viewBox單位），移除generic雙�
 qa-data-r2同樣15 screen斷言、36動態色／幾何檢查與132 SVG真實GPU繪製通過；最後SVG不含多餘螢光筆色痕，A細描邊與紫色形狀、classic框線select目視通過。原生驗證使用新隔離資料根，不讀寫原作品。沒有新UI key，十語guide仍26節80段。Core／硬體延遲／ARM64實機／WACK本輪未執行。
 
 命令：`python windows/scripts/Generate-MenuIcons.py`（66）；`python windows/scripts/Generate-DuotoneIcons.py`（66）；`python windows/scripts/Build-UserGuides.py`（10語26節80段）；`dotnet build windows/HeiBan.Windows -c Release -r win-x64 -p:HeiBanValidationBuild=true --artifacts-path windows/.build/icon-color-refinement-20261104/qa-build`（第二29.39秒、第三26.34秒，皆0警告0錯誤）；獨立`--icon-style-validation-output=...`與HEIBAN_WINDOWS_DATA_DIRECTORY測試根。最後只換一份highlighter.svg到第三build內容目錄重跑，不混稱重編C#。
+
+
+## 正常免安裝交付
+
+最終x64試用`icon-color-2026-11-04-r1`封裝完成，產品維持1.1.2／FileVersion1.1.2.0；來源`ae0bd18c1ac4d09a2779a2a35dfd0f060831e829`。命令`Package-PortableTrial.ps1 -Runtime win-x64 -Label icon-color-2026-11-04-r1`，記錄`.build/portable-trial-c10d2acf556a4544a2e30bce3bb4295d`。
+
+- EXE：`windows/dist/trials/HeiBan-Windows-Portable-1.1.2-icon-color-2026-11-04-r1-win-x64/HeiBan.exe`；同名.zip為完整免安裝包。
+- ZIP133405532bytes，SHA256 `a49d7fe5a187c51fa3b88d79b1d7c07af2f4506214c2d6cf40b8200ae3791860`。
+- `Verify-Portable-r1.py`核對722 payload／392來源（含生成器與SVG）、132 SVG／10語指南、ZIP SHA／CRC通過；新ValidatePrimaryColor／ValidateBrushColorArtwork／ValidateToolColor及既有診斷方法皆不在正常assembly，Data獨立空白。正常包未由agent啟動，原生測試用隔離驗證build。
+- Store1.1.1.0仍197514657bytes／SHA `85c1400ae94430309fd4c440881238e8d71127e0c0cd6e38616470af6491e968`，不覆寫或新送審。原作品、舊試用與原有未提交文件保留。
+
+使用者成功條件：選A風格，改筆刷色為黃／藍，鋼筆和螢光筆本體應同步改色；切工具仍只有當前工具底線。開形狀選單與輪盤，直線／箭頭同其他形狀紫色。切回原風格，選取應有範圍框；螢幕畫布同上述。實際4K／混合DPI描邊喜好仍待使用者審視；沒有硬體延遲／ARM64／WACK新結果。所有自建QA程序已正常關閉。
+
+程式／技術紀錄公開提交，私人庫另存本批四項需求壓縮交接與黃色範例GPU預覽，不覆蓋前批設計板或紀錄。
