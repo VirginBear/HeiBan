@@ -348,6 +348,7 @@ public partial class MainWindow
 
     private void BuildChrome()
     {
+        ToolIcons.SetStyle(_toolbarPrefs.IconStyle);
         HomeButton.Content = ToolIcons.Create("chevron-left");
         HeaderPinButton.Content=ToolIcons.Create(_headerPinned?"lock":"unlock");
         ScreenCanvasButton.Content=ToolIcons.Create("screen");
@@ -699,6 +700,7 @@ public partial class MainWindow
         var visibleSet = new HashSet<string>(_toolbarPrefs.VisibleTools);
         var commonSet = new HashSet<string>(_toolbarPrefs.CommonTools);
         var displayMode=_toolbarPrefs.DisplayMode;
+        var iconStyle=_toolbarPrefs.IconStyle;
         var panel = new StackPanel { Spacing = 6 };
 
         void RebuildList()
@@ -716,7 +718,7 @@ public partial class MainWindow
 
                 var cb = new CheckBox
                 {
-                    Content = new StackPanel{Orientation=Orientation.Horizontal,Spacing=10,Children={ToolIcons.Create(key),new TextBlock{Text=T(ToolbarPreferences.ToolNames.GetValueOrDefault(key,key)),MaxWidth=160,TextWrapping=TextWrapping.Wrap,VerticalAlignment=VerticalAlignment.Center}}},
+                    Content = new StackPanel{Orientation=Orientation.Horizontal,Spacing=10,Children={ToolIcons.Create(key,iconStyle),new TextBlock{Text=T(ToolbarPreferences.ToolNames.GetValueOrDefault(key,key)),MaxWidth=160,TextWrapping=TextWrapping.Wrap,VerticalAlignment=VerticalAlignment.Center}}},
                     IsEnabled=!ToolbarPreferences.IsFixedTool(key),IsChecked = ToolbarPreferences.IsFixedTool(key)||visibleSet.Contains(key)
                 };
                 cb.Checked += (_, _) => visibleSet.Add(key);
@@ -752,11 +754,12 @@ public partial class MainWindow
 
         RebuildList();
 
+        var stylePicker=ToolbarUi.IconStyleSelector(iconStyle,value=>{iconStyle=value;RebuildList();});
         var scroll = new ScrollViewer { Content = panel, MaxHeight = 360, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
         var dialog = new ContentDialog
         {FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,
             Title = T("自訂工具列"),
-            Content = new StackPanel{Spacing=10,Children={CustomizeToolbarHeader(visibleSet,allKeys,RebuildList,displayMode,value=>displayMode=value,()=>{commonSet.Clear();commonSet.UnionWith(new ToolbarPreferences().CommonTools);}),new TextBlock{Text=T("左側勾選顯示工具，勾選「常用」加入常用分頁；選取、雷射與藤條固定顯示。"),TextWrapping=TextWrapping.Wrap,FontSize=12,Foreground=Brush("#65746A")},scroll}},
+            Content = new StackPanel{Spacing=10,Children={stylePicker,CustomizeToolbarHeader(visibleSet,allKeys,RebuildList,displayMode,value=>displayMode=value,()=>{commonSet.Clear();commonSet.UnionWith(new ToolbarPreferences().CommonTools);stylePicker.SelectedIndex=0;}),new TextBlock{Text=T("左側勾選顯示工具，勾選「常用」加入常用分頁；選取、雷射與藤條固定顯示。"),TextWrapping=TextWrapping.Wrap,FontSize=12,Foreground=Brush("#65746A")},scroll}},
             PrimaryButtonText = T("儲存"),
             CloseButtonText = T("取消"),
             XamlRoot = Root.XamlRoot
@@ -775,12 +778,9 @@ public partial class MainWindow
 
         if (newVisible.Count == 0) newVisible.Add("select");
 
-        _toolbarPrefs.DisplayMode=displayMode;
-        _toolbarPrefs.CommonTools=allKeys.Where(commonSet.Contains).ToList();
-        _toolbarPrefs.VisibleTools = newVisible;
-        _toolbarPrefs.HiddenTools = newHidden;
-        await ToolbarPreferencesStore.SaveAsync(_storage.DataDirectory, _toolbarPrefs);
-        BuildChrome();
+        var draft=DocumentCodec.Clone(_toolbarPrefs);draft.DisplayMode=displayMode;draft.IconStyle=iconStyle;
+        draft.CommonTools=allKeys.Where(commonSet.Contains).ToList();draft.VisibleTools=newVisible;draft.HiddenTools=newHidden;
+        await SaveToolbarPreferencesAsync(draft);
     }
 
     private void ResetToolbarToDefault()
@@ -794,10 +794,11 @@ public partial class MainWindow
     {
         // Screen canvas shares the settings file. Update the hidden owner in-memory too, or its
         // next toolbar rebuild could overwrite a choice just made in the screen session.
-        var updated=new ToolbarPreferences{DockSide=preferences.DockSide,DisplayMode=preferences.DisplayMode,MagnetEnabled=preferences.MagnetEnabled,BoardEraserVisible=preferences.BoardEraserVisible,CaneVisible=preferences.CaneVisible,CaneMuted=preferences.CaneMuted,OperateRadialEnabled=preferences.OperateRadialEnabled,DefaultToolsRevision=preferences.DefaultToolsRevision,DefaultPresentationRevision=preferences.DefaultPresentationRevision,DefaultCommonRevision=preferences.DefaultCommonRevision,CommonTools=[..preferences.CommonTools],ExtraFields=preferences.ExtraFields,VisibleTools=[..preferences.VisibleTools],HiddenTools=[..preferences.HiddenTools]};
+        var updated=new ToolbarPreferences{DockSide=preferences.DockSide,DisplayMode=preferences.DisplayMode,IconStyle=preferences.IconStyle,MagnetEnabled=preferences.MagnetEnabled,BoardEraserVisible=preferences.BoardEraserVisible,CaneVisible=preferences.CaneVisible,CaneMuted=preferences.CaneMuted,OperateRadialEnabled=preferences.OperateRadialEnabled,DefaultToolsRevision=preferences.DefaultToolsRevision,DefaultPresentationRevision=preferences.DefaultPresentationRevision,DefaultCommonRevision=preferences.DefaultCommonRevision,CommonTools=[..preferences.CommonTools],ExtraFields=preferences.ExtraFields,VisibleTools=[..preferences.VisibleTools],HiddenTools=[..preferences.HiddenTools]};
         updated.Normalize();
         await ToolbarPreferencesStore.SaveAsync(_storage.DataDirectory,updated);
         _toolbarPrefs=updated;CaneSound.IsMuted=updated.CaneMuted;_screenAnnotation?.ApplyCaneMuted(updated.CaneMuted);_screenAnnotation?.ApplyOperateRadialPreference(updated.OperateRadialEnabled);
+        ToolIcons.SetStyle(updated.IconStyle);_screenAnnotation?.ApplyToolbarIconStyle(updated.IconStyle);
         BuildChrome();
     }
 

@@ -1,5 +1,9 @@
 # Windows 問題與排解紀錄
 
+## 2026-11-04 — 生成藤條誤為拐杖／模式圖示不成對
+
+使用者選A但否定彎鉤藤條；改手工向量實現A並沿現有直藤條path。操作／作畫原為選取／鋼筆兩不相同語彙，改共用螢幕窗框只換badge，兩風格及wheel一致。GPU預覽發現SVG固定26px使hover不縮放，預載XML移除width/height後保留viewBox。QA的UIElement與StackPanel型別誤用分別在前兩build失敗，修正後第三／四build0警告0錯誤；13 host斷言、132 SVG真實繪製、UI取消不改／保存切換通過。十語顯式key遺漏亦已補。詳[完整命令與失敗記錄](ICON_STYLE_A_AND_MODES_2026-11-04.zh-TW.md)。
+
 ## 2026-11-04 — 操作穿透模式收不到輪盤右鍵
 
 原overlay的WS_EX_TRANSPARENT／HTTRANSPARENT與!_drawing返回使右鍵送給其他軟體，非原輪盤命中錯誤。新增限定operation會話的native hook及配對／取消／權限邊界，原右鍵短按兩次實際跨程序down/up/menu皆2，左鍵1；11 host斷言與Core3440通過。QA第二輪MenuFlyout.ShowAt的new()推論為Point導致CS0117，明確型別後第三／四輪0警告0錯誤。實體右長按／多DPI尚未由本機自動工具驗證，不能據合成訊號宣稱全軟體相容。詳[失敗、命令與手動成功條件](OPERATE_RADIAL_AND_ICON_PROPOSALS_2026-11-04.zh-TW.md)。

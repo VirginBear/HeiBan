@@ -10,6 +10,7 @@ using static HeiBan.Windows.Localization.Strings;
 namespace HeiBan.Windows.Engine;
 public sealed partial class Direct2DCanvasRenderer
 {
+    private string? _radialIconStyle;
     private readonly List<CanvasGeometry> _radialSectors=[];
     private readonly Dictionary<string,CanvasSvgDocument> _radialIcons=[];
     private readonly Dictionary<string,CanvasTextLayout> _radialLabels=[];
@@ -22,6 +23,7 @@ public sealed partial class Direct2DCanvasRenderer
     internal static string RadialLabel(string key)=>key=="operate"?T("操作"):key==""?"—":T(ToolbarPreferences.ToolNames.GetValueOrDefault(key,key switch{"line"=>"直線","arrow"=>"箭頭","rect"=>"矩形","circle"=>"圓形","triangle"=>"三角形","quadrilateral"=>"四邊形","diamond"=>"菱形","pentagon"=>"五邊形","star"=>"星形",_=>key}));
     internal void RenderRadialWheel(CanvasDrawingSession ds,RadialToolProfile profile,InkPoint center,int hover,double scale=1,Func<string,bool>? isToolActive=null,bool operateReturnsDrawing=false)
     {
+        if(_radialIconStyle!=ToolIcons.Style){foreach(var svg in _radialIcons.Values)svg.Dispose();_radialIcons.Clear();_radialIconStyle=ToolIcons.Style;}
         if(_radialSectors.Count==0)for(var i=0;i<RadialToolProfile.Count;i++)
         {
             using var path=new CanvasPathBuilder(ds);var a=i*Math.PI/4-Math.PI/2-Math.PI/8+.025;var b=a+Math.PI/4-.05;
@@ -47,7 +49,7 @@ public sealed partial class Direct2DCanvasRenderer
         for(var i=0;i<profile.Slots.Count;i++)
         {
             var key=profile.Slots[i];var point=RadialGesture.SlotCenter(i,center,scale);var size=(float)((i==hover?30:25)*scale);
-            var displayKey=key=="operate"?(operateReturnsDrawing?"pen":"select"):key;
+            var displayKey=key=="operate"?(operateReturnsDrawing?"mode-draw":"mode-operate"):key;
             var path=string.IsNullOrEmpty(key)?null:ToolIcons.CommandPath(displayKey);var label=key=="operate"&&operateReturnsDrawing?T("作畫"):RadialLabel(key);
             var isActive=!string.IsNullOrEmpty(key)&&isToolActive?.Invoke(key)==true;
             if(path is not null)
@@ -55,9 +57,7 @@ public sealed partial class Direct2DCanvasRenderer
                 var iconKey=displayKey+(isActive?":active":"");
                 if(!_radialIcons.TryGetValue(iconKey,out var svg))
                 {
-                    var strokeWidth=isActive?"2.2":"1.6";
-                    var strokeColor=isActive?"#184530":"#28543F";
-                    _radialIcons[iconKey]=svg=CanvasSvgDocument.LoadFromXml(ds,$"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'><path d='{path}' fill='none' stroke='{strokeColor}' stroke-width='{strokeWidth}' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+                    _radialIcons[iconKey]=svg=CanvasSvgDocument.LoadFromXml(ds,ToolIcons.RadialSvg(displayKey,isActive));
                 }
                 ds.DrawSvg(svg,new Size(size,size),new Vector2((float)point.X-size/2,(float)point.Y-size/2-5*(float)scale));
             }

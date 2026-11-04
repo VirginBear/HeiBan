@@ -7,12 +7,16 @@ namespace HeiBan.Windows.Views;
 
 /// <summary>Original outline vectors using the Mac toolbar's visual vocabulary.
 /// No Apple symbol font or external icon asset is required on Windows.</summary>
-internal static class ToolIcons
+internal static partial class ToolIcons
 {
     // Cursor artwork shares the toolbar's original vectors; no second icon catalog.
     internal static string? CursorPath(string tool)=>Paths.GetValueOrDefault(tool);
-    private static string CommandKey(string key)=>key switch{"brush"=>"settings","clearAll"=>"delete","viewLock"=>"lock","radialSettings"=>"radial","operate"=>"select",""=>"empty",_=>key};
-    internal static string? CommandPath(string key)=>CursorPath(CommandKey(key));
+    private static string CommandKey(string key)=>key switch{"brush"=>"settings","clearAll"=>"delete","viewLock"=>"lock","radialSettings"=>"radial","operate"=>"mode-operate",""=>"empty",_=>key};
+    internal const string ModeWindow="M2,3 L19,3 L19,16 L2,16 Z M2,7 L19,7 M6,5 L6.1,5 M10,16 L10,22 M5,22 L14,22";
+    internal const string ModePointer="M17,12 L25,18 L21,19 L23,24 L20,25 L18,20 L15,22 Z";
+    internal const string ModePen="M15,21 L14,25 L18,24 L25,17 L22,14 Z M20,16 L23,19 M15,21 L18,24";
+    internal static string? CommandPath(string key)=>CommandKey(key) switch
+    {"mode-operate"=>ModeWindow+" "+ModePointer,"mode-draw"=>ModeWindow+" "+ModePen,var name=>CursorPath(name)};
     private static readonly Dictionary<string,string> Paths=new()
     {
         ["empty"]="M6,13 L20,13",
@@ -96,24 +100,22 @@ internal static class ToolIcons
     }
     private static string DashKey(string? style)=>style switch{"dashed"=>"dash","dotted"=>"dash-dotted","dashdot"=>"dash-dot",_=>"dash-solid"};
 
-    public static UIElement Create(string name)
+    public static UIElement Create(string name,string? style=null)
     {
+        if((style??Style)=="duotone")return new Image{Width=18,Height=18,Source=SvgSource(name,"duotone")};
         var path=CommandPath(name)??Paths["settings"];
         return (UIElement)XamlReader.Load($"<Viewbox xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' Width='18' Height='18'><Canvas Width='26' Height='26'><Path Data='{path}' Stroke='#26372F' StrokeThickness='1.7' StrokeStartLineCap='Round' StrokeEndLineCap='Round' StrokeLineJoin='Round'/></Canvas></Viewbox>");
     }
 
     public static IconElement CreateMenuIcon(string name)
     {
-        var key=CommandKey(name);if(!Paths.ContainsKey(key))key="settings";
         // MenuFlyout expects IconElement; ImageIcon keeps the original open paths
         // stroked instead of filling them as PathIcon does. SVG stays sharp at 4K DPI.
-        return new ImageIcon{Width=20,Height=20,Source=new Microsoft.UI.Xaml.Media.Imaging.SvgImageSource(new Uri("ms-appx:///Assets/MenuIcons/"+key+".svg"))};
+        return new ImageIcon{Width=20,Height=20,Source=SvgSource(name,Style)};
     }
 
     public static IconElement CreateIcon(string name)
     {
-        var path=CommandPath(name)??Paths["settings"];
-        var geom=(Geometry)XamlReader.Load($"<Geometry xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'>{path}</Geometry>");
-        return new PathIcon { Data = geom };
+        return CreateMenuIcon(name);
     }
 }

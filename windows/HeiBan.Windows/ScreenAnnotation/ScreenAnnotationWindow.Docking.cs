@@ -63,8 +63,23 @@ internal sealed partial class ScreenAnnotationWindow
         };
     }
 
+    private string _chromeIconStyle="";
+    internal void ApplyToolbarIconStyle(string style)
+    {
+        _toolbarPreferences.IconStyle=style;
+        if(IsActive&&_chromeIconStyle!=style){CancelRadial();RebuildChromeLayout();RefreshScreenStyleButtons();ResizeChrome();PositionChrome();_dirty=true;}
+    }
     private void RebuildChromeLayout()
     {
+        ToolIcons.SetStyle(_toolbarPreferences.IconStyle);
+        if(_chromeIconStyle!=ToolIcons.Style)
+        {
+            _chromeIconStyle=ToolIcons.Style;
+            foreach(var pair in _buttons.Where(p=>p.Key is not("brush" or "dash")))ToolbarUi.ReplaceIcon(pair.Value,ToolIcons.Create(pair.Key));
+            foreach(var button in _chromeActions)if(button.Tag is string key)ToolbarUi.ReplaceIcon(button,ToolIcons.Create(key));
+            ToolbarUi.ReplaceIcon(_moreButton,ToolIcons.Create("more"));ToolbarUi.ReplaceIcon(_closeButton,ToolIcons.Create("close"));
+            _lastScreenDash=null;
+        }
         // Labeled pages nest buttons below the old root. Detach while that tree is still
         // attached; clearing the root first hides Parent before the XAML collection releases ownership.
         ToolbarUi.DetachButtons(_buttons.Values.Concat(_chromeActions));

@@ -1,5 +1,9 @@
 # Windows 開發決策
 
+## 2026-11-04 — 共用圖示風格與互補模式圖示
+
+toolbar.json加IconStyle，classic預設、duotone為使用者選A；缺值／未知值回classic，未知其他欄位保留，不變.heiban作品schema。ToolIcons保留原游標Paths，新的A用SVG資源；兩host保存後同步，預覽不改全域，取消不生效。Radial共用同資源、切風格清GPU SVG、設定時預載XML移除固定尺寸以讓viewport／hover縮放正確；畫圖不讀檔。ModeWindow常數共用，同一窗框只換ModePointer／ModePen，操作輪盤顯示作畫目標。使用者指定本系列1.1.2，未要求新Store。詳[證據與邊界](ICON_STYLE_A_AND_MODES_2026-11-04.zh-TW.md)。
+
 ## 2026-11-04 — 穿透操作模式的右鍵事件所有權
 
 WH_MOUSE_LL只在active screen operate及偏好啟用時安裝；獨立message-loop thread以Core狀態機暫存down／擁有up，短按標記補送、長按送既有輪盤。早期右拖交還原生，組合鍵、同程序、較高／未知integrity直接放行，失敗保留錯誤並停本次hook。UI只保留最新move、離散起訖有序，epoch清除跨會話舊事件；停止需drain已吞release。無.heiban格式變動，toolbar.json加預設true的OperateRadialEnabled。生成圖示提案只在私人repo，不接App Assets。詳[驗證界線與設計](OPERATE_RADIAL_AND_ICON_PROPOSALS_2026-11-04.zh-TW.md)。

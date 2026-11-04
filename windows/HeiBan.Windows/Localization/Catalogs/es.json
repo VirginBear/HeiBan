@@ -703,5 +703,8 @@
   "藤條：再次點擊開啟設定": "Vara: haz clic de nuevo para configurar",
   "操作模式右鍵輪盤": "Rueda con botón derecho en modo de interacción",
   "操作模式：右鍵長按開啟輪盤；短按保留原右鍵功能": "Modo de interacción: mantén el botón derecho para abrir la rueda; un clic corto conserva la acción original",
-  "右鍵輪盤暫時無法使用：": "La rueda del botón derecho no está disponible temporalmente: "
+  "右鍵輪盤暫時無法使用：": "La rueda del botón derecho no está disponible temporalmente: ",
+  "圖示風格": "Estilo de iconos",
+  "原本描邊": "Contorno original",
+  "A · 彩色雙色描邊": "A · Color de dos tonos"
 }

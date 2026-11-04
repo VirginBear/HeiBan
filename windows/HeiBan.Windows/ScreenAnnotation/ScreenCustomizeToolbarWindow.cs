@@ -27,6 +27,7 @@ internal sealed class ScreenCustomizeToolbarWindow : Window
         var visibleSet = new HashSet<string>(preferences.VisibleTools.Where(ToolbarContentPolicy.IsAvailableOnScreen));
         var commonSet = new HashSet<string>(preferences.CommonTools.Where(ToolbarContentPolicy.IsAvailableOnScreen));
         var displayMode = preferences.DisplayMode;
+        var iconStyle=preferences.IconStyle;
         var panel = new StackPanel { Spacing = 6 };
 
         void RebuildList()
@@ -55,7 +56,7 @@ internal sealed class ScreenCustomizeToolbarWindow : Window
                 visibleBox.Unchecked += (_, _) => visibleSet.Remove(key);
                 left.Children.Add(visibleBox);
 
-                var icon = ToolIcons.CreateIcon(key);
+                var icon = (FrameworkElement)ToolIcons.Create(key,iconStyle);
                 icon.Width = icon.Height = 18;
                 icon.VerticalAlignment = VerticalAlignment.Center;
                 left.Children.Add(icon);
@@ -147,6 +148,8 @@ internal sealed class ScreenCustomizeToolbarWindow : Window
         };
 
         var header = new StackPanel { Spacing = 8 };
+        var stylePicker=ToolbarUi.IconStyleSelector(iconStyle,value=>{iconStyle=value;RebuildList();});
+        header.Children.Add(stylePicker);
 
         var format = new ComboBox
         {
@@ -164,6 +167,7 @@ internal sealed class ScreenCustomizeToolbarWindow : Window
         var defaults = new Button { Content = T("預設") };
         defaults.Click += (_, _) =>
         {
+            stylePicker.SelectedIndex=0;
             visibleSet.Clear();
             visibleSet.UnionWith(ToolbarPreferences.AllDefaultTools.Where(ToolbarContentPolicy.IsAvailableOnScreen));
             allKeys.Clear();
@@ -202,15 +206,15 @@ internal sealed class ScreenCustomizeToolbarWindow : Window
         var saving=false;var closed=false;Closed+=(_,_)=>closed=true;
         async Task SaveChangesAsync(bool close)
         {
-            if(saving)return;saving=true;applyBtn.IsEnabled=saveBtn.IsEnabled=cancelBtn.IsEnabled=scroll.IsEnabled=false;
-            var order=allKeys.ToArray();var visible=visibleSet.ToHashSet();var common=commonSet.ToHashSet();var mode=displayMode;
+            if(saving)return;saving=true;applyBtn.IsEnabled=saveBtn.IsEnabled=cancelBtn.IsEnabled=scroll.IsEnabled=stylePicker.IsEnabled=format.IsEnabled=all.IsEnabled=defaults.IsEnabled=false;
+            var order=allKeys.ToArray();var visible=visibleSet.ToHashSet();var common=commonSet.ToHashSet();var mode=displayMode;var style=iconStyle;
             try
             {
-                await onSaved(prefs=>prefs.ApplyToolSubset(order,visible,common,mode));
+                await onSaved(prefs=>{prefs.IconStyle=style;prefs.ApplyToolSubset(order,visible,common,mode);});
                 if(!closed){status.Text=T("設定已儲存");status.Visibility=Visibility.Visible;if(close)Close();}
             }
             catch(Exception error){if(!closed){status.Text=T("工具列設定未保存：")+error.Message;status.Visibility=Visibility.Visible;}}
-            finally{saving=false;if(!closed)applyBtn.IsEnabled=saveBtn.IsEnabled=cancelBtn.IsEnabled=scroll.IsEnabled=true;}
+            finally{saving=false;if(!closed)applyBtn.IsEnabled=saveBtn.IsEnabled=cancelBtn.IsEnabled=scroll.IsEnabled=stylePicker.IsEnabled=format.IsEnabled=all.IsEnabled=defaults.IsEnabled=true;}
         }
         cancelBtn.Click += (_, _) => Close();
         applyBtn.Click += async (_, _) => await SaveChangesAsync(false);

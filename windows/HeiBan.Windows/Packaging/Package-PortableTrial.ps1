@@ -1,4 +1,4 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 param(
     [ValidateSet('win-x64','win-arm64')][string]$Runtime='win-x64',
     [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$')][string]$Label='perf2-2026-10-11',
@@ -20,7 +20,7 @@ $recordRoot=Join-Path $windowsRoot ('.build\portable-trial-'+[guid]::NewGuid().T
 New-Item -ItemType Directory -Path $recordRoot | Out-Null
 $source=(& git -C $windowsRoot rev-parse HEAD).Trim()
 if($LASTEXITCODE -ne 0){throw '無法記錄來源commit。'}
-$sourcePaths=@(& git -C $windowsRoot ls-files --cached --others --exclude-standard -- '*.cs' '*.csproj' '*.ps1' '*.cmd' '*.xaml' '*.html' '*.manifest' 'README.md' 'HeiBan.Windows/Localization/*.json' 'HeiBan.Windows/Localization/*.txt' 'HeiBan.Windows/Localization/Catalogs/*.json' 'HeiBan.Windows/Documentation/Guides/*.txt' 'HeiBan.Windows/Assets/Guides/manifest.json' 'HeiBan.Windows/Assets/Guides/QuickStart-*.heiban' 'scripts/Build-LocalizationCatalogs.py' 'scripts/Build-UserGuides.py' 'scripts/Generate-CaneSound.py' 'HeiBan.Windows/Assets/CaneSnap.wav' 'HeiBan.Windows/Assets/Cane.png' 'HeiBan.Windows/Assets/CaneSnap.source.json' 'scripts/Extract-CaneSample.py' 'Licenses/CaneSample-NOTICE.txt')
+$sourcePaths=@(& git -C $windowsRoot ls-files --cached --others --exclude-standard -- '*.cs' '*.csproj' '*.ps1' '*.cmd' '*.xaml' '*.html' '*.manifest' 'README.md' 'HeiBan.Windows/Localization/*.json' 'HeiBan.Windows/Localization/*.txt' 'HeiBan.Windows/Localization/Catalogs/*.json' 'HeiBan.Windows/Documentation/Guides/*.txt' 'HeiBan.Windows/Assets/Guides/manifest.json' 'HeiBan.Windows/Assets/Guides/QuickStart-*.heiban' 'scripts/Generate-MenuIcons.py' 'scripts/Generate-DuotoneIcons.py' 'HeiBan.Windows/Assets/MenuIcons/*.svg' 'HeiBan.Windows/Assets/MenuIcons/Duotone/*.svg' 'scripts/Build-LocalizationCatalogs.py' 'scripts/Build-UserGuides.py' 'scripts/Generate-CaneSound.py' 'HeiBan.Windows/Assets/CaneSnap.wav' 'HeiBan.Windows/Assets/Cane.png' 'HeiBan.Windows/Assets/CaneSnap.source.json' 'scripts/Extract-CaneSample.py' 'Licenses/CaneSample-NOTICE.txt')
 if($LASTEXITCODE -ne 0){throw '無法記錄來源檔案。'}
 $sourceFiles=@($sourcePaths | Sort-Object -Unique | ForEach-Object {
     @{path=$_;sha256=(Get-FileHash -LiteralPath (Join-Path $windowsRoot $_) -Algorithm SHA256).Hash.ToLowerInvariant()}

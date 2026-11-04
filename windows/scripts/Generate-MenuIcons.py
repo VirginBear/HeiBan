@@ -5,6 +5,9 @@ from html import escape
 root=Path(__file__).resolve().parents[1]/"HeiBan.Windows"
 source=(root/"Views/ToolIcons.cs").read_text(encoding="utf-8-sig")
 paths=dict(re.findall(r'^\s*\["([^"\n]+)"\]\s*=\s*"([^"\n]+)"',source,re.M))
+constants=dict(re.findall(r'const string (Mode\w+)="([^"]+)"',source))
+for key,badge in (("mode-operate","ModePointer"),("mode-draw","ModePen")):
+    paths[key]=constants["ModeWindow"]+" "+constants[badge]
 assert "settings" in paths and "screen" in paths
 out=root/"Assets/MenuIcons";out.mkdir(exist_ok=True)
 for key,path in paths.items():

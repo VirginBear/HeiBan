@@ -1,5 +1,9 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-11-04 — ToolIcons.Style／雙SVG風格
+
+ToolIcons的幾何游標維持原Paths；UI Create／CreateMenuIcon／輪盤RadialSvg經同一CommandKey與Style取圖。原版64＋模式2與A66分Assets/MenuIcons／Duotone，兩個生成器可還原；SVG source與XML各快取一次、UIElement不共享。Owner保存IconStyle後通知screen替換既有按鈕圖示，保留標籤／色線／事件，再使輪盤GPU圖示失效。設定取消只丟draft，Reset回classic，沒有新執行時依賴。詳[實作與驗收](ICON_STYLE_A_AND_MODES_2026-11-04.zh-TW.md)。
+
 ## 2026-11-04 — OperateRightGesture／OperateRadialHook
 
 螢幕操作時overlay穿透，新增受會話與偏好控制的Win32右鍵橋接，共用既有RadialGesture／profile／renderer，沒有另寫輪盤。hook thread不等待XAML、不繪圖／保存，Move coalesce後在UI處理；DPI起點鎖定與虛擬桌面原點只轉一次。普通右鍵補送與UIPI在native邊界，工具窗／較高權限放行。診斷入口僅HeiBanValidationBuild，正常包排除。詳[實作及未驗收情境](OPERATE_RADIAL_AND_ICON_PROPOSALS_2026-11-04.zh-TW.md)。
