@@ -20,3 +20,28 @@
 - `git diff --check`／metadata核對通過；95份舊Store檔（包括已提交包／sidecar／版本報告）先取SHA。1.1.2.0未有既存正式包，不覆寫其他版本。Name／Publisher／PublisherDisplayName等與1.1.1維持相同。
 
 十語「此版本的新增功能」及339字元runFullTrust說明存[清單更新文案](STORE_LISTING_UPDATE_1.1.2_2026-11-04.zh-TW.md)。受限Capability仍只有runFullTrust，mediumIL／不請求管理員權限。原生行為與實機回饋沿前批來源，這輪不重啟App／不把舊原生數字當新跑；WACK、Store安裝升級與ARM64實機未執行。接著凍結來源並封裝SelfContained雙架構。
+
+
+## 正式Store成品核對完成
+
+程式來源凍結：`cfb7b9d996a2837efe20af55bd076df64c445461`。正式命令：
+
+```powershell
+& windows/HeiBan.Windows/Packaging/Package-Store.ps1 -Configuration Release -DotnetPath 'D:/Game/HaiBan x64/windows/.build/tools/dotnet/dotnet.exe' -FormalVersionApproved
+```
+
+建置證據`.build/store-de1581e0578a42cfb51789ba7d5a6253`；x64 70.18秒、ARM64 64.28秒，皆0警告0錯誤。SelfContained、formalVersionApproved=true、無developmentLabel，未簽章／未代上傳／送審。兩包皆核對132 SVG（含Duotone子目錄）、21指南檔及10語、runFullTrust／mediumIL、產品身分、版本及最低Windows10.19041。
+
+| 成品 | bytes | SHA256 |
+| --- | ---: | --- |
+| HeiBan-Store-1.1.2.0-x64.msix | 100095801 | `bd372eedc2f21fc3d48cac9316857826badd9217b9c591f40aa111cd31999fb1` |
+| HeiBan-Store-1.1.2.0-arm64.msix | 97527337 | `590828ebd4dc7466951a8f573278d721e56433af5b2d7ea5a03ccc6d00d530ea` |
+| HeiBan-Store-1.1.2.0-x64-arm64.msixbundle | 197625174 | `a7b2e60c3c4bf80f4872426f2d9f5640850912fff8264ba8bb61f7b0d697f975` |
+
+`python windows/.build/release-1.1.2-20261104/verify-final.py`實查490來源raw-byte SHA、三成品與sidecar SHA／ZIP CRC、bundle內兩個MSIX逐byte核同；每包無使用者Data／獨立Updater／portable marker／PDB，所有驗證方法排除。四份PE（x64／ARM64的HeiBan.exe／dll）FileVersion1.1.2.0，ProductVersion1.1.2+cfb7b9d996a2837efe20af55bd076df64c445461；只是資源檢查，不是ARM64實機執行。
+
+95份舊Store檔SHA全同，其中43份為MSIX／bundle，其餘sidecar與版本報告。驗證腳本沿舊欄名一度將95檔標oldPackagesPreserved，已明確分成oldStoreFilesPreserved=95／oldPackagesPreserved=43；分類更正不改實際SHA驗證結果。Store generic報告更新指向1.1.2.0，所有舊版本報告保留。與使用者接受的ae0bd18試用相比，App程式與素材沒有再改動，僅封裝腳本補遞迴圖示核對與本輪核准／文件。
+
+上傳這一份即可：`windows/dist/store/HeiBan-Store-1.1.2.0-x64-arm64.msixbundle`（197625174bytes，約188.47MiB）。不需分開上傳x64與ARM64。十語更新說明與339字元runFullTrust用途見[商店清單更新文案](STORE_LISTING_UPDATE_1.1.2_2026-11-04.zh-TW.md)。本批未開Partner Center或代送審，不宣稱Microsoft已認證；WACK、Store安裝升級、ARM64實機及全部DPI／硬體延遲未執行，前批原生與使用者回饋保留原來源。
+
+程式與紀錄分開commit後推送公開庫；私人產品節點／使用者接受試用／壓縮交接另庫更新。原三份dirty清理文件及三份YouTube未追蹤文件保留未提交，沒有刪舊檔或搬作品。dist不隨Git同步，其他電腦須另取得本套件或依來源重建。
