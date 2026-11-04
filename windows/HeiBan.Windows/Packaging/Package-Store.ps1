@@ -78,8 +78,8 @@ function Read-StorePackage([string]$path,[string]$architecture) {
         $guideFiles=@(Get-ChildItem -LiteralPath $guideRoot -File)
         foreach($guideFile in $guideFiles){$sourceFiles+=@{source=$guideFile.FullName;entry='Assets/Guides/'+$guideFile.Name}}
         $iconRoot=Join-Path $PSScriptRoot '..\Assets\MenuIcons'
-        $menuIcons=@(Get-ChildItem -LiteralPath $iconRoot -Filter '*.svg' -File)
-        foreach($icon in $menuIcons){$sourceFiles+=@{source=$icon.FullName;entry='Assets/MenuIcons/'+$icon.Name}}
+        $menuIcons=@(Get-ChildItem -LiteralPath $iconRoot -Filter '*.svg' -File -Recurse)
+        foreach($icon in $menuIcons){$sourceFiles+=@{source=$icon.FullName;entry='Assets/MenuIcons/'+[IO.Path]::GetRelativePath($iconRoot,$icon.FullName).Replace('\','/')}}
         foreach($file in $sourceFiles){
             $entry=$zip.GetEntry($file.entry)
             if(-not $entry){throw "Missing original document: $($file.entry)"}
