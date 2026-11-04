@@ -41,6 +41,7 @@ internal static partial class ToolbarUi
             indicator=new ColorIcon(icon);
             if(label is null)button.Content=indicator;else label.Children.Insert(0,indicator);
         }
+        ToolIcons.UpdateBrushArtwork(indicator.Icon.Content as UIElement,color);
         indicator.SetColor(color,key==activeTool||(key=="shapes"&&ShapeTools.Any(shape=>shape.Key==activeTool)));
     }
 }

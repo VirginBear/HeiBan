@@ -1,5 +1,9 @@
 # Windows 開發決策
 
+## 2026-11-04 — 彩色筆身表示實際筆色／形狀紫色識別
+
+依使用者回饋，A細描邊、鋼筆／螢光筆本體用目前RGB而非固定工具色；形狀類直線／箭頭仍為紫色，不混用筆色。底下只有當前工具顯示色線，螢光筆圖稿額外色痕移除。原select只改圖示加入範圍框，不改游標或選取幾何。UI可變色用現有SolidColorBrush、不做每色點陣圖；輪盤有界cache原位取代。保持1.1.2、不新增作品格式或設定欄位。詳[本批紀錄](ICON_COLOR_REFINEMENT_2026-11-04.zh-TW.md)。
+
 ## 2026-11-04 — 共用圖示風格與互補模式圖示
 
 toolbar.json加IconStyle，classic預設、duotone為使用者選A；缺值／未知值回classic，未知其他欄位保留，不變.heiban作品schema。ToolIcons保留原游標Paths，新的A用SVG資源；兩host保存後同步，預覽不改全域，取消不生效。Radial共用同資源、切風格清GPU SVG、設定時預載XML移除固定尺寸以讓viewport／hover縮放正確；畫圖不讀檔。ModeWindow常數共用，同一窗框只換ModePointer／ModePen，操作輪盤顯示作畫目標。使用者指定本系列1.1.2，未要求新Store。詳[證據與邊界](ICON_STYLE_A_AND_MODES_2026-11-04.zh-TW.md)。

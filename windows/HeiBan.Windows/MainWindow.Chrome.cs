@@ -602,7 +602,7 @@ public partial class MainWindow
                 var item = new MenuFlyoutItem
                 {
                     Text = T(ToolbarPreferences.ToolNames.GetValueOrDefault(toolKey, toolKey)),
-                    Icon = ToolIcons.CreateMenuIcon(toolKey)
+                    Icon = ToolIcons.CreateMenuIcon(toolKey,_strokeColor)
                 };
                 item.Click += (_, _) => InvokeToolByKey(toolKey);
                 menu.Items.Add(item);
@@ -718,7 +718,7 @@ public partial class MainWindow
 
                 var cb = new CheckBox
                 {
-                    Content = new StackPanel{Orientation=Orientation.Horizontal,Spacing=10,Children={ToolIcons.Create(key,iconStyle),new TextBlock{Text=T(ToolbarPreferences.ToolNames.GetValueOrDefault(key,key)),MaxWidth=160,TextWrapping=TextWrapping.Wrap,VerticalAlignment=VerticalAlignment.Center}}},
+                    Content = new StackPanel{Orientation=Orientation.Horizontal,Spacing=10,Children={ToolIcons.Create(key,iconStyle,_strokeColor),new TextBlock{Text=T(ToolbarPreferences.ToolNames.GetValueOrDefault(key,key)),MaxWidth=160,TextWrapping=TextWrapping.Wrap,VerticalAlignment=VerticalAlignment.Center}}},
                     IsEnabled=!ToolbarPreferences.IsFixedTool(key),IsChecked = ToolbarPreferences.IsFixedTool(key)||visibleSet.Contains(key)
                 };
                 cb.Checked += (_, _) => visibleSet.Add(key);
@@ -754,7 +754,7 @@ public partial class MainWindow
 
         RebuildList();
 
-        var stylePicker=ToolbarUi.IconStyleSelector(iconStyle,value=>{iconStyle=value;RebuildList();});
+        var stylePicker=ToolbarUi.IconStyleSelector(iconStyle,value=>{iconStyle=value;RebuildList();},_strokeColor);
         var scroll = new ScrollViewer { Content = panel, MaxHeight = 360, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
         var dialog = new ContentDialog
         {FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,
@@ -845,6 +845,7 @@ public partial class MainWindow
         _fillColor = CurrentStyle.Fill;
         if (_brushSwatch is not null) _brushSwatch.Fill = Brush(_strokeColor);
         foreach(var (key,button) in _toolButtons)ToolbarUi.SetToolColor(button,key,_strokeColor,_tool);
+        _radialSettings?.RefreshBrushColor(_strokeColor);
     }
 
     private void RefreshChrome()

@@ -66,7 +66,7 @@ public partial class MainWindow
     private void TrackRadialTool(string previous,string current){if(RadialProfile.TrackTool(previous,current))PersistRadial();}
     private void ShowRadialSettings()
     {
-        if(_radialSettings is null){_radialSettings=new(RadialProfile,false,RadialTools.SaveAsync);_radialSettings.Closed+=(_,_)=>_radialSettings=null;}
+        if(_radialSettings is null){_radialSettings=new(RadialProfile,false,RadialTools.SaveAsync,_=>_strokeColor);_radialSettings.Closed+=(_,_)=>_radialSettings=null;}
         _radialSettings.Activate();
     }
     internal void CloseRadialSettings()=>_radialSettings?.Close();

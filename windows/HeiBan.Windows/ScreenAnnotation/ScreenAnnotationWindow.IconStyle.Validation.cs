@@ -21,6 +21,8 @@ internal sealed partial class ScreenAnnotationWindow
                 SetDrawing(true);Check(ModeUri().EndsWith("/mode-draw.svg"),"Drawing mode lost monitor+pen");
                 SetDrawing(false);Check(ModeUri().EndsWith("/mode-operate.svg"),"Operate mode lost monitor+pointer");
             }
+            SetScreenColor("#FFD400");
+            foreach(var key in new[]{"pen","highlighter"})Check(ToolbarUi.ValidateToolColor(_buttons[key]).Primary==Direct2DCanvasRenderer.HexToColor("#FFD400"),"Screen toolbar brush did not follow yellow");
             Check(_session.Generation==generation,"Style or mode change modified annotations");return checks;
         }
         finally{await StopAsync();}

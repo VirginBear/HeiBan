@@ -82,7 +82,7 @@ internal sealed partial class ScreenAnnotationWindow
     }
     private void ShowRadialSettings()
     {
-        if(_radialSettings is null){_radialSettings=new(RadialProfile,true,_owner.RadialTools.SaveAsync);_radialSettings.Closed+=(_,_)=>_radialSettings=null;}
+        if(_radialSettings is null){_radialSettings=new(RadialProfile,true,_owner.RadialTools.SaveAsync,_=>_color);_radialSettings.Closed+=(_,_)=>_radialSettings=null;}
         _radialSettings.Activate();
     }
     internal bool IsScreenRadialToolActive(string key)=>!string.IsNullOrEmpty(key)&&key switch

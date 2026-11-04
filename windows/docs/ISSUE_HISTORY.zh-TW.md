@@ -1,5 +1,9 @@
 # Windows 問題與排解紀錄
 
+## 2026-11-04 — 圖示描邊太厚／筆身固定色與實際筆色不一致
+
+A曾用1.7～1.8主描邊與generic3.5底線，筆身固定藍／黃；改1.1細線／generic單線1.25，筆身三角色動態色、輪盤同步；直線與箭頭紫色。原select加入框線，A螢光筆額外色痕移除以免看似多條底線。Native15 screen＋36色／identity＋132GPU SVG通過，含token自身與透明色。首build Viewbox sealed誤繼承CS0509，改Grid持有Viewbox後第二／三build0警告0錯誤；XML替換色值碰撞在驗證前修正。原生工具一次bounds變更重觀察後重試，UTF8日誌錯用cp950亦更正；詳[失敗與測法](ICON_COLOR_REFINEMENT_2026-11-04.zh-TW.md)。
+
 ## 2026-11-04 — 生成藤條誤為拐杖／模式圖示不成對
 
 使用者選A但否定彎鉤藤條；改手工向量實現A並沿現有直藤條path。操作／作畫原為選取／鋼筆兩不相同語彙，改共用螢幕窗框只換badge，兩風格及wheel一致。GPU預覽發現SVG固定26px使hover不縮放，預載XML移除width/height後保留viewBox。QA的UIElement與StackPanel型別誤用分別在前兩build失敗，修正後第三／四build0警告0錯誤；13 host斷言、132 SVG真實繪製、UI取消不改／保存切換通過。十語顯式key遺漏亦已補。詳[完整命令與失敗記錄](ICON_STYLE_A_AND_MODES_2026-11-04.zh-TW.md)。

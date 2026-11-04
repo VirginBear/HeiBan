@@ -548,7 +548,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             _renderer.RenderLaser(ds,_laser,_viewport,Now,_dpiScale);
             _renderer.RenderCane(ds,_cane,_viewport,Now,_dpiScale);
             if(_screenMagnetTarget is { } target)ds.DrawCircle((float)target.X,(float)target.Y,(float)(7*_dpiScale),Direct2DCanvasRenderer.HexToColor("#10B981"),2);
-            if(_radialGesture.Visible)_renderer.RenderRadialWheel(ds,RadialProfile,_radialGesture.Center,_radialGesture.Hover,_radialScale,IsScreenRadialToolActive,operateReturnsDrawing:!_drawing);
+            if(_radialGesture.Visible)_renderer.RenderRadialWheel(ds,RadialProfile,_radialGesture.Center,_radialGesture.Hover,_radialScale,IsScreenRadialToolActive,operateReturnsDrawing:!_drawing,toolColor:_=>_color);
             if(!_radialGesture.Holding&&_screenEraserPointer is { } eraser)_renderer.RenderHover(ds,eraser,true,_eraserSize*_dpiScale,_viewport);
         }
         var x=(int)region.X;var y=(int)region.Y;var width=(int)region.Width;var height=(int)region.Height;

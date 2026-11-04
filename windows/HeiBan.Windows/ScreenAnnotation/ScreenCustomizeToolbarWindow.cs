@@ -14,7 +14,7 @@ internal sealed class ScreenCustomizeToolbarWindow : Window
 {
     internal nint Handle => WinRT.Interop.WindowNative.GetWindowHandle(this);
 
-    internal ScreenCustomizeToolbarWindow(ToolbarPreferences preferences, Func<Action<ToolbarPreferences>,Task> onSaved)
+    internal ScreenCustomizeToolbarWindow(ToolbarPreferences preferences, Func<Action<ToolbarPreferences>,Task> onSaved,string? brushColor=null)
     {
         Title = T("自訂工具列 · 螢幕畫布");
 
@@ -56,7 +56,7 @@ internal sealed class ScreenCustomizeToolbarWindow : Window
                 visibleBox.Unchecked += (_, _) => visibleSet.Remove(key);
                 left.Children.Add(visibleBox);
 
-                var icon = (FrameworkElement)ToolIcons.Create(key,iconStyle);
+                var icon = (FrameworkElement)ToolIcons.Create(key,iconStyle,brushColor);
                 icon.Width = icon.Height = 18;
                 icon.VerticalAlignment = VerticalAlignment.Center;
                 left.Children.Add(icon);
@@ -148,7 +148,7 @@ internal sealed class ScreenCustomizeToolbarWindow : Window
         };
 
         var header = new StackPanel { Spacing = 8 };
-        var stylePicker=ToolbarUi.IconStyleSelector(iconStyle,value=>{iconStyle=value;RebuildList();});
+        var stylePicker=ToolbarUi.IconStyleSelector(iconStyle,value=>{iconStyle=value;RebuildList();},brushColor);
         header.Children.Add(stylePicker);
 
         var format = new ComboBox

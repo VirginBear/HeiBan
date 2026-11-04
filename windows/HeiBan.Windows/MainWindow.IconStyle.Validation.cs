@@ -14,8 +14,11 @@ public partial class MainWindow
         Directory.CreateDirectory(output);
         try
         {
+            ToolIcons.SetStyle("duotone");var colorChecks=ToolIcons.ValidateBrushColorArtwork();
             var screenChecks=await _screenAnnotation!.ValidateIconStyleAsync();
             await OpenAsync(new(){Board=new(){Title="Icon style QA",CanvasMode="infinite",GridStyle="dots"}});await Task.Delay(100);
+            CurrentStyle.Color="#FFD400";LoadActiveStyle();
+            foreach(var key in new[]{"pen","highlighter"})if(ToolbarUi.ValidateToolColor(_toolButtons[key]).Primary!=Direct2DCanvasRenderer.HexToColor("#FFD400"))throw new Exception("Toolbar did not follow yellow brush: "+key);
             using var sheet=new CanvasRenderTarget(CanvasSurface,1100,540,96);var count=0;
             using(var ds=sheet.CreateDrawingSession())
             {
@@ -30,16 +33,16 @@ public partial class MainWindow
             {
                 ds.Clear(Microsoft.UI.ColorHelper.FromArgb(255,250,250,245));ds.DrawText("HeiBan 1.1.2 · A",26,12,Microsoft.UI.Colors.DarkGreen);
                 for(var i=0;i<keys.Length;i++)
-                {using var svg=CanvasSvgDocument.LoadFromXml(CanvasSurface,ToolIcons.RadialSvg(keys[i],false));var x=i%9*110+28;var y=i/9*130+58;ds.DrawSvg(svg,new global::Windows.Foundation.Size(60,60),new Vector2(x,y));ds.DrawText(keys[i],x-9,y+67,Microsoft.UI.Colors.DarkSlateGray,new Microsoft.Graphics.Canvas.Text.CanvasTextFormat{FontSize=13});}
-                _renderer.RenderRadialWheel(ds,RadialTools.Value.Screen,new InkPoint(190,395),1,.63,operateReturnsDrawing:true);
-                ToolIcons.SetStyle("classic");_renderer.RenderRadialWheel(ds,RadialTools.Value.Screen,new InkPoint(500,395),1,.63,operateReturnsDrawing:false);
-                ToolIcons.SetStyle("duotone");_renderer.RenderRadialWheel(ds,RadialTools.Value.Screen,new InkPoint(810,395),1,.63,operateReturnsDrawing:false);
+                {using var svg=CanvasSvgDocument.LoadFromXml(CanvasSurface,ToolIcons.RadialSvg(keys[i],false,"#FFD400"));var x=i%9*110+28;var y=i/9*130+58;ds.DrawSvg(svg,new global::Windows.Foundation.Size(60,60),new Vector2(x,y));ds.DrawText(keys[i],x-9,y+67,Microsoft.UI.Colors.DarkSlateGray,new Microsoft.Graphics.Canvas.Text.CanvasTextFormat{FontSize=13});}
+                _renderer.RenderRadialWheel(ds,RadialTools.Value.Screen,new InkPoint(190,395),1,.63,operateReturnsDrawing:true,toolColor:_=>"#FFD400");
+                ToolIcons.SetStyle("classic");_renderer.RenderRadialWheel(ds,RadialTools.Value.Screen,new InkPoint(500,395),1,.63,operateReturnsDrawing:false,toolColor:_=>"#FFD400");
+                ToolIcons.SetStyle("duotone");_renderer.RenderRadialWheel(ds,RadialTools.Value.Screen,new InkPoint(810,395),1,.63,operateReturnsDrawing:false,toolColor:_=>"#FFD400");
             }
             await preview.SaveAsync(Path.Combine(output,"style-a-preview.png"),CanvasBitmapFileFormat.Png);
             if(count!=132)throw new Exception("SVG asset count: "+count);
-            Title="HeiBan 1.1.2 icon QA";
-            await File.WriteAllTextAsync(Path.Combine(output,"result.json"),JsonSerializer.Serialize(new{success=true,screenChecks,svgIconsParsedAndDrawn=count,styleCacheSequence="duotone/classic/duotone",userPhysicalHoldPreviouslyAccepted=true,newStorePackage=false}));
-            _ = ShowCustomizeToolbarDialog();
+            Title="HeiBan 1.1.2 icon color QA";
+            await File.WriteAllTextAsync(Path.Combine(output,"result.json"),JsonSerializer.Serialize(new{success=true,screenChecks,colorChecks,mainToolbarYellow=true,svgIconsParsedAndDrawn=count,styleCacheSequence="duotone/classic/duotone",userPhysicalHoldPreviouslyAccepted=true,newStorePackage=false}));
+            ActivateTool("pen");
         }
         catch(Exception error){await File.WriteAllTextAsync(Path.Combine(output,"error.txt"),error.ToString());}
     }

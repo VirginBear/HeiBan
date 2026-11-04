@@ -28,7 +28,7 @@ internal static partial class ToolIcons
         ["lasso"]="M21,10 C21,2 2,2 2,10 C2,18 21,18 21,10 M6,16 C4,20 7,25 12,21",
         ["notebook"]="M5,3 L21,3 L21,22 L5,22 Z M8,3 L8,22 M2,7 L6,7 M2,12 L6,12 M2,17 L6,17",
         ["infinite"]="M12,12 C2,-3 -8,27 12,12 C32,-3 32,27 12,12",
-        ["select"]="M5,3 L19,13 L12,14 L9,21 Z M12,14 L16,21",
+        ["select"]="M2,5 L2,2 L5,2 M8,2 L11,2 M14,2 L17,2 L17,5 M17,8 L17,10 M2,8 L2,11 M2,14 L2,17 L5,17 M8,17 L10,17 M12,10 L23,17 L18,18 L21,23 L18,25 L15,20 L12,23 Z",
         ["palette"]="M12,2 C0,2 -1,20 9,22 C14,24 12,16 17,17 C26,19 27,2 12,2 Z M7,7 L7,8 M13,5 L13,6 M19,8 L19,9 M5,13 L5,14",
         ["pen"]="M4,16 L3,21 L8,20 L20,8 Q22,6 20,4 Q18,2 16,4 Z M14,6 L18,10 M4,16 L8,20",
         ["curve"]="M4,18 C4,4 20,20 20,6 M2,18 L6,18 M20,4 L20,8",
@@ -100,18 +100,21 @@ internal static partial class ToolIcons
     }
     private static string DashKey(string? style)=>style switch{"dashed"=>"dash","dotted"=>"dash-dotted","dashdot"=>"dash-dot",_=>"dash-solid"};
 
-    public static UIElement Create(string name,string? style=null)
+    public static UIElement Create(string name,string? style=null,string? brushColor=null)
     {
+        if((style??Style)=="duotone"&&IsBrushArtwork(name))return new BrushArtwork(name,brushColor??BrushPrimary);
         if((style??Style)=="duotone")return new Image{Width=18,Height=18,Source=SvgSource(name,"duotone")};
         var path=CommandPath(name)??Paths["settings"];
         return (UIElement)XamlReader.Load($"<Viewbox xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' Width='18' Height='18'><Canvas Width='26' Height='26'><Path Data='{path}' Stroke='#26372F' StrokeThickness='1.7' StrokeStartLineCap='Round' StrokeEndLineCap='Round' StrokeLineJoin='Round'/></Canvas></Viewbox>");
     }
 
-    public static IconElement CreateMenuIcon(string name)
+    public static IconElement CreateMenuIcon(string name,string? brushColor=null)
     {
         // MenuFlyout expects IconElement; ImageIcon keeps the original open paths
         // stroked instead of filling them as PathIcon does. SVG stays sharp at 4K DPI.
-        return new ImageIcon{Width=20,Height=20,Source=SvgSource(name,Style)};
+        var icon=new ImageIcon{Width=20,Height=20,Source=SvgSource(name,Style)};
+        if(Style=="duotone"&&IsBrushArtwork(name)&&brushColor is not null)_ = ColorMenuIconAsync(icon,BrushSvg(name,brushColor));
+        return icon;
     }
 
     public static IconElement CreateIcon(string name)

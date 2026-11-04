@@ -27,9 +27,9 @@ internal static partial class ToolIcons
         if(!IconSources.TryGetValue(asset,out var source))IconSources[asset]=source=new(new Uri("ms-appx:///Assets/MenuIcons/"+asset+".svg"));
         return source;
     }
-    internal static string RadialSvg(string name,bool active)
+    internal static string RadialSvg(string name,bool active,string? brushColor=null)
     {
-        if(Style=="duotone")return DuotoneXml[ResolvedKey(name)];
+        if(Style=="duotone")return BrushSvg(name,brushColor);
         var path=CommandPath(name)??Paths["settings"];
         return $"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'><path d='{path}' fill='none' stroke='{(active?"#184530":"#28543F")}' stroke-width='{(active?"2.2":"1.6")}' stroke-linecap='round' stroke-linejoin='round'/></svg>";
     }

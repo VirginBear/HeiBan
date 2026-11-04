@@ -50,6 +50,7 @@ internal sealed partial class ScreenAnnotationWindow
     {
         var selected=StyleSelection;
         foreach(var (key,button) in _buttons)ToolbarUi.SetToolColor(button,key,_color,_tool);
+        _radialSettings?.RefreshBrushColor(_color);
         _brushButton.IsEnabled=selected?.IsLocked!=true;
         var color=selected?.StrokeColor??_color;var dash=selected?.LineStyle??_dash;
         if(!ReferenceEquals(_lastScreenBrushButton,_brushButton)||_lastScreenBrushColor!=color)

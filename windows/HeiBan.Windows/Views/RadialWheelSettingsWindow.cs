@@ -18,6 +18,7 @@ internal sealed class RadialWheelSettingsWindow : Window
     private readonly RadialToolProfile _profile;
     private readonly bool _screen;
     private readonly Func<Task> _save;
+    private readonly Func<string,string?>? _toolColor;
     private readonly CanvasControl _canvas=new(){Width=320,Height=320,AllowDrop=true};
     private readonly Direct2DCanvasRenderer _renderer=new();
     private readonly TextBlock _status=new(){TextWrapping=TextWrapping.Wrap,MaxWidth=610,Foreground=new SolidColorBrush(Color.FromArgb(255,57,115,90))};
@@ -30,9 +31,9 @@ internal sealed class RadialWheelSettingsWindow : Window
     private readonly string[] _keys;
     internal nint Handle=>WinRT.Interop.WindowNative.GetWindowHandle(this);
 
-    internal RadialWheelSettingsWindow(RadialToolProfile profile,bool screen,Func<Task> save)
+    internal RadialWheelSettingsWindow(RadialToolProfile profile,bool screen,Func<Task> save,Func<string,string?>? toolColor=null)
     {
-        _profile=profile;_screen=screen;_save=save;
+        _profile=profile;_screen=screen;_save=save;_toolColor=toolColor;
         Title=T("右鍵工具輪盤")+" · "+T(screen?"螢幕畫布":"畫布");
         _keys=new[]{""}.Concat(ToolbarPreferences.AllDefaultTools).Concat(new[]{"line","arrow","rect","circle","triangle","quadrilateral","diamond","pentagon","star"}).Where(k=>k==""||RadialToolProfile.Allowed(k,screen)).Distinct().ToArray();
 
@@ -152,7 +153,7 @@ internal sealed class RadialWheelSettingsWindow : Window
         AppWindow.Resize(new global::Windows.Graphics.SizeInt32(Math.Min(area.Width-24,(int)(680*scale)),Math.Min(area.Height-24,(int)(660*scale))));
         if(AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter){presenter.IsAlwaysOnTop=true;presenter.IsResizable=false;presenter.IsMaximizable=false;}
 
-        _canvas.Draw+=(_,args)=>_renderer.RenderRadialWheel(args.DrawingSession,_profile,new InkPoint(160,160),_hover);
+        _canvas.Draw+=(_,args)=>_renderer.RenderRadialWheel(args.DrawingSession,_profile,new InkPoint(160,160),_hover,toolColor:_toolColor);
         _canvas.CreateResources+=(_,_)=>_renderer.ClearCache();
         _canvas.PointerMoved+=(_,args)=>
         {
@@ -207,14 +208,14 @@ internal sealed class RadialWheelSettingsWindow : Window
         return row;
     }
 
-    private static UIElement CreateSlotButtonContent(string key,bool locked)
+    private UIElement CreateSlotButtonContent(string key,bool locked)
     {
         var grid=new Grid{ColumnSpacing=8,VerticalAlignment=VerticalAlignment.Center};
         grid.ColumnDefinitions.Add(new ColumnDefinition{Width=new GridLength(22)});
         grid.ColumnDefinitions.Add(new ColumnDefinition{Width=new GridLength(1,GridUnitType.Star)});
         grid.ColumnDefinitions.Add(new ColumnDefinition{Width=GridLength.Auto});
 
-        var icon=ToolIcons.Create(key);
+        var icon=ToolIcons.Create(key,brushColor:_toolColor?.Invoke(key));
         if(string.IsNullOrEmpty(key))icon.Opacity=0.45;
         var iconHost=new Border{Width=22,Height=22,Child=icon,HorizontalAlignment=HorizontalAlignment.Center,VerticalAlignment=VerticalAlignment.Center};
         Grid.SetColumn(iconHost,0);
@@ -281,7 +282,7 @@ internal sealed class RadialWheelSettingsWindow : Window
             itemGrid.ColumnDefinitions.Add(new ColumnDefinition{Width=new GridLength(1,GridUnitType.Star)});
             itemGrid.ColumnDefinitions.Add(new ColumnDefinition{Width=GridLength.Auto});
 
-            var icon=ToolIcons.Create(key);
+            var icon=ToolIcons.Create(key,brushColor:_toolColor?.Invoke(key));
             if(string.IsNullOrEmpty(key))icon.Opacity=0.45;
             var iconWrap=new Border{Width=20,Height=20,Child=icon,HorizontalAlignment=HorizontalAlignment.Center,VerticalAlignment=VerticalAlignment.Center};
             Grid.SetColumn(iconWrap,0);
@@ -391,7 +392,7 @@ internal sealed class RadialWheelSettingsWindow : Window
             for(var i=0;i<Math.Min(RadialToolProfile.Count,slots.Count);i++)
             {
                 var k=slots[i];
-                var icon=ToolIcons.Create(k);
+                var icon=ToolIcons.Create(k,brushColor:_toolColor?.Invoke(k));
                 if(string.IsNullOrEmpty(k))icon.Opacity=0.35;
                 var box=new Border
                 {
@@ -499,6 +500,14 @@ internal sealed class RadialWheelSettingsWindow : Window
         catch(Exception error){if(!_closed)_status.Text=T("輪盤設定尚未保存：")+error.Message;}
     }
 
+    private string? _lastBrushColor;
+    internal void RefreshBrushColor(string color)
+    {
+        if(_closed||_lastBrushColor==color)return;_lastBrushColor=color;
+        foreach(var button in _slotButtons)
+            if(button.Content is Grid grid&&grid.Children.FirstOrDefault() is Border host)ToolIcons.UpdateBrushArtwork(host.Child,color);
+        _canvas.Invalidate();
+    }
     internal void RefreshSlots()
     {
         if(_closed)return;

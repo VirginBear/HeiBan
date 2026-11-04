@@ -13,17 +13,18 @@ public sealed partial class Direct2DCanvasRenderer
     private string? _radialIconStyle;
     private readonly List<CanvasGeometry> _radialSectors=[];
     private readonly Dictionary<string,CanvasSvgDocument> _radialIcons=[];
+    private readonly Dictionary<string,string?> _radialIconColors=[];
     private readonly Dictionary<string,CanvasTextLayout> _radialLabels=[];
     private void ClearRadialResources()
     {
         foreach(var item in _radialSectors)item.Dispose();_radialSectors.Clear();
-        foreach(var item in _radialIcons.Values)item.Dispose();_radialIcons.Clear();
+        foreach(var item in _radialIcons.Values)item.Dispose();_radialIcons.Clear();_radialIconColors.Clear();
         foreach(var item in _radialLabels.Values)item.Dispose();_radialLabels.Clear();
     }
     internal static string RadialLabel(string key)=>key=="operate"?T("操作"):key==""?"—":T(ToolbarPreferences.ToolNames.GetValueOrDefault(key,key switch{"line"=>"直線","arrow"=>"箭頭","rect"=>"矩形","circle"=>"圓形","triangle"=>"三角形","quadrilateral"=>"四邊形","diamond"=>"菱形","pentagon"=>"五邊形","star"=>"星形",_=>key}));
-    internal void RenderRadialWheel(CanvasDrawingSession ds,RadialToolProfile profile,InkPoint center,int hover,double scale=1,Func<string,bool>? isToolActive=null,bool operateReturnsDrawing=false)
+    internal void RenderRadialWheel(CanvasDrawingSession ds,RadialToolProfile profile,InkPoint center,int hover,double scale=1,Func<string,bool>? isToolActive=null,bool operateReturnsDrawing=false,Func<string,string?>? toolColor=null)
     {
-        if(_radialIconStyle!=ToolIcons.Style){foreach(var svg in _radialIcons.Values)svg.Dispose();_radialIcons.Clear();_radialIconStyle=ToolIcons.Style;}
+        if(_radialIconStyle!=ToolIcons.Style){foreach(var svg in _radialIcons.Values)svg.Dispose();_radialIcons.Clear();_radialIconColors.Clear();_radialIconStyle=ToolIcons.Style;}
         if(_radialSectors.Count==0)for(var i=0;i<RadialToolProfile.Count;i++)
         {
             using var path=new CanvasPathBuilder(ds);var a=i*Math.PI/4-Math.PI/2-Math.PI/8+.025;var b=a+Math.PI/4-.05;
@@ -55,9 +56,11 @@ public sealed partial class Direct2DCanvasRenderer
             if(path is not null)
             {
                 var iconKey=displayKey+(isActive?":active":"");
-                if(!_radialIcons.TryGetValue(iconKey,out var svg))
+                var color=ToolIcons.Style=="duotone"&&ToolIcons.IsBrushArtwork(displayKey)?toolColor?.Invoke(displayKey):null;
+                if(!_radialIcons.TryGetValue(iconKey,out var svg)||_radialIconColors.GetValueOrDefault(iconKey)!=color)
                 {
-                    _radialIcons[iconKey]=svg=CanvasSvgDocument.LoadFromXml(ds,ToolIcons.RadialSvg(displayKey,isActive));
+                    var updated=CanvasSvgDocument.LoadFromXml(ds,ToolIcons.RadialSvg(displayKey,isActive,color));
+                    svg?.Dispose();_radialIcons[iconKey]=svg=updated;_radialIconColors[iconKey]=color;
                 }
                 ds.DrawSvg(svg,new Size(size,size),new Vector2((float)point.X-size/2,(float)point.Y-size/2-5*(float)scale));
             }

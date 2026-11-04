@@ -1,5 +1,9 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-11-04 — 筆身色角色與固定幾何
+
+ToolIcons.BrushColor定義三個色角色，A生成器與UI／Win2D共用SVG path。XAML Grid持有Viewbox與一次建立的Path／Ellipse，顏色事件只更新SolidColorBrush；不在筆畫Move重新載入。輪盤只在既有key的色改變時原位替換SVG，新資源成功才釋放舊資源，不以RGB作永久cachekey。兩host明確傳各自筆色，設定窗只在色改變時更新筆身／Invalidate，不改profile或重建清單。SVG逐屬性替換避免角色色值碰撞，alpha與中性色分開。詳[實作與驗證](ICON_COLOR_REFINEMENT_2026-11-04.zh-TW.md)。
+
 ## 2026-11-04 — ToolIcons.Style／雙SVG風格
 
 ToolIcons的幾何游標維持原Paths；UI Create／CreateMenuIcon／輪盤RadialSvg經同一CommandKey與Style取圖。原版64＋模式2與A66分Assets/MenuIcons／Duotone，兩個生成器可還原；SVG source與XML各快取一次、UIElement不共享。Owner保存IconStyle後通知screen替換既有按鈕圖示，保留標籤／色線／事件，再使輪盤GPU圖示失效。設定取消只丟draft，Reset回classic，沒有新執行時依賴。詳[實作與驗收](ICON_STYLE_A_AND_MODES_2026-11-04.zh-TW.md)。

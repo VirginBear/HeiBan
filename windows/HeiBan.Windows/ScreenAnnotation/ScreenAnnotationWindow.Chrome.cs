@@ -187,7 +187,7 @@ internal sealed partial class ScreenAnnotationWindow
             await _owner.SaveToolbarPreferencesAsync(draft);
             _toolbarPreferences=draft;
             RebuildChromeLayout();ResizeChrome();PositionChrome();RefreshButtons();
-        });
+        },_color);
         _customizeToolbarWindow.Closed+=(_,_)=>_customizeToolbarWindow=null;
         _customizeToolbarWindow.Activate();
     }
@@ -311,7 +311,7 @@ internal sealed partial class ScreenAnnotationWindow
     private void ShowScreenMenu(FrameworkElement anchor)
     {
         var menu=new MenuFlyout();
-        void Item(string icon,string label,Action action){var item=new MenuFlyoutItem{Text=label,Icon=ToolIcons.CreateMenuIcon(icon)};item.Click+=(_,_)=>action();menu.Items.Add(item);}
+        void Item(string icon,string label,Action action){var item=new MenuFlyoutItem{Text=label,Icon=ToolIcons.CreateMenuIcon(icon,_color)};item.Click+=(_,_)=>action();menu.Items.Add(item);}
         Item("radialSettings",T("設定工具輪盤"),ShowRadialSettings);
         if(StyleSelection is not null){Item("select",T("選取物件：樣式、複製、刪除…"),()=>ShowChromeFlyout(CreateObjectMenu(),_moreButton));menu.Items.Add(new MenuFlyoutSeparator());}
         var automatic=new ToggleMenuFlyoutItem{Text=T("自動存檔"),IsChecked=_owner.AutoSaveEnabled};
