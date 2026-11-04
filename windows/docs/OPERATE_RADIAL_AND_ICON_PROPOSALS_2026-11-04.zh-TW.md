@@ -56,3 +56,14 @@ Core3440 PASS（新增1017含1000個合成短按配對，不是1000次真實OS�
 正常試用包、雜湊及Git同步結果待後續追加；不覆寫1.1.1.0 Store套件，不代表送審／商店驗收完成。
 
 封裝前另跑OptimizationChecks，首次少傳必要的獨立輸出目錄而按guard失敗（optimization.log）；補上`-- windows/.build/operate-radial-20261104/optimization-results-r2`後68 targeted data checks通過。Localization最後重生十語705keys、missing=0。清除新增翻譯行尾空白；不影響事件邏輯。QA與probe兩個自建程序均正常關閉，原作品庫未接續／未覆蓋。
+
+## 正常x64免安裝試用交付
+
+來源凍結`7868acaaa854bfbf7da21867f7238b064c067406`，產品維持1.1.1／FileVersion1.1.1.0。執行`Package-PortableTrial.ps1 -Runtime win-x64 -Label operate-wheel-2026-11-04-r1`成功；封裝紀錄`.build/portable-trial-a74f79b7010e41de896838ef65afc71b`。正常App與Updater publish完成，無測試旗標；正常成品未由agent啟動，QA測試使用獨立驗證build。
+
+- 直接執行：`windows/dist/trials/HeiBan-Windows-Portable-1.1.1-operate-wheel-2026-11-04-r1-win-x64/HeiBan.exe`。
+- ZIP同名加`.zip`：133352310 bytes，SHA256 `541ba676b1044f89ca0371e03b48e9e1ab1c2547d5f81fb6063f59d05f6e0b92`。
+- `Verify-Portable-r1.py`核對654 payload、251來源、64原SVG與10語指南、ZIP SHA／CRC全通過；ShowOperateInputProbe／ValidateOperateRadialAsync等診斷入口不在正常assembly，Data獨立空白。生成提案PNG未進payload。
+- 已提交1.1.1.0 Store bundle仍為197514657 bytes，SHA256 `85c1400ae94430309fd4c440881238e8d71127e0c0cd6e38616470af6491e968`，保持不變。未製作新Store／ARM64包、未代上傳／發布、未跑WACK。
+
+所有試用資料根與既有作品保留，未清理舊產物。原有三份dirty清理文件與三份YouTube未追蹤文件未納入本批提交。私人圖示五套原檔／SHA、壓縮交接與產品紀錄將分庫保存，不把私人管理資料加入公開repo。
