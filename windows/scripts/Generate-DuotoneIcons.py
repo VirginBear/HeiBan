@@ -1,6 +1,6 @@
 """Original SVG implementation of the approved A concept, not cropped bitmap cells.
 
-The source cane path is retained (straight flexible rattan, never a walking cane).
+The cane follows the existing Cane.png: straight rattan and a wrapped handle.
 Other undeclared tools use their existing geometry with a functional color accent.
 Generated assets serve both SvgImageSource and the cached Win2D wheel renderer.
 """
@@ -32,7 +32,7 @@ art={
  'ruler':rect(2,7,22,12,'#8ADFD4')+path('M6,8 L6,12 M10,8 L10,11 M14,8 L14,12 M18,8 L18,11 M22,8 L22,12'),
  'compass':path('M14,6 L3,23 L6,24 L16,10 L21,24 L24,23 L18,6 Z','#87BCE8')+circle(16,6,4,'#C4E6F3')+circle(16,6,1.3,ink,ink,1)+path('M16,1 L16,2 M9,18 L18,18'),
  'laser':path('M10,13 L24,13','none','#F99191',3)+circle(8,13,3.5,'#EF555E')+circle(7,12,1.2,'#FFE1DF','none',0)+path('M3,9 L1,7 M8,5 L8,2 M3,14 L1,14','none','#ED4C55',1.8),
- 'cane':path(paths['cane'],'none','#A46D37',3.3)+path(paths['cane'],'none','#E5B778',1.3),
+ 'cane':path('M3,2 Q1,1 2,4 L17,19 L19,17 Z','#E5B778','#89613B',1.4)+path('M7,6 L6,7 M12,11 L11,12 M16,15 L15,16','none','#B88A4E',1)+path('M18,16 L24,22 Q26,24 24,25 L16,18 Z','#EFEAD5','#52705B',1.4)+path('M20,19 L18,21 M22,21 L20,23','none','#BEBAA4',1),
  'palette':path(paths['palette'],'#FFF1D5')+circle(7,8,1.8,'#F27468','none',0)+circle(13,6,1.8,'#F7CF39','none',0)+circle(19,9,1.8,'#66B76A','none',0)+circle(6,14,1.8,'#51B4DB','none',0),
  'layers':path('M2,17 L13,23 L24,17 L13,11 Z','#AD7FD5')+path('M2,12 L13,18 L24,12 L13,6 Z','#C39CE6')+path('M2,7 L13,13 L24,7 L13,1 Z','#DEC3F2'),
 }

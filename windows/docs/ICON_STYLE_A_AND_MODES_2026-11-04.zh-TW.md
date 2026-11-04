@@ -29,3 +29,10 @@ computer-use第二輪實際在自訂工具列選原本描邊→儲存，磁碟ic
 本批實際命令：`dotnet run --project windows/HeiBan.Windows.Core.Tests -c Release`（3445）；`python windows/scripts/Generate-MenuIcons.py`（66）；`python windows/scripts/Generate-DuotoneIcons.py`（66）；`python windows/scripts/Build-LocalizationCatalogs.py`（708keys／missing0）；`python windows/scripts/Build-UserGuides.py`（10語／26節80段）；`dotnet build windows/HeiBan.Windows -c Release -r win-x64 -p:HeiBanValidationBuild=true --artifacts-path windows/.build/icon-style-20261104/qa-build`（第三／四成功，各失敗log保留）。原生helper旗標`--icon-style-validation-output=...`僅驗證組態，資料根必須尚不存在，兩輪r1／r2獨立。
 
 原生QA模式按預期不建立指南；去掉QA flag以同隔離資料根冷啟動後正常建立指南。實際開啟新指南，確認啟動載入已儲存的classic風格，不因進作品／建立指南而被A覆寫。沒有讀取原作品庫。
+
+
+## 藤條對照實際素材補修
+
+r1正常試用封裝與核對已成功（來源e01e225、133397353bytes，SHA5efab7855d39aa213e96cfb4c46072e9a0668afc268aa32c1799e992c3050971，722 payload／390來源／132SVG及CRC通過），保留原byte但不作最終交付。再次目視實際Assets/Cane.png，除了直桿外還有米白纏繞握柄及綠色收邊；初稿沿舊小圖示path會顯得節點凸出，故A藤條改為貼近實際素材的平順直桿、細節環及米白／綠握柄。原classic path、Cane.png與動畫均不變；不是覆蓋原始生成提案PNG。
+
+只有SVG與生成器更新，QA使用同第四build binary、將一份cane.svg複製到QA內容目錄，另起qa-data-r3重新GPU解析／繪製與host檢查；不得稱重編C#。正常最終包採新標籤r2與來源commit，不覆寫r1，也不提高1.1.2版號。
