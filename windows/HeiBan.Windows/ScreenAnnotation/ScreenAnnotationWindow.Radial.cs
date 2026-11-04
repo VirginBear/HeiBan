@@ -8,6 +8,7 @@ namespace HeiBan.Windows.ScreenAnnotation;
 internal sealed partial class ScreenAnnotationWindow
 {
     private readonly RadialGesture _radialGesture=new();
+    private double _radialScale=1;
     private readonly Dictionary<string,Action> _screenCommands=[];
     private readonly DispatcherTimer _rightClickTimer=new(){Interval=TimeSpan.FromMilliseconds(NativeOverlayWindow.DoubleClickMilliseconds+25)};
     private readonly DispatcherTimer _radialSaveTimer=new(){Interval=TimeSpan.FromMilliseconds(350)};
@@ -27,12 +28,13 @@ internal sealed partial class ScreenAnnotationWindow
     }
     private void DamageRadial()
     {
-        var c=_radialGesture.Center;var r=(RadialGesture.Radius+10)*_dpiScale;
+        var c=_radialGesture.Center;var r=(RadialGesture.Radius+10)*_radialScale;
         AddScreenDamage(new Rect(c.X-r,c.Y-r,r*2,r*2));_dirty=true;
     }
     private void CancelRadial()
     {
         _rightClickTimer.Stop();_pendingRightClick=null;
+        if(_operateWheel){_operateWheel=false;_operateHook?.Cancel();}
         if(!_radialGesture.Holding)return;DamageRadial();_radialGesture.Cancel();_overlay.ReleasePointerCapture();RestoreRadialCursor();
     }
     private void PollScreenRadial()
@@ -50,19 +52,19 @@ internal sealed partial class ScreenAnnotationWindow
         {
             _rightClickTimer.Stop();_pendingRightClick=null;FinishScreenText();
             if(_circularEraser?.IsFinishing!=true)CancelGesture();
-            _chromeFlyout?.Hide();_radialGesture.Press(point,Now,_overlay.Width,_overlay.Height,_dpiScale);_overlay.SetManipulationCursor(null,null,"select");return true;
+            _chromeFlyout?.Hide();_radialScale=_dpiScale;_radialGesture.Press(point,Now,_overlay.Width,_overlay.Height,_radialScale);_overlay.SetManipulationCursor(null,null,"select");return true;
         }
         if(input.Kind=="down"){_rightClickTimer.Stop();_pendingRightClick=null;}
         if(!_radialGesture.Holding)return input.Kind=="rightup";
         if(input.Kind=="move")
-        {var wasVisible=_radialGesture.Visible;var old=_radialGesture.Hover;_radialGesture.Move(point,Now,_dpiScale);if(wasVisible!=_radialGesture.Visible||old!=_radialGesture.Hover)DamageRadial();return true;}
+        {var wasVisible=_radialGesture.Visible;var old=_radialGesture.Hover;_radialGesture.Move(point,Now,_radialScale);if(wasVisible!=_radialGesture.Visible||old!=_radialGesture.Hover)DamageRadial();return true;}
         if(input.Kind=="rightup")
         {
-            DamageRadial();var result=_radialGesture.Release();RestoreRadialCursor();
+            DamageRadial();var result=_radialGesture.Release();_operateWheel=false;RestoreRadialCursor();
             if(result.WasWheel)
             {
                 var before=string.Join(",",RadialProfile.Slots);var target=RadialProfile.Take(result.Slot,_tool);
-                if(target=="operate")SetDrawing(false);
+                if(target=="operate")SetDrawing(!_drawing);
                 else if(target is not null){if(RadialToolProfile.IsTool(target))ChooseScreenTool(target);else if(_screenCommands.TryGetValue(target,out var command))command();}
                 if(before!=string.Join(",",RadialProfile.Slots))PersistScreenRadial();
             }

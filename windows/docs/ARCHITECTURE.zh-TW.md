@@ -1,5 +1,9 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-11-04 — OperateRightGesture／OperateRadialHook
+
+螢幕操作時overlay穿透，新增受會話與偏好控制的Win32右鍵橋接，共用既有RadialGesture／profile／renderer，沒有另寫輪盤。hook thread不等待XAML、不繪圖／保存，Move coalesce後在UI處理；DPI起點鎖定與虛擬桌面原點只轉一次。普通右鍵補送與UIPI在native邊界，工具窗／較高權限放行。診斷入口僅HeiBanValidationBuild，正常包排除。詳[實作及未驗收情境](OPERATE_RADIAL_AND_ICON_PROPOSALS_2026-11-04.zh-TW.md)。
+
 ## 2026-11-02 — ObjectDragPreview與ObjectDragRenderer
 
 Core隔離平移offset及一次提交；兩host用同一Win2D靜態／動態Z段cache，資源有64MiB額度及命令備援，螢幕透過destination origin沿用局部patch。主畫布PointerMoved不再修改Doc或刷新游標／SelectionBar／整景；GPUcache與Core preview各自有清除邊界。框選、磁鐵、擦除、resize／rotate仍獨立。詳[OBJECT_DRAG_AND_CANE_SETTINGS_2026-11-02.zh-TW.md](OBJECT_DRAG_AND_CANE_SETTINGS_2026-11-02.zh-TW.md)。

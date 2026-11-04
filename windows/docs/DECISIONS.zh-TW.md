@@ -1,5 +1,9 @@
 # Windows 開發決策
 
+## 2026-11-04 — 穿透操作模式的右鍵事件所有權
+
+WH_MOUSE_LL只在active screen operate及偏好啟用時安裝；獨立message-loop thread以Core狀態機暫存down／擁有up，短按標記補送、長按送既有輪盤。早期右拖交還原生，組合鍵、同程序、較高／未知integrity直接放行，失敗保留錯誤並停本次hook。UI只保留最新move、離散起訖有序，epoch清除跨會話舊事件；停止需drain已吞release。無.heiban格式變動，toolbar.json加預設true的OperateRadialEnabled。生成圖示提案只在私人repo，不接App Assets。詳[驗證界線與設計](OPERATE_RADIAL_AND_ICON_PROPOSALS_2026-11-04.zh-TW.md)。
+
 ## 2026-11-02 — 物件平移預覽與Z段繪圖快取
 
 平移與控制點編輯分開：ObjectDragPreview保存同document／epoch／generation／page的物件參考，Move只offset；放開一次Begin／Move／Commit，取消丟預覽即可。繪圖順序以static/moving連續段保存，不把選取一律提到最上。ObjectDragRenderer靜態段最多兩bitmap／總64MiB，其餘command list；GPU維度超限也用命令，版面／DPI／device變更重建與釋放。dynamic段保留原renderer與圖元快取，已排序run不每frame重排。一般拖動直接PresentInteraction，螢幕仍局部patch/readback並支援patch origin；取消標記committed需還原。無作品格式變更，resize/rotate不套用平移路徑。詳[OBJECT_DRAG_AND_CANE_SETTINGS_2026-11-02.zh-TW.md](OBJECT_DRAG_AND_CANE_SETTINGS_2026-11-02.zh-TW.md)。

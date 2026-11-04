@@ -20,7 +20,7 @@ public sealed partial class Direct2DCanvasRenderer
         foreach(var item in _radialLabels.Values)item.Dispose();_radialLabels.Clear();
     }
     internal static string RadialLabel(string key)=>key=="operate"?T("操作"):key==""?"—":T(ToolbarPreferences.ToolNames.GetValueOrDefault(key,key switch{"line"=>"直線","arrow"=>"箭頭","rect"=>"矩形","circle"=>"圓形","triangle"=>"三角形","quadrilateral"=>"四邊形","diamond"=>"菱形","pentagon"=>"五邊形","star"=>"星形",_=>key}));
-    internal void RenderRadialWheel(CanvasDrawingSession ds,RadialToolProfile profile,InkPoint center,int hover,double scale=1,Func<string,bool>? isToolActive=null)
+    internal void RenderRadialWheel(CanvasDrawingSession ds,RadialToolProfile profile,InkPoint center,int hover,double scale=1,Func<string,bool>? isToolActive=null,bool operateReturnsDrawing=false)
     {
         if(_radialSectors.Count==0)for(var i=0;i<RadialToolProfile.Count;i++)
         {
@@ -47,11 +47,12 @@ public sealed partial class Direct2DCanvasRenderer
         for(var i=0;i<profile.Slots.Count;i++)
         {
             var key=profile.Slots[i];var point=RadialGesture.SlotCenter(i,center,scale);var size=(float)((i==hover?30:25)*scale);
-            var path=string.IsNullOrEmpty(key)?null:ToolIcons.CommandPath(key=="operate"?"select":key);var label=RadialLabel(key);
+            var displayKey=key=="operate"?(operateReturnsDrawing?"pen":"select"):key;
+            var path=string.IsNullOrEmpty(key)?null:ToolIcons.CommandPath(displayKey);var label=key=="operate"&&operateReturnsDrawing?T("作畫"):RadialLabel(key);
             var isActive=!string.IsNullOrEmpty(key)&&isToolActive?.Invoke(key)==true;
             if(path is not null)
             {
-                var iconKey=key+(isActive?":active":"");
+                var iconKey=displayKey+(isActive?":active":"");
                 if(!_radialIcons.TryGetValue(iconKey,out var svg))
                 {
                     var strokeWidth=isActive?"2.2":"1.6";

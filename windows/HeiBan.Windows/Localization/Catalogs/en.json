@@ -700,5 +700,8 @@
   "＋ 插入內容與輔助工具": "Insert content and helpers",
   "畫布已截圖": "Canvas captured",
   "藤條靜音": "Mute cane sound",
-  "藤條：再次點擊開啟設定": "Cane: click again for settings"
+  "藤條：再次點擊開啟設定": "Cane: click again for settings",
+  "操作模式右鍵輪盤": "Right-button wheel in operate mode",
+  "操作模式：右鍵長按開啟輪盤；短按保留原右鍵功能": "Operate mode: hold the right button for the wheel; a short click keeps the original right-click action",
+  "右鍵輪盤暫時無法使用：": "Right-button wheel is temporarily unavailable: "
 }

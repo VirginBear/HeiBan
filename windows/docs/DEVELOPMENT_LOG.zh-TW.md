@@ -1,5 +1,9 @@
 # HeiBan Windows 開發日誌
 
+## 2026-11-04 — 操作模式右鍵輪盤／五套圖示提案
+
+螢幕操作模式新增限定會話的右鍵橋接：原地長按約0.22秒開既有輪盤、短按補送原右鍵、快速右拖交還外部；更多可關閉並保存。獨立hook執行緒／閒置無timer／move合併，作畫格恢復原工具；同程序工具窗及較高或未知權限目標不攔截。Core3440、原生host11斷言及跨程序真實短按2次配對／原選單、左鍵通過；實體長按與多DPI待手動確認。十語705keys／26節79段指南同步。五套生成圖示僅私人概念板，未實裝；維持1.1.1開發批次、不動Store。詳[完整命令、失敗、測法與界線](OPERATE_RADIAL_AND_ICON_PROPOSALS_2026-11-04.zh-TW.md)。
+
 ## 2026-11-02 — 1.1.1正式商店封裝批次
 
 使用者接受object-drag-r2後指定1.1.1，記錄核准並同步Version／FileVersion／AssemblyVersion與Store manifest／identity的1.1.1.0；無業務邏輯變更。開工保存原三份dirty清理與YouTube文件，保護40份舊Store產物SHA。Core2423／Optimization68本批重跑通過，十語介面與指南生成通過；診斷Store target按預期拒絕，正常雙架構已完成（皆0警告0錯誤），bundle197514657bytes／407來源SHA與CRC及40舊包保持核同，來源bb15888。十語更新文案與runFullTrust短文已備。WACK、ARM64實機、Store安裝／送審未執行；前批原生驗證不偽作本批重跑。完整命令／來源與產物待[STORE_RELEASE_1.1.1_2026-11-02.zh-TW.md](STORE_RELEASE_1.1.1_2026-11-02.zh-TW.md)追加。

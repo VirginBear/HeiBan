@@ -700,5 +700,8 @@
   "＋ 插入內容與輔助工具": "Insérer du contenu et des outils",
   "畫布已截圖": "Capture du canevas effectuée",
   "藤條靜音": "Couper le son de la baguette",
-  "藤條：再次點擊開啟設定": "Baguette : recliquer pour les réglages"
+  "藤條：再次點擊開啟設定": "Baguette : recliquer pour les réglages",
+  "操作模式右鍵輪盤": "Roue du bouton droit en mode interaction",
+  "操作模式：右鍵長按開啟輪盤；短按保留原右鍵功能": "Mode interaction : maintenez le bouton droit pour la roue ; un clic bref conserve son action habituelle",
+  "右鍵輪盤暫時無法使用：": "La roue du bouton droit est temporairement indisponible : "
 }

@@ -132,7 +132,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         FinishScreenText();CancelGesture();_drawing=value;_overlay.SetDrawing(value);_overlay.SetManipulationCursor(null,null,_tool);UpdateScreenEraser();
         _status.Text=value?T("作畫中 · 右鍵物件可編輯"):T("操作中 · Ctrl+Alt+D 繼續作畫");
         RefreshMode();ResizeChrome();PositionChrome();
-        _laser.Clear();_dirty=_fullDamage=_committedDirty=true;if(!value)NativeOverlayWindow.RestoreFocus(_lastExternal);
+        _laser.Clear();_dirty=_fullDamage=_committedDirty=true;if(!value)NativeOverlayWindow.RestoreFocus(_lastExternal);SyncOperateRadial();
     }
     private void RememberExternalFocus()
     {var current=NativeOverlayWindow.CurrentForeground;if(current!=0&&current!=_overlay.Handle&&current!=WinRT.Interop.WindowNative.GetWindowHandle(this)&&current!=WinRT.Interop.WindowNative.GetWindowHandle(_owner)&&current!=(_radialSettings?.Handle??0)&&!IsAuxiliaryToolWindow(current))_lastExternal=current;}
@@ -548,7 +548,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             _renderer.RenderLaser(ds,_laser,_viewport,Now,_dpiScale);
             _renderer.RenderCane(ds,_cane,_viewport,Now,_dpiScale);
             if(_screenMagnetTarget is { } target)ds.DrawCircle((float)target.X,(float)target.Y,(float)(7*_dpiScale),Direct2DCanvasRenderer.HexToColor("#10B981"),2);
-            if(_radialGesture.Visible)_renderer.RenderRadialWheel(ds,RadialProfile,_radialGesture.Center,_radialGesture.Hover,_dpiScale,IsScreenRadialToolActive);
+            if(_radialGesture.Visible)_renderer.RenderRadialWheel(ds,RadialProfile,_radialGesture.Center,_radialGesture.Hover,_radialScale,IsScreenRadialToolActive,operateReturnsDrawing:!_drawing);
             if(!_radialGesture.Holding&&_screenEraserPointer is { } eraser)_renderer.RenderHover(ds,eraser,true,_eraserSize*_dpiScale,_viewport);
         }
         var x=(int)region.X;var y=(int)region.Y;var width=(int)region.Width;var height=(int)region.Height;
@@ -684,7 +684,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         var ring=new ProgressRing{IsActive=true,Width=30,Height=30};
         try
         {
-            _radialSettings?.Close();CloseFloatingTeachingTools();_customizeToolbarWindow?.Close();_customizeToolbarWindow=null;CancelRadial();_radialSaveTimer.Stop();
+            StopOperateRadial();_radialSettings?.Close();CloseFloatingTeachingTools();_customizeToolbarWindow?.Close();_customizeToolbarWindow=null;CancelRadial();_radialSaveTimer.Stop();
             _saveTimer.Stop();_renderTimer.Stop();_focusRememberTimer.Stop();_dockTimer.Stop();_chromeFlyout?.Hide();
             _captureCancellation?.Cancel();if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();FinishScreenText();CancelGesture();
             _radialSaveTimer.Stop();await _owner.RadialTools.SaveAsync();
@@ -697,10 +697,10 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             _owner.AppWindow.Show();_owner.Activate();return true;
         }
         catch(Exception error){_status.Text=T("註記保存失敗，內容仍保留：")+error.Message;return false;}
-        finally{ring.IsActive=false;Content=originalContent;AppWindow.Resize(originalSize);_stopping=false;if(IsActive){_renderTimer.Start();_focusRememberTimer.Start();ApplySavingPreferences();RefreshMode();ShowChromeFlyout(new Flyout{Content=new TextBlock{Text=_status.Text,TextWrapping=TextWrapping.Wrap,MaxWidth=300}},_closeButton);}}
+        finally{ring.IsActive=false;Content=originalContent;AppWindow.Resize(originalSize);_stopping=false;if(IsActive){SyncOperateRadial();_renderTimer.Start();_focusRememberTimer.Start();ApplySavingPreferences();RefreshMode();ShowChromeFlyout(new Flyout{Content=new TextBlock{Text=_status.Text,TextWrapping=TextWrapping.Wrap,MaxWidth=300}},_closeButton);}}
     }
     public void Dispose()
     {
-        if(_disposed)return;ClearObjectDrag();CloseFloatingTeachingTools();_customizeToolbarWindow?.Close();_customizeToolbarWindow=null;_radialSaveTimer.Stop();_radialSettings?.Close();CancelRadial();CancelCircularEraser();FinishScreenText();_disposed=true;_captureCancellation?.Cancel();_renderTimer.Stop();_focusRememberTimer.Stop();_straightenTimer.Stop();_saveTimer.Stop();_styleCommitTimer.Stop();_dockTimer.Stop();DisposeEraserPatch();_target?.Dispose();_committed?.Dispose();_renderer.Dispose();_sessionLease?.Dispose();_sessionLease=null;_overlay.Dispose();Close();
+        if(_disposed)return;StopOperateRadial();ClearObjectDrag();CloseFloatingTeachingTools();_customizeToolbarWindow?.Close();_customizeToolbarWindow=null;_radialSaveTimer.Stop();_radialSettings?.Close();CancelRadial();CancelCircularEraser();FinishScreenText();_disposed=true;_captureCancellation?.Cancel();_renderTimer.Stop();_focusRememberTimer.Stop();_straightenTimer.Stop();_saveTimer.Stop();_styleCommitTimer.Stop();_dockTimer.Stop();DisposeEraserPatch();_target?.Dispose();_committed?.Dispose();_renderer.Dispose();_sessionLease?.Dispose();_sessionLease=null;_overlay.Dispose();Close();
     }
 }

@@ -24,13 +24,17 @@ public partial class App : Application
     {
         try
         {
-            if(Environment.GetCommandLineArgs().Any(arg=>new[]{"--performance-output=","--validation-output=","--drawing-workflow-output=","--guide-view=","--release-validation-output=","--marquee-validation-output=","--canvas-capture-validation-output=","--selection-feedback-validation-output=","--object-drag-validation-output="}.Any(prefix=>arg.StartsWith(prefix,StringComparison.Ordinal))))
+            if(Environment.GetCommandLineArgs().Any(arg=>new[]{"--performance-output=","--validation-output=","--drawing-workflow-output=","--guide-view=","--release-validation-output=","--marquee-validation-output=","--canvas-capture-validation-output=","--selection-feedback-validation-output=","--object-drag-validation-output=","--operate-radial-validation-output=","--operate-input-probe-output="}.Any(prefix=>arg.StartsWith(prefix,StringComparison.Ordinal))))
             {
                 var isolated=Environment.GetEnvironmentVariable("HEIBAN_WINDOWS_DATA_DIRECTORY");
                 // Check before storage/library initialization. Reusing an existing root could read or replace real recovery data.
                 if(string.IsNullOrWhiteSpace(isolated)||Directory.Exists(isolated)||File.Exists(isolated))
                     throw new InvalidOperationException("效能診斷必須指定尚不存在的 HEIBAN_WINDOWS_DATA_DIRECTORY。");
             }
+#if HEIBAN_RELEASE_VALIDATION
+            var probe=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--operate-input-probe-output=",StringComparison.Ordinal));
+            if(probe is not null){ShowOperateInputProbe(probe["--operate-input-probe-output=".Length..]);return;}
+#endif
             if (!Updating.GitHubUpdateService.IsPackaged && string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("HEIBAN_WINDOWS_DATA_DIRECTORY")))
                 _installationLease = new Updating.UpdateInstallation(AppContext.BaseDirectory);
             _window = new MainWindow();

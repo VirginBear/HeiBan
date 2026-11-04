@@ -15,6 +15,7 @@ public sealed class ToolbarPreferences
     public bool BoardEraserVisible { get; set; } = true;
     public bool CaneVisible { get; set; } = true;
     public bool CaneMuted { get; set; }
+    public bool OperateRadialEnabled { get; set; } = true;
     public int DefaultToolsRevision { get; set; }
     public int DefaultPresentationRevision { get; set; }
     public int DefaultCommonRevision { get; set; }

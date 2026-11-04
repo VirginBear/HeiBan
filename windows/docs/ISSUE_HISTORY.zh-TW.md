@@ -1,5 +1,9 @@
 # Windows 問題與排解紀錄
 
+## 2026-11-04 — 操作穿透模式收不到輪盤右鍵
+
+原overlay的WS_EX_TRANSPARENT／HTTRANSPARENT與!_drawing返回使右鍵送給其他軟體，非原輪盤命中錯誤。新增限定operation會話的native hook及配對／取消／權限邊界，原右鍵短按兩次實際跨程序down/up/menu皆2，左鍵1；11 host斷言與Core3440通過。QA第二輪MenuFlyout.ShowAt的new()推論為Point導致CS0117，明確型別後第三／四輪0警告0錯誤。實體右長按／多DPI尚未由本機自動工具驗證，不能據合成訊號宣稱全軟體相容。詳[失敗、命令與手動成功條件](OPERATE_RADIAL_AND_ICON_PROPOSALS_2026-11-04.zh-TW.md)。
+
 ## 2026-11-02 — 物件拖動反覆重畫整景
 
 原PreviewMoveSelection只延後筆跡JSON，仍逐sample修改bounds並InvalidateCanvas(true)，且重複游標／SelectionBar更新、SelectedObjects掃描。兩host平移改獨立preview offset與分段靜態cache，放開才提交，維持原Z。Core1000樣本不開交易、GPU10幀maxDiff0、實際5004物件0整景重建／一次cache通過；不把一次真實Move當高Hz／ms測量。快取預算與取消／失效防護另列，resize／rotate維持舊路徑。詳[OBJECT_DRAG_AND_CANE_SETTINGS_2026-11-02.zh-TW.md](OBJECT_DRAG_AND_CANE_SETTINGS_2026-11-02.zh-TW.md)。

@@ -134,12 +134,19 @@ public partial class MainWindow : Window
             var validation=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--validation-output=",StringComparison.Ordinal));
             var performance=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--performance-output=",StringComparison.Ordinal));
 #if HEIBAN_RELEASE_VALIDATION
+            var operateCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--operate-radial-validation-output=",StringComparison.Ordinal));
             var dragCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--object-drag-validation-output=",StringComparison.Ordinal));
             var feedbackCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--selection-feedback-validation-output=",StringComparison.Ordinal));
             var captureCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--canvas-capture-validation-output=",StringComparison.Ordinal));
             var marqueeCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--marquee-validation-output=",StringComparison.Ordinal));
             var releaseCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--release-validation-output=",StringComparison.Ordinal));
-            if(dragCheck is not null)await RunObjectDragValidationAsync(dragCheck["--object-drag-validation-output=".Length..]);
+            if(operateCheck is not null)
+            {
+                var pidArg=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--operate-probe-pid=",StringComparison.Ordinal));
+                var pid=pidArg is not null&&int.TryParse(pidArg["--operate-probe-pid=".Length..],out var parsed)?parsed:-1;
+                await _screenAnnotation!.ValidateOperateRadialAsync(operateCheck["--operate-radial-validation-output=".Length..],pid);
+            }
+            else if(dragCheck is not null)await RunObjectDragValidationAsync(dragCheck["--object-drag-validation-output=".Length..]);
             else if(feedbackCheck is not null)await RunSelectionFeedbackValidationAsync(feedbackCheck["--selection-feedback-validation-output=".Length..]);
             else if(captureCheck is not null)await RunCanvasCaptureValidationAsync(captureCheck["--canvas-capture-validation-output=".Length..]);
             else if(marqueeCheck is not null)await PrepareMarqueeValidationAsync(marqueeCheck["--marquee-validation-output=".Length..]);
