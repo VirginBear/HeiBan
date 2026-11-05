@@ -706,5 +706,8 @@
   "右鍵輪盤暫時無法使用：": "La rueda del botón derecho no está disponible temporalmente: ",
   "圖示風格": "Estilo de iconos",
   "原本描邊": "Contorno original",
-  "A · 彩色雙色描邊": "A · Color de dos tonos"
+  "A · 彩色雙色描邊": "A · Color de dos tonos",
+  "顏色向前移": "Mover color antes",
+  "顏色向後移": "Mover color después",
+  "拖曳色票，或用箭頭調整順序；前六色會顯示在工具列。": "Arrastra las muestras o usa las flechas para ordenar; los seis primeros colores aparecen en la barra."
 }

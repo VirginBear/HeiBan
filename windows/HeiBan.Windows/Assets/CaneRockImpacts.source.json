@@ -1,0 +1,54 @@
+{
+  "referenceName": "freesound_community-rock-smash-6304.mp3",
+  "referenceSha256": "63ff0653d4c30d4f5e7ba58c694eb582a9bf2eb076370b97cff578a1f4987d80",
+  "kind": "User-provided sound-effect excerpts; not HeiBan-original synthesis",
+  "omittedAttack": 2,
+  "selection": "Attacks 1, 3, 4; preserve final fragmentation tail",
+  "creditFromFilename": "freesound_community / rock-smash-6304",
+  "license": "No license metadata supplied; no independent authorship or rights verification claimed",
+  "processing": {
+    "channels": 1,
+    "sampleRate": 48000,
+    "bits": 16,
+    "commonGain": 0.7800238044373913,
+    "gainDb": -2.157842869830012,
+    "peakTarget": 0.78,
+    "fadeInSeconds": 0.002,
+    "fadeOutSeconds": 0.02,
+    "pitchChanged": false,
+    "speedChanged": false,
+    "fullReferenceIncluded": false
+  },
+  "excerpts": [
+    {
+      "attack": 1,
+      "sourceSeconds": [
+        0.39,
+        1.42
+      ],
+      "file": "CaneImpact1.wav",
+      "frames": 49440,
+      "sha256": "0c4e7e4aa312f94fa52c186574c98a5b9fcb03effa4a3d04af2b98f130b2af64"
+    },
+    {
+      "attack": 3,
+      "sourceSeconds": [
+        4.1,
+        4.95
+      ],
+      "file": "CaneImpact2.wav",
+      "frames": 40800,
+      "sha256": "ed6fa9c9515c8a7bd3d9e62e38eea6018e8f0a14da1be928c64e04af31cadaad"
+    },
+    {
+      "attack": 4,
+      "sourceSeconds": [
+        6.51,
+        8.976
+      ],
+      "file": "CaneRockBreak.wav",
+      "frames": 118368,
+      "sha256": "56abbc1719d00d42c48734b84ab18655dcdede1e391cb6cf7d6282479e7d05d6"
+    }
+  ]
+}

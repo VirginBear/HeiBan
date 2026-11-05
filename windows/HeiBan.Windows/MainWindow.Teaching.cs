@@ -17,7 +17,7 @@ public partial class MainWindow
             if(_tool=="pen"&&_ink.TrySnapStraight(_viewport.Zoom)){_renderer.ResetLive();InvalidateCanvas(false);}
             if(_laser.Samples.Count>0){_laser.Prune(LaserNow);if(_workspaceOpen)InvalidateCanvas(false);}
             if(_cane.Point is not null&&_workspaceOpen)InvalidateCanvas(false);
-            if(_cane.TakeCrackSound(LaserNow))CaneSound.PlayCrack(error=>DispatcherQueue.TryEnqueue(()=>StatusText.Text=T("藤條音效無法播放：")+error));
+            while(_cane.TakeImpactSound(LaserNow) is >0 and var impact)PlayCaneSound(impact);
             UpdateTeachingTimer();
         };
     }
@@ -58,7 +58,7 @@ public partial class MainWindow
         panel.Children.Add(mode);
 
         var wheel=Views.ToolbarUi.CreateColorWheel(_laser.Color,280);
-        wheel.ColorChanged+=(_,e)=>_laser.Color=ColorHex(e.NewColor);
+        wheel.ColorChanged+=(_,e)=>{_laser.Color=ColorHex(e.NewColor);_quickPalette?.RefreshSelection();};
         panel.Children.Add(new Views.PaletteEditor(ProfilePalette,()=>ColorHex(wheel.Color),c=>wheel.Color=Direct2DCanvasRenderer.HexToColor(c),wheel));
         var wheelContainer=new StackPanel{Visibility=Visibility.Collapsed,Spacing=6,HorizontalAlignment=HorizontalAlignment.Center};
         wheelContainer.Children.Add(wheel);

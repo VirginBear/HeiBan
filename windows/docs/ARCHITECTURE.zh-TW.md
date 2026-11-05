@@ -1,5 +1,9 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-11-05 — Palette單一順序／不可分工具組與有界碎屑
+
+PalettePreferences schema1的Colors就是唯一順序，MoveAsync絕對位置／MoveByAsync相對位置均在write gate內依color定位，原子save成功才通知、未知JSON字段保留。QuickPalette投影前六為6固定button，主／screen各持控制項；profile訂閱由host替換／Dispose管理而非Loaded/Unloaded，避免頻繁reparent失訂閱。ToolbarUi以weak-key brush unit包住button＋palette，分頁／停靠不拆組；ToolbarPaging按量測長度建立不同容量頁界。PaletteEditor管理拖曳用自身pointer capture與ghost、候選邊框，release一筆save，Esc／cancel／unload不提交；不走跨程式DataPackage。CaneFeedback固定6音效queue，timer在impact取出且丟過期；碎屑18純時間位姿、共用一個geometry在ClearCache釋放，上一／目前damage覆蓋淡出清除。詳[本批](CANE_IMPACT_QUICK_PALETTE_2026-11-05.zh-TW.md)。
+
 ## 2026-11-05 — 原生筆尖hotspot與暫態教學效果
 
 ToolCursorGeometry定義26×26 artwork anchor；ToolCursor依Style與實際DPI一次光柵化alpha cursor，CreateIconIndirect複製32bit premultipliedBGRA DIB與WORD對齊mask，建立後釋放bitmap；64筆工具／尺寸／style cache，色變更替換同key而非累積RGB。ShapeCursor兩host共用且保持resize／rotate／grab／select優先。CaneFeedback接受world grip及screen-DIP hit，三擊比較首擊防漂移，CrackGrip凍結；一個局部固定90段CrackGeometry、既有timer與damage上一／目前bounds清除殘影，不重建committed scene／不進序列化。LocalEffectSound共用MediaPlayer與pinned-WAV fallback，CaneSound façade集中mute／dispose兩cue。詳[實作](CURSOR_TIP_CANE_CRACK_2026-11-05.zh-TW.md)。

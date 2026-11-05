@@ -18,6 +18,7 @@ internal sealed partial class ScreenAnnotationWindow
     private FlyoutBase? _chromeFlyout;
     public void RefreshLanguage()
     {
+        _quickPalette?.Refresh();
         _chromeFlyout?.Hide();
         Title=T("我的螢幕就是我的畫布");
         if(Content is FrameworkElement root)root.Language=Localization.Strings.Language;
@@ -39,6 +40,7 @@ internal sealed partial class ScreenAnnotationWindow
     private StackPanel _chromeStart=null!,_chromeEnd=null!;
     private Grid _chromeGrip=null!;
     private Border _chromeToolHost=null!;
+    private QuickPalette? _quickPalette;
     private Button _dashButton=null!,_brushButton=null!,_clearButton=null!,_closeButton=null!,_moreButton=null!;
     private ScreenCustomizeToolbarWindow? _customizeToolbarWindow;
     private readonly List<Button> _chromeActions=[];
@@ -87,6 +89,8 @@ internal sealed partial class ScreenAnnotationWindow
         _chromeActions.Add(ActionButton("layers",T("物件圖層：選取、排序與顯示"),ShowScreenLayers,"layers"));
         _dashButton=ChromeButton("dash-solid",T("線條樣式"));_dashButton.Tag="dash";_screenCommands["dash"]=ShowScreenLineStyles;_dashButton.Click+=(_,_)=>_screenCommands["dash"]();_buttons["dash"]=_dashButton;
         _brushButton=ChromeButton("pen",T("顏色、粗細與透明度"));_brushButton.Tag="brush";_screenCommands["brush"]=ShowBrushSettings;_brushButton.Click+=(_,_)=>_screenCommands["brush"]();_buttons["brush"]=_brushButton;
+        _quickPalette=new QuickPalette(_owner.ProfilePalette,()=>StyleSelection?.StrokeColor??(_tool=="laser"?_laser.Color:_color),color=>{SetScreenColor(color);CommitScreenStyle();});
+        ToolbarUi.BindQuickPalette(_brushButton,_quickPalette);
         _styleCommitTimer.Tick+=(_,_)=>CommitScreenStyle();
         _clearButton=ActionButton("delete",T("一鍵清空所有螢幕註記 · Ctrl+Alt+K · 可復原"),ClearScreenObjects,"clearAll");_buttons["clearAll"]=_clearButton;
         _closeButton=ActionButton("close",T("結束螢幕畫布 · Ctrl+Alt+Q"),async()=>await StopAsync());

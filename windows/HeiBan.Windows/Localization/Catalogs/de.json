@@ -706,5 +706,8 @@
   "右鍵輪盤暫時無法使用：": "Rechtsklickrad vorübergehend nicht verfügbar: ",
   "圖示風格": "Symbolstil",
   "原本描邊": "Ursprüngliche Konturen",
-  "A · 彩色雙色描邊": "A · Farbige Zweiton-Symbole"
+  "A · 彩色雙色描邊": "A · Farbige Zweiton-Symbole",
+  "顏色向前移": "Farbe nach vorne",
+  "顏色向後移": "Farbe nach hinten",
+  "拖曳色票，或用箭頭調整順序；前六色會顯示在工具列。": "Farbfelder ziehen oder mit Pfeilen sortieren; die ersten sechs erscheinen in der Werkzeugleiste."
 }

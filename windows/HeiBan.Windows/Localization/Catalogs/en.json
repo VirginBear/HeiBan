@@ -706,5 +706,8 @@
   "右鍵輪盤暫時無法使用：": "Right-button wheel is temporarily unavailable: ",
   "圖示風格": "Icon style",
   "原本描邊": "Original outline",
-  "A · 彩色雙色描邊": "A · Color duotone"
+  "A · 彩色雙色描邊": "A · Color duotone",
+  "顏色向前移": "Move color earlier",
+  "顏色向後移": "Move color later",
+  "拖曳色票，或用箭頭調整順序；前六色會顯示在工具列。": "Drag swatches or use arrows to reorder; the first six appear on the toolbar."
 }

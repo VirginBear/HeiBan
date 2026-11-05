@@ -1,5 +1,9 @@
 # Windows 問題與排解紀錄
 
+## 2026-11-05 — 快速換色慢／停靠後六色舊快照／拖曳沒改序
+
+加入直接六色、保存順序投影。QA r1/r2 IsLoaded=true但store3色與button6色舊tags，等待無效；改host訂閱生命週期後r3/r4正常。OS CanDrag拖色未改磁碟順序（medium integrity），改面板內handled pointer／ghost／drop只一次save，真實Sky拖末色至首位後UI及palette.json核同。初build誤用Grid.IsEnabled導致2個CS1061與後續XAML誤報，改逐button SetEnabled；r5 QA .4透明精確比較失敗改1e-5容差，r6 371＋26＋16 PASS。正式動作／資料與失敗方案詳[本批紀錄](CANE_IMPACT_QUICK_PALETTE_2026-11-05.zh-TW.md)。
+
 ## 2026-11-05 — 工具游標旁掛圖案／十字與筆尖分離
 
 原ToolCursor熱點size/8固定十字、圖案另translate8,8，造成使用者希望筆尖落點無法達成。改同工具原圖＋明確anchor與alpha cursor，兩host／兩style／六尺寸native370 checks通過，加入40px 1-bit mask WORD rowstride防越界。QA r1讀cursor bitmap用nullDC回0，改GetDC/ReleaseDC後r2、r3通過（非正式繪圖失敗）；螢幕clear後target byte精確核同。已有Update.Tests單獨編譯缺Localization參照，未修改此無關專案。所有實際失敗／未驗收與手動輸入阻擋見[日誌](CURSOR_TIP_CANE_CRACK_2026-11-05.zh-TW.md)。

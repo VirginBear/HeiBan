@@ -5,6 +5,21 @@ public static class CaneCrackGeometry
 {
     public readonly record struct Segment(double X1,double Y1,double X2,double Y2);
     public const double Radius=104;
+    public const double DisplayScale=.62;
+    public const int ShardCount=18;
+    // Includes every shard's velocity/gravity path for the 1.2s lifetime, plus stroke padding.
+    public static readonly ToolArtBounds VisualBounds=new(-98,-80,98,196);
+    public readonly record struct Shard(double X,double Y,double Size,double Angle,double Opacity);
+    public static Shard Particle(int index,double elapsed)
+    {
+        if(index<0||index>=ShardCount)throw new ArgumentOutOfRangeException(nameof(index));
+        var t=elapsed-(index%6)*.018;var life=.72+(index%7)*.055;
+        if(t<0||t>=life)return default;
+        var angle=index*2.39996323;var radius=(27+index%4*11)*DisplayScale;
+        var x=Math.Cos(angle)*radius+(index%7-3)*8*t;
+        var y=Math.Sin(angle)*radius-(20+index%5*5)*t+125*t*t;
+        return new(x,y,2+index%4*.65,angle+t*(index%2==0?4:-5),Math.Min(1,t/.045)*Math.Min(1,(life-t)/.28));
+    }
     public static IReadOnlyList<Segment> Segments {get;}=Build();
     private static IReadOnlyList<Segment> Build()
     {

@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using global::Windows.Foundation;
+using HeiBan.Windows.Engine;
 
 namespace HeiBan.Windows.Views;
 
@@ -15,8 +16,9 @@ internal sealed class ToolbarFlowPanel : Panel
     internal int PageOffset { get; set; }
     internal int PageCapacity { get; private set; } = 1;
     internal Action<bool,bool>? PageAvailabilityChanged { get; set; }
+    private int[] _pageStarts=[0];
     internal void NextPage(int direction)
-    {var count=Children.Count(c=>c.Visibility!=Visibility.Collapsed);PageOffset=Math.Clamp(PageOffset+direction*PageCapacity,0,Math.Max(0,(count-1)/PageCapacity*PageCapacity));InvalidateMeasure();}
+    {var page=Math.Max(0,Array.FindLastIndex(_pageStarts,start=>start<=PageOffset));PageOffset=_pageStarts[Math.Clamp(page+Math.Sign(direction),0,_pageStarts.Length-1)];InvalidateMeasure();}
 
     private Size Layout(bool arrange)
     {
@@ -24,16 +26,13 @@ internal sealed class ToolbarFlowPanel : Panel
         if(SingleRun)
         {
             var visible=Children.Where(c=>c.Visibility!=Visibility.Collapsed).ToArray();
-            double capacityRun=0;var maximum=0;
             foreach(var child in visible)
             {
                 if(!arrange)child.Measure(new Size(double.PositiveInfinity,double.PositiveInfinity));
-                var length=Orientation==Orientation.Horizontal?child.DesiredSize.Width:child.DesiredSize.Height;
-                if(maximum>0&&capacityRun+Spacing+length>RunLength)break;
-                capacityRun+=length+(maximum>0?Spacing:0);maximum++;
             }
-            PageCapacity=Math.Max(1,maximum);
-            PageOffset=Math.Clamp(PageOffset/PageCapacity*PageCapacity,0,Math.Max(0,(visible.Length-1)/PageCapacity*PageCapacity));
+            _pageStarts=ToolbarPaging.Starts(visible.Select(child=>Orientation==Orientation.Horizontal?child.DesiredSize.Width:child.DesiredSize.Height).ToArray(),RunLength,Spacing);
+            var page=Math.Max(0,Array.FindLastIndex(_pageStarts,start=>start<=PageOffset));PageOffset=_pageStarts[page];
+            PageCapacity=(page+1<_pageStarts.Length?_pageStarts[page+1]:visible.Length)-PageOffset;
             PageAvailabilityChanged?.Invoke(PageOffset>0,PageOffset+PageCapacity<visible.Length);
             var capacity=0;
             for(var index=0;index<visible.Length;index++)

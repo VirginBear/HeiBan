@@ -1,0 +1,11 @@
+CaneImpact1.wav / CaneImpact2.wav / CaneRockBreak.wav
+User-supplied sound-effect excerpts, not HeiBan-original synthesis.
+Reference filename: freesound_community-rock-smash-6304.mp3
+Reference SHA256: 63ff0653d4c30d4f5e7ba58c694eb582a9bf2eb076370b97cff578a1f4987d80
+Attribution from filename: freesound_community / rock-smash-6304.
+No license metadata was supplied; no independent rights verification is claimed.
+Only attacks 1, 3 and 4 are included; attack 2 omitted. Last fragmentation tail retained.
+Rebuild: scripts/Extract-CaneRockImpacts.py --input <original MP3>
+Processing and output SHA256 recorded in Assets/CaneRockImpacts.source.json.
+No full source MP3 is shipped. No pitch/speed changes; common gain and short edge fades.
+Old CaneSnap / CaneCrack assets remain as historical references with their own notices.

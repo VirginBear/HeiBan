@@ -706,5 +706,8 @@
   "右鍵輪盤暫時無法使用：": "La roue du bouton droit est temporairement indisponible : ",
   "圖示風格": "Style des icônes",
   "原本描邊": "Contour d’origine",
-  "A · 彩色雙色描邊": "A · Couleur bicolore"
+  "A · 彩色雙色描邊": "A · Couleur bicolore",
+  "顏色向前移": "Avancer la couleur",
+  "顏色向後移": "Reculer la couleur",
+  "拖曳色票，或用箭頭調整順序；前六色會顯示在工具列。": "Glissez les couleurs ou utilisez les flèches pour les classer ; les six premières figurent dans la barre."
 }

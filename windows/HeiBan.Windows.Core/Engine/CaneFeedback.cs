@@ -10,14 +10,20 @@ public sealed class CaneFeedback
     private InkPoint? _firstHit;
     private double _firstAt;
     private int _hits;
-    private bool _soundPending;
+    private readonly Queue<(int Number,double At)> _audio=new(6);
+    public int StrikeNumber {get;private set;}
     public InkPoint? CrackGrip {get;private set;}
     public double CrackStartedAt {get;private set;}=double.NegativeInfinity;
     public bool NeedsAnimation(double now)=>IsActive(now)||CrackGrip is not null&&now<CrackStartedAt+CrackDuration;
     public double CrackOpacity(double now)=>now<CrackStartedAt?0:Math.Clamp(1-(now-CrackStartedAt)/CrackDuration,0,1);
-    // Consume even while muted: unmuting later must not replay an old impact.
-    public bool TakeCrackSound(double now)
-    {if(!_soundPending||now<CrackStartedAt)return false;_soundPending=false;return now<CrackStartedAt+CrackDuration;}
+    // A bounded ordered queue retains fast clicks, but drops stale cues after a UI stall.
+    // Hosts consume even while muted, so unmuting cannot replay old attacks.
+    public int TakeImpactSound(double now)
+    {
+        while(_audio.TryPeek(out var cue)&&cue.At<=now)
+        {_audio.Dequeue();if(now-cue.At<Duration)return cue.Number;}
+        return 0;
+    }
     public InkPoint? Point {get;private set;}
     public double StartedAt {get;private set;}=double.NegativeInfinity;
     public bool IsActive(double now)=>Point is not null&&now-StartedAt>=0&&now-StartedAt<Duration;
@@ -29,8 +35,11 @@ public sealed class CaneFeedback
         // Compare against the first hit, not the last: three wandering hits are not one region.
         if(_firstHit is null||now<_firstAt||now-_firstAt>ComboSeconds||Math.Pow(hit.X-_firstHit.X,2)+Math.Pow(hit.Y-_firstHit.Y,2)>ComboRadius*ComboRadius)
         {_firstHit=new(hit.X,hit.Y);_firstAt=now;_hits=0;}
-        if(++_hits<3)return;
-        CrackGrip=new(point.X,point.Y);CrackStartedAt=now+CanePose.ImpactSeconds;_soundPending=true;_firstHit=null;_hits=0;
+        StrikeNumber=++_hits;
+        if(_audio.Count==6)_audio.Dequeue();
+        _audio.Enqueue((StrikeNumber,now+CanePose.ImpactSeconds));
+        if(_hits<3)return;
+        CrackGrip=new(point.X,point.Y);CrackStartedAt=now+CanePose.ImpactSeconds;_firstHit=null;_hits=0;
     }
-    public void Clear(){Point=CrackGrip=_firstHit=null;StartedAt=CrackStartedAt=double.NegativeInfinity;_hits=0;_soundPending=false;}
+    public void Clear(){Point=CrackGrip=_firstHit=null;StartedAt=CrackStartedAt=double.NegativeInfinity;_hits=StrikeNumber=0;_audio.Clear();}
 }

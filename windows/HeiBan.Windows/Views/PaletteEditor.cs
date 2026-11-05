@@ -6,10 +6,11 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
 
+
 namespace HeiBan.Windows.Views;
 
 /// <summary>Shared palette controls; each host owns the action that applies a chosen color.</summary>
-internal sealed class PaletteEditor : StackPanel
+internal sealed partial class PaletteEditor : StackPanel
 {
     private readonly PalettePreferencesStore _store;
     private readonly Func<string> _current;
@@ -17,13 +18,16 @@ internal sealed class PaletteEditor : StackPanel
     private readonly Grid _swatches=new(){ColumnSpacing=4,RowSpacing=4};
     private readonly TextBlock _message=new(){FontSize=11,TextWrapping=TextWrapping.Wrap};
     private bool _managing,_subscribed;
+
     internal PaletteEditor(PalettePreferencesStore store,Func<string> current,Action<string> apply,ColorPicker? picker=null)
     {
         _store=store;_current=current;_apply=apply;Spacing=8;
         var heading=new Grid();heading.ColumnDefinitions.Add(new(){Width=new GridLength(1,GridUnitType.Star)});heading.ColumnDefinitions.Add(new(){Width=GridLength.Auto});
         heading.Children.Add(new TextBlock{Text=T("常用色"),VerticalAlignment=VerticalAlignment.Center});
         var manage=new Button{Content=T("管理"),Padding=new Thickness(8,3,8,3)};Grid.SetColumn(manage,1);heading.Children.Add(manage);
-        manage.Click+=(_,_)=>{_managing=!_managing;manage.Content=T(_managing?"完成":"管理");Rebuild();};Children.Add(heading);Children.Add(_swatches);
+        manage.Click+=(_,_)=>{_managing=!_managing;manage.Content=T(_managing?"完成":"管理");Rebuild();};Children.Add(heading);
+        var swatchHost=new Grid();swatchHost.Children.Add(_swatches);swatchHost.Children.Add(_dragLayer);Children.Add(swatchHost);
+        Children.Add(new TextBlock{Text=T("拖曳色票，或用箭頭調整順序；前六色會顯示在工具列。"),FontSize=11,TextWrapping=TextWrapping.Wrap});
         var actions=new StackPanel{Orientation=Orientation.Horizontal,Spacing=6};
         var add=new Button{Content="＋",Width=36,Padding=new Thickness(0)};ToolbarUi.Label(add,T("新增目前顏色"));
         var reset=new Button{Content=T("還原預設色"),FontSize=12,Padding=new Thickness(8,4,8,4)};
@@ -33,7 +37,7 @@ internal sealed class PaletteEditor : StackPanel
         actions.Children.Add(add);actions.Children.Add(reset);Children.Add(actions);Children.Add(_message);
         if(_store.LoadFailed)_message.Text=T("常用色未載入，原設定檔已保留。");
         Loaded+=(_,_)=>{if(!_subscribed){_store.Changed+=Rebuild;_subscribed=true;}Rebuild();};
-        Unloaded+=(_,_)=>{if(_subscribed){_store.Changed-=Rebuild;_subscribed=false;}};
+        Unloaded+=(_,_)=>{FinishDrag(false);if(_subscribed){_store.Changed-=Rebuild;_subscribed=false;}};
         // Only picker changes update selection markers. No document/pointer event subscription.
         if(picker is not null)picker.ColorChanged+=(_,_)=>RefreshSelection();
         Rebuild();
@@ -46,23 +50,38 @@ internal sealed class PaletteEditor : StackPanel
     }
     private void Rebuild()
     {
+        FinishDrag(false);
         _swatches.Children.Clear();_swatches.RowDefinitions.Clear();_swatches.ColumnDefinitions.Clear();
         for(var i=0;i<6;i++)_swatches.ColumnDefinitions.Add(new(){Width=GridLength.Auto});
         var selected=PalettePreferencesStore.Canonical(_current());var index=0;
         foreach(var color in _store.Colors)
         {
+            var destination=index;
             var row=index/6;while(_swatches.RowDefinitions.Count<=row)_swatches.RowDefinitions.Add(new(){Height=GridLength.Auto});
             var cell=new StackPanel{Spacing=2};
             var button=new Button{Tag=color,Content=Chip(color),Width=32,Height=32,MinWidth=0,MinHeight=0,Padding=new Thickness(3),CornerRadius=new CornerRadius(8),BorderBrush=new SolidColorBrush(Direct2DCanvasRenderer.HexToColor("#39735A")),BorderThickness=new Thickness(color==selected?2:1)};
             ToolbarUi.Label(button,T(color==selected?"目前顏色":"套用顏色")+" "+color);
-            button.Click+=(_,_)=>{_apply(color);Rebuild();};
+            button.Click+=(_,_)=>{if(_managing||_suppressClick)return;_apply(color);Rebuild();};
             var menu=new MenuFlyout();var remove=new MenuFlyoutItem{Text=T("移除顏色"),IsEnabled=!_store.LoadFailed};
             remove.Click+=async(_,_)=>await Persist(async()=>{await _store.RemoveAsync(color);});menu.Items.Add(remove);button.ContextFlyout=menu;
+            foreach(var (offset,label) in new[]{(-1,"顏色向前移"),(1,"顏色向後移")})
+            {
+                var move=new MenuFlyoutItem{Text=T(label),IsEnabled=!_store.LoadFailed&&(offset<0?destination>0:destination<_store.Colors.Count-1)};
+                move.Click+=async(_,_)=>await Persist(async()=>{await _store.MoveByAsync(color,offset);});menu.Items.Add(move);
+            }
+            EnablePaletteDrag(button,color);
             cell.Children.Add(button);
             if(_managing)
             {
-                var minus=new Button{Content="−",Width=32,Height=26,MinHeight=0,MinWidth=0,Padding=new Thickness(0)};ToolbarUi.Label(minus,T("移除顏色")+" "+color);
-                minus.Click+=async(_,_)=>await Persist(async()=>{await _store.RemoveAsync(color);});cell.Children.Add(minus);
+                button.HorizontalAlignment=HorizontalAlignment.Center;
+                var actions=new StackPanel{Orientation=Orientation.Horizontal};
+                foreach(var (offset,label,glyph) in new[]{(-1,"顏色向前移","‹"),(0,"移除顏色","−"),(1,"顏色向後移","›")})
+                {
+                    var action=new Button{Content=glyph,Width=16,Height=26,MinHeight=0,MinWidth=0,Padding=new Thickness(0),FontSize=12,IsEnabled=!_store.LoadFailed&&(offset==0||(offset<0?destination>0:destination<_store.Colors.Count-1))};
+                    ToolbarUi.Label(action,T(label)+" "+color);
+                    action.Click+=async(_,_)=>await Persist(async()=>{if(offset==0)await _store.RemoveAsync(color);else await _store.MoveByAsync(color,offset);});actions.Children.Add(action);
+                }
+                cell.Children.Add(actions);
             }
             Grid.SetColumn(cell,index%6);Grid.SetRow(cell,row);_swatches.Children.Add(cell);index++;
         }

@@ -1,5 +1,9 @@
 # HeiBan Windows 開發日誌
 
+## 2026-11-05 — 藤條取樣與快捷六色
+
+使用者要求4擊去1擊保留最後碎裂、小裂屏＋細屑、筆刷右邊六色與排序。解碼8.976秒，選0.390–1.420／4.100–4.950／6.510–8.976，未變調速，來源與輸出SHA／Notice保存。CaneFeedback queue6上限、.075秒impact才播；共享3個LocalEffectSound，mute全停、無舊cue重播。碎屑固定18與一個GPU三角geometry，device reset釋放，靜態damage含落下路徑。PalettePreferencesStore Move／MoveBy原子gate內定位，QuickPalette6重用button，host明確訂閱／Dispose防換頁後舊色；共用brush unit與變寬ToolbarPaging。Core5884／Optimization68、native-r6 371＋26＋16 PASS，所有最後build0警告0錯誤；實際黃圈畫黃、拖末色到首位與磁碟核同；音色實聽待用戶。失敗（Grid.IsEnabled、reparent訂閱、OS拖曳、opacity精確比較）均記[日誌](CANE_IMPACT_QUICK_PALETTE_2026-11-05.zh-TW.md)。十語711keys／指南同步、維持1.1.2，試用封裝進行中。
+
 ## 2026-11-05 — 筆尖熱點／短暫裂紋／0.8秒拉直
 
 依使用者GO只Windows、不進版。從ToolCursor旁邊badge＋十字改26×26圖示座標→實際DPI hotspot，不改任何輸入／作品座標；兩host傳目前style／brush或laser色。三擊狀態Core暫態，90段固定geometry＋既有timer/damage，LocalEffectSound共用兩音效、保留原CaneSnap並增加0.72秒原創合成。手冊十語同步（含刪除十字熱點舊敘述）。Core3689／Optimization68、QA build0警告0錯誤、native-r3 370＋screen5，真實三連敲與淡出成功；筆畫drag遭使用者輸入拒絕未驗收，音效未實聽。r1 QA GetDIBits nullDC失敗已修；Update.Tests既有缺Localization參照失敗記錄、不擴範圍；詳[命令與失敗證據](CURSOR_TIP_CANE_CRACK_2026-11-05.zh-TW.md)。x64免安裝cursor-cane-2026-11-05-r1完成：133452351bytes，SHA685f5009285e367093ed6e9c0fb38d92de7e1d2127dd6a4e3cc6649ce3edc8fc；724 payload／401來源／CRC／正常Release排除QA方法核同。正式三包／既有未提交清理與YouTube文件保留，既有dirty增減行與開工snapshot精確核同。

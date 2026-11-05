@@ -624,3 +624,6 @@ PDF、PPT、PPTX 會另外產生圖片頁面放進畫布，不會直接編輯原
 圖示風格|Icon style|アイコンスタイル|아이콘 스타일|Estilo de iconos|Style des icônes|Symbolstil|Estilo dos ícones|نمط الأيقونات
 原本描邊|Original outline|従来のアウトライン|기존 윤곽선|Contorno original|Contour d’origine|Ursprüngliche Konturen|Contorno original|المخطط الأصلي
 A · 彩色雙色描邊|A · Color duotone|A · カラーデュオトーン|A · 컬러 듀오톤|A · Color de dos tonos|A · Couleur bicolore|A · Farbige Zweiton-Symbole|A · Cores em dois tons|A · ألوان ثنائية
+顏色向前移|Move color earlier|色を前へ|색 앞으로 이동|Mover color antes|Avancer la couleur|Farbe nach vorne|Mover cor antes|نقل اللون للأمام
+顏色向後移|Move color later|色を後へ|색 뒤로 이동|Mover color después|Reculer la couleur|Farbe nach hinten|Mover cor depois|نقل اللون للخلف
+拖曳色票，或用箭頭調整順序；前六色會顯示在工具列。|Drag swatches or use arrows to reorder; the first six appear on the toolbar.|色見本をドラッグ、または矢印で並べ替えます。先頭6色がツールバーに表示されます。|색상표를 끌거나 화살표로 순서를 바꾸세요. 처음 여섯 색이 도구 모음에 표시됩니다.|Arrastra las muestras o usa las flechas para ordenar; los seis primeros colores aparecen en la barra.|Glissez les couleurs ou utilisez les flèches pour les classer ; les six premières figurent dans la barre.|Farbfelder ziehen oder mit Pfeilen sortieren; die ersten sechs erscheinen in der Werkzeugleiste.|Arraste as amostras ou use as setas para ordenar; as seis primeiras aparecem na barra.|اسحب عينات الألوان أو استخدم الأسهم لترتيبها؛ تظهر الألوان الستة الأولى في الشريط.

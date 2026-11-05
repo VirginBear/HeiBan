@@ -53,6 +53,21 @@ public sealed class PalettePreferencesStore
         if(list.Contains(normalized))return false;list.Add(normalized);return true;
     });
     public Task<bool> RemoveAsync(string color)=>ChangeAsync(list=>list.Remove(Canonical(color)??color));
+    // Resolve the color inside the serialized write gate; queued moves must not
+    // apply an index from an older palette or discard concurrent additions.
+    public Task<bool> MoveAsync(string color,int targetIndex)=>ChangeAsync(list=>
+    {
+        var from=list.IndexOf(Canonical(color)??color);
+        if(from<0||list.Count<2)return false;
+        var to=Math.Clamp(targetIndex,0,list.Count-1);if(from==to)return false;
+        var item=list[from];list.RemoveAt(from);list.Insert(to,item);return true;
+    });
+    public Task<bool> MoveByAsync(string color,int offset)=>ChangeAsync(list=>
+    {
+        var from=list.IndexOf(Canonical(color)??color);if(from<0||list.Count<2)return false;
+        var to=(int)Math.Clamp((long)from+offset,0,list.Count-1);if(from==to)return false;
+        var item=list[from];list.RemoveAt(from);list.Insert(to,item);return true;
+    });
     public Task<bool> ResetAsync()=>ChangeAsync(list=>{list.Clear();list.AddRange(DefaultColors);return true;});
     private async Task<bool> ChangeAsync(Func<List<string>,bool> change)
     {

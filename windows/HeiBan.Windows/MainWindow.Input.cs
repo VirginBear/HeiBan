@@ -125,7 +125,7 @@ public partial class MainWindow
         _gesture=true;CanvasSurface.CapturePointer(e.Pointer);
         if(_panning){UpdateShapeCursor();e.Handled=true;return;}
         if(_tool=="laser"){_panning=false;_laser.Press(_start,LaserNow);UpdateTeachingTimer();PresentInteraction();e.Handled=true;return;}
-        if(_tool=="cane"){_cane.Strike(_start,LaserNow,new(_mouse.X,_mouse.Y));PlayCaneSound();UpdateTeachingTimer();PresentInteraction();e.Handled=true;return;}
+        if(_tool=="cane"){_cane.Strike(_start,LaserNow,new(_mouse.X,_mouse.Y));UpdateTeachingTimer();PresentInteraction();e.Handled=true;return;}
         if(_tool=="lasso"){_lasso.Clear();_lasso.Add(_start);e.Handled=true;return;}
         if(_rulerEnabled&&RulerPivotHit(screen)){_rulerPivotMoving=true;e.Handled=true;return;}
         if(_rulerEnabled&&RulerRotationHit(screen)){BeginRulerRotation(screen);e.Handled=true;return;}

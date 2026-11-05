@@ -14,10 +14,10 @@ public sealed partial class Direct2DCanvasRenderer
         var at=viewport.WorldToScreen(point.X,point.Y);
         // Includes the entire swing about its handle and the short impact rays.
         var bounds=new Rect(at.X-210*density,at.Y-210*density,250*density,250*density);
-        if(cane.CrackGrip is { } anchor&&cane.NeedsAnimation(now))
+        if(cane.CrackGrip is { } anchor&&now<cane.CrackStartedAt+CaneFeedback.CrackDuration)
         {
-            var center=CrackCenter(anchor,viewport,density);var radius=(CaneCrackGeometry.Radius+4)*density;
-            bounds.Union(new Rect(center.X-radius,center.Y-radius,radius*2,radius*2));
+            var center=CrackCenter(anchor,viewport,density);var visual=CaneCrackGeometry.VisualBounds;
+            bounds.Union(new Rect(center.X+visual.Left*density,center.Y+visual.Top*density,visual.Width*density,visual.Height*density));
         }
         return bounds;
     }
@@ -29,16 +29,31 @@ public sealed partial class Direct2DCanvasRenderer
         var offset=(float)(length/Math.Sqrt(2)*density);
         return new((float)at.X-offset,(float)at.Y-offset);
     }
-    private static void RenderCaneCrack(CanvasDrawingSession ds,CaneFeedback cane,ViewportTransform viewport,double now,double density)
+    private CanvasGeometry? _caneShard;
+    private void ClearCaneShard(){_caneShard?.Dispose();_caneShard=null;}
+    private void RenderCaneCrack(CanvasDrawingSession ds,CaneFeedback cane,ViewportTransform viewport,double now,double density)
     {
         if(cane.CrackGrip is not { } anchor||cane.CrackOpacity(now) is not >0)return;
         var center=CrackCenter(anchor,viewport,density);var alpha=(float)cane.CrackOpacity(now);var scale=(float)density;
         foreach(var segment in CaneCrackGeometry.Segments)
         {
-            var a=center+new Vector2((float)segment.X1,(float)segment.Y1)*scale;
-            var b=center+new Vector2((float)segment.X2,(float)segment.Y2)*scale;
-            ds.DrawLine(a,b,HexToColor("#263C37",alpha*.85f),2.1f*scale);
-            ds.DrawLine(a+new Vector2(.6f,.6f)*scale,b+new Vector2(.6f,.6f)*scale,HexToColor("#FFFFFF",alpha*.95f),.9f*scale);
+            var a=center+new Vector2((float)segment.X1,(float)segment.Y1)*scale*(float)CaneCrackGeometry.DisplayScale;
+            var b=center+new Vector2((float)segment.X2,(float)segment.Y2)*scale*(float)CaneCrackGeometry.DisplayScale;
+            ds.DrawLine(a,b,HexToColor("#263C37",alpha*.85f),1.5f*scale);
+            ds.DrawLine(a+new Vector2(.4f,.4f)*scale,b+new Vector2(.4f,.4f)*scale,HexToColor("#FFFFFF",alpha*.95f),.7f*scale);
+        }
+        var elapsed=now-cane.CrackStartedAt;
+        for(var i=0;i<CaneCrackGeometry.ShardCount;i++)
+        {
+            var p=CaneCrackGeometry.Particle(i,elapsed);if(p.Opacity<=0)continue;
+            var at=center+new Vector2((float)p.X,(float)p.Y)*scale;
+            var radius=(float)p.Size*scale;
+            var shade=HexToColor("#FFFFFF",(float)p.Opacity*.9f);var edge=HexToColor("#36574B",(float)p.Opacity*.7f);
+            _caneShard??=CanvasGeometry.CreatePolygon(ds,[new Vector2(1,0),new Vector2(-.65f,.7f),new Vector2(-.8f,-.45f)]);
+            var old=ds.Transform;
+            ds.Transform=Matrix3x2.CreateScale(radius)*Matrix3x2.CreateRotation((float)p.Angle)*Matrix3x2.CreateTranslation(at)*old;
+            try{ds.FillGeometry(_caneShard,shade);ds.DrawGeometry(_caneShard,edge,.65f*scale/radius);}
+            finally{ds.Transform=old;}
         }
     }
     internal void RenderCane(CanvasDrawingSession ds,CaneFeedback cane,ViewportTransform viewport,double now,double density=1)

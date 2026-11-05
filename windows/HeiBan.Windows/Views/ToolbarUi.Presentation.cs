@@ -49,9 +49,10 @@ internal static partial class ToolbarUi
     private static readonly ConditionalWeakTable<Button,ButtonParent> ButtonParents=new();
     private static void AttachButton(Panel parent,Button button)
     {
+        var unit=ButtonUnit(button);
         var link=ButtonParents.GetValue(button,_=>new());
-        if(link.Owner is { } old&&old!=parent)old.Children.Remove(button);
-        parent.Children.Add(button);link.Owner=parent;
+        if(link.Owner is { } old&&old!=parent)old.Children.Remove(unit);
+        parent.Children.Add(unit);link.Owner=parent;
     }
     internal static void DetachButtons(IEnumerable<Button> buttons)
     {
@@ -59,8 +60,9 @@ internal static partial class ToolbarUi
         {
             // Hidden/not-yet-loaded WinUI trees can report Parent=null while their
             // Children collection still owns the control. Remember that collection.
-            if(ButtonParents.TryGetValue(button,out var link)&&link.Owner is { } known){known.Children.Remove(button);link.Owner=null;}
-            else if((button.Parent??VisualTreeHelper.GetParent(button)) is Panel parent)parent.Children.Remove(button);
+            var unit=ButtonUnit(button);
+            if(ButtonParents.TryGetValue(button,out var link)&&link.Owner is { } known){known.Children.Remove(unit);link.Owner=null;}
+            else if((unit.Parent??VisualTreeHelper.GetParent(unit)) is Panel parent)parent.Children.Remove(unit);
         }
     }
     internal static ToolbarFlowPanel? Arrange(Panel host,IEnumerable<(string Key,Button Button)> source,bool labels,bool vertical,string activePage,Action<string> changePage,double iconSize,IReadOnlyCollection<string>? commonTools=null,string dockSide="top")

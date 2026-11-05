@@ -88,7 +88,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         var failed=0;
         foreach(var key in new[]{(1,0x41u),(2,0x44u),(3,0x53u),(4,0x51u),(5,0x4Bu)})if(!_overlay.RegisterShortcut(key.Item1,0x0002|0x0001,key.Item2))failed++;
         _hotkeyRegistrationFailed=failed>0;if(failed>0)_status.Text=T("部分快捷鍵被其他程式占用，請使用控制列按鈕。");
-        _renderTimer.Tick+=(_,_)=>{if(!IsActive)return;try{PollScreenRadial();if(_cane.TakeCrackSound(Now))CaneSound.PlayCrack(error=>DispatcherQueue.TryEnqueue(()=>_status.Text=T("藤條音效無法播放：")+error));UpdateScreenEraser();UpdateScreenMagnetHover();if(_dirty||_laser.Samples.Count>0||_cane.NeedsAnimation(Now)||_caneWasAnimating)Render();}catch(Exception e){_renderTimer.Stop();_overlay.Hide();_status.Text=T("螢幕繪圖已停止：")+e.Message;}};
+        _renderTimer.Tick+=(_,_)=>{if(!IsActive)return;try{PollScreenRadial();while(_cane.TakeImpactSound(Now) is >0 and var impact)CaneSound.PlayImpact(impact,error=>DispatcherQueue.TryEnqueue(()=>_status.Text=T("藤條音效無法播放：")+error));UpdateScreenEraser();UpdateScreenMagnetHover();if(_dirty||_laser.Samples.Count>0||_cane.NeedsAnimation(Now)||_caneWasAnimating)Render();}catch(Exception e){_renderTimer.Stop();_overlay.Hide();_status.Text=T("螢幕繪圖已停止：")+e.Message;}};
         _focusRememberTimer.Tick+=(_,_)=>{if(IsActive)RememberExternalFocus();};
         _straightenTimer.Tick+=(_,_)=>
         {
@@ -184,7 +184,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         {
             UpdateScreenShapeCursor(p);
             if(_cane.Move(p))_dirty=true;
-            if(input.Kind is "down" or "double"&&input.LeftDown){_cane.Strike(p,Now,new(p.X/_dpiScale,p.Y/_dpiScale));CaneSound.Play(error=>DispatcherQueue.TryEnqueue(()=>_status.Text=T("藤條音效無法播放：")+error));_dirty=true;}
+            if(input.Kind is "down" or "double"&&input.LeftDown){_cane.Strike(p,Now,new(p.X/_dpiScale,p.Y/_dpiScale));_dirty=true;}
             return;
         }
         // Laser owns this whole input route: hover/right/double never reach object hit tests.
@@ -701,6 +701,6 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     }
     public void Dispose()
     {
-        if(_disposed)return;StopOperateRadial();ClearObjectDrag();CloseFloatingTeachingTools();_customizeToolbarWindow?.Close();_customizeToolbarWindow=null;_radialSaveTimer.Stop();_radialSettings?.Close();CancelRadial();CancelCircularEraser();FinishScreenText();_disposed=true;_captureCancellation?.Cancel();_renderTimer.Stop();_focusRememberTimer.Stop();_straightenTimer.Stop();_saveTimer.Stop();_styleCommitTimer.Stop();_dockTimer.Stop();DisposeEraserPatch();_target?.Dispose();_committed?.Dispose();_renderer.Dispose();_sessionLease?.Dispose();_sessionLease=null;_overlay.Dispose();Close();
+        if(_disposed)return;_quickPalette?.Dispose();StopOperateRadial();ClearObjectDrag();CloseFloatingTeachingTools();_customizeToolbarWindow?.Close();_customizeToolbarWindow=null;_radialSaveTimer.Stop();_radialSettings?.Close();CancelRadial();CancelCircularEraser();FinishScreenText();_disposed=true;_captureCancellation?.Cancel();_renderTimer.Stop();_focusRememberTimer.Stop();_straightenTimer.Stop();_saveTimer.Stop();_styleCommitTimer.Stop();_dockTimer.Stop();DisposeEraserPatch();_target?.Dispose();_committed?.Dispose();_renderer.Dispose();_sessionLease?.Dispose();_sessionLease=null;_overlay.Dispose();Close();
     }
 }

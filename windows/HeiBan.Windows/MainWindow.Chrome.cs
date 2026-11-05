@@ -52,6 +52,7 @@ public partial class MainWindow
     private bool _syncingProperties = true, _propertyEditing;
     private readonly DispatcherTimer _propertyCommitTimer = new() { Interval = TimeSpan.FromMilliseconds(300) };
     private Button? _brushButton;
+    private QuickPalette? _quickPalette;
     private Ellipse? _brushSwatch;
     private readonly List<FrameworkElement> _toolDividers = [];
     private bool _toolbarDragging;
@@ -348,6 +349,7 @@ public partial class MainWindow
 
     private void BuildChrome()
     {
+        _quickPalette?.Dispose();_quickPalette=null;
         ToolIcons.SetStyle(_toolbarPrefs.IconStyle);
         HomeButton.Content = ToolIcons.Create("chevron-left");
         HeaderPinButton.Content=ToolIcons.Create(_headerPinned?"lock":"unlock");
@@ -452,7 +454,9 @@ public partial class MainWindow
                     Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(_brushButton, T("繪圖與物件設定"));
                     _brushButton.Click += (_, _) => ShowBrushSettings(_brushButton);
                     _toolButtons["brush"] = _brushButton;
-                    Tools.Children.Add(_brushButton);
+                    _quickPalette=new QuickPalette(ProfilePalette,()=>_tool=="laser"?_laser.Color:_session.Selected?.StrokeColor??CurrentStyle.Color,ApplyQuickBrushColor);
+                    ToolbarUi.BindQuickPalette(_brushButton,_quickPalette);
+                    Tools.Children.Add(ToolbarUi.ButtonUnit(_brushButton));
                     break;
                 case "dash":
                     Tools.Children.Add(IconButton("dash", T("線條樣式"), () => ShowLineStyles(_toolButtons["dash"]), "dash"));
@@ -837,6 +841,15 @@ public partial class MainWindow
         InvalidateCanvas(false);
     }
 
+    private void ApplyQuickBrushColor(string color)
+    {
+        if(_gesture||_session.Selected?.IsLocked==true)return;
+        if(_tool=="laser")
+        {_laser.Color=color;CurrentStyle.Color=color;LoadActiveStyle();QueueTeachingSettingsSave();return;}
+        ChangeProperty(()=>{if(_session.Selected is { } selected)selected.StrokeColor=color;else CurrentStyle.Color=color;});
+        _quickPalette?.RefreshSelection();
+    }
+
     private void LoadActiveStyle()
     {
         _strokeColor = CurrentStyle.Color;
@@ -846,6 +859,7 @@ public partial class MainWindow
         if (_brushSwatch is not null) _brushSwatch.Fill = Brush(_strokeColor);
         foreach(var (key,button) in _toolButtons)ToolbarUi.SetToolColor(button,key,_strokeColor,_tool);
         _radialSettings?.RefreshBrushColor(_strokeColor);
+        _quickPalette?.RefreshSelection();
     }
 
     private void RefreshChrome()
@@ -879,6 +893,7 @@ public partial class MainWindow
             _dashIconButton=dashButton;_dashIconStyle=dash;
         }
         if(_brushSwatch is not null)_brushSwatch.Fill=Brush(o?.StrokeColor??style.Color);
+        if(_quickPalette is not null){_quickPalette.SetEnabled(o?.IsLocked!=true);_quickPalette.RefreshSelection();}
         // Hidden properties are synchronized when opened; tool switches need only
         // their swatches, not every slider, number box and inspector section.
         if(o is null&&Inspector.Visibility!=Visibility.Visible){RefreshSelectionBar();return;}

@@ -10,6 +10,20 @@ internal sealed partial class ScreenAnnotationWindow
         await StartAsync();
         try
         {
+            await Task.Delay(100);
+            Check(_quickPalette is not null&&_quickPalette.ValidationButtons.Count==6,"Screen six colors missing");
+            await _owner.ProfilePalette.MoveAsync(_owner.ProfilePalette.Colors[^1],0);await Task.Delay(100);
+            Check(_quickPalette!.ValidationButtons.Select(b=>b.Tag as string).SequenceEqual(_owner.ProfilePalette.Colors.Take(6)),"Screen quick colors missed shared reorder");
+            SetDrawing(true);_tool="pen";var colorGeneration=_session.Generation;SetScreenColor(_owner.ProfilePalette.Colors[0]);CommitScreenStyle();
+            Check(_color==_owner.ProfilePalette.Colors[0]&&_session.Generation==colorGeneration,"Screen quick color changed annotations");
+            var display=_toolbarPreferences.DisplayMode;var dock=_chromeDock;
+            foreach(var mode in new[]{"icons","labels"})foreach(var side in new[]{"top","left","right","bottom"})
+            {
+                _toolbarPreferences.DisplayMode=mode;_chromeDock=side;RebuildChromeLayout();
+                var unit=HeiBan.Windows.Views.ToolbarUi.ButtonUnit(_brushButton);
+                Check(unit is Microsoft.UI.Xaml.Controls.Grid grid&&grid.Children.Contains(_brushButton)&&grid.Children.Contains(_quickPalette),"Screen brush unit lost during docking");
+            }
+            _toolbarPreferences.DisplayMode=display;_chromeDock=dock;RebuildChromeLayout();
             SetDrawing(true);_tool="cane";_renderTimer.Stop();_cane.Clear();_dirty=true;Render();
             var generation=_session.Generation;var before=_target!.GetPixelBytes();var now=Now;
             var point=new HeiBan.Windows.Models.InkPoint(700*_dpiScale,500*_dpiScale);
