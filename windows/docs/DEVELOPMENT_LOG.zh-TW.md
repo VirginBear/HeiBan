@@ -2,7 +2,7 @@
 
 ## 2026-11-05 — 筆尖熱點／短暫裂紋／0.8秒拉直
 
-依使用者GO只Windows、不進版。從ToolCursor旁邊badge＋十字改26×26圖示座標→實際DPI hotspot，不改任何輸入／作品座標；兩host傳目前style／brush或laser色。三擊狀態Core暫態，90段固定geometry＋既有timer/damage，LocalEffectSound共用兩音效、保留原CaneSnap並增加0.72秒原創合成。手冊十語同步（含刪除十字熱點舊敘述）。Core3689／Optimization68、QA build0警告0錯誤、native-r3 370＋screen5，真實三連敲與淡出成功；筆畫drag遭使用者輸入拒絕未驗收，音效未實聽。r1 QA GetDIBits nullDC失敗已修；Update.Tests既有缺Localization參照失敗記錄、不擴範圍；詳[命令與失敗證據](CURSOR_TIP_CANE_CRACK_2026-11-05.zh-TW.md)。正式包／既有未提交清理與YouTube文件保留。
+依使用者GO只Windows、不進版。從ToolCursor旁邊badge＋十字改26×26圖示座標→實際DPI hotspot，不改任何輸入／作品座標；兩host傳目前style／brush或laser色。三擊狀態Core暫態，90段固定geometry＋既有timer/damage，LocalEffectSound共用兩音效、保留原CaneSnap並增加0.72秒原創合成。手冊十語同步（含刪除十字熱點舊敘述）。Core3689／Optimization68、QA build0警告0錯誤、native-r3 370＋screen5，真實三連敲與淡出成功；筆畫drag遭使用者輸入拒絕未驗收，音效未實聽。r1 QA GetDIBits nullDC失敗已修；Update.Tests既有缺Localization參照失敗記錄、不擴範圍；詳[命令與失敗證據](CURSOR_TIP_CANE_CRACK_2026-11-05.zh-TW.md)。x64免安裝cursor-cane-2026-11-05-r1完成：133452351bytes，SHA685f5009285e367093ed6e9c0fb38d92de7e1d2127dd6a4e3cc6649ce3edc8fc；724 payload／401來源／CRC／正常Release排除QA方法核同。正式三包／既有未提交清理與YouTube文件保留，既有dirty增減行與開工snapshot精確核同。
 
 ## 2026-11-04 — 1.1.2正式Store封裝批次
 

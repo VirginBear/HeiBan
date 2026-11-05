@@ -23,3 +23,26 @@ Core Release：3689 checks PASS（本批新增244項）；QA build三次皆0 war
 ## 最終封裝前驗證
 
 qa-build-r3：Release win-x64，HEIBAN_RELEASE_VALIDATION，0 warning／0 error。native-r3：370 checks＋5 screen checks PASS，含新增40px、所有native bitmap非空，cache上限64、音效requested／mute、螢幕清除後pixel完全一致。OptimizationChecks補帶獨立輸出參數後68 PASS。Build-LocalizationCatalogs.py十語708 keys／0缺漏；Build-UserGuides.py十語26章80段，去除舊十字熱點敘述；Core3689。尚無硬體聆聽、實際拖筆尖體感、實際0.8秒按住及ARM64硬體驗收。
+
+## 交付產物與命令紀錄
+
+- `dotnet run --project windows/HeiBan.Windows.Core.Tests -c Release`：3689 PASS。
+- `dotnet build windows/HeiBan.Windows -c Release -r win-x64 -p:HeiBanValidationBuild=true --artifacts-path windows/.build/cursor-cane-20261105/qa-build-r3`：0警告／0錯誤；獨立qa-data-r3，`--cursor-cane-validation-output=<native-r3>`：370＋5 PASS。
+- `dotnet run --project windows/HeiBan.Windows.OptimizationChecks -c Release -- windows/.build/cursor-cane-20261105/optimization-r1`：68 PASS。第一次缺輸出參數拒絕已保留optimization.log。
+- `dotnet run --project windows/HeiBan.Update.Tests -c Release`：既有CS0234 Localization參照錯誤，未修改／未宣稱通過。
+- `python windows/scripts/Build-LocalizationCatalogs.py`：十語708keys，0缺；`python windows/scripts/Build-UserGuides.py`：十語26章80段。
+- `python windows/scripts/Generate-CaneCrackSound.py`：31752frames／0.72秒；原創無取樣；Notice含SHA。
+- `Package-PortableTrial.ps1 -Runtime win-x64 -Label cursor-cane-2026-11-05-r1`：正常Release完成，來源014d155170ec8ea76ca9d606cb1bc937f55a4c58。
+- `.build/cursor-cane-20261105/Verify-Portable-r1.py`：724 payload／401來源／132SVG／10語指南逐SHA、ZIP CRC、獨立空白Data、QA helper不在正常assembly，全部通過。ZIP133452351bytes，SHA685f5009285e367093ed6e9c0fb38d92de7e1d2127dd6a4e3cc6649ce3edc8fc。
+- 正式1.1.2.0 x64／arm64／bundle三包SHA與上批封存完全相同。只有Windows改動，原dirty三文件增減行核同、三份YouTube草稿保持未追蹤。
+
+試用：`windows/dist/trials/HeiBan-Windows-Portable-1.1.2-cursor-cane-2026-11-05-r1-win-x64/HeiBan.exe`，同路徑`.zip`。本批未啟動正常trial，原生QA獨立資料庫已實際啟動；無使用者作品搬移／刪除。
+
+## 使用者試用成功標準
+
+1. 原版／A各試鋼筆、螢光筆、油漆筆刷與橡皮擦：筆跡起點／擦除中心跟圖示筆尖／接觸點一致，沒有旁掛十字偏移；切換DPI／跨螢幕再看。選取與物件變形游標仍正常。
+2. 雷射游標小光點中心就是落點，實際尾跡仍按左鍵才出現；比較遮擋與辨識度。
+3. 藤條1.2秒內同區域連敲三下，45度敲擊尖端出局部裂紋並約1.2秒淡出；分散／逾時不觸發，換工具／模式後重算，作品／Undo無新增。兩畫布都試、靜音時仍動畫但無兩種聲音。
+4. 鋼筆近似直線按住不動，原1秒變0.8秒（100ms檢查節奏造成少量量化）；曲線不誤拉直，移動超12DIP恢復預覽。主觀等待感受與硬體音量／音色待使用者。
+
+後續UI關閉測試視窗時遇computer-use偵測使用者輸入，已停止追加操作；未強制終止程序。這不算筆尖拖曳或關閉流程驗收。未做ARM64硬體、WACK、Store安裝／新送審／端到端延遲量測；未覆寫商店包。
