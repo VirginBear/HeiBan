@@ -1,5 +1,9 @@
 # Windows 問題與排解紀錄
 
+## 2026-11-05 — 筆尖調整誤改圖形游標
+
+ToolCursor通用圖案分支把line／arrow／rect／triangle等也設到artwork anchor，超出原畫筆對位範圍。使用者指出後加入明確幾何分支，回原十字＋旁掛圖示，畫筆與雷射保持。Core6028及QA build通過；完整驗證追加於[本批日誌](SHAPE_CURSOR_RESTORE_2026-11-05.zh-TW.md)。無作品遺失或座標格式變更。
+
 ## 2026-11-05 — 快速換色慢／停靠後六色舊快照／拖曳沒改序
 
 加入直接六色、保存順序投影。QA r1/r2 IsLoaded=true但store3色與button6色舊tags，等待無效；改host訂閱生命週期後r3/r4正常。OS CanDrag拖色未改磁碟順序（medium integrity），改面板內handled pointer／ghost／drop只一次save，真實Sky拖末色至首位後UI及palette.json核同。初build誤用Grid.IsEnabled導致2個CS1061與後續XAML誤報，改逐button SetEnabled；r5 QA .4透明精確比較失敗改1e-5容差，r6 371＋26＋16 PASS。正式動作／資料與失敗方案詳[本批紀錄](CANE_IMPACT_QUICK_PALETTE_2026-11-05.zh-TW.md)。

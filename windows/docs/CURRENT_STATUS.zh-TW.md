@@ -1,5 +1,9 @@
 # Windows 目前開發狀態
 
+## 2026-11-05 — 圖形游標恢復舊十字
+
+依使用者回饋，直線／箭頭／矩形／圓／三角／四邊／菱形／五角／星形／曲線十工具恢復原32單位十字(4,4)＋旁掛黑白圖示，hotspot=round(size/8)，原版與A皆同。兩host共用，畫筆／橡皮擦筆尖、小雷射中心、物件resize／rotate保持；沒有輸入座標或文件變化。Core6028 PASS，QA build0警告0錯誤，十語指南同步；原生cursor核對與新試用封裝進行中。維持1.1.2、不覆寫正式包。詳[修正紀錄](SHAPE_CURSOR_RESTORE_2026-11-05.zh-TW.md)。
+
 ## 2026-11-05 — 藤條三段取樣／小裂紋碎屑／六色快選
 
 同1.1.2 Windows開發批次。使用者四擊MP3省略第二擊，1／3／4依序配三連敲，最後2.466秒碎裂尾音保留，共用mute與有界impact queue。裂紋.62倍、18粒旋轉／下墜／淡出，含局部damage／無作品Undo。筆刷右方3×2 quickPalette讀前六色，管理拖曳／前後箭頭／右鍵排序，保存與兩host即時共用、空位disabled；變寬分組按實測頁界避免拆開。Core5884／Optimization68、最終native371＋主26＋screen16 PASS，十語711keys／26章80段；真實點黃畫黃、拖末色到首位及磁碟同序通過。硬體聆聽待使用者，正常x64 cane-palette-2026-11-05-r1完成：729 payload／413來源／132SVG／10語／CRC／診斷排除／獨立空Data通過，來源4f27328；正式Store1.1.2.0三包保持。詳[本批紀錄](CANE_IMPACT_QUICK_PALETTE_2026-11-05.zh-TW.md)。

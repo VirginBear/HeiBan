@@ -1,5 +1,9 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-11-05 — 幾何游標與筆尖游標分路
+
+ToolCursorGeometry.UsesCrosshairBadge限定10種建構工具，Layout回舊32單位cross位置與badge比例；ToolCursor以舊黑白SVG全size光柵化，其餘工具仍用26單位筆尖／光點路徑。兩host現有ShapeCursor共用，不改輸入／永久模型，也不改選取變形cursor。詳[範圍](SHAPE_CURSOR_RESTORE_2026-11-05.zh-TW.md)。
+
 ## 2026-11-05 — Palette單一順序／不可分工具組與有界碎屑
 
 PalettePreferences schema1的Colors就是唯一順序，MoveAsync絕對位置／MoveByAsync相對位置均在write gate內依color定位，原子save成功才通知、未知JSON字段保留。QuickPalette投影前六為6固定button，主／screen各持控制項；profile訂閱由host替換／Dispose管理而非Loaded/Unloaded，避免頻繁reparent失訂閱。ToolbarUi以weak-key brush unit包住button＋palette，分頁／停靠不拆組；ToolbarPaging按量測長度建立不同容量頁界。PaletteEditor管理拖曳用自身pointer capture與ghost、候選邊框，release一筆save，Esc／cancel／unload不提交；不走跨程式DataPackage。CaneFeedback固定6音效queue，timer在impact取出且丟過期；碎屑18純時間位姿、共用一個geometry在ClearCache釋放，上一／目前damage覆蓋淡出清除。詳[本批](CANE_IMPACT_QUICK_PALETTE_2026-11-05.zh-TW.md)。

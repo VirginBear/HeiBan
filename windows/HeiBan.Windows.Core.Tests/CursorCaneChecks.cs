@@ -6,10 +6,11 @@ static class CursorCaneChecks
     internal static void Run(Action<bool,string> check)
     {
         foreach(var style in new[]{false,true})foreach(var size in new[]{32,40,48,64,96,128})
-        foreach(var tool in new[]{"pen","highlighter","paint","eraser","laser","rect","triangle","line","arrow"})
+        foreach(var tool in new[]{"pen","highlighter","paint","eraser","laser","curve","line","arrow","rect","circle","triangle","quadrilateral","diamond","pentagon","star"})
         {
             var a=ToolCursorGeometry.Anchor(tool,style);var l=ToolCursorGeometry.Layout(tool,style,size);
-            check(Math.Abs(l.X-(l.Offset+a.X*l.Scale))<=.5&&Math.Abs(l.Y-(l.Offset+a.Y*l.Scale))<=.5,"Hotspot rounds within half a physical pixel");
+            if(ToolCursorGeometry.UsesCrosshairBadge(tool))check(l.X==(int)Math.Round(size/8d)&&l.Y==l.X,"Construction cursor keeps original cross hotspot");
+            else check(Math.Abs(l.X-(l.Offset+a.X*l.Scale))<=.5&&Math.Abs(l.Y-(l.Offset+a.Y*l.Scale))<=.5,"Hotspot rounds within half a physical pixel");
             check(l.X>=0&&l.Y>=0&&l.X<size&&l.Y<size,"Hotspot inside bitmap at all DPI sizes");
             if(tool=="laser")check(l.X==size/2&&l.Y==size/2,"Laser center equals hotspot");
         }

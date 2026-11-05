@@ -29,8 +29,9 @@ internal sealed class ToolCursor : IDisposable
             else if(ToolIcons.CursorPath(tool) is not null)
             {
                 var layout=ToolCursorGeometry.Layout(tool,style=="duotone",size);
-                var root=XElement.Parse(ToolIcons.RadialSvg(tool,false,paint));
-                if(tool=="laser")
+                var badge=ToolCursorGeometry.UsesCrosshairBadge(tool);
+                var root=XElement.Parse(badge?CrosshairBadgeSvg(tool):ToolIcons.RadialSvg(tool,false,paint));
+                if(!badge&&tool=="laser")
                 {
                     // Hover cue only. The actual laser trail still requires the left button.
                     root.RemoveNodes();var ns=root.Name.Namespace;
@@ -38,7 +39,7 @@ internal sealed class ToolCursor : IDisposable
                     root.Add(new XElement(ns+"circle",new XAttribute("cx",13),new XAttribute("cy",13),new XAttribute("r",3.2),new XAttribute("fill",$"#{c.R:X2}{c.G:X2}{c.B:X2}"),new XAttribute("stroke","white"),new XAttribute("stroke-width",1)));
                     root.Add(new XElement(ns+"circle",new XAttribute("cx",13),new XAttribute("cy",13),new XAttribute("r",.8),new XAttribute("fill","white")));
                 }
-                else
+                else if(!badge)
                 {
                     var originals=root.Elements().ToArray();
                     // A narrow white halo keeps fine strokes legible on dark backgrounds.
@@ -54,7 +55,11 @@ internal sealed class ToolCursor : IDisposable
                 using var surface=new CanvasRenderTarget(device,size,size,96);
                 using var svg=CanvasSvgDocument.LoadFromXml(device,root.ToString(SaveOptions.DisableFormatting));
                 using(var draw=surface.CreateDrawingSession())
-                {draw.Clear(Microsoft.UI.Colors.Transparent);draw.DrawSvg(svg,new Size(size*.82,size*.82),new System.Numerics.Vector2((float)layout.Offset,(float)layout.Offset));}
+                {
+                    draw.Clear(Microsoft.UI.Colors.Transparent);
+                    if(badge)draw.DrawSvg(svg,new Size(size,size));
+                    else draw.DrawSvg(svg,new Size(size*.82,size*.82),new System.Numerics.Vector2((float)layout.Offset,(float)layout.Offset));
+                }
                 cursor=CreateAlpha(surface.GetPixelBytes(),size,layout.X,layout.Y);
             }
         }
@@ -68,6 +73,11 @@ internal sealed class ToolCursor : IDisposable
             if(victim.Key.Tool is not null){if(victim.Value.Handle!=0)DestroyCursor(victim.Value.Handle);_cursors.Remove(victim.Key);}
         }
         _cursors[key]=(paint,cursor);return cursor;
+    }
+    private static string CrosshairBadgeSvg(string tool)
+    {
+        var path=ToolIcons.CursorPath(tool);
+        return $"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><g fill='none' stroke-linecap='round' stroke-linejoin='round'><path d='M1,4 L7,4 M4,1 L4,7' stroke='white' stroke-width='3'/><path d='M1,4 L7,4 M4,1 L4,7' stroke='black' stroke-width='1'/><g transform='translate(8 8) scale(.85)'><path d='{path}' stroke='white' stroke-width='3.7'/><path d='{path}' stroke='black' stroke-width='1.7'/></g></g></svg>";
     }
     private static nint CreateAlpha(byte[] pixels,int size,int x,int y)
     {

@@ -14,11 +14,11 @@ public partial class MainWindow
         try
         {
             var checks=0;void Check(bool ok,string message){checks++;if(!ok)throw new Exception(message);}
-            using var cursors=new ToolCursor();using var sheet=new CanvasRenderTarget(CanvasSurface,1100,530,96);
+            using var cursors=new ToolCursor();using var sheet=new CanvasRenderTarget(CanvasSurface,1100,1030,96);
             using(var ds=sheet.CreateDrawingSession())
             {
                 ds.Clear(Microsoft.UI.Colors.WhiteSmoke);var i=0;
-                foreach(var style in new[]{"classic","duotone"})foreach(var tool in new[]{"pen","highlighter","paint","eraser","laser","rect","triangle","line","arrow"})
+                foreach(var style in new[]{"classic","duotone"})foreach(var tool in new[]{"pen","highlighter","paint","eraser","laser","curve","line","arrow","rect","circle","triangle","quadrilateral","diamond","pentagon","star"})
                 {
                     ToolIcons.SetStyle(style);
                     foreach(var size in new[]{32,40,48,64,96,128})
