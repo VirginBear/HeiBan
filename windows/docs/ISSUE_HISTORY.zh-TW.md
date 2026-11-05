@@ -1,5 +1,9 @@
 # Windows 問題與排解紀錄
 
+## 2026-11-06 — 側欄過寬與效能比對範圍
+
+側欄分頁、圖文按鈕、快色原本橫向疊加，改為窄欄與下置快色。合成效能測試前後版本均在旋轉筆跡影格比對停止，完整重畫參考少用拖曳位移。補正參考後才能以該測試確認像素一致。建置中碰到共用 obj 檔案鎖，改順序重跑。指南依最少兩段契約修正後重新生成。[本批紀錄](STORE_COMPACT_TOOLBAR_2026-11-06.zh-TW.md)。
+
 ## 2026-11-05 — 螢幕尺不可達、排序雜訊與驗證依賴
 
 尺renderer／handler仍存在；可確認缺口是More未回收隱藏工具與恢復入口、初始固定640px／虛擬桌面位置不保證目前monitor。補更多固定尺入口／重新置中、首次80%目前工作區、暫態damage，native像素與移除無殘影通過；使用者裝置原始消失根因尚未完整重現。色票圓化並去排序箭頭；真實筆刷面板確認。繪圖雙擊誤select一併限制為選取模式。Update.Tests原CS0234缺UI Strings，補headless adapter後73PASS。QA曾用不存在InkPoints、internal Snapshot及誤插void return而build失敗，均已修；Optimization最初少輸出參數失敗，更正後68PASS。詳[命令與結果](SHIFT_RULER_ROUND_PALETTE_2026-11-05.zh-TW.md)，不隱去失敗、不套前批測試數字。

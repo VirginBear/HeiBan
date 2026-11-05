@@ -1,5 +1,9 @@
 # HeiBan Windows 開發日誌
 
+## 2026-11-06 — 0.6 秒拉直、商店更新與窄側欄
+
+兩畫布共用 0.6 秒停筆拉直。左右工具列縮成單欄，圖文選單切分頁、快色排筆刷下方。原生量測一般 ≤72 DIP、螢幕 ≤74 DIP。新版 Windows 停止 GitHub 更新服務，免安裝包由 133.8 MB 降到 100.5 MB。尺規共用 renderer、文字格式重用，頂點拖移延後 JSON 並保留未知欄位。Core 6848、Optimization 68、原生 616 項通過。x64 試用來源 9489cb9。共享框架 Store 開發候選約 104.0 MB，實機安裝與升級待驗。螢幕效能腳本前後都因參考影格缺拖曳位移而停止，沒有可比較的螢幕 p95。[詳細紀錄](STORE_COMPACT_TOOLBAR_2026-11-06.zh-TW.md)。
+
 ## 2026-11-05 — 製圖限制、尺恢復與色票簡化
 
 按使用者要求實作共享ShapeConstruction八向投影／正形，兩宿主preview傳modifier、完成才提交；一般逐點模式保留，Shift優先磁鐵。Screen ruler補固定恢復入口／目前monitor座標與初始80%寬，切換不走永久Changed；More隱藏command與未掛載anchor fallback、目前語言guide、繪圖double不誤select一併修正。共用PaletteEditor圓色票／alpha底／ghost，移除前後移UI與相對MoveBy API。十語說明同步、過期1.0.18狀態釐清為1.1.2試用／正式分離。Core6846、Optimization68、Update73及native515＋主11＋色盤29＋screen53 PASS；原生圖形PNG目視，真實筆刷面板圓形與無排序箭頭已確認。更新測試缺Strings依賴已補headless文字邊界；初次build錯誤、少傳Optimization輸出參數等失敗與排解保留於[日誌](SHIFT_RULER_ROUND_PALETTE_2026-11-05.zh-TW.md)。正常x64 r2試用完成：來源68f6c9f、133754447bytes、SHA d975526bc08e3dab277467438f6903ddcad84153d9117747fda9f574dd6d9c1d；729payload／418來源／132SVG／十語／CRC／診斷排除／空Data均核同。r1封裝後補screen Shift-hover guard再封r2，最後一行正常Publish通過，608原生斷言在該行前執行；未重新跑物理Shift。不覆寫1.1.2.0商店包；[審視報告](WINDOWS_REVIEW_2026-11-05.zh-TW.md)分清已修／後續候選／體積實測，未宣稱新延遲benchmark。

@@ -1,0 +1,139 @@
+{
+  "success": true,
+  "sourceCommit": "9489cb9b0bc479b49dfd13cd9ff718632c6fa839",
+  "zip": "windows/dist/trials/HeiBan-Windows-Portable-1.1.2-store-compact-2026-11-06-r1-win-x64.zip",
+  "exe": "windows/dist/trials/HeiBan-Windows-Portable-1.1.2-store-compact-2026-11-06-r1-win-x64/HeiBan.exe",
+  "bytes": 100480300,
+  "sha256": "1226800a1485edfc0a3cde4ba776acb0c2c504d3fcc167b429ef9903b7df748a",
+  "payloadFiles": 723,
+  "sourceFiles": 418,
+  "menuIcons": 132,
+  "guideLanguages": 10,
+  "zipCRC": true,
+  "observerExcluded": true,
+  "independentEmptyData": true,
+  "storeBundleUnchanged": true,
+  "audioAttacks": [
+    1,
+    3,
+    4
+  ],
+  "audioFrames": [
+    49440,
+    40800,
+    118368
+  ],
+  "normalTrialLaunched": true,
+  "unpackedBytes": 251635726,
+  "previousUnpackedBytes": 325758125,
+  "previousZipBytes": 133754447,
+  "formalStoreThreeUnchanged": true,
+  "standaloneUpdaterAbsent": true,
+  "launchMode": "Isolated synthetic performance run with separate Data",
+  "native": {
+    "success": true,
+    "checks": 515,
+    "constructionChecks": 11,
+    "quickColorChecks": 33,
+    "screen": 57,
+    "crackScale": 0.62,
+    "shards": 18,
+    "holdSeconds": 0.6,
+    "crackSegments": 90,
+    "manualSoundListening": false
+  },
+  "coreChecks": 6848,
+  "optimizationChecks": 68,
+  "storeFrameworkCandidate": {
+    "path": "windows/dist/store/candidates/store-compact-framework-2026-11-06",
+    "artifacts": [
+      {
+        "name": "HeiBan-Store-1.1.2.0-x64.msix",
+        "bytes": 52681899,
+        "sha256": "e3e69288890c5fcc9949265511c9a2c778d17a5a09530ab169bd14fb4d0defb2"
+      },
+      {
+        "name": "HeiBan-Store-1.1.2.0-arm64.msix",
+        "bytes": 51346890,
+        "sha256": "a7a5b6989dcb820f2db39878f8425089b0b764b9fe923978166aadcf62f89082"
+      },
+      {
+        "name": "HeiBan-Store-1.1.2.0-x64-arm64.msixbundle",
+        "bytes": 104030823,
+        "sha256": "201a4f30bbffdd1b609d1029f016d86435e5208d8d48a57d21ef2d5b9c1d6c71"
+      }
+    ],
+    "dependencies": [
+      {
+        "architecture": "x64",
+        "packages": [
+          {
+            "name": "Microsoft.WindowsAppRuntime.2",
+            "minVersion": "2.5.1.0"
+          }
+        ]
+      },
+      {
+        "architecture": "arm64",
+        "packages": [
+          {
+            "name": "Microsoft.WindowsAppRuntime.2",
+            "minVersion": "2.5.1.0"
+          }
+        ]
+      }
+    ],
+    "formalBaselineBundleBytes": 197625174,
+    "installationTested": false
+  },
+  "performance": {
+    "mainCanvas": {
+      "before": [
+        {
+          "objects": 0,
+          "stableP95Ms": 0.6303,
+          "rebuildP95Ms": 0.525
+        },
+        {
+          "objects": 300,
+          "stableP95Ms": 0.3653,
+          "rebuildP95Ms": 12.2211
+        },
+        {
+          "objects": 1000,
+          "stableP95Ms": 0.5244,
+          "rebuildP95Ms": 23.5459
+        },
+        {
+          "objects": 10000,
+          "stableP95Ms": 0.8358,
+          "rebuildP95Ms": 103.9692
+        }
+      ],
+      "after": [
+        {
+          "objects": 0,
+          "stableP95Ms": 0.5484,
+          "rebuildP95Ms": 0.6165
+        },
+        {
+          "objects": 300,
+          "stableP95Ms": 0.5457,
+          "rebuildP95Ms": 11.1993
+        },
+        {
+          "objects": 1000,
+          "stableP95Ms": 0.3529,
+          "rebuildP95Ms": 19.6491
+        },
+        {
+          "objects": 10000,
+          "stableP95Ms": 0.9107,
+          "rebuildP95Ms": 101.0879
+        }
+      ]
+    },
+    "screenComparisonPassed": false,
+    "scope": "Synthetic Win2D actions. Full-frame drag reference omits drag offset. Physical pointer-to-display latency not measured."
+  }
+}

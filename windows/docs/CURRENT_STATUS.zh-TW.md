@@ -1,5 +1,9 @@
 # Windows 目前開發狀態
 
+## 2026-11-06 — 0.6 秒拉直、商店更新與窄側欄
+
+兩畫布共用 0.6 秒停筆拉直。左右工具列縮成單欄，圖文選單切分頁、快色排筆刷下方。原生量測一般 ≤72 DIP、螢幕 ≤74 DIP。新版 Windows 停止 GitHub 更新服務，免安裝包由 133.8 MB 降到 100.5 MB。尺規共用 renderer、文字格式重用，頂點拖移延後 JSON 並保留未知欄位。Core 6848、Optimization 68、原生 616 項通過。x64 試用來源 9489cb9。共享框架 Store 開發候選約 104.0 MB，實機安裝與升級待驗。螢幕效能腳本前後都因參考影格缺拖曳位移而停止，沒有可比較的螢幕 p95。[詳細紀錄](STORE_COMPACT_TOOLBAR_2026-11-06.zh-TW.md)。
+
 ## 2026-11-05 — Shift正形／螢幕尺恢復／圓形色票
 
 同1.1.2 Windows開發系列。兩host共享八向線／箭頭與正方、正圓、等比例及正三角；保留逐點及Shift追加選取，Shift製圖優先於磁鐵。螢幕更多固定尺顯示／重新置中、隱藏工具可達、說明用目前語言；尺切換只damage。圓色票含alpha與ghost、去排序箭頭，保留管理拖曳／右鍵移除；十語26章81段更新。Core6846／Optimization68／Update73 PASS，最終QA build0警告0錯誤，native515＋主正形11＋色盤29＋screen53 PASS；真實UI目視圓色票無前後鈕。實際物理Shift拖曳／主觀手感與其他DPI待用戶。正常x64 shift-ruler-palette-2026-11-05-r2完成，來源68f6c9f、133754447bytes、SHA d975526bc08e3dab277467438f6903ddcad84153d9117747fda9f574dd6d9c1d；729payload／418來源／132SVG／十語／CRC／診斷排除／空Data通過。最後hover-Shift早退經正常Publish，完整原生608斷言為該行補正前執行，物理Shift待用戶；正式Store三包保持；完整[紀錄](SHIFT_RULER_ROUND_PALETTE_2026-11-05.zh-TW.md)及[軟體審視／後續改善](WINDOWS_REVIEW_2026-11-05.zh-TW.md)。

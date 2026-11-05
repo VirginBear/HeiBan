@@ -1,5 +1,9 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-11-06 — 側欄共用排版與尺規繪製
+
+ToolbarUi 依停靠方向建立側欄分頁選單與單欄分組。六色和筆刷同一個分頁單位，左右各用 2×3，橫向用 3×2。Direct2DCanvasRenderer 共用尺刻度與外觀，兩宿主仍持有手勢座標與命中測試，分別傳入畫布 DIP 或疊加層實體像素。文字格式隨 renderer 釋放。ObjectHandles.MoveVertex 使用自有點清單，文件序列化才編碼 JSON。[本批紀錄](STORE_COMPACT_TOOLBAR_2026-11-06.zh-TW.md)。
+
 ## 2026-11-05 — 共用製圖modifier／尺恢復／圓色票
 
 ShapeConstruction只處理世界／overlay-local座標與regular參數，不讀鍵盤、不碰session。兩host分別讀Shift更新暫態preview，放開才永久提交；選取框不使用正形限制。三角／四邊保留逐點狀態，Shift首邊拖曳轉正形。Screen ruler恢復將DisplayArea desktop實體座標減overlay原點，damage只更新暫態尺；更多重用command map，無XamlRoot的隱藏anchor回More。PaletteEditor畫圓與透明底，拖曳MoveAsync為唯一排序API；先前條目中的MoveByAsync在本批查引用後移除。詳[本批](SHIFT_RULER_ROUND_PALETTE_2026-11-05.zh-TW.md)。
