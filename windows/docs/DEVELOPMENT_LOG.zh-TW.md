@@ -2,7 +2,7 @@
 
 ## 2026-11-05 — 藤條取樣與快捷六色
 
-使用者要求4擊去1擊保留最後碎裂、小裂屏＋細屑、筆刷右邊六色與排序。解碼8.976秒，選0.390–1.420／4.100–4.950／6.510–8.976，未變調速，來源與輸出SHA／Notice保存。CaneFeedback queue6上限、.075秒impact才播；共享3個LocalEffectSound，mute全停、無舊cue重播。碎屑固定18與一個GPU三角geometry，device reset釋放，靜態damage含落下路徑。PalettePreferencesStore Move／MoveBy原子gate內定位，QuickPalette6重用button，host明確訂閱／Dispose防換頁後舊色；共用brush unit與變寬ToolbarPaging。Core5884／Optimization68、native-r6 371＋26＋16 PASS，所有最後build0警告0錯誤；實際黃圈畫黃、拖末色到首位與磁碟核同；音色實聽待用戶。失敗（Grid.IsEnabled、reparent訂閱、OS拖曳、opacity精確比較）均記[日誌](CANE_IMPACT_QUICK_PALETTE_2026-11-05.zh-TW.md)。十語711keys／指南同步、維持1.1.2，試用封裝進行中。
+使用者要求4擊去1擊保留最後碎裂、小裂屏＋細屑、筆刷右邊六色與排序。解碼8.976秒，選0.390–1.420／4.100–4.950／6.510–8.976，未變調速，來源與輸出SHA／Notice保存。CaneFeedback queue6上限、.075秒impact才播；共享3個LocalEffectSound，mute全停、無舊cue重播。碎屑固定18與一個GPU三角geometry，device reset釋放，靜態damage含落下路徑。PalettePreferencesStore Move／MoveBy原子gate內定位，QuickPalette6重用button，host明確訂閱／Dispose防換頁後舊色；共用brush unit與變寬ToolbarPaging。Core5884／Optimization68、native-r6 371＋26＋16 PASS，所有最後build0警告0錯誤；實際黃圈畫黃、拖末色到首位與磁碟核同；音色實聽待用戶。失敗（Grid.IsEnabled、reparent訂閱、OS拖曳、opacity精確比較）均記[日誌](CANE_IMPACT_QUICK_PALETTE_2026-11-05.zh-TW.md)。十語711keys／指南同步、維持1.1.2，正常x64 cane-palette-2026-11-05-r1完成：133745361bytes，SHA9e6e547ea8b6dd96a491c7fe917c4bf68aabbaae2fcdaa20e51a2cd3418d52e9；729 payload／413來源／132SVG／10語逐SHA與CRC、三WAV frames／peak／SHA、正常版診斷排除通過，來源4f27328。正式三包SHA保持，原dirty三文件增減行核同。
 
 ## 2026-11-05 — 筆尖熱點／短暫裂紋／0.8秒拉直
 

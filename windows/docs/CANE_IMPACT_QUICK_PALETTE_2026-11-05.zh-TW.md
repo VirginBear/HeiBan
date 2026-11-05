@@ -40,3 +40,13 @@ QA r5的drag第一項（實際target／preview）通過，第二項opacity用精
 4. 裂紋約原.62倍，周圍少量細屑旋轉下墜淡出；離開／換模式消除，原作品與Undo不多出碎片。
 
 正式Store1.1.2.0保留；ARM64硬體、WACK、Store安裝與新送審、本機喇叭實聽未執行。本批不重跑前批已知Update.Tests缺Localization參照，不引用舊測試數字。試用封裝與SHA結果待下一段追加。
+
+## 最終交付
+
+- native-r6：371＋26＋16全部PASS，含實際Flyout量測drag target、ghost、來源淡化、一次drop持久化與取消不改序。r5精度斷言修正後完成。
+- 另真實Sky在qa-data-r5：將末色#24533D拖至首位，UI及磁碟palette.json皆核同；管理狀態未改繪圖顏色，工具列快選同步。UI測試實際輸入遇拒絕會重觀察，不偽造成功。
+- `Package-PortableTrial.ps1 -Runtime win-x64 -Label cane-palette-2026-11-05-r1`：正常Release成功，來源4f27328bed2d489f92ac4c5121f3af5a0b90d198，未由agent啟動正常trial，獨立空Data。
+- `.build/cane-palette-20261105/Verify-Portable-r1.py`：729產品檔／413來源檔／132SVG／十語指南逐SHA、ZIP CRC、正常assembly不含所有QA方法、3個WAV frames與peak≤.78／SHA、來源attack=[1,3,4]全部核同。
+- ZIP133745361bytes，SHA9e6e547ea8b6dd96a491c7fe917c4bf68aabbaae2fcdaa20e51a2cd3418d52e9。
+- 正式Store1.1.2.0 x64／ARM64／bundle三SHA與上一批相同；既有dirty3文件增減行與開工snapshot核同；YouTube三草稿未追蹤保持，無刪除舊包或作品。
+- 成品：`windows/dist/trials/HeiBan-Windows-Portable-1.1.2-cane-palette-2026-11-05-r1-win-x64/HeiBan.exe`，同路徑`.zip`。需要在Windows x64實際試聽音量／尾音與主觀手感；不表示新Store提交或認證。
