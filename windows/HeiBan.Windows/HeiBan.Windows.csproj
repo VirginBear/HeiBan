@@ -94,6 +94,11 @@
   </Target>
 
   <ItemGroup>
+    <!-- Retained as historical source for the standalone updater tests. -->
+    <Compile Remove="Updating\GitHubUpdateService.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Windows App SDK & Fluent Design 核心庫 -->
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.5.1" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.8249" />
@@ -106,7 +111,7 @@
   <!-- 資源檔案包含 -->
   <ItemGroup>
     <EmbeddedResource Include="Localization\Catalogs\*.json" LogicalName="HeiBan.Localization.%(Filename).json" />
-    <Content Include="Assets\**">
+    <Content Include="Assets\**" Exclude="Assets\CaneSnap.wav;Assets\CaneCrack.wav;Assets\CaneSnap.source.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

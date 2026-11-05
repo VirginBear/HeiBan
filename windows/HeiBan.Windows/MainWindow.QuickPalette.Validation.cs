@@ -22,11 +22,14 @@ public partial class MainWindow
         var display=_toolbarPrefs.DisplayMode;var dock=_dock;
         foreach(var mode in new[]{"icons","labels"})foreach(var side in new[]{"上方","左側","右側","下方"})
         {
-            _toolbarPrefs.DisplayMode=mode;_dock=side;ArrangeMainToolbar();
+            _toolbarPrefs.DisplayMode=mode;SetDock(side);
+            await Task.Delay(70);
+            if (side is "左側" or "右側")
+                Check(ToolBorder.ActualWidth is > 0 and <= 72, $"Main side toolbar width: {ToolBorder.ActualWidth}");
             var unit=ToolbarUi.ButtonUnit(_brushButton!);
-            Check(unit is Grid grid&&grid.Children.Contains(_brushButton)&&grid.Children.Contains(_quickPalette)&&Grid.GetColumn(_quickPalette)==1,"Brush/six-color unit split during mode/dock change");
+            Check(unit is Grid grid&&grid.Children.Contains(_brushButton)&&grid.Children.Contains(_quickPalette)&&Grid.GetColumn(_quickPalette)==(side is "左側" or "右側"?0:1)&&Grid.GetRow(_quickPalette)==(side is "左側" or "右側"?1:0),"Brush/six-color unit split during mode/dock change");
         }
-        _toolbarPrefs.DisplayMode=display;_dock=dock;ArrangeMainToolbar();await Task.Delay(180);
+        _toolbarPrefs.DisplayMode=display;SetDock(dock);await Task.Delay(180);
         await ProfilePalette.ResetAsync();
         foreach(var color in ProfilePalette.Colors.Skip(3).ToArray())await ProfilePalette.RemoveAsync(color);
         await Task.Delay(80);

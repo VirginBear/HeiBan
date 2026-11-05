@@ -15,5 +15,22 @@ internal static partial class ToolbarUi
         unit.Children.Add(brush);Grid.SetColumn(palette,1);unit.Children.Add(palette);BrushUnits.Add(brush,unit);unit.Visibility=brush.Visibility;
         brush.RegisterPropertyChangedCallback(UIElement.VisibilityProperty,(_,_)=>unit.Visibility=brush.Visibility);
     }
+    private static void ArrangeQuickPalette(Button brush, bool vertical)
+    {
+        if (!BrushUnits.TryGetValue(brush, out var unit) || unit.Children[1] is not QuickPalette palette) return;
+
+        // Keep the brush and its six colors in one page unit on every side.
+        unit.ColumnDefinitions.Clear();
+        unit.RowDefinitions.Clear();
+        unit.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
+        unit.RowDefinitions.Add(new() { Height = GridLength.Auto });
+        if (vertical) unit.RowDefinitions.Add(new() { Height = GridLength.Auto });
+        else unit.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
+        unit.RowSpacing = 2;
+        Grid.SetColumn(palette, vertical ? 0 : 1);
+        Grid.SetRow(palette, vertical ? 1 : 0);
+        palette.SetVertical(vertical);
+    }
+
     internal static FrameworkElement ButtonUnit(Button button)=>BrushUnits.TryGetValue(button,out var unit)?unit:button;
 }

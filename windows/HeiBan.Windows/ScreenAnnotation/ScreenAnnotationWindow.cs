@@ -146,7 +146,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         RefreshScreenStyleButtons();
         foreach(var pair in _buttons)
         {
-            ToolbarUi.LabelMode(pair.Value,pair.Key,_toolbarPreferences.DisplayMode=="labels",32);
+            ToolbarUi.LabelMode(pair.Value,pair.Key,_toolbarPreferences.DisplayMode=="labels",32,VerticalChrome);
         }
     }
     private long _lastRenderTimestamp;

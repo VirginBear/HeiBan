@@ -5,7 +5,7 @@ namespace HeiBan.Windows.Engine;
 /// <summary>Shared geometric check for turning a held, nearly straight ink gesture into a line.</summary>
 public static class StraightStrokeRecognizer
 {
-    public const double HoldSeconds=.8;
+    public const double HoldSeconds=.6;
     public static bool IsEligible(IReadOnlyList<InkPoint> points, double zoom)
     {
         if (points.Count < 5 || zoom <= 0) return false;

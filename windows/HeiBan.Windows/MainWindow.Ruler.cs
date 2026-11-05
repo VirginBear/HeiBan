@@ -3,7 +3,6 @@ using System.Numerics;
 using HeiBan.Windows.Engine;
 using HeiBan.Windows.Models;
 using Microsoft.Graphics.Canvas;
-using Microsoft.Graphics.Canvas.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -85,20 +84,10 @@ public partial class MainWindow
         var projected=edge+_snapDirection*Vector2.Dot(p-edge,_snapDirection);var result=_viewport.ScreenToWorld(projected.X,projected.Y);result.Pressure=world.Pressure;return result;}
     private void DrawRuler(CanvasDrawingSession ds)
     {
-        var old=ds.Transform;ds.Transform=Matrix3x2.CreateRotation((float)(_rulerAngle*Math.PI/180))*Matrix3x2.CreateTranslation(_rulerCenter);
         var board=_session.Document.Board;var beneath=_viewport.ScreenToWorld(_rulerCenter.X,_rulerCenter.Y);
         var outside=board.CanvasMode is "fixed" or "notebook"&&(beneath.X<0||beneath.Y<0||beneath.X>(board.CanvasWidth??595)||beneath.Y>(board.CanvasHeight??842));
         var bg=Direct2DCanvasRenderer.HexToColor(outside?"#E9ECE6":board.BackgroundColor);var light=(bg.R*.2126+bg.G*.7152+bg.B*.0722)>128;
-        var ink=Direct2DCanvasRenderer.HexToColor(_rulerColor??(light?"#244C38":"#F6F3DF"));var length=RulerLength;var left=-length/2;var top=-RulerHeight/2;
-        ds.FillRoundedRectangle(left,top,length,RulerHeight,8,8,Direct2DCanvasRenderer.HexToColor(light?"#C9D7C1":"#6D8B72",(float)_rulerOpacity));
-        ds.DrawRoundedRectangle(left,top,length,RulerHeight,8,8,ink,1);
-        using var small=new CanvasTextFormat{FontFamily="Consolas",FontSize=9};using var badge=new CanvasTextFormat{FontFamily="Consolas",FontSize=12,HorizontalAlignment=CanvasHorizontalAlignment.Center,VerticalAlignment=CanvasVerticalAlignment.Center};
-        for(var i=0;i<=length;i+=10){var major=i%50==0;ds.DrawLine(left+i,top,left+i,top+(major?23:i%20==0?15:8),ink,major?1.3f:1);if(major)ds.DrawText(i.ToString(),left+i+4,top+RulerHeight-15,ink,small);}
-        foreach(var x in new[]{left+14,length/2-14}){ds.FillCircle(x,0,13,Direct2DCanvasRenderer.HexToColor("#39735A"));ds.DrawText("↻",new Rect(x-13,-13,26,26),Direct2DCanvasRenderer.HexToColor("#FFFFFF"),badge);}
-        var moveX=-length*.28f;ds.FillRoundedRectangle(moveX-19,-14,38,28,14,14,Direct2DCanvasRenderer.HexToColor("#39735A"));ds.DrawText("↔",new Rect(moveX-19,-14,38,28),Direct2DCanvasRenderer.HexToColor("#FFFFFF"),badge);
-        var pivotX=(float)((_rulerPivotRatio-.5)*length);var pivotY=RulerPivotY;
-        ds.FillCircle(pivotX,pivotY,6,Direct2DCanvasRenderer.HexToColor("#DDA548",.95f));ds.DrawCircle(pivotX,pivotY,6,Direct2DCanvasRenderer.HexToColor("#FFFFFF",.9f),1.5f);
-        var badgeX=length/2-136;ds.FillRoundedRectangle(badgeX,top+4,90,26,13,13,Direct2DCanvasRenderer.HexToColor(light?"#F8FAF4":"#203A2C",.95f));ds.DrawText($"{_rulerAngle:F1}°",new Rect(badgeX,top+4,90,26),ink,badge);
-        ds.Transform=old;
+        _renderer.RenderRuler(ds, _rulerCenter, _rulerAngle, RulerLength, RulerHeight,
+            _rulerOpacity, _rulerPivotRatio, RulerPivotY, _rulerColor, light, screen: false);
     }
 }

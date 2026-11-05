@@ -33,5 +33,15 @@ internal static class ShapeConstraintChecks
             var document=new HeiBanDocument{Objects=[o]};var restored=DocumentCodec.Decode(DocumentCodec.Encode(document));
             check(restored.Objects[0].ParsedPoints.Count==3,"Regular polygon uses the existing document contract");
         }
+
+        var triangle = new BoardObject { Type = "triangle", X = 0, Y = 0, Width = 100, Height = 100, Rotation = 90 };
+        triangle.SetCompletedInkPoints([new(0, 0), new(100, 0, .42) { ExtraFields = new() { ["future"] = System.Text.Json.JsonSerializer.SerializeToElement("kept") } }, new(0, 100)]);
+        var untouched = ObjectHandles.ToWorld(triangle, triangle.ParsedPoints[0]);
+        ObjectHandles.MoveVertex(triangle, 1, new(30, 70));
+        var restoredShape = DocumentCodec.Decode(DocumentCodec.Encode(new HeiBanDocument { Objects = [triangle] })).Objects[0];
+        check(restoredShape.Rotation == 0 && Near(restoredShape.ParsedPoints[0].X, untouched.X) && Near(restoredShape.ParsedPoints[0].Y, untouched.Y), "Vertex editing keeps untouched rotated points in place");
+        check(Near(restoredShape.ParsedPoints[1].X, 30) && Near(restoredShape.ParsedPoints[1].Y, 70) &&
+            Near(restoredShape.ParsedPoints[1].Pressure, .42) && restoredShape.ParsedPoints[1].ExtraFields?["future"].GetString() == "kept",
+            "Vertex editing preserves pressure and unknown fields through save");
     }
 }

@@ -4,7 +4,6 @@ public partial class App : Application
 {
     private MainWindow? _window;
     private Window? _errorWindow;
-    private Updating.UpdateInstallation? _installationLease;
     private readonly List<string> _resourceErrors=[];
     internal static string StartupStage { get; set; }="建立主視窗";
     public App()
@@ -35,10 +34,7 @@ public partial class App : Application
             var probe=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--operate-input-probe-output=",StringComparison.Ordinal));
             if(probe is not null){ShowOperateInputProbe(probe["--operate-input-probe-output=".Length..]);return;}
 #endif
-            if (!Updating.GitHubUpdateService.IsPackaged && string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("HEIBAN_WINDOWS_DATA_DIRECTORY")))
-                _installationLease = new Updating.UpdateInstallation(AppContext.BaseDirectory);
             _window = new MainWindow();
-            _window.Closed += (_, _) => _installationLease?.Dispose();
             _window.Activate();
         }
         catch(Exception e)

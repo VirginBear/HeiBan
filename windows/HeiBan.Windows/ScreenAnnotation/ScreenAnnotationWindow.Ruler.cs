@@ -4,7 +4,6 @@ using HeiBan.Windows.Engine;
 using HeiBan.Windows.Models;
 using HeiBan.Windows.Views;
 using Microsoft.Graphics.Canvas;
-using Microsoft.Graphics.Canvas.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Controls;
@@ -208,47 +207,7 @@ internal sealed partial class ScreenAnnotationWindow
         if (rect is { } current) AddScreenDamage(current);
         _lastRulerDamage = rect;
     }
-    private void DrawRuler(CanvasDrawingSession ds)
-    {
-        var old = ds.Transform;
-        ds.Transform = Matrix3x2.CreateRotation((float)(_rulerAngle * Math.PI / 180)) * Matrix3x2.CreateTranslation(_rulerCenter);
-        var light = true;
-        var ink = Direct2DCanvasRenderer.HexToColor(_rulerColor ?? (light ? "#244C38" : "#F6F3DF"));
-        var length = RulerLength;
-        var left = -length / 2;
-        var top = -RulerHeight / 2;
-        ds.FillRoundedRectangle(left, top, length, RulerHeight, 8, 8, Direct2DCanvasRenderer.HexToColor(light ? "#C9D7C1" : "#6D8B72", (float)_rulerOpacity));
-        ds.DrawRoundedRectangle(left, top, length, RulerHeight, 8, 8, ink, 1);
-        using var small = new CanvasTextFormat { FontFamily = "Consolas", FontSize = 9 };
-        using var badge = new CanvasTextFormat { FontFamily = "Consolas", FontSize = 12, HorizontalAlignment = CanvasHorizontalAlignment.Center, VerticalAlignment = CanvasVerticalAlignment.Center };
-        for (var i = 0; i <= length; i += 10)
-        {
-            var major = i % 50 == 0;
-            ds.DrawLine(left + i, top, left + i, top + (major ? 23 : i % 20 == 0 ? 15 : 8), ink, major ? 1.3f : 1);
-            if (major) ds.DrawText(i.ToString(), left + i + 4, top + RulerHeight - 15, ink, small);
-        }
-        foreach (var x in new[] { left + 28, length / 2 - 28 })
-        {
-            ds.FillCircle(x, 0, 13, Direct2DCanvasRenderer.HexToColor("#39735A"));
-            ds.DrawText("↻", new Rect(x - 13, -13, 26, 26), Direct2DCanvasRenderer.HexToColor("#FFFFFF"), badge);
-        }
-        var moveX = -length * .16f;
-        ds.FillRoundedRectangle(moveX - 19, -14, 38, 28, 14, 14, Direct2DCanvasRenderer.HexToColor("#39735A"));
-        ds.DrawText("✥", new Rect(moveX - 19, -14, 38, 28), Direct2DCanvasRenderer.HexToColor("#FFFFFF"), badge);
-
-        // Stretch handle grip ticks at left and right edges
-        ds.DrawLine(left + 5, -16, left + 5, 16, ink, 2);
-        ds.DrawLine(left + 9, -16, left + 9, 16, ink, 2);
-        var right = length / 2;
-        ds.DrawLine(right - 5, -16, right - 5, 16, ink, 2);
-        ds.DrawLine(right - 9, -16, right - 9, 16, ink, 2);
-        var pivotX = (float)((_rulerPivotRatio - .5) * length);
-        var pivotY = RulerPivotY;
-        ds.FillCircle(pivotX, pivotY, 6, Direct2DCanvasRenderer.HexToColor("#DDA548", .95f));
-        ds.DrawCircle(pivotX, pivotY, 6, Direct2DCanvasRenderer.HexToColor("#FFFFFF", .9f), 1.5f);
-        var badgeX = length / 2 - 136;
-        ds.FillRoundedRectangle(badgeX, top + 4, 90, 26, 13, 13, Direct2DCanvasRenderer.HexToColor(light ? "#F8FAF4" : "#203A2C", .95f));
-        ds.DrawText($"{_rulerAngle:F1}°", new Rect(badgeX, top + 4, 90, 26), ink, badge);
-        ds.Transform = old;
-    }
+    private void DrawRuler(CanvasDrawingSession ds) =>
+        _renderer.RenderRuler(ds, _rulerCenter, _rulerAngle, RulerLength, RulerHeight,
+            _rulerOpacity, _rulerPivotRatio, RulerPivotY, _rulerColor, light: true, screen: true);
 }

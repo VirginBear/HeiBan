@@ -332,9 +332,7 @@ public partial class MainWindow
             }
             else if(_objectHandle is { Kind:"vertex" } vertex)
             {
-                // Bake the existing rotation so untouched vertices stay fixed when the bounds change.
-                var pts=selected.ParsedPoints.Select(pt=>ObjectHandles.ToWorld(selected,pt)).ToList();pts[vertex.Index]=world;selected.Rotation=0;selected.Points=JsonSerializer.Serialize(pts,DocumentCodec.Options);
-                var box=VectorMath.ComputeBoundingBox(pts,selected.StrokeWidth);selected.X=box.MinX;selected.Y=box.MinY;selected.Width=box.Width;selected.Height=box.Height;
+                ObjectHandles.MoveVertex(selected, vertex.Index, world);
             }
             else if(_objectHandle is { Kind:"resize" } resize&&_manipulationStart is not null)
             {

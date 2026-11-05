@@ -49,9 +49,9 @@ public partial class MainWindow
     private void ArrangeMainToolbar()
     {
         var labels=_toolbarPrefs.DisplayMode=="labels";var vertical=_dock is "左側" or "右側";
-        if(labels)
+        if(labels||vertical)
         {
-            ToolScroll.MaxWidth=Math.Max(180,DrawingArea.ActualWidth-80);
+            ToolScroll.MaxWidth=vertical?ToolbarUi.SideToolbarWidth:Math.Max(180,DrawingArea.ActualWidth-80);
             ToolScroll.HorizontalScrollBarVisibility=ToolScroll.VerticalScrollBarVisibility=ScrollBarVisibility.Disabled;
             ToolScroll.HorizontalScrollMode=ToolScroll.VerticalScrollMode=ScrollMode.Disabled;
         }
@@ -64,13 +64,13 @@ public partial class MainWindow
             _arrangingToolbar=true;
             try
             {
-                _labeledToolbarFlow=ToolbarUi.Arrange(Tools,_toolButtons.Select(p=>(p.Key,p.Value)),labels,vertical,_toolbarPage,p=>_toolbarPage=p,40,_toolbarPrefs.CommonTools,_dock=="右側"?"right":_dock=="左側"?"left":"top");
+                _labeledToolbarFlow=ToolbarUi.Arrange(Tools,_toolButtons.Select(p=>(p.Key,p.Value)),labels,vertical,_toolbarPage,p=>_toolbarPage=p,40,_toolbarPrefs.CommonTools);
                 _arrangedSelectionButton=selection;_arrangedLabels=labels;_arrangedVertical=vertical;
             }
             finally{_arrangingToolbar=false;}
         }
         if(_labeledToolbarFlow is { } flow)
-        {const int extra=90;flow.RunLength=vertical?Math.Max(72,DrawingArea.ActualHeight-538-extra):Math.Max(84,DrawingArea.ActualWidth-410-extra);flow.InvalidateMeasure();}
+        {const int extra=90;flow.RunLength=vertical?Math.Max(122,ToolScroll.MaxHeight-(labels?306:216)):Math.Max(84,DrawingArea.ActualWidth-410-extra);flow.InvalidateMeasure();}
     }
     private FrameworkElement CustomizeToolbarHeader(HashSet<string> visible,List<string> order,Action rebuild,string mode,Action<string> setMode,Action resetCommon)
     {

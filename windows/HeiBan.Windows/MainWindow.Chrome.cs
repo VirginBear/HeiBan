@@ -227,10 +227,6 @@ public partial class MainWindow
         var savingItem = new MenuFlyoutItem { Text = T("設定"), Icon = ToolIcons.CreateMenuIcon("settings") };
         savingItem.Click += async (_, _) => await ShowSavingSettingsAsync();menu.Items.Add(savingItem);
 
-        var updatesItem = new MenuFlyoutItem { Text = T("檢查更新與更新設定…") };
-        updatesItem.Click += async (_, _) => await ShowUpdatesAsync();
-        menu.Items.Add(updatesItem);
-
         ShowExclusiveFlyout(menu, MoreNavButton);
     }
 
@@ -867,7 +863,7 @@ public partial class MainWindow
         RefreshBoardEraser();
         foreach (var (key, b) in _toolButtons)
         {
-            ToolbarUi.LabelMode(b,key,_toolbarPrefs.DisplayMode=="labels",40);
+            ToolbarUi.LabelMode(b,key,_toolbarPrefs.DisplayMode=="labels",40,_dock is "左側" or "右側");
             ToolbarUi.SetToolColor(b,key,CurrentStyle.Color,_tool);
             var active = (key=="magnet"&&_toolbarPrefs.MagnetEnabled) || (key=="layers"&&LayersPanel.Visibility==Visibility.Visible) || key == _tool || (key == "ruler" && _rulerEnabled) || (key == "compass" && _compass.IsEnabled) || (key == "shapes" && _tool is "line" or "arrow" or "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star");
             var color=Direct2DCanvasRenderer.HexToColor(active?"#DCEBDD":"#FCFCFA");

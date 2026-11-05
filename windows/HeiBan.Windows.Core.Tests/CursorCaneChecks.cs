@@ -14,7 +14,7 @@ static class CursorCaneChecks
             check(l.X>=0&&l.Y>=0&&l.X<size&&l.Y<size,"Hotspot inside bitmap at all DPI sizes");
             if(tool=="laser")check(l.X==size/2&&l.Y==size/2,"Laser center equals hotspot");
         }
-        check(StraightStrokeRecognizer.HoldSeconds==.8,"Hold shortened by 0.2 seconds");
+        check(StraightStrokeRecognizer.HoldSeconds==.6,"Hold shortened by 0.2 seconds");
         check(ToolbarPaging.Starts(new double[]{84,84,166,84,84},260,3).SequenceEqual(new[]{0,2,4}),"Variable width brush group gets measured page boundaries");
         check(ToolbarPaging.Starts(new double[]{166,84,84},100,3).SequenceEqual(new[]{0,1,2}),"Oversized indivisible group has a page of its own");
         check(ToolbarPaging.Starts(Array.Empty<double>(),100,3).SequenceEqual(new[]{0}),"Empty toolbar has stable first page");

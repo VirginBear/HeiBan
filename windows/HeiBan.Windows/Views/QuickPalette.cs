@@ -37,6 +37,22 @@ internal sealed class QuickPalette : Grid,IDisposable
         Loaded+=(_,_)=>{if(!_disposed)Rebuild();};
         Rebuild();
     }
+    internal void SetVertical(bool vertical)
+    {
+        var columns = vertical ? 2 : 3;
+        ColumnDefinitions.Clear();
+        RowDefinitions.Clear();
+        for (var i = 0; i < columns; i++) ColumnDefinitions.Add(new() { Width = GridLength.Auto });
+        for (var i = 0; i < 6 / columns; i++) RowDefinitions.Add(new() { Height = GridLength.Auto });
+        for (var i = 0; i < _buttons.Length; i++)
+        {
+            Grid.SetColumn(_buttons[i], i % columns);
+            Grid.SetRow(_buttons[i], i / columns);
+        }
+        HorizontalAlignment = vertical ? HorizontalAlignment.Center : HorizontalAlignment.Left;
+        Margin = vertical ? new Thickness(0) : new Thickness(3, 0, 6, 0);
+    }
+
     public void Dispose(){if(_disposed)return;_disposed=true;_store.Changed-=Rebuild;}
     internal void Refresh()=>Rebuild();
     private void Rebuild()

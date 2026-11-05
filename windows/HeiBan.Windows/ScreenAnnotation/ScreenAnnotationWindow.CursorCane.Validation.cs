@@ -21,8 +21,11 @@ internal sealed partial class ScreenAnnotationWindow
             foreach(var mode in new[]{"icons","labels"})foreach(var side in new[]{"top","left","right","bottom"})
             {
                 _toolbarPreferences.DisplayMode=mode;_chromeDock=side;RebuildChromeLayout();
+                ResizeChrome();
+                if (side is "left" or "right")
+                    Check(AppWindow.Size.Width / _dpiScale <= 74, $"Screen side toolbar width: {AppWindow.Size.Width / _dpiScale}");
                 var unit=HeiBan.Windows.Views.ToolbarUi.ButtonUnit(_brushButton);
-                Check(unit is Microsoft.UI.Xaml.Controls.Grid grid&&grid.Children.Contains(_brushButton)&&grid.Children.Contains(_quickPalette),"Screen brush unit lost during docking");
+                Check(unit is Microsoft.UI.Xaml.Controls.Grid grid&&grid.Children.Contains(_brushButton)&&grid.Children.Contains(_quickPalette)&&Microsoft.UI.Xaml.Controls.Grid.GetRow(_quickPalette)==(side is "left" or "right"?1:0),"Screen brush unit lost during docking");
             }
             _toolbarPreferences.DisplayMode=display;_chromeDock=dock;RebuildChromeLayout();
             SetDrawing(true);_tool="cane";_renderTimer.Stop();_cane.Clear();_dirty=true;Render();

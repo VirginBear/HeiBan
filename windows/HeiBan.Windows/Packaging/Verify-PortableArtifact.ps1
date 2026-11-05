@@ -28,7 +28,7 @@ foreach($file in $inventory.Files.PSObject.Properties) {
 Assert (-not (Get-ChildItem -LiteralPath (Join-Path $qa 'Data') -Recurse -File)) 'Portable ZIP contains user data'
 $machine=if($Runtime -eq 'win-arm64'){0xaa64}else{0x8664}
 Assert ((Get-Machine (Join-Path $qa 'HeiBan.exe')) -eq $machine) 'App architecture mismatch'
-Assert ((Get-Machine (Join-Path $qa 'Updater\HeiBan.Updater.exe')) -eq $machine) 'Helper architecture mismatch'
+Assert (-not (Test-Path -LiteralPath (Join-Path $qa 'Updater'))) 'Legacy updater shipped in portable artifact'
 Assert (([Diagnostics.FileVersionInfo]::GetVersionInfo((Join-Path $qa 'HeiBan.exe'))).ProductVersion.Split('+')[0] -eq $version) 'App version mismatch'
 Assert ((Get-FileHash -LiteralPath (Join-Path $qa 'Assets\HeiBanUserGuide.html')).Hash -eq (Get-FileHash -LiteralPath (Join-Path $PSScriptRoot '..\Assets\HeiBanUserGuide.html')).Hash) 'Guide out of date'
 Assert ((Get-FileHash -LiteralPath (Join-Path $qa 'README-Windows.md')).Hash -eq (Get-FileHash -LiteralPath (Join-Path $root 'README.md')).Hash) 'README out of date'

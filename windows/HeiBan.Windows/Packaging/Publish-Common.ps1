@@ -9,23 +9,19 @@
         -p:Platform=$platform -p:WindowsPackageType=None -p:WindowsAppSDKSelfContained=true `
         -p:PublishAot=false -p:PublishSingleFile=false -o $Destination @artifactArguments
     if ($LASTEXITCODE -ne 0) { throw "dotnet publish 失敗，代碼 $LASTEXITCODE" }
-    $updaterProject = Join-Path $PSScriptRoot '..\..\HeiBan.Updater\HeiBan.Updater.csproj'
-    & dotnet publish $updaterProject -c $Configuration -r $Runtime --self-contained true -p:PublishSingleFile=true -o (Join-Path $Destination 'Updater') @artifactArguments
-    if ($LASTEXITCODE -ne 0) { throw "更新程式 publish 失敗，代碼 $LASTEXITCODE" }
     Copy-Item (Join-Path $PSScriptRoot '..\..\Licenses') (Join-Path $Destination 'Licenses') -Recurse -Force
     # The app PRI holds the compiled XAML; runtime PRIs cannot replace it.
     foreach ($required in @('HeiBan.exe','HeiBan.pri','coreclr.dll','Microsoft.ui.xaml.dll',
-        'Microsoft.UI.Xaml.Controls.pri','Microsoft.Graphics.Canvas.dll','Assets\AppIcon.ico','Assets\Wordmark.png','Updater\HeiBan.Updater.exe')) {
+        'Microsoft.UI.Xaml.Controls.pri','Microsoft.Graphics.Canvas.dll','Assets\AppIcon.ico','Assets\Wordmark.png')) {
         $path = Join-Path $Destination $required
         if (-not (Test-Path $path -PathType Leaf) -or (Get-Item $path).Length -eq 0) {
             throw "發行包缺少必要檔案或檔案為空：$required；停止封裝。"
         }
     }
-    Write-HeiBanUpdateInventory $Destination
 }
 function Write-HeiBanUpdateInventory {
     param([string]$Destination)
-    # Only declared application payload is replaced by Portable updates. Data and user-added files stay outside this inventory.
+    # Keep the historical inventory format for artifact verification. Exclude user data.
     $files = [ordered]@{}
     Get-ChildItem -LiteralPath $Destination -File -Recurse | Sort-Object FullName | ForEach-Object {
         $relative = $_.FullName.Substring([IO.Path]::GetFullPath($Destination).TrimEnd('\').Length + 1).Replace('\','/')

@@ -91,7 +91,6 @@ public partial class MainWindow : Window
         AppWindow.Resize(new global::Windows.Graphics.SizeInt32(Math.Min((int)(1100*scale),display.Width-80),Math.Min((int)(760*scale),display.Height-80)));
         AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory,"Assets","AppIcon.ico"));
         PortableBadge.Visibility=_storage.IsPortableMode?Visibility.Visible:Visibility.Collapsed;
-        _updates=new Updating.GitHubUpdateService(_storage.IsPortableMode);
         _renderer.ResourcesChanged+=()=>{_objectDragRenderer?.Dispose();_objectDragRenderer=null;InvalidateCanvas();};
         _autosave.Tick+=async(_,_)=>{if(AutoSaveEnabled&&!_preparingClose&&!_saveBoundaryBusy&&_workspaceOpen&&_session.IsDirty&&_editor is null&&!_gesture&&_boardEraserDraft is null&&!_propertyEditing&&_saveGate.CurrentCount>0)await SaveAsync(deferThumbnail:true);};
         ApplySavingPreferences();
@@ -113,7 +112,6 @@ public partial class MainWindow : Window
                 if(_workspaceOpen&&_session.IsDirty&&!await SaveAsync())return;
                 await FlushPendingThumbnailAsync();
                 if(_workspaceOpen&&_session.IsDirty)return;
-                if(_updates is not null)await _updates.PrepareExitAsync();
                 _inputLatencyHeartbeat?.Stop();
                 try{await Diagnostics.InputLatencyTrace.SaveAsync();}
                 catch(Exception error){System.Diagnostics.Debug.WriteLine("Input latency report: "+error.Message);}
@@ -122,7 +120,7 @@ public partial class MainWindow : Window
             catch(Exception error){await Error(error);}
             finally{if(!_closing){ShowSavingOverlay(false);_preparingClose=false;ApplySavingPreferences();}}
         };
-        Closed+=(_,_)=>{_canvasCaptureToastTimer?.Stop();_quickPalette?.Dispose();CaneSound.Dispose();_boardEraserWorking?.Cancel();_inputLatencyHeartbeat?.Stop();_layerPreview?.End();CanvasCursorHost.ReleaseCursor();_shapeCursor.Dispose();_updates?.Dispose();_autosave.Stop();_thumbnailTimer.Stop();_inkUiTimer.Stop();_searchTimer.Stop();_teachingSaveTimer.Stop();CancelScreenshotCapture("視窗關閉");_timerTickTimer?.Stop();_laserTimer.Stop();_propertyCommitTimer.Stop();_headerHideTimer.Stop();ClearScene();CanvasSurface.RemoveFromVisualTree();_renderer.Dispose();_screenAnnotation?.Dispose();};
+        Closed+=(_,_)=>{_canvasCaptureToastTimer?.Stop();_quickPalette?.Dispose();CaneSound.Dispose();_boardEraserWorking?.Cancel();_inputLatencyHeartbeat?.Stop();_layerPreview?.End();CanvasCursorHost.ReleaseCursor();_shapeCursor.Dispose();_autosave.Stop();_thumbnailTimer.Stop();_inkUiTimer.Stop();_searchTimer.Stop();_teachingSaveTimer.Stop();CancelScreenshotCapture("視窗關閉");_timerTickTimer?.Stop();_laserTimer.Stop();_propertyCommitTimer.Stop();_headerHideTimer.Stop();ClearScene();CanvasSurface.RemoveFromVisualTree();_renderer.Dispose();_screenAnnotation?.Dispose();};
         App.StartupStage="顯示首頁";
         try { EnsureScreenAnnotation(); } catch(Exception e) { StatusText.Text=T("螢幕畫布初始化失敗：")+e.Message; }
     }
@@ -161,7 +159,7 @@ public partial class MainWindow : Window
             else if(workflow is not null)await RunDrawingWorkflowChecksAsync(workflow[26..]);
             else if(performance is not null)await RunPerformanceBatchAsync(performance[21..]);
             else if(validation is not null)await RunNativeValidationAsync(validation[20..]);
-            else {if(Environment.GetCommandLineArgs().Contains("--screen-canvas"))await StartScreenAnnotationAsync();_updates?.Start();} }
+            else {if(Environment.GetCommandLineArgs().Contains("--screen-canvas"))await StartScreenAnnotationAsync();} }
         catch(Exception e){await Error(e);}
     }
     private async Task Error(Exception e)
@@ -326,7 +324,7 @@ public partial class MainWindow : Window
     {if(!_workspaceOpen||string.IsNullOrWhiteSpace(TitleBox.Text)||TitleBox.Text==_session.Document.Board.Title)return;_session.Begin();_session.Document.Board.Title=TitleBox.Text.Trim();_session.Commit();}
     private async void Export_Click(object sender,RoutedEventArgs e)=>await ExportDocumentAsync();
     private async void About_Click(object sender,RoutedEventArgs e)
-    {var result=await new ContentDialog{FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,Title=T("黑板 · Windows ")+Updating.GitHubUpdateService.CurrentVersion,Content=T("C# / .NET 10 / WinUI 3 / Win2D\n本機作品資料：\n")+_storage.DataDirectory+T("\n\n功能基準：Mac 1.0.12。Windows 預覽版；實體手寫裝置、多螢幕及完整跨 App 操作仍待驗收。"),PrimaryButtonText=T("更新設定"),CloseButtonText=T("關閉"),XamlRoot=Root.XamlRoot}.ShowAsync();if(result==ContentDialogResult.Primary)await ShowUpdatesAsync();}
+    {await new ContentDialog{FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,Title=T("黑板 · Windows ")+typeof(App).Assembly.GetName().Version?.ToString(3),Content=T("C# / .NET 10 / WinUI 3 / Win2D\n本機作品資料：\n")+_storage.DataDirectory+T("\n\n功能基準：Mac 1.0.12。Windows 預覽版；實體手寫裝置、多螢幕及完整跨 App 操作仍待驗收。"),CloseButtonText=T("關閉"),XamlRoot=Root.XamlRoot}.ShowAsync();}
     private void Tool_Click(object sender,RoutedEventArgs e)=>ActivateTool((string)((FrameworkElement)sender).Tag);
     private void Properties_Click(object sender,RoutedEventArgs e)
     {Inspector.Visibility=Inspector.Visibility==Visibility.Visible?Visibility.Collapsed:Visibility.Visible;if(Inspector.Visibility==Visibility.Visible){_changingLayers=true;try{RefreshLayersIfNeeded();}finally{_changingLayers=false;}}RefreshProperties();RefreshChrome();}
@@ -427,6 +425,7 @@ public partial class MainWindow : Window
         if(changed)_=SaveToolbarDockAsync();
         ShowWorkspaceHeader(WorkspaceHeader.Visibility==Visibility.Visible);
         var vertical=side is "左側" or "右側";Tools.Orientation=ToolShell.Orientation=vertical?Orientation.Vertical:Orientation.Horizontal;
+        ToolBorder.Padding=new Thickness(vertical?4:8);
         ToolbarGrip.Width=vertical?40:24;ToolbarGrip.Height=vertical?20:40;
         ToolBorder.HorizontalAlignment=side=="左側"?HorizontalAlignment.Left:side=="右側"?HorizontalAlignment.Right:HorizontalAlignment.Center;
         ToolBorder.VerticalAlignment=side=="下方"?VerticalAlignment.Bottom:side=="上方"?VerticalAlignment.Top:VerticalAlignment.Center;

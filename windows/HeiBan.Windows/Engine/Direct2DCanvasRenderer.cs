@@ -74,7 +74,14 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
         PruneTextCache(ids);
         foreach(var id in _geometry.Keys.Where(id=>!ids.Contains(id)).ToArray()){_geometry[id].Geometry.Dispose();_geometry.Remove(id);}
     }
-    public void Dispose(){ClearCache();ClearToolArt();}
+    public void Dispose()
+    {
+        ClearCache();
+        ClearToolArt();
+        _rulerTickText?.Dispose();
+        _rulerBadgeText?.Dispose();
+        _rulerTickText = _rulerBadgeText = null;
+    }
     public void RenderBackground(CanvasDrawingSession ds,BoardMetadata board,ViewportTransform vp,float width,float height)
     {
         var bounded=board.CanvasMode is "fixed" or "notebook";

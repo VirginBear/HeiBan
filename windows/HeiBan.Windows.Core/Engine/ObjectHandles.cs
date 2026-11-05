@@ -17,6 +17,31 @@ public static class ObjectHandles
     public static InkPoint Center(BoardObject o)=>new(o.X+o.Width/2,o.Y+o.Height/2);
     public static InkPoint ToWorld(BoardObject o,InkPoint p)=>Rotate(p,Center(o),o.Rotation);
     public static InkPoint ToLocal(BoardObject o,InkPoint p)=>Rotate(p,Center(o),-o.Rotation);
+    public static void MoveVertex(BoardObject shape, int index, InkPoint position)
+    {
+        var original = shape.ParsedPoints;
+        if ((uint)index >= (uint)original.Count) return;
+
+        // Bake rotation before changing the bounds so other vertices stay in place.
+        // Keep each vertex's pressure and extension data in the owned preview.
+        var points = new List<InkPoint>(original.Count);
+        for (var i = 0; i < original.Count; i++)
+        {
+            var point = original[i].Snapshot();
+            var target = i == index ? position : ToWorld(shape, point);
+            point.X = target.X;
+            point.Y = target.Y;
+            points.Add(point);
+        }
+        var bounds = VectorMath.ComputeBoundingBox(points, shape.StrokeWidth);
+        shape.Rotation = 0;
+        shape.SetOwnedInkPoints(points);
+        shape.X = bounds.MinX;
+        shape.Y = bounds.MinY;
+        shape.Width = bounds.Width;
+        shape.Height = bounds.Height;
+    }
+
     public static IReadOnlyList<InkPoint> Outline(BoardObject o)=>Corners.Select(p=>ToWorld(o,new(o.X+p.X*o.Width,o.Y+p.Y*o.Height))).ToArray();
     public static InkPoint Endpoint(BoardObject o,int index)=>ToWorld(o,index==0?new(o.X1??o.X,o.Y1??o.Y):new(o.X2??o.X+o.Width,o.Y2??o.Y+o.Height));
     public static IReadOnlyList<Handle> Get(BoardObject o,double zoom)
