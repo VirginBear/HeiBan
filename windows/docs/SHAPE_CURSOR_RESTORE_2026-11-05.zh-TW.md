@@ -14,3 +14,11 @@
 - `python windows/scripts/Build-UserGuides.py`：10語26章80段，指南說明釐清工具差異。首德文片段輸出遇cp950編碼錯誤，只影響terminal列印，已在UTF8腳本中處理，未改產品。
 
 無實體滑鼠跟手／ARM64硬體／Store安裝／WACK驗收；本批未重跑OptimizationChecks（幾何游標改動無資料層變化），不套前批數字。新免安裝／SHA結果待追加。原作品與已送商店版本保持。
+
+## 交付
+
+`Package-PortableTrial.ps1 -Runtime win-x64 -Label shape-cursor-2026-11-05-r1`正常Release成功，來源1c795b96793c425d1e721570c0d4f6bb4d5058d3；`.build/shape-cursor-20261105/Verify-Portable-r1.py`：729 payload、413來源、132SVG、10語指南逐SHA／ZIP CRC／正常版排除QA／三音效frames peak與SHA／獨立空Data全通過。ZIP133745779bytes，SHAde6c4800bba6b2b87e3a0e9e3dba2e8be497c486240cf2a0ea0cb08c7f23c1b9。
+
+成品：`windows/dist/trials/HeiBan-Windows-Portable-1.1.2-shape-cursor-2026-11-05-r1-win-x64/HeiBan.exe`與同路徑`.zip`。agent未啟動正常trial，原生QA獨立資料庫正常關閉；未搬移或刪原作品。正式1.1.2.0 x64／ARM64／bundle三SHA保持。原dirty三文件及三YouTube草稿保留；只Windows。
+
+試用標準：一般／螢幕畫布各用直線、箭頭、矩形、圓、多邊形與曲線，十字中心就是建構點、工具圖示旁掛；兩圖示風格皆如此。畫筆／螢光筆／油漆筆／橡皮擦仍筆尖定位、雷射仍小光點中心，選取／縮放／旋轉不變。主觀實機手感待使用者。

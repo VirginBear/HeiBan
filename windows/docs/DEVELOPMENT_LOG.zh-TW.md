@@ -2,7 +2,7 @@
 
 ## 2026-11-05 — 圖形工具游標回復
 
-前批筆尖cursor路徑誤涵蓋幾何工具，使用者要求圖形回原樣。ToolCursorGeometry明確十工具crosshair分支，ToolCursor重用舊SVG十字＋translate8,8/scale.85黑白badge；保留alpha native資源生命週期、cache、其他工具／變形cursor。Core更新既有回歸期待且全15工具／兩style／六尺寸6028 PASS，QA build0warning0error；手冊十語釐清筆尖與圖形十字區別。未動其他平台／作品／正式包。完整命令與實際結果見[本批](SHAPE_CURSOR_RESTORE_2026-11-05.zh-TW.md)，新試用與原生驗證待追加。
+前批筆尖cursor路徑誤涵蓋幾何工具，使用者要求圖形回原樣。ToolCursorGeometry明確十工具crosshair分支，ToolCursor重用舊SVG十字＋translate8,8/scale.85黑白badge；保留alpha native資源生命週期、cache、其他工具／變形cursor。Core更新既有回歸期待且全15工具／兩style／六尺寸6028 PASS，QA build0warning0error；手冊十語釐清筆尖與圖形十字區別。未動其他平台／作品／正式包。完整命令與實際結果見[本批](SHAPE_CURSOR_RESTORE_2026-11-05.zh-TW.md)，最終原生515＋26＋16通過，cursor atlas確認十圖形回十字；正常x64 shape-cursor-2026-11-05-r1完成，133745779bytes SHAde6c4800bba6b2b87e3a0e9e3dba2e8be497c486240cf2a0ea0cb08c7f23c1b9；729 payload／413來源與CRC、QA排除／十語與3音效SHA核同，正式三包保持。
 
 ## 2026-11-05 — 藤條取樣與快捷六色
 
