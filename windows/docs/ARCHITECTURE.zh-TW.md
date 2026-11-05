@@ -1,5 +1,9 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-11-05 — 共用製圖modifier／尺恢復／圓色票
+
+ShapeConstruction只處理世界／overlay-local座標與regular參數，不讀鍵盤、不碰session。兩host分別讀Shift更新暫態preview，放開才永久提交；選取框不使用正形限制。三角／四邊保留逐點狀態，Shift首邊拖曳轉正形。Screen ruler恢復將DisplayArea desktop實體座標減overlay原點，damage只更新暫態尺；更多重用command map，無XamlRoot的隱藏anchor回More。PaletteEditor畫圓與透明底，拖曳MoveAsync為唯一排序API；先前條目中的MoveByAsync在本批查引用後移除。詳[本批](SHIFT_RULER_ROUND_PALETTE_2026-11-05.zh-TW.md)。
+
 ## 2026-11-05 — 幾何游標與筆尖游標分路
 
 ToolCursorGeometry.UsesCrosshairBadge限定10種建構工具，Layout回舊32單位cross位置與badge比例；ToolCursor以舊黑白SVG全size光柵化，其餘工具仍用26單位筆尖／光點路徑。兩host現有ShapeCursor共用，不改輸入／永久模型，也不改選取變形cursor。詳[範圍](SHAPE_CURSOR_RESTORE_2026-11-05.zh-TW.md)。

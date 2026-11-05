@@ -88,7 +88,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         var failed=0;
         foreach(var key in new[]{(1,0x41u),(2,0x44u),(3,0x53u),(4,0x51u),(5,0x4Bu)})if(!_overlay.RegisterShortcut(key.Item1,0x0002|0x0001,key.Item2))failed++;
         _hotkeyRegistrationFailed=failed>0;if(failed>0)_status.Text=T("部分快捷鍵被其他程式占用，請使用控制列按鈕。");
-        _renderTimer.Tick+=(_,_)=>{if(!IsActive)return;try{PollScreenRadial();while(_cane.TakeImpactSound(Now) is >0 and var impact)CaneSound.PlayImpact(impact,error=>DispatcherQueue.TryEnqueue(()=>_status.Text=T("藤條音效無法播放：")+error));UpdateScreenEraser();UpdateScreenMagnetHover();if(_dirty||_laser.Samples.Count>0||_cane.NeedsAnimation(Now)||_caneWasAnimating)Render();}catch(Exception e){_renderTimer.Stop();_overlay.Hide();_status.Text=T("螢幕繪圖已停止：")+e.Message;}};
+        _renderTimer.Tick+=(_,_)=>{if(!IsActive)return;try{PollScreenRadial();RefreshScreenShiftPreview();while(_cane.TakeImpactSound(Now) is >0 and var impact)CaneSound.PlayImpact(impact,error=>DispatcherQueue.TryEnqueue(()=>_status.Text=T("藤條音效無法播放：")+error));UpdateScreenEraser();UpdateScreenMagnetHover();if(_dirty||_laser.Samples.Count>0||_cane.NeedsAnimation(Now)||_caneWasAnimating)Render();}catch(Exception e){_renderTimer.Stop();_overlay.Hide();_status.Text=T("螢幕繪圖已停止：")+e.Message;}};
         _focusRememberTimer.Tick+=(_,_)=>{if(IsActive)RememberExternalFocus();};
         _straightenTimer.Tick+=(_,_)=>
         {
@@ -197,6 +197,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             return;
         }
         var vp=new System.Numerics.Vector2((float)p.X,(float)p.Y);
+        if(input.Kind=="double"&&_tool!="select")input=input with{Kind="down"};
         if(_rulerEnabled)
         {
             if(input.Kind=="down"&&!input.RightDown)
@@ -316,8 +317,10 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         {_screenMagnetIndex=null;_screenMagnetTarget=null;} // No snap lookup or stale reference index during freehand ink.
         if(IsMagnetDrawingTool(_tool))
         {
+            _constructionPointer=new(p.X,p.Y,p.Pressure);_constructionShift=input.Shift;
             EnsureScreenMagnetIndex();
-            if(_toolbarPreferences.MagnetEnabled&&_screenMagnetIndex is not null)p=_screenMagnetIndex.Snap(p,out _);
+            if(!input.Shift&&_toolbarPreferences.MagnetEnabled&&_screenMagnetIndex is not null)p=_screenMagnetIndex.Snap(p,out _);
+            else if(input.Shift)_screenMagnetTarget=null;
         }
         UpdateScreenShapeCursor(p);
         if(input.Kind=="move"&&_start is null&&_tool=="eraser"){UpdateScreenEraser();return;}
@@ -332,7 +335,10 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         }
         if(input.Kind=="down"){if(_chromeFlyout is not null){CommitScreenStyle();_chromeFlyout.Hide();_chromeFlyout=null;}FinishScreenText();if(_tool is "text" or "sticky"){BeginScreenText(p,type:_tool);return;}}
         if(_preview is not null)DamagePreview();
-        if(_tool is "curve" or "triangle" or "quadrilateral")
+        var regularPolygon=ShapeConstruction.IsVertexPolygon(_tool)&&input.Shift&&_curveAnchors.Count<=1;
+        if(regularPolygon&&input.Kind=="move"&&input.LeftDown&&_curveAnchors.Count==1&&_start is null)
+        {_start=_last=_curveAnchors[0];_curveAnchors.Clear();_preview=Styled(new BoardObject{Type=_tool});}
+        if((_tool is "curve" or "triangle" or "quadrilateral")&&!regularPolygon&&_start is null)
         {
             if(input.Kind=="down")_curveAnchors.Add(p);
             if(_curveAnchors.Count==0)return;
@@ -340,7 +346,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             var needed=_tool=="quadrilateral"?4:3;
             var points=_curveAnchors.Count==needed?_curveAnchors.ToArray():_tool=="curve"?CurvePreview.Points(_curveAnchors,p):_curveAnchors.Concat(new[]{p}).ToArray();
             var bounds=VectorMath.ComputeBoundingBox(_tool=="curve"?CurvePreview.Flatten(points):points,_width*_dpiScale);
-            _preview.X=bounds.MinX;_preview.Y=bounds.MinY;_preview.Width=bounds.Width;_preview.Height=bounds.Height;_preview.Points=JsonSerializer.Serialize(points,DocumentCodec.Options);
+            _preview.X=bounds.MinX;_preview.Y=bounds.MinY;_preview.Width=bounds.Width;_preview.Height=bounds.Height;_preview.SetCompletedInkPoints(points);
             if(_curveAnchors.Count==needed){_session.AppendShape(_preview);_preview=null;_curveAnchors.Clear();Changed();}
             DamagePreview();_dirty=true;return;
         }
@@ -385,7 +391,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         if(input.Kind=="down")
         {
             if(_tool=="select")DamageSelectedObjects(); // Remove the previous selection adorners even when the new gesture starts on blank space.
-            _start=_last=p;if(_tool is not("select" or "pen" or "highlighter" or "paint")&&!ScreenShapeTools.Contains(_tool)&&_tool!="tape")_session.Begin();_points.Clear();_points.Add(p);
+            _start=_last=p;if(regularPolygon&&_curveAnchors.Count==1){_start=_curveAnchors[0];_curveAnchors.Clear();}if(_tool is not("select" or "pen" or "highlighter" or "paint")&&!ScreenShapeTools.Contains(_tool)&&_tool!="tape")_session.Begin();_points.Clear();_points.Add(p);
             _screenPenStraight=false;_penHoldAnchor=_tool=="pen"?p:null;_penHoldSince=Now;_straightenTimer.Stop();if(_penHoldAnchor is not null)_straightenTimer.Start();
             if(_tool=="select")
             {
@@ -400,20 +406,20 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
                 if(!_marquee&&_handle is null&&_session.SelectedObjects.Any(o=>o.IsLocked!=true))_objectDragArmed=true;else if(_handle is not null)_session.Begin();
                 RefreshScreenStyleButtons();_manipulation=_handle is not null&&_session.SelectedIds.Count==1&&_session.Selected is { } o?DocumentCodec.Clone(o):null;
             }
-            else if(ScreenShapeTools.Contains(_tool)||_tool=="tape")_preview=Styled(new BoardObject{Type=_tool,X=p.X,Y=p.Y,Width=1,Height=1});
+            else if(ScreenShapeTools.Contains(_tool)||_tool=="tape"){_preview=Styled(new BoardObject{Type=_tool,X=p.X,Y=p.Y,Width=1,Height=1});UpdateScreenConstructionPreview(p,input.Shift);}
         }
         else if(_start is not null&&input.Kind is "move" or "up")
         {
             if(_tool=="select"&&!_marquee&&_session.Selected is { } selected&&_last is not null)
             {
                 if(_handle?.Kind=="resize"&&_manipulation is not null)ObjectHandles.Resize(selected,_manipulation,_handle.Value.Index,p,true);
-                else if(_handle?.Kind=="endpoint")ObjectHandles.MoveEndpoint(selected,_handle.Value.Index,input.Shift?ObjectHandles.ConstrainOrthogonal(ObjectHandles.Endpoint(selected,1-_handle.Value.Index),p):p);
+                else if(_handle?.Kind=="endpoint")ObjectHandles.MoveEndpoint(selected,_handle.Value.Index,input.Shift?ShapeConstruction.ConstrainLine(ObjectHandles.Endpoint(selected,1-_handle.Value.Index),p):p);
                 else if(_handle?.Kind=="rotate"&&_manipulation is not null)selected.Rotation=_manipulation.Rotation+(Math.Atan2(p.Y-ObjectHandles.Center(selected).Y,p.X-ObjectHandles.Center(selected).X)-Math.Atan2(_start.Y-ObjectHandles.Center(selected).Y,_start.X-ObjectHandles.Center(selected).X))*180/Math.PI;
                 else if(p.X!=_last.X||p.Y!=_last.Y)_session.PreviewMoveSelection(p.X-_last.X,p.Y-_last.Y);
             }
             else if(_preview is not null)
             {
-                if(_tool is "line" or "arrow")ObjectHandles.SetEndpoints(_preview,_start,input.Shift?ObjectHandles.ConstrainOrthogonal(_start,p):p);
+                if(!_marquee)UpdateScreenConstructionPreview(p,input.Shift);
                 else {ShapeConstruction.Drag(_preview,_start,p);if(_marquee){_preview.LineStyle=p.X<_start.X?"dashed":"solid";_preview.StrokeColor=p.X<_start.X?"#39735A":"#3976C4";}}
             }
             else if(_tool is "pen" or "highlighter" or "paint")
@@ -561,7 +567,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     private void CancelGesture()
     {
         var hadDrag=_objectDrag is not null;ClearObjectDrag();_selectionClickId=null;
-        CancelRadial();
+        CancelRadial();_constructionPointer=null;
         if(_cane.Point is not null){_cane.Clear();CaneSound.Stop();_dirty=true;}
         if(_laser.Samples.Count>0){_laser.Release();_dirty=true;}
         CancelCircularEraser();

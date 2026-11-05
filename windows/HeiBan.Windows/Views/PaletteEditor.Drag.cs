@@ -53,7 +53,7 @@ internal sealed partial class PaletteEditor
                     var at=cell.TransformToVisual(_swatches).TransformPoint(new Point());
                     if(cell.Children[0] is Button target)_dropTargets.Add((new Rect(at.X,at.Y,cell.ActualWidth,cell.ActualHeight),index++,target));
                 }
-                _dragPreview=new Border{Width=32,Height=32,CornerRadius=new CornerRadius(8),Opacity=.9,Background=new SolidColorBrush(Microsoft.UI.Colors.White),BorderBrush=new SolidColorBrush(Direct2DCanvasRenderer.HexToColor("#39735A")),BorderThickness=new Thickness(2),Child=Chip(_dragColor!)};
+                _dragPreview=new Border{Width=32,Height=32,CornerRadius=new CornerRadius(16),Opacity=.9,Background=new SolidColorBrush(Microsoft.UI.Colors.White),BorderBrush=new SolidColorBrush(Direct2DCanvasRenderer.HexToColor("#39735A")),BorderThickness=new Thickness(2),Child=Chip(_dragColor!)};
                 _dragLayer.Children.Add(_dragPreview);button.Opacity=.4;
             }
             Canvas.SetLeft(_dragPreview!,p.X-16);Canvas.SetTop(_dragPreview!,p.Y-16);

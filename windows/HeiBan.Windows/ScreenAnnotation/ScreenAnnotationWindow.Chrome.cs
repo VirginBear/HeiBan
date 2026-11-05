@@ -312,11 +312,21 @@ internal sealed partial class ScreenAnnotationWindow
         var mode=new ComboBox{Header=T("模式"),ItemsSource=new[]{T("物件"),T("像素")},SelectedIndex=_eraserWhole?0:1,HorizontalAlignment=HorizontalAlignment.Stretch};mode.SelectionChanged+=(_,_)=>_eraserWhole=mode.SelectedIndex==0;panel.Children.Add(mode);
         var size=ChromeSlider(4,120,_eraserSize,T("範圍（pt）"));size.StepFrequency=2;size.ValueChanged+=(_,_)=>_eraserSize=size.Value;panel.Children.Add(size);ShowChromeFlyout(new Flyout{Content=panel},_buttons["eraser"]);
     }
-    private void ShowScreenMenu(FrameworkElement anchor)
+    private void ShowScreenMenu(FrameworkElement anchor)=>ShowChromeFlyout(CreateScreenMenu(),anchor);
+    private MenuFlyout CreateScreenMenu()
     {
         var menu=new MenuFlyout();
         void Item(string icon,string label,Action action){var item=new MenuFlyoutItem{Text=label,Icon=ToolIcons.CreateMenuIcon(icon,_color)};item.Click+=(_,_)=>action();menu.Items.Add(item);}
         Item("radialSettings",T("設定工具輪盤"),ShowRadialSettings);
+        menu.Items.Add(CreateScreenRulerMenu());
+        var hidden=ToolbarContentPolicy.HiddenTools(_toolbarPreferences,true).Where(key=>key!="ruler"&&_screenCommands.ContainsKey(key)).ToArray();
+        if(hidden.Length>0)
+        {
+            var tools=new MenuFlyoutSubItem{Text=T("更多工具")};
+            foreach(var key in hidden)
+            {var item=new MenuFlyoutItem{Text=T(ToolbarPreferences.ToolNames.GetValueOrDefault(key,key)),Icon=ToolIcons.CreateMenuIcon(key,_color)};item.Click+=(_,_)=>_screenCommands[key]();tools.Items.Add(item);}
+            menu.Items.Add(tools);
+        }
         if(StyleSelection is not null){Item("select",T("選取物件：樣式、複製、刪除…"),()=>ShowChromeFlyout(CreateObjectMenu(),_moreButton));menu.Items.Add(new MenuFlyoutSeparator());}
         var automatic=new ToggleMenuFlyoutItem{Text=T("自動存檔"),IsChecked=_owner.AutoSaveEnabled};
         automatic.Click+=async(_,_)=>{automatic.IsEnabled=false;try{await _owner.SetAutoSaveEnabledAsync(automatic.IsChecked);}catch(Exception error){automatic.IsChecked=_owner.AutoSaveEnabled;_status.Text=T("儲存設定未保存，請確認資料夾可寫入。")+"\n"+error.Message;}finally{automatic.IsEnabled=true;}};menu.Items.Add(automatic);
@@ -326,11 +336,13 @@ internal sealed partial class ScreenAnnotationWindow
         menu.Items.Add(_owner.CreateOperateRadialMenuItem());
         menu.Items.Add(_owner.CreateCaneMuteMenuItem());
         Item("settings",T("自訂工具列…"),()=>ShowScreenCustomizeToolbarWindow());
-        Item("export",T("儲存可編輯註記／透明 PNG…"),async()=>await ExportAnnotationsAsync());Item("delete",T("一鍵清空畫布（可復原）"),ClearScreenObjects);Item("reading",T("使用說明（正體中文）"),async()=>await global::Windows.System.Launcher.LaunchUriAsync(new Uri(Path.Combine(AppContext.BaseDirectory,"Assets","HeiBanUserGuide.html"))));
-        Item("copy",T("貼上已複製物件"),async()=>await PasteScreenSelectionAsync());Item("select",_collapsed?T("展開工具區"):T("收合工具區"),()=>SetChromeCollapsed(!_collapsed));menu.Items.Add(new MenuFlyoutSeparator());menu.Items.Add(new MenuFlyoutItem{Text=_status.Text,IsEnabled=false});ShowChromeFlyout(menu,anchor);
+        Item("export",T("儲存可編輯註記／透明 PNG…"),async()=>await ExportAnnotationsAsync());Item("delete",T("一鍵清空畫布（可復原）"),ClearScreenObjects);Item("reading",T("使用說明"),async()=>await _owner.OpenUserGuideAsync());
+        Item("copy",T("貼上已複製物件"),async()=>await PasteScreenSelectionAsync());Item("select",_collapsed?T("展開工具區"):T("收合工具區"),()=>SetChromeCollapsed(!_collapsed));menu.Items.Add(new MenuFlyoutSeparator());menu.Items.Add(new MenuFlyoutItem{Text=_status.Text,IsEnabled=false});return menu;
     }
     private void ShowChromeFlyout(FlyoutBase flyout,FrameworkElement anchor,FlyoutShowOptions? options=null)
     {
+        // Hidden/page-switched commands still open settings from the visible More button.
+        if(anchor.XamlRoot is null)anchor=_moreButton;
         ToolbarUi.ApplyReadingDirection(flyout);
         Activate();_chromeFlyout?.Hide();_chromeFlyout=flyout;flyout.ShouldConstrainToRootBounds=false;flyout.OverlayInputPassThroughElement=(FrameworkElement)Content;
         flyout.Closed+=(_,_)=>{CommitScreenStyle();if(ReferenceEquals(_chromeFlyout,flyout))_chromeFlyout=null;};if(options is null)flyout.ShowAt(anchor);else flyout.ShowAt(anchor,options);

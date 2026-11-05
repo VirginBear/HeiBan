@@ -172,7 +172,7 @@ public partial class MainWindow
             if(hit is null)BeginWindowSelection(_start,additive);
             else if(_session.SelectedObjects.Any(o=>o.IsLocked!=true))_objectDragArmed=true;
         }
-        else if(_tool is "triangle" or "quadrilateral" or "curve")
+        else if((_tool is "triangle" or "quadrilateral" or "curve")&&!(ShapeConstruction.IsVertexPolygon(_tool)&&_polygon.Count<=1&&KeyIsDown(VirtualKey.Shift)))
         {
             _polygon.Add(_start);
             if(_polygon.Count==(_tool=="quadrilateral"?4:3))
@@ -197,13 +197,14 @@ public partial class MainWindow
         else
         {
             _shapeGesture=true;
+            if(ShapeConstruction.IsVertexPolygon(_tool)&&_polygon.Count==1){_start=_polygon[0];_polygon.Clear();}
             if(_tool is "line" or "arrow")
             {
                 _lineCompleting=_lineAnchor is not null;_lineAnchor??=_start;
                 _preview??=Styled(new BoardObject{Type=_tool});
                 ObjectHandles.SetEndpoints(_preview,_lineAnchor,ConstrainLine(_lineAnchor,_start));
             }
-            else _preview=Styled(new BoardObject{Type=_tool,X=_start.X,Y=_start.Y,Width=1,Height=1});
+            else{_preview=Styled(new BoardObject{Type=_tool,X=_start.X,Y=_start.Y,Width=1,Height=1});ShapeConstruction.Drag(_preview,_start,_viewport.ScreenToWorld(_mouse.X,_mouse.Y),KeyIsDown(VirtualKey.Shift));}
         }
         InvalidateCanvas(!_marquee&&!_objectDragArmed&&_tool is not("pen" or "highlighter" or "paint"));e.Handled=true;
     }
@@ -284,6 +285,8 @@ public partial class MainWindow
             if(_lineAnchor is not null&&_preview is not null)ObjectHandles.SetEndpoints(_preview,_lineAnchor,ConstrainLine(_lineAnchor,SnapDrawingPoint(_viewport.ScreenToWorld(_mouse.X,_mouse.Y))));
             if(_polygon.Count>0||_lineAnchor is not null||(_hover&&_editor is null&&_tool is "pen" or "highlighter" or "paint" or "eraser"))InvalidateCanvas(false);return;
         }
+        if(ShapeConstruction.IsVertexPolygon(_tool)&&_polygon.Count==1&&KeyIsDown(VirtualKey.Shift))
+        {_start=_polygon[0];_polygon.Clear();_shapeGesture=true;_preview=Styled(new BoardObject{Type=_tool});}
         var world=_viewport.ScreenToWorld(_mouse.X,_mouse.Y);if(MagnetSnapIndex.SupportsConstructionTool(_tool)||_compassCenterMoving)world=SnapDrawingPoint(world);var delta=_mouse-_lastScreen;
         if(_panning){if(!_viewLocked){_viewport.X+=delta.X;_viewport.Y+=delta.Y;}}
         else if(_rulerMoving)_rulerCenter+=delta;
@@ -468,13 +471,23 @@ public partial class MainWindow
         _session.Commit();ResetGesture();CanvasSurface.ReleasePointerCaptures();RefreshEditor();e.Handled=true;
     }
     private static bool KeyIsDown(VirtualKey key)=>Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(key).HasFlag(global::Windows.UI.Core.CoreVirtualKeyStates.Down);
-    private void UpdateShapePreview(InkPoint world)
+    private void UpdateShapePreview(InkPoint world,bool? shiftOverride=null)
     {
         if(_preview is null||_start is null)return;
-        if(_preview.Type is "line" or "arrow")ObjectHandles.SetEndpoints(_preview,_lineAnchor??_start,ConstrainLine(_lineAnchor??_start,world));
-        else ShapeConstruction.Drag(_preview,_start,world);
+        var shift=shiftOverride??KeyIsDown(VirtualKey.Shift);
+        if(_preview.Type is "line" or "arrow")ObjectHandles.SetEndpoints(_preview,_lineAnchor??_start,shift?ShapeConstruction.ConstrainLine(_lineAnchor??_start,world):world);
+        else ShapeConstruction.Drag(_preview,_start,world,shift);
     }
-    private static InkPoint ConstrainLine(InkPoint anchor,InkPoint point)=>KeyIsDown(VirtualKey.Shift)?ObjectHandles.ConstrainOrthogonal(anchor,point):point;
+    private void Root_KeyUp(object sender,KeyRoutedEventArgs e)
+    {if(!e.Handled&&e.Key==VirtualKey.Shift&&_editor is null&&_workspaceOpen){RefreshShapeModifierPreview();e.Handled=true;}}
+    private void RefreshShapeModifierPreview()
+    {
+        if(_shapeGesture&&_preview is not null&&_start is not null)
+        {UpdateShapePreview(_viewport.ScreenToWorld(_mouse.X,_mouse.Y));InvalidateCanvas(false);}
+        else if(_lineAnchor is not null&&_preview is not null)
+        {ObjectHandles.SetEndpoints(_preview,_lineAnchor,ConstrainLine(_lineAnchor,_viewport.ScreenToWorld(_mouse.X,_mouse.Y)));InvalidateCanvas(false);}
+    }
+    private static InkPoint ConstrainLine(InkPoint anchor,InkPoint point)=>KeyIsDown(VirtualKey.Shift)?ShapeConstruction.ConstrainLine(anchor,point):point;
     private void ResetGesture(){ClearObjectDrag();_selectionClickId=null;HideHUD();_renderer.ResetLive();_gesture=_panning=_rulerMoving=_rulerRotating=_rulerPivotMoving=_shapeGesture=_lineCompleting=_marquee=false;_compassCenterMoving=_compassCenterMoved=_compassRadiusMoving=_compassPencilMoving=false;_objectHandle=null;_manipulationStart=null;_movingPin=null;_snapEdge=null;_ink.Projection=null;_magnetTarget=null;UpdateTeachingTimer();if(_hover)UpdateShapeCursor();else ResetShapeCursor();}
     private void CancelGesture(){ClearCanvasCapture();CancelRadial();_cane.Clear();CaneSound.Stop();CancelCircularEraser();var changed=_session.HasTransaction;_lasso.Clear();_laser.Clear();HideHUD();_ink.Cancel();_session.Cancel();_preview=null;_lineAnchor=null;_compass.Prepare();ResetGesture();CanvasSurface.ReleasePointerCaptures();if(changed)RefreshProperties();InvalidateCanvas(changed);}
     private void CanvasSurface_PointerCanceled(object sender,PointerRoutedEventArgs e){HideHUD();CancelRadial();if(_gesture)CancelGesture();}
@@ -516,7 +529,7 @@ public partial class MainWindow
         ZoomText.Text=$"{_viewport.Zoom:P0}";RefreshProperties();InvalidateCanvas();e.Handled=true;
     }
     private void CanvasSurface_DoubleTapped(object sender,DoubleTappedRoutedEventArgs e)
-    {if(_tool is "laser" or "cane"||!CanvasSurface.IsRenderingAvailable){e.Handled=true;return;}var p=e.GetPosition(CanvasSurface);if(PinAt(new((float)p.X,(float)p.Y)) is { } pin){CancelGesture();StartPinRename(pin);e.Handled=true;return;}var o=_session.HitSelection(_viewport.ScreenToWorld(p.X,p.Y),6/_viewport.Zoom);if(o?.Type=="tape"&&o.IsLocked!=true){_session.Begin();o.IsRevealed=o.IsRevealed!=true;_session.Commit();RefreshEditor();e.Handled=true;}else if(o is {IsLocked:not true}){CancelGesture();_tool="select";_polygon.Clear();_session.SelectedId=o.Id;_objectDetailsId=o.Id;Inspector.Visibility=Visibility.Visible;RefreshEditor();if(o.Type is "text" or "sticky")StartText(o);e.Handled=true;}}
+    {if(_tool!="select"||!CanvasSurface.IsRenderingAvailable){e.Handled=true;return;}var p=e.GetPosition(CanvasSurface);if(PinAt(new((float)p.X,(float)p.Y)) is { } pin){CancelGesture();StartPinRename(pin);e.Handled=true;return;}var o=_session.HitSelection(_viewport.ScreenToWorld(p.X,p.Y),6/_viewport.Zoom);if(o?.Type=="tape"&&o.IsLocked!=true){_session.Begin();o.IsRevealed=o.IsRevealed!=true;_session.Commit();RefreshEditor();e.Handled=true;}else if(o is {IsLocked:not true}){CancelGesture();_tool="select";_polygon.Clear();_session.SelectedId=o.Id;_objectDetailsId=o.Id;Inspector.Visibility=Visibility.Visible;RefreshEditor();if(o.Type is "text" or "sticky")StartText(o);e.Handled=true;}}
     private bool _editingNew;
     private string? _editingBoard,_editingPage;
     private void StartText(BoardObject o,bool isNew=false)

@@ -10,6 +10,7 @@ internal sealed partial class ScreenAnnotationWindow
         await StartAsync();
         try
         {
+            checks+=await ValidateScreenConstructionAndRulerAsync(output);
             await Task.Delay(100);
             Check(_quickPalette is not null&&_quickPalette.ValidationButtons.Count==6,"Screen six colors missing");
             await _owner.ProfilePalette.MoveAsync(_owner.ProfilePalette.Colors[^1],0);await Task.Delay(100);

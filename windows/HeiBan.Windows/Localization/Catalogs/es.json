@@ -707,7 +707,7 @@
   "圖示風格": "Estilo de iconos",
   "原本描邊": "Contorno original",
   "A · 彩色雙色描邊": "A · Color de dos tonos",
-  "顏色向前移": "Mover color antes",
-  "顏色向後移": "Mover color después",
-  "拖曳色票，或用箭頭調整順序；前六色會顯示在工具列。": "Arrastra las muestras o usa las flechas para ordenar; los seis primeros colores aparecen en la barra."
+  "管理時可拖曳色票排序；前六色顯示於工具列，右鍵可移除。": "En Administrar, arrastra las muestras para ordenar. Los seis primeros colores aparecen en la barra; clic derecho para quitar.",
+  "重新顯示螢幕尺": "Mostrar y centrar la regla de pantalla",
+  "更多工具": "Más herramientas"
 }

@@ -707,7 +707,7 @@
   "圖示風格": "Icon style",
   "原本描邊": "Original outline",
   "A · 彩色雙色描邊": "A · Color duotone",
-  "顏色向前移": "Move color earlier",
-  "顏色向後移": "Move color later",
-  "拖曳色票，或用箭頭調整順序；前六色會顯示在工具列。": "Drag swatches or use arrows to reorder; the first six appear on the toolbar."
+  "管理時可拖曳色票排序；前六色顯示於工具列，右鍵可移除。": "In Manage, drag swatches to reorder. The first six appear on the toolbar; right-click to remove.",
+  "重新顯示螢幕尺": "Show and recenter screen ruler",
+  "更多工具": "More tools"
 }

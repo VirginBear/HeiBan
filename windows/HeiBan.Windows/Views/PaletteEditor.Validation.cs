@@ -9,6 +9,9 @@ internal sealed partial class PaletteEditor
         var checks=0;void Check(bool ok,string message){checks++;if(!ok)throw new Exception(message);}
         _managing=true;Rebuild();await Task.Delay(100);
         var colors=_store.Colors.ToArray();var cells=_swatches.Children.OfType<StackPanel>().ToArray();
+        Check(cells.All(c=>c.Children.Count==1),"Palette has extra sorting action rows");
+        Check(cells.All(c=>c.Children[0] is Button b&&b.CornerRadius.TopLeft==16&&b.ContextFlyout is MenuFlyout m&&m.Items.Count==1),"Circular palette or remove-only menu missing");
+        Check(Chip("#40808080").Children.All(c=>c is Microsoft.UI.Xaml.Shapes.Ellipse),"Alpha checker escapes circular geometry");
         Point At(StackPanel cell)=>cell.TransformToVisual(_swatches).TransformPoint(new Point(16,16));
         BeginPaletteDrag((Button)cells[^1].Children[0],colors[^1],At(cells[^1]));
         Check(MovePaletteDrag(At(cells[0]))&&_dropIndex==0&&_dragPreview is not null&&_dragLayer.Children.Count==1,"Measured drag target or preview missing");

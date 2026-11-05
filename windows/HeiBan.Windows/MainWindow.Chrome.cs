@@ -280,7 +280,7 @@ public partial class MainWindow
         ShowExclusiveFlyout(infoFlyout, anchor);
     }
 
-    private async Task OpenUserGuideAsync()
+    internal async Task OpenUserGuideAsync()
     {
         try
         {

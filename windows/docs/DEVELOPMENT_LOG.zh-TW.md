@@ -1,5 +1,9 @@
 # HeiBan Windows 開發日誌
 
+## 2026-11-05 — 製圖限制、尺恢復與色票簡化
+
+按使用者要求實作共享ShapeConstruction八向投影／正形，兩宿主preview傳modifier、完成才提交；一般逐點模式保留，Shift優先磁鐵。Screen ruler補固定恢復入口／目前monitor座標與初始80%寬，切換不走永久Changed；More隱藏command與未掛載anchor fallback、目前語言guide、繪圖double不誤select一併修正。共用PaletteEditor圓色票／alpha底／ghost，移除前後移UI與相對MoveBy API。十語說明同步、過期1.0.18狀態釐清為1.1.2試用／正式分離。Core6846、Optimization68、Update73及native515＋主11＋色盤29＋screen53 PASS；原生圖形PNG目視，真實筆刷面板圓形與無排序箭頭已確認。更新測試缺Strings依賴已補headless文字邊界；初次build錯誤、少傳Optimization輸出參數等失敗與排解保留於[日誌](SHIFT_RULER_ROUND_PALETTE_2026-11-05.zh-TW.md)。獨立試用封裝接續，不覆寫1.1.2.0商店包；[審視報告](WINDOWS_REVIEW_2026-11-05.zh-TW.md)分清已修／後續候選／體積實測，未宣稱新延遲benchmark。
+
 ## 2026-11-05 — 圖形工具游標回復
 
 前批筆尖cursor路徑誤涵蓋幾何工具，使用者要求圖形回原樣。ToolCursorGeometry明確十工具crosshair分支，ToolCursor重用舊SVG十字＋translate8,8/scale.85黑白badge；保留alpha native資源生命週期、cache、其他工具／變形cursor。Core更新既有回歸期待且全15工具／兩style／六尺寸6028 PASS，QA build0warning0error；手冊十語釐清筆尖與圖形十字區別。未動其他平台／作品／正式包。完整命令與實際結果見[本批](SHAPE_CURSOR_RESTORE_2026-11-05.zh-TW.md)，最終原生515＋26＋16通過，cursor atlas確認十圖形回十字；正常x64 shape-cursor-2026-11-05-r1完成，133745779bytes SHAde6c4800bba6b2b87e3a0e9e3dba2e8be497c486240cf2a0ea0cb08c7f23c1b9；729 payload／413來源與CRC、QA排除／十語與3音效SHA核同，正式三包保持。

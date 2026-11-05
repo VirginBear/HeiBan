@@ -6,6 +6,7 @@ using HeiBan.Windows.Views;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Text;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using global::Windows.Foundation;
@@ -96,16 +97,29 @@ internal sealed partial class ScreenAnnotationWindow
         var local = RulerLocal(p);
         (_rulerPivotRatio, _rulerPivotEdge) = RulerGeometry.PickPivot(local.X, local.Y, RulerLength, RulerHeight);
     }
+    private bool _rulerPositionInitialized;
     private void ToggleScreenRuler()
     {
-        _rulerEnabled = !_rulerEnabled;
-        if (_rulerEnabled && (_rulerCenter.X < 50 || _rulerCenter.X > _overlay.Width - 50 || _rulerCenter.Y < 50 || _rulerCenter.Y > _overlay.Height - 50))
-        {
-            _rulerCenter = new((float)_overlay.Width / 2, (float)_overlay.Height * .58f);
-        }
-        DamageRuler();
-        RefreshButtons();
-        Changed();
+        DamageRuler();_rulerEnabled=!_rulerEnabled;
+        if(_rulerEnabled)CenterScreenRuler();
+        DamageRuler();RefreshButtons();_dirty=true;
+    }
+    private void CenterScreenRuler()
+    {
+        var area=DisplayArea.GetFromWindowId(AppWindow.Id,DisplayAreaFallback.Primary).WorkArea;
+        if(!_rulerPositionInitialized){_rulerPixelLength=(float)Math.Clamp(area.Width*.8,200,_overlay.Width*1.5);_rulerPositionInitialized=true;}
+        // DisplayArea is desktop physical pixels; renderer/input use overlay-local pixels.
+        _rulerCenter=new((float)(area.X+area.Width*.5-_overlay.Left),(float)(area.Y+area.Height*.55-_overlay.Top));
+    }
+    private void RecoverScreenRuler()
+    {DamageRuler();_rulerEnabled=true;CenterScreenRuler();DamageRuler();RefreshButtons();_dirty=true;}
+    private MenuFlyoutSubItem CreateScreenRulerMenu()
+    {
+        var menu=new MenuFlyoutSubItem{Text=T("螢幕尺"),Icon=ToolIcons.CreateMenuIcon("ruler")};
+        var show=new ToggleMenuFlyoutItem{Text=T("顯示"),IsChecked=_rulerEnabled};show.Click+=(_,_)=>ToggleScreenRuler();menu.Items.Add(show);
+        var recover=new MenuFlyoutItem{Text=T("重新顯示螢幕尺")};recover.Click+=(_,_)=>RecoverScreenRuler();menu.Items.Add(recover);
+        var settings=new MenuFlyoutItem{Text=T("尺規設定")};settings.Click+=(_,_)=>ShowScreenRulerSettings(_moreButton);menu.Items.Add(settings);
+        return menu;
     }
     private void ShowScreenRulerSettings(FrameworkElement anchor, Point? position = null)
     {
@@ -117,7 +131,7 @@ internal sealed partial class ScreenAnnotationWindow
         var reset = new Button { Content = T("水平 0.0°") };
         reset.Click += (_, _) => angle.Value = 0;
         panel.Children.Add(reset);
-        var length = new Slider { Header = T("尺長（像素 pt）"), Minimum = 200, Maximum = 1600, Value = _rulerPixelLength, StepFrequency = 20 };
+        var length = new Slider { Header = T("尺長（像素 pt）"), Minimum = 200, Maximum = Math.Max(1600,_overlay.Width*1.5), Value = _rulerPixelLength, StepFrequency = 20 };
         length.ValueChanged += (_, e) => { var pivot = RulerPivot(); _rulerPixelLength = (float)e.NewValue; SetRulerAngle(_rulerAngle, pivot); DamageRuler(); _dirty = true; };
         panel.Children.Add(length);
         var edge = new ComboBox { Header = T("旋轉支點所在邊"), ItemsSource = new[] { T("上方劃線邊"), T("尺身中線"), T("下方劃線邊") }, SelectedIndex = _rulerPivotEdge == "top" ? 0 : _rulerPivotEdge == "bottom" ? 2 : 1, HorizontalAlignment = HorizontalAlignment.Stretch };

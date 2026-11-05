@@ -707,7 +707,7 @@
   "圖示風格": "Style des icônes",
   "原本描邊": "Contour d’origine",
   "A · 彩色雙色描邊": "A · Couleur bicolore",
-  "顏色向前移": "Avancer la couleur",
-  "顏色向後移": "Reculer la couleur",
-  "拖曳色票，或用箭頭調整順序；前六色會顯示在工具列。": "Glissez les couleurs ou utilisez les flèches pour les classer ; les six premières figurent dans la barre."
+  "管理時可拖曳色票排序；前六色顯示於工具列，右鍵可移除。": "Dans Gérer, glissez les couleurs pour les classer. Les six premières figurent dans la barre ; clic droit pour supprimer.",
+  "重新顯示螢幕尺": "Réafficher et recentrer la règle",
+  "更多工具": "Autres outils"
 }

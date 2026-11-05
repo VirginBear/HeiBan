@@ -1,5 +1,9 @@
 # Windows 問題與排解紀錄
 
+## 2026-11-05 — 螢幕尺不可達、排序雜訊與驗證依賴
+
+尺renderer／handler仍存在；可確認缺口是More未回收隱藏工具與恢復入口、初始固定640px／虛擬桌面位置不保證目前monitor。補更多固定尺入口／重新置中、首次80%目前工作區、暫態damage，native像素與移除無殘影通過；使用者裝置原始消失根因尚未完整重現。色票圓化並去排序箭頭；真實筆刷面板確認。繪圖雙擊誤select一併限制為選取模式。Update.Tests原CS0234缺UI Strings，補headless adapter後73PASS。QA曾用不存在InkPoints、internal Snapshot及誤插void return而build失敗，均已修；Optimization最初少輸出參數失敗，更正後68PASS。詳[命令與結果](SHIFT_RULER_ROUND_PALETTE_2026-11-05.zh-TW.md)，不隱去失敗、不套前批測試數字。
+
 ## 2026-11-05 — 筆尖調整誤改圖形游標
 
 ToolCursor通用圖案分支把line／arrow／rect／triangle等也設到artwork anchor，超出原畫筆對位範圍。使用者指出後加入明確幾何分支，回原十字＋旁掛圖示，畫筆與雷射保持。Core6028及QA build通過；完整驗證追加於[本批日誌](SHAPE_CURSOR_RESTORE_2026-11-05.zh-TW.md)。無作品遺失或座標格式變更。

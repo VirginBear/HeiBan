@@ -707,7 +707,7 @@
   "圖示風格": "Symbolstil",
   "原本描邊": "Ursprüngliche Konturen",
   "A · 彩色雙色描邊": "A · Farbige Zweiton-Symbole",
-  "顏色向前移": "Farbe nach vorne",
-  "顏色向後移": "Farbe nach hinten",
-  "拖曳色票，或用箭頭調整順序；前六色會顯示在工具列。": "Farbfelder ziehen oder mit Pfeilen sortieren; die ersten sechs erscheinen in der Werkzeugleiste."
+  "管理時可拖曳色票排序；前六色顯示於工具列，右鍵可移除。": "Unter Verwalten Farbfelder zum Sortieren ziehen. Die ersten sechs stehen in der Werkzeugleiste; Rechtsklick zum Entfernen.",
+  "重新顯示螢幕尺": "Bildschirmlineal anzeigen und zentrieren",
+  "更多工具": "Weitere Werkzeuge"
 }

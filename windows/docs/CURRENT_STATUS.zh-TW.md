@@ -1,5 +1,9 @@
 # Windows 目前開發狀態
 
+## 2026-11-05 — Shift正形／螢幕尺恢復／圓形色票
+
+同1.1.2 Windows開發系列。兩host共享八向線／箭頭與正方、正圓、等比例及正三角；保留逐點及Shift追加選取，Shift製圖優先於磁鐵。螢幕更多固定尺顯示／重新置中、隱藏工具可達、說明用目前語言；尺切換只damage。圓色票含alpha與ghost、去排序箭頭，保留管理拖曳／右鍵移除；十語26章81段更新。Core6846／Optimization68／Update73 PASS，最終QA build0警告0錯誤，native515＋主正形11＋色盤29＋screen53 PASS；真實UI目視圓色票無前後鈕。實際物理Shift拖曳／主觀手感與其他DPI待用戶。正常x64試用封裝接續中，正式Store三包保持；完整[紀錄](SHIFT_RULER_ROUND_PALETTE_2026-11-05.zh-TW.md)及[軟體審視／後續改善](WINDOWS_REVIEW_2026-11-05.zh-TW.md)。
+
 ## 2026-11-05 — 圖形游標恢復舊十字
 
 依使用者回饋，直線／箭頭／矩形／圓／三角／四邊／菱形／五角／星形／曲線十工具恢復原32單位十字(4,4)＋旁掛黑白圖示，hotspot=round(size/8)，原版與A皆同。兩host共用，畫筆／橡皮擦筆尖、小雷射中心、物件resize／rotate保持；沒有輸入座標或文件變化。Core6028 PASS，QA build0警告0錯誤，十語指南同步；原生515＋主26＋screen16 PASS並目視十字；新x64 shape-cursor-2026-11-05-r1完成，729 payload／413來源／132SVG／十語／CRC／診斷排除／獨立空Data通過，來源1c795b9。維持1.1.2、不覆寫正式包。詳[修正紀錄](SHAPE_CURSOR_RESTORE_2026-11-05.zh-TW.md)。

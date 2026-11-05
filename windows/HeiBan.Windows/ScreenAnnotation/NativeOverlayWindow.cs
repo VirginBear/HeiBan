@@ -49,6 +49,7 @@ internal sealed partial class NativeOverlayWindow : IDisposable
     public static double DpiScale(nint window)=>Math.Max(1,GetDpiForWindow(window)/96d);
     public static nint CurrentForeground=>GetForegroundWindow();
     public static uint DoubleClickMilliseconds=>GetDoubleClickTime();
+    public static bool ShiftDown=>(GetAsyncKeyState(0x10)&0x8000)!=0;
     public static bool EscapeDown=>(GetAsyncKeyState(0x1B)&0x8000)!=0;
     public static bool MouseButtonDown=>(GetAsyncKeyState(1)&0x8000)!=0;
     public static (int X,int Y) CurrentPointer {get{GetCursorPos(out var p);return(p.X,p.Y);}}

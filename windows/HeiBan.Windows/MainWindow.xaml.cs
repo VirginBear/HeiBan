@@ -76,7 +76,7 @@ public partial class MainWindow : Window
         _dock=_toolbarPrefs.DockSide;
         App.StartupStage="載入主視窗 XAML";
         InitializeComponent();
-        Root.Loaded+=(_,_)=>{if(VisualTreeHelper.GetParent(Root) is UIElement rootHost){rootHost.KeyDown-=Root_KeyDown;rootHost.KeyDown+=Root_KeyDown;}};
+        Root.Loaded+=(_,_)=>{if(VisualTreeHelper.GetParent(Root) is UIElement rootHost){rootHost.KeyDown-=Root_KeyDown;rootHost.KeyDown+=Root_KeyDown;rootHost.KeyUp-=Root_KeyUp;rootHost.KeyUp+=Root_KeyUp;}};
         InitializeRadialInput();InitializeLibraryChrome();BuildChrome();InitializeTeachingTools();InitializeDeferredWork();InitializeInputLatencyTrace();
         ApplyLanguageChrome();
         App.StartupStage="設定主視窗";
@@ -453,6 +453,7 @@ public partial class MainWindow : Window
         if(_boardEraserDraft is not null){if(e.Key==VirtualKey.Escape)CancelBoardEraser();e.Handled=true;return;}
         if(_preparingClose||_saveBoundaryBusy){e.Handled=true;return;}
         if(e.OriginalSource is TextBox or NumberBox or RichEditBox || _editor is not null || _pinNameEditor is not null)return;
+        if(e.Key==VirtualKey.Shift&&_workspaceOpen){RefreshShapeModifierPreview();e.Handled=true;return;}
         var ctrl=Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control).HasFlag(global::Windows.UI.Core.CoreVirtualKeyStates.Down);
         if(!_workspaceOpen)
         {

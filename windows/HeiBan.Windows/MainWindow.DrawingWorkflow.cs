@@ -42,6 +42,7 @@ public partial class MainWindow
     }
     private InkPoint SnapDrawingPoint(InkPoint point)
     {
+        if(KeyIsDown(global::Windows.System.VirtualKey.Shift)&&MagnetSnapIndex.SupportsConstructionTool(_tool)){_magnetTarget=null;return point;}
         if(_magnetIndex is null||!_toolbarPrefs.MagnetEnabled||(!MagnetSnapIndex.SupportsConstructionTool(_tool)&&!_compassCenterMoving)){_magnetTarget=null;return point;}
         var result=_magnetIndex.Snap(point,out var snapped);_magnetTarget=snapped?result:null;return result;
     }

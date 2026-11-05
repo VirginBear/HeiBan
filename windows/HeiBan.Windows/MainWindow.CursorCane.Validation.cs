@@ -39,6 +39,7 @@ public partial class MainWindow
             }
             await sheet.SaveAsync(Path.Combine(output,"native-cursor-hotspots.png"),CanvasBitmapFileFormat.Png);
             await OpenAsync(new(){Board=new(){Title="Cursor and cane QA",CanvasMode="infinite",GridStyle="dots"}});
+            var constructionChecks=await ValidateMainShapeConstraintsAsync(output);
             var quickColorChecks=await ValidateQuickPaletteAsync();
             var generation=_session.Generation;var count=_session.Document.Objects.Count;
             using var crack=new CanvasRenderTarget(CanvasSurface,650,450,96);
@@ -60,7 +61,7 @@ public partial class MainWindow
             var screen=await _screenAnnotation!.ValidateCursorCaneAsync(output);
             Check(_session.Generation==generation&&_session.Document.Objects.Count==count,"Transient effect modified main document");
             ToolIcons.SetStyle("duotone");ActivateTool("cane");Title="HeiBan quick colors and shards QA";
-            await File.WriteAllTextAsync(Path.Combine(output,"result.json"),JsonSerializer.Serialize(new{success=true,checks,quickColorChecks,screen,crackScale=CaneCrackGeometry.DisplayScale,shards=CaneCrackGeometry.ShardCount,holdSeconds=StraightStrokeRecognizer.HoldSeconds,crackSegments=CaneCrackGeometry.Segments.Count,manualSoundListening=false}));
+            await File.WriteAllTextAsync(Path.Combine(output,"result.json"),JsonSerializer.Serialize(new{success=true,checks,constructionChecks,quickColorChecks,screen,crackScale=CaneCrackGeometry.DisplayScale,shards=CaneCrackGeometry.ShardCount,holdSeconds=StraightStrokeRecognizer.HoldSeconds,crackSegments=CaneCrackGeometry.Segments.Count,manualSoundListening=false}));
         }
         catch(Exception error){await File.WriteAllTextAsync(Path.Combine(output,"error.txt"),error.ToString());}
     }

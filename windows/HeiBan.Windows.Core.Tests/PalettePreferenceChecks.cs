@@ -28,8 +28,6 @@ internal static class PalettePreferenceChecks
         check(!await store.MoveAsync(last,0)&&!await store.MoveAsync("#010101",3)&&events==priorEvents+1,"No-op moves never save/notify");
         check(await store.MoveAsync(last,999)&&store.Colors[^1]==last,"Move clamps past last");
         check(await store.MoveAsync(last,-1)&&store.Colors[0]==last,"Move clamps before first");
-        await Task.WhenAll(store.MoveByAsync(last,1),store.MoveByAsync(last,1));
-        check(store.Colors[2]==last,"Rapid relative arrow moves accumulate inside write gate");
         var all=store.Colors.Order().ToArray();
         await Task.WhenAll(store.MoveAsync(last,3),store.AddAsync("#000001"),store.MoveAsync(first,0));await store.FlushAsync();
         check(store.Colors.Count==all.Length+1&&store.Colors.Where(c=>c!="#000001").Order().SequenceEqual(all),"Queued reorder/add preserves every color");
