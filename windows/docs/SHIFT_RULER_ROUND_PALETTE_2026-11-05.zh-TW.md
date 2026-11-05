@@ -37,3 +37,7 @@ PaletteEditor是筆刷與雷射共用來源，將去前後移UI／其僅剩測�
 4. 筆刷及雷射常用色全部圓形；管理後拖末色到首位，前六快捷色同步、重開同序，右鍵仍可刪；無前後排序鈕。
 
 Windows整體審視與具體後續優先級見[報告](WINDOWS_REVIEW_2026-11-05.zh-TW.md)。本批只交本機試用，不代表新商店發布。
+
+### 封裝後檢查補正
+
+第一候選r1封裝與完整CRC／source／payload核對成功；最後核對發現screen hover timer仍會在Shift時顯示磁鐵綠圈，雖然實際建構點已不吸附，視覺暗示會矛盾。補NativeOverlayWindow.ShiftDown guard，讓hover與construction優先規則一致。重新建置及獨立驗證後改交r2，不覆寫r1，這是同版候選修正，不提高正式版號。r1保留為本批中間候選、不是交付最新版。
