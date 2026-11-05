@@ -1,0 +1,6 @@
+CaneCrack.wav — original synthesized HeiBan sound effect
+Generated deterministically with scripts/Generate-CaneCrackSound.py on 2026-11-05.
+No third-party recording, sample or online service was used.
+PCM16 mono, 44100 Hz, 31752 frames (0.72 seconds), peak -5 dBFS.
+SHA256: 33cb8e464c4c716be7f897f43340b8372c1f3153ee4666ea5f468041705e2285
+This notice concerns CaneCrack.wav only. Existing CaneSnap.wav and its source notice are preserved.

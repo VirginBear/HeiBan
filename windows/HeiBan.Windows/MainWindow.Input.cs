@@ -125,7 +125,7 @@ public partial class MainWindow
         _gesture=true;CanvasSurface.CapturePointer(e.Pointer);
         if(_panning){UpdateShapeCursor();e.Handled=true;return;}
         if(_tool=="laser"){_panning=false;_laser.Press(_start,LaserNow);UpdateTeachingTimer();PresentInteraction();e.Handled=true;return;}
-        if(_tool=="cane"){_cane.Strike(_start,LaserNow);PlayCaneSound();UpdateTeachingTimer();PresentInteraction();e.Handled=true;return;}
+        if(_tool=="cane"){_cane.Strike(_start,LaserNow,new(_mouse.X,_mouse.Y));PlayCaneSound();UpdateTeachingTimer();PresentInteraction();e.Handled=true;return;}
         if(_tool=="lasso"){_lasso.Clear();_lasso.Add(_start);e.Handled=true;return;}
         if(_rulerEnabled&&RulerPivotHit(screen)){_rulerPivotMoving=true;e.Handled=true;return;}
         if(_rulerEnabled&&RulerRotationHit(screen)){BeginRulerRotation(screen);e.Handled=true;return;}
@@ -499,7 +499,7 @@ public partial class MainWindow
             }
         }
         var dpi=(uint)Math.Round((Root.XamlRoot?.RasterizationScale??1)*96);
-        _shapeCursor.Update(selected,handle,dpi,tool:_readingMode?"reading":_tool);CanvasCursorHost.SetNativeCursor(_shapeCursor.Current,dpi);
+        _shapeCursor.Update(selected,handle,dpi,tool:_readingMode?"reading":_tool,color:_tool=="laser"?_laser.Color:CurrentStyle.Color);CanvasCursorHost.SetNativeCursor(_shapeCursor.Current,dpi);
     }
     private void ResetShapeCursor()
     {var dpi=(uint)Math.Round((Root.XamlRoot?.RasterizationScale??1)*96);_shapeCursor.Update(null,null,dpi);CanvasCursorHost.SetNativeCursor(_shapeCursor.Current,dpi);}

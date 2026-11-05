@@ -16,8 +16,9 @@ internal sealed partial class NativeOverlayWindow : IDisposable
     private readonly nint _instance=GetModuleHandle(null);
     private readonly HeiBan.Windows.Views.ShapeCursor _shapeCursor=new();
     private string _cursorTool="pen";
-    internal void SetManipulationCursor(HeiBan.Windows.Models.BoardObject? selected,HeiBan.Windows.Engine.ObjectHandles.Handle? handle,string tool)
-    {_cursorTool=tool;_shapeCursor.Update(selected,handle,(uint)Math.Round(DpiScale(_window)*96),tool:tool);}
+    private string? _cursorColor;
+    internal void SetManipulationCursor(HeiBan.Windows.Models.BoardObject? selected,HeiBan.Windows.Engine.ObjectHandles.Handle? handle,string tool,string? color=null)
+    {_cursorTool=tool;_cursorColor=color;_shapeCursor.Update(selected,handle,(uint)Math.Round(DpiScale(_window)*96),tool:tool,color:color);}
     internal void SetRulerCursor(string? part)
     {
         if(part=="move")
@@ -36,7 +37,7 @@ internal sealed partial class NativeOverlayWindow : IDisposable
         }
         else
         {
-            _shapeCursor.Update(null,null,(uint)Math.Round(DpiScale(_window)*96),tool:_cursorTool);
+            _shapeCursor.Update(null,null,(uint)Math.Round(DpiScale(_window)*96),tool:_cursorTool,color:_cursorColor);
         }
     }
     private bool _drawing,_disposed,_pointerCaptured;

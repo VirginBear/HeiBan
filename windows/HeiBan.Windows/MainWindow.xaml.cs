@@ -134,6 +134,7 @@ public partial class MainWindow : Window
             var validation=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--validation-output=",StringComparison.Ordinal));
             var performance=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--performance-output=",StringComparison.Ordinal));
 #if HEIBAN_RELEASE_VALIDATION
+            var cursorCaneCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--cursor-cane-validation-output=",StringComparison.Ordinal));
             var iconCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--icon-style-validation-output=",StringComparison.Ordinal));
             var operateCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--operate-radial-validation-output=",StringComparison.Ordinal));
             var dragCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--object-drag-validation-output=",StringComparison.Ordinal));
@@ -141,7 +142,8 @@ public partial class MainWindow : Window
             var captureCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--canvas-capture-validation-output=",StringComparison.Ordinal));
             var marqueeCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--marquee-validation-output=",StringComparison.Ordinal));
             var releaseCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--release-validation-output=",StringComparison.Ordinal));
-            if(iconCheck is not null)await RunIconStyleValidationAsync(iconCheck["--icon-style-validation-output=".Length..]);
+            if(cursorCaneCheck is not null)await RunCursorCaneValidationAsync(cursorCaneCheck["--cursor-cane-validation-output=".Length..]);
+            else if(iconCheck is not null)await RunIconStyleValidationAsync(iconCheck["--icon-style-validation-output=".Length..]);
             else if(operateCheck is not null)
             {
                 var pidArg=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--operate-probe-pid=",StringComparison.Ordinal));

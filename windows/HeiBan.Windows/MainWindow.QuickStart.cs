@@ -7,7 +7,7 @@ public partial class MainWindow
 {
     private async Task EnsureQuickStartAsync()
     {
-        if(Environment.GetCommandLineArgs().Any(arg=>new[]{"--validation-output=","--performance-output=","--drawing-workflow-output=","--guide-view=","--release-validation-output=","--marquee-validation-output=","--canvas-capture-validation-output=","--selection-feedback-validation-output=","--object-drag-validation-output=","--operate-radial-validation-output=","--icon-style-validation-output="}.Any(arg.StartsWith)))return;
+        if(Environment.GetCommandLineArgs().Any(arg=>new[]{"--validation-output=","--performance-output=","--drawing-workflow-output=","--guide-view=","--release-validation-output=","--marquee-validation-output=","--canvas-capture-validation-output=","--selection-feedback-validation-output=","--object-drag-validation-output=","--operate-radial-validation-output=","--cursor-cane-validation-output=","--icon-style-validation-output="}.Any(arg.StartsWith)))return;
         // v2 is a separate supplied work: never replace a v1 exercise that the
         // user may already have edited. Deleting v2 still leaves its marker.
         const string id="heiban-windows-quickstart-v2";

@@ -1,5 +1,9 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-11-05 — 原生筆尖hotspot與暫態教學效果
+
+ToolCursorGeometry定義26×26 artwork anchor；ToolCursor依Style與實際DPI一次光柵化alpha cursor，CreateIconIndirect複製32bit premultipliedBGRA DIB與WORD對齊mask，建立後釋放bitmap；64筆工具／尺寸／style cache，色變更替換同key而非累積RGB。ShapeCursor兩host共用且保持resize／rotate／grab／select優先。CaneFeedback接受world grip及screen-DIP hit，三擊比較首擊防漂移，CrackGrip凍結；一個局部固定90段CrackGeometry、既有timer與damage上一／目前bounds清除殘影，不重建committed scene／不進序列化。LocalEffectSound共用MediaPlayer與pinned-WAV fallback，CaneSound façade集中mute／dispose兩cue。詳[實作](CURSOR_TIP_CANE_CRACK_2026-11-05.zh-TW.md)。
+
 ## 2026-11-04 — 筆身色角色與固定幾何
 
 ToolIcons.BrushColor定義三個色角色，A生成器與UI／Win2D共用SVG path。XAML Grid持有Viewbox與一次建立的Path／Ellipse，顏色事件只更新SolidColorBrush；不在筆畫Move重新載入。輪盤只在既有key的色改變時原位替換SVG，新資源成功才釋放舊資源，不以RGB作永久cachekey。兩host明確傳各自筆色，設定窗只在色改變時更新筆身／Invalidate，不改profile或重建清單。SVG逐屬性替換避免角色色值碰撞，alpha與中性色分開。詳[實作與驗證](ICON_COLOR_REFINEMENT_2026-11-04.zh-TW.md)。

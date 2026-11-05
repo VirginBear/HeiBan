@@ -106,7 +106,7 @@ internal sealed partial class ScreenAnnotationWindow
             _session.Commit();
             _compass.Prepare();
             _tool = "select";
-            _overlay.SetManipulationCursor(null, null, _tool);
+            _overlay.SetManipulationCursor(null, null, _tool,_tool=="laser"?_laser.Color:_color);
             RefreshButtons();
             Changed();
             _status.Text = F($"已生成整圓（半徑 {_compass.Radius:0.#}pt）");

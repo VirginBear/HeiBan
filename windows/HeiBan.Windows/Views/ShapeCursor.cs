@@ -12,7 +12,7 @@ internal sealed class ShapeCursor : IDisposable
     private int _grabSize;
     private readonly ToolCursor _tools=new();
     internal nint Current {get;private set;}
-    internal void Update(BoardObject? selected,ObjectHandles.Handle? handle,uint dpi=96,int defaultResource=32512,bool grabbing=false,string? tool=null)
+    internal void Update(BoardObject? selected,ObjectHandles.Handle? handle,uint dpi=96,int defaultResource=32512,bool grabbing=false,string? tool=null,string? color=null)
     {
         var resource=defaultResource; // Borrowed shared Windows cursors must never be destroyed.
         if(handle is {Kind:"resize"} resize&&selected is not null)
@@ -39,7 +39,7 @@ internal sealed class ShapeCursor : IDisposable
         else if(handle is null&&tool is not null&&tool!="select")
         {
             var size=Math.Clamp((int)Math.Ceiling(GetSystemMetricsForDpi(13,dpi)/8d)*8,32,128);
-            var cursor=_tools.Get(tool,size);next=cursor!=0?cursor:LoadCursor(0,new nint(32515));
+            var cursor=_tools.Get(tool,size,color);next=cursor!=0?cursor:LoadCursor(0,new nint(32515));
         }
         else next=LoadCursor(0,new nint(resource));
         if(Current!=next){Current=next;SetCursor(Current);}

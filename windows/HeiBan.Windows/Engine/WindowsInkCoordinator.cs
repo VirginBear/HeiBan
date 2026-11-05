@@ -21,7 +21,7 @@ public sealed class WindowsInkCoordinator
     public IReadOnlyList<InkPoint> ActiveStrokePoints => _straight&&_points.Count>1?new[]{_points[0],_points[^1]}:_points;
     public bool TrySnapStraight(double zoom)
     {
-        if(!IsDrawing||_straight||Projection is not null||_points.Count<5||Now-_holdSince<1)return false;
+        if(!IsDrawing||_straight||Projection is not null||_points.Count<5||Now-_holdSince<StraightStrokeRecognizer.HoldSeconds)return false;
         if(_straightCheckedCount==_points.Count)return false;
         _straightCheckedCount=_points.Count;
         if(!StraightStrokeRecognizer.IsEligible(_points,zoom))return false;

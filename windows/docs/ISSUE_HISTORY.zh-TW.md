@@ -1,5 +1,9 @@
 # Windows 問題與排解紀錄
 
+## 2026-11-05 — 工具游標旁掛圖案／十字與筆尖分離
+
+原ToolCursor熱點size/8固定十字、圖案另translate8,8，造成使用者希望筆尖落點無法達成。改同工具原圖＋明確anchor與alpha cursor，兩host／兩style／六尺寸native370 checks通過，加入40px 1-bit mask WORD rowstride防越界。QA r1讀cursor bitmap用nullDC回0，改GetDC/ReleaseDC後r2、r3通過（非正式繪圖失敗）；螢幕clear後target byte精確核同。已有Update.Tests單獨編譯缺Localization參照，未修改此無關專案。所有實際失敗／未驗收與手動輸入阻擋見[日誌](CURSOR_TIP_CANE_CRACK_2026-11-05.zh-TW.md)。
+
 ## 2026-11-04 — 圖示描邊太厚／筆身固定色與實際筆色不一致
 
 A曾用1.7～1.8主描邊與generic3.5底線，筆身固定藍／黃；改1.1細線／generic單線1.25，筆身三角色動態色、輪盤同步；直線與箭頭紫色。原select加入框線，A螢光筆額外色痕移除以免看似多條底線。Native15 screen＋36色／identity＋132GPU SVG通過，含token自身與透明色。首build Viewbox sealed誤繼承CS0509，改Grid持有Viewbox後第二／三build0警告0錯誤；XML替換色值碰撞在驗證前修正。原生工具一次bounds變更重觀察後重試，UTF8日誌錯用cp950亦更正；詳[失敗與測法](ICON_COLOR_REFINEMENT_2026-11-04.zh-TW.md)。

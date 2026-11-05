@@ -13,11 +13,38 @@ public sealed partial class Direct2DCanvasRenderer
         if(cane.Point is not { } point)return null;
         var at=viewport.WorldToScreen(point.X,point.Y);
         // Includes the entire swing about its handle and the short impact rays.
-        return new(at.X-210*density,at.Y-210*density,250*density,250*density);
+        var bounds=new Rect(at.X-210*density,at.Y-210*density,250*density,250*density);
+        if(cane.CrackGrip is { } anchor&&cane.NeedsAnimation(now))
+        {
+            var center=CrackCenter(anchor,viewport,density);var radius=(CaneCrackGeometry.Radius+4)*density;
+            bounds.Union(new Rect(center.X-radius,center.Y-radius,radius*2,radius*2));
+        }
+        return bounds;
+    }
+    private static Vector2 CrackCenter(InkPoint grip,ViewportTransform viewport,double density)
+    {
+        var at=viewport.WorldToScreen(grip.X,grip.Y);
+        // Shipped cane: 180 DIP wide, upper-left tip at impact angle 45 degrees.
+        var length=Math.Sqrt(156*156+Math.Pow(180*984d/1600*.83,2));
+        var offset=(float)(length/Math.Sqrt(2)*density);
+        return new((float)at.X-offset,(float)at.Y-offset);
+    }
+    private static void RenderCaneCrack(CanvasDrawingSession ds,CaneFeedback cane,ViewportTransform viewport,double now,double density)
+    {
+        if(cane.CrackGrip is not { } anchor||cane.CrackOpacity(now) is not >0)return;
+        var center=CrackCenter(anchor,viewport,density);var alpha=(float)cane.CrackOpacity(now);var scale=(float)density;
+        foreach(var segment in CaneCrackGeometry.Segments)
+        {
+            var a=center+new Vector2((float)segment.X1,(float)segment.Y1)*scale;
+            var b=center+new Vector2((float)segment.X2,(float)segment.Y2)*scale;
+            ds.DrawLine(a,b,HexToColor("#263C37",alpha*.85f),2.1f*scale);
+            ds.DrawLine(a+new Vector2(.6f,.6f)*scale,b+new Vector2(.6f,.6f)*scale,HexToColor("#FFFFFF",alpha*.95f),.9f*scale);
+        }
     }
     internal void RenderCane(CanvasDrawingSession ds,CaneFeedback cane,ViewportTransform viewport,double now,double density=1)
     {
         if(cane.Point is not { } point)return;
+        RenderCaneCrack(ds,cane,viewport,now,density);
         var elapsed=now-cane.StartedAt;var at=viewport.WorldToScreen(point.X,point.Y);
         // Input follows the lower-right hand grip, never the free upper-left tip.
         var grip=new Vector2((float)at.X,(float)at.Y);var scale=(float)density;

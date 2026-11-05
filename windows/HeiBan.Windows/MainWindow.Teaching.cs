@@ -17,15 +17,16 @@ public partial class MainWindow
             if(_tool=="pen"&&_ink.TrySnapStraight(_viewport.Zoom)){_renderer.ResetLive();InvalidateCanvas(false);}
             if(_laser.Samples.Count>0){_laser.Prune(LaserNow);if(_workspaceOpen)InvalidateCanvas(false);}
             if(_cane.Point is not null&&_workspaceOpen)InvalidateCanvas(false);
+            if(_cane.TakeCrackSound(LaserNow))CaneSound.PlayCrack(error=>DispatcherQueue.TryEnqueue(()=>StatusText.Text=T("藤條音效無法播放：")+error));
             UpdateTeachingTimer();
         };
     }
     private void UpdateTeachingTimer()
     {
-        var laser=_laser.Samples.Count>0||_cane.IsActive(LaserNow);
+        var laser=_laser.Samples.Count>0||_cane.NeedsAnimation(LaserNow);
         if(laser||(_workspaceOpen&&_tool=="pen"&&_ink.IsDrawing&&!_ink.IsStraight&&_ink.Projection is null))
         {
-            // A one-second hold does not need a permanent 60 Hz UI wake-up.
+            // A hold-to-straighten check does not need a permanent 60 Hz UI wake-up.
             var interval=TimeSpan.FromMilliseconds(laser?16:100);
             if(_laserTimer.Interval!=interval)_laserTimer.Interval=interval;
             if(!_laserTimer.IsEnabled)_laserTimer.Start();

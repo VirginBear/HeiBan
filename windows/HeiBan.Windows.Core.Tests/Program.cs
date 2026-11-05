@@ -939,6 +939,7 @@ PointSelectionChecks.Run(Check);
 ObjectDragChecks.Run(Check);
 OperateRightGestureChecks.Run(Check);
 ToolbarIconStyleChecks.Run(Check);
+CursorCaneChecks.Run(Check);
 Console.WriteLine($"PASS: {checks} Windows interaction geometry, screenshot coordinator, calculator, compass/arc, timer & offline guide checks");
 
 

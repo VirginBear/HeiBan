@@ -1,5 +1,9 @@
 # HeiBan Windows 開發日誌
 
+## 2026-11-05 — 筆尖熱點／短暫裂紋／0.8秒拉直
+
+依使用者GO只Windows、不進版。從ToolCursor旁邊badge＋十字改26×26圖示座標→實際DPI hotspot，不改任何輸入／作品座標；兩host傳目前style／brush或laser色。三擊狀態Core暫態，90段固定geometry＋既有timer/damage，LocalEffectSound共用兩音效、保留原CaneSnap並增加0.72秒原創合成。手冊十語同步（含刪除十字熱點舊敘述）。Core3689／Optimization68、QA build0警告0錯誤、native-r3 370＋screen5，真實三連敲與淡出成功；筆畫drag遭使用者輸入拒絕未驗收，音效未實聽。r1 QA GetDIBits nullDC失敗已修；Update.Tests既有缺Localization參照失敗記錄、不擴範圍；詳[命令與失敗證據](CURSOR_TIP_CANE_CRACK_2026-11-05.zh-TW.md)。正式包／既有未提交清理與YouTube文件保留。
+
 ## 2026-11-04 — 1.1.2正式Store封裝批次
 
 使用者明確要求打包更新商店，沿用已指定1.1.2／1.1.2.0，准許必要檢查及SelfContained x64＋ARM64正式封裝，使用者自行上傳／送審。新跑Core3445、Optimization68、十語708keys／26節80段指南及診斷Store排除守衛皆通過；Store腳本補Duotone子目錄遞迴SHA，保護95份舊Store檔。無產品行為或版本再變更，保留作品／既有dirty文件。正式SelfContained雙架構合併包197625174bytes已完成，來源cfb7b9d；490來源／三成品SHA與CRC、132SVG／21指南／10語、診斷排除與95舊檔保持核同，四PE1.1.2.0。未代上傳／送審；詳[本批發行紀錄](STORE_RELEASE_1.1.2_2026-11-04.zh-TW.md)。

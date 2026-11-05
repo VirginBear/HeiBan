@@ -77,7 +77,7 @@ internal sealed partial class ScreenAnnotationWindow
     private void TrackRadialTool(string previous,string current){_rightClickTimer.Stop();_pendingRightClick=null;if(RadialProfile.TrackTool(previous,current))PersistScreenRadial();}
     private void RestoreRadialCursor()
     {
-        _overlay.SetManipulationCursor(null,null,_tool);
+        _overlay.SetManipulationCursor(null,null,_tool,_tool=="laser"?_laser.Color:_color);
         if(_drawing&&_tool=="cane"){var p=NativeOverlayWindow.CurrentPointer;_cane.Move(new(p.X-_overlay.Left,p.Y-_overlay.Top));_dirty=true;}
     }
     private void ShowRadialSettings()

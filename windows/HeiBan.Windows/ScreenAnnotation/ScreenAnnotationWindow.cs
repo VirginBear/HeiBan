@@ -88,11 +88,11 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         var failed=0;
         foreach(var key in new[]{(1,0x41u),(2,0x44u),(3,0x53u),(4,0x51u),(5,0x4Bu)})if(!_overlay.RegisterShortcut(key.Item1,0x0002|0x0001,key.Item2))failed++;
         _hotkeyRegistrationFailed=failed>0;if(failed>0)_status.Text=T("部分快捷鍵被其他程式占用，請使用控制列按鈕。");
-        _renderTimer.Tick+=(_,_)=>{if(!IsActive)return;try{PollScreenRadial();UpdateScreenEraser();UpdateScreenMagnetHover();if(_dirty||_laser.Samples.Count>0||_cane.IsActive(Now)||_caneWasAnimating)Render();}catch(Exception e){_renderTimer.Stop();_overlay.Hide();_status.Text=T("螢幕繪圖已停止：")+e.Message;}};
+        _renderTimer.Tick+=(_,_)=>{if(!IsActive)return;try{PollScreenRadial();if(_cane.TakeCrackSound(Now))CaneSound.PlayCrack(error=>DispatcherQueue.TryEnqueue(()=>_status.Text=T("藤條音效無法播放：")+error));UpdateScreenEraser();UpdateScreenMagnetHover();if(_dirty||_laser.Samples.Count>0||_cane.NeedsAnimation(Now)||_caneWasAnimating)Render();}catch(Exception e){_renderTimer.Stop();_overlay.Hide();_status.Text=T("螢幕繪圖已停止：")+e.Message;}};
         _focusRememberTimer.Tick+=(_,_)=>{if(IsActive)RememberExternalFocus();};
         _straightenTimer.Tick+=(_,_)=>
         {
-            if(IsActive&&_drawing&&_tool=="pen"&&_start is not null&&Now-_penHoldSince>=1&&StraightStrokeRecognizer.IsEligible(_points,1/_dpiScale))
+            if(IsActive&&_drawing&&_tool=="pen"&&_start is not null&&Now-_penHoldSince>=StraightStrokeRecognizer.HoldSeconds&&StraightStrokeRecognizer.IsEligible(_points,1/_dpiScale))
             {_screenPenStraight=true;_straightenTimer.Stop();_dirty=true;}
         };
         _saveTimer.Tick+=async(_,_)=>{_saveTimer.Stop();if(!_owner.AutoSaveEnabled||_stopping||!IsActive)return;if(_start is not null||_textDraft is not null||_session.HasTransaction){_saveTimer.Start();return;}await SaveAsync();};
@@ -129,7 +129,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     {
         if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();
         if(!value)RememberExternalFocus();
-        FinishScreenText();CancelGesture();_drawing=value;_overlay.SetDrawing(value);_overlay.SetManipulationCursor(null,null,_tool);UpdateScreenEraser();
+        FinishScreenText();CancelGesture();_drawing=value;_overlay.SetDrawing(value);_overlay.SetManipulationCursor(null,null,_tool,_tool=="laser"?_laser.Color:_color);UpdateScreenEraser();
         _status.Text=value?T("作畫中 · 右鍵物件可編輯"):T("操作中 · Ctrl+Alt+D 繼續作畫");
         RefreshMode();ResizeChrome();PositionChrome();
         _laser.Clear();_dirty=_fullDamage=_committedDirty=true;if(!value)NativeOverlayWindow.RestoreFocus(_lastExternal);SyncOperateRadial();
@@ -184,7 +184,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         {
             UpdateScreenShapeCursor(p);
             if(_cane.Move(p))_dirty=true;
-            if(input.Kind is "down" or "double"&&input.LeftDown){_cane.Strike(p,Now);CaneSound.Play(error=>DispatcherQueue.TryEnqueue(()=>_status.Text=T("藤條音效無法播放：")+error));_dirty=true;}
+            if(input.Kind is "down" or "double"&&input.LeftDown){_cane.Strike(p,Now,new(p.X/_dpiScale,p.Y/_dpiScale));CaneSound.Play(error=>DispatcherQueue.TryEnqueue(()=>_status.Text=T("藤條音效無法播放：")+error));_dirty=true;}
             return;
         }
         // Laser owns this whole input route: hover/right/double never reach object hit tests.
@@ -302,7 +302,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
                             _session.Begin();_session.Add(arcObj);_session.SelectedId=arcObj.Id;_session.Commit();
                             _compass.Prepare();
                             _tool="select";
-                            _overlay.SetManipulationCursor(null,null,_tool);
+                            _overlay.SetManipulationCursor(null,null,_tool,_tool=="laser"?_laser.Color:_color);
                             RefreshButtons();Changed();
                         }
                         else _compass.SweepAngle=0;
@@ -362,7 +362,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
                 if(_points.Count>=3)_session.SetSelection(_session.VisibleObjects.Where(o=>LassoSelection.Intersects(o,_points)).Select(o=>o.Id).Concat(_marqueeSelection));
                 _points.Clear();_start=_last=null;_marqueeSelection=[];
                 _tool="select";
-                _overlay.SetManipulationCursor(null,null,_tool);
+                _overlay.SetManipulationCursor(null,null,_tool,_tool=="laser"?_laser.Color:_color);
                 RefreshButtons();
                 RefreshScreenStyleButtons();
                 Changed();
@@ -464,7 +464,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             selected=_start is not null?_manipulation??o:o;
             handle=_start is not null?_handle:ObjectHandles.Get(o,1).Where(h=>Math.Sqrt(Math.Pow(h.Point.X-pointer.X,2)+Math.Pow(h.Point.Y-pointer.Y,2))<14).Select(h=>(ObjectHandles.Handle?)h).FirstOrDefault();
         }
-        _overlay.SetManipulationCursor(selected,handle,_tool);
+        _overlay.SetManipulationCursor(selected,handle,_tool,_tool=="laser"?_laser.Color:_color);
     }
     private BoardObject Styled(BoardObject item)
     {item.StrokeColor=_color;if(item.Type is "line" or "arrow")item.Extension=_screenExtension;item.StrokeWidth=_width*_dpiScale;item.Opacity=_tool=="highlighter"?_opacity*.4:_opacity;item.LineStyle=_dash;if(item.Type is "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star")item.FillColor=_fill;if(item.Type=="tape"){item.StrokeColor=item.FillColor="#F59E0B";item.IsRevealed=false;}return item;}
@@ -488,7 +488,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         if(_target is null||_committed is null)return;
         var sceneSession=_circularEraser?.Preview??_session;
         _laser.Prune(Now);
-        _caneWasAnimating=_cane.IsActive(Now);
+        _caneWasAnimating=_cane.NeedsAnimation(Now);
         global::Windows.Foundation.Rect? caneDamage=null;
         if(Direct2DCanvasRenderer.CaneBounds(_cane,_viewport,Now,_dpiScale) is { } caneBounds)
         {

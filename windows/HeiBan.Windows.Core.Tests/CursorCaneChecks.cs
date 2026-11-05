@@ -1,0 +1,40 @@
+using HeiBan.Windows.Engine;
+using HeiBan.Windows.Models;
+
+static class CursorCaneChecks
+{
+    internal static void Run(Action<bool,string> check)
+    {
+        foreach(var style in new[]{false,true})foreach(var size in new[]{32,40,48,64,96,128})
+        foreach(var tool in new[]{"pen","highlighter","paint","eraser","laser","rect","triangle","line","arrow"})
+        {
+            var a=ToolCursorGeometry.Anchor(tool,style);var l=ToolCursorGeometry.Layout(tool,style,size);
+            check(Math.Abs(l.X-(l.Offset+a.X*l.Scale))<=.5&&Math.Abs(l.Y-(l.Offset+a.Y*l.Scale))<=.5,"Hotspot rounds within half a physical pixel");
+            check(l.X>=0&&l.Y>=0&&l.X<size&&l.Y<size,"Hotspot inside bitmap at all DPI sizes");
+            if(tool=="laser")check(l.X==size/2&&l.Y==size/2,"Laser center equals hotspot");
+        }
+        check(StraightStrokeRecognizer.HoldSeconds==.8,"Hold shortened by 0.2 seconds");
+        var cane=new CaneFeedback();
+        cane.Strike(new(1000,1000),0,new(10,10));cane.Strike(new(2000,2000),.2,new(15,10));
+        check(cane.CrackGrip is null,"Two hits do not crack");
+        cane.Strike(new(3000,3000),.4,new(20,10));
+        check(cane.CrackGrip?.X==3000,"Combo uses DIP distance independent of world zoom");
+        check(cane.CrackOpacity(.4)==0&&!cane.TakeCrackSound(.4),"Effect waits for visible cane impact");
+        check(cane.TakeCrackSound(.476)&&!cane.TakeCrackSound(.5),"Crack sound consumed once");
+        cane.Move(new(5000,5000));check(cane.CrackGrip?.X==3000,"Moving held cane does not drag crack");
+        check(cane.NeedsAnimation(1.4)&&!cane.NeedsAnimation(1.676),"Animation outlives swing and finishes");
+        check(cane.CrackOpacity(1.676)==0,"Crack completely fades");
+        cane.Clear();check(cane.Point is null&&cane.CrackGrip is null&&!cane.TakeCrackSound(3),"Cancel clears pending audio and crack");
+        cane.Strike(new(0,0),0);cane.Strike(new(30,0),.1);cane.Strike(new(60,0),.2);
+        check(cane.CrackGrip is null,"Chained wandering hits cannot count as one area");
+        cane.Clear();cane.Strike(new(0,0),0);cane.Strike(new(0,0),.6);cane.Strike(new(0,0),1.21);
+        check(cane.CrackGrip is null,"Slow third hit resets combo");
+        cane.Clear();cane.Strike(new(0,0),0);cane.Strike(new(36,0),.6);cane.Strike(new(0,0),1.2);
+        check(cane.CrackGrip is not null,"Exact timing/radius boundaries are inclusive");
+        check(!cane.TakeCrackSound(10),"Stale sound never plays after stall");
+        cane.Clear();cane.Strike(new(0,0),0);cane.Strike(new(0,0),.1);cane.Clear();cane.Strike(new(0,0),.2);
+        check(cane.CrackGrip is null,"Tool switch resets sequence");
+        check(CaneCrackGeometry.Segments.Count<=100,"Crack geometry bounded");
+        check(CaneCrackGeometry.Segments.All(s=>Math.Sqrt(s.X1*s.X1+s.Y1*s.Y1)<=CaneCrackGeometry.Radius&&Math.Sqrt(s.X2*s.X2+s.Y2*s.Y2)<=CaneCrackGeometry.Radius),"Damage radius covers every crack segment");
+    }
+}

@@ -290,7 +290,7 @@ internal sealed partial class ScreenAnnotationWindow
         if(selectionVisuals)DamageSelectedObjects();CancelGesture();_tool=key;if(key=="cane"){CaneSound.Prepare();RestoreRadialCursor();}
         if(key is "laser" or "cane")_session.SelectedId=null;
         if(!_drawing)SetDrawing(true);else if(selectionVisuals)_dirty=true;
-        _overlay.SetManipulationCursor(null,null,_tool);RefreshButtons();
+        _overlay.SetManipulationCursor(null,null,_tool,_tool=="laser"?_laser.Color:_color);RefreshButtons();
     }
     private void RefreshMode()
     {
