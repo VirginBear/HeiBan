@@ -1,0 +1,43 @@
+{
+  "success": true,
+  "sourceCommit": "68f6c9f0379c0f81b4429a85f686122ad5e1ff5f",
+  "zip": "windows/dist/trials/HeiBan-Windows-Portable-1.1.2-shift-ruler-palette-2026-11-05-r2-win-x64.zip",
+  "exe": "windows/dist/trials/HeiBan-Windows-Portable-1.1.2-shift-ruler-palette-2026-11-05-r2-win-x64/HeiBan.exe",
+  "bytes": 133754447,
+  "sha256": "d975526bc08e3dab277467438f6903ddcad84153d9117747fda9f574dd6d9c1d",
+  "payloadFiles": 729,
+  "sourceFiles": 418,
+  "menuIcons": 132,
+  "guideLanguages": 10,
+  "zipCRC": true,
+  "observerExcluded": true,
+  "independentEmptyData": true,
+  "storeBundleUnchanged": true,
+  "audioAttacks": [
+    1,
+    3,
+    4
+  ],
+  "audioFrames": [
+    49440,
+    40800,
+    118368
+  ],
+  "normalTrialLaunched": false,
+  "version": "1.1.2",
+  "label": "shift-ruler-palette-2026-11-05-r2",
+  "coreChecks": 6846,
+  "updateChecks": 73,
+  "optimizationChecks": 68,
+  "nativeChecksBeforeFinalHoverGuard": {
+    "cursorAndCane": 515,
+    "mainConstruction": 11,
+    "palette": 29,
+    "screen": 53
+  },
+  "formalStoreThreeUnchanged": true,
+  "previousTrialUnchanged": true,
+  "nativeHardwareShiftDragTested": false,
+  "scope": "Local Windows trial; no new Store submission or version increment",
+  "supersededLocalCandidate": "shift-ruler-palette-2026-11-05-r1 (preserved, not latest)"
+}

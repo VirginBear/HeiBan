@@ -41,3 +41,13 @@ Windows整體審視與具體後續優先級見[報告](WINDOWS_REVIEW_2026-11-05
 ### 封裝後檢查補正
 
 第一候選r1封裝與完整CRC／source／payload核對成功；最後核對發現screen hover timer仍會在Shift時顯示磁鐵綠圈，雖然實際建構點已不吸附，視覺暗示會矛盾。補NativeOverlayWindow.ShiftDown guard，讓hover與construction優先規則一致。重新建置及獨立驗證後改交r2，不覆寫r1，這是同版候選修正，不提高正式版號。r1保留為本批中間候選、不是交付最新版。
+
+## 最終交付產物
+
+- 交付標籤`shift-ruler-palette-2026-11-05-r2`，產品1.1.2／metadata1.1.2.0，來源`68f6c9f0379c0f81b4429a85f686122ad5e1ff5f`。
+- ZIP：`windows/dist/trials/HeiBan-Windows-Portable-1.1.2-shift-ruler-palette-2026-11-05-r2-win-x64.zip`，133754447 bytes；SHA-256 `d975526bc08e3dab277467438f6903ddcad84153d9117747fda9f574dd6d9c1d`。
+- EXE：`windows/dist/trials/HeiBan-Windows-Portable-1.1.2-shift-ruler-palette-2026-11-05-r2-win-x64/HeiBan.exe`，正常發行編譯，Data初始空白；未把正式作品複製進試用包，也未啟動正常trial修改Data。QA皆獨立資料夾。
+- `Package-PortableTrial.ps1 -Runtime win-x64 -Label shift-ruler-palette-2026-11-05-r2`成功；正常Publish與獨立Updater發布成功。`python windows/.build/shift-ruler-palette-20261105/Verify-Portable-r2.py`成功：729受管payload／418來源／132SVG／十語指南與heiban／ZIP CRC／SHA／3音效frame與SHA／診斷方法排除／空Data。詳細[產物JSON](SHIFT_RULER_PALETTE_TRIAL_2026-11-05.json)。
+- 完整native608斷言在f699來源的r3執行。最終68f6c9f只增加screen hover的Shift早退guard；該最後一行經正常Release Publish及來源／payload核對，未再執行整套原生QA或物理Shift拖曳，不冒用前述608作這一行的硬體驗收。
+- 核對正式1.1.2.0 x64／ARM64／bundle三SHA與先前紀錄完全一致；上一交付shape-cursor trial ZIP SHA仍de6c4800bba6b2b87e3a0e9e3dba2e8be497c486240cf2a0ea0cb08c7f23c1b9。r1本批中間候選保留，r2為唯一標示最新版；未刪舊資料。
+- 僅本批Windows原始碼與文件提交；原有三份未提交清理紀錄及三YouTube草稿保留，+/-差異Counter與開工preexisting.patch完全相同。公開／私人GitHub同步另以commit與遠端核對記錄，不將使用者作品或帳號金鑰存入日誌。

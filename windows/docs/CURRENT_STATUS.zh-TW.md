@@ -2,7 +2,7 @@
 
 ## 2026-11-05 — Shift正形／螢幕尺恢復／圓形色票
 
-同1.1.2 Windows開發系列。兩host共享八向線／箭頭與正方、正圓、等比例及正三角；保留逐點及Shift追加選取，Shift製圖優先於磁鐵。螢幕更多固定尺顯示／重新置中、隱藏工具可達、說明用目前語言；尺切換只damage。圓色票含alpha與ghost、去排序箭頭，保留管理拖曳／右鍵移除；十語26章81段更新。Core6846／Optimization68／Update73 PASS，最終QA build0警告0錯誤，native515＋主正形11＋色盤29＋screen53 PASS；真實UI目視圓色票無前後鈕。實際物理Shift拖曳／主觀手感與其他DPI待用戶。正常x64試用封裝接續中，正式Store三包保持；完整[紀錄](SHIFT_RULER_ROUND_PALETTE_2026-11-05.zh-TW.md)及[軟體審視／後續改善](WINDOWS_REVIEW_2026-11-05.zh-TW.md)。
+同1.1.2 Windows開發系列。兩host共享八向線／箭頭與正方、正圓、等比例及正三角；保留逐點及Shift追加選取，Shift製圖優先於磁鐵。螢幕更多固定尺顯示／重新置中、隱藏工具可達、說明用目前語言；尺切換只damage。圓色票含alpha與ghost、去排序箭頭，保留管理拖曳／右鍵移除；十語26章81段更新。Core6846／Optimization68／Update73 PASS，最終QA build0警告0錯誤，native515＋主正形11＋色盤29＋screen53 PASS；真實UI目視圓色票無前後鈕。實際物理Shift拖曳／主觀手感與其他DPI待用戶。正常x64 shift-ruler-palette-2026-11-05-r2完成，來源68f6c9f、133754447bytes、SHA d975526bc08e3dab277467438f6903ddcad84153d9117747fda9f574dd6d9c1d；729payload／418來源／132SVG／十語／CRC／診斷排除／空Data通過。最後hover-Shift早退經正常Publish，完整原生608斷言為該行補正前執行，物理Shift待用戶；正式Store三包保持；完整[紀錄](SHIFT_RULER_ROUND_PALETTE_2026-11-05.zh-TW.md)及[軟體審視／後續改善](WINDOWS_REVIEW_2026-11-05.zh-TW.md)。
 
 ## 2026-11-05 — 圖形游標恢復舊十字
 
