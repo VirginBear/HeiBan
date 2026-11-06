@@ -1,0 +1,53 @@
+{
+  "success": true,
+  "sourceCommit": "1d1674b8a6967d4a2271ae474ccce15bda890430",
+  "zip": "windows/dist/trials/HeiBan-Windows-Portable-1.1.2-ruler-toolbar-size-2026-11-06-r1-win-x64.zip",
+  "exe": "windows/dist/trials/HeiBan-Windows-Portable-1.1.2-ruler-toolbar-size-2026-11-06-r1-win-x64/HeiBan.exe",
+  "bytes": 100482343,
+  "sha256": "fb3224d653cd39482d1a4b225e2d290c8d48f2e71c68261f4c1a0580bbcdd622",
+  "payloadFiles": 723,
+  "sourceFiles": 418,
+  "menuIcons": 132,
+  "guideLanguages": 10,
+  "zipCRC": true,
+  "observerExcluded": true,
+  "independentEmptyData": true,
+  "storeBundleUnchanged": true,
+  "audioAttacks": [
+    1,
+    3,
+    4
+  ],
+  "audioFrames": [
+    49440,
+    40800,
+    118368
+  ],
+  "normalTrialLaunched": false,
+  "unpackedBytes": 251644023,
+  "previousUnpackedBytes": 251635726,
+  "previousZipBytes": 100480300,
+  "formalStoreThreeUnchanged": true,
+  "standaloneUpdaterAbsent": true,
+  "coreChecks": 6848,
+  "native": {
+    "success": true,
+    "checks": 515,
+    "constructionChecks": 18,
+    "quickColorChecks": 42,
+    "screen": 69,
+    "crackScale": 0.62,
+    "shards": 18,
+    "holdSeconds": 0.5,
+    "crackSegments": 90,
+    "manualSoundListening": false
+  },
+  "nativeTotal": 644,
+  "toolbarSizeScales": {
+    "small": 0.85,
+    "medium": 1,
+    "large": 1.2
+  },
+  "rulerHeightDip": 64,
+  "scope": "Local Windows 1.1.2 trial"
+}

@@ -6,3 +6,11 @@
 工具列大小使用原尺寸的 85%、100% 與 120%，圖示、按鈕與快色同尺度，圖文文字最小 10 DIP。選擇預設回中。每列先量最高工具組，再置中較短的圖示。色線是無外框純色 Border，快色維持圓形。第一次 QA 編譯在 MainWindow.xaml.cs 缺 Views 命名空間，後續 XAML 錯誤為連帶結果。補正後 build2 0 警告、0 錯誤。
 
 本機實際執行 Build-LocalizationCatalogs.py，十語 716 個鍵且缺漏 0。Build-UserGuides.py 產生十語各 26 章 80 段。Core.Tests Release 6848 通過。Release x64 原生 QA 使用獨立 qa-data 及 --cursor-cane-validation-output，得到 515 游標與藤條、18 主畫布幾何／尺、42 主色盤／尺寸、69 螢幕檢查。兩端伸縮固定對側、共用長度換算、尺隱藏無殘影、三尺寸中心與命中區、純色無框線通過。合計 644 項。0.5 秒由兩畫布共享常數與結果驗證。
+
+## 封裝與試用
+
+`Package-PortableTrial.ps1 -Runtime win-x64 -Label ruler-toolbar-size-2026-11-06-r1` 成功。來源 `1d1674b8a6967d4a2271ae474ccce15bda890430`。產品 1.1.2。ZIP 100,482,343 bytes，SHA-256 `fb3224d653cd39482d1a4b225e2d290c8d48f2e71c68261f4c1a0580bbcdd622`。驗證腳本核對 723 payload、418 來源、132 SVG、十語手冊及練習作品、CRC、獨立空 Data、排除原生診斷與獨立更新器。上一試用 ZIP、既有正式商店三包 SHA 核同。已記錄 [產物 JSON](RULER_TOOLBAR_SIZE_TRIAL_2026-11-06.json)。
+
+操作確認從一般畫布拖尺端雙線，打開螢幕畫布觀察沿用長度，再反向操作一次。圖示模式檢查單排中心。兩畫布可從自訂工具列選小、中或大，選取鋼筆／螢光筆後檢查無外框色線。0.5 秒是判別門檻，實際畫面更新會受計時器與刷新率影響。
+
+本批原生驗證直接執行版面與合成手勢。實體滑鼠、多螢幕跨 DPI、ARM64、Store 安裝與送審未執行。正常試用包未啟動，診斷使用隔離資料。保留既有使用者修改、草稿、作品及各歷史產物。

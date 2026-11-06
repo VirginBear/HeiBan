@@ -1,5 +1,9 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-11-06 — 尺尺寸與工具列版面
+
+尺長由主視窗的教學設定持有。一般畫布用 DIP，螢幕畫布在顯示、命中與 damage 邊界轉實體像素。RulerGeometry 共用伸縮長度與對側固定的規則。ToolbarPreferences.ToolbarSize 與既有偏好一起保存，ToolbarUi 將比例套用至按鈕、圖示與快色，ToolbarFlowPanel 先量每列高度再對齊中心。[實作紀錄](RULER_TOOLBAR_SIZE_2026-11-06.zh-TW.md)。
+
 ## 2026-11-06 — 側欄共用排版與尺規繪製
 
 ToolbarUi 依停靠方向建立側欄分頁選單與單欄分組。六色和筆刷同一個分頁單位，左右各用 2×3，橫向用 3×2。Direct2DCanvasRenderer 共用尺刻度與外觀，兩宿主仍持有手勢座標與命中測試，分別傳入畫布 DIP 或疊加層實體像素。文字格式隨 renderer 釋放。ObjectHandles.MoveVertex 使用自有點清單，文件序列化才編碼 JSON。[本批紀錄](STORE_COMPACT_TOOLBAR_2026-11-06.zh-TW.md)。
