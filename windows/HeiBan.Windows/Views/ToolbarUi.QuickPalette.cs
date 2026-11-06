@@ -15,7 +15,7 @@ internal static partial class ToolbarUi
         unit.Children.Add(brush);Grid.SetColumn(palette,1);unit.Children.Add(palette);BrushUnits.Add(brush,unit);unit.Visibility=brush.Visibility;
         brush.RegisterPropertyChangedCallback(UIElement.VisibilityProperty,(_,_)=>unit.Visibility=brush.Visibility);
     }
-    private static void ArrangeQuickPalette(Button brush, bool vertical)
+    private static void ArrangeQuickPalette(Button brush, bool vertical, double scale)
     {
         if (!BrushUnits.TryGetValue(brush, out var unit) || unit.Children[1] is not QuickPalette palette) return;
 
@@ -29,7 +29,7 @@ internal static partial class ToolbarUi
         unit.RowSpacing = 2;
         Grid.SetColumn(palette, vertical ? 0 : 1);
         Grid.SetRow(palette, vertical ? 1 : 0);
-        palette.SetVertical(vertical);
+        palette.SetLayout(vertical, scale);
     }
 
     internal static FrameworkElement ButtonUnit(Button button)=>BrushUnits.TryGetValue(button,out var unit)?unit:button;

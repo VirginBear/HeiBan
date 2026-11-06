@@ -11,21 +11,29 @@ internal static partial class ToolbarUi
     private sealed class ColorIcon : Grid
     {
         internal readonly ContentPresenter Icon=new(){HorizontalAlignment=HorizontalAlignment.Center};
-        private readonly Border _line=new(){Width=22,Height=4,Margin=new Thickness(0,2,0,0),CornerRadius=new CornerRadius(1),BorderThickness=new Thickness(1),BorderBrush=new SolidColorBrush(Direct2DCanvasRenderer.HexToColor("#8B978D"))};
+        private readonly Border _line = new() { HorizontalAlignment = HorizontalAlignment.Center, CornerRadius = new CornerRadius(1), IsHitTestVisible = false };
         private string? _color;
         internal ColorIcon(UIElement icon)
         {
             RowDefinitions.Add(new(){Height=GridLength.Auto});RowDefinitions.Add(new(){Height=GridLength.Auto});
             Icon.Content=icon;Children.Add(Icon);Grid.SetRow(_line,1);Children.Add(_line);
+            SetScale(1);
+        }
+
+        internal void SetScale(double scale)
+        {
+            _line.Width = 22 * scale;
+            _line.Height = 3 * scale;
+            _line.Margin = new Thickness(0, 2 * scale, 0, 0);
+            ScaleIcon(Icon.Content as UIElement, scale);
         }
         internal void SetColor(string color,bool active)
         {
             // Reserve the same icon height, but only the active tool paints a color line.
             _line.Opacity=active?1:0;
-            _line.IsHitTestVisible=false;
-            if(!active||_color==color)return;_color=color;
-            // White/transparent colors remain bounded against the paper toolbar.
-            var chip=PaletteEditor.Chip(color);chip.Width=22;chip.Height=4;_line.Child=chip;
+            if (!active || _color == color) return;
+            _color = color;
+            _line.Background = new SolidColorBrush(Direct2DCanvasRenderer.HexToColor(color));
         }
     }
     internal static void SetToolColor(Button button,string key,string color,string activeTool)
@@ -39,6 +47,7 @@ internal static partial class ToolbarUi
         {
             if(label is null)button.Content=null;else label.Children.RemoveAt(0);
             indicator=new ColorIcon(icon);
+            indicator.SetScale(ButtonParents.GetValue(button, _ => new()).Scale);
             if(label is null)button.Content=indicator;else label.Children.Insert(0,indicator);
         }
         ToolIcons.UpdateBrushArtwork(indicator.Icon.Content as UIElement,color);

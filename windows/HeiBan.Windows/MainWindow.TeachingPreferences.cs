@@ -11,12 +11,13 @@ public partial class MainWindow
         public double LaserWidth {get;set;}=8;public double LaserDiameter {get;set;}=16;public double LaserFade {get;set;}=.8;
         public bool WhiteCore {get;set;}=true;
         public double RulerLengthPercent {get;set;}=90;
+        public float? RulerLengthDip { get; set; }
         public string InspectorDock {get;set;}="right";
         public Dictionary<string,ToolStyle> Styles {get;set;}=[];
     }
     private readonly SemaphoreSlim _teachingSaveGate=new(1,1);
     private readonly Microsoft.UI.Xaml.DispatcherTimer _teachingSaveTimer=new(){Interval=TimeSpan.FromMilliseconds(400)};
-    private void QueueTeachingSettingsSave(){_teachingSaveTimer.Stop();_teachingSaveTimer.Start();}
+    internal void QueueTeachingSettingsSave(){_teachingSaveTimer.Stop();_teachingSaveTimer.Start();}
     private static readonly JsonSerializerOptions TeachingJson=new(DocumentCodec.Options){IncludeFields=true};
     private string TeachingPath=>Path.Combine(_storage.DataDirectory,"Settings","teaching.json");
     private void LoadTeachingSettings()
@@ -30,6 +31,7 @@ public partial class MainWindow
             foreach(var pair in settings.Styles??[])
             {if(pair.Value is null)continue;pair.Value.Width=FiniteClamp(pair.Value.Width,.5,128,4);pair.Value.Opacity=FiniteClamp(pair.Value.Opacity,0,1,1);pair.Value.FontSize=FiniteClamp(pair.Value.FontSize,8,200,18);_toolStyles[pair.Key]=pair.Value;}
             _rulerLengthPercent=FiniteClamp(settings.RulerLengthPercent,20,150,90);
+            if (settings.RulerLengthDip is { } length && float.IsFinite(length)) SetSharedRulerLength(length);
             SetInspectorDock(settings.InspectorDock);
             LoadActiveStyle();
         }
@@ -39,7 +41,7 @@ public partial class MainWindow
     internal async Task SaveTeachingSettingsAsync()
     {
         _teachingSaveTimer.Stop();
-        var snapshot=JsonSerializer.Serialize(new TeachingSettings{LaserMode=_laser.Mode,LaserColor=_laser.Color,LaserWidth=_laser.Width,LaserDiameter=_laser.PointDiameter,LaserFade=_laser.FadeDuration,WhiteCore=_laser.WhiteCore,RulerLengthPercent=_rulerLengthPercent,InspectorDock=_inspectorDock,Styles=_toolStyles},TeachingJson);
+        var snapshot=JsonSerializer.Serialize(new TeachingSettings{LaserMode=_laser.Mode,LaserColor=_laser.Color,LaserWidth=_laser.Width,LaserDiameter=_laser.PointDiameter,LaserFade=_laser.FadeDuration,WhiteCore=_laser.WhiteCore,RulerLengthPercent=_rulerLengthPercent,RulerLengthDip=_rulerLengthDip,InspectorDock=_inspectorDock,Styles=_toolStyles},TeachingJson);
         await _teachingSaveGate.WaitAsync();
         try{await Task.Run(()=>DocumentSessionManager.WriteAtomicAsync(TeachingPath,snapshot));}
         catch(Exception e){StatusText.Text=T("偏好保存失敗：")+e.Message;}

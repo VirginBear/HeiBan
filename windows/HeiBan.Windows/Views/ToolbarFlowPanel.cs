@@ -22,49 +22,58 @@ internal sealed class ToolbarFlowPanel : Panel
 
     private Size Layout(bool arrange)
     {
-        double run=0,cross=0,lineCross=0,maxRun=0;
-        if(SingleRun)
+        var horizontal = Orientation == Orientation.Horizontal;
+        var visible = Children.Where(child => child.Visibility != Visibility.Collapsed).ToArray();
+        if (!arrange)
+            foreach (var child in visible) child.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+
+        var lengths = visible.Select(child => horizontal ? child.DesiredSize.Width : child.DesiredSize.Height).ToArray();
+        _pageStarts = ToolbarPaging.Starts(lengths, RunLength, Spacing);
+        var firstPage = 0;
+        var endPage = _pageStarts.Length;
+        int End(int page) => page + 1 < _pageStarts.Length ? _pageStarts[page + 1] : visible.Length;
+        if (SingleRun)
         {
-            var visible=Children.Where(c=>c.Visibility!=Visibility.Collapsed).ToArray();
-            foreach(var child in visible)
-            {
-                if(!arrange)child.Measure(new Size(double.PositiveInfinity,double.PositiveInfinity));
-            }
-            _pageStarts=ToolbarPaging.Starts(visible.Select(child=>Orientation==Orientation.Horizontal?child.DesiredSize.Width:child.DesiredSize.Height).ToArray(),RunLength,Spacing);
-            var page=Math.Max(0,Array.FindLastIndex(_pageStarts,start=>start<=PageOffset));PageOffset=_pageStarts[page];
-            PageCapacity=(page+1<_pageStarts.Length?_pageStarts[page+1]:visible.Length)-PageOffset;
-            PageAvailabilityChanged?.Invoke(PageOffset>0,PageOffset+PageCapacity<visible.Length);
-            var capacity=0;
-            for(var index=0;index<visible.Length;index++)
-            {
-                var child=visible[index];if(!arrange)child.Measure(new Size(double.PositiveInfinity,double.PositiveInfinity));
-                var size=child.DesiredSize;var length=Orientation==Orientation.Horizontal?size.Width:size.Height;
-                var breadth=Orientation==Orientation.Horizontal?size.Height:size.Width;
-                var show=index>=PageOffset&&index<PageOffset+PageCapacity;
-                if(show)
-                {
-                    if(capacity>0)run+=Spacing;
-                    if(arrange)child.Arrange(Orientation==Orientation.Horizontal?new Rect(run,0,size.Width,size.Height):new Rect(0,run,size.Width,size.Height));
-                    run+=length;cross=Math.Max(cross,breadth);capacity++;
-                }
-                else if(arrange)child.Arrange(new Rect(-10000,-10000,0,0));
-            }
-            return Orientation==Orientation.Horizontal?new Size(run,cross):new Size(cross,run);
+            firstPage = Math.Max(0, Array.FindLastIndex(_pageStarts, start => start <= PageOffset));
+            endPage = firstPage + 1;
+            PageOffset = _pageStarts[firstPage];
+            PageCapacity = End(firstPage) - PageOffset;
+            PageAvailabilityChanged?.Invoke(PageOffset > 0, PageOffset + PageCapacity < visible.Length);
+            if (arrange)
+                for (var index = 0; index < visible.Length; index++)
+                    if (index < PageOffset || index >= End(firstPage)) visible[index].Arrange(new Rect(-10000, -10000, 0, 0));
         }
-        foreach(var child in Children)
+
+        double cross = 0, maxRun = 0;
+        for (var page = firstPage; page < endPage; page++)
         {
-            if(child.Visibility==Visibility.Collapsed)continue;
-            if(!arrange)child.Measure(new Size(double.PositiveInfinity,double.PositiveInfinity));
-            var size=child.DesiredSize;var length=Orientation==Orientation.Horizontal?size.Width:size.Height;
-            var breadth=Orientation==Orientation.Horizontal?size.Height:size.Width;
-            if(run>0&&run+Spacing+length>RunLength){maxRun=Math.Max(maxRun,run);cross+=lineCross+Spacing;run=0;lineCross=0;}
-            if(run>0)run+=Spacing;
-            if(arrange)child.Arrange(Orientation==Orientation.Horizontal?new Rect(run,cross,size.Width,size.Height):new Rect(cross,run,size.Width,size.Height));
-            run+=length;lineCross=Math.Max(lineCross,breadth);
+            var start = _pageStarts[page];
+            var end = End(page);
+            double lineCross = 0;
+            for (var index = start; index < end; index++)
+            {
+                var size = visible[index].DesiredSize;
+                lineCross = Math.Max(lineCross, horizontal ? size.Height : size.Width);
+            }
+
+            // Measure the full row/column first so ordinary icons share the
+            // midpoint of taller brush/palette units in that run.
+            double run = 0;
+            for (var index = start; index < end; index++)
+            {
+                var child = visible[index];
+                var size = child.DesiredSize;
+                var offset = cross + (lineCross - (horizontal ? size.Height : size.Width)) / 2;
+                if (index > start) run += Spacing;
+                if (arrange) child.Arrange(horizontal ? new Rect(run, offset, size.Width, size.Height) : new Rect(offset, run, size.Width, size.Height));
+                run += lengths[index];
+            }
+            maxRun = Math.Max(maxRun, run);
+            cross += lineCross + (page + 1 < endPage ? Spacing : 0);
         }
-        maxRun=Math.Max(maxRun,run);cross+=lineCross;
-        return Orientation==Orientation.Horizontal?new Size(maxRun,cross):new Size(cross,maxRun);
+        return horizontal ? new Size(maxRun, cross) : new Size(cross, maxRun);
     }
+
     protected override Size MeasureOverride(Size availableSize)=>Layout(false);
     protected override Size ArrangeOverride(Size finalSize){Layout(true);return finalSize;}
 }

@@ -64,10 +64,12 @@ internal sealed partial class ScreenAnnotationWindow
     }
 
     private string _chromeIconStyle="";
-    internal void ApplyToolbarIconStyle(string style)
+    internal void ApplyToolbarAppearance(string style, string size)
     {
+        var sizeChanged = _toolbarPreferences.ToolbarSize != size;
         _toolbarPreferences.IconStyle=style;
-        if(IsActive&&_chromeIconStyle!=style){CancelRadial();RebuildChromeLayout();RefreshScreenStyleButtons();ResizeChrome();PositionChrome();_dirty=true;}
+        _toolbarPreferences.ToolbarSize=size;
+        if(IsActive&&(_chromeIconStyle!=style||sizeChanged)){CancelRadial();RebuildChromeLayout();RefreshScreenStyleButtons();ResizeChrome();PositionChrome();_dirty=true;}
     }
     private void RebuildChromeLayout()
     {
@@ -86,8 +88,11 @@ internal sealed partial class ScreenAnnotationWindow
         if (_chromeToolHost is not null) _chromeToolHost.Child = null;
         _chromeStart?.Children.Clear(); _chromeEnd?.Children.Clear(); _chromeTools?.Children.Clear();
 
+        var scale = ToolbarUi.SizeScale(_toolbarPreferences.ToolbarSize);
         var vertical = VerticalChrome; var orientation = vertical ? Orientation.Vertical : Orientation.Horizontal;
         _chromeStart = new StackPanel { Orientation = orientation, Spacing = 4, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center };
+        _chromeGrip.Width = 24 * scale;
+        _chromeGrip.Height = 30 * scale;
         _chromeStart.Children.Add(_chromeGrip);
         _chromeStart.Children.Add(_mode);
         RefreshMode();
@@ -107,14 +112,16 @@ internal sealed partial class ScreenAnnotationWindow
                     .Concat(_chromeActions.Where(button => button.Tag is null || !ToolbarPreferences.AllDefaultTools.Contains((string)button.Tag))))
             if (!ordered.Contains(button)) ordered.Add(button);
 
-        _labeledScreenFlow = ToolbarUi.Arrange(_chromeTools, ordered.Select(b => (b.Tag as string ?? "", b)), _toolbarPreferences.DisplayMode == "labels", vertical, _toolbarPage, p => { _toolbarPage = p; DispatcherQueue.TryEnqueue(() => { ResizeChrome(); PositionChrome(); }); }, 32, _toolbarPreferences.CommonTools);
+        _labeledScreenFlow = ToolbarUi.Arrange(_chromeTools, ordered.Select(b => (b.Tag as string ?? "", b)), _toolbarPreferences.DisplayMode == "labels", vertical, _toolbarPage, p => { _toolbarPage = p; DispatcherQueue.TryEnqueue(() => { ResizeChrome(); PositionChrome(); }); }, 32, _toolbarPreferences.CommonTools, scale);
+        ToolbarUi.LabelMode(_moreButton, "more", false, 32, vertical, scale);
+        ToolbarUi.LabelMode(_closeButton, "close", false, 32, vertical, scale);
         if (!vertical && !_collapsed) _chromeTools.Children.Add(_moreButton);
 
         _chromeEnd = new StackPanel { Orientation = orientation, Spacing = 4, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center };
         if (_collapsed) _chromeEnd.Children.Add(_clearButton); if (vertical || _collapsed) _chromeEnd.Children.Add(_moreButton); _chromeEnd.Children.Add(_closeButton);
         _chromeToolHost = new Border { Child = _chromeTools, Visibility = _collapsed ? Visibility.Collapsed : Visibility.Visible, MinWidth = 0, MinHeight = 0 };
 
-        var root = new Grid { Padding = new Thickness(vertical ? 5 : 12), ColumnSpacing = 6, RowSpacing = 6, RequestedTheme = ElementTheme.Light };
+        var root = new Grid { Padding = new Thickness((vertical ? 5 : 12) * scale), ColumnSpacing = 6, RowSpacing = 6, RequestedTheme = ElementTheme.Light };
         if (vertical) { root.RowDefinitions.Add(new() { Height = GridLength.Auto }); root.RowDefinitions.Add(new() { Height = new GridLength(1, GridUnitType.Star) }); root.RowDefinitions.Add(new() { Height = GridLength.Auto }); Grid.SetRow(_chromeToolHost, 1); Grid.SetRow(_chromeEnd, 2); }
         else { root.ColumnDefinitions.Add(new() { Width = GridLength.Auto }); root.ColumnDefinitions.Add(new() { Width = new GridLength(1, GridUnitType.Star) }); root.ColumnDefinitions.Add(new() { Width = GridLength.Auto }); Grid.SetColumn(_chromeToolHost, 1); Grid.SetColumn(_chromeEnd, 2); }
 
@@ -127,13 +134,14 @@ internal sealed partial class ScreenAnnotationWindow
         var available = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
         var unbounded = new global::Windows.Foundation.Size(double.PositiveInfinity, double.PositiveInfinity);
         _chromeStart.Measure(unbounded); _chromeEnd.Measure(unbounded);
+        var scale = ToolbarUi.SizeScale(_toolbarPreferences.ToolbarSize);
         var workWidth = Math.Max(1, available.Width / _dpiScale - 24); var workHeight = Math.Max(1, available.Height / _dpiScale - 24);
         _chromeTools.RunLength = VerticalChrome ? Math.Max(32, workHeight - _chromeStart.DesiredSize.Height - _chromeEnd.DesiredSize.Height - 30) : Math.Max(32, workWidth - _chromeStart.DesiredSize.Width - _chromeEnd.DesiredSize.Width - 38);
-        if (_labeledScreenFlow is { } labeled) { const int extra = 90; labeled.RunLength = VerticalChrome ? Math.Max(122, workHeight - _chromeStart.DesiredSize.Height - _chromeEnd.DesiredSize.Height - (_toolbarPreferences.DisplayMode == "labels" ? 278 : 172)) : Math.Max(84, workWidth - _chromeStart.DesiredSize.Width - _chromeEnd.DesiredSize.Width - 310 - extra); labeled.InvalidateMeasure(); }
+        if (_labeledScreenFlow is { } labeled) { const int extra = 90; labeled.RunLength = VerticalChrome ? Math.Max(128 * scale, workHeight - _chromeStart.DesiredSize.Height - _chromeEnd.DesiredSize.Height - (_toolbarPreferences.DisplayMode == "labels" ? 278 : 172) * scale) : Math.Max(84 * scale, workWidth - _chromeStart.DesiredSize.Width - _chromeEnd.DesiredSize.Width - (310 + extra) * scale); labeled.InvalidateMeasure(); }
         _chromeTools.InvalidateMeasure(); _chromeTools.Measure(unbounded);
         var start = _chromeStart.DesiredSize; var tools = _collapsed ? new global::Windows.Foundation.Size() : _chromeTools.DesiredSize; var end = _chromeEnd.DesiredSize;
-        var desiredWidth = VerticalChrome ? Math.Max(60, Math.Max(start.Width, Math.Max(tools.Width, end.Width)) + 12) : start.Width + tools.Width + end.Width + 38;
-        var desiredHeight = VerticalChrome ? start.Height + tools.Height + end.Height + 30 : Math.Max(60, Math.Max(start.Height, Math.Max(tools.Height, end.Height)) + 26);
+        var desiredWidth = VerticalChrome ? Math.Max(60, Math.Max(start.Width, Math.Max(tools.Width, end.Width)) + 12 * scale) : start.Width + tools.Width + end.Width + 38 * scale;
+        var desiredHeight = VerticalChrome ? start.Height + tools.Height + end.Height + 30 * scale : Math.Max(60 * scale, Math.Max(start.Height, Math.Max(tools.Height, end.Height)) + 26 * scale);
         var width = (int)Math.Ceiling(desiredWidth * _dpiScale); var height = (int)Math.Ceiling(desiredHeight * _dpiScale);
         NativeOverlayWindow.ResizeCompactWindow(WinRT.Interop.WindowNative.GetWindowHandle(this), Math.Max(1, Math.Min(width, available.Width - (int)(24 * _dpiScale))), Math.Max(1, Math.Min(height, available.Height - (int)(24 * _dpiScale))));
     }

@@ -27,6 +27,23 @@ internal sealed partial class ScreenAnnotationWindow
                 var unit=HeiBan.Windows.Views.ToolbarUi.ButtonUnit(_brushButton);
                 Check(unit is Microsoft.UI.Xaml.Controls.Grid grid&&grid.Children.Contains(_brushButton)&&grid.Children.Contains(_quickPalette)&&Microsoft.UI.Xaml.Controls.Grid.GetRow(_quickPalette)==(side is "left" or "right"?1:0),"Screen brush unit lost during docking");
             }
+            var originalSize = _toolbarPreferences.ToolbarSize;
+            _toolbarPreferences.DisplayMode = "icons";
+            _chromeDock = "top";
+            foreach (var size in new[] { "small", "medium", "large" })
+            {
+                _toolbarPreferences.ToolbarSize = size;
+                RebuildChromeLayout();
+                ResizeChrome();
+                await Task.Delay(75);
+                var scale = HeiBan.Windows.Views.ToolbarUi.SizeScale(size);
+                var pen = _buttons["pen"];
+                Check(Math.Abs(pen.ActualHeight - 32 * scale) < 1 && Math.Abs(_quickPalette.ValidationButtons[0].ActualWidth - 22 * scale) < 1, "Screen toolbar size did not scale its hit areas");
+                var penCenter = pen.TransformToVisual(_chromeTools).TransformPoint(new global::Windows.Foundation.Point(0, pen.ActualHeight / 2));
+                var brushCenter = _brushButton.TransformToVisual(_chromeTools).TransformPoint(new global::Windows.Foundation.Point(0, _brushButton.ActualHeight / 2));
+                Check(Math.Abs(penCenter.Y - brushCenter.Y) < 1, "Screen icon centers differ");
+            }
+            _toolbarPreferences.ToolbarSize = originalSize;
             _toolbarPreferences.DisplayMode=display;_chromeDock=dock;RebuildChromeLayout();
             SetDrawing(true);_tool="cane";_renderTimer.Stop();_cane.Clear();_dirty=true;Render();
             var generation=_session.Generation;var before=_target!.GetPixelBytes();var now=Now;

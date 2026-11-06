@@ -41,6 +41,23 @@ internal sealed partial class ScreenAnnotationWindow
             Check(!baseline.SequenceEqual(_target.GetPixelBytes()),"Recovered ruler invisible");
             Check(_session.Generation==generation,"Ruler toggling changed document generation");
             await _target.SaveAsync(Path.Combine(output,"screen-ruler.png"),CanvasBitmapFileFormat.Png);
+            var lengthDip = _owner.SharedRulerLength;
+            Check(Math.Abs(RulerLength / RulerScale - lengthDip) < .01 && Math.Abs(RulerHeight / RulerScale - 64) < .01, "Ruler DPI boundary differs from main canvas");
+            foreach (var side in new[] { -1, 1 })
+            {
+                var fixedEnd = RulerPoint(-side * RulerLength / 2);
+                var grip = RulerPoint(side * (RulerLength / 2 - 6 * RulerScale));
+                var moved = grip + RulerDirection() * (side * 32 * RulerScale);
+                var before = _owner.SharedRulerLength;
+                OnPointerCore(new("down", grip.X, grip.Y, LeftDown: true));
+                OnPointerCore(new("move", moved.X, moved.Y, LeftDown: true));
+                OnPointerCore(new("up", moved.X, moved.Y));
+                Check(Math.Abs(_owner.SharedRulerLength - before - 32) < .02, "Screen stretch did not update the shared DIP length");
+                Check(System.Numerics.Vector2.Distance(fixedEnd, RulerPoint(-side * RulerLength / 2)) < .02, "Screen stretch moved the opposite end");
+                Render();
+            }
+            Check(_session.Generation == generation, "Ruler resizing changed the document");
+            _owner.SetSharedRulerLength(lengthDip);
             ToggleScreenRuler();Render();Check(baseline.SequenceEqual(_target.GetPixelBytes()),"Ruler removal left stale pixels");
         }
         finally{_toolbarPreferences.VisibleTools=visible;_toolbarPreferences.HiddenTools=hidden;RebuildChromeLayout();}

@@ -298,11 +298,13 @@ internal sealed partial class ScreenAnnotationWindow
     }
     private void RefreshMode()
     {
-        _mode.Width=VerticalChrome?32:double.NaN;var color=_drawing?ChromeBrush(255,197,116,40):ChromeBrush(255,32,126,75);
-        var icon=ToolIcons.CreateIcon(_drawing?"mode-draw":"mode-operate");icon.Width=icon.Height=18;icon.Foreground=color;
+        var scale = ToolbarUi.SizeScale(_toolbarPreferences.ToolbarSize);
+        _mode.Height = 32 * scale;
+        _mode.Width=VerticalChrome?32*scale:double.NaN;var color=_drawing?ChromeBrush(255,197,116,40):ChromeBrush(255,32,126,75);
+        var icon=ToolIcons.CreateIcon(_drawing?"mode-draw":"mode-operate");icon.Width=icon.Height=18*scale;icon.Foreground=color;
         var content=new StackPanel{Orientation=Orientation.Horizontal,Spacing=4,HorizontalAlignment=HorizontalAlignment.Center,VerticalAlignment=VerticalAlignment.Center};content.Children.Add(icon);
-        if(!VerticalChrome)content.Children.Add(new TextBlock{Text=_drawing?T("作畫"):T("操作"),FontSize=12,VerticalAlignment=VerticalAlignment.Center,Foreground=color});
-        if(!VerticalChrome){content.Measure(new global::Windows.Foundation.Size(double.PositiveInfinity,double.PositiveInfinity));_mode.Width=Math.Max(62,content.DesiredSize.Width+10);}_mode.Content=content;_mode.HorizontalContentAlignment=HorizontalAlignment.Center;_mode.VerticalContentAlignment=VerticalAlignment.Center;
+        if(!VerticalChrome)content.Children.Add(new TextBlock{Text=_drawing?T("作畫"):T("操作"),FontSize=Math.Max(10,12*scale),VerticalAlignment=VerticalAlignment.Center,Foreground=color});
+        if(!VerticalChrome){content.Measure(new global::Windows.Foundation.Size(double.PositiveInfinity,double.PositiveInfinity));_mode.Width=Math.Max(62*scale,content.DesiredSize.Width+10*scale);}_mode.Content=content;_mode.HorizontalContentAlignment=HorizontalAlignment.Center;_mode.VerticalContentAlignment=VerticalAlignment.Center;
         var hint=(_drawing?T("作畫中；切換穿透操作"):T("操作中；回到作畫"))+" · Ctrl+Alt+D\n"+_status.Text;ToolTipService.SetToolTip(_mode,hint);AutomationProperties.SetName(_mode,hint);
     }
     private void SetChromeCollapsed(bool collapsed){_collapsed=collapsed;RebuildChromeLayout();ResizeChrome();PositionChrome();}

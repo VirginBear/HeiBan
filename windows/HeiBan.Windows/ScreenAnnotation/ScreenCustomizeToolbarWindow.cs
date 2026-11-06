@@ -160,6 +160,9 @@ internal sealed class ScreenCustomizeToolbarWindow : Window
         };
         format.SelectionChanged += (_, _) => displayMode = format.SelectedIndex == 1 ? "labels" : "icons";
         header.Children.Add(format);
+        var toolbarSize = preferences.ToolbarSize;
+        var sizePicker = ToolbarUi.SizePicker(toolbarSize, value => toolbarSize = value);
+        header.Children.Add(sizePicker);
 
         var commands = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
         var all = new Button { Content = T("全選") };
@@ -168,6 +171,7 @@ internal sealed class ScreenCustomizeToolbarWindow : Window
         defaults.Click += (_, _) =>
         {
             stylePicker.SelectedIndex=0;
+            sizePicker.SelectedIndex=1;
             visibleSet.Clear();
             visibleSet.UnionWith(ToolbarPreferences.AllDefaultTools.Where(ToolbarContentPolicy.IsAvailableOnScreen));
             allKeys.Clear();
@@ -206,15 +210,15 @@ internal sealed class ScreenCustomizeToolbarWindow : Window
         var saving=false;var closed=false;Closed+=(_,_)=>closed=true;
         async Task SaveChangesAsync(bool close)
         {
-            if(saving)return;saving=true;applyBtn.IsEnabled=saveBtn.IsEnabled=cancelBtn.IsEnabled=scroll.IsEnabled=stylePicker.IsEnabled=format.IsEnabled=all.IsEnabled=defaults.IsEnabled=false;
-            var order=allKeys.ToArray();var visible=visibleSet.ToHashSet();var common=commonSet.ToHashSet();var mode=displayMode;var style=iconStyle;
+            if(saving)return;saving=true;applyBtn.IsEnabled=saveBtn.IsEnabled=cancelBtn.IsEnabled=scroll.IsEnabled=stylePicker.IsEnabled=format.IsEnabled=sizePicker.IsEnabled=all.IsEnabled=defaults.IsEnabled=false;
+            var order=allKeys.ToArray();var visible=visibleSet.ToHashSet();var common=commonSet.ToHashSet();var mode=displayMode;var style=iconStyle;var size=toolbarSize;
             try
             {
-                await onSaved(prefs=>{prefs.IconStyle=style;prefs.ApplyToolSubset(order,visible,common,mode);});
+                await onSaved(prefs=>{prefs.IconStyle=style;prefs.ToolbarSize=size;prefs.ApplyToolSubset(order,visible,common,mode);});
                 if(!closed){status.Text=T("設定已儲存");status.Visibility=Visibility.Visible;if(close)Close();}
             }
             catch(Exception error){if(!closed){status.Text=T("工具列設定未保存：")+error.Message;status.Visibility=Visibility.Visible;}}
-            finally{saving=false;if(!closed)applyBtn.IsEnabled=saveBtn.IsEnabled=cancelBtn.IsEnabled=scroll.IsEnabled=stylePicker.IsEnabled=format.IsEnabled=all.IsEnabled=defaults.IsEnabled=true;}
+            finally{saving=false;if(!closed)applyBtn.IsEnabled=saveBtn.IsEnabled=cancelBtn.IsEnabled=scroll.IsEnabled=stylePicker.IsEnabled=format.IsEnabled=sizePicker.IsEnabled=all.IsEnabled=defaults.IsEnabled=true;}
         }
         cancelBtn.Click += (_, _) => Close();
         applyBtn.Click += async (_, _) => await SaveChangesAsync(false);

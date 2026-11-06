@@ -11,6 +11,7 @@ public sealed class ToolbarPreferences
     public List<string> VisibleTools { get; set; } = [];
     public List<string> HiddenTools { get; set; } = [];
     public string DisplayMode { get; set; } = "labels";
+    public string ToolbarSize { get; set; } = "medium";
     public string IconStyle { get; set; } = "classic";
     public bool MagnetEnabled { get; set; }
     public bool BoardEraserVisible { get; set; } = true;
@@ -103,6 +104,7 @@ public sealed class ToolbarPreferences
             }
             DefaultPresentationRevision=1;
         }
+        if (ToolbarSize is not ("small" or "medium" or "large")) ToolbarSize = "medium";
         if(DisplayMode is not("icons" or "labels"))DisplayMode="labels";
         if(IconStyle is not("classic" or "duotone"))IconStyle="classic";
         if (DockSide is not ("上方" or "左側" or "下方" or "右側"))
@@ -170,7 +172,7 @@ public sealed class ToolbarPreferences
         DefaultToolsRevision=1;
         DefaultPresentationRevision=1;
         DefaultCommonRevision=1;
-        DisplayMode="labels";IconStyle="classic";MagnetEnabled=false;
+        DisplayMode="labels";ToolbarSize="medium";IconStyle="classic";MagnetEnabled=false;
         CommonTools=[..DefaultCommonTools];
         DockSide = "上方";
         VisibleTools = [..FixedTools,..AllDefaultTools.Where(t=>!IsFixedTool(t))];

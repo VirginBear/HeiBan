@@ -16,11 +16,12 @@ namespace HeiBan.Windows.ScreenAnnotation;
 internal sealed partial class ScreenAnnotationWindow
 {
     private bool _rulerEnabled;
-    private float _rulerPixelLength = 640;
+    private int _rulerStretchSide;
+    private float _rulerGrabOffset;
     private double _rulerOpacity = .38, _rulerPivotRatio = .5, _rulerRotationStart, _rulerPointerStart;
     private Vector2 _rulerFixedPivot;
     private string _rulerPivotEdge = "center";
-    private bool _rulerPivotMoving, _rulerMoving, _rulerRotating, _rulerResizingLeft, _rulerResizingRight;
+    private bool _rulerPivotMoving, _rulerMoving, _rulerRotating;
     private Vector2 _rulerCenter = new(600, 450);
     private double _rulerAngle;
     private string? _rulerColor;
@@ -28,8 +29,10 @@ internal sealed partial class ScreenAnnotationWindow
     private Vector2 _snapDirection;
     private global::Windows.Foundation.Rect? _lastRulerDamage;
 
-    private const float RulerHeight = 64;
-    private float RulerLength => (float)Math.Clamp(_rulerPixelLength, 200, _overlay.Width * 1.5f);
+    // The overlay is a 96-DPI target addressed in physical desktop pixels.
+    private float RulerScale => (float)_dpiScale;
+    private float RulerHeight => RulerGeometry.HeightDip * RulerScale;
+    private float RulerLength => _owner.SharedRulerLength * RulerScale;
     private Vector2 RulerDirection() => new((float)Math.Cos(_rulerAngle * Math.PI / 180), (float)Math.Sin(_rulerAngle * Math.PI / 180));
     private Vector2 RulerLocal(Vector2 point)
     {
@@ -47,27 +50,51 @@ internal sealed partial class ScreenAnnotationWindow
     private bool RulerLeftEdgeHit(Vector2 p)
     {
         var local = RulerLocal(p);
-        return Math.Abs(local.X - (-RulerLength / 2)) <= 16 && Math.Abs(local.Y) <= RulerHeight / 2;
+        return Math.Abs(local.X - (-RulerLength / 2)) <= RulerGeometry.EndGripDip * RulerScale && Math.Abs(local.Y) <= RulerHeight / 2;
     }
     private bool RulerRightEdgeHit(Vector2 p)
     {
         var local = RulerLocal(p);
-        return Math.Abs(local.X - (RulerLength / 2)) <= 16 && Math.Abs(local.Y) <= RulerHeight / 2;
+        return Math.Abs(local.X - (RulerLength / 2)) <= RulerGeometry.EndGripDip * RulerScale && Math.Abs(local.Y) <= RulerHeight / 2;
     }
     private bool RulerRotationHit(Vector2 p) =>
-        Vector2.Distance(p, RulerPoint(RulerLength / 2 - 28)) <= 18 || Vector2.Distance(p, RulerPoint(-RulerLength / 2 + 28)) <= 18;
-    private bool RulerPivotHit(Vector2 p) => Vector2.Distance(p, RulerPivot()) < 10;
+        Vector2.Distance(p, RulerPoint(RulerLength / 2 - RulerGeometry.HandleInsetDip * RulerScale)) <= 18 * RulerScale || Vector2.Distance(p, RulerPoint(-RulerLength / 2 + RulerGeometry.HandleInsetDip * RulerScale)) <= 18 * RulerScale;
+    private bool RulerPivotHit(Vector2 p) => Vector2.Distance(p, RulerPivot()) < 10 * RulerScale;
     private bool RulerAngleHit(Vector2 p)
     {
         var local = RulerLocal(p);
-        return local.X > RulerLength / 2 - 136 && local.X < RulerLength / 2 - 46 && local.Y > -29 && local.Y < -1;
+        return local.X > RulerLength / 2 - 136 * RulerScale && local.X < RulerLength / 2 - 46 * RulerScale && local.Y > -29 * RulerScale && local.Y < -RulerScale;
     }
     private bool RulerHit(Vector2 point)
     {
         var p = RulerLocal(point);
-        return Math.Abs(p.X) < RulerLength / 2 - 16 && Math.Abs(p.Y) < RulerHeight / 2 - 4
+        return Math.Abs(p.X) < RulerLength / 2 - RulerGeometry.EndGripDip * RulerScale && Math.Abs(p.Y) < RulerHeight / 2 - 4 * RulerScale
             && !RulerRotationHit(point) && !RulerPivotHit(point) && !RulerAngleHit(point);
     }
+    private void BeginRulerStretch(Vector2 point, int side)
+    {
+        _rulerStretchSide = side;
+        _rulerGrabOffset = (RulerLocal(point).X - side * RulerLength / 2) / RulerScale;
+    }
+
+    private void StretchRuler(Vector2 point)
+    {
+        DamageRuler();
+        var previous = _owner.SharedRulerLength;
+        var length = RulerGeometry.Stretch(previous, RulerLocal(point).X / RulerScale, _rulerGrabOffset, _rulerStretchSide);
+        _rulerCenter += RulerDirection() * (_rulerStretchSide * (length - previous) * RulerScale / 2);
+        _owner.SetSharedRulerLength(length);
+        DamageRuler();
+        _dirty = true;
+    }
+
+    private void FinishRulerStretch()
+    {
+        if (_rulerStretchSide == 0) return;
+        _rulerStretchSide = 0;
+        _owner.QueueTeachingSettingsSave();
+    }
+
     private void BeginRulerRotation(Vector2 p)
     {
         _rulerFixedPivot = RulerPivot();
@@ -96,7 +123,6 @@ internal sealed partial class ScreenAnnotationWindow
         var local = RulerLocal(p);
         (_rulerPivotRatio, _rulerPivotEdge) = RulerGeometry.PickPivot(local.X, local.Y, RulerLength, RulerHeight);
     }
-    private bool _rulerPositionInitialized;
     private void ToggleScreenRuler()
     {
         DamageRuler();_rulerEnabled=!_rulerEnabled;
@@ -106,7 +132,7 @@ internal sealed partial class ScreenAnnotationWindow
     private void CenterScreenRuler()
     {
         var area=DisplayArea.GetFromWindowId(AppWindow.Id,DisplayAreaFallback.Primary).WorkArea;
-        if(!_rulerPositionInitialized){_rulerPixelLength=(float)Math.Clamp(area.Width*.8,200,_overlay.Width*1.5);_rulerPositionInitialized=true;}
+        _ = _owner.SharedRulerLength;
         // DisplayArea is desktop physical pixels; renderer/input use overlay-local pixels.
         _rulerCenter=new((float)(area.X+area.Width*.5-_overlay.Left),(float)(area.Y+area.Height*.55-_overlay.Top));
     }
@@ -130,8 +156,8 @@ internal sealed partial class ScreenAnnotationWindow
         var reset = new Button { Content = T("水平 0.0°") };
         reset.Click += (_, _) => angle.Value = 0;
         panel.Children.Add(reset);
-        var length = new Slider { Header = T("尺長（像素 pt）"), Minimum = 200, Maximum = Math.Max(1600,_overlay.Width*1.5), Value = _rulerPixelLength, StepFrequency = 20 };
-        length.ValueChanged += (_, e) => { var pivot = RulerPivot(); _rulerPixelLength = (float)e.NewValue; SetRulerAngle(_rulerAngle, pivot); DamageRuler(); _dirty = true; };
+        var length = new Slider { Header = T("尺長（DIP）"), Minimum = RulerGeometry.MinimumLengthDip, Maximum = RulerGeometry.MaximumLengthDip, Value = _owner.SharedRulerLength, StepFrequency = 1 };
+        length.ValueChanged += (_, e) => { var pivot = RulerPivot(); _owner.SetSharedRulerLength((float)e.NewValue); _owner.QueueTeachingSettingsSave(); SetRulerAngle(_rulerAngle, pivot); DamageRuler(); _dirty = true; };
         panel.Children.Add(length);
         var edge = new ComboBox { Header = T("旋轉支點所在邊"), ItemsSource = new[] { T("上方劃線邊"), T("尺身中線"), T("下方劃線邊") }, SelectedIndex = _rulerPivotEdge == "top" ? 0 : _rulerPivotEdge == "bottom" ? 2 : 1, HorizontalAlignment = HorizontalAlignment.Stretch };
         edge.SelectionChanged += (_, _) => { _rulerPivotEdge = edge.SelectedIndex == 0 ? "top" : edge.SelectedIndex == 2 ? "bottom" : "center"; DamageRuler(); _dirty = true; };
@@ -177,7 +203,7 @@ internal sealed partial class ScreenAnnotationWindow
         var local = point - _rulerCenter;
         var perpendicular = Vector2.Dot(local, normal);
         var along = Vector2.Dot(local, _snapDirection);
-        if (Math.Abs(along) > RulerLength / 2 + 24 || Math.Abs(Math.Abs(perpendicular) - RulerHeight / 2) > 20) return;
+        if (Math.Abs(along) > RulerLength / 2 + 24 * RulerScale || Math.Abs(Math.Abs(perpendicular) - RulerHeight / 2) > 20 * RulerScale) return;
         _snapEdge = _rulerCenter + normal * (perpendicular < 0 ? -RulerHeight / 2 : RulerHeight / 2);
     }
     private InkPoint ProjectOnRuler(InkPoint screenPoint)
@@ -192,7 +218,7 @@ internal sealed partial class ScreenAnnotationWindow
     {
         if (!_rulerEnabled) return null;
         var (rx, ry, rw, rh) = VectorMath.ComputeRotatedRulerBounds(new InkPoint(_rulerCenter.X, _rulerCenter.Y), _rulerAngle, RulerLength, RulerHeight);
-        var pad = 16.0;
+        var pad = 16.0 * RulerScale;
         var left = Math.Max(0, Math.Floor(rx - pad));
         var top = Math.Max(0, Math.Floor(ry - pad));
         var right = Math.Min(_overlay.Width, Math.Ceiling(rx + rw + pad));
@@ -208,6 +234,6 @@ internal sealed partial class ScreenAnnotationWindow
         _lastRulerDamage = rect;
     }
     private void DrawRuler(CanvasDrawingSession ds) =>
-        _renderer.RenderRuler(ds, _rulerCenter, _rulerAngle, RulerLength, RulerHeight,
-            _rulerOpacity, _rulerPivotRatio, RulerPivotY, _rulerColor, light: true, screen: true);
+        _renderer.RenderRuler(ds, _rulerCenter, _rulerAngle, _owner.SharedRulerLength, RulerGeometry.HeightDip,
+            _rulerOpacity, _rulerPivotRatio, RulerPivotY / RulerScale, _rulerColor, light: true, scale: RulerScale);
 }

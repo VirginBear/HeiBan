@@ -15,14 +15,51 @@ public partial class MainWindow
     private Vector2 _rulerFixedPivot;
     private string _rulerPivotEdge="center";
     private bool _rulerPivotMoving;
-    private const float RulerHeight=64;
-    private float RulerLength=>(float)Math.Max(200,CanvasSurface.ActualWidth*_rulerLengthPercent/100);
+    private const float RulerHeight = RulerGeometry.HeightDip;
+    private float? _rulerLengthDip;
+    private int _rulerStretchSide;
+    private float _rulerGrabOffset;
+    private float RulerLength => SharedRulerLength;
+
+    internal float SharedRulerLength => _rulerLengthDip ??= RulerGeometry.ClampLength(
+        CanvasSurface.ActualWidth > 0
+            ? CanvasSurface.ActualWidth * _rulerLengthPercent / 100
+            : AppWindow.Size.Width / (Root.XamlRoot?.RasterizationScale ?? 1) * _rulerLengthPercent / 100);
+
+    internal void SetSharedRulerLength(float length) => _rulerLengthDip = RulerGeometry.ClampLength(length);
+
+    private int RulerStretchSide(Vector2 point)
+    {
+        var local = RulerLocal(point);
+        if (Math.Abs(local.Y) > RulerHeight / 2) return 0;
+        return Math.Abs(Math.Abs(local.X) - RulerLength / 2) <= RulerGeometry.EndGripDip
+            ? Math.Sign(local.X) : 0;
+    }
+
+    private int RulerResizeCursor() => (((int)Math.Round(_rulerAngle / 45) % 4 + 4) % 4) switch
+    {
+        1 => 32642, 2 => 32645, 3 => 32643, _ => 32644
+    };
+
+    private void BeginRulerStretch(Vector2 point, int side)
+    {
+        _rulerStretchSide = side;
+        _rulerGrabOffset = RulerLocal(point).X - side * RulerLength / 2;
+    }
+
+    private void StretchRuler(Vector2 point)
+    {
+        var length = RulerGeometry.Stretch(RulerLength, RulerLocal(point).X, _rulerGrabOffset, _rulerStretchSide);
+        _rulerCenter += RulerDirection() * (_rulerStretchSide * (length - RulerLength) / 2);
+        SetSharedRulerLength(length);
+        InvalidateCanvas(false);
+    }
     private Vector2 RulerDirection()=>new((float)Math.Cos(_rulerAngle*Math.PI/180),(float)Math.Sin(_rulerAngle*Math.PI/180));
     private Vector2 RulerLocal(Vector2 point){var d=RulerDirection();var p=point-_rulerCenter;return new(Vector2.Dot(p,d),Vector2.Dot(p,new(-d.Y,d.X)));}
     private Vector2 RulerPoint(float x,float y=0){var d=RulerDirection();return _rulerCenter+d*x+new Vector2(-d.Y,d.X)*y;}
     private float RulerPivotY=>_rulerPivotEdge=="top"?-RulerHeight/2:_rulerPivotEdge=="bottom"?RulerHeight/2:0;
     private Vector2 RulerPivot()=>RulerPoint((float)((_rulerPivotRatio-.5)*RulerLength),RulerPivotY);
-    private bool RulerRotationHit(Vector2 p)=>Vector2.Distance(p,RulerPoint(RulerLength/2-14))<=18||Vector2.Distance(p,RulerPoint(-RulerLength/2+14))<=18;
+    private bool RulerRotationHit(Vector2 p)=>Vector2.Distance(p,RulerPoint(RulerLength/2-RulerGeometry.HandleInsetDip))<=18||Vector2.Distance(p,RulerPoint(-RulerLength/2+RulerGeometry.HandleInsetDip))<=18;
     private bool RulerPivotHit(Vector2 p)=>Vector2.Distance(p,RulerPivot())<10;
     private bool RulerAngleHit(Vector2 p){var local=RulerLocal(p);return local.X>RulerLength/2-136&&local.X<RulerLength/2-46&&local.Y>-29&&local.Y<-1;}
     private bool RulerHit(Vector2 point){var p=RulerLocal(point);return Math.Abs(p.X)<RulerLength/2&&Math.Abs(p.Y)<RulerHeight/2-6;}
@@ -46,6 +83,7 @@ public partial class MainWindow
     private void Ruler_Click(object sender,RoutedEventArgs e)
     {
         _rulerEnabled=!_rulerEnabled;
+        if (_rulerEnabled) _ = SharedRulerLength;
         if(_rulerEnabled&&(!_rulerPositioned||_rulerCenter.X<0||_rulerCenter.X>CanvasSurface.ActualWidth||_rulerCenter.Y<0||_rulerCenter.Y>CanvasSurface.ActualHeight))
         {_rulerCenter=new((float)CanvasSurface.ActualWidth/2,(float)CanvasSurface.ActualHeight*.58f);_rulerPositioned=true;}
         RefreshChrome();InvalidateCanvas();
@@ -59,7 +97,7 @@ public partial class MainWindow
         var angle=new NumberBox{Header=T("角度（°）"),Value=_rulerAngle,SmallChange=.1,LargeChange=15,SpinButtonPlacementMode=NumberBoxSpinButtonPlacementMode.Inline,NumberFormatter=new DecimalFormatter{FractionDigits=1}};
         angle.ValueChanged+=(_,e)=>SetRulerAngle(e.NewValue);panel.Children.Add(angle);
         var reset=new Button{Content=T("水平 0.0°")};reset.Click+=(_,_)=>angle.Value=0;panel.Children.Add(reset);
-        var length=new Slider{Header=T("尺長（畫布寬度 %）"),Minimum=20,Maximum=150,Value=_rulerLengthPercent,StepFrequency=5};length.ValueChanged+=(_,e)=>{var pivot=RulerPivot();_rulerLengthPercent=e.NewValue;QueueTeachingSettingsSave();SetRulerAngle(_rulerAngle,pivot);};panel.Children.Add(length);
+        var length=new Slider{Header=T("尺長（DIP）"),Minimum=RulerGeometry.MinimumLengthDip,Maximum=RulerGeometry.MaximumLengthDip,Value=RulerLength,StepFrequency=1};length.ValueChanged+=(_,e)=>{var pivot=RulerPivot();SetSharedRulerLength((float)e.NewValue);QueueTeachingSettingsSave();SetRulerAngle(_rulerAngle,pivot);};panel.Children.Add(length);
         var edge=new ComboBox{Header=T("旋轉支點所在邊"),ItemsSource=new[]{T("上方劃線邊"),T("尺身中線"),T("下方劃線邊")},SelectedIndex=_rulerPivotEdge=="top"?0:_rulerPivotEdge=="bottom"?2:1,HorizontalAlignment=HorizontalAlignment.Stretch};
         edge.SelectionChanged+=(_,_)=>{_rulerPivotEdge=edge.SelectedIndex==0?"top":edge.SelectedIndex==2?"bottom":"center";InvalidateCanvas();};panel.Children.Add(edge);
         var pivotPosition=new Slider{Header=T("支點位置（0% 左端；100% 右端）"),Minimum=0,Maximum=100,Value=_rulerPivotRatio*100,StepFrequency=1};
@@ -88,6 +126,6 @@ public partial class MainWindow
         var outside=board.CanvasMode is "fixed" or "notebook"&&(beneath.X<0||beneath.Y<0||beneath.X>(board.CanvasWidth??595)||beneath.Y>(board.CanvasHeight??842));
         var bg=Direct2DCanvasRenderer.HexToColor(outside?"#E9ECE6":board.BackgroundColor);var light=(bg.R*.2126+bg.G*.7152+bg.B*.0722)>128;
         _renderer.RenderRuler(ds, _rulerCenter, _rulerAngle, RulerLength, RulerHeight,
-            _rulerOpacity, _rulerPivotRatio, RulerPivotY, _rulerColor, light, screen: false);
+            _rulerOpacity, _rulerPivotRatio, RulerPivotY, _rulerColor, light);
     }
 }

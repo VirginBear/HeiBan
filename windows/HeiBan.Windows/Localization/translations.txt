@@ -627,3 +627,8 @@ A · 彩色雙色描邊|A · Color duotone|A · カラーデュオトーン|A ·
 管理時可拖曳色票排序；前六色顯示於工具列，右鍵可移除。|In Manage, drag swatches to reorder. The first six appear on the toolbar; right-click to remove.|管理中は色見本をドラッグして並べ替えます。先頭6色がツールバーに表示され、右クリックで削除できます。|관리에서 색상표를 끌어 정렬하세요. 처음 여섯 색은 도구 모음에 표시되며 우클릭으로 삭제합니다.|En Administrar, arrastra las muestras para ordenar. Los seis primeros colores aparecen en la barra; clic derecho para quitar.|Dans Gérer, glissez les couleurs pour les classer. Les six premières figurent dans la barre ; clic droit pour supprimer.|Unter Verwalten Farbfelder zum Sortieren ziehen. Die ersten sechs stehen in der Werkzeugleiste; Rechtsklick zum Entfernen.|Em Gerenciar, arraste as amostras para ordenar. As seis primeiras aparecem na barra; clique direito para remover.|في الإدارة اسحب عينات الألوان لترتيبها. تظهر أول ستة في الشريط؛ انقر بالزر الأيمن للإزالة.
 重新顯示螢幕尺|Show and recenter screen ruler|画面定規を再表示・中央へ|화면 자 다시 표시 및 중앙 배치|Mostrar y centrar la regla de pantalla|Réafficher et recentrer la règle|Bildschirmlineal anzeigen und zentrieren|Mostrar e centralizar régua da tela|إظهار مسطرة الشاشة وتوسيطها
 更多工具|More tools|その他のツール|더 많은 도구|Más herramientas|Autres outils|Weitere Werkzeuge|Mais ferramentas|أدوات إضافية
+工具列大小|Toolbar size|ツールバーのサイズ|도구 모음 크기|Tamaño de la barra|Taille de la barre|Größe der Werkzeugleiste|Tamanho da barra|حجم شريط الأدوات
+小|Small|小|작게|Pequeño|Petit|Klein|Pequeno|صغير
+中|Medium|中|보통|Mediano|Moyen|Mittel|Médio|متوسط
+大|Large|大|크게|Grande|Grand|Groß|Grande|كبير
+尺長（DIP）|Ruler length (DIP)|定規の長さ（DIP）|자 길이(DIP)|Longitud de la regla (DIP)|Longueur de la règle (DIP)|Lineallänge (DIP)|Comprimento da régua (DIP)|طول المسطرة (DIP)

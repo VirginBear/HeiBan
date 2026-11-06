@@ -700,6 +700,8 @@ public partial class MainWindow
         var visibleSet = new HashSet<string>(_toolbarPrefs.VisibleTools);
         var commonSet = new HashSet<string>(_toolbarPrefs.CommonTools);
         var displayMode=_toolbarPrefs.DisplayMode;
+        var toolbarSize = _toolbarPrefs.ToolbarSize;
+        var sizePicker = ToolbarUi.SizePicker(toolbarSize, value => toolbarSize = value);
         var iconStyle=_toolbarPrefs.IconStyle;
         var panel = new StackPanel { Spacing = 6 };
 
@@ -759,7 +761,7 @@ public partial class MainWindow
         var dialog = new ContentDialog
         {FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,
             Title = T("自訂工具列"),
-            Content = new StackPanel{Spacing=10,Children={stylePicker,CustomizeToolbarHeader(visibleSet,allKeys,RebuildList,displayMode,value=>displayMode=value,()=>{commonSet.Clear();commonSet.UnionWith(new ToolbarPreferences().CommonTools);stylePicker.SelectedIndex=0;}),new TextBlock{Text=T("左側勾選顯示工具，勾選「常用」加入常用分頁；選取、雷射與藤條固定顯示。"),TextWrapping=TextWrapping.Wrap,FontSize=12,Foreground=Brush("#65746A")},scroll}},
+            Content = new StackPanel{Spacing=10,Children={stylePicker,sizePicker,CustomizeToolbarHeader(visibleSet,allKeys,RebuildList,displayMode,value=>displayMode=value,()=>{commonSet.Clear();commonSet.UnionWith(new ToolbarPreferences().CommonTools);stylePicker.SelectedIndex=0;sizePicker.SelectedIndex=1;}),new TextBlock{Text=T("左側勾選顯示工具，勾選「常用」加入常用分頁；選取、雷射與藤條固定顯示。"),TextWrapping=TextWrapping.Wrap,FontSize=12,Foreground=Brush("#65746A")},scroll}},
             PrimaryButtonText = T("儲存"),
             CloseButtonText = T("取消"),
             XamlRoot = Root.XamlRoot
@@ -778,7 +780,7 @@ public partial class MainWindow
 
         if (newVisible.Count == 0) newVisible.Add("select");
 
-        var draft=DocumentCodec.Clone(_toolbarPrefs);draft.DisplayMode=displayMode;draft.IconStyle=iconStyle;
+        var draft=DocumentCodec.Clone(_toolbarPrefs);draft.DisplayMode=displayMode;draft.IconStyle=iconStyle;draft.ToolbarSize=toolbarSize;
         draft.CommonTools=allKeys.Where(commonSet.Contains).ToList();draft.VisibleTools=newVisible;draft.HiddenTools=newHidden;
         await SaveToolbarPreferencesAsync(draft);
     }
@@ -794,11 +796,11 @@ public partial class MainWindow
     {
         // Screen canvas shares the settings file. Update the hidden owner in-memory too, or its
         // next toolbar rebuild could overwrite a choice just made in the screen session.
-        var updated=new ToolbarPreferences{DockSide=preferences.DockSide,DisplayMode=preferences.DisplayMode,IconStyle=preferences.IconStyle,MagnetEnabled=preferences.MagnetEnabled,BoardEraserVisible=preferences.BoardEraserVisible,CaneVisible=preferences.CaneVisible,CaneMuted=preferences.CaneMuted,OperateRadialEnabled=preferences.OperateRadialEnabled,DefaultToolsRevision=preferences.DefaultToolsRevision,DefaultPresentationRevision=preferences.DefaultPresentationRevision,DefaultCommonRevision=preferences.DefaultCommonRevision,CommonTools=[..preferences.CommonTools],ExtraFields=preferences.ExtraFields,VisibleTools=[..preferences.VisibleTools],HiddenTools=[..preferences.HiddenTools]};
+        var updated=new ToolbarPreferences{DockSide=preferences.DockSide,DisplayMode=preferences.DisplayMode,ToolbarSize=preferences.ToolbarSize,IconStyle=preferences.IconStyle,MagnetEnabled=preferences.MagnetEnabled,BoardEraserVisible=preferences.BoardEraserVisible,CaneVisible=preferences.CaneVisible,CaneMuted=preferences.CaneMuted,OperateRadialEnabled=preferences.OperateRadialEnabled,DefaultToolsRevision=preferences.DefaultToolsRevision,DefaultPresentationRevision=preferences.DefaultPresentationRevision,DefaultCommonRevision=preferences.DefaultCommonRevision,CommonTools=[..preferences.CommonTools],ExtraFields=preferences.ExtraFields,VisibleTools=[..preferences.VisibleTools],HiddenTools=[..preferences.HiddenTools]};
         updated.Normalize();
         await ToolbarPreferencesStore.SaveAsync(_storage.DataDirectory,updated);
         _toolbarPrefs=updated;CaneSound.IsMuted=updated.CaneMuted;_screenAnnotation?.ApplyCaneMuted(updated.CaneMuted);_screenAnnotation?.ApplyOperateRadialPreference(updated.OperateRadialEnabled);
-        ToolIcons.SetStyle(updated.IconStyle);_screenAnnotation?.ApplyToolbarIconStyle(updated.IconStyle);
+        ToolIcons.SetStyle(updated.IconStyle);_screenAnnotation?.ApplyToolbarAppearance(updated.IconStyle, updated.ToolbarSize);
         BuildChrome();
     }
 
@@ -863,7 +865,7 @@ public partial class MainWindow
         RefreshBoardEraser();
         foreach (var (key, b) in _toolButtons)
         {
-            ToolbarUi.LabelMode(b,key,_toolbarPrefs.DisplayMode=="labels",40,_dock is "左側" or "右側");
+            ToolbarUi.LabelMode(b,key,_toolbarPrefs.DisplayMode=="labels",40,_dock is "左側" or "右側",ToolbarUi.SizeScale(_toolbarPrefs.ToolbarSize));
             ToolbarUi.SetToolColor(b,key,CurrentStyle.Color,_tool);
             var active = (key=="magnet"&&_toolbarPrefs.MagnetEnabled) || (key=="layers"&&LayersPanel.Visibility==Visibility.Visible) || key == _tool || (key == "ruler" && _rulerEnabled) || (key == "compass" && _compass.IsEnabled) || (key == "shapes" && _tool is "line" or "arrow" or "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star");
             var color=Direct2DCanvasRenderer.HexToColor(active?"#DCEBDD":"#FCFCFA");

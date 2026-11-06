@@ -36,6 +36,15 @@ internal static partial class ToolIcons
 }
 internal static partial class ToolbarUi
 {
+    internal static bool ValidateSolidColorLine(Button button, double scale)
+    {
+        var icon = button.Content is StackPanel { Tag: "toolbar-label" } panel ? panel.Children[0] : button.Content;
+        if (icon is not ColorIcon color) return false;
+        var line = color.Children.OfType<Border>().Single();
+        return line.Child is null && line.BorderThickness == new Thickness(0) &&
+            line.Background is SolidColorBrush && line.Opacity == 1 && Math.Abs(line.Width - 22 * scale) < .01;
+    }
+
     internal static (Color? Primary,double Underline) ValidateToolColor(Button button)
     {
         var icon=button.Content is StackPanel{Tag:"toolbar-label"} panel?panel.Children[0]:button.Content;

@@ -4,6 +4,20 @@ namespace HeiBan.Windows.Engine;
 
 public static class RulerGeometry
 {
+    public const float HeightDip = 64;
+    public const float MinimumLengthDip = 200;
+    public const float MaximumLengthDip = 6000;
+    public const float HandleInsetDip = 28;
+    public const float EndGripDip = 16;
+
+    public static float ClampLength(double length) =>
+        (float)Math.Clamp(length, MinimumLengthDip, MaximumLengthDip);
+
+    // Compute the new length in DIPs. The host shifts the center by half of
+    // the length change along the ruler axis, keeping the opposite end fixed.
+    public static float Stretch(float length, float pointerAlong, float grabOffset, int side) =>
+        ClampLength(length / 2 + side * (pointerAlong - grabOffset));
+
     public static InkPoint PivotOffset(double angle,double length,double height,double ratio,string edge)
     {
         var x=(ratio-.5)*length;var y=edge=="top"?-height/2:edge=="bottom"?height/2:0;

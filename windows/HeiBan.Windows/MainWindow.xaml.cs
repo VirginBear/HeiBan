@@ -425,8 +425,10 @@ public partial class MainWindow : Window
         if(changed)_=SaveToolbarDockAsync();
         ShowWorkspaceHeader(WorkspaceHeader.Visibility==Visibility.Visible);
         var vertical=side is "左側" or "右側";Tools.Orientation=ToolShell.Orientation=vertical?Orientation.Vertical:Orientation.Horizontal;
-        ToolBorder.Padding=new Thickness(vertical?4:8);
-        ToolbarGrip.Width=vertical?40:24;ToolbarGrip.Height=vertical?20:40;
+        var toolbarScale = Views.ToolbarUi.SizeScale(_toolbarPrefs.ToolbarSize);
+        ToolBorder.Padding = new Thickness((vertical ? 4 : 8) * toolbarScale);
+        ToolbarGrip.Width = (vertical ? 40 : 24) * toolbarScale;
+        ToolbarGrip.Height = (vertical ? 20 : 40) * toolbarScale;
         ToolBorder.HorizontalAlignment=side=="左側"?HorizontalAlignment.Left:side=="右側"?HorizontalAlignment.Right:HorizontalAlignment.Center;
         ToolBorder.VerticalAlignment=side=="下方"?VerticalAlignment.Bottom:side=="上方"?VerticalAlignment.Top:VerticalAlignment.Center;
         ToolScroll.MaxWidth=vertical?44:Math.Max(120,DrawingArea.ActualWidth-80);ToolScroll.MaxHeight=Math.Max(100,DrawingArea.ActualHeight-80);

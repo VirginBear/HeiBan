@@ -15,6 +15,7 @@ internal sealed class QuickPalette : Grid,IDisposable
     private readonly Action<string> _apply;
     private readonly Button[] _buttons=new Button[6];
     private bool _disposed;
+    private double _scale = 1;
     private bool _enabled=true;
     internal void SetEnabled(bool value)
     {if(_enabled==value)return;_enabled=value;foreach(var button in _buttons)button.IsEnabled=value&&button.Tag is string;}
@@ -37,8 +38,10 @@ internal sealed class QuickPalette : Grid,IDisposable
         Loaded+=(_,_)=>{if(!_disposed)Rebuild();};
         Rebuild();
     }
-    internal void SetVertical(bool vertical)
+    internal void SetLayout(bool vertical, double scale)
     {
+        _scale = scale;
+        RowSpacing = ColumnSpacing = 4 * scale;
         var columns = vertical ? 2 : 3;
         ColumnDefinitions.Clear();
         RowDefinitions.Clear();
@@ -46,7 +49,12 @@ internal sealed class QuickPalette : Grid,IDisposable
         for (var i = 0; i < 6 / columns; i++) RowDefinitions.Add(new() { Height = GridLength.Auto });
         for (var i = 0; i < _buttons.Length; i++)
         {
-            Grid.SetColumn(_buttons[i], i % columns);
+            var button = _buttons[i];
+            button.Width = button.Height = 22 * scale;
+            button.CornerRadius = new CornerRadius(11 * scale);
+            button.Padding = new Thickness(2 * scale);
+            if (button.Content is Ellipse dot) dot.Width = dot.Height = 14 * scale;
+            Grid.SetColumn(button, i % columns);
             Grid.SetRow(_buttons[i], i / columns);
         }
         HorizontalAlignment = vertical ? HorizontalAlignment.Center : HorizontalAlignment.Left;
@@ -62,7 +70,7 @@ internal sealed class QuickPalette : Grid,IDisposable
         {
             var button=_buttons[i];var color=i<colors.Count?colors[i]:null;
             button.Tag=color;button.IsEnabled=_enabled&&color is not null;
-            button.Content=new Ellipse{Width=14,Height=14,Fill=new SolidColorBrush(color is null?Microsoft.UI.Colors.Transparent:Direct2DCanvasRenderer.HexToColor(color)),Stroke=new SolidColorBrush(Direct2DCanvasRenderer.HexToColor("#89988F")),StrokeThickness=.6};
+            button.Content=new Ellipse{Width=14*_scale,Height=14*_scale,Fill=new SolidColorBrush(color is null?Microsoft.UI.Colors.Transparent:Direct2DCanvasRenderer.HexToColor(color)),Stroke=new SolidColorBrush(Direct2DCanvasRenderer.HexToColor("#89988F")),StrokeThickness=.6};
             ToolbarUi.Label(button,color is null?T("尚無常用色，調色後按＋新增。"):T("套用顏色")+" "+color);
         }
         RefreshSelection();

@@ -128,6 +128,14 @@ public partial class MainWindow
         if(_tool=="cane"){_cane.Strike(_start,LaserNow,new(_mouse.X,_mouse.Y));UpdateTeachingTimer();PresentInteraction();e.Handled=true;return;}
         if(_tool=="lasso"){_lasso.Clear();_lasso.Add(_start);e.Handled=true;return;}
         if(_rulerEnabled&&RulerPivotHit(screen)){_rulerPivotMoving=true;e.Handled=true;return;}
+        var rulerSide = _rulerEnabled ? RulerStretchSide(screen) : 0;
+        if (rulerSide != 0)
+        {
+            BeginRulerStretch(screen, rulerSide);
+            UpdateShapeCursor();
+            e.Handled = true;
+            return;
+        }
         if(_rulerEnabled&&RulerRotationHit(screen)){BeginRulerRotation(screen);e.Handled=true;return;}
         if(_rulerEnabled&&RulerHit(screen)){_rulerMoving=true;e.Handled=true;return;}
         if(_compass.IsEnabled)
@@ -289,6 +297,13 @@ public partial class MainWindow
         {_start=_polygon[0];_polygon.Clear();_shapeGesture=true;_preview=Styled(new BoardObject{Type=_tool});}
         var world=_viewport.ScreenToWorld(_mouse.X,_mouse.Y);if(MagnetSnapIndex.SupportsConstructionTool(_tool)||_compassCenterMoving)world=SnapDrawingPoint(world);var delta=_mouse-_lastScreen;
         if(_panning){if(!_viewLocked){_viewport.X+=delta.X;_viewport.Y+=delta.Y;}}
+        else if (_rulerStretchSide != 0)
+        {
+            StretchRuler(_mouse);
+            _lastScreen = _mouse;
+            e.Handled = true;
+            return;
+        }
         else if(_rulerMoving)_rulerCenter+=delta;
         else if(_rulerRotating)RotateRuler(_mouse);
         else if(_rulerPivotMoving)MoveRulerPivot(_mouse);
@@ -372,6 +387,15 @@ public partial class MainWindow
         if(_panning){ResetGesture();CanvasSurface.ReleasePointerCaptures();InvalidateCanvas(false);e.Handled=true;return;}
         if(_tool=="laser"){_laser.Release();ResetGesture();CanvasSurface.ReleasePointerCaptures();PresentInteraction();e.Handled=true;return;}
         if(_tool=="cane"){ResetGesture();CanvasSurface.ReleasePointerCaptures();e.Handled=true;return;}
+        if (_rulerStretchSide != 0)
+        {
+            var position = e.GetCurrentPoint(CanvasSurface).Position;
+            StretchRuler(new Vector2((float)position.X, (float)position.Y));
+            ResetGesture();
+            CanvasSurface.ReleasePointerCaptures();
+            e.Handled = true;
+            return;
+        }
         if(_tool=="lasso"){
             _session.SetSelection(_session.VisibleObjects.Where(o=>LassoSelection.Intersects(o,_lasso)).Select(o=>o.Id));
             _lasso.Clear();_tool="select";ResetGesture();CanvasSurface.ReleasePointerCaptures();RefreshEditor();return;
@@ -486,7 +510,7 @@ public partial class MainWindow
         {ObjectHandles.SetEndpoints(_preview,_lineAnchor,ConstrainLine(_lineAnchor,_viewport.ScreenToWorld(_mouse.X,_mouse.Y)));InvalidateCanvas(false);}
     }
     private static InkPoint ConstrainLine(InkPoint anchor,InkPoint point)=>KeyIsDown(VirtualKey.Shift)?ShapeConstruction.ConstrainLine(anchor,point):point;
-    private void ResetGesture(){ClearObjectDrag();_selectionClickId=null;HideHUD();_renderer.ResetLive();_gesture=_panning=_rulerMoving=_rulerRotating=_rulerPivotMoving=_shapeGesture=_lineCompleting=_marquee=false;_compassCenterMoving=_compassCenterMoved=_compassRadiusMoving=_compassPencilMoving=false;_objectHandle=null;_manipulationStart=null;_movingPin=null;_snapEdge=null;_ink.Projection=null;_magnetTarget=null;UpdateTeachingTimer();if(_hover)UpdateShapeCursor();else ResetShapeCursor();}
+    private void ResetGesture(){if(_rulerStretchSide!=0){_rulerStretchSide=0;QueueTeachingSettingsSave();}ClearObjectDrag();_selectionClickId=null;HideHUD();_renderer.ResetLive();_gesture=_panning=_rulerMoving=_rulerRotating=_rulerPivotMoving=_shapeGesture=_lineCompleting=_marquee=false;_compassCenterMoving=_compassCenterMoved=_compassRadiusMoving=_compassPencilMoving=false;_objectHandle=null;_manipulationStart=null;_movingPin=null;_snapEdge=null;_ink.Projection=null;_magnetTarget=null;UpdateTeachingTimer();if(_hover)UpdateShapeCursor();else ResetShapeCursor();}
     private void CancelGesture(){ClearCanvasCapture();CancelRadial();_cane.Clear();CaneSound.Stop();CancelCircularEraser();var changed=_session.HasTransaction;_lasso.Clear();_laser.Clear();HideHUD();_ink.Cancel();_session.Cancel();_preview=null;_lineAnchor=null;_compass.Prepare();ResetGesture();CanvasSurface.ReleasePointerCaptures();if(changed)RefreshProperties();InvalidateCanvas(changed);}
     private void CanvasSurface_PointerCanceled(object sender,PointerRoutedEventArgs e){HideHUD();CancelRadial();if(_gesture)CancelGesture();}
     private void UpdateShapeCursor()
@@ -497,6 +521,14 @@ public partial class MainWindow
         {
             var panDpi=(uint)Math.Round((Root.XamlRoot?.RasterizationScale??1)*96);
             _shapeCursor.Update(null,null,panDpi,grabbing:true);CanvasCursorHost.SetNativeCursor(_shapeCursor.Current,panDpi);return;
+        }
+        if (_rulerEnabled && !_readingMode && _tool is not ("laser" or "cane") &&
+            (_rulerStretchSide != 0 || !_gesture && RulerStretchSide(_mouse) != 0))
+        {
+            var rulerDpi = (uint)Math.Round((Root.XamlRoot?.RasterizationScale ?? 1) * 96);
+            _shapeCursor.Update(null, null, rulerDpi, defaultResource: RulerResizeCursor());
+            CanvasCursorHost.SetNativeCursor(_shapeCursor.Current, rulerDpi);
+            return;
         }
         BoardObject? selected=null;ObjectHandles.Handle? handle=null;
         if(_tool=="select"&&!_readingMode&&_editor is null&&_session.SelectedIds.Count==1&&_session.Selected is {IsLocked:not true} o)

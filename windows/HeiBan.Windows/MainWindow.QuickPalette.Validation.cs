@@ -29,6 +29,22 @@ public partial class MainWindow
             var unit=ToolbarUi.ButtonUnit(_brushButton!);
             Check(unit is Grid grid&&grid.Children.Contains(_brushButton)&&grid.Children.Contains(_quickPalette)&&Grid.GetColumn(_quickPalette)==(side is "左側" or "右側"?0:1)&&Grid.GetRow(_quickPalette)==(side is "左側" or "右側"?1:0),"Brush/six-color unit split during mode/dock change");
         }
+        var originalSize = _toolbarPrefs.ToolbarSize;
+        _toolbarPrefs.DisplayMode = "icons";
+        foreach (var size in new[] { "small", "medium", "large" })
+        {
+            _toolbarPrefs.ToolbarSize = size;
+            SetDock("上方");
+            await Task.Delay(70);
+            var scale = ToolbarUi.SizeScale(size);
+            var pen = _toolButtons["pen"];
+            Check(Math.Abs(pen.ActualHeight - 40 * scale) < 1 && Math.Abs(_quickPalette.ValidationButtons[0].ActualWidth - 22 * scale) < 1, "Toolbar size did not change the hit areas");
+            var penCenter = pen.TransformToVisual(Tools).TransformPoint(new global::Windows.Foundation.Point(0, pen.ActualHeight / 2));
+            var brushCenter = _brushButton!.TransformToVisual(Tools).TransformPoint(new global::Windows.Foundation.Point(0, _brushButton.ActualHeight / 2));
+            Check(Math.Abs(penCenter.Y - brushCenter.Y) < 1, "Main icon centers differ");
+            Check(ToolbarUi.ValidateSolidColorLine(pen, scale), "Active pen line has a border, child geometry, or incorrect size");
+        }
+        _toolbarPrefs.ToolbarSize = originalSize;
         _toolbarPrefs.DisplayMode=display;SetDock(dock);await Task.Delay(180);
         await ProfilePalette.ResetAsync();
         foreach(var color in ProfilePalette.Colors.Skip(3).ToArray())await ProfilePalette.RemoveAsync(color);

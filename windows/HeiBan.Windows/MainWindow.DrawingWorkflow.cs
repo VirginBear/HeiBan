@@ -11,6 +11,7 @@ public partial class MainWindow
     private string? _objectDetailsId;
     private string _toolbarPage="common";
     private Button? _arrangedSelectionButton;
+    private double _arrangedToolbarScale;
     private bool _arrangedLabels,_arrangedVertical,_arrangingToolbar;
     private ToolbarFlowPanel? _labeledToolbarFlow;
     private MagnetSnapIndex? _magnetIndex;
@@ -49,9 +50,10 @@ public partial class MainWindow
     private void ArrangeMainToolbar()
     {
         var labels=_toolbarPrefs.DisplayMode=="labels";var vertical=_dock is "左側" or "右側";
+        var scale=ToolbarUi.SizeScale(_toolbarPrefs.ToolbarSize);
         if(labels||vertical)
         {
-            ToolScroll.MaxWidth=vertical?ToolbarUi.SideToolbarWidth:Math.Max(180,DrawingArea.ActualWidth-80);
+            ToolScroll.MaxWidth=vertical?ToolbarUi.SideToolbarWidth*scale:Math.Max(180,DrawingArea.ActualWidth-80);
             ToolScroll.HorizontalScrollBarVisibility=ToolScroll.VerticalScrollBarVisibility=ScrollBarVisibility.Disabled;
             ToolScroll.HorizontalScrollMode=ToolScroll.VerticalScrollMode=ScrollMode.Disabled;
         }
@@ -59,18 +61,18 @@ public partial class MainWindow
         _toolButtons.TryGetValue("select",out var selection);
         // SizeChanged can run inside XAML layout. Resize the existing flow there; moving
         // the same live controls into another panel during that callback can fail fast.
-        if(!ReferenceEquals(selection,_arrangedSelectionButton)||labels!=_arrangedLabels||vertical!=_arrangedVertical)
+        if(!ReferenceEquals(selection,_arrangedSelectionButton)||labels!=_arrangedLabels||vertical!=_arrangedVertical||scale!=_arrangedToolbarScale)
         {
             _arrangingToolbar=true;
             try
             {
-                _labeledToolbarFlow=ToolbarUi.Arrange(Tools,_toolButtons.Select(p=>(p.Key,p.Value)),labels,vertical,_toolbarPage,p=>_toolbarPage=p,40,_toolbarPrefs.CommonTools);
-                _arrangedSelectionButton=selection;_arrangedLabels=labels;_arrangedVertical=vertical;
+                _labeledToolbarFlow=ToolbarUi.Arrange(Tools,_toolButtons.Select(p=>(p.Key,p.Value)),labels,vertical,_toolbarPage,p=>_toolbarPage=p,40,_toolbarPrefs.CommonTools,scale);
+                _arrangedSelectionButton=selection;_arrangedLabels=labels;_arrangedVertical=vertical;_arrangedToolbarScale=scale;
             }
             finally{_arrangingToolbar=false;}
         }
         if(_labeledToolbarFlow is { } flow)
-        {const int extra=90;flow.RunLength=vertical?Math.Max(122,ToolScroll.MaxHeight-(labels?306:216)):Math.Max(84,DrawingArea.ActualWidth-410-extra);flow.InvalidateMeasure();}
+        {const int extra=90;flow.RunLength=vertical?Math.Max(128*scale,ToolScroll.MaxHeight-(labels?306:216)*scale):Math.Max(84*scale,DrawingArea.ActualWidth-(410+extra)*scale);flow.InvalidateMeasure();}
     }
     private FrameworkElement CustomizeToolbarHeader(HashSet<string> visible,List<string> order,Action rebuild,string mode,Action<string> setMode,Action resetCommon)
     {

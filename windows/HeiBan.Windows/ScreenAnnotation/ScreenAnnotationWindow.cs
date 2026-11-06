@@ -146,7 +146,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         RefreshScreenStyleButtons();
         foreach(var pair in _buttons)
         {
-            ToolbarUi.LabelMode(pair.Value,pair.Key,_toolbarPreferences.DisplayMode=="labels",32,VerticalChrome);
+            ToolbarUi.LabelMode(pair.Value,pair.Key,_toolbarPreferences.DisplayMode=="labels",32,VerticalChrome,ToolbarUi.SizeScale(_toolbarPreferences.ToolbarSize));
         }
     }
     private long _lastRenderTimestamp;
@@ -204,32 +204,18 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             {
                 if(RulerAngleHit(vp)){ShowScreenRulerSettings(_buttons.TryGetValue("ruler",out var rb)?rb:_moreButton,new global::Windows.Foundation.Point(p.X,p.Y));return;}
                 if(RulerPivotHit(vp)){_rulerPivotMoving=true;DamageRuler();_dirty=true;return;}
-                if(RulerLeftEdgeHit(vp)){_rulerResizingLeft=true;DamageRuler();_dirty=true;return;}
-                if(RulerRightEdgeHit(vp)){_rulerResizingRight=true;DamageRuler();_dirty=true;return;}
+                if(RulerLeftEdgeHit(vp)){BeginRulerStretch(vp,-1);return;}
+                if(RulerRightEdgeHit(vp)){BeginRulerStretch(vp,1);return;}
                 if(RulerRotationHit(vp)){BeginRulerRotation(vp);DamageRuler();_dirty=true;return;}
                 if(RulerHit(vp)){_rulerMoving=true;_last=p;DamageRuler();_dirty=true;return;}
             }
             else if(input.Kind=="move")
             {
-                if(_rulerResizingRight)
+                if (_rulerStretchSide != 0)
                 {
-                    var local=RulerLocal(vp);
-                    var newLength=(float)Math.Clamp(local.X+RulerLength/2,200,_overlay.Width*1.5f);
-                    var deltaLen=newLength-RulerLength;
-                    _rulerPixelLength=newLength;
-                    _rulerCenter+=RulerDirection()*(deltaLen/2);
+                    StretchRuler(vp);
                     _overlay.SetRulerCursor("resize");
-                    DamageRuler();_dirty=true;return;
-                }
-                if(_rulerResizingLeft)
-                {
-                    var local=RulerLocal(vp);
-                    var newLength=(float)Math.Clamp(RulerLength/2-local.X,200,_overlay.Width*1.5f);
-                    var deltaLen=newLength-RulerLength;
-                    _rulerPixelLength=newLength;
-                    _rulerCenter-=RulerDirection()*(deltaLen/2);
-                    _overlay.SetRulerCursor("resize");
-                    DamageRuler();_dirty=true;return;
+                    return;
                 }
                 if(_rulerMoving&&_last is not null)
                 {
@@ -254,9 +240,11 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
                     else _overlay.SetRulerCursor(null);
                 }
             }
-            else if(input.Kind=="up"&&(_rulerMoving||_rulerRotating||_rulerPivotMoving||_rulerResizingLeft||_rulerResizingRight))
+            else if(input.Kind=="up"&&(_rulerMoving||_rulerRotating||_rulerPivotMoving||_rulerStretchSide!=0))
             {
-                _rulerMoving=_rulerRotating=_rulerPivotMoving=_rulerResizingLeft=_rulerResizingRight=false;_last=null;DamageRuler();_dirty=true;return;
+                if (_rulerStretchSide != 0) StretchRuler(vp);
+                FinishRulerStretch();
+                _rulerMoving=_rulerRotating=_rulerPivotMoving=false;_last=null;DamageRuler();_dirty=true;return;
             }
             if(_tool is "pen" or "highlighter" or "paint")
             {
@@ -572,7 +560,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         if(_laser.Samples.Count>0){_laser.Release();_dirty=true;}
         CancelCircularEraser();
         CommitScreenStyle();var committedChanged=_session.HasTransaction||hadDrag;var previewVisible=_preview is not null||_points.Count>0;
-        _snapEdge=null;_rulerMoving=_rulerRotating=_rulerPivotMoving=_rulerResizingLeft=_rulerResizingRight=false;_compassCenterMoving=_compassCenterMoved=_compassRadiusMoving=_compassPencilMoving=false;_compass.Prepare();_straightenTimer.Stop();_penHoldAnchor=null;_screenPenStraight=false;DamagePreview();_session.Cancel();_curveAnchors.Clear();_marquee=false;_points.Clear();_start=_last=null;_preview=null;_handle=null;_renderer.ResetLive();
+        _snapEdge=null;_rulerMoving=_rulerRotating=_rulerPivotMoving=false;FinishRulerStretch();_compassCenterMoving=_compassCenterMoved=_compassRadiusMoving=_compassPencilMoving=false;_compass.Prepare();_straightenTimer.Stop();_penHoldAnchor=null;_screenPenStraight=false;DamagePreview();_session.Cancel();_curveAnchors.Clear();_marquee=false;_points.Clear();_start=_last=null;_preview=null;_handle=null;_renderer.ResetLive();
         if(committedChanged){_dirty=_fullDamage=_committedDirty=true;_damage=null;}else if(previewVisible)_dirty=true;
     }
     private async Task<bool> SaveAsync()

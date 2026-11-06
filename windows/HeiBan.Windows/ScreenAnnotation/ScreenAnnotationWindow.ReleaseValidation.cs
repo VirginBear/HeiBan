@@ -11,10 +11,11 @@ internal sealed partial class ScreenAnnotationWindow
         try
         {
             foreach(var dock in new[]{"left","right","bottom","top"}){_chromeDock=dock;RebuildChromeLayout();ResizeChrome();PositionChrome();Check(_chromeTools.Children.Count>0,"Toolbar reparent failed: "+dock);}
-            _session.Open(new());_rulerEnabled=true;_rulerCenter=new(600,450);_rulerPixelLength=640;_rulerAngle=0;ChooseScreenTool("pen");
-            OnPointer(new("down",500,418));OnPointer(new("move",520,443));OnPointer(new("up",540,418));
-            Check(_session.Document.Objects.Single().ParsedPoints.All(p=>Math.Abs(p.Y-418)<.001),"Ruler did not remain latched");
-            OnPointer(new("down",500,380));OnPointer(new("move",520,437));OnPointer(new("up",540,450));
+            _session.Open(new());_rulerEnabled=true;_rulerCenter=new(600,450);_owner.SetSharedRulerLength(640);_rulerAngle=0;ChooseScreenTool("pen");
+            var edgeY = 450 - RulerHeight / 2;
+            OnPointer(new("down",500,edgeY));OnPointer(new("move",520,443));OnPointer(new("up",540,edgeY));
+            Check(_session.Document.Objects.Single().ParsedPoints.All(p=>Math.Abs(p.Y-edgeY)<.001),"Ruler did not remain latched");
+            OnPointer(new("down",500,edgeY-38*RulerScale));OnPointer(new("move",520,437));OnPointer(new("up",540,450));
             Check(_session.Document.Objects.Last().ParsedPoints.Any(p=>Math.Abs(p.Y-437)<.001),"Ruler attracted a stroke begun outside its edge");
             _rulerEnabled=false;CancelGesture();
             _session.Open(new(){Objects=[new(){Id="erase-me",Type="rect",X=100,Y=100,Width=40,Height=40,FillColor="#5F9E71"},new(){Id="below",Type="rect",X=80,Y=80,Width=100,Height=100,IsLocked=true,StrokeColor="#336699",FillColor="#336699",ZIndex=-1}]});
