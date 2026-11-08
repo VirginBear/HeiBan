@@ -170,7 +170,7 @@ internal sealed class ScreenCustomizeToolbarWindow : Window
         var defaults = new Button { Content = T("預設") };
         defaults.Click += (_, _) =>
         {
-            stylePicker.SelectedIndex=0;
+            stylePicker.SelectedIndex=1;
             sizePicker.SelectedIndex=1;
             visibleSet.Clear();
             visibleSet.UnionWith(ToolbarPreferences.AllDefaultTools.Where(ToolbarContentPolicy.IsAvailableOnScreen));

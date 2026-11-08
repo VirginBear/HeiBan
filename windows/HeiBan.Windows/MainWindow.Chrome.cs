@@ -761,7 +761,7 @@ public partial class MainWindow
         var dialog = new ContentDialog
         {FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,
             Title = T("自訂工具列"),
-            Content = new StackPanel{Spacing=10,Children={stylePicker,sizePicker,CustomizeToolbarHeader(visibleSet,allKeys,RebuildList,displayMode,value=>displayMode=value,()=>{commonSet.Clear();commonSet.UnionWith(new ToolbarPreferences().CommonTools);stylePicker.SelectedIndex=0;sizePicker.SelectedIndex=1;}),new TextBlock{Text=T("左側勾選顯示工具，勾選「常用」加入常用分頁；選取、雷射與藤條固定顯示。"),TextWrapping=TextWrapping.Wrap,FontSize=12,Foreground=Brush("#65746A")},scroll}},
+            Content = new StackPanel{Spacing=10,Children={stylePicker,sizePicker,CustomizeToolbarHeader(visibleSet,allKeys,RebuildList,displayMode,value=>displayMode=value,()=>{commonSet.Clear();commonSet.UnionWith(new ToolbarPreferences().CommonTools);stylePicker.SelectedIndex=1;sizePicker.SelectedIndex=1;}),new TextBlock{Text=T("左側勾選顯示工具，勾選「常用」加入常用分頁；選取、雷射與藤條固定顯示。"),TextWrapping=TextWrapping.Wrap,FontSize=12,Foreground=Brush("#65746A")},scroll}},
             PrimaryButtonText = T("儲存"),
             CloseButtonText = T("取消"),
             XamlRoot = Root.XamlRoot

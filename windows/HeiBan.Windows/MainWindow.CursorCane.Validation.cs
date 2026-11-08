@@ -14,6 +14,7 @@ public partial class MainWindow
         try
         {
             var checks=0;void Check(bool ok,string message){checks++;if(!ok)throw new Exception(message);}
+            Check(_toolbarPrefs.IconStyle == "duotone" && ToolIcons.Style == "duotone", "Fresh profile did not start with color icons");
             using var cursors=new ToolCursor();using var sheet=new CanvasRenderTarget(CanvasSurface,1100,1030,96);
             using(var ds=sheet.CreateDrawingSession())
             {

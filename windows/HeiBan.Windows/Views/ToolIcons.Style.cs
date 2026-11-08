@@ -3,7 +3,7 @@ namespace HeiBan.Windows.Views;
 
 internal static partial class ToolIcons
 {
-    internal static string Style {get;private set;}="classic";
+    internal static string Style {get;private set;}="duotone";
     private static readonly Dictionary<string,string> DuotoneXml=[];
     private static readonly Dictionary<string,SvgImageSource> IconSources=[];
     // Style is shared by the application's two hosts. Sources may be shared;
