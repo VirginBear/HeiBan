@@ -10,3 +10,9 @@
 - 舊目標重建前先解除引用；關閉螢幕畫布或失去繪製裝置時關閉輸出視窗。原透明層繪製與區域輸入維持既有路徑。
 - 查 OBS 官方 Window Capture 指南，視窗擷取依單一視窗及標題匹配。手冊加入標題必須相符、白底輸出與桌面合成擷取方式。十語 UI 726 鍵、0 缺漏；十語指南各 26 節／85 段。
 - `dotnet build windows/HeiBan.Windows -c Release -r win-x64 -p:Platform=x64 --artifacts-path <scratch>/build` 成功，0 警告／0 錯誤。
+
+## 交付與試用
+
+執行 Package-PortableTrial.ps1 -Runtime win-x64 -Label screen-obs-2026-11-13-r1，使用來源 767eb07743e579e1bafec72a318f36513c0d1b0b。ZIP 100,527,134 bytes，SHA256 e3b1015892997527704ac017e030fbc73d868820e26e207478b9f69d258fa67d。同一版號 1.1.4。本機 verify.py 核對 422 份來源、724 份內容、CRC、PE、十語指南及獨立空白 Data。上一區域試用包與三件 1.1.3.0 Store 成品雜湊一致。
+
+試用全螢幕及區域各一次。更多選「開啟 OBS 擷取視窗」，在 OBS 視窗擷取選 HeiBan · OBS，設定視窗標題必須相符，保持擷取視窗未最小化。在透明畫布畫線、使用雷射、復原，OBS 預覽應同步呈現於白底上。欲串流疊在別的軟體上的畫面，使用 OBS 顯示器擷取加裁切。未執行 OBS、App 操作測試、ARM64 或 Store 提交。

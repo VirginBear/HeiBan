@@ -1,5 +1,9 @@
 # Windows 問題與排解紀錄
 
+## 2026-11-13 — OBS 擷取停在首頁
+
+OBS 原始來源只綁首頁與一般畫布的 HWND。螢幕畫布由透明原生 HWND 呈現，提供獨立可選的 WinUI 註記輸出作為修正。尚待 OBS 實測。[本批紀錄](OBS_SCREEN_CANVAS_2026-11-13.zh-TW.md)。
+
 ## 2026-11-13 — 區域彈出選單與 XAML 根
 
 區域選單需能超出窄工具列，改為暫時擴大根至區域範圍並保留工具列原位置。展開期間停用根 Acrylic，防止整區被霧面遮擋。初次編譯發現 FlyoutShowOptions.Position 為 nullable，改判斷後編譯成功。[本批紀錄](SCREEN_CANVAS_REGION_2026-11-13.zh-TW.md)。

@@ -1,5 +1,9 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-11-13 — OBS 註記影格輸出
+
+ScreenCaptureOutputWindow 讀取 UI 執行緒持有的 Win2D CanvasRenderTarget。使用共享裝置，以獨立 WinUI 視窗等比呈現；舊目標釋放前解除引用。[本批紀錄](OBS_SCREEN_CANVAS_2026-11-13.zh-TW.md)。
+
 ## 2026-11-13 — 區域螢幕畫布邊界
 
 RegionScreenshotService 的座標選擇走半透明視窗，只有截圖要求才讀桌面像素。NativeOverlayWindow 和兩個 Win2D 目標共用選框尺寸；捕獲拖曳的座標貼齊框邊。操作輪盤先以框判斷右鍵位置。WinUI 工具列及子視窗使用同一邊界。[本批紀錄](SCREEN_CANVAS_REGION_2026-11-13.zh-TW.md)。
