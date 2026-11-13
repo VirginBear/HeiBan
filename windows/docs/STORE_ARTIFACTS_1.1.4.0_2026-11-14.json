@@ -1,0 +1,86 @@
+{
+  "success": true,
+  "sourceCommit": "c3474367a242b4d6a86bdf5afc74637e700022e2",
+  "version": "1.1.4",
+  "packageVersion": "1.1.4.0",
+  "runtimeMode": "SelfContained",
+  "previousStoreFilesPreserved": 77,
+  "sourceFiles": 520,
+  "payloadChecks": [
+    {
+      "entries": 775,
+      "menuIcons": 132,
+      "runtimeDependencies": [],
+      "requiredPayloadPresent": true,
+      "guideDocuments": 21,
+      "architecture": "x64",
+      "originalDocumentsMatched": true,
+      "legalDocuments": 28,
+      "noUserDataOrStandaloneUpdater": true,
+      "appExecutionChecked": false,
+      "runtimeMode": "SelfContained",
+      "identityMatched": true
+    },
+    {
+      "entries": 771,
+      "menuIcons": 132,
+      "runtimeDependencies": [],
+      "requiredPayloadPresent": true,
+      "guideDocuments": 21,
+      "architecture": "arm64",
+      "originalDocumentsMatched": true,
+      "legalDocuments": 28,
+      "noUserDataOrStandaloneUpdater": true,
+      "appExecutionChecked": false,
+      "runtimeMode": "SelfContained",
+      "identityMatched": true
+    }
+  ],
+  "artifacts": [
+    {
+      "bytes": 100424493,
+      "sha256": "e5d8bb92cd1087a3893d6cc2e710bf5b12e2591e75356d82f3988e518bb53ee6",
+      "file": "HeiBan-Store-1.1.4.0-x64.msix"
+    },
+    {
+      "bytes": 97855913,
+      "sha256": "f91dfbadfb62d914c4e7e4b1acbb1a562a832568a72b765436d8f7cc76ec2f21",
+      "file": "HeiBan-Store-1.1.4.0-arm64.msix"
+    },
+    {
+      "bytes": 198282442,
+      "sha256": "1f7d396455ed2d0cef0b22f9b8003ac2525ce50212eec38e4fb204586d6fe6bf",
+      "file": "HeiBan-Store-1.1.4.0-x64-arm64.msixbundle"
+    }
+  ],
+  "zipCRC": true,
+  "validationMethodsExcluded": true,
+  "capability": "runFullTrust",
+  "uploadPerformed": false,
+  "storeInstallUpgradeTested": false,
+  "arm64HardwareTested": false,
+  "wackPerformed": false,
+  "binaryVersions": [
+    {
+      "name": "HeiBan-x64.dll",
+      "fileVersion": "1.1.4.0",
+      "productVersion": "1.1.4+c3474367a242b4d6a86bdf5afc74637e700022e2"
+    },
+    {
+      "name": "HeiBan-arm64.dll",
+      "fileVersion": "1.1.4.0",
+      "productVersion": "1.1.4+c3474367a242b4d6a86bdf5afc74637e700022e2"
+    }
+  ],
+  "native": {
+    "screenAssertions": 17,
+    "eraserPixelFrames": 1,
+    "menuIconsParsed": 66,
+    "cursorCaneChecks": 656,
+    "pdfImportedPages": 2,
+    "pdfExportedPages": 2,
+    "pptxConverted": true
+  },
+  "coreChecks": 6869,
+  "optimizationChecks": 68
+}
