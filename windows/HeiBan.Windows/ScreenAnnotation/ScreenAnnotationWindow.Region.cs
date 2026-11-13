@@ -1,4 +1,5 @@
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Media;
 using global::Windows.Graphics;
 
 namespace HeiBan.Windows.ScreenAnnotation;
@@ -14,6 +15,7 @@ internal sealed partial class ScreenAnnotationWindow
         var position=AppWindow.Position;
         var size=AppWindow.Size;
         _regionChromeExpanded=true;
+        SystemBackdrop=null;
         // XAML can now constrain its popup to a root the size of the selected
         // region, while the actual toolbar stays at its previous screen location.
         _chromeBody.HorizontalAlignment=HorizontalAlignment.Left;
@@ -35,6 +37,7 @@ internal sealed partial class ScreenAnnotationWindow
         _chromeBody.VerticalAlignment=VerticalAlignment.Stretch;
         ResizeChrome();
         PositionChrome();
+        SystemBackdrop=new DesktopAcrylicBackdrop();
     }
 
     private void ResizeScreenWindow(Window window,int width,int height)
