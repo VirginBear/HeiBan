@@ -19,3 +19,11 @@
 - `dotnet run --project windows/HeiBan.Windows.OptimizationChecks -c Release --artifacts-path <scratch>/opt -- <scratch>/opt-output-r2`，68 項通過。固定格位、明確拖曳排序、兩種畫布配置及預設值。
 - `dotnet build windows/HeiBan.Windows -c Release -r win-x64 -p:Platform=x64 -p:HeiBanValidationBuild=true --artifacts-path <scratch>/qa-build`，0 警告／0 錯誤。獨立測試資料根執行 `HeiBan.exe --cursor-cane-validation-output=<scratch>/native-output-r2`，656 項通過（主517、翻轉／雷射7、正形18、快色45、螢幕69）。Win2D 渲染讀回像素、選中色票中心／尺度、四個音效的呼叫與靜音。
 - 音訊檔取樣讀取確認原揮聲有訊號，120 ms 為程式內排程間隔。未實際聽音或量測裝置輸出延遲。右鍵點選和圖釘定位待手動試用。未執行 ARM64、Mac／Web 交叉呈現、WACK、Store 建置／提交。
+
+## 免安裝交付
+
+執行 `Package-PortableTrial.ps1 -Runtime win-x64 -Label interaction-2026-11-13-r1`。Windows 產品版本 1.1.4／檔案 1.1.4.0，來源 `643f9cc2e438fe5879b5af81f3b1ccd75d785215`。正式 Store manifest 與套件 1.1.3.0 保留。
+
+- ZIP `windows/dist/trials/HeiBan-Windows-Portable-1.1.4-interaction-2026-11-13-r1-win-x64.zip`，100,508,505 bytes，SHA256 `d3f6a9aee75c68918992fa83174655752bdce2355bedd926892cdcf7378b5e3f`。
+- 本機 `python .build/interaction-114-20261113/verify.py`（於 repo 根由 windows 子路徑呼叫）確認 419 份來源、724 份內容、ZIP CRC、x64 PE、獨立空白 Data、十語指南、四份音效、原揮聲來源 SHA、QA 入口排除。首次核對以系統 cp950 讀來源 JSON 出錯，改明確 UTF-8 後全部通過。三份 1.1.3.0 Store 成品與上次 1.1.2 ZIP 雜湊一致。
+- 正式 Portable 執行檔未啟動。原生驗證由相同產品來源的 x64 診斷建置執行。使用者原有作品、試用包及未提交修改保留。未建立商店提交或 GitHub Release。

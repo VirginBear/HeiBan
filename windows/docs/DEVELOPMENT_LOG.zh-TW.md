@@ -1,5 +1,9 @@
 # HeiBan Windows 開發日誌
 
+## 2026-11-13 — Windows 1.1.4 互動試用
+
+兩畫布的物件右鍵加入水平／垂直翻轉與「直接複製一個」。一般畫布選取工具右鍵可在點擊位置新建預設圖釘。紙外雷射、獨立色票外圈、早於接觸的藤條揮聲與固定輪盤格位已完成，十語指南同步。Core 6869、Optimization 68、x64 原生 656 通過。x64 免安裝來源 643f9cc，ZIP 100,508,505 bytes，SHA d3f6a9aee75c68918992fa83174655752bdce2355bedd926892cdcf7378b5e3f。正式商店套件沿用 1.1.3.0；右鍵實機、音效聽感及跨平台反射待驗。[本批紀錄](INTERACTION_1.1.4_2026-11-13.zh-TW.md)。
+
 ## 2026-11-08 — Microsoft Store 1.1.3.0 正式套件
 
 依使用者指定進版 1.1.3／1.1.3.0。新安裝與還原預設採 duotone 彩色，已保存風格繼續沿用。累積共用尺、0.5 秒拉直、Shift 正形、快色與三段工具列大小。Core 6850、Optimization 68、x64 原生 645 通過。SelfContained x64／ARM64 皆 0 警告 0 錯誤，來源 8888999。合併包 198,257,121 bytes，SHA 94ec29777350ce54ef15ff5e27edae05f252fe1f33798a8a1fe75cfb7cfabaa3。上傳由使用者進行。[封裝與驗證](STORE_RELEASE_1.1.3_2026-11-08.zh-TW.md) · [十語更新說明](STORE_LISTING_UPDATE_1.1.3_2026-11-08.zh-TW.md)。
