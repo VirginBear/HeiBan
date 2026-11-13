@@ -1,5 +1,9 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-11-13 — 區域螢幕畫布邊界
+
+RegionScreenshotService 的座標選擇走半透明視窗，只有截圖要求才讀桌面像素。NativeOverlayWindow 和兩個 Win2D 目標共用選框尺寸；捕獲拖曳的座標貼齊框邊。操作輪盤先以框判斷右鍵位置。WinUI 工具列及子視窗使用同一邊界。[本批紀錄](SCREEN_CANVAS_REGION_2026-11-13.zh-TW.md)。
+
 ## 2026-11-13 — 物件反射與展示層
 
 ObjectHandles 的本地與世界座標映射共用反射及旋轉次序。縮放框使用外框順序，線段端點、圓弧與頂點使用實際方向。頂點及端點重建與局部擦除片段將變換烘焙進幾何。RenderBoundsVersion 反映方向改變，SVG 與 Win2D 均以物件中心轉換。雷射在紙張裁切後合成於視窗，仍為短暫呈現資料。[開發紀錄](INTERACTION_1.1.4_2026-11-13.zh-TW.md)。

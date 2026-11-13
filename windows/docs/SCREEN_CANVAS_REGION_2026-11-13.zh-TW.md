@@ -15,3 +15,14 @@
 - 最小區域為 360 × 250 DIP，較小區域顯示重新框選提示。顯示配置變更結束區域會話。OBS 擷取／裁切由使用者設定。
 
 - 檢閱彈窗合成時發現桌面 Acrylic backdrop 會套在展開後的整個根視窗。開啟區域彈窗時改用透明根，收合再恢復原背景。首次封裝已開始，保留其產物，正式交付本批修正後的 r2。
+
+## 建置及交付
+
+- 執行 `dotnet build windows/HeiBan.Windows -c Release -r win-x64 -p:Platform=x64 --artifacts-path <scratch>/build`，第二輪和透明背景修正前的整合編譯皆為 0 警告／0 錯誤。修正後的實際交付來源 `58a4d84df951cd4ae8708c471ac15c1efd28d115` 由 `Package-PortableTrial.ps1 -Runtime win-x64 -Label screen-region-2026-11-13-r2` 編譯並封裝。
+- 十語 catalog（724 鍵，0 缺漏）及十語離線指南（各 26 章、84 段）由既有兩份 Python 產生器更新。
+- `python windows/.build/screen-region-20261113/verify.py` 核對 420 份來源、724 份清單內容、ZIP CRC／SHA、x64 PE、空白獨立 Data、十語指南與三份 1.1.3.0 Store 成品。上一個 1.1.4 互動試用 ZIP 亦核對一致。
+- 本機試用 ZIP `windows/dist/trials/HeiBan-Windows-Portable-1.1.4-screen-region-2026-11-13-r2-win-x64.zip`，100,521,326 bytes，SHA256 `2b73d91d675bfd7d1f7d6e54d790d4f10fe4a7f9ac5f81f041bc47691966d620`。未執行 App 自動／實機驗收、OBS、跨 DPI、多螢幕實測、ARM64 或 Store 建置與提交。
+
+## 試用驗收
+
+從首頁「螢幕畫布」選「螢幕畫布（區域）」，拖出範圍。拖筆經過框邊後放開，畫面只在框內出現註記。從框外開始點擊可操作原應用程式；操作模式在框外按住右鍵仍交由原程式。在框內驗證更多選單、畫筆、雷射、輪盤與截圖。重新進入相同區域可續用區域註記。使用 OBS 時，在來源設定裁切擷取區域並以預覽確認框外內容沒有進入直播畫面。
