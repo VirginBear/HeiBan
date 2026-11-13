@@ -39,26 +39,42 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
         if(hex.Length==8) n >>= 8;
         return Color.FromArgb((byte)(alpha*Math.Clamp(opacity,0,1)),(byte)(n>>16),(byte)(n>>8),(byte)n);
     }
-    public async Task LoadImagesAsync(ICanvasResourceCreator device, IEnumerable<BoardObject> objects)
+    internal static IEnumerable<string> ImageSources(IEnumerable<BoardObject> objects)
+        =>objects.Where(o=>o.Type=="image").Select(o=>o.ImageUrl).OfType<string>().Distinct(StringComparer.Ordinal);
+
+    internal void RetainImages(IReadOnlySet<string> sources)
+    {
+        foreach(var source in _images.Keys.Where(source=>!sources.Contains(source)).ToArray())
+        {
+            _images[source].Dispose();
+            _images.Remove(source);
+        }
+    }
+
+    public Task LoadImagesAsync(ICanvasResourceCreator device,IEnumerable<BoardObject> objects)
+        =>LoadImageSourcesAsync(device,ImageSources(objects).ToArray());
+
+    internal async Task LoadImageSourcesAsync(ICanvasResourceCreator device,IEnumerable<string> sources,Func<bool>? isCurrent=null)
     {
         var epoch=_imageEpoch;var changed=false;
-        foreach(var source in objects.Where(o=>o.Type=="image").Select(o=>o.ImageUrl).Where(s=>s is not null).Distinct().ToArray())
+        foreach(var source in sources)
         {
-            if(_images.ContainsKey(source!))continue;
+            if(epoch!=_imageEpoch||isCurrent?.Invoke()==false)break;
+            if(_images.ContainsKey(source))continue;
             // Local embedded images only. Opening a board never silently downloads remote images.
-            if(!source!.StartsWith("data:image/",StringComparison.Ordinal))continue;
+            if(!source.StartsWith("data:image/",StringComparison.Ordinal))continue;
             try
             {
                 var bytes=Convert.FromBase64String(source[(source.IndexOf(',')+1)..]);
                 using var stream=new MemoryStream(bytes);
                 var bitmap=await CanvasBitmap.LoadAsync(device,stream.AsRandomAccessStream());
-                if(epoch!=_imageEpoch){bitmap.Dispose();continue;}
+                if(epoch!=_imageEpoch||isCurrent?.Invoke()==false){bitmap.Dispose();break;}
                 if(_images.TryGetValue(source,out var previous))previous.Dispose();
                 _images[source]=bitmap;changed=true;
             }
             catch (Exception e) when(e is FormatException or ArgumentException or System.Runtime.InteropServices.COMException) { }
         }
-        if(changed)ResourcesChanged?.Invoke();
+        if(changed&&epoch==_imageEpoch&&isCurrent?.Invoke()!=false)ResourcesChanged?.Invoke();
     }
     public void ClearCache()
     {
@@ -66,11 +82,10 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
         foreach(var value in _geometry.Values)value.Geometry.Dispose(); _geometry.Clear();
         foreach(var value in _images.Values)value.Dispose(); _images.Clear();
     }
-    public void Prune(IEnumerable<BoardObject> objects)
+    public void Prune(IEnumerable<BoardObject> objects,bool pruneImages=true)
     {
         var all=objects.ToArray();var ids=all.Select(o=>o.Id).ToHashSet();
-        var sources=all.Where(o=>o.Type=="image"&&o.ImageUrl is not null).Select(o=>o.ImageUrl!).ToHashSet();
-        foreach(var source in _images.Keys.Where(source=>!sources.Contains(source)).ToArray()){_images[source].Dispose();_images.Remove(source);}
+        if(pruneImages)RetainImages(ImageSources(all).ToHashSet(StringComparer.Ordinal));
         PruneTextCache(ids);
         foreach(var id in _geometry.Keys.Where(id=>!ids.Contains(id)).ToArray()){_geometry[id].Geometry.Dispose();_geometry.Remove(id);}
     }

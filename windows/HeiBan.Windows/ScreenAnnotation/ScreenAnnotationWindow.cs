@@ -46,6 +46,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     private CanvasRenderTarget? _target,_committed;
     private bool _committedDirty=true,_fullDamage=true,_benchmarkFullFrames;
     private global::Windows.Foundation.Rect? _damage,_lastLaserDamage,_lastCaneDamage;
+    private InkPoint? _lastLaserTip;
     private long _presentedBytes,_renderedFrames,_committedBuilds;
     private BoardObject? _preview,_manipulation;
     private ObjectHandles.Handle? _handle;
@@ -94,7 +95,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         _straightenTimer.Tick+=(_,_)=>
         {
             if(IsActive&&_drawing&&_tool=="pen"&&_start is not null&&Now-_penHoldSince>=StraightStrokeRecognizer.HoldSeconds&&StraightStrokeRecognizer.IsEligible(_points,1/_dpiScale))
-            {_screenPenStraight=true;_straightenTimer.Stop();_dirty=true;}
+            {_screenPenStraight=true;_straightenTimer.Stop();DamageStrokeTail(true);_dirty=true;}
         };
         _saveTimer.Tick+=async(_,_)=>{_saveTimer.Stop();if(!_owner.AutoSaveEnabled||_stopping||!IsActive)return;if(_start is not null||_textDraft is not null||_session.HasTransaction){_saveTimer.Start();return;}await SaveAsync();};
         AppWindow.Hide();
@@ -417,15 +418,20 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
                 _points.Add(p);
                 // The screen host stores physical overlay pixels, so compare movement in screen DIP.
                 if(_tool=="pen"&&_penHoldAnchor is { } anchor&&Math.Sqrt(Math.Pow(p.X-anchor.X,2)+Math.Pow(p.Y-anchor.Y,2))>12*_dpiScale)
-                {_penHoldAnchor=p;_penHoldSince=Now;_screenPenStraight=false;_straightenTimer.Stop();_straightenTimer.Start();}
+                {if(_screenPenStraight)DamageStrokeTail(true);_penHoldAnchor=p;_penHoldSince=Now;_screenPenStraight=false;_straightenTimer.Stop();_straightenTimer.Start();}
             }
-            if(regionalSelection)DamageSelectedObjects();
+            if(regionalSelection)
+            {
+                DamageSelectedObjects();
+                if(!_committedDirty||_committedDamage is not null)_committedDamage=_damage;
+            }
             _last=p;
         }
         if(input.Kind=="up"&&_start is not null)
         {
             DamagePreview();var previewCommit=_preview is not null;
-            var partialCommit=(_tool is "pen" or "highlighter" or "paint"||previewCommit)&&!_fullDamage;
+            var localAppend=(_tool is "pen" or "highlighter" or "paint"||previewCommit)&&!_marquee;
+            var partialCommit=localAppend&&!_fullDamage&&(!_committedDirty||_committedDamage is not null);
             if(partialCommit&&!previewCommit)DamageStrokeTail(true);
             if(_marquee)DamageSelectedObjects();var strokeDamage=_damage;
             if(_marquee&&_preview is not null)_session.SetSelection(_session.VisibleObjects.Where(o=>WindowSelection.Matches(o,_start,p)).Select(o=>o.Id).Concat(_marqueeSelection));
@@ -446,7 +452,14 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             }
             _straightenTimer.Stop();_penHoldAnchor=null;_screenPenStraight=false;_session.Commit();ClearObjectDrag();if(_marquee)DamageSelectedObjects();var committedDamage=_damage;RefreshScreenStyleButtons();_marquee=false;_points.Clear();_start=_last=null;_preview=null;_handle=null;_renderer.ResetLive();Changed();
             if(_tool=="select"&&_session.Selected is not null)FocusScreenChrome();
-            if(partialCommit){_fullDamage=false;_damage=previewCommit?committedDamage:strokeDamage;}
+            if(partialCommit)
+            {
+                _damage=previewCommit?committedDamage:strokeDamage;
+                _fullDamage=_damage is null;
+                // Pen-up can rebuild the same dirty rectangle used by the live stroke.
+                // The committed render target still contains the rest of the desktop.
+                _committedDamage=_damage;
+            }
         }
         if(_tool is "pen" or "highlighter" or "paint"){if(input.Kind!="up")DamageStrokeTail();}
         else {DamagePreview();if(!regionalSelection&&_preview is null&&input.Kind!="up")_fullDamage=true;if(regionalSelection||_tool=="eraser")_committedDirty=true;}
@@ -483,10 +496,11 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         using var trace=global::HeiBan.Windows.Diagnostics.InputLatencyTrace.Measure(global::HeiBan.Windows.Diagnostics.InputStage.ScreenRender);
         if(_target is null||_committed is null)return;
         var sceneSession=_circularEraser?.Preview??_session;
-        _laser.Prune(Now);
-        _caneWasAnimating=_cane.NeedsAnimation(Now);
+        var now=Now;
+        _laser.Prune(now);
+        var caneAnimating=_cane.NeedsAnimation(now);
         global::Windows.Foundation.Rect? caneDamage=null;
-        if(Direct2DCanvasRenderer.CaneBounds(_cane,_viewport,Now,_dpiScale) is { } caneBounds)
+        if(Direct2DCanvasRenderer.CaneBounds(_cane,_viewport,now,_dpiScale) is { } caneBounds)
         {
             var left=Math.Max(0,Math.Floor(caneBounds.Left));var top=Math.Max(0,Math.Floor(caneBounds.Top));
             var right=Math.Min(_overlay.Width,Math.Ceiling(caneBounds.Right));var bottom=Math.Min(_overlay.Height,Math.Ceiling(caneBounds.Bottom));
@@ -495,9 +509,20 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         global::Windows.Foundation.Rect? laserDamage=null;
         if(_laser.Samples.Count>0)
         {
-            var points=_laser.Samples.Select(s=>s.Point).ToArray();var pad=Math.Max(_laser.PointDiameter*1.2,_laser.Width*4)*_dpiScale+4;
-            var left=Math.Max(0,Math.Floor(points.Min(p=>p.X)-pad));var top=Math.Max(0,Math.Floor(points.Min(p=>p.Y)-pad));
-            var right=Math.Min(_overlay.Width,Math.Ceiling(points.Max(p=>p.X)+pad));var bottom=Math.Min(_overlay.Height,Math.Ceiling(points.Max(p=>p.Y)+pad));
+            var samples=_laser.Samples;
+            var tip=samples[^1].Point;
+            var minX=tip.X;var minY=tip.Y;var maxX=tip.X;var maxY=tip.Y;
+            if(_laser.Mode!="point")
+                foreach(var sample in samples)
+                {
+                    var point=sample.Point;
+                    minX=Math.Min(minX,point.X);minY=Math.Min(minY,point.Y);
+                    maxX=Math.Max(maxX,point.X);maxY=Math.Max(maxY,point.Y);
+                }
+            var radius=_laser.Mode=="point"?_laser.PointDiameter*1.2:Math.Max(_laser.PointDiameter*1.2,_laser.Width*4);
+            var pad=radius*_dpiScale+4;
+            var left=Math.Max(0,Math.Floor(minX-pad));var top=Math.Max(0,Math.Floor(minY-pad));
+            var right=Math.Min(_overlay.Width,Math.Ceiling(maxX+pad));var bottom=Math.Min(_overlay.Height,Math.Ceiling(maxY+pad));
             if(right>left&&bottom>top)laserDamage=new(left,top,right-left,bottom-top);
         }
         global::Windows.Foundation.Rect? eraserDamage=null;
@@ -514,10 +539,19 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         if(_radialGesture.Visible)DamageRadial();
         global::Windows.Foundation.Rect? rulerDamage=GetRulerDamageRect();
         global::Windows.Foundation.Rect? compassDamage=GetCompassDamageRect();
-        foreach(var bounds in new[]{_lastCaneDamage,caneDamage,_lastLaserDamage,laserDamage,_lastEraserDamage,eraserDamage,_lastMagnetDamage,magnetDamage,_lastRulerDamage,rulerDamage,_lastCompassDamage,compassDamage})if(bounds is { } rect)
-        {
-            AddScreenDamage(rect);
-        }
+        if(caneAnimating||_caneWasAnimating||!Nullable.Equals(_lastCaneDamage,caneDamage))
+        {AddScreenDamage(_lastCaneDamage);AddScreenDamage(caneDamage);}
+        var laserTip=_laser.Samples.Count==0?null:_laser.Samples[^1].Point;
+        if(_laser.Mode!="point"||!ReferenceEquals(laserTip,_lastLaserTip))
+        {AddScreenDamage(_lastLaserDamage);AddScreenDamage(laserDamage);}
+        else AddScreenDamageIfMoved(_lastLaserDamage,laserDamage);
+        AddScreenDamageIfMoved(_lastEraserDamage,eraserDamage);
+        AddScreenDamageIfMoved(_lastMagnetDamage,magnetDamage);
+        // Ruler and compass are painted into any intersecting damage. Their
+        // unchanged bounds need not widen a pen update on another monitor.
+        AddScreenDamageIfMoved(_lastRulerDamage,rulerDamage);
+        AddScreenDamageIfMoved(_lastCompassDamage,compassDamage);
+        if(!_dirty&&!_fullDamage&&!_benchmarkFullFrames&&_damage is null)return;
         var full=_fullDamage||_benchmarkFullFrames||_damage is null;
         var region=full?new global::Windows.Foundation.Rect(0,0,_overlay.Width,_overlay.Height):_damage!.Value;
         var blank=Color.FromArgb(_drawing?(byte)1:(byte)0,0,0,0);
@@ -539,10 +573,10 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
                 _renderer.RenderWetInk(ds,livePoints,_viewport,_tool=="lasso"?"#39735A":_color,_tool=="lasso"?1:_width*_dpiScale,_tool=="highlighter"?_opacity*.4:_opacity,_tool=="lasso"?"dashed":_dash,new global::Windows.Foundation.Size(_overlay.Width,_overlay.Height));
             }
             if(_tool=="select")foreach(var selected in _objectDrag?.Selected??_session.SelectedObjects)_renderer.RenderSelection(ds,selected,DragViewport(selected),_session.SelectedIds.Count==1);
-            if(_rulerEnabled)DrawRuler(ds);
-            if(_compass.IsEnabled)_renderer.RenderCompass(ds,_compass,_viewport);
-            _renderer.RenderLaser(ds,_laser,_viewport,Now,_dpiScale);
-            _renderer.RenderCane(ds,_cane,_viewport,Now,_dpiScale);
+            if(rulerDamage is { } rulerBounds&&DamageIntersects(region,rulerBounds))DrawRuler(ds);
+            if(compassDamage is { } compassBounds&&DamageIntersects(region,compassBounds))_renderer.RenderCompass(ds,_compass,_viewport);
+            _renderer.RenderLaser(ds,_laser,_viewport,now,_dpiScale);
+            _renderer.RenderCane(ds,_cane,_viewport,now,_dpiScale);
             if(_screenMagnetTarget is { } target)ds.DrawCircle((float)target.X,(float)target.Y,(float)(7*_dpiScale),Direct2DCanvasRenderer.HexToColor("#10B981"),2);
             if(_radialGesture.Visible)_renderer.RenderRadialWheel(ds,RadialProfile,_radialGesture.Center,_radialGesture.Hover,_radialScale,IsScreenRadialToolActive,operateReturnsDrawing:!_drawing,toolColor:_=>_color);
             if(!_radialGesture.Holding&&_screenEraserPointer is { } eraser)_renderer.RenderHover(ds,eraser,true,_eraserSize*_dpiScale,_viewport);
@@ -550,11 +584,11 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         var x=(int)region.X;var y=(int)region.Y;var width=(int)region.Width;var height=(int)region.Height;
         _overlay.PresentBitmap(_target,x,y,width,height);_presentedBytes+=(long)width*height*4;_renderedFrames++;_lastRenderTimestamp=Stopwatch.GetTimestamp();
         _captureOutput?.Present(_target);
-        _dirty=false;_fullDamage=false;_damage=null;_lastCaneDamage=caneDamage;_lastLaserDamage=laserDamage;_lastEraserDamage=eraserDamage;_lastMagnetDamage=magnetDamage;_lastRulerDamage=rulerDamage;_lastCompassDamage=compassDamage;
+        _dirty=false;_fullDamage=false;_damage=null;_caneWasAnimating=caneAnimating;_lastCaneDamage=caneDamage;_lastLaserDamage=laserDamage;_lastLaserTip=laserTip;_lastEraserDamage=eraserDamage;_lastMagnetDamage=magnetDamage;_lastRulerDamage=rulerDamage;_lastCompassDamage=compassDamage;
     }
     internal void ApplyCaneMuted(bool muted){_toolbarPreferences.CaneMuted=muted;}
     public void ApplySavingPreferences(){_saveTimer.Stop();if(_owner.AutoSaveEnabled&&IsActive&&!_stopping&&_session.IsDirty)_saveTimer.Start();}
-    private void Changed(){_dirty=_fullDamage=_committedDirty=true;RefreshScreenLayers();ApplySavingPreferences();}
+    private void Changed(){_dirty=_fullDamage=_committedDirty=true;_committedDamage=null;RefreshScreenLayers();ApplySavingPreferences();}
     private void CancelGesture()
     {
         var hadDrag=_objectDrag is not null;ClearObjectDrag();_selectionClickId=null;
@@ -564,7 +598,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         CancelCircularEraser();
         CommitScreenStyle();var committedChanged=_session.HasTransaction||hadDrag;var previewVisible=_preview is not null||_points.Count>0;
         _snapEdge=null;_rulerMoving=_rulerRotating=_rulerPivotMoving=false;FinishRulerStretch();_compassCenterMoving=_compassCenterMoved=_compassRadiusMoving=_compassPencilMoving=false;_compass.Prepare();_straightenTimer.Stop();_penHoldAnchor=null;_screenPenStraight=false;DamagePreview();_session.Cancel();_curveAnchors.Clear();_marquee=false;_points.Clear();_start=_last=null;_preview=null;_handle=null;_renderer.ResetLive();
-        if(committedChanged){_dirty=_fullDamage=_committedDirty=true;_damage=null;}else if(previewVisible)_dirty=true;
+        if(committedChanged){_dirty=_fullDamage=_committedDirty=true;_damage=null;}else if(previewVisible){_dirty=true;_fullDamage=true;}
     }
     private async Task<bool> SaveAsync()
     {

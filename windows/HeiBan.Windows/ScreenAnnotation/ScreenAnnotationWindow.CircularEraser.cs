@@ -36,9 +36,27 @@ internal sealed partial class ScreenAnnotationWindow
             var snapshot=await gesture.CompleteAsync();
             if(ReferenceEquals(_circularEraser,gesture)&&snapshot is not null&&gesture.Matches(_session))
             {using var trace=InputLatencyTrace.Measure(InputStage.EraserCommit);_session.Begin();_session.Document.Objects=snapshot.Objects;_session.Commit();}
+            else if(ReferenceEquals(_circularEraser,gesture)&&snapshot is not null)
+            {
+                CancelCircularEraser();
+                RefreshScreenLayers();ApplySavingPreferences();
+            }
         }
-        catch(Exception error){gesture.Cancel();_status.Text=Localization.Strings.T("繪圖未完成：")+error.Message;}
-        finally{if(ReferenceEquals(_circularEraser,gesture)){_circularEraser=null;_start=_last=null;Changed();}}
+        catch(Exception error)
+        {
+            if(ReferenceEquals(_circularEraser,gesture))CancelCircularEraser();
+            _status.Text=Localization.Strings.T("繪圖未完成：")+error.Message;
+        }
+        finally
+        {
+            if(ReferenceEquals(_circularEraser,gesture))
+            {
+                // Completion publishes the same owned geometry already presented
+                // by the preview. Any unpresented dirty rectangle remains pending.
+                _circularEraser=null;_start=_last=null;
+                RefreshScreenLayers();ApplySavingPreferences();
+            }
+        }
     }
     private void CancelCircularEraser()
     {

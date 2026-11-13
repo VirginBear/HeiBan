@@ -53,7 +53,7 @@ public partial class MainWindow
     private void CanvasSurface_CreateResources(ImmediateCanvas sender,ImmediateCanvasResourcesEventArgs e)
     {
         ClearScene();_renderer.ClearCache();
-        e.TrackAsyncAction(_renderer.LoadImagesAsync(sender,_session.Document.Objects).AsAsyncAction());
+        e.TrackAsyncAction(LoadCurrentPageImagesAsync(sender,resourcesReset:true).AsAsyncAction());
         // Decorative tool art has its own handled failure and redraw callback;
         // it is never a prerequisite for presenting the user's document.
         _ = _renderer.LoadToolArtAsync(sender);
@@ -767,7 +767,7 @@ public partial class MainWindow
         _session.SelectedId = o.Id;
         _session.Commit();
 
-        await _renderer.LoadImagesAsync(CanvasSurface, _session.Document.Objects);
+        await LoadCurrentPageImagesAsync(CanvasSurface);
         _tool = "select";
         RefreshEditor();
         return true;
@@ -853,7 +853,7 @@ public partial class MainWindow
             ActivateTool("select");_session.Begin();var ids=new List<string>();
             foreach(var o in objects){o.Id=Guid.NewGuid().ToString();_session.Move(o,20,20);_session.Add(o);ids.Add(o.Id);}
             _session.SetSelection(ids);_session.Commit();
-            await _renderer.LoadImagesAsync(CanvasSurface, _session.Document.Objects);
+            await LoadCurrentPageImagesAsync(CanvasSurface);
             RefreshEditor();
         }
         catch (Exception ex) { await Error(ex); }

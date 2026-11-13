@@ -192,11 +192,12 @@ public partial class MainWindow : Window
         TitleBox.Text=doc.Board.Title;_viewport.Zoom=1;_viewport.X=doc.Board.CanvasMode=="infinite"?0:80;_viewport.Y=80;
         if(doc.Board.CanvasMode=="notebook" && (doc.Board.Pages?.Count??0)==0)
         {doc.Board.Pages=[new BoardPage()];doc.Board.ActivePageId=doc.Board.Pages[0].Id;}
-        _objectDetailsId=null;Inspector.Visibility=Visibility.Collapsed;RefreshEditor();FocusCanvasSurface();DispatcherQueue?.TryEnqueue(FocusCanvasSurface); await _renderer.LoadImagesAsync(CanvasSurface,doc.Objects);
+        _objectDetailsId=null;Inspector.Visibility=Visibility.Collapsed;RefreshEditor();FocusCanvasSurface();DispatcherQueue?.TryEnqueue(FocusCanvasSurface); await LoadCurrentPageImagesAsync(CanvasSurface);
     }
     private void RefreshEditor()
     {
-        _renderer.Prune(_session.Document.Objects);
+        _renderer.Prune(_session.Document.Objects,pruneImages:false);
+        _=LoadCurrentPageImagesAsync(CanvasSurface);
         TitleBox.Text=_session.Document.Board.Title;
         _changingLayers=true;
         try
@@ -240,6 +241,7 @@ public partial class MainWindow : Window
             // A queued autosave thumbnail must never overwrite a later manual save's image.
             if(_thumbnailRevisions.TryGetValue(snapshot.Board.Id,out var revision)&&revision>snapshot.Board.Revision)return;
             using var target=new CanvasRenderTarget(CanvasSurface,480,300,96);
+            using var renderer=new Direct2DCanvasRenderer();
             var vp=new ViewportTransform{X=24,Y=20,Zoom=.3};
             var board=snapshot.Board;var visible=snapshot.Objects.Where(o=>o.IsVisible!=false&&(board.CanvasMode!="notebook"||o.PageId is null||o.PageId==board.ActivePageId)).ToArray();
             if(board.CanvasMode=="infinite" && visible.Length>0)
@@ -248,8 +250,9 @@ public partial class MainWindow : Window
                 var width=Math.Max(1,objects.Max(o=>o.X+o.Width)-left);var height=Math.Max(1,objects.Max(o=>o.Y+o.Height)-top);
                 vp.Zoom=Math.Min(432/width,260/height);vp.X=24-left*vp.Zoom;vp.Y=20-top*vp.Zoom;
             }
+            await renderer.LoadImagesAsync(target,visible);
             using(var ds=target.CreateDrawingSession())
-            {_renderer.RenderBackground(ds,board,vp,480,300);_renderer.RenderObjects(ds,visible,vp,480,300);}
+            {renderer.RenderBackground(ds,board,vp,480,300);renderer.RenderObjects(ds,visible,vp,480,300);}
             await target.SaveAsync(_storage.ThumbnailPath(board.Id),CanvasBitmapFileFormat.Png);
             _thumbnailRevisions[board.Id]=board.Revision;
         }
@@ -298,7 +301,9 @@ public partial class MainWindow : Window
     {
         CancelScreenshotCapture("回到首頁");
         if(!await SaveBeforeLeavingAsync())return;
-        _workspaceOpen=false;Workspace.Visibility=Visibility.Collapsed;HomePanel.Visibility=Visibility.Visible;
+        _workspaceOpen=false;_pageImageKey=null;++_pageImageRequest;
+        _renderer.ClearCache();ClearScene();
+        Workspace.Visibility=Visibility.Collapsed;HomePanel.Visibility=Visibility.Visible;
         try{await RefreshLibrary();}catch(Exception ex){await Error(ex);}
     }
     private async void Import_Click(object sender,RoutedEventArgs e)

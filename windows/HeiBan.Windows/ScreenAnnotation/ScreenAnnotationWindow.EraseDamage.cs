@@ -21,14 +21,24 @@ internal sealed partial class ScreenAnnotationWindow
     }
     private void DamagePreview()
     {
-        if(_preview is null)return;var corners=ObjectHandles.Outline(_preview);var pad=_preview.StrokeWidth+40*_dpiScale;
+        if(_preview is null)return;
+        if(_preview.Extension is "start" or "end" or "both"){_fullDamage=true;return;}
+        var corners=ObjectHandles.Outline(_preview);var pad=_preview.StrokeWidth+40*_dpiScale;
         var left=Math.Max(0,Math.Floor(corners.Min(p=>p.X)-pad));var top=Math.Max(0,Math.Floor(corners.Min(p=>p.Y)-pad));
         var right=Math.Min(_overlay.Width,Math.Ceiling(corners.Max(p=>p.X)+pad));var bottom=Math.Min(_overlay.Height,Math.Ceiling(corners.Max(p=>p.Y)+pad));
         if(right>left&&bottom>top)AddScreenDamage(new(left,top,right-left,bottom-top));
     }
     private Rect? _committedDamage;
-    private void AddScreenDamage(Rect rectangle)
+    private static bool DamageIntersects(Rect a,Rect b)=>a.Left<b.Right&&b.Left<a.Right&&a.Top<b.Bottom&&b.Top<a.Bottom;
+    private void AddScreenDamageIfMoved(Rect? before,Rect? after)
     {
+        if(Nullable.Equals(before,after))return;
+        AddScreenDamage(before);
+        AddScreenDamage(after);
+    }
+    private void AddScreenDamage(Rect? candidate)
+    {
+        if(candidate is not { } rectangle)return;
         var left=Math.Max(0,Math.Floor(rectangle.Left));var top=Math.Max(0,Math.Floor(rectangle.Top));
         var right=Math.Min(_overlay.Width,Math.Ceiling(rectangle.Right));var bottom=Math.Min(_overlay.Height,Math.Ceiling(rectangle.Bottom));
         if(right<=left||bottom<=top)return;

@@ -129,6 +129,7 @@ internal sealed partial class ScreenAnnotationWindow
 
         panel.Children.Add(new TextBlock { Text = T("準備階段：拖曳圓心移動位置，拖曳內側把手調整半徑，拖曳筆尖定位起點。\n作畫階段：拖曳筆尖掃出圓弧，放開即生成精確圓弧物件。"), TextWrapping = TextWrapping.Wrap, FontSize = 12, Foreground = ChromeBrush(255, 104, 117, 108) });
 
+        DamageCompass();_dirty=true;
         ShowChromeFlyout(new Flyout { Content = new ScrollViewer { Content = panel, MaxHeight = 440, VerticalScrollBarVisibility = ScrollBarVisibility.Auto } }, anchor);
     }
 
@@ -149,7 +150,8 @@ internal sealed partial class ScreenAnnotationWindow
     {
         if (!_compass.IsEnabled) return null;
         var cx = _compass.Center.X; var cy = _compass.Center.Y;
-        var r = _compass.Radius + 32;
+        // Include the radius label, state pill, and the wide arc stroke.
+        var r = _compass.Radius + Math.Max(110,_compass.StrokeWidth/2+4);
         var left = Math.Max(0, Math.Floor(cx - r));
         var top = Math.Max(0, Math.Floor(cy - r));
         var right = Math.Min(_overlay.Width, Math.Ceiling(cx + r));
