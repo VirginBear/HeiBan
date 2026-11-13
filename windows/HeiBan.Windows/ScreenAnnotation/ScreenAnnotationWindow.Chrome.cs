@@ -327,6 +327,7 @@ internal sealed partial class ScreenAnnotationWindow
             menu.Items.Add(new MenuFlyoutItem{Text=T("螢幕畫布（區域）")+" · "+region.Width+" × "+region.Height,IsEnabled=false});
             menu.Items.Add(new MenuFlyoutSeparator());
         }
+        Item("screen",T("開啟 OBS 擷取視窗"),ShowCaptureOutput);
         Item("radialSettings",T("設定工具輪盤"),ShowRadialSettings);
         menu.Items.Add(CreateScreenRulerMenu());
         var hidden=ToolbarContentPolicy.HiddenTools(_toolbarPreferences,true).Where(key=>key!="ruler"&&_screenCommands.ContainsKey(key)).ToArray();

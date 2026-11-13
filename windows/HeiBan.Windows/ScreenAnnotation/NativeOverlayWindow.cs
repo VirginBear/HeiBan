@@ -54,6 +54,8 @@ internal sealed partial class NativeOverlayWindow : IDisposable
         =>region.Width>0&&region.Height>0&&region.X>=bounds.X&&region.Y>=bounds.Y
           &&(long)region.X+region.Width<=(long)bounds.X+bounds.Width
           &&(long)region.Y+region.Height<=(long)bounds.Y+bounds.Height;
+    internal static bool Intersects(RectInt32 a,RectInt32 b)
+        =>a.X<(long)b.X+b.Width&&b.X<(long)a.X+a.Width&&a.Y<(long)b.Y+b.Height&&b.Y<(long)a.Y+a.Height;
     internal void ConfigureBounds(RectInt32? region)
     {
         var bounds=DesktopBounds;

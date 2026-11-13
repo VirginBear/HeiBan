@@ -722,5 +722,7 @@
   "螢幕畫布（區域）": "Canevas d’écran (zone)",
   "拖曳框選螢幕畫布區域 · Esc 或右鍵取消": "Faites glisser pour sélectionner la zone · Échap ou clic droit pour annuler",
   "選取區域太小，請框選能容納工具列的範圍。": "La zone est trop petite. Sélectionnez une zone assez grande pour la barre d’outils.",
-  "選取的區域已超出目前螢幕，請重新框選。": "La zone sélectionnée est hors de l’écran actuel. Sélectionnez-la de nouveau."
+  "選取的區域已超出目前螢幕，請重新框選。": "La zone sélectionnée est hors de l’écran actuel. Sélectionnez-la de nouveau.",
+  "開啟 OBS 擷取視窗": "Ouvrir la fenêtre de capture OBS",
+  "OBS 擷取視窗無法開啟。": "Impossible d’ouvrir la fenêtre de capture OBS."
 }

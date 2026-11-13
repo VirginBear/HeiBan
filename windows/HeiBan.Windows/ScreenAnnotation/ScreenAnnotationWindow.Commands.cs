@@ -4,7 +4,7 @@ namespace HeiBan.Windows.ScreenAnnotation;
 internal sealed partial class ScreenAnnotationWindow
 {
     private bool IsCurrentScreenSession(long epoch)=>IsActive&&!_stopping&&_session.DocumentEpoch==epoch;
-    private bool IsAuxiliaryToolWindow(nint handle)=>handle!=0&&(handle==(_screenCalcWindow?.Handle??0)||handle==(_screenTimerWindow?.Handle??0)||handle==(_customizeToolbarWindow?.Handle??0));
+    private bool IsAuxiliaryToolWindow(nint handle)=>handle!=0&&(handle==(_captureOutput is { } output?WinRT.Interop.WindowNative.GetWindowHandle(output):0)||handle==(_screenCalcWindow?.Handle??0)||handle==(_screenTimerWindow?.Handle??0)||handle==(_customizeToolbarWindow?.Handle??0));
     private async Task<bool> PrepareScreenEditAsync(long epoch)
     {
         if(!IsCurrentScreenSession(epoch))return false;

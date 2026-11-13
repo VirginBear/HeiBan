@@ -722,5 +722,7 @@
   "螢幕畫布（區域）": "Screen canvas (region)",
   "拖曳框選螢幕畫布區域 · Esc 或右鍵取消": "Drag to select the screen canvas area · Esc or right-click to cancel",
   "選取區域太小，請框選能容納工具列的範圍。": "The region is too small. Select a larger area for the toolbar.",
-  "選取的區域已超出目前螢幕，請重新框選。": "The selected region is outside the current display. Select it again."
+  "選取的區域已超出目前螢幕，請重新框選。": "The selected region is outside the current display. Select it again.",
+  "開啟 OBS 擷取視窗": "Open OBS capture window",
+  "OBS 擷取視窗無法開啟。": "Could not open the OBS capture window."
 }

@@ -722,5 +722,7 @@
   "螢幕畫布（區域）": "Tela de desenho (região)",
   "拖曳框選螢幕畫布區域 · Esc 或右鍵取消": "Arraste para selecionar a área · Esc ou clique direito para cancelar",
   "選取區域太小，請框選能容納工具列的範圍。": "A região é muito pequena. Selecione uma área maior para a barra de ferramentas.",
-  "選取的區域已超出目前螢幕，請重新框選。": "A região selecionada está fora da tela atual. Selecione-a novamente."
+  "選取的區域已超出目前螢幕，請重新框選。": "A região selecionada está fora da tela atual. Selecione-a novamente.",
+  "開啟 OBS 擷取視窗": "Abrir janela de captura do OBS",
+  "OBS 擷取視窗無法開啟。": "Não foi possível abrir a janela de captura do OBS."
 }
