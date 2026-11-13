@@ -1,5 +1,9 @@
 # HeiBan Windows 開發日誌
 
+## 2026-11-13 — 移除區域螢幕畫布並檢視 Windows
+
+螢幕畫布恢復直接開啟。移除區域入口、區域專用視窗與十語詞條。保留區域註記檔、螢幕截圖、畫布範圍截圖及 OBS 白底輸出。檢視優先項為指定視窗的直播合成、PDF 當頁圖片快取與螢幕讀回量測。x64 免安裝來源 ac92bc3，ZIP 100,513,822 bytes，SHA 2ef4a0ad21a827d7fa782ddc9e953b0a9bbfb5490d06ec9b26b3ca19abf83e1a。編譯及封裝核對完成，互動／OBS 待驗。[本批紀錄](REMOVE_SCREEN_REGION_REVIEW_2026-11-13.zh-TW.md)。
+
 ## 2026-11-13 — OBS 螢幕畫布擷取視窗
 
 全螢幕及區域模式的更多選單加入「開啟 OBS 擷取視窗」。以 HeiBan · OBS 作為固定標題，使用白底 WinUI 視窗呈現同一註記影格，OBS 來源須重新選取。x64 免安裝來源 767eb07，ZIP 100,527,134 bytes，SHA e3b1015892997527704ac017e030fbc73d868820e26e207478b9f69d258fa67d。編譯與封裝核對通過；OBS 擷取及實際互動尚待驗收。[本批紀錄](OBS_SCREEN_CANVAS_2026-11-13.zh-TW.md)。

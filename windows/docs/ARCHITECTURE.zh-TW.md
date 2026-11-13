@@ -1,5 +1,9 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-11-13 — 螢幕畫布單一路徑
+
+桌面疊加使用全虛擬桌面範圍，獨立白底 OBS 輸出共用註記影格。桌面截圖沿用框選服務。[本批紀錄](REMOVE_SCREEN_REGION_REVIEW_2026-11-13.zh-TW.md)。
+
 ## 2026-11-13 — OBS 註記影格輸出
 
 ScreenCaptureOutputWindow 讀取 UI 執行緒持有的 Win2D CanvasRenderTarget。使用共享裝置，以獨立 WinUI 視窗等比呈現；舊目標釋放前解除引用。[本批紀錄](OBS_SCREEN_CANVAS_2026-11-13.zh-TW.md)。
