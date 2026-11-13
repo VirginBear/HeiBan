@@ -16,7 +16,6 @@ internal sealed class RadialWheelSettingsWindow : Window
 {
     internal const string DragFormat="HeiBan.RadialToolKey.v1";
     private readonly RadialToolProfile _profile;
-    private readonly bool _constrainPopups;
     private readonly bool _screen;
     private readonly Func<Task> _save;
     private readonly Func<string,string?>? _toolColor;
@@ -32,10 +31,9 @@ internal sealed class RadialWheelSettingsWindow : Window
     private readonly string[] _keys;
     internal nint Handle=>WinRT.Interop.WindowNative.GetWindowHandle(this);
 
-    internal RadialWheelSettingsWindow(RadialToolProfile profile,bool screen,Func<Task> save,Func<string,string?>? toolColor=null,bool constrainPopups=false)
+    internal RadialWheelSettingsWindow(RadialToolProfile profile,bool screen,Func<Task> save,Func<string,string?>? toolColor=null)
     {
         _profile=profile;_screen=screen;_save=save;_toolColor=toolColor;
-        _constrainPopups=constrainPopups;
         Title=T("右鍵工具輪盤")+" · "+T(screen?"螢幕畫布":"畫布");
         _keys=new[]{""}.Concat(ToolbarPreferences.AllDefaultTools).Concat(new[]{"line","arrow","rect","circle","triangle","quadrilateral","diamond","pentagon","star"}).Where(k=>k==""||RadialToolProfile.Allowed(k,screen)).Distinct().ToArray();
 
@@ -250,7 +248,7 @@ internal sealed class RadialWheelSettingsWindow : Window
     private void ShowSlotToolPicker(int slot,FrameworkElement anchor)
     {
         if(_screen&&slot==7)return;
-        var flyout=new Flyout{ShouldConstrainToRootBounds=_constrainPopups};
+        var flyout=new Flyout{ShouldConstrainToRootBounds=false};
         var panel=new StackPanel
         {
             Width=396,
@@ -345,7 +343,7 @@ internal sealed class RadialWheelSettingsWindow : Window
 
     private void ShowPresetPicker(FrameworkElement anchor)
     {
-        var flyout=new Flyout{ShouldConstrainToRootBounds=_constrainPopups};
+        var flyout=new Flyout{ShouldConstrainToRootBounds=false};
         var panel=new StackPanel
         {
             Width=360,

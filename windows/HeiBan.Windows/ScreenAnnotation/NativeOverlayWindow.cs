@@ -1,5 +1,5 @@
-using System.ComponentModel;
 using global::Windows.Graphics;
+using System.ComponentModel;
 using System.Runtime.InteropServices;
 
 namespace HeiBan.Windows.ScreenAnnotation;
@@ -46,25 +46,8 @@ internal sealed partial class NativeOverlayWindow : IDisposable
     public int Top { get; private set; }
     public int Width { get; private set; }
     public int Height { get; private set; }
-    public nint Handle=>_window;
     public RectInt32 Bounds=>new(Left,Top,Width,Height);
-    internal static RectInt32 DesktopBounds=>new(GetSystemMetrics(76),GetSystemMetrics(77),GetSystemMetrics(78),GetSystemMetrics(79));
-    private RectInt32? _region;
-    internal static bool Contains(RectInt32 bounds,RectInt32 region)
-        =>region.Width>0&&region.Height>0&&region.X>=bounds.X&&region.Y>=bounds.Y
-          &&(long)region.X+region.Width<=(long)bounds.X+bounds.Width
-          &&(long)region.Y+region.Height<=(long)bounds.Y+bounds.Height;
-    internal static bool Intersects(RectInt32 a,RectInt32 b)
-        =>a.X<(long)b.X+b.Width&&b.X<(long)a.X+a.Width&&a.Y<(long)b.Y+b.Height&&b.Y<(long)a.Y+a.Height;
-    internal void ConfigureBounds(RectInt32? region)
-    {
-        var bounds=DesktopBounds;
-        if(region is { } selected&&!Contains(bounds,selected))
-            throw new InvalidOperationException(Localization.Strings.T("選取的區域已超出目前螢幕，請重新框選。"));
-        _region=region;
-        var target=region??bounds;
-        if(!target.Equals(Bounds)||_pixels==0)ResizeSurface(target);
-    }
+    public nint Handle=>_window;
     public static double DpiScale(nint window)=>Math.Max(1,GetDpiForWindow(window)/96d);
     public static nint CurrentForeground=>GetForegroundWindow();
     public static uint DoubleClickMilliseconds=>GetDoubleClickTime();
@@ -79,11 +62,6 @@ internal sealed partial class NativeOverlayWindow : IDisposable
         // Keep normal WM_SIZE/layout notifications, bypass only WM_WINDOWPOSCHANGING's caption constraint.
         if(!SetWindowPos(window,0,0,0,width,height,0x0002|0x0004|0x0010|0x0400))throw new Win32Exception(Marshal.GetLastWin32Error());
     }
-    internal static void PlaceCompactWindow(nint window,RectInt32 bounds)
-    {
-        if(!SetWindowPos(window,0,bounds.X,bounds.Y,bounds.Width,bounds.Height,0x0004|0x0010|0x0400))
-            throw new Win32Exception(Marshal.GetLastWin32Error());
-    }
     public NativeOverlayWindow()
     {
         _procedure=Procedure;
@@ -93,7 +71,7 @@ internal sealed partial class NativeOverlayWindow : IDisposable
         {
             _window=CreateWindowEx(0x08000000|0x00080000|0x00000080|0x00000008,_className,"黑板 · 我的螢幕就是我的畫布",0x80000000,0,0,1,1,0,0,_instance,0);
             if(_window==0)throw new Win32Exception(Marshal.GetLastWin32Error());
-            ConfigureBounds(null);
+            ResizeDesktop();
         }
         catch{Dispose();throw;}
     }
@@ -131,9 +109,9 @@ internal sealed partial class NativeOverlayWindow : IDisposable
     }
     internal byte[] ReadPresentedPixels()
     {var result=new byte[checked(Width*Height*4)];Marshal.Copy(_pixels,result,0,result.Length);return result;}
-    private void ResizeSurface(RectInt32 bounds)
+    private void ResizeDesktop()
     {
-        Left=bounds.X;Top=bounds.Y;Width=bounds.Width;Height=bounds.Height;
+        Left=GetSystemMetrics(76);Top=GetSystemMetrics(77);Width=GetSystemMetrics(78);Height=GetSystemMetrics(79);
         if(Width<=0||Height<=0||(long)Width*Height>40_000_000)throw new InvalidOperationException("螢幕尺寸超出可用範圍。");
         ReleasePixels();
         _dc=CreateCompatibleDC(0);
@@ -153,12 +131,7 @@ internal sealed partial class NativeOverlayWindow : IDisposable
             if(message==0x02A3){_trackingMouse=false;if(!_pointerCaptured)Pointer?.Invoke(new("leave",0,0));return 0;}
             if(message==0x0200&&!_trackingMouse){var tracking=new MouseTracking{Size=(uint)Marshal.SizeOf<MouseTracking>(),Flags=2,Window=hwnd};_trackingMouse=TrackMouseEvent(ref tracking);}
             if(message==0x0312){Hotkey?.Invoke((int)wParam);return 0;}
-            if(message==0x007E)
-            {
-                if(_region is null)ResizeSurface(DesktopBounds);
-                else Hide();
-                BoundsChanged?.Invoke();return 0;
-            }
+            if(message==0x007E){ResizeDesktop();BoundsChanged?.Invoke();return 0;}
             if(message==0x0021)return new nint(3); // Never take the underlying app's keyboard focus.
             if(message==0x0084)return _drawing?new nint(1):new nint(-1);
             if(message==0x0010){Hide();return 0;}
@@ -167,13 +140,6 @@ internal sealed partial class NativeOverlayWindow : IDisposable
             {
                 // Message coordinates belong to this sample; querying the current cursor can skip queued movement.
                 var coordinates=lParam.ToInt64();var p=new Point{X=(short)(coordinates&0xffff),Y=(short)((coordinates>>16)&0xffff)};
-                // Captured gestures can receive points outside the HWND. Keep their
-                // samples inside the stream region even while the pointer is outside it.
-                if(_region is not null)
-                {
-                    p.X=Math.Clamp(p.X,0,Width-1);
-                    p.Y=Math.Clamp(p.Y,0,Height-1);
-                }
                 var kind=message switch {0x0201=>"down",0x0202=>"up",0x0204=>"rightdown",0x0205=>"rightup",0x0206=>"rightdouble",0x0203=>"double",_=>"move"};
                 if(message is 0x0201 or 0x0204 or 0x0206||(message==0x0203&&_cursorTool is "laser" or "cane")){_pointerCaptured=true;SetCapture(hwnd);}
                 if(message is 0x0202 or 0x0205){_pointerCaptured=false;ReleaseCapture();}

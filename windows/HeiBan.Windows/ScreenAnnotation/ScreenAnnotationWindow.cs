@@ -32,12 +32,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     private nint _lastExternal;
     private double _dpiScale=1;
     private FileStream? _sessionLease;
-    private readonly string _annotationDirectory;
-    private RectInt32? _region;
-    private bool _regionDisplayChanged;
-    private string _recoveryPath=>Path.Combine(_annotationDirectory,_region is { } area
-        ?FormattableString.Invariant($"region-{area.X}-{area.Y}-{area.Width}x{area.Height}.heiban")
-        :"session.heiban");
+    private readonly string _recoveryPath;
     private readonly Func<Task> _requestStart;
     private readonly DispatcherTimer _renderTimer=new(){Interval=TimeSpan.FromMilliseconds(16)};
     // Focus restoration does not need frame-rate polling; keep this outside the drawing tick.
@@ -76,13 +71,13 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     public ScreenAnnotationWindow(MainWindow owner,string dataDirectory,Func<Task> requestStart,LaserPointerEngine laser)
     {
         _owner=owner;_requestStart=requestStart;_laser=laser;_toolbarPreferences=ToolbarPreferencesStore.Load(dataDirectory);
-        _annotationDirectory=Path.Combine(dataDirectory,"ScreenAnnotations");
+        _recoveryPath=Path.Combine(dataDirectory,"ScreenAnnotations","session.heiban");
         Title=T("我的螢幕就是我的畫布");
         InitializeChrome();InitializeScreenRadial();
         if(AppWindow.Presenter is OverlappedPresenter presenter){presenter.PreferredMinimumWidth=1;presenter.PreferredMinimumHeight=1;presenter.IsAlwaysOnTop=true;presenter.IsResizable=false;presenter.SetBorderAndTitleBar(false,false);}
         _dpiScale=NativeOverlayWindow.DpiScale(WinRT.Interop.WindowNative.GetWindowHandle(this));ResizeChrome();
         AppWindow.Closing+=async(_,e)=>{if(_disposed)return;e.Cancel=true;await StopAsync();};
-        _overlay.Pointer+=OnPointer;_overlay.BoundsChanged+=async()=>{if(_region is not null)_regionDisplayChanged=true;if(IsActive&&!_stopping){if(_regionDisplayChanged){AppWindow.Hide();await StopAsync();return;}if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();if(!IsActive||_stopping)return;CancelGesture();CreateTarget();Changed();ResizeChrome();PositionChrome();}};
+        _overlay.Pointer+=OnPointer;_overlay.BoundsChanged+=async()=>{if(IsActive&&!_stopping){if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();if(!IsActive||_stopping)return;CancelGesture();CreateTarget();Changed();ResizeChrome();PositionChrome();}};
         _overlay.Failed+=e=>{SetDrawing(false);_status.Text=T("繪圖未完成：")+e.Message;};
         _overlay.Hotkey+=async id=>
         {
@@ -104,29 +99,15 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         _saveTimer.Tick+=async(_,_)=>{_saveTimer.Stop();if(!_owner.AutoSaveEnabled||_stopping||!IsActive)return;if(_start is not null||_textDraft is not null||_session.HasTransaction){_saveTimer.Start();return;}await SaveAsync();};
         AppWindow.Hide();
     }
-    public async Task StartAsync(RectInt32? region=null)
+    public async Task StartAsync()
     {
-        if(IsActive){if(_regionDisplayChanged)await StopAsync();else{AppWindow.Show();Activate();}return;}
+        if(IsActive){AppWindow.Show();Activate();return;}
+        _toolbarPreferences=ToolbarPreferencesStore.Load(Path.GetDirectoryName(Path.GetDirectoryName(_recoveryPath))!);RebuildChromeLayout();
         try
         {
-            _region=region;
-            _regionDisplayChanged=false;
-            _overlay.ConfigureBounds(region);
-            if(region is { } area)
-            {
-                AppWindow.Move(new PointInt32(area.X+area.Width/2,area.Y+area.Height/2));
-                _dpiScale=NativeOverlayWindow.DpiScale(WinRT.Interop.WindowNative.GetWindowHandle(this));
-                if(area.Width<360*_dpiScale||area.Height<250*_dpiScale)
-                    throw new InvalidOperationException(T("選取區域太小，請框選能容納工具列的範圍。"));
-            }
-            Title=T(region is null?"我的螢幕就是我的畫布":"螢幕畫布（區域）");
-            _toolbarPreferences=ToolbarPreferencesStore.Load(Path.GetDirectoryName(_annotationDirectory)!);
-            RebuildChromeLayout();
             Directory.CreateDirectory(Path.GetDirectoryName(_recoveryPath)!);_sessionLease=new FileStream(_recoveryPath+".lock",FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
             var doc=File.Exists(_recoveryPath)?DocumentCodec.Decode(await File.ReadAllTextAsync(_recoveryPath)):new HeiBanDocument{Board=new BoardMetadata{Title=T("螢幕註記"),CanvasMode="fixed",BackgroundColor="transparent",GridStyle="blank"}};
             _session.Open(doc);_renderer.ClearCache();CreateTarget();await _renderer.LoadCaneArtAsync(_target!);await _renderer.LoadImagesAsync(_target!,doc.Objects);
-            if(_regionDisplayChanged||region is { } selected&&!NativeOverlayWindow.Contains(NativeOverlayWindow.DesktopBounds,selected))
-                throw new InvalidOperationException(T("選取的區域已超出目前螢幕，請重新框選。"));
             IsActive=true;_laser.Clear();_owner.CloseRadialSettings();_owner.AppWindow.Hide();RememberExternalFocus();SetDrawing(true);Render();_overlay.Show(true);
             ResizeChrome();RefreshButtons();
             PositionChrome();AppWindow.Show();Activate();_renderTimer.Start();_focusRememberTimer.Start();
@@ -193,7 +174,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         {
             CommitScreenStyle();
             _chromeFlyout.Hide();
-            RestoreRegionChrome();
+            _chromeFlyout=null;
         }
         if(input.Kind=="leave"){if(_cane.Point is not null){_cane.Clear();_dirty=true;}return;}
         var p=new InkPoint(input.X,input.Y,1);
@@ -342,7 +323,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             else if(hit is {IsLocked:not true}){CancelGesture();_tool="select";_session.SelectedId=hit.Id;RefreshButtons();Changed();ShowBrushSettings();}
             return;
         }
-        if(input.Kind=="down"){if(_chromeFlyout is not null){CommitScreenStyle();_chromeFlyout.Hide();RestoreRegionChrome();}FinishScreenText();if(_tool is "text" or "sticky"){BeginScreenText(p,type:_tool);return;}}
+        if(input.Kind=="down"){if(_chromeFlyout is not null){CommitScreenStyle();_chromeFlyout.Hide();_chromeFlyout=null;}FinishScreenText();if(_tool is "text" or "sticky"){BeginScreenText(p,type:_tool);return;}}
         if(_preview is not null)DamagePreview();
         var regularPolygon=ShapeConstruction.IsVertexPolygon(_tool)&&input.Shift&&_curveAnchors.Count<=1;
         if(regularPolygon&&input.Kind=="move"&&input.LeftDown&&_curveAnchors.Count==1&&_start is null)
@@ -562,7 +543,6 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             if(_compass.IsEnabled)_renderer.RenderCompass(ds,_compass,_viewport);
             _renderer.RenderLaser(ds,_laser,_viewport,Now,_dpiScale);
             _renderer.RenderCane(ds,_cane,_viewport,Now,_dpiScale);
-            if(_region is not null)ds.DrawRectangle(.5f,.5f,_overlay.Width-1,_overlay.Height-1,Direct2DCanvasRenderer.HexToColor("#39735A",.65f),1);
             if(_screenMagnetTarget is { } target)ds.DrawCircle((float)target.X,(float)target.Y,(float)(7*_dpiScale),Direct2DCanvasRenderer.HexToColor("#10B981"),2);
             if(_radialGesture.Visible)_renderer.RenderRadialWheel(ds,RadialProfile,_radialGesture.Center,_radialGesture.Hover,_radialScale,IsScreenRadialToolActive,operateReturnsDrawing:!_drawing,toolColor:_=>_color);
             if(!_radialGesture.Holding&&_screenEraserPointer is { } eraser)_renderer.RenderHover(ds,eraser,true,_eraserSize*_dpiScale,_viewport);
@@ -603,12 +583,12 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         try
         {
             await Task.Delay(150,cancellation.Token);
-            var epoch=_session.DocumentEpoch;var capture=await RegionScreenshotService.CaptureRegionAsync(cancellation.Token,_region);
+            var epoch=_session.DocumentEpoch;var capture=await RegionScreenshotService.CaptureRegionAsync(cancellation.Token);
             if(capture is not null){await InsertScreenCaptureAsync(capture,epoch);_status.Text=T("截圖已加入螢幕畫布，可選取調整");}else _status.Text=T("已取消截圖");
         }
         catch(OperationCanceledException){_status.Text=T("截圖已取消或逾時");}
         catch(Exception e){_status.Text=T("截圖未完成：")+e.Message;}
-        finally{_captureCancellation=null;if(IsActive&&!_stopping&&!_regionDisplayChanged){AppWindow.Show();SyncOperateRadial();}}
+        finally{_captureCancellation=null;if(IsActive&&!_stopping){AppWindow.Show();SyncOperateRadial();}}
     }
     private Task LaserSettingsAsync()
     {
@@ -698,7 +678,6 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     public async Task<bool> StopAsync()
     {
         if(!IsActive)return true;if(_stopping)return false;RememberExternalFocus();_stopping=true;
-        _chromeFlyout?.Hide();RestoreRegionChrome();
         var originalContent=Content;var originalSize=AppWindow.Size;
         var ring=new ProgressRing{IsActive=true,Width=30,Height=30};
         try
@@ -709,32 +688,14 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             _radialSaveTimer.Stop();await _owner.RadialTools.SaveAsync();
             // Replace only the chrome while the native annotation session is frozen.
             Content=new Border{Background=ChromeBrush(255,247,250,246),Padding=new Thickness(12),CornerRadius=new CornerRadius(16),Child=new StackPanel{FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,Orientation=Orientation.Horizontal,Spacing=12,Children={ring,new TextBlock{Text=T("正在儲存…"),VerticalAlignment=VerticalAlignment.Center}}}};
-            if(!_regionDisplayChanged)
-            {ResizeScreenWindow(this,(int)(320*_dpiScale),(int)(72*_dpiScale));AppWindow.Show();Activate();await Task.Delay(32);}
+            AppWindow.Resize(new SizeInt32((int)(320*_dpiScale),(int)(72*_dpiScale)));AppWindow.Show();Activate();await Task.Delay(32);
             if(!await SaveAsync())return false;
             if(_session.IsDirty){_status.Text=T("尚有變更");return false;}
             CloseCaptureOutput();IsActive=false;_renderTimer.Stop();_focusRememberTimer.Stop();_saveTimer.Stop();_dockTimer.Stop();await SaveChromePreferencesAsync();_overlay.Hide();AppWindow.Hide();_laser.Clear();DisposeEraserPatch();_target?.Dispose();_target=null;_committed?.Dispose();_committed=null;_renderer.ClearCache();_sessionLease?.Dispose();_sessionLease=null;
             _owner.AppWindow.Show();_owner.Activate();return true;
         }
         catch(Exception error){_status.Text=T("註記保存失敗，內容仍保留：")+error.Message;return false;}
-        finally
-        {
-            ring.IsActive=false;Content=originalContent;_stopping=false;
-            if(IsActive)
-            {
-                if(_regionDisplayChanged)
-                {
-                    // Retain unsaved annotations if the original display disappeared.
-                    CloseCaptureOutput();_overlay.Hide();AppWindow.Hide();_owner.AppWindow.Show();_owner.Activate();
-                }
-                else
-                {
-                    ResizeScreenWindow(this,originalSize.Width,originalSize.Height);PositionChrome();
-                    SyncOperateRadial();_renderTimer.Start();_focusRememberTimer.Start();ApplySavingPreferences();RefreshMode();
-                    ShowChromeFlyout(new Flyout{Content=new TextBlock{Text=_status.Text,TextWrapping=TextWrapping.Wrap,MaxWidth=300}},_closeButton);
-                }
-            }
-        }
+        finally{ring.IsActive=false;Content=originalContent;AppWindow.Resize(originalSize);_stopping=false;if(IsActive){SyncOperateRadial();_renderTimer.Start();_focusRememberTimer.Start();ApplySavingPreferences();RefreshMode();ShowChromeFlyout(new Flyout{Content=new TextBlock{Text=_status.Text,TextWrapping=TextWrapping.Wrap,MaxWidth=300}},_closeButton);}}
     }
     public void Dispose()
     {

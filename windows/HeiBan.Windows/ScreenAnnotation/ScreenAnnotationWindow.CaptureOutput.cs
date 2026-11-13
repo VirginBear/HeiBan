@@ -8,7 +8,7 @@ internal sealed partial class ScreenAnnotationWindow
     private ScreenCaptureOutputWindow? _captureOutput;
     private void ShowCaptureOutput()
     {
-        if(!IsActive||_stopping||_regionDisplayChanged||_target is null)return;
+        if(!IsActive||_stopping||_target is null)return;
         try
         {
             if(_captureOutput is null)
@@ -16,10 +16,7 @@ internal sealed partial class ScreenAnnotationWindow
                 var window=new ScreenCaptureOutputWindow();
                 _captureOutput=window;
                 window.Closed+=(_,_)=>{if(ReferenceEquals(_captureOutput,window))_captureOutput=null;};
-                // Prefer another monitor so the preview cannot cover the drawing surface.
-                var activeDisplay=DisplayArea.GetFromWindowId(AppWindow.Id,DisplayAreaFallback.Primary);
-                var display=DisplayArea.FindAll().FirstOrDefault(candidate=>candidate.DisplayId.Value!=activeDisplay.DisplayId.Value
-                    &&!NativeOverlayWindow.Intersects(_overlay.Bounds,candidate.OuterBounds))??activeDisplay;
+                var display=DisplayArea.GetFromWindowId(AppWindow.Id,DisplayAreaFallback.Primary);
                 window.Place(_overlay.Bounds,display.WorkArea);
             }
             _captureOutput.Present(_target);

@@ -100,7 +100,6 @@ public partial class MainWindow : Window
             if(_closing)return;e.Cancel=true;if(_documentImporting||_preparingClose||_saveBoundaryBusy)return;_preparingClose=true;
             try
             {
-                _screenRegionSelection?.Cancel();
                 _autosave.Stop();_thumbnailTimer.Stop();_activeFlyout?.Hide();ShowSavingOverlay(true);
                 await Task.Delay(32);
                 CancelScreenshotCapture("視窗關閉");FinishText();CommitPropertyEdit();if(_gesture)CancelGesture();

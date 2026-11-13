@@ -17,10 +17,10 @@ internal sealed partial class ScreenAnnotationWindow
     internal void ApplyOperateRadialPreference(bool enabled){_toolbarPreferences.OperateRadialEnabled=enabled;SyncOperateRadial();}
     private void SyncOperateRadial()
     {
-        if(!IsActive||_stopping||_regionDisplayChanged||_drawing||_captureCancellation is not null||!_toolbarPreferences.OperateRadialEnabled){StopOperateRadial();return;}
+        if(!IsActive||_stopping||_drawing||_captureCancellation is not null||!_toolbarPreferences.OperateRadialEnabled){StopOperateRadial();return;}
         if(_operateHook is not null)return;
         var epoch=++_operateEpoch;
-        var hook=new OperateRadialHook(signal=>QueueOperateSignal(epoch,signal),error=>DispatcherQueue.TryEnqueue(()=>OperateHookFailed(epoch,error)),_region);
+        var hook=new OperateRadialHook(signal=>QueueOperateSignal(epoch,signal),error=>DispatcherQueue.TryEnqueue(()=>OperateHookFailed(epoch,error)));
 #if HEIBAN_RELEASE_VALIDATION
         hook.OnlyTargetProcessId=_operateValidationTargetPid;
 #endif
@@ -62,7 +62,7 @@ internal sealed partial class ScreenAnnotationWindow
         var point=new InkPoint(signal.X-_overlay.Left,signal.Y-_overlay.Top);
         if(signal.Kind=="start")
         {
-            _rightClickTimer.Stop();_pendingRightClick=null;_chromeFlyout?.Hide();_operateWheel=true;_radialScale=ScreenWheelScale(Math.Clamp(signal.Scale,1,8));
+            _rightClickTimer.Stop();_pendingRightClick=null;_chromeFlyout?.Hide();_operateWheel=true;_radialScale=Math.Clamp(signal.Scale,1,8);
             _radialGesture.Press(new(signal.OriginX-_overlay.Left,signal.OriginY-_overlay.Top),Now-RadialGesture.HoldSeconds,_overlay.Width,_overlay.Height,_radialScale);
             _radialGesture.Poll(Now);_radialGesture.Move(point,Now,_radialScale);DamageRadial();
         }

@@ -11,7 +11,7 @@ internal sealed class ScreenFloatingToolWindow : Window
 {
     internal nint Handle => WinRT.Interop.WindowNative.GetWindowHandle(this);
 
-    internal ScreenFloatingToolWindow(string title, FrameworkElement content, int widthDips, int heightDips, Action? onClosed = null, RectInt32? region = null)
+    internal ScreenFloatingToolWindow(string title, FrameworkElement content, int widthDips, int heightDips, Action? onClosed = null)
     {
         Title = title;
 
@@ -110,7 +110,7 @@ internal sealed class ScreenFloatingToolWindow : Window
         }
 
         var scale = NativeOverlayWindow.DpiScale(Handle);
-        var area = region ?? DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Nearest).WorkArea;
+        var area = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Nearest).WorkArea;
         AppWindow.Resize(new SizeInt32(Math.Min(area.Width - 24, (int)(widthDips * scale)), Math.Min(area.Height - 24, (int)(heightDips * scale))));
 
         header.PointerPressed += (_, e) =>
@@ -123,7 +123,6 @@ internal sealed class ScreenFloatingToolWindow : Window
                 if (src is Button) return;
                 src = VisualTreeHelper.GetParent(src);
             }
-            if(region is not null)return;
             NativeOverlayWindow.ReleaseCapture();
             NativeOverlayWindow.SendMessage(Handle, 0x00A1, 2, 0); // WM_NCLBUTTONDOWN, HTCAPTION
         };
@@ -132,7 +131,7 @@ internal sealed class ScreenFloatingToolWindow : Window
         collapseBtn.Click += (_, _) =>
         {
             scale=NativeOverlayWindow.DpiScale(Handle);
-            area=region??DisplayArea.GetFromWindowId(AppWindow.Id,DisplayAreaFallback.Nearest).WorkArea;
+            area=DisplayArea.GetFromWindowId(AppWindow.Id,DisplayAreaFallback.Nearest).WorkArea;
             isCollapsed = !isCollapsed;
             scroll.Visibility = isCollapsed ? Visibility.Collapsed : Visibility.Visible;
             var targetHeight = isCollapsed ? (int)(38 * scale) : Math.Min(area.Height - 24, (int)(heightDips * scale));

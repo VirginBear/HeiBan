@@ -16,12 +16,11 @@ namespace HeiBan.Windows.ScreenAnnotation;
 internal sealed partial class ScreenAnnotationWindow
 {
     private FlyoutBase? _chromeFlyout;
-    private Border _chromeBody=null!;
     public void RefreshLanguage()
     {
         _quickPalette?.Refresh();
         _chromeFlyout?.Hide();
-        Title=T(_region is null?"我的螢幕就是我的畫布":"螢幕畫布（區域）");
+        Title=T("我的螢幕就是我的畫布");
         if(Content is FrameworkElement root)root.Language=Localization.Strings.Language;
         void Label(Button button,string source)
         {ToolbarUi.Label(button,T(source));}
@@ -96,8 +95,7 @@ internal sealed partial class ScreenAnnotationWindow
         _clearButton=ActionButton("delete",T("一鍵清空所有螢幕註記 · Ctrl+Alt+K · 可復原"),ClearScreenObjects,"clearAll");_buttons["clearAll"]=_clearButton;
         _closeButton=ActionButton("close",T("結束螢幕畫布 · Ctrl+Alt+Q"),async()=>await StopAsync());
         _moreButton=ChromeButton("more",T("螢幕畫布更多設定"));_moreButton.Click+=(_,_)=>ShowScreenMenu(_moreButton);
-        _chromeBody=new Border{CornerRadius=new CornerRadius(16),Background=ChromeBrush(150,247,250,246),BorderBrush=ChromeBrush(55,92,123,108),BorderThickness=new Thickness(1)};
-        var content=new Border{Language=Localization.Strings.Language,RequestedTheme=ElementTheme.Light,Child=_chromeBody};
+        var content=new Border{Language=Localization.Strings.Language,RequestedTheme=ElementTheme.Light,CornerRadius=new CornerRadius(16),Background=ChromeBrush(150,247,250,246),BorderBrush=ChromeBrush(55,92,123,108),BorderThickness=new Thickness(1)};
         content.KeyDown+=Screen_KeyDown;
         content.Loaded+=(_,_)=>{if(VisualTreeHelper.GetParent(content) is UIElement rootHost){rootHost.KeyDown-=Screen_KeyDown;rootHost.KeyDown+=Screen_KeyDown;}};
         Content=content;
@@ -195,7 +193,6 @@ internal sealed partial class ScreenAnnotationWindow
             RebuildChromeLayout();ResizeChrome();PositionChrome();RefreshButtons();
         },_color);
         _customizeToolbarWindow.Closed+=(_,_)=>_customizeToolbarWindow=null;
-        PlaceRegionWindow(_customizeToolbarWindow);
         _customizeToolbarWindow.Activate();
     }
 
@@ -310,7 +307,7 @@ internal sealed partial class ScreenAnnotationWindow
         if(!VerticalChrome){content.Measure(new global::Windows.Foundation.Size(double.PositiveInfinity,double.PositiveInfinity));_mode.Width=Math.Max(62*scale,content.DesiredSize.Width+10*scale);}_mode.Content=content;_mode.HorizontalContentAlignment=HorizontalAlignment.Center;_mode.VerticalContentAlignment=VerticalAlignment.Center;
         var hint=(_drawing?T("作畫中；切換穿透操作"):T("操作中；回到作畫"))+" · Ctrl+Alt+D\n"+_status.Text;ToolTipService.SetToolTip(_mode,hint);AutomationProperties.SetName(_mode,hint);
     }
-    private void SetChromeCollapsed(bool collapsed){_chromeFlyout?.Hide();RestoreRegionChrome();_collapsed=collapsed;RebuildChromeLayout();ResizeChrome();PositionChrome();}
+    private void SetChromeCollapsed(bool collapsed){_collapsed=collapsed;RebuildChromeLayout();ResizeChrome();PositionChrome();}
     private void ShowEraserSettings()
     {
         var panel=new StackPanel{Width=228,Spacing=12};panel.Children.Add(new TextBlock{Text=T("橡皮擦"),FontSize=16});
@@ -322,11 +319,6 @@ internal sealed partial class ScreenAnnotationWindow
     {
         var menu=new MenuFlyout();
         void Item(string icon,string label,Action action){var item=new MenuFlyoutItem{Text=label,Icon=ToolIcons.CreateMenuIcon(icon,_color)};item.Click+=(_,_)=>action();menu.Items.Add(item);}
-        if(_region is { } region)
-        {
-            menu.Items.Add(new MenuFlyoutItem{Text=T("螢幕畫布（區域）")+" · "+region.Width+" × "+region.Height,IsEnabled=false});
-            menu.Items.Add(new MenuFlyoutSeparator());
-        }
         Item("screen",T("開啟 OBS 擷取視窗"),ShowCaptureOutput);
         Item("radialSettings",T("設定工具輪盤"),ShowRadialSettings);
         menu.Items.Add(CreateScreenRulerMenu());
@@ -347,8 +339,7 @@ internal sealed partial class ScreenAnnotationWindow
         menu.Items.Add(_owner.CreateOperateRadialMenuItem());
         menu.Items.Add(_owner.CreateCaneMuteMenuItem());
         Item("settings",T("自訂工具列…"),()=>ShowScreenCustomizeToolbarWindow());
-        Item("export",T("儲存可編輯註記／透明 PNG…"),async()=>await ExportAnnotationsAsync());Item("delete",T("一鍵清空畫布（可復原）"),ClearScreenObjects);
-        if(_region is null)Item("reading",T("使用說明"),async()=>await _owner.OpenUserGuideAsync());
+        Item("export",T("儲存可編輯註記／透明 PNG…"),async()=>await ExportAnnotationsAsync());Item("delete",T("一鍵清空畫布（可復原）"),ClearScreenObjects);Item("reading",T("使用說明"),async()=>await _owner.OpenUserGuideAsync());
         Item("copy",T("貼上已複製物件"),async()=>await PasteScreenSelectionAsync());Item("select",_collapsed?T("展開工具區"):T("收合工具區"),()=>SetChromeCollapsed(!_collapsed));menu.Items.Add(new MenuFlyoutSeparator());menu.Items.Add(new MenuFlyoutItem{Text=_status.Text,IsEnabled=false});return menu;
     }
     private void ShowChromeFlyout(FlyoutBase flyout,FrameworkElement anchor,FlyoutShowOptions? options=null)
@@ -356,26 +347,7 @@ internal sealed partial class ScreenAnnotationWindow
         // Hidden/page-switched commands still open settings from the visible More button.
         if(anchor.XamlRoot is null)anchor=_moreButton;
         ToolbarUi.ApplyReadingDirection(flyout);
-        Activate();_chromeFlyout?.Hide();_chromeFlyout=flyout;
-        if(_region is not null)
-        {
-            var prior=AppWindow.Position;
-            ExpandRegionChrome();
-            if(options?.Position is { } p)
-            {
-                // The caller positioned this popup relative to the compact chrome.
-                options.Position=new Point(p.X+(prior.X-AppWindow.Position.X)/_dpiScale,p.Y+(prior.Y-AppWindow.Position.Y)/_dpiScale);
-            }
-        }
-        flyout.ShouldConstrainToRootBounds=_region is not null;flyout.OverlayInputPassThroughElement=_chromeBody;
-        flyout.Closed+=Closed;
-        try{if(options is null)flyout.ShowAt(anchor);else flyout.ShowAt(anchor,options);}
-        catch{flyout.Closed-=Closed;_chromeFlyout=null;RestoreRegionChrome();throw;}
-        void Closed(object? sender,object args)
-        {
-            flyout.Closed-=Closed;
-            CommitScreenStyle();
-            if(ReferenceEquals(_chromeFlyout,flyout)){_chromeFlyout=null;RestoreRegionChrome();}
-        }
+        Activate();_chromeFlyout?.Hide();_chromeFlyout=flyout;flyout.ShouldConstrainToRootBounds=false;flyout.OverlayInputPassThroughElement=(FrameworkElement)Content;
+        flyout.Closed+=(_,_)=>{CommitScreenStyle();if(ReferenceEquals(_chromeFlyout,flyout))_chromeFlyout=null;};if(options is null)flyout.ShowAt(anchor);else flyout.ShowAt(anchor,options);
     }
 }
