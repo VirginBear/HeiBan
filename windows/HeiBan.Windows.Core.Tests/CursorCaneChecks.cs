@@ -24,10 +24,10 @@ static class CursorCaneChecks
         cane.Strike(new(3000,3000),.4,new(20,10));
         check(cane.CrackGrip?.X==3000,"Combo uses DIP distance independent of world zoom");
         check(cane.CrackOpacity(.4)==0&&cane.TakeImpactSound(.4)==2,"Effect waits for visible cane impact");
-        check(cane.TakeImpactSound(.476)==3&&cane.TakeImpactSound(.5)==0,"Crack sound consumed once");
+        check(cane.TakeImpactSound(.519)==0&&cane.CrackOpacity(.519)==0&&cane.TakeImpactSound(.521)==3&&cane.CrackOpacity(.521)>0&&cane.TakeImpactSound(.55)==0,"Crack sound consumed once");
         cane.Move(new(5000,5000));check(cane.CrackGrip?.X==3000,"Moving held cane does not drag crack");
-        check(cane.NeedsAnimation(1.4)&&!cane.NeedsAnimation(1.676),"Animation outlives swing and finishes");
-        check(cane.CrackOpacity(1.676)==0,"Crack completely fades");
+        check(cane.NeedsAnimation(1.4)&&!cane.NeedsAnimation(1.721),"Animation outlives swing and finishes");
+        check(cane.CrackOpacity(1.721)==0,"Crack completely fades");
         cane.Clear();check(cane.Point is null&&cane.CrackGrip is null&&cane.TakeImpactSound(3)==0,"Cancel clears pending audio and crack");
         cane.Strike(new(0,0),0);cane.Strike(new(30,0),.1);cane.Strike(new(60,0),.2);
         check(cane.CrackGrip is null,"Chained wandering hits cannot count as one area");
@@ -48,7 +48,7 @@ static class CursorCaneChecks
         }
         check(Enumerable.Range(0,18).All(i=>CaneCrackGeometry.Particle(i,-.1).Opacity==0&&CaneCrackGeometry.Particle(i,1.2).Opacity==0),"Shards absent before impact and after expiry");
         cane.Clear();cane.Strike(new(0,0),0);cane.Strike(new(0,0),.01);cane.Strike(new(0,0),.02);
-        check(cane.TakeImpactSound(.10)==1&&cane.TakeImpactSound(.10)==2&&cane.TakeImpactSound(.10)==3&&cane.TakeImpactSound(.10)==0,"Rapid triple-click retains all three sound variants in order");
+        check(cane.TakeImpactSound(.15)==1&&cane.TakeImpactSound(.15)==2&&cane.TakeImpactSound(.15)==3&&cane.TakeImpactSound(.15)==0,"Rapid triple-click retains all three sound variants in order");
         cane.Clear();for(var i=0;i<20;i++)cane.Strike(new(0,0),i*.001);
         var count=0;while(cane.TakeImpactSound(.2)>0)count++;
         check(count==6,"Audio queue has a fixed six-cue limit");

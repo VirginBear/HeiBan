@@ -40,6 +40,8 @@ public partial class MainWindow
             }
             await sheet.SaveAsync(Path.Combine(output,"native-cursor-hotspots.png"),CanvasBitmapFileFormat.Png);
             await OpenAsync(new(){Board=new(){Title="Cursor and cane QA",CanvasMode="infinite",GridStyle="dots"}});
+            var interactionChecks=await ValidateFlipAndLaserAsync();
+            await OpenAsync(new(){Board=new(){Title="Cursor and cane QA",CanvasMode="infinite",GridStyle="dots"}});
             var constructionChecks=await ValidateMainShapeConstraintsAsync(output);
             var quickColorChecks=await ValidateQuickPaletteAsync();
             var generation=_session.Generation;var count=_session.Document.Objects.Count;
@@ -54,15 +56,16 @@ public partial class MainWindow
                 using(var ds=shards.CreateDrawingSession()){ds.Clear(Microsoft.UI.Colors.DarkSlateGray);_renderer.RenderCane(ds,state,new ViewportTransform(),.4+frame*.3);}
                 await shards.SaveAsync(Path.Combine(output,$"shards-{frame}.png"),CanvasBitmapFileFormat.Png);
             }
-            CaneSound.IsMuted=false;CaneSound.Prepare();CaneSound.PlayImpact(1,_=>{});CaneSound.PlayImpact(2,_=>{});
+            CaneSound.IsMuted=false;CaneSound.Prepare();CaneSound.PlaySwing(_=>{});
+            Check(CaneSound.ValidationSwingRequested,"Swing cue was not requested");CaneSound.PlayImpact(1,_=>{});CaneSound.PlayImpact(2,_=>{});
             Check(CaneSound.ValidationRequested&&CaneSound.ValidationSecondRequested,"First and second attack variants missing");CaneSound.PlayCrack(_=>{});await Task.Delay(300);
             Check(CaneSound.ValidationCrackRequested,"Break cue was not requested");CaneSound.IsMuted=true;
-            Check(!CaneSound.ValidationRequested&&!CaneSound.ValidationSecondRequested&&!CaneSound.ValidationCrackRequested,"Muting did not stop every cue");CaneSound.PlayCrack(_=>{});
-            Check(!CaneSound.ValidationCrackRequested,"Muted break cue played");CaneSound.IsMuted=false;
+            Check(!CaneSound.ValidationSwingRequested&&!CaneSound.ValidationRequested&&!CaneSound.ValidationSecondRequested&&!CaneSound.ValidationCrackRequested,"Muting did not stop every cue");CaneSound.PlaySwing(_=>{});CaneSound.PlayCrack(_=>{});
+            Check(!CaneSound.ValidationSwingRequested&&!CaneSound.ValidationCrackRequested,"Muted break cue played");CaneSound.IsMuted=false;
             var screen=await _screenAnnotation!.ValidateCursorCaneAsync(output);
             Check(_session.Generation==generation&&_session.Document.Objects.Count==count,"Transient effect modified main document");
             ToolIcons.SetStyle("duotone");ActivateTool("cane");Title="HeiBan quick colors and shards QA";
-            await File.WriteAllTextAsync(Path.Combine(output,"result.json"),JsonSerializer.Serialize(new{success=true,checks,constructionChecks,quickColorChecks,screen,crackScale=CaneCrackGeometry.DisplayScale,shards=CaneCrackGeometry.ShardCount,holdSeconds=StraightStrokeRecognizer.HoldSeconds,crackSegments=CaneCrackGeometry.Segments.Count,manualSoundListening=false}));
+            await File.WriteAllTextAsync(Path.Combine(output,"result.json"),JsonSerializer.Serialize(new{success=true,checks,interactionChecks,constructionChecks,quickColorChecks,screen,crackScale=CaneCrackGeometry.DisplayScale,shards=CaneCrackGeometry.ShardCount,holdSeconds=StraightStrokeRecognizer.HoldSeconds,crackSegments=CaneCrackGeometry.Segments.Count,manualSoundListening=false}));
         }
         catch(Exception error){await File.WriteAllTextAsync(Path.Combine(output,"error.txt"),error.ToString());}
     }

@@ -66,7 +66,7 @@ public static class VectorMath
     {
         // Hit testing only reads the sample. Unrotated objects already use world axes;
         // keep the input reference here instead of allocating a center and a rotated copy per candidate.
-        if(obj.Rotation!=0)p=ObjectHandles.ToLocal(obj,p);
+        if(obj.HasOrientationTransform)p=ObjectHandles.ToLocal(obj,p);
         var pt = new Vector2((float)p.X, (float)p.Y);
         var hitDist=obj.StrokeWidth/2+threshold;
         var box = new RectBounds(obj.X - hitDist, obj.Y - hitDist, obj.X + obj.Width + hitDist, obj.Y + obj.Height + hitDist);

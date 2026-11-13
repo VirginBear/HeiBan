@@ -15,8 +15,20 @@ public static class ObjectHandles
         return new(center.X+x*c-y*s,center.Y+x*s+y*c);
     }
     public static InkPoint Center(BoardObject o)=>new(o.X+o.Width/2,o.Y+o.Height/2);
-    public static InkPoint ToWorld(BoardObject o,InkPoint p)=>Rotate(p,Center(o),o.Rotation);
-    public static InkPoint ToLocal(BoardObject o,InkPoint p)=>Rotate(p,Center(o),-o.Rotation);
+    private static InkPoint Reflect(BoardObject o,InkPoint p,InkPoint center)
+        =>o.FlipX||o.FlipY?new(o.FlipX?2*center.X-p.X:p.X,o.FlipY?2*center.Y-p.Y:p.Y):p;
+    public static InkPoint ToWorld(BoardObject o,InkPoint p)
+    {
+        var center=Center(o);
+        return Rotate(Reflect(o,p,center),center,o.Rotation);
+    }
+    public static InkPoint ToLocal(BoardObject o,InkPoint p)
+    {
+        var center=Center(o);
+        return Reflect(o,Rotate(p,center,-o.Rotation),center);
+    }
+    // Box handles stay in the same order when only the contents are mirrored.
+    private static InkPoint BoxPoint(BoardObject o,InkPoint p)=>Rotate(p,Center(o),o.Rotation);
     public static void MoveVertex(BoardObject shape, int index, InkPoint position)
     {
         var original = shape.ParsedPoints;
@@ -35,6 +47,7 @@ public static class ObjectHandles
         }
         var bounds = VectorMath.ComputeBoundingBox(points, shape.StrokeWidth);
         shape.Rotation = 0;
+        shape.FlipX = shape.FlipY = false;
         shape.SetOwnedInkPoints(points);
         shape.X = bounds.MinX;
         shape.Y = bounds.MinY;
@@ -42,7 +55,7 @@ public static class ObjectHandles
         shape.Height = bounds.Height;
     }
 
-    public static IReadOnlyList<InkPoint> Outline(BoardObject o)=>Corners.Select(p=>ToWorld(o,new(o.X+p.X*o.Width,o.Y+p.Y*o.Height))).ToArray();
+    public static IReadOnlyList<InkPoint> Outline(BoardObject o)=>Corners.Select(p=>BoxPoint(o,new(o.X+p.X*o.Width,o.Y+p.Y*o.Height))).ToArray();
     public static InkPoint Endpoint(BoardObject o,int index)=>ToWorld(o,index==0?new(o.X1??o.X,o.Y1??o.Y):new(o.X2??o.X+o.Width,o.Y2??o.Y+o.Height));
     public static IReadOnlyList<Handle> Get(BoardObject o,double zoom)
     {
@@ -52,7 +65,7 @@ public static class ObjectHandles
         if(o.Type is "triangle" or "quadrilateral" or "curve")
             handles.AddRange(o.ParsedPoints.Select((p,i)=>new Handle("vertex",ToWorld(o,new(p.X+o.PreviewOffsetX,p.Y+o.PreviewOffsetY)),i)));
         else if(o.ParsedPoints.Count==0)
-            handles.AddRange(ResizePositions.Select((p,i)=>new Handle("resize",ToWorld(o,new(o.X+p.X*o.Width,o.Y+p.Y*o.Height)),i)));
+            handles.AddRange(ResizePositions.Select((p,i)=>new Handle("resize",BoxPoint(o,new(o.X+p.X*o.Width,o.Y+p.Y*o.Height)),i)));
         if(o.Type=="arc")
         {
             var r=o.ArcRadius??(o.Width/2.0);
@@ -68,7 +81,7 @@ public static class ObjectHandles
             handles.Insert(0,new Handle("arc_end",ToWorld(o,endPt),1));
             handles.Insert(0,new Handle("arc_start",ToWorld(o,startPt),0));
         }
-        handles.Add(new("rotate",ToWorld(o,new(o.X+o.Width/2,o.Y-28/zoom))));
+        handles.Add(new("rotate",BoxPoint(o,new(o.X+o.Width/2,o.Y-28/zoom))));
         return handles;
     }
     public static InkPoint ConstrainOrthogonal(InkPoint anchor,InkPoint cursor)
@@ -76,7 +89,7 @@ public static class ObjectHandles
     public static void SetEndpoints(BoardObject o,InkPoint a,InkPoint b)
     {
         o.X1=a.X;o.Y1=a.Y;o.X2=b.X;o.Y2=b.Y;
-        o.X=Math.Min(a.X,b.X);o.Y=Math.Min(a.Y,b.Y);o.Width=Math.Abs(b.X-a.X);o.Height=Math.Abs(b.Y-a.Y);o.Rotation=0;
+        o.X=Math.Min(a.X,b.X);o.Y=Math.Min(a.Y,b.Y);o.Width=Math.Abs(b.X-a.X);o.Height=Math.Abs(b.Y-a.Y);o.Rotation=0;o.FlipX=o.FlipY=false;
     }
     public static void MoveEndpoint(BoardObject o,int index,InkPoint point)
     {
@@ -109,7 +122,7 @@ public static class ObjectHandles
     {
         if(target.Type=="arc"||initial.Type=="arc")keepAspect=true;
         var handle=ResizePositions[index];var opposite=(X:1-handle.X,Y:1-handle.Y);
-        var anchor=ToWorld(initial,new(initial.X+opposite.X*initial.Width,initial.Y+opposite.Y*initial.Height));
+        var anchor=BoxPoint(initial,new(initial.X+opposite.X*initial.Width,initial.Y+opposite.Y*initial.Height));
         var relative=Rotate(pointer,anchor,-initial.Rotation);
         var sx=handle.X==0?-1:1;var sy=handle.Y==0?-1:1;
         var width=handle.X==.5?initial.Width:Math.Max(4,sx*(relative.X-anchor.X));

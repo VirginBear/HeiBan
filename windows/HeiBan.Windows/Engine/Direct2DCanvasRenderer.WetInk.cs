@@ -142,7 +142,7 @@ public sealed partial class Direct2DCanvasRenderer
     public void RenderAppendedInk(CanvasDrawingSession ds,BoardObject item,ViewportTransform vp,float width,float height)
     {
         if(ReferenceEquals(item,_completedWetInk)&&_completedWetPoints is { } points&&
-            item.Type is "stroke" or "pen" or "highlighter" or "paint"&&item.LineStyle=="solid"&&item.Rotation==0&&item.IsVisible!=false)
+            item.Type is "stroke" or "pen" or "highlighter" or "paint"&&item.LineStyle=="solid"&&!item.HasOrientationTransform&&item.IsVisible!=false)
         {
             RenderWetInk(ds,points,vp,item.StrokeColor,item.StrokeWidth,item.Opacity,item.LineStyle,new Size(width,height));
             DiscardCompletedWetInk();

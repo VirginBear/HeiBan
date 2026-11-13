@@ -41,7 +41,11 @@ public static class BoardExporter
             var stroke=Color(o.StrokeColor);var fill=Color(o.FillColor);
             if(o.FillGradientStart is not null&&o.FillGradientEnd is not null){b.Append($"<defs><linearGradient id=\"{id}-gradient\" x2=\"1\" y2=\"1\"><stop stop-color=\"{Color(o.FillGradientStart)}\"/><stop offset=\"1\" stop-color=\"{Color(o.FillGradientEnd)}\"/></linearGradient></defs>");fill=$"url(#{id}-gradient)";}
             var dash=o.LineStyle switch{"dashed"=>"8 6","dotted"=>"1 5","dashdot"=>"8 4 1 4",_=>"none"};
-            b.Append($"<g opacity=\"{N(Math.Clamp(o.Opacity,0,1))}\" transform=\"rotate({N(o.Rotation)} {N(o.X+o.Width/2)} {N(o.Y+o.Height/2)})\" stroke=\"{stroke}\" stroke-width=\"{N(o.StrokeWidth)}\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-dasharray=\"{dash}\" fill=\"{fill}\" fill-opacity=\"{N(o.FillOpacity is { } fo ? fo/Math.Max(.001,o.Opacity):1)}\">");
+            var cx=o.X+o.Width/2;var cy=o.Y+o.Height/2;
+            var orientation=$"rotate({N(o.Rotation)} {N(cx)} {N(cy)})";
+            if(o.FlipX||o.FlipY)
+                orientation+=$" translate({N(cx)} {N(cy)}) scale({(o.FlipX?-1:1)} {(o.FlipY?-1:1)}) translate({N(-cx)} {N(-cy)})";
+            b.Append($"<g opacity=\"{N(Math.Clamp(o.Opacity,0,1))}\" transform=\"{orientation}\" stroke=\"{stroke}\" stroke-width=\"{N(o.StrokeWidth)}\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-dasharray=\"{dash}\" fill=\"{fill}\" fill-opacity=\"{N(o.FillOpacity is { } fo ? fo/Math.Max(.001,o.Opacity):1)}\">");
             switch(o.Type)
             {
                 case "stroke":case "pen":case "highlighter":case "paint":case "curve":
@@ -51,7 +55,7 @@ public static class BoardExporter
                 case "rect":b.Append($"<rect x=\"{x}\" y=\"{y}\" width=\"{w}\" height=\"{h}\"/>");break;
                 case "circle":b.Append($"<ellipse cx=\"{N(o.X+o.Width/2)}\" cy=\"{N(o.Y+o.Height/2)}\" rx=\"{N(o.Width/2)}\" ry=\"{N(o.Height/2)}\"/>");break;
                 case "arc":
-                    var radius=o.ArcRadius??o.Width/2;var cx=o.X+o.Width/2;var cy=o.Y+o.Height/2;var start=(o.ArcStartAngle??0)*Math.PI/180;var sweep=Math.Clamp(o.ArcSweepAngle??360,-360,360);var end=start+sweep*Math.PI/180;
+                    var radius=o.ArcRadius??o.Width/2;var start=(o.ArcStartAngle??0)*Math.PI/180;var sweep=Math.Clamp(o.ArcSweepAngle??360,-360,360);var end=start+sweep*Math.PI/180;
                     if(Math.Abs(sweep)>=359.999)b.Append($"<circle cx=\"{N(cx)}\" cy=\"{N(cy)}\" r=\"{N(radius)}\"/>");
                     else b.Append($"<path fill=\"none\" d=\"M{N(cx+radius*Math.Cos(start))} {N(cy+radius*Math.Sin(start))} A{N(radius)} {N(radius)} 0 {(Math.Abs(sweep)>180?1:0)} {(sweep>=0?1:0)} {N(cx+radius*Math.Cos(end))} {N(cy+radius*Math.Sin(end))}\"/>");break;
                 case "line":case "arrow":

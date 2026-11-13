@@ -17,7 +17,7 @@ public static class LassoSelection
         for(var i=0;i<polygon.Count;i++)for(var j=0;j<4;j++)if(Crosses(polygon[i],polygon[(i+1)%polygon.Count],corners[j],corners[(j+1)%4]))return true;
         if(o.ParsedPoints.Count>0)
         {
-            var pts=o.Rotation==0?o.ParsedPoints:o.ParsedPoints.Select(p=>ObjectHandles.ToWorld(o,p)).ToArray();
+            var pts=!o.HasOrientationTransform?o.ParsedPoints:o.ParsedPoints.Select(p=>ObjectHandles.ToWorld(o,p)).ToArray();
             if(pts.Any(p=>Contains(p,polygon)))return true;
             for(var i=0;i<polygon.Count;i++)
             {

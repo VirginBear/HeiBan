@@ -58,7 +58,8 @@ internal sealed partial class PaletteEditor : StackPanel
         {
             var row=index/6;while(_swatches.RowDefinitions.Count<=row)_swatches.RowDefinitions.Add(new(){Height=GridLength.Auto});
             var cell=new StackPanel{Spacing=2};
-            var button=new Button{Tag=color,Content=Chip(color),Width=32,Height=32,MinWidth=0,MinHeight=0,Padding=new Thickness(3),CornerRadius=new CornerRadius(16),BorderBrush=new SolidColorBrush(Direct2DCanvasRenderer.HexToColor("#39735A")),BorderThickness=new Thickness(color==selected?2:1)};
+            var ring=new Ellipse{Width=30,Height=30,Stroke=new SolidColorBrush(Direct2DCanvasRenderer.HexToColor("#39735A")),StrokeThickness=color==selected?2:1};
+            var button=new Button{Tag=color,Content=new Grid{Children={ring,Chip(color)}},Width=32,Height=32,MinWidth=0,MinHeight=0,Padding=new Thickness(0),CornerRadius=new CornerRadius(16),BorderThickness=new Thickness(0),HorizontalContentAlignment=HorizontalAlignment.Center,VerticalContentAlignment=VerticalAlignment.Center};
             ToolbarUi.Label(button,T(color==selected?"目前顏色":"套用顏色")+" "+color);
             button.Click+=(_,_)=>{if(_managing||_suppressClick)return;_apply(color);Rebuild();};
             var menu=new MenuFlyout();var remove=new MenuFlyoutItem{Text=T("移除顏色"),IsEnabled=!_store.LoadFailed};
@@ -73,8 +74,8 @@ internal sealed partial class PaletteEditor : StackPanel
     {
         var current=PalettePreferencesStore.Canonical(_current());
         foreach(var cell in _swatches.Children.OfType<StackPanel>())
-            if(cell.Children[0] is Button{Tag:string color} button)
-            {button.BorderThickness=new Thickness(color==current?2:1);ToolbarUi.Label(button,T(color==current?"目前顏色":"套用顏色")+" "+color);}
+            if(cell.Children[0] is Button{Tag:string color,Content:Grid layout} button&&layout.Children[0] is Ellipse ring)
+            {ring.StrokeThickness=color==current?2:1;ToolbarUi.Label(button,T(color==current?"目前顏色":"套用顏色")+" "+color);}
     }
     internal static Grid Chip(string color)
     {

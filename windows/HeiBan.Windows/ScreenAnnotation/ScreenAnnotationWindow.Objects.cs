@@ -35,14 +35,18 @@ internal sealed partial class ScreenAnnotationWindow
         Add("paint",T("填滿"),ShowScreenFill,selected is {IsLocked:not true});
         menu.Items.Add(new MenuFlyoutSeparator());
         Add("copy",T("複製"),CopyScreenSelection,selected is not null);
-        Add("duplicate",T("製作副本"),DuplicateScreenSelection,selected is not null);
+        Add("duplicate",T("直接複製一個"),DuplicateScreenSelection,selected is not null);
         Add("copy",T("貼上"),async()=>await PasteScreenSelectionAsync());
         menu.Items.Add(new MenuFlyoutSeparator());
         Add("delete",T("刪除物件"),DeleteScreenSelection,selected is {IsLocked:not true});
         Add(selected?.IsLocked==true?"unlock":"lock",selected?.IsLocked==true?T("解除鎖定"):T("鎖定物件"),()=>{if(_session.Selected is not { } o)return;_session.Begin();o.IsLocked=o.IsLocked!=true;_session.Commit();Changed();});
         var epoch=_session.DocumentEpoch;var page=_session.Document.Board.ActivePageId;var ids=_session.SelectedIds.ToHashSet();
+        bool Current()=>epoch==_session.DocumentEpoch&&page==_session.Document.Board.ActivePageId&&_session.SelectedIds.SetEquals(ids);
+        var canEdit=_session.SelectedObjects.Any(o=>o.IsLocked!=true&&o.IsVisible!=false);
+        foreach(var (label,horizontal) in new[]{("水平翻轉",true),("垂直翻轉",false)})
+            Add("select",T(label),()=>{if(!Current())return;FinishScreenText();CancelGesture();if(_session.FlipSelection(horizontal))Changed();},canEdit);
         foreach(var (label,move) in new[]{("移至圖層頂端",LayerMove.Front),("上移圖層",LayerMove.Up),("下移圖層",LayerMove.Down),("移至圖層底端",LayerMove.Back)})
-            Add("layers",T(label),()=>{if(epoch==_session.DocumentEpoch&&page==_session.Document.Board.ActivePageId&&_session.SelectedIds.SetEquals(ids))ChangeScreenLayer(move);},_session.SelectedObjects.Any(o=>o.IsLocked!=true));
+            Add("layers",T(label),()=>{if(Current())ChangeScreenLayer(move);},_session.SelectedObjects.Any(o=>o.IsLocked!=true));
         AppendScreenTextMenu(menu);return menu;
     }
     private string? SerializeScreenSelection()=>_session.Selected is { } selected?"HEIBAN_OBJECTS:"+JsonSerializer.Serialize(_session.SelectedObjects.ToArray(),DocumentCodec.Options):null;

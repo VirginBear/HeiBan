@@ -18,6 +18,39 @@ foreach(var angle in new[]{0d,37d,90d,-120d})
     Check(VectorMath.IsPointInObject(new(250,237.5),o,2),"Line segment hit");
     Check(!VectorMath.IsPointInObject(new(30,40),o,2),"Empty line bounding box misses");
 }
+var mirrored=new EditorSession();
+var asymmetrical=new BoardObject{Type="arrow",Rotation=0,Id="mirror-arrow"};
+ObjectHandles.SetEndpoints(asymmetrical,new(12,16),new(70,44));asymmetrical.Rotation=31;
+var mirrorImage=new BoardObject{Type="image",Id="mirror-image",X=100,Y=200,Width=100,Height=80,
+    ImageUrl="data:image/png;base64,AA==",CropX=12,CropY=8,CropWidth=50,CropHeight=40};
+var locked=new BoardObject{Type="rect",Id="mirror-locked",IsLocked=true};
+mirrored.Open(new HeiBanDocument{Objects=[asymmetrical,mirrorImage,locked]});
+mirrored.SetSelection([asymmetrical.Id,mirrorImage.Id,locked.Id]);
+var beforeMirror=ObjectHandles.Endpoint(asymmetrical,1);var mirrorCenter=ObjectHandles.Center(asymmetrical);
+Check(mirrored.FlipSelection(true)&&mirrored.Generation==1,"Flip commits one transaction for the entire selection");
+Point(ObjectHandles.Endpoint(asymmetrical,1),new(2*mirrorCenter.X-beforeMirror.X,beforeMirror.Y),"Rotated arrow flips horizontally in canvas axes");
+Check(mirrorImage.FlipX&&!locked.FlipX,"Image flips and locked object is unchanged");
+var savedMirror=DocumentCodec.Decode(DocumentCodec.Encode(mirrored.Document));
+var savedImage=savedMirror.Objects.Single(o=>o.Id==mirrorImage.Id);
+Check(savedImage.FlipX&&savedImage.CropX==12&&savedImage.CropY==8&&savedImage.ImageUrl==mirrorImage.ImageUrl,"Flip round trip preserves original image and crop");
+Check(BoardExporter.Svg(savedMirror,[savedImage],new(0,0,400,400)).Contains("scale(-1 1)"),"SVG exports image reflection");
+mirrored.Undo();Check(mirrored.Document.Objects.All(o=>!o.FlipX),"Undo clears both reflections in one step");
+mirrored.Redo();Check(mirrored.Document.Objects.Count(o=>o.FlipX)==2,"Redo restores both reflections");
+mirrored.SetSelection([asymmetrical.Id]);var reflected=mirrored.Selected!;
+var beforeVertical=ObjectHandles.Endpoint(reflected,1);
+Check(mirrored.FlipSelection(false),"Vertical flip");
+Point(ObjectHandles.Endpoint(reflected,1),new(beforeVertical.X,2*mirrorCenter.Y-beforeVertical.Y),"Rotated arrow flips vertically in canvas axes");
+var fixedEnd=ObjectHandles.Endpoint(reflected,1);
+ObjectHandles.MoveEndpoint(reflected,0,new(5,90));
+Point(ObjectHandles.Endpoint(reflected,1),fixedEnd,"Editing reflected endpoint preserves other endpoint");
+Point(ObjectHandles.Endpoint(reflected,0),new(5,90),"Endpoint drag applies only once");
+Check(!reflected.FlipX&&!reflected.FlipY,"Endpoint edit bakes orientation into geometry");
+mirrored.SetSelection([mirrorImage.Id]);
+Check(mirrored.FlipSelection(false),"Axis-aligned image flip commits a change");
+Check(mirrored.Selected!.FlipY,"Axis-aligned image mirrors vertically");
+mirrored.Undo();
+Check(!mirrored.Document.Objects.Single(o=>o.Id==mirrorImage.Id).FlipY,"Axis-aligned flip can be undone");
+
 var rotatedImage=new BoardObject{Type="image",X=100,Y=200,Width=400,Height=100,Rotation=90};
 Check(VectorMath.IsPointInObject(new(300,420),rotatedImage,0),"Rotated image visible area hit");
 Check(!VectorMath.IsPointInObject(new(110,210),rotatedImage,0),"Unrotated empty area misses");

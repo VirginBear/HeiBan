@@ -81,8 +81,9 @@ public partial class MainWindow
             if((MagnetSnapIndex.SupportsConstructionTool(_tool)||_compassCenterMoving)&&_magnetTarget is { } snap){var at=_viewport.WorldToScreen(snap.X,snap.Y);ds.DrawCircle((float)at.X,(float)at.Y,7,Direct2DCanvasRenderer.HexToColor("#10B981"),2);}
             foreach(var selected in _objectDrag?.Selected??_session.SelectedObjects)_renderer.RenderSelection(ds,selected,DragViewport(selected),_session.SelectedIds.Count==1);
             if(_lasso.Count>1)_renderer.RenderLiveStroke(ds,_lasso,_viewport,"#39735A",1/_viewport.Zoom,.8);
-            _renderer.RenderLaser(ds,_laser,_viewport,LaserNow);
         }
+        // The laser is a presentation overlay and can point anywhere in the viewport.
+        _renderer.RenderLaser(ds,_laser,_viewport,LaserNow);
         foreach(var pin in board.Pins??[])
         {
             var p=_viewport.WorldToScreen(pin.X,pin.Y);
@@ -125,7 +126,7 @@ public partial class MainWindow
         _gesture=true;CanvasSurface.CapturePointer(e.Pointer);
         if(_panning){UpdateShapeCursor();e.Handled=true;return;}
         if(_tool=="laser"){_panning=false;_laser.Press(_start,LaserNow);UpdateTeachingTimer();PresentInteraction();e.Handled=true;return;}
-        if(_tool=="cane"){_cane.Strike(_start,LaserNow,new(_mouse.X,_mouse.Y));UpdateTeachingTimer();PresentInteraction();e.Handled=true;return;}
+        if(_tool=="cane"){_cane.Strike(_start,LaserNow,new(_mouse.X,_mouse.Y));CaneSound.PlaySwing(ReportCaneSoundError);UpdateTeachingTimer();PresentInteraction();e.Handled=true;return;}
         if(_tool=="lasso"){_lasso.Clear();_lasso.Add(_start);e.Handled=true;return;}
         if(_rulerEnabled&&RulerPivotHit(screen)){_rulerPivotMoving=true;e.Handled=true;return;}
         var rulerSide = _rulerEnabled ? RulerStretchSide(screen) : 0;
@@ -799,12 +800,22 @@ public partial class MainWindow
     {
         if(_tool is "laser" or "cane")return;
         var pin=PinAt(screen);
-        var hit=_session.HitSelection(_viewport.ScreenToWorld(screen.X,screen.Y),6/_viewport.Zoom);if(hit is null||!_session.SelectedIds.Contains(hit.Id))Select(hit);
+        var world=_viewport.ScreenToWorld(screen.X,screen.Y);
+        var hit=_session.HitSelection(world,6/_viewport.Zoom);if(hit is null||!_session.SelectedIds.Contains(hit.Id))Select(hit);
         var menu=new MenuFlyout();void Add(string name,Action action){var item=new MenuFlyoutItem{Text=name};item.Click+=(_,_)=>action();menu.Items.Add(item);}
         if(pin is not null){Add(T("重新命名圖釘"),()=>StartPinRename(pin));Add(T("圖釘與文字配色…"),()=>PinAppearance(pin));Add(T("刪除圖釘"),()=>{_session.Begin();_session.Document.Board.Pins!.Remove(pin);_session.Commit();RefreshEditor();});}
-        if(_session.Selected is not null){Add(T("複製"),CopySelected);Add(T("製作副本"),DuplicateSelected);Add(T("刪除"),()=>Delete_Click(this,new RoutedEventArgs()));
-            var selection=_session.SelectedIds.ToHashSet();var epoch=_session.DocumentEpoch;var page=_session.Document.Board.ActivePageId;
-            bool Current()=>epoch==_session.DocumentEpoch&&page==_session.Document.Board.ActivePageId&&_session.SelectedIds.SetEquals(selection);
+        var epoch=_session.DocumentEpoch;var page=_session.Document.Board.ActivePageId;
+        bool SamePage()=>epoch==_session.DocumentEpoch&&page==_session.Document.Board.ActivePageId;
+        if(_tool=="select"&&!_readingMode)Add(T("新建圖釘"),()=>{if(SamePage())AddPin(world);});
+        if(_session.Selected is not null){Add(T("複製"),CopySelected);Add(T("直接複製一個"),DuplicateSelected);Add(T("刪除"),()=>Delete_Click(this,new RoutedEventArgs()));
+            var selection=_session.SelectedIds.ToHashSet();
+            bool Current()=>SamePage()&&_session.SelectedIds.SetEquals(selection);
+            foreach(var (label,horizontal) in new[]{("水平翻轉",true),("垂直翻轉",false)})
+            {
+                var item=new MenuFlyoutItem{Text=T(label),IsEnabled=!_readingMode&&_session.SelectedObjects.Any(o=>o.IsLocked!=true&&o.IsVisible!=false)};
+                item.Click+=(_,_)=>{if(!Current()||_readingMode)return;CommitPropertyEdit();FinishText();if(_gesture)CancelGesture();if(_session.FlipSelection(horizontal))RefreshEditor();};
+                menu.Items.Add(item);
+            }
             menu.Items.Add(new MenuFlyoutSeparator());
             foreach(var (label,move) in new[]{("移至圖層頂端",LayerMove.Front),("上移圖層",LayerMove.Up),("下移圖層",LayerMove.Down),("移至圖層底端",LayerMove.Back)})
             {
@@ -943,11 +954,15 @@ public partial class MainWindow
         dialog.Opened+=(_,_)=>newPinBox.Focus(FocusState.Programmatic);
         if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
 
-        var world = _viewport.ScreenToWorld(CanvasSurface.ActualWidth / 2, CanvasSurface.ActualHeight / 2);
+        AddPin(_viewport.ScreenToWorld(CanvasSurface.ActualWidth / 2, CanvasSurface.ActualHeight / 2),newPinBox.Text);
+    }
+    private void AddPin(InkPoint world,string? name=null)
+    {
         _session.Begin();
         (_session.Document.Board.Pins ??= []).Add(new BoardPin
         {
-            Name = string.IsNullOrWhiteSpace(newPinBox.Text) ? T("重要位置") : newPinBox.Text.Trim(),
+            BoardId = _session.Document.Board.Id,
+            Name = string.IsNullOrWhiteSpace(name) ? T("重要位置") : name.Trim(),
             X = world.X,
             Y = world.Y,
             Zoom = _viewport.Zoom

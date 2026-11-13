@@ -17,7 +17,7 @@ public partial class MainWindow
     private RadialToolProfile RadialProfile=>RadialTools.Value.Canvas;
     private void InitializeRadialInput()
     {
-        RadialTools=new(_storage.DataDirectory);RadialProfile.Reconcile(_tool);
+        RadialTools=new(_storage.DataDirectory);RadialProfile.TrackTool(_tool);
         _radialHoldTimer.Tick+=(_,_)=>{_radialHoldTimer.Stop();_radialGesture.Poll(LaserNow);if(_radialGesture.Visible)PresentInteraction();};
         _radialSaveTimer.Tick+=async(_,_)=>{if(_gesture||_radialGesture.Holding)return;_radialSaveTimer.Stop();try{await RadialTools.SaveAsync();}catch(Exception error){await Error(error);}};
         Activated+=(_,args)=>{if(args.WindowActivationState==WindowActivationState.Deactivated)CancelRadial();};
@@ -51,9 +51,8 @@ public partial class MainWindow
         _mouse=new((float)p.Position.X,(float)p.Position.Y);var result=_radialGesture.Release();_radialHoldTimer.Stop();CanvasSurface.ReleasePointerCaptures();UpdateShapeCursor();PresentInteraction();
         if(result.WasWheel)
         {
-            var before=string.Join(",",RadialProfile.Slots);var target=RadialProfile.Take(result.Slot,_tool);
+            var target=RadialProfile.Take(result.Slot);
             if(target is not null){if(RadialToolProfile.IsTool(target))ActivateTool(target);else InvokeToolByKey(target);}
-            if(before!=string.Join(",",RadialProfile.Slots))PersistRadial();
         }
         else if(_tool is not("laser" or "cane"))
         {
@@ -63,7 +62,7 @@ public partial class MainWindow
         e.Handled=true;return true;
     }
     private void PersistRadial(){_radialSettings?.RefreshSlots();_radialSaveTimer.Stop();_radialSaveTimer.Start();}
-    private void TrackRadialTool(string previous,string current){if(RadialProfile.TrackTool(previous,current))PersistRadial();}
+    private void TrackRadialTool(string current){if(RadialProfile.TrackTool(current))PersistRadial();}
     private void ShowRadialSettings()
     {
         if(_radialSettings is null){_radialSettings=new(RadialProfile,false,RadialTools.SaveAsync,_=>_strokeColor);_radialSettings.Closed+=(_,_)=>_radialSettings=null;}

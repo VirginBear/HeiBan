@@ -31,7 +31,7 @@ public static class RectangularEraser
         else if(item.Type is not("circle" or "arc")&&item.ParsedPoints.Count>0)
         {
             var points=CurvePreview.ForObject(item).Points;
-            paths.Add(item.Rotation==0?points:points.Select(p=>ObjectHandles.ToWorld(item,p)).ToArray());
+            paths.Add(!item.HasOrientationTransform?points:points.Select(p=>ObjectHandles.ToWorld(item,p)).ToArray());
             closed=item.Type is "triangle" or "quadrilateral";
         }
         else if(item.Type is "diamond" or "pentagon" or "star" or "triangle" or "quadrilateral")

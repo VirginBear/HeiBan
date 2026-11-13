@@ -251,7 +251,15 @@ public sealed class BoardObject
     public double Opacity { get; set; } = 1.0;
 
     [JsonPropertyName("rotation")]
-    public double Rotation { get; set; } = 0.0;
+    public double Rotation { get=>_rotation; set=>SetBoundsValue(ref _rotation,value); }
+    private double _rotation;
+    private bool _flipX,_flipY;
+
+    [JsonPropertyName("flipX"), JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingDefault)]
+    public bool FlipX { get=>_flipX; set { if(_flipX!=value){_flipX=value;RenderBoundsVersion++;} } }
+    [JsonPropertyName("flipY"), JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingDefault)]
+    public bool FlipY { get=>_flipY; set { if(_flipY!=value){_flipY=value;RenderBoundsVersion++;} } }
+    [JsonIgnore] public bool HasOrientationTransform => Rotation!=0||FlipX||FlipY;
 
     [JsonPropertyName("zIndex")]
     public int ZIndex { get; set; } = 0;

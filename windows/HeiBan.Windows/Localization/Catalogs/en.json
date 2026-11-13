@@ -714,5 +714,9 @@
   "點劃線": "Dash-dot",
   "點狀": "Dots",
   "點線": "Dotted",
-  "＋ 插入內容與輔助工具": "Insert content and helpers"
+  "＋ 插入內容與輔助工具": "Insert content and helpers",
+  "水平翻轉": "Flip horizontally",
+  "垂直翻轉": "Flip vertically",
+  "新建圖釘": "New pin",
+  "直接複製一個": "Duplicate object"
 }

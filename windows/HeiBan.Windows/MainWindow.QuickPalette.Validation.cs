@@ -3,6 +3,7 @@ using HeiBan.Windows.Engine;
 using HeiBan.Windows.Views;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Shapes;
 namespace HeiBan.Windows;
 public partial class MainWindow
 {
@@ -43,6 +44,16 @@ public partial class MainWindow
             var brushCenter = _brushButton!.TransformToVisual(Tools).TransformPoint(new global::Windows.Foundation.Point(0, _brushButton.ActualHeight / 2));
             Check(Math.Abs(penCenter.Y - brushCenter.Y) < 1, "Main icon centers differ");
             Check(ToolbarUi.ValidateSolidColorLine(pen, scale), "Active pen line has a border, child geometry, or incorrect size");
+            var swatch=_quickPalette.ValidationButtons[0];
+            ApplyQuickBrushColor((string)swatch.Tag);
+            await Task.Delay(40);
+            var content=(Grid)swatch.Content;
+            var ring=(Ellipse)content.Children[0];var dot=(Ellipse)content.Children[1];
+            var dotCenter=dot.TransformToVisual(swatch).TransformPoint(new(dot.ActualWidth/2,dot.ActualHeight/2));
+            var ringCenter=ring.TransformToVisual(swatch).TransformPoint(new(ring.ActualWidth/2,ring.ActualHeight/2));
+            Check(Math.Abs(dot.ActualWidth-14*scale)<.5&&Math.Abs(dot.ActualHeight-14*scale)<.5
+                &&Math.Abs(ring.StrokeThickness-2*scale)<.01&&Math.Abs(dotCenter.X-ringCenter.X)<.5
+                &&Math.Abs(dotCenter.Y-ringCenter.Y)<.5,"Selected swatch ring shifts or clips the color disk");
         }
         _toolbarPrefs.ToolbarSize = originalSize;
         _toolbarPrefs.DisplayMode=display;SetDock(dock);await Task.Delay(180);

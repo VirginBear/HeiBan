@@ -70,7 +70,8 @@ HeiBan 為高效能向量黑板／白板協作系統，在 Web（TypeScript / Re
 - `strokeWidth`: `Double`
 - `lineStyle`: `"solid" | "dashed"`
 - `opacity`: `Double` (0.0 ~ 1.0)
-- `rotation`: `Double` (角度 0.0 ~ 360.0)
+- `rotation`: `Double`（角度，Windows 接受負角度）
+- `flipX`、`flipY`: 可選 `Boolean`，缺省為 `false`。Windows 以物件中心先套用局部 X／Y 軸反射，再套用 `rotation`。原圖、裁切區、筆跡採樣與頂點維持原資料；支援此欄位的讀取器在呈現／匯出時套用。未支援的讀取器依未知欄位保留契約處理，跨平台反射呈現尚待驗證。
 - `zIndex`: `Int`
 
 ### 4.2 文字與富文本欄位 (W17 擴展支援)

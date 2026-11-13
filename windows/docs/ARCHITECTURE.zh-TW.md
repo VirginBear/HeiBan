@@ -1,5 +1,9 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-11-13 — 物件反射與展示層
+
+ObjectHandles 的本地與世界座標映射共用反射及旋轉次序。縮放框使用外框順序，線段端點、圓弧與頂點使用實際方向。頂點及端點重建與局部擦除片段將變換烘焙進幾何。RenderBoundsVersion 反映方向改變，SVG 與 Win2D 均以物件中心轉換。雷射在紙張裁切後合成於視窗，仍為短暫呈現資料。[開發紀錄](INTERACTION_1.1.4_2026-11-13.zh-TW.md)。
+
 ## 2026-11-06 — 尺尺寸與工具列版面
 
 尺長由主視窗的教學設定持有。一般畫布用 DIP，螢幕畫布在顯示、命中與 damage 邊界轉實體像素。RulerGeometry 共用伸縮長度與對側固定的規則。ToolbarPreferences.ToolbarSize 與既有偏好一起保存，ToolbarUi 將比例套用至按鈕、圖示與快色，ToolbarFlowPanel 先量每列高度再對齊中心。[實作紀錄](RULER_TOOLBAR_SIZE_2026-11-06.zh-TW.md)。

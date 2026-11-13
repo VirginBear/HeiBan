@@ -13,25 +13,27 @@ internal static class RadialChecks
         check(preferences.VisibleTools.Contains("pins")&&preferences.VisibleTools.Contains("viewLock")&&preferences.VisibleTools.Contains("canvasCapture"),"Screen edits hide main-only tools");
         check(preferences.CommonTools.Contains("pins")&&preferences.CommonTools.Contains("viewLock")&&preferences.CommonTools.Contains("canvasCapture"),"Screen edits erase main-only favorites");
         check(preferences.HiddenTools.Contains("paint")&&preferences.DisplayMode=="icons"&&preferences.ExtraFields["futureLayout"].GetInt32()==5,"Subset edit lost own choices/future fields");
-        var canvas=new RadialToolProfile();canvas.Normalize(false);canvas.Reconcile("select");
+        var canvas=new RadialToolProfile();canvas.Normalize(false);canvas.TrackTool("select");
         var screen=new RadialToolProfile();screen.Normalize(true);
-        check(canvas.Slots.Count==8&&screen.Slots.Count==8&&canvas.Slots.Contains("pen")&&!canvas.Slots.Contains("operate")&&screen.Slots[7]=="operate","Host presets/startup reconciliation");
+        check(canvas.Slots.Count==8&&screen.Slots.Count==8&&canvas.Slots.SequenceEqual(RadialToolProfile.Defaults(false))&&!canvas.Slots.Contains("operate")&&screen.Slots[7]=="operate","Host presets/startup reconciliation");
         check(!screen.Assign(7,"pen",true)&&screen.Slots[7]=="operate","Fixed operation wedge overwritten");
-        var cane=canvas.Slots.IndexOf("cane");var chosen=canvas.Take(cane,"laser");
-        check(chosen=="cane"&&canvas.Slots[cane]=="laser"&&!canvas.Slots.Contains("cane")&&canvas.Slots.Count(k=>k=="laser")==1,"Laser->cane toolbox exchange");
-        check(canvas.Take(cane,"cane")=="laser"&&canvas.Slots[cane]=="cane","Return exchange lost previous tool");
+        var cane=canvas.Slots.IndexOf("cane");var fixedSlots=canvas.Slots.ToArray();
+        canvas.TrackTool("laser");
+        check(canvas.Take(cane)=="cane"&&canvas.Slots.SequenceEqual(fixedSlots),"Activating laser preserves wheel assignments");
+        canvas.TrackTool("cane");
+        check(canvas.Take(cane)=="cane"&&canvas.Slots.SequenceEqual(fixedSlots),"Selecting from wheel preserves its assignments");
         var original=canvas.Slots.ToArray();var a=0;var b=4;canvas.Assign(a,original[b],false);
         check(canvas.Slots[a]==original[b]&&canvas.Slots[b]==original[a],"Dragging an existing tool must exchange positions");
         var before=string.Join(",",screen.Slots);
         check(!screen.Assign(1,"pins",true)&&!screen.Assign(1,"viewLock",true)&&!screen.Assign(1,"arbitrary.exe",true)&&!screen.Assign(-1,"pen",true)&&before==string.Join(",",screen.Slots),"Unsupported drag modified screen profile");
         check(!RadialToolProfile.Allowed("extension",false),"Deprecated toolbar action exposed");
         var brush=screen.Slots.IndexOf("brush");before=string.Join(",",screen.Slots);
-        check(screen.Take(brush,"laser")=="brush"&&before==string.Join(",",screen.Slots),"Settings command incorrectly exchanges held tool");
-        check(screen.Take(7,"pen")=="operate"&&screen.Slots[7]=="operate"&&screen.Take(-1,"pen") is null,"Mode action/center cancel contract");
+        check(screen.Take(brush)=="brush"&&before==string.Join(",",screen.Slots),"Settings command incorrectly exchanges held tool");
+        check(screen.Take(7)=="operate"&&screen.Slots[7]=="operate"&&screen.Take(-1) is null,"Mode action/center cancel contract");
         canvas=new(){Slots=["shapes","line","laser","cane","eraser","brush","rect","highlighter"],LastShape="line"};
-        check(canvas.Take(0,"laser")=="line"&&canvas.Slots[0]=="laser"&&canvas.Slots.Count(k=>k=="laser")==1&&!canvas.Slots.Contains("line"),"Shape alias creates duplicates or replaces wrong wedge");
-        canvas.TrackTool("line","cane");check(canvas.Slots[3]=="line"&&canvas.LastActive=="cane","External toolbar selection does not synchronize toolbox");
-        canvas.LastShape="rect";canvas.TrackTool("cane","curve");check(canvas.LastShape=="rect","Curve incorrectly replaced the last geometric-shape shortcut");
+        check(canvas.Take(0)=="line"&&canvas.Slots[0]=="shapes"&&canvas.Slots[1]=="line","Shape alias creates duplicates or replaces wrong wedge");
+        canvas.TrackTool("cane");check(canvas.Slots[3]=="cane"&&canvas.LastActive=="cane","External toolbar selection does not synchronize toolbox");
+        canvas.LastShape="rect";canvas.TrackTool("curve");check(canvas.LastShape=="rect","Curve incorrectly replaced the last geometric-shape shortcut");
         canvas.Reset(false);check(!canvas.Slots.Contains("curve")&&canvas.LastActive=="curve","Reset lost held-tool reconciliation");
         foreach(var scale in new[]{1d,1.5,2.5})
         {

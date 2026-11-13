@@ -146,7 +146,9 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
             var radius=Math.Sqrt(o.Width*o.Width+o.Height*o.Height)/2+o.StrokeWidth+32;
             var cx=o.X+o.Width/2;var cy=o.Y+o.Height/2;
             if(o.Extension is not ("start" or "end" or "both")&&!world.Intersects(new(cx-radius,cy-radius,cx+radius,cy+radius)))return;
-            ds.Transform=Matrix3x2.CreateRotation((float)(o.Rotation*Math.PI/180),new((float)cx,(float)cy))*view;
+            var center=new Vector2((float)cx,(float)cy);
+            ds.Transform=Matrix3x2.CreateRotation((float)(o.Rotation*Math.PI/180),center)*view;
+            if(o.FlipX||o.FlipY)ds.Transform=Matrix3x2.CreateScale(o.FlipX?-1:1,o.FlipY?-1:1,center)*ds.Transform;
             if(o.PreviewOffsetX!=0||o.PreviewOffsetY!=0)ds.Transform=Matrix3x2.CreateTranslation((float)o.PreviewOffsetX,(float)o.PreviewOffsetY)*ds.Transform;
             RenderObject(ds,o);
     }
@@ -311,7 +313,7 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
             var p=Screen(handle.Point);
             if(handle.Kind=="rotate")
             {
-                ds.DrawLine(Screen(ObjectHandles.ToWorld(o,new(o.X+o.Width/2,o.Y))),p,blue,1);
+                ds.DrawLine(Screen(ObjectHandles.Rotate(new(o.X+o.Width/2,o.Y),ObjectHandles.Center(o),o.Rotation)),p,blue,1);
                 ds.FillCircle(p,7,white);ds.DrawCircle(p,7,blue,1.5f);
             }
             else if(handle.Kind=="resize")

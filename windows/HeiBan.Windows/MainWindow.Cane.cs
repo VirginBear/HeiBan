@@ -49,7 +49,8 @@ public partial class MainWindow
         };
         return item;
     }
-    private void PlayCaneSound(int tap)=>CaneSound.PlayImpact(tap,error=>DispatcherQueue.TryEnqueue(()=>StatusText.Text=T("藤條音效無法播放：")+error));
+    private void PlayCaneSound(int tap)=>CaneSound.PlayImpact(tap,ReportCaneSoundError);
+    private void ReportCaneSoundError(string error)=>DispatcherQueue.TryEnqueue(()=>StatusText.Text=T("藤條音效無法播放：")+error);
     private void RefreshCaneQuick()
     {
         if(CaneQuickButton is null)return;

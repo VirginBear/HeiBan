@@ -13,7 +13,7 @@ public static class DocumentSnapshot
     {
         typeof(HeiBanDocument),typeof(BoardMetadata),typeof(BoardObject),typeof(BoardPin),
         typeof(BoardPage),typeof(InkPoint),typeof(TextSpan)
-    }.ToDictionary(type=>type,type=>type.GetProperties().Where(p=>p.CanRead&&p.GetCustomAttribute<JsonIgnoreAttribute>() is null&&
+    }.ToDictionary(type=>type,type=>type.GetProperties().Where(p=>p.CanRead&&p.GetCustomAttribute<JsonIgnoreAttribute>()?.Condition!=JsonIgnoreCondition.Always&&
         !(type==typeof(BoardObject)&&p.Name==nameof(BoardObject.Points))).ToArray());
 
     // JsonElement is immutable; copying the dictionary isolates replacement/removal without duplicating payloads.

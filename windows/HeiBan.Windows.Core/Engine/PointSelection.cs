@@ -8,7 +8,7 @@ public static class PointSelection
         if(!double.IsFinite(point.X)||!double.IsFinite(point.Y)||!double.IsFinite(tolerance)||tolerance<0)return false;
         // The selectable area follows the object's rotated local bounds rather
         // than its painted pixels. Erasing retains precise geometry separately.
-        var local=item.Rotation==0?point:ObjectHandles.ToLocal(item,point);
+        var local=!item.HasOrientationTransform?point:ObjectHandles.ToLocal(item,point);
         var pad=tolerance+Math.Max(0,item.StrokeWidth)/2;
         var left=Math.Min(item.X,item.X+item.Width);var right=Math.Max(item.X,item.X+item.Width);
         var top=Math.Min(item.Y,item.Y+item.Height);var bottom=Math.Max(item.Y,item.Y+item.Height);

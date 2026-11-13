@@ -54,7 +54,7 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _screenshotWatchTimer=new(){Interval=TimeSpan.FromMilliseconds(250)};
     private List<LibraryCard> _library=[];
     private string _toolValue="select";
-    private string _tool{get=>_toolValue;set{var previous=_toolValue;_toolValue=value;if(RadialTools is not null&&previous!=value)TrackRadialTool(previous,value);}}
+    private string _tool{get=>_toolValue;set{var previous=_toolValue;_toolValue=value;if(RadialTools is not null&&previous!=value)TrackRadialTool(value);}}
     private string _strokeColor="#24533d", _fillColor="#b8d4b2";
     private double _strokeWidth=4,_opacity=1;
     private bool _workspaceOpen,_closing,_preparingClose,_changingLayers,_readingMode;

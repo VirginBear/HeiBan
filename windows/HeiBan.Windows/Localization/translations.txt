@@ -632,3 +632,7 @@ A · 彩色雙色描邊|A · Color duotone|A · カラーデュオトーン|A ·
 中|Medium|中|보통|Mediano|Moyen|Mittel|Médio|متوسط
 大|Large|大|크게|Grande|Grand|Groß|Grande|كبير
 尺長（DIP）|Ruler length (DIP)|定規の長さ（DIP）|자 길이(DIP)|Longitud de la regla (DIP)|Longueur de la règle (DIP)|Lineallänge (DIP)|Comprimento da régua (DIP)|طول المسطرة (DIP)
+水平翻轉|Flip horizontally|左右反転|가로 뒤집기|Voltear horizontalmente|Retourner horizontalement|Horizontal spiegeln|Inverter na horizontal|قلب أفقي
+垂直翻轉|Flip vertically|上下反転|세로 뒤집기|Voltear verticalmente|Retourner verticalement|Vertikal spiegeln|Inverter na vertical|قلب عمودي
+新建圖釘|New pin|ピンを追加|새 핀 만들기|Nuevo marcador|Nouveau repère|Neue Markierung|Novo marcador|إضافة دبوس
+直接複製一個|Duplicate object|オブジェクトを複製|개체 복제|Duplicar objeto|Dupliquer l’objet|Objekt duplizieren|Duplicar objeto|إنشاء نسخة من العنصر

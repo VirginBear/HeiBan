@@ -13,6 +13,22 @@ public sealed class EditorSession
     public IEnumerable<BoardObject> SelectedObjects => _selectedIds.Count==0?Enumerable.Empty<BoardObject>():PageObjects.Where(o=>_selectedIds.Contains(o.Id));
     public void SetSelection(IEnumerable<string> ids) { var valid=PageObjects.Select(o=>o.Id).ToHashSet();_selectedIds.Clear();_selectedIds.UnionWith(ids.Where(valid.Contains)); }
     public void ToggleSelection(string id) { if(!_selectedIds.Remove(id)&&PageObjects.Any(o=>o.Id==id))_selectedIds.Add(id); }
+    public bool FlipSelection(bool horizontal)
+    {
+        if(HasTransaction)return false;
+        var objects=SelectedObjects.Where(o=>o.IsLocked!=true&&o.IsVisible!=false).ToArray();
+        if(objects.Length==0)return false;
+        Begin();
+        foreach(var item in objects)
+        {
+            // Reflect in canvas axes around each object's center. Reflection reverses its rotation.
+            if(horizontal)item.FlipX=!item.FlipX;
+            else item.FlipY=!item.FlipY;
+            item.Rotation=-item.Rotation;
+        }
+        Commit();
+        return true;
+    }
     public void MoveSelection(double dx,double dy) { foreach(var o in SelectedObjects.Where(o=>o.IsLocked!=true))Move(o,dx,dy); }
     public BoardObject? Selected => SelectedObjects.OrderBy(o=>o.IsLocked==true).ThenByDescending(o=>o.ZIndex).FirstOrDefault();
     public bool IsDirty => Generation != SavedGeneration;
@@ -192,14 +208,14 @@ public sealed class EditorSession
             if (!wholeObject && o.Type is not ("stroke" or "pen" or "highlighter" or "paint")) continue;
             if (!VectorMath.IsPointInObject(center, o, radius)) continue;
             if (wholeObject || o.ParsedPoints.Count == 0) { RemoveErased(o,candidate.Index);changed=true;continue; }
-            IReadOnlyList<InkPoint> world=o.Rotation==0?o.ParsedPoints:o.ParsedPoints.Select(p=>{var copy=p.Snapshot();var at=ObjectHandles.ToWorld(o,p);copy.X=at.X;copy.Y=at.Y;return copy;}).ToArray();
+            IReadOnlyList<InkPoint> world=!o.HasOrientationTransform?o.ParsedPoints:o.ParsedPoints.Select(p=>{var copy=p.Snapshot();var at=ObjectHandles.ToWorld(o,p);copy.X=at.X;copy.Y=at.Y;return copy;}).ToArray();
             var fragments = StrokeGeometry.Erase(world, center, radius + o.StrokeWidth / 2);
             if (fragments.Count == 1 && fragments[0].Count == world.Count &&
                 fragments[0].Zip(world).All(p => p.First.X == p.Second.X && p.First.Y == p.Second.Y)) continue;
             var index=RemoveErased(o,candidate.Index);changed=true;
             foreach (var fragment in fragments)
             {
-                var copy = DocumentCodec.Clone(o); copy.Id = Guid.NewGuid().ToString();copy.Rotation=0;
+                var copy = DocumentCodec.Clone(o); copy.Id = Guid.NewGuid().ToString();copy.Rotation=0;copy.FlipX=copy.FlipY=false;
                 copy.SetOwnedInkPoints(fragment);
                 var box = VectorMath.ComputeBoundingBox(fragment, o.StrokeWidth);
                 copy.X = box.MinX; copy.Y = box.MinY; copy.Width = box.Width; copy.Height = box.Height;
@@ -228,9 +244,9 @@ public sealed class EditorSession
             if(!wholeObject&&item.Type is not("stroke" or "pen" or "highlighter" or "paint"))continue;
             if(!RectangularEraser.Intersects(item,footprint))continue;
             if(wholeObject||item.ParsedPoints.Count==0){RemoveErased(item,candidate.Index);changed=true;continue;}
-            // Bake the old rotation into points before computing fragment bounds. Leaving
-            // rotation on each fragment would rotate it around a different center.
-            IReadOnlyList<InkPoint> world=item.Rotation==0?item.ParsedPoints:
+            // Bake the old orientation into points before computing fragment bounds. Leaving
+            // the transform on each fragment would apply it again around a different center.
+            IReadOnlyList<InkPoint> world=!item.HasOrientationTransform?item.ParsedPoints:
                 item.ParsedPoints.Select(p=>{var copy=DocumentCodec.Clone(p);var at=ObjectHandles.ToWorld(item,p);copy.X=at.X;copy.Y=at.Y;return copy;}).ToArray();
             var pad=item.StrokeWidth/2;
             var fragments=footprint.Split(world,pad);
@@ -238,7 +254,7 @@ public sealed class EditorSession
             var index=RemoveErased(item,candidate.Index);changed=true;
             foreach(var fragment in fragments)
             {
-                var copy=DocumentCodec.Clone(item);copy.Id=Guid.NewGuid().ToString();copy.Rotation=0;
+                var copy=DocumentCodec.Clone(item);copy.Id=Guid.NewGuid().ToString();copy.Rotation=0;copy.FlipX=copy.FlipY=false;
                 copy.SetOwnedInkPoints(fragment);
                 var box=VectorMath.ComputeBoundingBox(fragment,item.StrokeWidth);copy.X=box.MinX;copy.Y=box.MinY;copy.Width=box.Width;copy.Height=box.Height;
                 InsertFragment(index++,copy);

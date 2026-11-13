@@ -25,6 +25,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     private readonly ViewportTransform _viewport=new();
     private readonly LaserPointerEngine _laser;
     private readonly CaneFeedback _cane=new();
+    private void ReportCaneSoundError(string error)=>DispatcherQueue.TryEnqueue(()=>_status.Text=T("藤條音效無法播放：")+error);
     private bool _caneWasAnimating;
     // The screen host reads the same user toolbar file as the board, then applies host filtering without rewriting that preference.
     private ToolbarPreferences _toolbarPreferences;
@@ -57,7 +58,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     private string _screenExtension="none";
     private bool _radialInitialized;
     private string _toolValue="pen";
-    private string _tool{get=>_toolValue;set{var previous=_toolValue;_toolValue=value;if(_radialInitialized&&previous!=value)TrackRadialTool(previous,value);}}
+    private string _tool{get=>_toolValue;set{var previous=_toolValue;_toolValue=value;if(_radialInitialized&&previous!=value)TrackRadialTool(value);}}
     private string _color="#EF4444",_dash="solid",_fill="none";
     private readonly List<InkPoint> _curveAnchors=[];
     private double _width=4,_opacity=1,_eraserSize=24;
@@ -88,7 +89,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         var failed=0;
         foreach(var key in new[]{(1,0x41u),(2,0x44u),(3,0x53u),(4,0x51u),(5,0x4Bu)})if(!_overlay.RegisterShortcut(key.Item1,0x0002|0x0001,key.Item2))failed++;
         _hotkeyRegistrationFailed=failed>0;if(failed>0)_status.Text=T("部分快捷鍵被其他程式占用，請使用控制列按鈕。");
-        _renderTimer.Tick+=(_,_)=>{if(!IsActive)return;try{PollScreenRadial();RefreshScreenShiftPreview();while(_cane.TakeImpactSound(Now) is >0 and var impact)CaneSound.PlayImpact(impact,error=>DispatcherQueue.TryEnqueue(()=>_status.Text=T("藤條音效無法播放：")+error));UpdateScreenEraser();UpdateScreenMagnetHover();if(_dirty||_laser.Samples.Count>0||_cane.NeedsAnimation(Now)||_caneWasAnimating)Render();}catch(Exception e){_renderTimer.Stop();_overlay.Hide();_status.Text=T("螢幕繪圖已停止：")+e.Message;}};
+        _renderTimer.Tick+=(_,_)=>{if(!IsActive)return;try{PollScreenRadial();RefreshScreenShiftPreview();while(_cane.TakeImpactSound(Now) is >0 and var impact)CaneSound.PlayImpact(impact,ReportCaneSoundError);UpdateScreenEraser();UpdateScreenMagnetHover();if(_dirty||_laser.Samples.Count>0||_cane.NeedsAnimation(Now)||_caneWasAnimating)Render();}catch(Exception e){_renderTimer.Stop();_overlay.Hide();_status.Text=T("螢幕繪圖已停止：")+e.Message;}};
         _focusRememberTimer.Tick+=(_,_)=>{if(IsActive)RememberExternalFocus();};
         _straightenTimer.Tick+=(_,_)=>
         {
@@ -184,7 +185,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         {
             UpdateScreenShapeCursor(p);
             if(_cane.Move(p))_dirty=true;
-            if(input.Kind is "down" or "double"&&input.LeftDown){_cane.Strike(p,Now,new(p.X/_dpiScale,p.Y/_dpiScale));_dirty=true;}
+            if(input.Kind is "down" or "double"&&input.LeftDown){_cane.Strike(p,Now,new(p.X/_dpiScale,p.Y/_dpiScale));CaneSound.PlaySwing(ReportCaneSoundError);_dirty=true;}
             return;
         }
         // Laser owns this whole input route: hover/right/double never reach object hit tests.

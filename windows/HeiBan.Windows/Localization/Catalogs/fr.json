@@ -714,5 +714,9 @@
   "點劃線": "Tiret-point",
   "點狀": "Points",
   "點線": "Pointillés",
-  "＋ 插入內容與輔助工具": "Insérer du contenu et des outils"
+  "＋ 插入內容與輔助工具": "Insérer du contenu et des outils",
+  "水平翻轉": "Retourner horizontalement",
+  "垂直翻轉": "Retourner verticalement",
+  "新建圖釘": "Nouveau repère",
+  "直接複製一個": "Dupliquer l’objet"
 }

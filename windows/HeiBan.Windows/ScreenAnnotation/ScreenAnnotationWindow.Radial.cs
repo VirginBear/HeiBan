@@ -18,7 +18,7 @@ internal sealed partial class ScreenAnnotationWindow
     private RadialToolProfile RadialProfile=>_owner.RadialTools.Value.Screen;
     private void InitializeScreenRadial()
     {
-        RadialProfile.Reconcile(_tool);_radialInitialized=true;
+        RadialProfile.TrackTool(_tool);_radialInitialized=true;
         _radialSaveTimer.Tick+=async(_,_)=>{if(_start is not null||_radialGesture.Holding||_circularEraser is not null)return;_radialSaveTimer.Stop();try{await _owner.RadialTools.SaveAsync();}catch(Exception error){_status.Text=T("輪盤設定尚未保存：")+error.Message;}};
         _rightClickTimer.Tick+=(_,_)=>
         {
@@ -63,10 +63,9 @@ internal sealed partial class ScreenAnnotationWindow
             DamageRadial();var result=_radialGesture.Release();_operateWheel=false;RestoreRadialCursor();
             if(result.WasWheel)
             {
-                var before=string.Join(",",RadialProfile.Slots);var target=RadialProfile.Take(result.Slot,_tool);
+                var target=RadialProfile.Take(result.Slot);
                 if(target=="operate")SetDrawing(!_drawing);
                 else if(target is not null){if(RadialToolProfile.IsTool(target))ChooseScreenTool(target);else if(_screenCommands.TryGetValue(target,out var command))command();}
-                if(before!=string.Join(",",RadialProfile.Slots))PersistScreenRadial();
             }
             else{_pendingRightClick=point;_pendingRightTool=_tool;_rightClickTimer.Start();}
             return true;
@@ -74,7 +73,7 @@ internal sealed partial class ScreenAnnotationWindow
         return true;
     }
     private void PersistScreenRadial(){_radialSettings?.RefreshSlots();_radialSaveTimer.Stop();_radialSaveTimer.Start();}
-    private void TrackRadialTool(string previous,string current){_rightClickTimer.Stop();_pendingRightClick=null;if(RadialProfile.TrackTool(previous,current))PersistScreenRadial();}
+    private void TrackRadialTool(string current){_rightClickTimer.Stop();_pendingRightClick=null;if(RadialProfile.TrackTool(current))PersistScreenRadial();}
     private void RestoreRadialCursor()
     {
         _overlay.SetManipulationCursor(null,null,_tool,_tool=="laser"?_laser.Color:_color);

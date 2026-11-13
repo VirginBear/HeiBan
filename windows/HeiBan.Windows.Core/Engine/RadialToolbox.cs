@@ -53,10 +53,10 @@ public sealed class RadialToolProfile
     {
         nameOrKey=(nameOrKey??"").Trim();if(string.IsNullOrEmpty(nameOrKey))return false;
         var builtIn=BuiltInPresets(screen).FirstOrDefault(b=>string.Equals(b.Key,nameOrKey,StringComparison.OrdinalIgnoreCase)||string.Equals(b.Name,nameOrKey,StringComparison.OrdinalIgnoreCase));
-        if(!string.IsNullOrEmpty(builtIn.Key)){var current=LastActive;Slots=[..builtIn.Slots];ActivePreset=builtIn.Key;Normalize(screen);Reconcile(current);return true;}
+        if(!string.IsNullOrEmpty(builtIn.Key)){Slots=[..builtIn.Slots];ActivePreset=builtIn.Key;Normalize(screen);return true;}
         var custom=Presets.FirstOrDefault(p=>string.Equals(p.Name,nameOrKey,StringComparison.OrdinalIgnoreCase));
         if(custom is null)return false;
-        var active=LastActive;Slots=[..custom.Slots];ActivePreset=custom.Name;Normalize(screen);Reconcile(active);return true;
+        Slots=[..custom.Slots];ActivePreset=custom.Name;Normalize(screen);return true;
     }
     public bool DeletePreset(string name)
     {
@@ -65,7 +65,7 @@ public sealed class RadialToolProfile
         if(removed>0&&string.Equals(ActivePreset,name,StringComparison.OrdinalIgnoreCase))ActivePreset="";
         return removed>0;
     }
-    public void Reset(bool screen){var current=LastActive;Slots=[..Defaults(screen)];ActivePreset="default";LastActive="pen";LastShape="line";Reconcile(current);}
+    public void Reset(bool screen){Slots=[..Defaults(screen)];ActivePreset="default";LastShape=IsShape(LastActive)?LastActive:"line";}
     public bool Assign(int index,string key,bool screen)
     {
         if(index<0||index>=Count||screen&&index==7||!Allowed(key,screen))return false;
@@ -73,23 +73,19 @@ public sealed class RadialToolProfile
         if(duplicate>=0&&duplicate!=index)Slots[duplicate]=previous;
         Slots[index]=key;return true;
     }
-    public bool TrackTool(string previous,string current)
+    public bool TrackTool(string current)
     {
         if(!IsTool(current))return false;
-        var index=Slots.IndexOf(current);var changed=false;
-        if(current!=previous&&index>=0){for(var i=0;i<Slots.Count;i++)if(i!=index&&Slots[i]==previous)Slots[i]="";Slots[index]=IsTool(previous)?previous:"pen";changed=true;}
-        if(LastActive!=current){LastActive=current;changed=true;}if(IsShape(current))LastShape=current;
+        var changed=LastActive!=current||(IsShape(current)&&LastShape!=current);
+        LastActive=current;
+        if(IsShape(current))LastShape=current;
         return changed;
     }
-    public void Reconcile(string current){if(LastActive!=current)TrackTool(LastActive,current);}
-    public string? Take(int index,string current)
+    public string? Take(int index)
     {
         if(index<0||index>=Slots.Count||string.IsNullOrEmpty(Slots[index]))return null;
-        var key=Slots[index];if(key=="operate")return key;
-        var target=key=="shapes"?LastShape:key;
-        if(IsTool(target)&&target!=current)
-        {for(var i=0;i<Slots.Count;i++)if(i!=index&&(Slots[i]==current||Slots[i]==target))Slots[i]="";Slots[index]=current;LastActive=target;if(IsShape(target))LastShape=target;}
-        return target;
+        // Only explicit editing and presets change slot assignments.
+        return Slots[index]=="shapes"?LastShape:Slots[index];
     }
 }
 
