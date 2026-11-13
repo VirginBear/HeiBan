@@ -25,7 +25,7 @@
     <StackPanel Grid.Row="2" Spacing="6">
      <Button x:Name="HomeSettingsButton" Click="HomeSettings_Click" BorderThickness="0" Background="Transparent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="8,10" loc:Ui.ToolTip="設定"><StackPanel Orientation="Horizontal" Spacing="10"><ContentControl x:Name="HomeSettingsIcon"/><TextBlock x:Name="HomeSettingsLabel" loc:Ui.Text="設定"/></StackPanel></Button>
      <Button x:Name="HomeLanguageButton" Click="HomeLanguage_Click" BorderThickness="0" Background="Transparent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="8,10"><StackPanel Orientation="Horizontal" Spacing="10"><ContentControl x:Name="HomeLanguageIcon"/><TextBlock TextTrimming="CharacterEllipsis" MaxWidth="112" x:Name="HomeLanguageLabel" loc:Ui.Text="語言"/></StackPanel></Button>
-     <Button x:Name="HomeScreenButton" Click="ScreenCanvas_Click" BorderThickness="0" Background="Transparent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="8,10" loc:Ui.ToolTip="我的螢幕就是我的畫布"><StackPanel Orientation="Horizontal" Spacing="10"><ContentControl x:Name="HomeScreenIcon"/><TextBlock x:Name="HomeScreenLabel" loc:Ui.Text="螢幕畫布"/></StackPanel></Button>
+     <Button x:Name="HomeScreenButton" Click="ScreenCanvasMenu_Click" BorderThickness="0" Background="Transparent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="8,10" loc:Ui.ToolTip="我的螢幕就是我的畫布"><StackPanel Orientation="Horizontal" Spacing="10"><ContentControl x:Name="HomeScreenIcon"/><TextBlock x:Name="HomeScreenLabel" loc:Ui.Text="螢幕畫布"/></StackPanel></Button>
      <Button x:Name="HomeGuideButton" Click="HomeGuide_Click" BorderThickness="0" Background="Transparent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="8,10"><StackPanel Orientation="Horizontal" Spacing="10"><ContentControl x:Name="HomeGuideIcon"/><TextBlock x:Name="HomeGuideLabel" loc:Ui.Text="使用說明"/></StackPanel></Button>
      <Button x:Name="HomeAboutButton" Click="About_Click" BorderThickness="0" Background="Transparent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="8,10"><StackPanel Orientation="Horizontal" Spacing="10"><ContentControl x:Name="HomeAboutIcon"/><TextBlock x:Name="HomeAboutLabel" loc:Ui.Text="關於黑板"/></StackPanel></Button>
     </StackPanel>
@@ -159,7 +159,7 @@
      <Button x:Name="HomeButton" Click="Home_Click" loc:Ui.ToolTip="回到作品庫"/>
      <Border Width="1" Height="16" Background="#D4DBD1" Margin="2,0"/>
      <Button x:Name="ReadingModeButton" Click="ReadingMode_Click" loc:Ui.ToolTip="閱讀模式：拖曳移動畫布，不會畫線"/>
-     <Button x:Name="ScreenCanvasButton" Click="ScreenCanvas_Click" loc:Ui.ToolTip="我的螢幕就是我的畫布（Ctrl+Alt+A）"/>
+     <Button x:Name="ScreenCanvasButton" Click="ScreenCanvasMenu_Click" loc:Ui.ToolTip="我的螢幕就是我的畫布（Ctrl+Alt+A）"/>
      <Button x:Name="PinNavButton" Click="Pin_Click" loc:Ui.ToolTip="圖釘"/>
      <Button x:Name="InsertNavButton" Click="InsertNav_Click" loc:Ui.ToolTip="＋ 插入內容與輔助工具"/>
      <Button x:Name="MoreNavButton" Click="MoreNav_Click" loc:Ui.ToolTip="⋯ 更多：筆記資訊、背景、圖層、匯出"/>

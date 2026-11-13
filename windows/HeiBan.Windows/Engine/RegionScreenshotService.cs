@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using global::Windows.Graphics;
 using System.Runtime.InteropServices;
 
 namespace HeiBan.Windows.Engine;
@@ -12,9 +13,12 @@ public static class RegionScreenshotService
 {
     public sealed record CapturedRegion(byte[] Bytes,int Left,int Top,int Width,int Height);
     public static async Task<byte[]?> CaptureAsync(CancellationToken cancellationToken)=>(await CaptureRegionAsync(cancellationToken))?.Bytes;
-    public static Task<CapturedRegion?> CaptureRegionAsync(CancellationToken cancellationToken)=>Task.Run(()=>SelectRegion(cancellationToken),cancellationToken);
+    public static Task<CapturedRegion?> CaptureRegionAsync(CancellationToken cancellationToken,RectInt32? limit=null)=>
+        Task.Run(()=>SelectRegion(cancellationToken,true,limit).Capture,cancellationToken);
+    public static Task<RectInt32?> PickBoundsAsync(CancellationToken cancellationToken)=>
+        Task.Run(()=>SelectRegion(cancellationToken,false,null).Bounds,cancellationToken);
 
-    private static CapturedRegion? SelectRegion(CancellationToken token)
+    private static (CapturedRegion? Capture,RectInt32? Bounds) SelectRegion(CancellationToken token,bool capture,RectInt32? limit)
     {
         token.ThrowIfCancellationRequested();
         var oldDpi = SetThreadDpiAwarenessContext(new nint(-4));
@@ -25,10 +29,11 @@ public static class RegionScreenshotService
         ushort registered = 0;
         Exception? failure = null;
         CapturedRegion? result = null;
+        RectInt32? bounds = null;
         bool dragging = false, completed = false;
         Point start = default, current = default;
-        var originX = GetSystemMetrics(76); var originY = GetSystemMetrics(77);
-        var width = GetSystemMetrics(78); var height = GetSystemMetrics(79);
+        var originX = limit?.X ?? GetSystemMetrics(76); var originY = limit?.Y ?? GetSystemMetrics(77);
+        var width = limit?.Width ?? GetSystemMetrics(78); var height = limit?.Height ?? GetSystemMetrics(79);
 
         Rect Selection() => new()
         {
@@ -54,11 +59,19 @@ public static class RegionScreenshotService
                         try
                         {
                             // Compose the fog once; pointer events only copy the cached image and reveal the crop.
-                            BitBlt(dc, 0, 0, width, height, dimDc, 0, 0, 0x00CC0020);
-                            if(dragging){var selected=Selection();BitBlt(dc,selected.Left,selected.Top,selected.Right-selected.Left,selected.Bottom-selected.Top,snapshotDc,selected.Left,selected.Top,0x00CC0020);}
+                            if(capture)
+                            {
+                                BitBlt(dc, 0, 0, width, height, dimDc, 0, 0, 0x00CC0020);
+                                if(dragging){var selected=Selection();BitBlt(dc,selected.Left,selected.Top,selected.Right-selected.Left,selected.Bottom-selected.Top,snapshotDc,selected.Left,selected.Top,0x00CC0020);}
+                            }
+                            else
+                            {
+                                var background=new Rect{Right=width,Bottom=height};
+                                FillRect(dc,ref background,GetStockObject(4));
+                            }
                             SetBkMode(dc, 1);
                             SetTextColor(dc, 0x00FFFFFF);
-                            var help = Localization.Strings.T("拖曳框選截圖 · Esc 或右鍵取消");
+                            var help = Localization.Strings.T(capture?"拖曳框選截圖 · Esc 或右鍵取消":"拖曳框選螢幕畫布區域 · Esc 或右鍵取消");
                             // Measure translated guidance and wrap within the desktop; selection coordinates stay unchanged.
                             var flags = 0x10u | (Localization.Strings.RightToLeft ? 0x20000u : 0u); // DT_WORDBREAK / DT_RTLREADING
                             var textRect = new Rect { Left = 28, Top = 26, Right = Math.Max(29, width - 28), Bottom = height - 26 };
@@ -70,7 +83,7 @@ public static class RegionScreenshotService
                             if (dragging)
                             {
                                 var rect = Selection();
-                                var pen = CreatePen(0, 3, 0x00C47639);
+                                var pen = CreatePen(0, 3, capture?0x00C47639u:0x00FFFFFFu);
                                 var oldPen = SelectObject(dc, pen);
                                 var oldBrush = SelectObject(dc, GetStockObject(5)); // hollow brush
                                 try { Rectangle(dc, rect.Left, rect.Top, rect.Right, rect.Bottom); }
@@ -93,11 +106,14 @@ public static class RegionScreenshotService
                             if (rect.Right - rect.Left >= 2 && rect.Bottom - rect.Top >= 2)
                             {
                                 // Crop the pre-overlay snapshot, never the selection UI itself.
-                                result = new CapturedRegion(EncodeBmp(snapshotDc, rect),originX+rect.Left,originY+rect.Top,rect.Right-rect.Left,rect.Bottom-rect.Top);
+                                var selected=new RectInt32(originX+rect.Left,originY+rect.Top,rect.Right-rect.Left,rect.Bottom-rect.Top);
+                                bounds=selected;
+                                if(capture)result=new CapturedRegion(EncodeBmp(snapshotDc,rect),selected.X,selected.Y,selected.Width,selected.Height);
                             }
                             completed = true; DestroyWindow(hwnd);
                         }
                         return 0;
+                    case 0x007E: // display geometry changed
                     case 0x0204: // right click
                     case 0x0010: // close/cancellation
                         completed = true; DestroyWindow(hwnd); return 0;
@@ -119,18 +135,21 @@ public static class RegionScreenshotService
         try
         {
             if (width <= 0 || height <= 0) throw new InvalidOperationException("沒有可擷取的桌面。");
-            DwmFlush();
-            screen = GetDC(0);
-            snapshotDc = CreateCompatibleDC(screen);
-            snapshot = CreateCompatibleBitmap(screen, width, height);
-            if (screen == 0 || snapshotDc == 0 || snapshot == 0) throw new Win32Exception();
-            previous = SelectObject(snapshotDc, snapshot);
-            if (!BitBlt(snapshotDc, 0, 0, width, height, screen, originX, originY, 0x40CC0020))
-                throw new Win32Exception();
-            dimDc=CreateCompatibleDC(screen);dimBitmap=CreateCompatibleBitmap(screen,width,height);
-            if(dimDc==0||dimBitmap==0)throw new Win32Exception();
-            dimPrevious=SelectObject(dimDc,dimBitmap);BitBlt(dimDc,0,0,width,height,snapshotDc,0,0,0x00CC0020);
-            ApplyFog(screen,dimDc,width,height);
+            if(capture)
+            {
+                DwmFlush();
+                screen = GetDC(0);
+                snapshotDc = CreateCompatibleDC(screen);
+                snapshot = CreateCompatibleBitmap(screen, width, height);
+                if (screen == 0 || snapshotDc == 0 || snapshot == 0) throw new Win32Exception();
+                previous = SelectObject(snapshotDc, snapshot);
+                if (!BitBlt(snapshotDc, 0, 0, width, height, screen, originX, originY, 0x40CC0020))
+                    throw new Win32Exception();
+                dimDc=CreateCompatibleDC(screen);dimBitmap=CreateCompatibleBitmap(screen,width,height);
+                if(dimDc==0||dimBitmap==0)throw new Win32Exception();
+                dimPrevious=SelectObject(dimDc,dimBitmap);BitBlt(dimDc,0,0,width,height,snapshotDc,0,0,0x00CC0020);
+                ApplyFog(screen,dimDc,width,height);
+            }
             var wc = new WindowClass
             {
                 Size = (uint)Marshal.SizeOf<WindowClass>(), Procedure = callback,
@@ -138,9 +157,10 @@ public static class RegionScreenshotService
             };
             registered = RegisterClassEx(ref wc);
             if (registered == 0) throw new Win32Exception();
-            window = CreateWindowEx(0x00000008 | 0x00000080, className,
-                "黑板 · 區域截圖", 0x80000000, originX, originY, width, height, 0, 0, instance, 0);
+            window = CreateWindowEx(0x00000008u | 0x00000080u | (capture?0u:0x00080000u), className,
+                capture?"黑板 · 區域截圖":"HeiBan · "+Localization.Strings.T("螢幕畫布（區域）"), 0x80000000, originX, originY, width, height, 0, 0, instance, 0);
             if (window == 0) throw new Win32Exception();
+            if(!capture&&!SetLayeredWindowAttributes(window,0,105,2))throw new Win32Exception(Marshal.GetLastWin32Error());
             using var cancellation = token.Register(() => PostMessage(window, 0x0010, 0, 0));
             ShowWindow(window, 5); SetForegroundWindow(window); UpdateWindow(window);
             while (!completed)
@@ -152,7 +172,7 @@ public static class RegionScreenshotService
             }
             token.ThrowIfCancellationRequested();
             if (failure is not null) throw failure;
-            return result;
+            return (result,bounds);
         }
         finally
         {
@@ -291,6 +311,7 @@ public static class RegionScreenshotService
     [DllImport("user32.dll")] private static extern void PostQuitMessage(int exitCode);
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern bool PostMessage(nint hwnd, uint message, nuint wParam, nint lParam);
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern nint LoadCursor(nint instance, nint cursor);
+    [DllImport("user32.dll", SetLastError = true)] private static extern bool SetLayeredWindowAttributes(nint hwnd,uint colorKey,byte alpha,uint flags);
     [DllImport("dwmapi.dll")] private static extern int DwmFlush();
     [DllImport("gdi32.dll")] private static extern nint CreateCompatibleDC(nint dc);
     [DllImport("gdi32.dll")] private static extern nint CreateCompatibleBitmap(nint dc, int width, int height);

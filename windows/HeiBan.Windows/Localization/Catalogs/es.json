@@ -718,5 +718,9 @@
   "水平翻轉": "Voltear horizontalmente",
   "垂直翻轉": "Voltear verticalmente",
   "新建圖釘": "Nuevo marcador",
-  "直接複製一個": "Duplicar objeto"
+  "直接複製一個": "Duplicar objeto",
+  "螢幕畫布（區域）": "Lienzo de pantalla (región)",
+  "拖曳框選螢幕畫布區域 · Esc 或右鍵取消": "Arrastra para seleccionar el área · Esc o clic derecho para cancelar",
+  "選取區域太小，請框選能容納工具列的範圍。": "La región es demasiado pequeña. Selecciona un área que pueda alojar la barra de herramientas.",
+  "選取的區域已超出目前螢幕，請重新框選。": "La región seleccionada está fuera de la pantalla actual. Selecciónala de nuevo."
 }

@@ -17,6 +17,7 @@ internal sealed class OperateRadialHook : IDisposable
     private readonly Action<Signal> _publish;
     private readonly Action<Exception> _failed;
     private readonly TaskCompletionSource _ready=new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private readonly global::Windows.Graphics.RectInt32? _region;
     private readonly int _ownPid=Environment.ProcessId;
     private uint _threadId,_ownIntegrity;
     private nuint _timer;
@@ -34,9 +35,9 @@ internal sealed class OperateRadialHook : IDisposable
 #if HEIBAN_RELEASE_VALIDATION
     internal int OnlyTargetProcessId;
 #endif
-    internal OperateRadialHook(Action<Signal> publish,Action<Exception> failed)
+    internal OperateRadialHook(Action<Signal> publish,Action<Exception> failed,global::Windows.Graphics.RectInt32? region=null)
     {
-        _publish=publish;_failed=failed;_callback=Callback;
+        _region=region;_publish=publish;_failed=failed;_callback=Callback;
         _thread=new Thread(Run){IsBackground=true,Name="HeiBan operate right gesture"};_thread.Start();
     }
     private static double Now=>Stopwatch.GetTimestamp()/(double)Stopwatch.Frequency;
@@ -115,6 +116,8 @@ internal sealed class OperateRadialHook : IDisposable
     }
     private bool Eligible(Point point,out nint target)
     {
+        target=0;
+        if(_region is { } region&&(point.X<region.X||point.Y<region.Y||point.X>=region.X+region.Width||point.Y>=region.Y+region.Height))return false;
         target=GetAncestor(WindowFromPoint(point),2);if(target==0)return false;
         GetWindowThreadProcessId(target,out var pid);if(pid==0||pid==_ownPid)return false;
 #if HEIBAN_RELEASE_VALIDATION

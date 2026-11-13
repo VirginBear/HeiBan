@@ -26,9 +26,9 @@ internal sealed partial class ScreenAnnotationWindow
         _textOriginalId=existing?.Id;_textDraft=existing is null?new BoardObject{Type=type,X=point.X,Y=point.Y,Width=280*_dpiScale,Height=100*_dpiScale,FontSize=24*_dpiScale,StrokeColor=_color,Opacity=_opacity,FillColor=type=="sticky"?"#FFF0AB":"none",Text=""}:DocumentCodec.Clone(existing);
         var window=new Window{Title=T("文字")};_textWindow=window;
         if(window.AppWindow.Presenter is OverlappedPresenter presenter){presenter.IsAlwaysOnTop=true;presenter.IsResizable=false;presenter.SetBorderAndTitleBar(false,false);}
-        var area=DisplayArea.GetFromWindowId(AppWindow.Id,DisplayAreaFallback.Primary).WorkArea;
+        var area=ChromeArea;
         window.AppWindow.Move(new PointInt32((int)Math.Clamp(_overlay.Left+_textDraft.X,area.X,Math.Max(area.X,area.X+area.Width-340*_dpiScale)),(int)Math.Clamp(_overlay.Top+_textDraft.Y,area.Y,Math.Max(area.Y,area.Y+area.Height-240*_dpiScale))));
-        _textDpi=NativeOverlayWindow.DpiScale(WinRT.Interop.WindowNative.GetWindowHandle(window));window.AppWindow.Resize(new SizeInt32((int)(340*_textDpi),(int)(240*_textDpi)));
+        _textDpi=NativeOverlayWindow.DpiScale(WinRT.Interop.WindowNative.GetWindowHandle(window));ResizeScreenWindow(window,(int)(340*_textDpi),(int)(240*_textDpi));
         var input=new TextDraftEditor{Text=_textDraft.Text??"",TextWrapping=TextWrapping.Wrap,Height=164,HorizontalAlignment=HorizontalAlignment.Stretch};_textInput=input;RefreshScreenTextDraft();
         var panel=new StackPanel{Spacing=8,Padding=new Thickness(10),RequestedTheme=ElementTheme.Light};panel.Children.Add(input);
         var buttons=new StackPanel{Orientation=Orientation.Horizontal,Spacing=8};var done=new Button{Content=T("完成 · Ctrl+Enter")};var cancel=new Button{Content=T("取消 · Esc")};buttons.Children.Add(done);buttons.Children.Add(cancel);panel.Children.Add(buttons);
@@ -37,8 +37,8 @@ internal sealed partial class ScreenAnnotationWindow
         input.KeyDown+=(_,args)=>{if(args.Key==VirtualKey.Escape){FinishScreenText(false);args.Handled=true;}else if(args.Key==VirtualKey.Enter&&Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control).HasFlag(global::Windows.UI.Core.CoreVirtualKeyStates.Down)){FinishScreenText();args.Handled=true;}};
         input.ContextFlyout=null;input.RightTapped+=(_,args)=>{
             var draft=_textDraft;if(draft is null)return;var menu=input.CreateTextMenu();
-            TextStyleMenu.Append(menu,new[]{draft},change=>{if(ReferenceEquals(_textDraft,draft)){TextStyles.Apply(draft,change,_dpiScale);RefreshScreenTextDraft();}},flyout=>{flyout.ShouldConstrainToRootBounds=false;flyout.ShowAt(input);},()=>ReferenceEquals(_textDraft,draft),scale:_dpiScale,draft:true);
-            menu.ShouldConstrainToRootBounds=false;menu.ShowAt(input,new FlyoutShowOptions{Position=args.GetPosition(input)});args.Handled=true;
+            TextStyleMenu.Append(menu,new[]{draft},change=>{if(ReferenceEquals(_textDraft,draft)){TextStyles.Apply(draft,change,_dpiScale);RefreshScreenTextDraft();}},flyout=>{flyout.ShouldConstrainToRootBounds=_region is not null;flyout.ShowAt(input);},()=>ReferenceEquals(_textDraft,draft),scale:_dpiScale,draft:true);
+            menu.ShouldConstrainToRootBounds=_region is not null;menu.ShowAt(input,new FlyoutShowOptions{Position=args.GetPosition(input)});args.Handled=true;
         };
         window.AppWindow.Closing+=(_,args)=>{if(!ReferenceEquals(_textWindow,window))return;args.Cancel=true;FinishScreenText();};
         window.Activate();input.Focus(FocusState.Programmatic);

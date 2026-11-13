@@ -718,5 +718,9 @@
   "水平翻轉": "Horizontal spiegeln",
   "垂直翻轉": "Vertikal spiegeln",
   "新建圖釘": "Neue Markierung",
-  "直接複製一個": "Objekt duplizieren"
+  "直接複製一個": "Objekt duplizieren",
+  "螢幕畫布（區域）": "Bildschirm-Leinwand (Bereich)",
+  "拖曳框選螢幕畫布區域 · Esc 或右鍵取消": "Bereich durch Ziehen auswählen · Esc oder Rechtsklick zum Abbrechen",
+  "選取區域太小，請框選能容納工具列的範圍。": "Der Bereich ist zu klein. Wählen Sie einen größeren Bereich für die Werkzeugleiste.",
+  "選取的區域已超出目前螢幕，請重新框選。": "Der gewählte Bereich liegt außerhalb des aktuellen Bildschirms. Wählen Sie ihn erneut aus."
 }

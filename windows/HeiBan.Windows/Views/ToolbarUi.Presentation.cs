@@ -122,29 +122,30 @@ internal static partial class ToolbarUi
             else if((unit.Parent??VisualTreeHelper.GetParent(unit)) is Panel parent)parent.Children.Remove(unit);
         }
     }
-    internal static ToolbarFlowPanel? Arrange(Panel host,IEnumerable<(string Key,Button Button)> source,bool labels,bool vertical,string activePage,Action<string> changePage,double iconSize,IReadOnlyCollection<string>? commonTools=null,double scale=1)
+    internal static ToolbarFlowPanel? Arrange(Panel host,IEnumerable<(string Key,Button Button)> source,bool labels,bool vertical,string activePage,Action<string> changePage,double iconSize,IReadOnlyCollection<string>? commonTools=null,double scale=1,bool compact=false,Action<MenuFlyout,FrameworkElement>? showPageMenu=null)
     {
         var buttons=source.ToArray();
         // Detach from their former page before reparenting on dock/language/preference changes.
         DetachButtons(buttons.Select(item=>item.Button));
         host.Children.Clear();
         foreach(var (key,button) in buttons){LabelMode(button,key,labels,iconSize,vertical,scale);ArrangeQuickPalette(button,vertical,scale);EnableRadialDrag(button,key);}
-        if(!labels&&!vertical){foreach(var (_,button) in buttons.OrderBy(b=>b.Key=="select"?0:b.Key=="laser"?1:b.Key=="cane"?2:3))AttachButton(host,button);return null;}
+        if(!labels&&!vertical&&!compact){foreach(var (_,button) in buttons.OrderBy(b=>b.Key=="select"?0:b.Key=="laser"?1:b.Key=="cane"?2:3))AttachButton(host,button);return null;}
         var shell=new StackPanel{Orientation=vertical?Orientation.Vertical:Orientation.Horizontal,Spacing=vertical?3:6};
-        foreach(var key in ToolbarPreferences.FixedTools)if(buttons.FirstOrDefault(b=>b.Key==key).Button is { } pinned)AttachButton(shell,pinned);
+        foreach(var key in compact?Array.Empty<string>():ToolbarPreferences.FixedTools)if(buttons.FirstOrDefault(b=>b.Key==key).Button is { } pinned)AttachButton(shell,pinned);
         var body=new StackPanel{Spacing=vertical?6:4};
         var tabs=new StackPanel{Orientation=vertical?Orientation.Vertical:Orientation.Horizontal,Spacing=3};
         var flow=new ToolbarFlowPanel{Orientation=vertical?Orientation.Vertical:Orientation.Horizontal,RunLength=vertical?600:900,Spacing=3,SingleRun=true};
         var tabButtons=new Dictionary<string,Button>();
         var pageMenu = new MenuFlyout();
-        var pageButton = new Button { Width = SideToolbarWidth * scale, Height = 30 * scale, MinWidth = 0, Padding = new Thickness(2), FontSize = Math.Max(10, 11 * scale), Flyout = pageMenu };
-        if (vertical && labels) ApplyReadingDirection(pageMenu);
+        var pageButton = new Button { Width = SideToolbarWidth * scale, Height = 30 * scale, MinWidth = 0, Padding = new Thickness(2), FontSize = Math.Max(10, 11 * scale), Flyout = showPageMenu is null?pageMenu:null };
+        if ((vertical||compact) && labels) ApplyReadingDirection(pageMenu);
+        if(showPageMenu is not null)pageButton.Click+=(_,_)=>showPageMenu(pageMenu,pageButton);
         void Show(string page)
         {
             flow.Children.Clear();flow.PageOffset=0;
-            foreach(var (key,button) in buttons.Where(b=>b.Key!="more"&&!ToolbarPreferences.IsFixedTool(b.Key)&&(!labels|| (page=="common"?(commonTools?.Contains(b.Key)??PageFor(b.Key)=="common"):PageFor(b.Key)==page))))AttachButton(flow,button);
+            foreach(var (key,button) in buttons.Where(b=>b.Key!="more"&&(compact||!ToolbarPreferences.IsFixedTool(b.Key))&&(!labels||ToolbarPreferences.IsFixedTool(b.Key)|| (page=="common"?(commonTools?.Contains(b.Key)??PageFor(b.Key)=="common"):PageFor(b.Key)==page))))AttachButton(flow,button);
             foreach(var pair in tabButtons)pair.Value.Background=new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(pair.Key==page?(byte)45:(byte)0,57,115,90));
-            if (vertical && labels)
+            if ((vertical||compact) && labels)
             {
                 var name = T(Pages.First(p => p.Key == page).Label);
                 pageButton.Content = new TextBlock { Text = name + " ▾", MaxWidth = 50 * scale, TextTrimming = TextTrimming.CharacterEllipsis };
@@ -155,7 +156,7 @@ internal static partial class ToolbarUi
         foreach(var (key,label) in Pages)
         {
             if (!labels) break;
-            if (vertical)
+            if (vertical||compact)
             {
                 var item = new MenuFlyoutItem { Text = T(label) };
                 item.Click += (_, _) => Show(key);
@@ -191,7 +192,8 @@ internal static partial class ToolbarUi
             strip.Children.Add(previous);
             strip.Children.Add(flow);
             strip.Children.Add(next);
-            body.Children.Add(tabs);
+            if(compact){if(labels)body.Children.Add(pageButton);}
+            else body.Children.Add(tabs);
             body.Children.Add(strip);
         }
 

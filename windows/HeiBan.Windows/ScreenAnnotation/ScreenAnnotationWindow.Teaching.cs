@@ -210,12 +210,14 @@ internal sealed partial class ScreenAnnotationWindow
                 clearHist.Click += (_, _) => { _calculator.History.Clear(); };
                 histMenu.Items.Add(clearHist);
             }
+            histMenu.ShouldConstrainToRootBounds=_region is not null;
             histMenu.ShowAt(historyBtn);
         };
         actionsRow.Children.Add(historyBtn);
         panel.Children.Add(actionsRow);
 
-        _screenCalcWindow = new ScreenFloatingToolWindow(T("計算機"), panel, 340, 520, () => _screenCalcWindow = null);
+        _screenCalcWindow = new ScreenFloatingToolWindow(T("計算機"), panel, 340, 520, () => _screenCalcWindow = null,_region);
+        PlaceRegionWindow(_screenCalcWindow);
         _screenCalcWindow.Activate();
     }
 
@@ -352,7 +354,8 @@ internal sealed partial class ScreenAnnotationWindow
         {
             _screenTimerDisplayUpdater=null;
             _screenTimerWindow = null;
-        });
+        },_region);
+        PlaceRegionWindow(_screenTimerWindow);
         _screenTimerWindow.Activate();
     }
 }

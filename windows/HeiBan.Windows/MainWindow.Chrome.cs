@@ -166,6 +166,7 @@ public partial class MainWindow
         var screenAnnotateItem = new MenuFlyoutItem { Text = T("我的螢幕就是我的畫布"), Icon = ToolIcons.CreateMenuIcon("infinite") };
         screenAnnotateItem.Click += async (_, _) => await StartScreenAnnotationAsync();
         menu.Items.Add(screenAnnotateItem);
+        menu.Items.Add(CreateScreenRegionMenuItem());
 
         ShowExclusiveFlyout(menu, InsertNavButton);
     }
@@ -577,7 +578,7 @@ public partial class MainWindow
     {
         var menu = new MenuFlyout();
         var screenItem=new MenuFlyoutItem { Text=T("我的螢幕就是我的畫布"),Icon=ToolIcons.CreateMenuIcon("screen") };
-        screenItem.Click+=(_,_)=>ScreenCanvas_Click(this,new());menu.Items.Add(screenItem);menu.Items.Add(new MenuFlyoutSeparator());
+        screenItem.Click+=async(_,_)=>await StartScreenAnnotationAsync();menu.Items.Add(screenItem);menu.Items.Add(CreateScreenRegionMenuItem());menu.Items.Add(new MenuFlyoutSeparator());
 
         var boardEraserItem=new ToggleMenuFlyoutItem { Text=T("顯示板擦"),IsChecked=_toolbarPrefs.BoardEraserVisible };
         boardEraserItem.Click+=async(_,_)=>
