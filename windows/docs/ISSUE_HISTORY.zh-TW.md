@@ -1,5 +1,9 @@
 # Windows 問題與排解紀錄
 
+## 2026-11-13 — 多頁圖片常駐與讀回放大
+
+原本開啟筆記解碼所有頁，固定工具也會擴張相距較遠的螢幕筆畫髒區。改按頁回收與局部合成。首輪 WinUI 建置因 Windows.Foundation.Rect 缺少 IntersectsWith 失敗，換成區域邊界判斷後通過。[本批紀錄](PDF_SCREEN_PERFORMANCE_2026-11-13.zh-TW.md)。
+
 ## 2026-11-13 — 直播合成與區域作畫
 
 OBS 視窗來源抓單一視窗，使用者要求移除區域作畫。保留既有註記與舊試用封裝。指定視窗加註記合成列為後續候選。[本批紀錄](REMOVE_SCREEN_REGION_REVIEW_2026-11-13.zh-TW.md)。
