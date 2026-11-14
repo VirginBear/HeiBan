@@ -50,7 +50,6 @@
   "五角形": "Pentágono",
   "五邊形": "Pentágono",
   "以圖片頁面匯入": "Importar como imagens de página",
-  "作品仍保留筆跡、圖片與頁面；點選作品可還原。": "Traços, imagens e páginas são mantidos. Selecione um trabalho para restaurar.",
   "作品名稱": "Nome",
   "作品庫": "Biblioteca",
   "作品庫偏好未保存：": "Preferências da biblioteca não foram salvas: ",
@@ -291,7 +290,6 @@
   "截圖：拖曳框選後直接置入畫布": "Captura: arraste uma região para inserir na tela",
   "所有作品": "Todos os trabalhos",
   "所有作品  {0}": "Todos os trabalhos  {0}",
-  "所選 {0} 份作品會保留在垃圾桶，可從左側還原。": "Os {0} trabalhos ficarão na lixeira e poderão ser restaurados pela barra lateral.",
   "手冊路徑未找到": "Guia não encontrado",
   "手寫筆跡": "Traço manuscrito",
   "拖到目標圖層": "Arraste acima ou abaixo da camada de destino",
@@ -401,7 +399,6 @@
   "每頁匯入為鎖定背景圖片，可在上方繪圖。原文件文字與圖形不會轉成可編輯物件。": "Cada página vira uma imagem de fundo bloqueada sobre a qual você pode desenhar. O texto e as formas originais não são editáveis.",
   "水平 0.0°": "Horizontal 0,0°",
   "水彩": "Aquarela",
-  "沒有已刪除的作品。": "A lixeira está vazia",
   "沒有符合的作品": "Nenhum trabalho encontrado",
   "油漆": "Pincel de pintura",
   "油漆筆": "Pincel de pintura",
@@ -720,5 +717,12 @@
   "新建圖釘": "Novo marcador",
   "直接複製一個": "Duplicar objeto",
   "開啟 OBS 擷取視窗": "Abrir janela de captura do OBS",
-  "OBS 擷取視窗無法開啟。": "Não foi possível abrir a janela de captura do OBS."
+  "OBS 擷取視窗無法開啟。": "Não foi possível abrir a janela de captura do OBS.",
+  "作品保留 {0} 天，開啟程式或重新整理作品庫時會清理到期作品。可從右鍵或 ⋯ 選單還原或永久刪除。": "Os trabalhos ficam na lixeira por {0} dias. Os que expirarem serão removidos ao abrir o aplicativo ou atualizar a biblioteca. Use o menu do botão direito ou ⋯ para restaurar ou excluir permanentemente.",
+  "所選 {0} 份作品可在 {1} 天內還原。": "Você pode restaurar os {0} trabalhos selecionados em até {1} dias.",
+  "永久刪除": "Excluir permanentemente",
+  "永久刪除作品？": "Excluir este trabalho permanentemente?",
+  "「{0}」將永久刪除，無法還原。": "“{0}” será excluído permanentemente e não poderá ser restaurado.",
+  "保留至 {0}": "Mantido até {0}",
+  "尚未排定清理": "Exclusão não agendada"
 }

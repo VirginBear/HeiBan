@@ -50,7 +50,6 @@
   "五角形": "Pentagone",
   "五邊形": "Pentagone",
   "以圖片頁面匯入": "Importer sous forme d’images de pages",
-  "作品仍保留筆跡、圖片與頁面；點選作品可還原。": "Traits, images et pages sont conservés. Sélectionnez une création pour la restaurer.",
   "作品名稱": "Nom",
   "作品庫": "Bibliothèque",
   "作品庫偏好未保存：": "Préférences de bibliothèque non enregistrées : ",
@@ -291,7 +290,6 @@
   "截圖：拖曳框選後直接置入畫布": "Capture : glissez une zone pour l'insérer dans le canevas",
   "所有作品": "Toutes les créations",
   "所有作品  {0}": "Toutes les créations  {0}",
-  "所選 {0} 份作品會保留在垃圾桶，可從左側還原。": "Les {0} créations resteront dans la corbeille et pourront être restaurées depuis la barre latérale.",
   "手冊路徑未找到": "Guide introuvable",
   "手寫筆跡": "Trait manuscrit",
   "拖到目標圖層": "Glissez au-dessus ou au-dessous du calque cible",
@@ -401,7 +399,6 @@
   "每頁匯入為鎖定背景圖片，可在上方繪圖。原文件文字與圖形不會轉成可編輯物件。": "Chaque page devient une image de fond verrouillée sur laquelle vous pouvez dessiner. Le texte et les formes d’origine ne sont pas modifiables.",
   "水平 0.0°": "Horizontal 0,0°",
   "水彩": "Aquarelle",
-  "沒有已刪除的作品。": "La corbeille est vide",
   "沒有符合的作品": "Aucune création correspondante",
   "油漆": "Pinceau de peinture",
   "油漆筆": "Pinceau de peinture",
@@ -720,5 +717,12 @@
   "新建圖釘": "Nouveau repère",
   "直接複製一個": "Dupliquer l’objet",
   "開啟 OBS 擷取視窗": "Ouvrir la fenêtre de capture OBS",
-  "OBS 擷取視窗無法開啟。": "Impossible d’ouvrir la fenêtre de capture OBS."
+  "OBS 擷取視窗無法開啟。": "Impossible d’ouvrir la fenêtre de capture OBS.",
+  "作品保留 {0} 天，開啟程式或重新整理作品庫時會清理到期作品。可從右鍵或 ⋯ 選單還原或永久刪除。": "Les créations sont conservées {0} jours. Celles arrivées à expiration sont supprimées à l’ouverture de l’application ou à l’actualisation de la bibliothèque. Utilisez le clic droit ou ⋯ pour les restaurer ou les supprimer définitivement.",
+  "所選 {0} 份作品可在 {1} 天內還原。": "Vous pouvez restaurer les {0} créations sélectionnées dans un délai de {1} jours.",
+  "永久刪除": "Supprimer définitivement",
+  "永久刪除作品？": "Supprimer définitivement cette création ?",
+  "「{0}」將永久刪除，無法還原。": "« {0} » sera supprimée définitivement et ne pourra pas être restaurée.",
+  "保留至 {0}": "Conservé jusqu’au {0}",
+  "尚未排定清理": "Suppression non planifiée"
 }

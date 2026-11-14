@@ -50,7 +50,6 @@
   "五角形": "Pentagon",
   "五邊形": "Pentagon",
   "以圖片頁面匯入": "Import as page images",
-  "作品仍保留筆跡、圖片與頁面；點選作品可還原。": "Ink, images and pages are kept. Select a work to restore it.",
   "作品名稱": "Name",
   "作品庫": "Library",
   "作品庫偏好未保存：": "Library preferences were not saved: ",
@@ -291,7 +290,6 @@
   "截圖：拖曳框選後直接置入畫布": "Screenshot: drag a region to insert it into the canvas",
   "所有作品": "All works",
   "所有作品  {0}": "All works  {0}",
-  "所選 {0} 份作品會保留在垃圾桶，可從左側還原。": "The {0} selected works will stay in Trash and can be restored from the sidebar.",
   "手冊路徑未找到": "User guide was not found",
   "手寫筆跡": "Ink stroke",
   "拖到目標圖層": "Drag above or below the target layer",
@@ -401,7 +399,6 @@
   "每頁匯入為鎖定背景圖片，可在上方繪圖。原文件文字與圖形不會轉成可編輯物件。": "Each page becomes a locked background image you can draw on. Original text and shapes are not editable objects.",
   "水平 0.0°": "Horizontal 0.0°",
   "水彩": "Watercolor",
-  "沒有已刪除的作品。": "Trash is empty",
   "沒有符合的作品": "No matching works",
   "油漆": "Paint brush",
   "油漆筆": "Paint brush",
@@ -720,5 +717,12 @@
   "新建圖釘": "New pin",
   "直接複製一個": "Duplicate object",
   "開啟 OBS 擷取視窗": "Open OBS capture window",
-  "OBS 擷取視窗無法開啟。": "Could not open the OBS capture window."
+  "OBS 擷取視窗無法開啟。": "Could not open the OBS capture window.",
+  "作品保留 {0} 天，開啟程式或重新整理作品庫時會清理到期作品。可從右鍵或 ⋯ 選單還原或永久刪除。": "Works stay in Trash for {0} days. Expired works are removed when you open the app or refresh the library. Use the right-click or ⋯ menu to restore or permanently delete them.",
+  "所選 {0} 份作品可在 {1} 天內還原。": "You can restore the {0} selected works within {1} days.",
+  "永久刪除": "Delete permanently",
+  "永久刪除作品？": "Permanently delete this work?",
+  "「{0}」將永久刪除，無法還原。": "“{0}” will be permanently deleted and cannot be restored.",
+  "保留至 {0}": "Kept until {0}",
+  "尚未排定清理": "Removal not scheduled"
 }

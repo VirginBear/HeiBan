@@ -30,9 +30,12 @@ public sealed record LibraryCard(BoardMetadata Board, string? Thumbnail) : Syste
     public string Background=>Board.BackgroundColor;
     public bool IsFavorite {get;init;}
     public string? TrashPath {get;init;}
+    public DateTimeOffset? TrashExpiresAt {get;init;}
     public bool CanFavorite=>TrashPath is null;
     public string FavoriteGlyph=>IsFavorite?"★":"☆";
-    public string Summary => DateTimeOffset.TryParse(Board.UpdatedAt,out var date)?date.ToLocalTime().ToString("yyyy/M/d HH:mm"):T("本機儲存");
+    public string Summary => TrashPath is not null
+        ? TrashExpiresAt is { } expiry ? F($"保留至 {expiry.ToLocalTime().ToString("g",Localization.Strings.Culture)}") : T("尚未排定清理")
+        : DateTimeOffset.TryParse(Board.UpdatedAt,out var date)?date.ToLocalTime().ToString("yyyy/M/d HH:mm"):T("本機儲存");
 }
 public sealed record LayerCard(LayerListEntry Entry)
 {

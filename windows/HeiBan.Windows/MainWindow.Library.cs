@@ -23,7 +23,13 @@ public partial class MainWindow
         var menu=new MenuFlyout();
         void Add(string title,Func<Task> action)
         {var item=new MenuFlyoutItem{Text=title};item.Click+=async(_,_)=>{try{await action();await RefreshLibrary();}catch(Exception ex){await Error(ex);}};menu.Items.Add(item);}
-        if(chosen.TrashPath is { } trash){Add(T("還原"),()=>_storage.RestoreAsync(trash));ShowExclusiveFlyout(menu,anchor);return;}
+        if(chosen.TrashPath is { } trash)
+        {
+            Add(T("還原"),()=>_storage.RestoreAsync(trash));
+            Add(T("永久刪除"),()=>ConfirmDeleteTrashedWorkAsync(chosen.Title,trash));
+            ShowExclusiveFlyout(menu,anchor);
+            return;
+        }
         Add(T("開啟作品"),async()=>await OpenAsync(await _storage.LoadAsync(chosen.Board.Id)));
         Add(_libraryUi.Favorites.Contains(chosen.Board.Id)?T("取消收藏"):T("加入收藏"),()=>ToggleLibraryFavoriteAsync(chosen.Board.Id));
         Add(T("重新命名"),async()=>
@@ -38,14 +44,25 @@ public partial class MainWindow
         Add(T("移到垃圾桶"),async()=>{var selected=LibraryList.SelectedItems.OfType<LibraryCard>().ToArray();await TrashLibraryBoardsAsync(selected.Any(c=>c.Board.Id==chosen.Board.Id)?selected.Select(c=>c.Board.Id).ToArray():new[]{chosen.Board.Id});});
         ShowExclusiveFlyout(menu,anchor);
     }
-    private async void Trash_Click(object sender,RoutedEventArgs e)
+    private async Task ConfirmDeleteTrashedWorkAsync(string title,string trashPath)
     {
+        if(_libraryDeleteBusy)return;
+        _libraryDeleteBusy=true;
         try
         {
-            var entries=await Task.Run(()=>_storage.TrashedBoards().ToList());var list=new ListView{ItemsSource=entries.Select(x=>x.Title).ToList(),SelectionMode=ListViewSelectionMode.Single,MaxHeight=360};
-            var dialog=new ContentDialog{FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,Title=T("垃圾桶"),Content=entries.Count==0?new TextBlock{Text=T("沒有已刪除的作品。")}:list,PrimaryButtonText=T("還原"),CloseButtonText=T("關閉"),XamlRoot=Root.XamlRoot,IsPrimaryButtonEnabled=entries.Count>0};
-            if(await dialog.ShowAsync()!=ContentDialogResult.Primary||list.SelectedIndex<0)return;
-            await _storage.RestoreAsync(entries[list.SelectedIndex].Path);await RefreshLibrary();
-        }catch(Exception ex){await Error(ex);}
+            var dialog=new ContentDialog
+            {
+                FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,
+                Title=T("永久刪除作品？"),
+                Content=new TextBlock{Text=F($"「{title}」將永久刪除，無法還原。"),TextWrapping=TextWrapping.Wrap},
+                PrimaryButtonText=T("永久刪除"),
+                CloseButtonText=T("取消"),
+                DefaultButton=ContentDialogButton.Close,
+                XamlRoot=Root.XamlRoot
+            };
+            if(await dialog.ShowAsync()==ContentDialogResult.Primary)
+                await _storage.DeleteTrashEntryAsync(trashPath);
+        }
+        finally{_libraryDeleteBusy=false;}
     }
 }

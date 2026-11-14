@@ -50,7 +50,6 @@
   "五角形": "Fünfeck",
   "五邊形": "Fünfeck",
   "以圖片頁面匯入": "Als Seitenbilder importieren",
-  "作品仍保留筆跡、圖片與頁面；點選作品可還原。": "Striche, Bilder und Seiten bleiben erhalten. Werk zum Wiederherstellen auswählen.",
   "作品名稱": "Name",
   "作品庫": "Bibliothek",
   "作品庫偏好未保存：": "Bibliothekseinstellungen nicht gespeichert: ",
@@ -291,7 +290,6 @@
   "截圖：拖曳框選後直接置入畫布": "Bildschirmaufnahme: Bereich ziehen und in Leinwand einfügen",
   "所有作品": "Alle Werke",
   "所有作品  {0}": "Alle Werke  {0}",
-  "所選 {0} 份作品會保留在垃圾桶，可從左側還原。": "Die {0} ausgewählten Werke bleiben im Papierkorb und lassen sich über die Seitenleiste wiederherstellen.",
   "手冊路徑未找到": "Handbuch nicht gefunden",
   "手寫筆跡": "Handschriftstrich",
   "拖到目標圖層": "Über oder unter die Zielebene ziehen",
@@ -401,7 +399,6 @@
   "每頁匯入為鎖定背景圖片，可在上方繪圖。原文件文字與圖形不會轉成可編輯物件。": "Jede Seite wird als gesperrtes Hintergrundbild importiert, auf dem Sie zeichnen können. Originaltext und Formen sind nicht bearbeitbar.",
   "水平 0.0°": "Horizontal 0,0°",
   "水彩": "Aquarell",
-  "沒有已刪除的作品。": "Der Papierkorb ist leer",
   "沒有符合的作品": "Keine passenden Werke",
   "油漆": "Malpinsel",
   "油漆筆": "Malpinsel",
@@ -720,5 +717,12 @@
   "新建圖釘": "Neue Markierung",
   "直接複製一個": "Objekt duplizieren",
   "開啟 OBS 擷取視窗": "OBS-Aufnahmefenster öffnen",
-  "OBS 擷取視窗無法開啟。": "Das OBS-Aufnahmefenster konnte nicht geöffnet werden."
+  "OBS 擷取視窗無法開啟。": "Das OBS-Aufnahmefenster konnte nicht geöffnet werden.",
+  "作品保留 {0} 天，開啟程式或重新整理作品庫時會清理到期作品。可從右鍵或 ⋯ 選單還原或永久刪除。": "Werke bleiben {0} Tage im Papierkorb. Abgelaufene Werke werden beim Start der App oder beim Aktualisieren der Bibliothek gelöscht. Per Rechtsklick oder ⋯ kannst du sie wiederherstellen oder endgültig löschen.",
+  "所選 {0} 份作品可在 {1} 天內還原。": "Du kannst die {0} ausgewählten Werke innerhalb von {1} Tagen wiederherstellen.",
+  "永久刪除": "Endgültig löschen",
+  "永久刪除作品？": "Dieses Werk endgültig löschen?",
+  "「{0}」將永久刪除，無法還原。": "„{0}“ wird endgültig gelöscht und kann nicht wiederhergestellt werden.",
+  "保留至 {0}": "Aufbewahrt bis {0}",
+  "尚未排定清理": "Keine Löschung geplant"
 }

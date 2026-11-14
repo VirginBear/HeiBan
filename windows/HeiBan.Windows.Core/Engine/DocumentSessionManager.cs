@@ -6,13 +6,14 @@ using HeiBan.Windows.Models;
 namespace HeiBan.Windows.Engine;
 
 /// <summary>All application-owned data uses one explicit root; portable mode never falls back to AppData.</summary>
-public sealed class DocumentSessionManager
+public sealed partial class DocumentSessionManager
 {
     private readonly SemaphoreSlim _gate = new(1, 1);
     public string DataDirectory { get; }
     public bool IsPortableMode { get; }
-    public DocumentSessionManager(string? executableDirectory = null)
+    public DocumentSessionManager(string? executableDirectory = null, TimeProvider? timeProvider = null)
     {
+        _timeProvider = timeProvider ?? TimeProvider.System;
         var exe = executableDirectory ?? AppContext.BaseDirectory;
         IsPortableMode = File.Exists(Path.Combine(exe, "portable.dat"));
         var isolated = Environment.GetEnvironmentVariable("HEIBAN_WINDOWS_DATA_DIRECTORY");
@@ -30,7 +31,7 @@ public sealed class DocumentSessionManager
     /// <summary>The caller must not read or mutate this isolated snapshot until the task finishes.</summary>
     public Task SaveOwnedSnapshotAsync(HeiBanDocument snapshot,CancellationToken cancellationToken=default)
         =>SaveCoreAsync(snapshot,true,cancellationToken);
-    private async Task SaveCoreAsync(HeiBanDocument snapshot,bool owned,CancellationToken cancellationToken)
+    private async Task SaveCoreAsync(HeiBanDocument snapshot,bool owned,CancellationToken cancellationToken,bool requireNew = false)
     {
         await _gate.WaitAsync(cancellationToken);
         try
@@ -40,6 +41,7 @@ public sealed class DocumentSessionManager
             using var fileLock = new FileStream(path + ".lock", FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
             if (File.Exists(path))
             {
+                if (requireNew) throw new IOException("作品庫已有同名識別碼；先另存副本再還原。");
                 var disk = DocumentCodec.Decode(await File.ReadAllTextAsync(path, cancellationToken));
                 if (disk.Board.Revision > snapshot.Board.Revision)
                     throw new IOException("磁碟上的黑板較新；請重新開啟，或匯出副本以保留目前內容。");
@@ -80,43 +82,6 @@ public sealed class DocumentSessionManager
             result.Add(board);
         }
         return result.OrderByDescending(b => b.UpdatedAt).ToList();
-    }
-    public async Task TrashAsync(string id)
-    {
-        await _gate.WaitAsync();
-        try
-        {
-            var folder = Path.Combine(DataDirectory, "Trash", DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-ffff") + "-" + Key(id));
-            Directory.CreateDirectory(folder);
-            foreach (var file in new[] { BoardPath(id), BoardPath(id) + ".bak", ThumbnailPath(id),
-                Path.Combine(DataDirectory, "Metadata", Key(id) + ".json") })
-                if (File.Exists(file)) File.Move(file, Path.Combine(folder, Path.GetFileName(file)));
-        }
-        finally { _gate.Release(); }
-    }
-    public IEnumerable<(string Path, string Title)> TrashedBoards()
-        =>TrashedBoardEntries().Select(entry=>(entry.Path,entry.Board.Title));
-    public IEnumerable<(string Path, BoardMetadata Board)> TrashedBoardEntries()
-    {
-        foreach (var file in Directory.EnumerateFiles(Path.Combine(DataDirectory,"Trash"),"*.blackboard.json",SearchOption.AllDirectories))
-        {
-            HeiBanDocument doc;
-            try { doc=DocumentCodec.Decode(File.ReadAllText(file)); }
-            catch (Exception e) when (e is JsonException or InvalidDataException or NotSupportedException) { continue; }
-            yield return (file,doc.Board);
-        }
-    }
-    public async Task RestoreAsync(string trashPath)
-    {
-        var root=Path.GetFullPath(Path.Combine(DataDirectory,"Trash"))+Path.DirectorySeparatorChar;
-        if(!Path.GetFullPath(trashPath).StartsWith(root,StringComparison.OrdinalIgnoreCase))throw new InvalidDataException("無效的垃圾桶檔案。");
-        var doc=await ImportAsync(trashPath);
-        if(File.Exists(BoardPath(doc.Board.Id)))throw new IOException("作品庫已有同名識別碼；先另存副本再還原。");
-        await SaveAsync(doc);
-        var folder=Path.GetDirectoryName(trashPath)!;
-        var oldThumbnail=Path.Combine(folder,Path.GetFileName(ThumbnailPath(doc.Board.Id)));
-        if(File.Exists(oldThumbnail))File.Copy(oldThumbnail,ThumbnailPath(doc.Board.Id),true);
-        File.Delete(trashPath); // A restored copy now lives in Boards; retained backups remain in Trash.
     }
     public static async Task WriteAtomicAsync(string path, string content, CancellationToken cancellationToken = default)
     {

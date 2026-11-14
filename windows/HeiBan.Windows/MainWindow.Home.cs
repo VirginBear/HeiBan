@@ -62,10 +62,10 @@ public partial class MainWindow
     }
     private async Task RefreshTrashCardsAsync()
     {
-        var entries=await Task.Run(()=>_storage.TrashedBoardEntries().Select(entry=>
+        var entries=await Task.Run(async ()=>(await _storage.RefreshTrashAsync()).Select(entry=>
         {
             var board=entry.Board;var thumbnail=Path.Combine(Path.GetDirectoryName(entry.Path)!,Path.GetFileName(_storage.ThumbnailPath(board.Id)));
-            return new LibraryCard(board,File.Exists(thumbnail)?new Uri(thumbnail).AbsoluteUri:null){TrashPath=entry.Path};
+            return new LibraryCard(board,File.Exists(thumbnail)?new Uri(thumbnail).AbsoluteUri:null){TrashPath=entry.Path,TrashExpiresAt=entry.ExpiresAt};
         }).ToList());_trashCards=entries;
     }
     private void FilterLibrary()
@@ -82,6 +82,7 @@ public partial class MainWindow
         LibraryHeading.Text=_librarySection switch{"favorites"=>T("收藏"),"trash"=>T("垃圾桶"),_=>T("我的作品")};LibraryCount.Text=cards.Count.ToString();
         LibraryEmpty.Visibility=cards.Count==0?Visibility.Visible:Visibility.Collapsed;LibraryEmptyTitle.Text=_librarySection=="trash"?T("垃圾桶是空的"):_librarySection=="favorites"?T("收藏常用的作品"):_library.Count==0?T("第一份作品，從這裡開始"):T("沒有符合的作品");
         LibraryTrashHint.Visibility=_librarySection=="trash"?Visibility.Visible:Visibility.Collapsed;LibraryMultiButton.IsEnabled=_librarySection!="trash";
+        LibraryTrashHint.Text=F($"作品保留 {DocumentSessionManager.TrashRetentionDays} 天，開啟程式或重新整理作品庫時會清理到期作品。可從右鍵或 ⋯ 選單還原或永久刪除。");
         foreach(var pair in new[]{(AllLibraryButton,"all"),(FavoriteLibraryButton,"favorites"),(TrashLibraryButton,"trash")})pair.Item1.Background=Brush(pair.Item2==_librarySection?"#DCE7DB":"transparent");
         AllLibraryLabel.Text=F($"所有作品  {_library.Count}");FavoriteLibraryLabel.Text=F($"收藏  {_library.Count(c=>_libraryUi.Favorites.Contains(c.Board.Id))}");TrashLibraryLabel.Text=F($"垃圾桶  {_trashCards.Count}");
     }
@@ -107,7 +108,7 @@ public partial class MainWindow
     private async Task<bool> TrashLibraryBoardsAsync(IReadOnlyList<string> ids)
     {
         if(ids.Count==0||_libraryDeleteBusy)return false;_libraryDeleteBusy=true;try{
-        if(await new ContentDialog{FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,Title=T("移到垃圾桶？"),Content=F($"所選 {ids.Count} 份作品會保留在垃圾桶，可從左側還原。"),PrimaryButtonText=T("移到垃圾桶"),CloseButtonText=T("取消"),XamlRoot=Root.XamlRoot}.ShowAsync()!=ContentDialogResult.Primary)return false;
+        if(await new ContentDialog{FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,Title=T("移到垃圾桶？"),Content=F($"所選 {ids.Count} 份作品可在 {DocumentSessionManager.TrashRetentionDays} 天內還原。"),PrimaryButtonText=T("移到垃圾桶"),CloseButtonText=T("取消"),XamlRoot=Root.XamlRoot}.ShowAsync()!=ContentDialogResult.Primary)return false;
         await MoveLibraryBoardsToTrashAsync(ids);return true;
         }finally{_libraryDeleteBusy=false;}
     }

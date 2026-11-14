@@ -50,7 +50,6 @@
   "五角形": "Pentágono",
   "五邊形": "Pentágono",
   "以圖片頁面匯入": "Importar como imágenes de página",
-  "作品仍保留筆跡、圖片與頁面；點選作品可還原。": "Se conservan trazos, imágenes y páginas. Selecciona un trabajo para restaurarlo.",
   "作品名稱": "Nombre",
   "作品庫": "Biblioteca",
   "作品庫偏好未保存：": "No se guardaron las preferencias de biblioteca: ",
@@ -291,7 +290,6 @@
   "截圖：拖曳框選後直接置入畫布": "Captura: arrastra una región para insertarla en el lienzo",
   "所有作品": "Todos los trabajos",
   "所有作品  {0}": "Todos los trabajos  {0}",
-  "所選 {0} 份作品會保留在垃圾桶，可從左側還原。": "Los {0} trabajos seleccionados se conservarán en la papelera y podrán restaurarse desde la barra lateral.",
   "手冊路徑未找到": "No se encontró la guía",
   "手寫筆跡": "Trazo a mano",
   "拖到目標圖層": "Arrastra encima o debajo de la capa destino",
@@ -401,7 +399,6 @@
   "每頁匯入為鎖定背景圖片，可在上方繪圖。原文件文字與圖形不會轉成可編輯物件。": "Cada página se convierte en una imagen de fondo bloqueada sobre la que puede dibujar. El texto y las formas originales no son editables.",
   "水平 0.0°": "Horizontal 0.0°",
   "水彩": "Acuarela",
-  "沒有已刪除的作品。": "La papelera está vacía",
   "沒有符合的作品": "No hay trabajos coincidentes",
   "油漆": "Pincel de pintura",
   "油漆筆": "Pincel de pintura",
@@ -720,5 +717,12 @@
   "新建圖釘": "Nuevo marcador",
   "直接複製一個": "Duplicar objeto",
   "開啟 OBS 擷取視窗": "Abrir ventana de captura para OBS",
-  "OBS 擷取視窗無法開啟。": "No se pudo abrir la ventana de captura para OBS."
+  "OBS 擷取視窗無法開啟。": "No se pudo abrir la ventana de captura para OBS.",
+  "作品保留 {0} 天，開啟程式或重新整理作品庫時會清理到期作品。可從右鍵或 ⋯ 選單還原或永久刪除。": "Los trabajos se guardan {0} días. Los vencidos se eliminan al abrir la aplicación o actualizar la biblioteca. Usa el menú contextual o ⋯ para restaurarlos o eliminarlos definitivamente.",
+  "所選 {0} 份作品可在 {1} 天內還原。": "Puedes restaurar los {0} trabajos seleccionados en un plazo de {1} días.",
+  "永久刪除": "Eliminar definitivamente",
+  "永久刪除作品？": "¿Eliminar este trabajo definitivamente?",
+  "「{0}」將永久刪除，無法還原。": "«{0}» se eliminará definitivamente y no se podrá restaurar.",
+  "保留至 {0}": "Se conserva hasta {0}",
+  "尚未排定清理": "Eliminación sin programar"
 }
