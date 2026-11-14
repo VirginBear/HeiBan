@@ -96,6 +96,15 @@ internal sealed partial class ScreenAnnotationWindow
         if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();
         if(!IsActive)return;FinishScreenText();_chromeFlyout?.Hide();CancelGesture();_session.Begin();_session.Document.Objects.Clear();_session.SelectedId=null;_session.Commit();_laser.Clear();Changed();_status.Text=T("已清除全部註記 · 可按復原恢復");
     }
+    private async void ClearScreenInk()
+    {
+        if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();
+        if(!IsActive)return;
+        FinishScreenText();_chromeFlyout?.Hide();CommitScreenStyle();CancelGesture();
+        if(!_session.ClearPageInk())return;
+        RefreshScreenStyleButtons();Changed();
+        _status.Text=T("已清除筆跡，可按復原恢復。");
+    }
     private object ValidateObjectCommands()
     {
         _tool="pen";SetDrawing(true);var count=_session.Document.Objects.Count;var original=_session.Document.Objects.Last();

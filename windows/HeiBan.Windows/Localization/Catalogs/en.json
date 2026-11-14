@@ -724,5 +724,9 @@
   "永久刪除作品？": "Permanently delete this work?",
   "「{0}」將永久刪除，無法還原。": "“{0}” will be permanently deleted and cannot be restored.",
   "保留至 {0}": "Kept until {0}",
-  "尚未排定清理": "Removal not scheduled"
+  "尚未排定清理": "Removal not scheduled",
+  "清除筆跡": "Clear ink",
+  "清除筆跡？": "Clear ink?",
+  "只清除目前頁面未鎖定的筆跡，可用復原恢復。": "Only unlocked ink on the current page will be cleared. You can undo this.",
+  "已清除筆跡，可按復原恢復。": "Ink cleared. Use Undo to restore it."
 }

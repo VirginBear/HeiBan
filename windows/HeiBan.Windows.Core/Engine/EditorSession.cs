@@ -151,6 +151,7 @@ public sealed class EditorSession
     public BoardObject AppendInk(BoardObject item)
     {
         if(item.Type is not("stroke" or "pen" or "highlighter" or "paint" or "line"))throw new ArgumentException("Only completed ink or its held-line result can use this transaction.",nameof(item));
+        if (item.Type == "line") item.IsFreehandInk = true;
         return AppendCompletedObject(item,true);
     }
     public BoardObject AppendShape(BoardObject item)
@@ -171,6 +172,21 @@ public sealed class EditorSession
     {
         var objects=SelectedObjects.Where(o=>o.IsLocked!=true).ToArray();if(objects.Length==0)return;
         Begin();foreach(var o in objects)Document.Objects.Remove(o);SelectedId=null;Commit();
+    }
+    public bool ClearPageInk()
+    {
+        var board = Document.Board;
+        // PageId-less objects in notebooks are shared and can appear on other pages.
+        bool ShouldRemove(BoardObject item) => item.IsLocked != true
+            && (board.CanvasMode != "notebook" || (item.PageId is not null && item.PageId == board.ActivePageId))
+            && (item.Type is "stroke" or "pen" or "highlighter" or "paint" || item is { Type: "line", IsFreehandInk: true });
+
+        if (!Document.Objects.Exists(ShouldRemove)) return false;
+        Begin();
+        Document.Objects.RemoveAll(ShouldRemove);
+        SetSelection(SelectedIds.ToArray());
+        Commit();
+        return true;
     }
     public void Move(BoardObject o, double dx, double dy)
     {

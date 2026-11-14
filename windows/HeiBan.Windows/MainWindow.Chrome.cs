@@ -579,6 +579,10 @@ public partial class MainWindow
         var screenItem=new MenuFlyoutItem { Text=T("我的螢幕就是我的畫布"),Icon=ToolIcons.CreateMenuIcon("screen") };
         screenItem.Click+=(_,_)=>ScreenCanvas_Click(this,new());menu.Items.Add(screenItem);menu.Items.Add(new MenuFlyoutSeparator());
 
+        var clearInkItem=new MenuFlyoutItem{Text=T("清除筆跡"),Icon=ToolIcons.CreateMenuIcon("eraser")};
+        clearInkItem.Click+=(_,_)=>ClearPage(inkOnly:true);
+        menu.Items.Add(clearInkItem);
+
         var boardEraserItem=new ToggleMenuFlyoutItem { Text=T("顯示板擦"),IsChecked=_toolbarPrefs.BoardEraserVisible };
         boardEraserItem.Click+=async(_,_)=>
         {

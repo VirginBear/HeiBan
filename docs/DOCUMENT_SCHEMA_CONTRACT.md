@@ -65,6 +65,7 @@ HeiBan 為高效能向量黑板／白板協作系統，在 Web（TypeScript / Re
 - `x`, `y`, `width`, `height`: `Double` (世界座標與尺寸)
 - `x1`, `y1`, `x2`, `y2`: `Double?` (A/B 點線段與箭頭專用端點座標，反向繪製時不翻轉端點)
 - `extension`: `"none" | "start" | "end" | "both"` (A/B 線段向兩端射線延伸模式)
+- `isFreehandInk`: 可選 `Boolean`。Windows 對由鋼筆筆跡吸直而成的 `line` 寫入 `true`，供「清除筆跡」區分手寫註記與圖形工具建立的直線。舊直線缺少此欄時保留原狀，無需遷移。其他讀取器可依未知欄位契約保留。
 - `points`: `String?` (筆跡點陣列之 JSON 字串，支援壓力值 `pressure?: Double`)
 - `strokeColor`, `fillColor`: `String`（`#RRGGBB` 或 `#RRGGBBAA`，alpha 在最後兩碼；`none` 表示無填色。RGB 與全不透明 FF alpha 等價，不能以 ARGB 解讀或根據色碼猜測來源。）
 - `strokeWidth`: `Double`

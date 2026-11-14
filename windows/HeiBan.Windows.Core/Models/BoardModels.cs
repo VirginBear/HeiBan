@@ -142,6 +142,11 @@ public sealed class BoardObject
     [JsonPropertyName("name")]
     public string? Name { get; set; }
 
+    // A pen stroke straightened on release shares the same geometry as a line tool object.
+    [JsonPropertyName("isFreehandInk")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? IsFreehandInk { get; set; }
+
     [JsonPropertyName("id")]
     public string Id { get; set; } = Guid.NewGuid().ToString();
 

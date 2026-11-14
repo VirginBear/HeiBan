@@ -339,7 +339,7 @@ internal sealed partial class ScreenAnnotationWindow
         menu.Items.Add(_owner.CreateOperateRadialMenuItem());
         menu.Items.Add(_owner.CreateCaneMuteMenuItem());
         Item("settings",T("自訂工具列…"),()=>ShowScreenCustomizeToolbarWindow());
-        Item("export",T("儲存可編輯註記／透明 PNG…"),async()=>await ExportAnnotationsAsync());Item("delete",T("一鍵清空畫布（可復原）"),ClearScreenObjects);Item("reading",T("使用說明"),async()=>await _owner.OpenUserGuideAsync());
+        Item("export",T("儲存可編輯註記／透明 PNG…"),async()=>await ExportAnnotationsAsync());Item("eraser",T("清除筆跡"),ClearScreenInk);Item("delete",T("一鍵清空畫布（可復原）"),ClearScreenObjects);Item("reading",T("使用說明"),async()=>await _owner.OpenUserGuideAsync());
         Item("copy",T("貼上已複製物件"),async()=>await PasteScreenSelectionAsync());Item("select",_collapsed?T("展開工具區"):T("收合工具區"),()=>SetChromeCollapsed(!_collapsed));menu.Items.Add(new MenuFlyoutSeparator());menu.Items.Add(new MenuFlyoutItem{Text=_status.Text,IsEnabled=false});return menu;
     }
     private void ShowChromeFlyout(FlyoutBase flyout,FrameworkElement anchor,FlyoutShowOptions? options=null)

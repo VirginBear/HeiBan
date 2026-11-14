@@ -724,5 +724,9 @@
   "永久刪除作品？": "¿Eliminar este trabajo definitivamente?",
   "「{0}」將永久刪除，無法還原。": "«{0}» se eliminará definitivamente y no se podrá restaurar.",
   "保留至 {0}": "Se conserva hasta {0}",
-  "尚未排定清理": "Eliminación sin programar"
+  "尚未排定清理": "Eliminación sin programar",
+  "清除筆跡": "Borrar trazos",
+  "清除筆跡？": "¿Borrar los trazos?",
+  "只清除目前頁面未鎖定的筆跡，可用復原恢復。": "Solo se borrarán los trazos desbloqueados de esta página. Puedes deshacerlo.",
+  "已清除筆跡，可按復原恢復。": "Trazos borrados. Usa Deshacer para restaurarlos."
 }

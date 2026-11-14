@@ -33,13 +33,21 @@ public partial class MainWindow
         }
         else _laserTimer.Stop();
     }
-    private async void ClearPage()
+    private async void ClearPage(bool inkOnly = false)
     {
         if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();
         CommitPropertyEdit();FinishText();if(_gesture)CancelGesture();
-        var board=_session.Document.Board.Id;var page=_session.Document.Board.ActivePageId;
-        var result=await new ContentDialog{FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,Title=T("清除目前頁面？"),Content=T("可用復原恢復。其他頁面不受影響。"),PrimaryButtonText=T("清除"),CloseButtonText=T("取消"),XamlRoot=Root.XamlRoot}.ShowAsync();
-        if(result!=ContentDialogResult.Primary||board!=_session.Document.Board.Id||page!=_session.Document.Board.ActivePageId)return;
+        var epoch=_session.DocumentEpoch;var page=_session.Document.Board.ActivePageId;
+        var result=await new ContentDialog{FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,
+            Title=inkOnly?T("清除筆跡？"):T("清除目前頁面？"),
+            Content=inkOnly?T("只清除目前頁面未鎖定的筆跡，可用復原恢復。"):T("可用復原恢復。其他頁面不受影響。"),
+            PrimaryButtonText=T("清除"),CloseButtonText=T("取消"),XamlRoot=Root.XamlRoot}.ShowAsync();
+        if(result!=ContentDialogResult.Primary||!_workspaceOpen||epoch!=_session.DocumentEpoch||page!=_session.Document.Board.ActivePageId)return;
+        if(inkOnly)
+        {
+            if(_session.ClearPageInk())RefreshEditor();
+            return;
+        }
         _session.Begin();foreach(var o in _session.PageObjects.ToArray())_session.Document.Objects.Remove(o);_session.SelectedId=null;_session.Commit();RefreshEditor();
     }
     private void Visibility_Click(object sender,RoutedEventArgs e)

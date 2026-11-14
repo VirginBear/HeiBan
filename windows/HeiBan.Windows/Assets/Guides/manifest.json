@@ -47,81 +47,81 @@
       "language": "zh-TW",
       "file": "zh-TW.html",
       "sections": 26,
-      "paragraphs": 85,
-      "bytes": 37490,
-      "sha256": "dfc05c237b0b713358da3b020e9a3968fc2f3d9aff4cce5a05e714e7aa1ff7c1"
+      "paragraphs": 86,
+      "bytes": 37791,
+      "sha256": "0422f18d929628ff0f873c90a2ec36aebc8fd775ec64c5a6a13016c2845acd55"
     },
     {
       "language": "zh-CN",
       "file": "zh-CN.html",
       "sections": 26,
-      "paragraphs": 85,
-      "bytes": 37478,
-      "sha256": "5c77054e931c16fb44a9cacc5f37c85cb745a194b585ba09908b3a1e5d9e7441"
+      "paragraphs": 86,
+      "bytes": 37779,
+      "sha256": "d83db48329acfd4c628fde3a877ee93cd8111933589dcb1bd88b16c2e1d2cce3"
     },
     {
       "language": "en",
       "file": "en.html",
       "sections": 26,
-      "paragraphs": 85,
-      "bytes": 43237,
-      "sha256": "103c1abec1f88935ec4c24ef831579620d549d7aab82322c809e3f60518d6c70"
+      "paragraphs": 86,
+      "bytes": 43518,
+      "sha256": "e354bd165810249dbc935feb1c6719012da534285b7c0982e983475e52fede24"
     },
     {
       "language": "ja",
       "file": "ja.html",
       "sections": 26,
-      "paragraphs": 85,
-      "bytes": 48462,
-      "sha256": "05fd81092de85e96508bd91f762e48b47f68b3f0476d3c5d3dc3ad31c094fd4e"
+      "paragraphs": 86,
+      "bytes": 48871,
+      "sha256": "8586d6221ca0e57259b0b8a902b20e33c5d55c75b0b5f169d31b42887c78b82a"
     },
     {
       "language": "ko",
       "file": "ko.html",
       "sections": 26,
-      "paragraphs": 85,
-      "bytes": 46862,
-      "sha256": "5cb1538eb53caef7c8e9b4e1f49fd76f668f7dbf4198cb265812948a87d58009"
+      "paragraphs": 86,
+      "bytes": 47224,
+      "sha256": "15b4c211162c2657359e987ee26ca3ee4c13ab1e1d615c1020db34bd7289356a"
     },
     {
       "language": "es",
       "file": "es.html",
       "sections": 26,
-      "paragraphs": 85,
-      "bytes": 42288,
-      "sha256": "0958abe9b4bda3e7e5480c31781971954d4623baaa569303dfdc130fc3e535e1"
+      "paragraphs": 86,
+      "bytes": 42593,
+      "sha256": "100d01248c6240f03782bc6acc6bae8c33a212c55a167e2b3595db628f2eb969"
     },
     {
       "language": "fr",
       "file": "fr.html",
       "sections": 26,
-      "paragraphs": 85,
-      "bytes": 43574,
-      "sha256": "7cd1e49f2f1137fe9cb1dcfe71b2d185162264aea00f0a2f98ce34442c137be6"
+      "paragraphs": 86,
+      "bytes": 43908,
+      "sha256": "b30f6e5bd4cd08a320f99e9dbd382326bb9b2eacfa6f1e0c3e5bb74ea0470775"
     },
     {
       "language": "de",
       "file": "de.html",
       "sections": 26,
-      "paragraphs": 85,
-      "bytes": 42470,
-      "sha256": "552abea8985ad6c024a54b85bfb8249d811b4fb9fbda8cedbfa97f06936e07af"
+      "paragraphs": 86,
+      "bytes": 42811,
+      "sha256": "ede91472adf172cf31465ad7645afb0f8161ab1b890034e921407a7bbe3aa253"
     },
     {
       "language": "pt-BR",
       "file": "pt-BR.html",
       "sections": 26,
-      "paragraphs": 85,
-      "bytes": 40067,
-      "sha256": "d836bd87967254847f3fa9b79bf0aae38301c7505cd5e12fd1b384580b58c0a9"
+      "paragraphs": 86,
+      "bytes": 40376,
+      "sha256": "fc9ade3515d1a829a13087ce93c50cba672c77478b89d8183834fddd2f4f899a"
     },
     {
       "language": "ar",
       "file": "ar.html",
       "sections": 26,
-      "paragraphs": 85,
-      "bytes": 55762,
-      "sha256": "4ea5fcf914bcd999a9f56a9aeb5260fd55e0bea81121fb176a4c4c43dfb3a363"
+      "paragraphs": 86,
+      "bytes": 56242,
+      "sha256": "9b61513b22ab9073510f315961ca2731580eddc3f20f9817babc66980c401090"
     }
   ],
   "screenshots": [
@@ -146,8 +146,8 @@
     {
       "language": "zh-TW",
       "file": "QuickStart-zh-TW.heiban",
-      "bytes": 115119,
-      "sha256": "f2ad4ba60796c9b751db4f7a1973cd636e27104f5c4b11d28035c5e481b026d2",
+      "bytes": 115835,
+      "sha256": "cbef39c9355acfff475d6b5699d25ec4150949743b52fd6b89cf4e4c53937999",
       "canvasMode": "infinite",
       "chapters": 26,
       "toolKeys": [
@@ -187,8 +187,8 @@
     {
       "language": "zh-CN",
       "file": "QuickStart-zh-CN.heiban",
-      "bytes": 115119,
-      "sha256": "a531486adca9307b373b1f342b6f0b7a0d49527b04fbcb3eb9738b8cd20bf178",
+      "bytes": 115835,
+      "sha256": "a6921ef4a8f45d3399cbcbf02049417526c3c3c90d89bdeb5d8b531de573c896",
       "canvasMode": "infinite",
       "chapters": 26,
       "toolKeys": [
@@ -228,8 +228,8 @@
     {
       "language": "en",
       "file": "QuickStart-en.heiban",
-      "bytes": 120840,
-      "sha256": "1ff1b0333221a3617b3be24578b86ad4f86ae85e9e9d9ac9e02f04c9d0c26a4e",
+      "bytes": 121533,
+      "sha256": "d724ebcf38d18e856fd4e9874e25a4b43eebf9ce0dfa7d5ec36f297be5acfa4f",
       "canvasMode": "infinite",
       "chapters": 26,
       "toolKeys": [
@@ -269,8 +269,8 @@
     {
       "language": "ja",
       "file": "QuickStart-ja.heiban",
-      "bytes": 126449,
-      "sha256": "526e755680e1dc0b3e41ee3417504bf7e7a800c1aff1e09b0e7f86edecf641f8",
+      "bytes": 127270,
+      "sha256": "58dd01f07616ccccea53e25f09e717fcda07b35402c60c95e9902c223010737d",
       "canvasMode": "infinite",
       "chapters": 26,
       "toolKeys": [
@@ -310,8 +310,8 @@
     {
       "language": "ko",
       "file": "QuickStart-ko.heiban",
-      "bytes": 124556,
-      "sha256": "c5abe97155ab6355c1b38b2173fc53dd79b7e296cc59134d42d51d90be0454a6",
+      "bytes": 125330,
+      "sha256": "c7a12ef4834bdafdd740aa39f54b4036ae02d9504da2aa16e9e0ed12a882afe8",
       "canvasMode": "infinite",
       "chapters": 26,
       "toolKeys": [
@@ -351,8 +351,8 @@
     {
       "language": "es",
       "file": "QuickStart-es.heiban",
-      "bytes": 120239,
-      "sha256": "d71dd064b181242142a81d20d696223e5da04156b7131d351dd6ec1f4866224d",
+      "bytes": 120956,
+      "sha256": "44df27b98e95a19a8610dae4edbcc4052e72d51e660a3f0a546bc888c4896afb",
       "canvasMode": "infinite",
       "chapters": 26,
       "toolKeys": [
@@ -392,8 +392,8 @@
     {
       "language": "fr",
       "file": "QuickStart-fr.heiban",
-      "bytes": 121135,
-      "sha256": "91b5a47388504999110d688ad30486f36bce22a7c733d21d987d286c7e251429",
+      "bytes": 121881,
+      "sha256": "24ebaf0525df34850a697a4ce00865e6752178bc582fe91b11eff13684441e60",
       "canvasMode": "infinite",
       "chapters": 26,
       "toolKeys": [
@@ -433,8 +433,8 @@
     {
       "language": "de",
       "file": "QuickStart-de.heiban",
-      "bytes": 120356,
-      "sha256": "fc4472e4e6656e2901c230c12334d6143e7a422ff0f8c80e36b58a1646aa5d50",
+      "bytes": 121109,
+      "sha256": "6c38bb56a0cfdfe35b301b276072b96838a8bbd99051e71de9c70b7e1c0b93dd",
       "canvasMode": "infinite",
       "chapters": 26,
       "toolKeys": [
@@ -474,8 +474,8 @@
     {
       "language": "pt-BR",
       "file": "QuickStart-pt-BR.heiban",
-      "bytes": 118382,
-      "sha256": "b17a5ca59790ae5216639fdcc2d48776a06e00bf6f5dc606ba1b1cef861c62d9",
+      "bytes": 119106,
+      "sha256": "a2485fcbe41f73d2f9d81b5b3a01698beb92cf394d36d5b22edbf3be6e168deb",
       "canvasMode": "infinite",
       "chapters": 26,
       "toolKeys": [
@@ -515,8 +515,8 @@
     {
       "language": "ar",
       "file": "QuickStart-ar.heiban",
-      "bytes": 134181,
-      "sha256": "6bad294ad560c41f18a16c40219eeb5dcf1e249bdc9af569f3fa3c5fdf019dda",
+      "bytes": 135073,
+      "sha256": "0150da627b747d7740fadcc0e264068b1f1b3a132177581d02a0c1459fcfcd28",
       "canvasMode": "infinite",
       "chapters": 26,
       "toolKeys": [

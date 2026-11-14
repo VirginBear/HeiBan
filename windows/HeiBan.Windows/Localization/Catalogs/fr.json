@@ -724,5 +724,9 @@
   "永久刪除作品？": "Supprimer définitivement cette création ?",
   "「{0}」將永久刪除，無法還原。": "« {0} » sera supprimée définitivement et ne pourra pas être restaurée.",
   "保留至 {0}": "Conservé jusqu’au {0}",
-  "尚未排定清理": "Suppression non planifiée"
+  "尚未排定清理": "Suppression non planifiée",
+  "清除筆跡": "Effacer les tracés",
+  "清除筆跡？": "Effacer les tracés ?",
+  "只清除目前頁面未鎖定的筆跡，可用復原恢復。": "Seuls les tracés non verrouillés de la page active seront effacés. Vous pouvez annuler cette action.",
+  "已清除筆跡，可按復原恢復。": "Tracés effacés. Utilisez Annuler pour les restaurer."
 }
