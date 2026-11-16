@@ -1,0 +1,83 @@
+{
+  "success": true,
+  "sourceCommit": "79e33323536aeaaaf5dbda1fbf8e68fb6666fb10",
+  "version": "1.1.5",
+  "packageVersion": "1.1.5.0",
+  "runtimeMode": "SelfContained",
+  "previousStoreFilesPreserved": 128,
+  "sourceFiles": 526,
+  "payloadChecks": [
+    {
+      "entries": 775,
+      "architecture": "x64",
+      "appExecutionChecked": false,
+      "runtimeMode": "SelfContained",
+      "noUserDataOrStandaloneUpdater": true,
+      "runtimeDependencies": [],
+      "identityMatched": true,
+      "guideDocuments": 21,
+      "requiredPayloadPresent": true,
+      "legalDocuments": 28,
+      "originalDocumentsMatched": true,
+      "menuIcons": 132
+    },
+    {
+      "entries": 771,
+      "architecture": "arm64",
+      "appExecutionChecked": false,
+      "runtimeMode": "SelfContained",
+      "noUserDataOrStandaloneUpdater": true,
+      "runtimeDependencies": [],
+      "identityMatched": true,
+      "guideDocuments": 21,
+      "requiredPayloadPresent": true,
+      "legalDocuments": 28,
+      "originalDocumentsMatched": true,
+      "menuIcons": 132
+    }
+  ],
+  "artifacts": [
+    {
+      "sha256": "36da846cdbab12cddef6238d480fc97e0aad49b1101411b5728745ca2085d74f",
+      "file": "HeiBan-Store-1.1.5.0-x64.msix",
+      "bytes": 100452366
+    },
+    {
+      "sha256": "50c079e24f8c245e61f9e7857b4edd23e27ddf04ce1fb7a53e13823ad85adb46",
+      "file": "HeiBan-Store-1.1.5.0-arm64.msix",
+      "bytes": 97883826
+    },
+    {
+      "sha256": "9325e20f9b2101334d2c3e97dc4e037556498e8ae21021e75d0e2b0c8de35bbc",
+      "file": "HeiBan-Store-1.1.5.0-x64-arm64.msixbundle",
+      "bytes": 198338228
+    }
+  ],
+  "zipCRC": true,
+  "validationMethodsExcluded": true,
+  "capability": "runFullTrust",
+  "uploadPerformed": false,
+  "storeInstallUpgradeTested": false,
+  "arm64HardwareTested": false,
+  "wackPerformed": false,
+  "coreChecks": 6903,
+  "optimizationChecks": 68,
+  "priorNativeEvidence": {
+    "source": "c5a163d",
+    "screenAssertions": 26,
+    "brushColorChecks": 54,
+    "mainAndScreenTextReopenPreserves": true
+  },
+  "binaryVersions": [
+    {
+      "name": "HeiBan-x64.dll",
+      "fileVersion": "1.1.5.0",
+      "productVersion": "1.1.5+79e33323536aeaaaf5dbda1fbf8e68fb6666fb10"
+    },
+    {
+      "name": "HeiBan-arm64.dll",
+      "fileVersion": "1.1.5.0",
+      "productVersion": "1.1.5+79e33323536aeaaaf5dbda1fbf8e68fb6666fb10"
+    }
+  ]
+}
