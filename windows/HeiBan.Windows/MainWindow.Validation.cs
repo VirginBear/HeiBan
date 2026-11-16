@@ -25,7 +25,7 @@ public partial class MainWindow
                 if(target.GetPixelBytes().Distinct().Count()<4)throw new InvalidOperationException("實際畫布輸出缺少繪圖內容。");
             }
             await ExportPdfAsync(doc,objects,area,Path.Combine(outputDirectory,"document.pdf"));
-            var screenshotMask=RegionScreenshotService.ValidateMask(outputDirectory);var interactions=await ValidateInteractionsAsync(outputDirectory);var mainText=ValidateMainText();var canvasPerformance=ValidateCanvasPerformance();var cpuPerformance=await Task.Run(InteractionBenchmark.Run);
+            var screenshotMask=RegionScreenshotService.ValidateMask(outputDirectory);var interactions=await ValidateInteractionsAsync(outputDirectory);var mainText=await ValidateMainTextAsync();var canvasPerformance=ValidateCanvasPerformance();var cpuPerformance=await Task.Run(InteractionBenchmark.Run);
             EnsureScreenAnnotation();await _screenAnnotation!.ValidateNativeSessionAsync(outputDirectory);
             if(_session.Document.Objects.Count!=doc.Objects.Count)throw new InvalidOperationException("螢幕註記污染原作品。");
             Inspector.Visibility=Microsoft.UI.Xaml.Visibility.Visible;LayersPanel.Visibility=Microsoft.UI.Xaml.Visibility.Visible;RefreshEditor();var library=await ValidateLibraryChromeAsync();
@@ -34,7 +34,7 @@ public partial class MainWindow
         }
         catch(Exception e){await File.WriteAllTextAsync(Path.Combine(outputDirectory,"result.json"),JsonSerializer.Serialize(new{success=false,error=e.ToString()}));}
     }
-    private object ValidateMainText()
+    private async Task<object> ValidateMainTextAsync()
     {
         var before=DocumentCodec.Clone(_session.Document);var count=before.Objects.Count;
         try
@@ -50,6 +50,7 @@ public partial class MainWindow
             if(TextToolbarPage.Content is not null||ToolScroll.Visibility!=Microsoft.UI.Xaml.Visibility.Visible)
                 throw new InvalidOperationException("提交文字後一般工具列未恢復。");
             StartText(added);
+            await Task.Delay(150);
             var selectedFormat=_editor!.TextDocument.GetRange(3,4).CharacterFormat;
             selectedFormat.Size=27;selectedFormat.Name="Consolas";
             selectedFormat.Strikethrough=Microsoft.UI.Text.FormatEffect.On;
@@ -58,11 +59,21 @@ public partial class MainWindow
             added=_session.Selected!;
             if(added.RichTextSpans?.Any(s=>s.Text=="新"&&s.FontFamily=="Consolas"&&s.FontSize>24&&s.IsStrikethrough==true&&s.HighlightColor is not null)!=true)
                 throw new InvalidOperationException("多行局部文字格式未提交。");
+            StartText(added);
+            await Task.Delay(150);
+            var reopened=_editor!.TextDocument.GetRange(3,4).CharacterFormat;
+            if(reopened.Name!="Consolas"||Math.Abs(reopened.Size-27)>.1||reopened.Strikethrough!=Microsoft.UI.Text.FormatEffect.On||
+                !reopened.BackgroundColor.Equals(Microsoft.UI.Colors.Yellow))
+                throw new InvalidOperationException($"重新編輯後文字格式變更：{reopened.Name} {reopened.Size} {reopened.Strikethrough} {reopened.BackgroundColor}");
+            FinishText();
+            added=_session.Selected!;
+            if(added.RichTextSpans?.Any(s=>s.Text=="新"&&s.FontFamily=="Consolas"&&s.IsStrikethrough==true&&s.HighlightColor is not null)!=true)
+                throw new InvalidOperationException("離開未修改的文字時覆蓋已儲存格式。");
             StartText(added);_editor!.Text="取消修改";FinishText(false);if(_session.Document.Objects.First(o=>o.Id==added.Id).Text!="中文\n新文字")throw new InvalidOperationException("Esc取消修改了普通文字。");
             var originalText=_session.PageObjects.First(o=>o.Type=="text"&&o.Id!=added.Id);_session.SetSelection(new[]{originalText.Id,added.Id});
             var screen=_viewport.WorldToScreen(added.X+5,added.Y+5);ShowContext(new((float)screen.X,(float)screen.Y));
             if(_session.SelectedIds.Count!=2)throw new InvalidOperationException("右鍵丟失文字多選。");
-            return new{draftSeparate=true,toolbarPage=true,chineseMultiline=true,wholeDraftStyle=true,rangeFormat=true,cancelPreserves=true,rightClickKeepsMultiSelection=true,hardwareIme="未執行"};
+            return new{draftSeparate=true,toolbarPage=true,chineseMultiline=true,wholeDraftStyle=true,rangeFormat=true,reopenPreserves=true,cancelPreserves=true,rightClickKeepsMultiSelection=true,hardwareIme="未執行"};
         }
         finally{FinishText(false);_session.Open(before);RefreshEditor();}
     }

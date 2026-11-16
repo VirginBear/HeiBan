@@ -31,10 +31,10 @@ internal sealed partial class ScreenAnnotationWindow
         window.AppWindow.Move(new PointInt32(x,y));
         window.AppWindow.Resize(new SizeInt32(width,height));
         var dpi=NativeOverlayWindow.DpiScale(WinRT.Interop.WindowNative.GetWindowHandle(window));
-        var input=new TextDraftEditor{Text=_textDraft.Text??"",TextWrapping=TextWrapping.Wrap,RequestedTheme=ElementTheme.Light,
+        var input=new TextDraftEditor{TextWrapping=TextWrapping.Wrap,RequestedTheme=ElementTheme.Light,
             Padding=new Thickness(_textDraft.Type=="sticky"?12/dpi:0)};
         if(_textDraft.Type=="sticky")input.SetEditorPaper(_textDraft.FillColor);
-        _textInput=input;_textInput.SyncStyle(_textDraft,1/dpi);
+        _textInput=input;_textInput.LoadDraft(_textDraft,1/dpi);
         // The GPU overlay cannot host XAML or IME controls. This HWND sits exactly over the canvas object and contains only its editor.
         window.Content=input;
         UpdateScreenTextToolbar();
@@ -96,9 +96,9 @@ internal sealed partial class ScreenAnnotationWindow
         if(string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("HEIBAN_WINDOWS_DATA_DIRECTORY")))return;
         await StartAsync();DockChrome(preview=="horizontal"?"top":"left");
         if(preview=="brush")ShowBrushSettings();
-        if(preview=="text"){BeginScreenText(new(600,440));_textInput!.Text="我的螢幕就是我的畫布\n中文文字與右鍵設定";TextStyles.Apply(_textDraft!,new(Size:24,Color:"#39735a",Bold:true,Underline:true),_dpiScale);RefreshScreenTextDraft();}
+        if(preview=="text"){BeginScreenText(new(600,440));await Task.Delay(150);_textInput!.Text="我的螢幕就是我的畫布\n中文文字與右鍵設定";TextStyles.Apply(_textDraft!,new(Size:24,Color:"#39735a",Bold:true,Underline:true),_dpiScale);RefreshScreenTextDraft();}
     }
-    private object ValidateScreenText()
+    private async Task<object> ValidateScreenTextAsync()
     {
         var before=DocumentCodec.Clone(_session.Document);var count=before.Objects.Count;
         try
@@ -106,16 +106,24 @@ internal sealed partial class ScreenAnnotationWindow
             ChooseScreenTool("text");OnPointer(new("down",420,480));
             if(_textWindow is null||!_overlay.IsBelow(WinRT.Interop.WindowNative.GetWindowHandle(_textWindow)))throw new InvalidOperationException("文字輸入視窗被螢幕層遮住。");if(_textInput is null||_session.Document.Objects.Count!=count)throw new InvalidOperationException("文字草稿提前寫入文件。");
             if(!ReferenceEquals(_textWindow.Content,_textInput)||ReferenceEquals(_chromeToolHost.Child,_chromeTools))throw new InvalidOperationException("螢幕文字沒有借用工具列。");
-            _textInput.Text="中文文字\n第二行";OnPointer(new("down",720,480));if(_session.Document.Objects.Count!=count+1||_session.Selected?.Text!="中文文字\n第二行"||!ReferenceEquals(_chromeToolHost.Child,_chromeTools))throw new InvalidOperationException("點畫布未提交文字或恢復工具列。");
+            await Task.Delay(150);
+            _textInput.Text="中文文字\n第二行";
+            var selectedFormat=_textInput.TextDocument.GetRange(0,2).CharacterFormat;
+            selectedFormat.Name="Consolas";selectedFormat.Size=30;selectedFormat.ForegroundColor=Microsoft.UI.Colors.DarkBlue;
+            OnPointer(new("down",720,480));if(_session.Document.Objects.Count!=count+1||_session.Selected?.Text!="中文文字\n第二行"||!ReferenceEquals(_chromeToolHost.Child,_chromeTools))throw new InvalidOperationException("點畫布未提交文字或恢復工具列。");
             var text=_session.Selected!;OnPointer(new("double",text.X+5,text.Y+5));if(_textInput is null)throw new InvalidOperationException("雙擊文字未開始編輯。");_textInput.Text="取消";FinishScreenText(false);if(_session.Selected?.Text!="中文文字\n第二行")throw new InvalidOperationException("取消文字修改了文件。");
-            BeginScreenText(new(text.X,text.Y),text);_textInput!.Text="修改後";ChooseScreenTool("pen");if(_session.Document.Objects.First(o=>o.Id==text.Id).Text!="修改後")throw new InvalidOperationException("換工具未提交文字。");
+            BeginScreenText(new(text.X,text.Y),text);await Task.Delay(150);
+            var reopened=_textInput!.TextDocument.GetRange(0,2).CharacterFormat;
+            if(reopened.Name!="Consolas"||Math.Abs(reopened.Size-30)>.1||!reopened.ForegroundColor.Equals(Microsoft.UI.Colors.DarkBlue))
+                throw new InvalidOperationException("螢幕文字重新編輯時遺失局部格式。");
+            _textInput.Text="修改後";ChooseScreenTool("pen");if(_session.Document.Objects.First(o=>o.Id==text.Id).Text!="修改後")throw new InvalidOperationException("換工具未提交文字。");
             var second=DocumentCodec.Clone(_session.Document.Objects.First(o=>o.Id==text.Id));second.Id=Guid.NewGuid().ToString();second.X=1200;_session.Begin();_session.Add(second);_session.Commit();_session.SelectedId=text.Id;ChooseScreenTool("select");var generation=_session.Generation;
             OnPointer(new("down",second.X+5,second.Y+5,true));OnPointer(new("up",second.X+5,second.Y+5,true));
             if(_session.SelectedIds.Count!=2||_session.Generation!=generation)throw new InvalidOperationException("Shift文字多選未保留或建立了無效Undo。");
             TextStyles.ApplySelection(_session,new(Size:48,Color:"#a855f7",Bold:true,Underline:true),_dpiScale);var edited=_session.Selected!;if(_session.SelectedObjects.Any(o=>o.FontSize!=48*_dpiScale||o.StrokeColor!="#a855f7"||o.IsUnderline!=true))throw new InvalidOperationException("螢幕文字樣式未生效。");
             OnPointer(new("right",edited.X+4,edited.Y+4));if(!_drawing||_session.SelectedIds.Count!=2||_chromeFlyout is not MenuFlyout menu||!menu.Items.OfType<MenuFlyoutSubItem>().Any(item=>item.Text=="文字大小"))throw new InvalidOperationException("螢幕文字物件設定未接線。");
             _session.Undo();if(_session.Document.Objects.First(o=>o.Id==text.Id).IsBold==true)throw new InvalidOperationException("文字樣式未能復原。");
-            return new{draftSeparate=true,toolbarPage=true,clickCanvasCommits=true,chineseMultiline=true,doubleClickEdit=true,cancelPreserves=true,toolSwitchCommits=true,textContextMenu=true,shiftMultiSelection=true,objectMenuKeepsMultiSelection=true,selectionAddsNoUndo=true,styleUndo=true,imeHardware="未執行"};
+            return new{draftSeparate=true,toolbarPage=true,clickCanvasCommits=true,chineseMultiline=true,doubleClickEdit=true,reopenPreserves=true,cancelPreserves=true,toolSwitchCommits=true,textContextMenu=true,shiftMultiSelection=true,objectMenuKeepsMultiSelection=true,selectionAddsNoUndo=true,styleUndo=true,imeHardware="未執行"};
         }
         finally{FinishScreenText(false);_session.Open(before);Changed();}
     }

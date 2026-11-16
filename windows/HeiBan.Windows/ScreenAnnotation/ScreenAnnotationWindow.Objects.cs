@@ -81,7 +81,7 @@ internal sealed partial class ScreenAnnotationWindow
     }
     private void Screen_KeyDown(object sender,Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
     {
-        if(e.Handled||!IsActive||_stopping||!_drawing||_textInput is not null)return;
+        if(e.Handled||!IsActive||_stopping||!_drawing||_textInput is not null||_screenClearDialog is not null)return;
         if(e.OriginalSource is TextBox or NumberBox or RichEditBox)return;
         if(e.Key is global::Windows.System.VirtualKey.Delete or global::Windows.System.VirtualKey.Back)
         {
@@ -91,18 +91,51 @@ internal sealed partial class ScreenAnnotationWindow
     private void DeleteScreenSelection(){DamageSelectedObjects();CancelGesture();_session.DeleteSelected();RefreshScreenStyleButtons();Changed();}
     private void ChangeScreenLayer(LayerMove move)
     {CancelGesture();if(LayerReorder.MoveSelection(_session,move))Changed();}
-    private void ShowScreenClearMenu()
+    private ContentDialog? _screenClearDialog;
+    private async void ShowScreenClearDialog()
     {
-        if(!IsActive)return;
+        if(!IsActive||_stopping||_screenClearDialog is not null)return;
+        _chromeFlyout?.Hide();
         FinishScreenText();
         var epoch=_session.DocumentEpoch;
-        var menu=ToolbarUi.ClearPageMenu(async inkOnly=>
+        var chrome=(Border)Content;
+        var chromeBody=chrome.Child;
+        var background=chrome.Background;
+        var border=chrome.BorderThickness;
+        var dockedPosition=AppWindow.Position;
+        var dockedSize=AppWindow.Size;
+        var workArea=Microsoft.UI.Windowing.DisplayArea.GetFromWindowId(AppWindow.Id,Microsoft.UI.Windowing.DisplayAreaFallback.Primary).WorkArea;
+        var dialog=ToolbarUi.CreateClearPageDialog(chrome.XamlRoot);
+        _screenClearDialog=dialog;
+        ContentDialogResult choice;
+        try
         {
-            if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();
-            if(IsActive&&epoch==_session.DocumentEpoch)ClearScreenObjects(inkOnly);
-        });
-        var anchor=_clearButton.XamlRoot is null?(FrameworkElement)Content:_clearButton;
-        ShowChromeFlyout(menu,anchor);
+            // The toolbar is normally compact. The modal needs a monitor-sized XamlRoot and the existing acrylic backdrop.
+            StopOperateRadial();
+            _dockTimer.Stop();
+            chromeBody.Visibility=Visibility.Collapsed;
+            chrome.Background=null;
+            chrome.BorderThickness=new Thickness(0);
+            AppWindow.MoveAndResize(workArea);
+            Activate();
+            choice=await dialog.ShowAsync();
+        }
+        finally
+        {
+            chromeBody.Visibility=Visibility.Visible;
+            chrome.Background=background;
+            chrome.BorderThickness=border;
+            if(IsActive&&!_stopping&&!_disposed)
+            {
+                _requestedChromePosition=dockedPosition;
+                AppWindow.MoveAndResize(new global::Windows.Graphics.RectInt32(dockedPosition.X,dockedPosition.Y,dockedSize.Width,dockedSize.Height));
+            }
+            _screenClearDialog=null;
+            if(IsActive&&!_stopping&&!_disposed)SyncOperateRadial();
+        }
+        if(choice==ContentDialogResult.None||_disposed)return;
+        if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();
+        if(IsActive&&epoch==_session.DocumentEpoch)ClearScreenObjects(choice==ContentDialogResult.Secondary);
     }
     private void ClearScreenObjects(bool inkOnly = false)
     {

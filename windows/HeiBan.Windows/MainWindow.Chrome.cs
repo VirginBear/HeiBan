@@ -639,7 +639,7 @@ public partial class MainWindow
             case "extension": Inspector.Visibility=Visibility.Visible;RefreshProperties();RefreshChrome();break;
             case "layers": Layers_Click(this,new RoutedEventArgs());break;
             case "viewLock": NavigationLock_Click(this,new RoutedEventArgs());break;
-            case "clearAll": ShowClearPageMenu();break;
+            case "clearAll": ShowClearPageDialog();break;
             case "calculator":
                 ShowCalculatorPanel(GetToolAnchor("calculator"));
                 break;

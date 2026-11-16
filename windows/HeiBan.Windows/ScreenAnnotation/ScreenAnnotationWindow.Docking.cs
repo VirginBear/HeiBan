@@ -47,7 +47,7 @@ internal sealed partial class ScreenAnnotationWindow
 
         AppWindow.Changed += (_, args) =>
         {
-            if (!IsActive || !args.DidPositionChange) return;
+            if (!IsActive || _screenClearDialog is not null || !args.DidPositionChange) return;
             var p = AppWindow.Position;
             if (_requestedChromePosition is { } expected && p.X == expected.X && p.Y == expected.Y) return;
             _dockTimer.Stop();
@@ -131,6 +131,7 @@ internal sealed partial class ScreenAnnotationWindow
 
     private void ResizeChrome()
     {
+        if(_screenClearDialog is not null)return;
         _dpiScale = NativeOverlayWindow.DpiScale(WinRT.Interop.WindowNative.GetWindowHandle(this));
         var available = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
         var unbounded = new global::Windows.Foundation.Size(double.PositiveInfinity, double.PositiveInfinity);
@@ -157,6 +158,7 @@ internal sealed partial class ScreenAnnotationWindow
 
     private void PositionChrome()
     {
+        if(_screenClearDialog is not null)return;
         var area = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea; var size = AppWindow.Size; var gap = (int)(12 * _dpiScale);
         var x = VerticalChrome ? (_chromeDock == "left" ? area.X + gap : area.X + area.Width - size.Width - gap) : area.X + (int)((area.Width - size.Width) * _chromePosition);
         var y = VerticalChrome ? area.Y + (int)((area.Height - size.Height) * _chromePosition) : (_chromeDock == "top" ? area.Y + gap : area.Y + area.Height - size.Height - gap);

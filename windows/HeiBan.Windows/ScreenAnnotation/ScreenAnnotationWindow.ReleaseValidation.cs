@@ -18,7 +18,23 @@ internal sealed partial class ScreenAnnotationWindow
             OnPointer(new("down",500,edgeY-38*RulerScale));OnPointer(new("move",520,437));OnPointer(new("up",540,450));
             Check(_session.Document.Objects.Last().ParsedPoints.Any(p=>Math.Abs(p.Y-437)<.001),"Ruler attracted a stroke begun outside its edge");
             _rulerEnabled=false;CancelGesture();
-            var text=ValidateScreenText();
+            var text=await ValidateScreenTextAsync();
+            var generationBeforeClear=_session.Generation;
+            var dockedSize=AppWindow.Size;
+            ShowScreenClearDialog();
+            await Task.Delay(150);
+            var dialog=_screenClearDialog??throw new InvalidOperationException("Screen clear dialog did not open");
+            try
+            {
+                Check(AppWindow.Size.Width>dockedSize.Width&&AppWindow.Size.Height>dockedSize.Height,"Clear dialog did not expand the screen host");
+                Check(dialog.PrimaryButtonText=="全部清除"&&dialog.SecondaryButtonText=="僅清除筆跡"&&dialog.CloseButtonText=="取消","Clear dialog options are incomplete");
+            }
+            finally{dialog.Hide();}
+            for(var i=0;i<30&&_screenClearDialog is not null;i++)await Task.Delay(30);
+            Check(_screenClearDialog is null,"Clear dialog did not finish dismissing");
+            Check(_session.Generation==generationBeforeClear,"Cancel clear modified the document");
+            Check(AppWindow.Size.Width==dockedSize.Width&&AppWindow.Size.Height==dockedSize.Height,
+                $"Dismissal did not restore toolbar size from {AppWindow.Size} to {dockedSize}");
             foreach(var brush in new[]{"highlighter","paint"})
             {
                 ChooseScreenTool(brush);

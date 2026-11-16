@@ -92,7 +92,7 @@ internal sealed partial class ScreenAnnotationWindow
         _quickPalette=new QuickPalette(_owner.ProfilePalette,()=>StyleSelection?.StrokeColor??(_tool=="laser"?_laser.Color:_color),color=>{SetScreenColor(color);CommitScreenStyle();});
         ToolbarUi.BindQuickPalette(_brushButton,_quickPalette);
         _styleCommitTimer.Tick+=(_,_)=>CommitScreenStyle();
-        _clearButton=ActionButton("delete",T("清除本頁")+" · Ctrl+Alt+K",ShowScreenClearMenu,"clearAll");_buttons["clearAll"]=_clearButton;
+        _clearButton=ActionButton("delete",T("清除本頁")+" · Ctrl+Alt+K",ShowScreenClearDialog,"clearAll");_buttons["clearAll"]=_clearButton;
         _closeButton=ActionButton("close",T("結束螢幕畫布 · Ctrl+Alt+Q"),async()=>await StopAsync());
         _moreButton=ChromeButton("more",T("螢幕畫布更多設定"));_moreButton.Click+=(_,_)=>ShowScreenMenu(_moreButton);
         var content=new Border{Language=Localization.Strings.Language,RequestedTheme=ElementTheme.Light,CornerRadius=new CornerRadius(16),Background=ChromeBrush(150,247,250,246),BorderBrush=ChromeBrush(55,92,123,108),BorderThickness=new Thickness(1)};
@@ -341,7 +341,7 @@ internal sealed partial class ScreenAnnotationWindow
         menu.Items.Add(_owner.CreateOperateRadialMenuItem());
         menu.Items.Add(_owner.CreateCaneMuteMenuItem());
         Item("settings",T("自訂工具列…"),()=>ShowScreenCustomizeToolbarWindow());
-        Item("export",T("儲存可編輯註記／透明 PNG…"),async()=>await ExportAnnotationsAsync());Item("delete",T("清除本頁"),ShowScreenClearMenu);Item("reading",T("使用說明"),async()=>await _owner.OpenUserGuideAsync());
+        Item("export",T("儲存可編輯註記／透明 PNG…"),async()=>await ExportAnnotationsAsync());Item("delete",T("清除本頁"),ShowScreenClearDialog);Item("reading",T("使用說明"),async()=>await _owner.OpenUserGuideAsync());
         Item("copy",T("貼上已複製物件"),async()=>await PasteScreenSelectionAsync());Item("select",_collapsed?T("展開工具區"):T("收合工具區"),()=>SetChromeCollapsed(!_collapsed));menu.Items.Add(new MenuFlyoutSeparator());menu.Items.Add(new MenuFlyoutItem{Text=_status.Text,IsEnabled=false});return menu;
     }
     private void ShowChromeFlyout(FlyoutBase flyout,FrameworkElement anchor,FlyoutShowOptions? options=null)

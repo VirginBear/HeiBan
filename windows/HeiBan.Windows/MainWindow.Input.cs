@@ -575,8 +575,8 @@ public partial class MainWindow
     {
         FinishText();if(o.IsLocked==true)return;_editingObject=DocumentCodec.Clone(o);_editingNew=isNew;_editingBoard=_session.Document.Board.Id;_editingPage=_session.Document.Board.ActivePageId;var p=_viewport.WorldToScreen(o.X,o.Y);
         _activeFlyout?.Hide();
-        _editor=new TextDraftEditor{Text=o.Text??"",TextWrapping=TextWrapping.Wrap,Width=Math.Max(32,o.Width*_viewport.Zoom),Height=Math.Max(32,o.Height*_viewport.Zoom)};
-        _editor.SyncStyle(_editingObject,_viewport.Zoom);var input=_editor;
+        _editor=new TextDraftEditor{TextWrapping=TextWrapping.Wrap,Width=Math.Max(32,o.Width*_viewport.Zoom),Height=Math.Max(32,o.Height*_viewport.Zoom)};
+        _editor.LoadDraft(_editingObject,_viewport.Zoom);var input=_editor;
         input.Padding=new Thickness(o.Type=="sticky"?12*_viewport.Zoom:0);
         if(o.Type=="sticky")input.SetEditorPaper(o.FillColor);
         Canvas.SetLeft(input,p.X);Canvas.SetTop(input,p.Y);TextOverlay.IsHitTestVisible=true;TextOverlay.Children.Add(input);

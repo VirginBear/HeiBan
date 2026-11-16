@@ -32,10 +32,38 @@ internal sealed class TextDraftEditor : RichEditBox
         get {TextDocument.GetText(TextGetOptions.None,out var value);return (value.EndsWith('\r')?value[..^1]:value).Replace("\r\n","\n").Replace('\r','\n');}
         set=>TextDocument.SetText(TextSetOptions.None,value.Replace("\r\n","\r").Replace('\n','\r'));
     }
+    private bool _awaitingInitialFormat;
+    internal void LoadDraft(BoardObject draft,double scale=1)
+    {
+        ApplyControlStyle(draft,scale);
+        Text=draft.Text??"";
+        _awaitingInitialFormat=true;
+        Loaded+=RestoreAfterTemplate;
+        void RestoreAfterTemplate(object sender,RoutedEventArgs args)
+        {
+            Loaded-=RestoreAfterTemplate;
+            // RichEditBox reapplies control font and theme defaults as its native template loads.
+            // Restore persisted character runs after those defaults have settled.
+            DispatcherQueue.TryEnqueue(()=>
+            {
+                if(IsLoaded)ApplyDocumentStyle(draft,scale);
+                _awaitingInitialFormat=false;
+            });
+        }
+    }
     public void SyncStyle(BoardObject draft,double scale=1)
+    {
+        ApplyControlStyle(draft,scale);
+        ApplyDocumentStyle(draft,scale);
+        _awaitingInitialFormat=false;
+    }
+    private void ApplyControlStyle(BoardObject draft,double scale)
     {
         FontSize=Math.Max(8,(draft.FontSize??24)*scale);FontFamily=new FontFamily(draft.FontFamily??"Microsoft JhengHei");
         TextAlignment=draft.Align=="center"?TextAlignment.Center:draft.Align=="right"?TextAlignment.Right:TextAlignment.Left;
+    }
+    private void ApplyDocumentStyle(BoardObject draft,double scale)
+    {
         var lengthOfText=Text.Length;
         var format=lengthOfText==0?TextDocument.Selection.CharacterFormat:TextDocument.GetRange(0,lengthOfText).CharacterFormat;
         format.Size=(float)(FontSize*.75);format.Name=draft.FontFamily?.Split(',')[0]??"Microsoft JhengHei";
@@ -60,6 +88,7 @@ internal sealed class TextDraftEditor : RichEditBox
     private global::Windows.UI.Color _plainBackground;
     internal void ReadDraft(BoardObject draft)
     {
+        if(_awaitingInitialFormat)return; // An editor closed before loading has no changes to commit.
         var text=Text;
         var baseColor=Direct2DCanvasRenderer.HexToColor(draft.StrokeColor);
         var baseFamily=draft.FontFamily?.Split(',')[0]??"Microsoft JhengHei";

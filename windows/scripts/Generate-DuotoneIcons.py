@@ -24,6 +24,7 @@ art={
  'select':rect(2,2,15,15,'none','stroke-dasharray="2.3 2.3"')+path('M12,10 L23,17 L18,18 L21,23 L18,25 L15,20 L12,23 Z','#8FA9BC'),
  'pen':path('M4,21 L7,13 L17,3 Q19,1 22,4 Q24,6 22,8 L12,18 Z',tones['BrushPrimary'])+path('M4,21 L7,13 L12,18 Z','#E6ECE9')+path('M14,6 L19,11',tones['BrushLight'])+path('M5,20 L9,16')+circle(9,16,1.1,tones['BrushDark'],ink,1),
  'highlighter':path('M8,15 L17,3 Q18,2 20,4 L23,7 Q24,8 23,9 L14,20 Z',tones['BrushPrimary'])+path('M8,15 L14,20 L10,22 L5,19 Z',tones['BrushDark'])+path('M11,13 L17,17'),
+ 'paint':path('M12,14 L19,3 L22,6 L15,17 Z','#E6ECE9')+path('M12,14 C6,12 9,19 3,21 C11,23 16,21 15,17 Z',tones['BrushPrimary'])+path('M11,16 L14,19','none',tones['BrushDark'],.85),
  'eraser':path('M3,15 L14,3 Q15,2 17,3 L23,9 Q24,10 23,12 L13,23 L9,23 Z','#F48E82')+path('M3,15 L8,10 L17,18 L13,23 L9,23 Z','#FCF4E3')+path('M17,14 L21,10','none','#C56659',.9),
  'line':path('M4,22 L22,4','none','#66578F',1.5),
  'arrow':path('M3,21 L15,9 L12,6 L23,3 L20,14 L17,11 L5,23 Z','#D4C4F2','#66578F'),
@@ -41,7 +42,7 @@ art={
 for key,badge,color in [('mode-operate','ModePointer','#8FBACC'),('mode-draw','ModePen','#FFB966')]:
     paths[key]=constants['ModeWindow']+' '+constants[badge]
     art[key]=path(constants['ModeWindow'],'none','#365F52')+path('M3,4 L18,4 L18,6 L3,6 Z','#8AD8BB','none',0)+path(constants[badge],color)
-colors={'paint':'#69BBA0','curve':'#43AFCC','image':'#75B88D','screenshot':'#5A9DCB','canvasCapture':'#5A9DCB','calculator':'#62BDB4','timer':'#ECAD55','pins':'#D7798E','magnet':'#DF7272','delete':'#D87970','settings':'#5EBA9E','undo':'#649ECC','redo':'#649ECC'}
+colors={'curve':'#43AFCC','image':'#75B88D','screenshot':'#5A9DCB','canvasCapture':'#5A9DCB','calculator':'#62BDB4','timer':'#ECAD55','pins':'#D7798E','magnet':'#DF7272','delete':'#D87970','settings':'#5EBA9E','undo':'#649ECC','redo':'#649ECC'}
 for key,d in paths.items():
     color=colors.get(key,'#7EA992')
     body=art.get(key,path(d,'none',color,1.25))

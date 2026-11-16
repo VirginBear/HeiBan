@@ -17,7 +17,7 @@ internal sealed partial class ScreenAnnotationWindow
     internal void ApplyOperateRadialPreference(bool enabled){_toolbarPreferences.OperateRadialEnabled=enabled;SyncOperateRadial();}
     private void SyncOperateRadial()
     {
-        if(!IsActive||_stopping||_drawing||_captureCancellation is not null||!_toolbarPreferences.OperateRadialEnabled){StopOperateRadial();return;}
+        if(!IsActive||_stopping||_drawing||_captureCancellation is not null||_screenClearDialog is not null||!_toolbarPreferences.OperateRadialEnabled){StopOperateRadial();return;}
         if(_operateHook is not null)return;
         var epoch=++_operateEpoch;
         var hook=new OperateRadialHook(signal=>QueueOperateSignal(epoch,signal),error=>DispatcherQueue.TryEnqueue(()=>OperateHookFailed(epoch,error)));

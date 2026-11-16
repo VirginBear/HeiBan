@@ -77,15 +77,15 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         InitializeChrome();InitializeScreenRadial();
         if(AppWindow.Presenter is OverlappedPresenter presenter){presenter.PreferredMinimumWidth=1;presenter.PreferredMinimumHeight=1;presenter.IsAlwaysOnTop=true;presenter.IsResizable=false;presenter.SetBorderAndTitleBar(false,false);}
         _dpiScale=NativeOverlayWindow.DpiScale(WinRT.Interop.WindowNative.GetWindowHandle(this));ResizeChrome();
-        AppWindow.Closing+=async(_,e)=>{if(_disposed)return;e.Cancel=true;await StopAsync();};
+        AppWindow.Closing+=async(_,e)=>{if(_disposed)return;e.Cancel=true;if(_screenClearDialog is { } dialog){dialog.Hide();return;}await StopAsync();};
         _overlay.Pointer+=OnPointer;_overlay.BoundsChanged+=async()=>{if(IsActive&&!_stopping){if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();if(!IsActive||_stopping)return;CancelGesture();CreateTarget();Changed();ResizeChrome();PositionChrome();}};
         _overlay.Failed+=e=>{SetDrawing(false);_status.Text=T("繪圖未完成：")+e.Message;};
         _overlay.Hotkey+=async id=>
         {
             if(_stopping)return;
             if(id==1){await _requestStart();return;}
-            if(!IsActive||_captureCancellation is not null)return;
-            if(id==2)SetDrawing(!_drawing);else if(id==3)await CaptureAsync();else if(id==4)await StopAsync();else if(id==5)ShowScreenClearMenu();
+            if(!IsActive||_captureCancellation is not null||_screenClearDialog is not null)return;
+            if(id==2)SetDrawing(!_drawing);else if(id==3)await CaptureAsync();else if(id==4)await StopAsync();else if(id==5)ShowScreenClearDialog();
         };
         var failed=0;
         foreach(var key in new[]{(1,0x41u),(2,0x44u),(3,0x53u),(4,0x51u),(5,0x4Bu)})if(!_overlay.RegisterShortcut(key.Item1,0x0002|0x0001,key.Item2))failed++;
@@ -164,7 +164,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     }
     private void OnPointerCore(NativeOverlayWindow.PointerEvent input)
     {
-        if(!IsActive||_stopping||_captureCancellation is not null)return;
+        if(!IsActive||_stopping||_captureCancellation is not null||_screenClearDialog is not null)return;
         if(input.Kind=="cancel"){if(_radialGesture.Holding)CancelRadial();else CancelGesture();return;}
         if(!_drawing)return;
         if(input.Kind is "down" or "double" or "rightdown"&&_chromeFlyout is not null)
@@ -681,7 +681,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             {using(var ds=target.CreateDrawingSession()){ds.Clear(Color.FromArgb(0,0,0,0));_renderer.RenderObjects(ds,_session.DrawingObjects,_viewport,_overlay.Width,_overlay.Height);}await target.SaveAsync(Path.Combine(outputDirectory,"screen-annotations.png"),CanvasBitmapFileFormat.Png);}
             SetDrawing(false);Render();SetDrawing(true);Render();
             if(!_overlay.IsBelow(WinRT.Interop.WindowNative.GetWindowHandle(this)))throw new InvalidOperationException("模式切換後透明輸入層遮住控制列。");
-            var interactions=await ValidateInteractionChangesAsync(outputDirectory);var previewPerformance=ValidatePreviewPerformance();var performance=ValidateStrokePerformance();var objectCommands=ValidateObjectCommands();var docking=ValidateChromeDocking();var text=ValidateScreenText();
+            var interactions=await ValidateInteractionChangesAsync(outputDirectory);var previewPerformance=ValidatePreviewPerformance();var performance=ValidateStrokePerformance();var objectCommands=ValidateObjectCommands();var docking=ValidateChromeDocking();var text=await ValidateScreenTextAsync();
             var expanded=AppWindow.Size;SetChromeCollapsed(false);
             if(expanded.Height>62*_dpiScale)throw new InvalidOperationException("螢幕工具列不是60pt單排。");
             await Task.Delay(160);Activate();await Task.Delay(80);ShowBrushSettings();await Task.Delay(100);var brushPanel=_chromeFlyout is Microsoft.UI.Xaml.Controls.Flyout brushFlyout&&brushFlyout.Content is StackPanel brush&&brush.Width==360&&brush.Children.OfType<Microsoft.UI.Xaml.Controls.Slider>().Count()>=2;

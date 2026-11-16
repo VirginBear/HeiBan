@@ -34,18 +34,23 @@ public partial class MainWindow
         }
         else _laserTimer.Stop();
     }
-    private void ShowClearPageMenu()
+    private bool _clearPageDialogOpen;
+    private async void ShowClearPageDialog()
     {
-        var epoch=_session.DocumentEpoch;var page=_session.Document.Board.ActivePageId;
-        var menu=ToolbarUi.ClearPageMenu(async inkOnly=>
+        if(_clearPageDialogOpen||!_workspaceOpen)return;
+        _clearPageDialogOpen=true;
+        try
         {
+            _activeFlyout?.Hide();
+            var epoch=_session.DocumentEpoch;var page=_session.Document.Board.ActivePageId;
+            var choice=await ToolbarUi.CreateClearPageDialog(Root.XamlRoot).ShowAsync();
+            if(choice==ContentDialogResult.None)return;
             if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();
             if(!_workspaceOpen||epoch!=_session.DocumentEpoch||page!=_session.Document.Board.ActivePageId)return;
             CommitPropertyEdit();FinishText();if(_gesture)CancelGesture();
-            if(_session.ClearCurrentPage(inkOnly))RefreshEditor();
-        });
-        var anchor=GetToolAnchor("clearAll");
-        ShowExclusiveFlyout(menu,anchor.XamlRoot is null?GetToolAnchor("more"):anchor,DrawingArea);
+            if(_session.ClearCurrentPage(choice==ContentDialogResult.Secondary))RefreshEditor();
+        }
+        finally{_clearPageDialogOpen=false;}
     }
     private void Visibility_Click(object sender,RoutedEventArgs e)
     {if(_session.Selected is not { } o)return;CommitPropertyEdit();_session.Begin();o.IsVisible=o.IsVisible==false;_session.Commit();RefreshEditor();}

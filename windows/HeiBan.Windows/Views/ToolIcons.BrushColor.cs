@@ -12,9 +12,9 @@ namespace HeiBan.Windows.Views;
 internal static partial class ToolIcons
 {
     // The SVG generator reads these role colors. They are replaced only in the
-    // two brush artworks, never in other icons or user drawings.
+    // colored brush artworks, never in other icons or user drawings.
     internal const string BrushPrimary="#4D8B75",BrushLight="#C6E1D2",BrushDark="#335B4C";
-    internal static bool IsBrushArtwork(string key)=>key is "pen" or "highlighter";
+    internal static bool IsBrushArtwork(string key)=>key is "pen" or "highlighter" or "paint";
     private static Color Tone(string role,Color c)
     {
         byte Mix(byte v)=>role==BrushLight?(byte)Math.Round(v+(255-v)*.55):role==BrushDark?(byte)Math.Round(v*.72):v;

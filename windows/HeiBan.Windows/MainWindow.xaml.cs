@@ -456,7 +456,7 @@ public partial class MainWindow : Window
         _session.Begin();_session.Document.Board.ActivePageId=pages[i].Id;_session.SelectedId=null;_session.Commit();RefreshEditor();}
     private void Root_KeyDown(object sender,KeyRoutedEventArgs e)
     {
-        if(e.Handled)return;
+        if(e.Handled||_clearPageDialogOpen)return;
         if(_canvasCapture is not null){if(e.Key==VirtualKey.Escape){CancelGesture();StatusText.Text=T("已取消截圖");}e.Handled=true;return;}
         if(_radialGesture.Holding&&e.Key==VirtualKey.Escape){CancelRadial();CanvasSurface.ReleasePointerCaptures();e.Handled=true;return;}
         if(_boardEraserDraft is not null){if(e.Key==VirtualKey.Escape)CancelBoardEraser();e.Handled=true;return;}
