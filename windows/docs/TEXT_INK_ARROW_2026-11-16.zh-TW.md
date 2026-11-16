@@ -9,3 +9,7 @@
 螢光筆／油漆筆刷吸直後依原型儲存兩點，保留原透明度與筆寬。新箭頭使用七點封閉輪廓，矩形尾桿在接合處收在箭頭底邊內，短箭頭限制頭部比例。畫布、命中／框選、擦除及匯出使用同一輪廓。舊箭頭保留原外觀。
 
 執行十語目錄與手冊生成成功，Core.Tests Release 6,898 項通過。第一輪 WinUI 編譯因漏匯入工具列命名空間失敗，補上後建置為 0 警告、0 錯誤。首輪螢幕畫布診斷等待真實時間時混入桌面指標移動，改用同一 timer 回呼接收模擬時間，令合成輸入序列可重現。
+
+修正後執行 x64 Release 診斷建置，0 警告、0 錯誤。獨立資料根以 --release-validation-output 啟動，回報 success=true。六項文字檢查包含中文多行、指定單一字元大小與字型、刪除線與標記提交及取消保留；21 項螢幕檢查包含螢光筆及油漆筆刷各一次停筆吸直、筆刷類型與兩點提交，以及既有區域擦除像素比對。保留首輪失敗證據和第二輪結果於 windows/.build/text-ink-arrow-20261116/qa-result 與 qa-result-r2。人工滑鼠選區、實體筆、IME、ARM64、Store 認證未執行。
+
+Windows x64 Release 免安裝封裝成功。執行 Package-PortableTrial.ps1 -Runtime win-x64 -Label text-ink-arrow-2026-11-16-r1，來源 6972573。已驗 ZIP CRC 和 724 份程式產物的 SHA-256。試用 ZIP 為 100,540,195 bytes，SHA-256 43632bafa584b1f625c0fed89aff1fd9387cd7cb43f39457a8ef04f5666f3b63，位置 `windows/dist/trials/HeiBan-Windows-Portable-1.1.5-text-ink-arrow-2026-11-16-r1-win-x64.zip`。試用資料獨立，原生診斷已另執行，未做人工 GUI／輸入法驗收、商店封裝或上架。
