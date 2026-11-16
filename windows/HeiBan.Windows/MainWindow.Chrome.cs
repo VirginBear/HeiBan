@@ -1024,7 +1024,7 @@ public partial class MainWindow
         var panel = new StackPanel { Width = 360, Spacing = 12 };
         panel.Children.Add(new TextBlock { Text = selected is null ? F($"繪圖設定（{T(ToolbarPreferences.ToolNames.GetValueOrDefault(_styleTool,_styleTool))}）") : T("已選取物件設定"), FontSize = 16, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
         AddExtendedObjectSettings(panel,selected);
-        var controls=ToolbarUi.AddBrushControls(panel,ProfilePalette,selected?.StrokeColor??CurrentStyle.Color,selected?.StrokeWidth??CurrentStyle.Width,selected?.Opacity??CurrentStyle.Opacity,320);
+        var controls=ToolbarUi.AddBrushControls(panel,ProfilePalette,selected?.StrokeColor??CurrentStyle.Color,selected?.StrokeWidth??CurrentStyle.Width,selected?.Opacity??CurrentStyle.Opacity,320,selected?.SolidArrow!=true);
         var wheel=controls.Color;var width=controls.Width;var alpha=controls.Opacity;
 
 

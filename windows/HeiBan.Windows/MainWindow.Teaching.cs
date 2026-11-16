@@ -2,6 +2,7 @@ using static HeiBan.Windows.Localization.Strings;
 using System.Diagnostics;
 using HeiBan.Windows.Engine;
 using HeiBan.Windows.Models;
+using HeiBan.Windows.Views;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 namespace HeiBan.Windows;
@@ -14,7 +15,7 @@ public partial class MainWindow
         LoadTeachingSettings();
         _laserTimer.Tick+=(_,_)=>
         {
-            if(_tool=="pen"&&_ink.TrySnapStraight(_viewport.Zoom)){_renderer.ResetLive();InvalidateCanvas(false);}
+            if(_tool is "pen" or "highlighter" or "paint" && _ink.TrySnapStraight(_viewport.Zoom)){_renderer.ResetLive();InvalidateCanvas(false);}
             if(_laser.Samples.Count>0){_laser.Prune(LaserNow);if(_workspaceOpen)InvalidateCanvas(false);}
             if(_cane.Point is not null&&_workspaceOpen)InvalidateCanvas(false);
             while(_cane.TakeImpactSound(LaserNow) is >0 and var impact)PlayCaneSound(impact);
@@ -24,7 +25,7 @@ public partial class MainWindow
     private void UpdateTeachingTimer()
     {
         var laser=_laser.Samples.Count>0||_cane.NeedsAnimation(LaserNow);
-        if(laser||(_workspaceOpen&&_tool=="pen"&&_ink.IsDrawing&&!_ink.IsStraight&&_ink.Projection is null))
+        if(laser||(_workspaceOpen&&_tool is "pen" or "highlighter" or "paint" &&_ink.IsDrawing&&!_ink.IsStraight&&_ink.Projection is null))
         {
             // A hold-to-straighten check does not need a permanent 60 Hz UI wake-up.
             var interval=TimeSpan.FromMilliseconds(laser?16:100);
@@ -98,10 +99,11 @@ public partial class MainWindow
     }
     private void AddExtendedObjectSettings(StackPanel panel,BoardObject? selected)
     {
-        if(selected?.Type is "line" or "arrow")
+        if(selected?.Type is "line" or "arrow" && selected.SolidArrow!=true)
         {var b=new Button{Content=T("延伸直線設定")};b.Click+=(_,_)=>ShowExtensionSettings(b);panel.Children.Add(b);}
         if(selected?.Type=="arrow")
         {
+            if(selected.SolidArrow==true)ToolbarUi.AddArrowShaftControls(panel,selected,1,edit=>ChangeProperty(()=>edit(selected)));
             var length=new Slider{Header=T("箭頭頭部長度"),Minimum=4,Maximum=128,Value=selected.ArrowHeadLength??16,StepFrequency=1};
             length.ValueChanged+=(_,e)=>ChangeProperty(()=>selected.ArrowHeadLength=e.NewValue);panel.Children.Add(length);
             var width=new Slider{Header=T("箭頭頭部寬度"),Minimum=4,Maximum=96,Value=selected.ArrowHeadWidth??10,StepFrequency=1};
@@ -109,13 +111,22 @@ public partial class MainWindow
         }
         if(selected?.Type is "text" or "sticky")
         {
-            var edit=new Button{Content=T("編輯局部文字格式")};edit.Click+=async(_,_)=>await EditRichTextAsync(selected);panel.Children.Add(edit);
+            var edit=new Button{Content=T("編輯局部文字格式")};edit.Click+=(_,_)=>StartText(selected);panel.Children.Add(edit);
             var row=new StackPanel{Orientation=Orientation.Vertical,Spacing=4};
             foreach(var pair in new[]{("粗體","IsBold"),("斜體","IsItalic"),("底線","IsUnderline"),("刪除線","IsStrikethrough")})
-            {var prop=typeof(BoardObject).GetProperty(pair.Item2)!;var cb=new CheckBox{Content=T(pair.Item1),IsChecked=(bool?)prop.GetValue(selected)==true};cb.Checked+=(_,_)=>ChangeProperty(()=>{prop.SetValue(selected,true);selected.RichTextSpans=null;});cb.Unchecked+=(_,_)=>ChangeProperty(()=>{prop.SetValue(selected,false);selected.RichTextSpans=null;});row.Children.Add(cb);}
+            {
+                var prop=typeof(BoardObject).GetProperty(pair.Item2)!;
+                var spanProp=typeof(TextSpan).GetProperty(pair.Item2)!;
+                var cb=new CheckBox{Content=T(pair.Item1),IsChecked=(bool?)prop.GetValue(selected)==true};
+                void Set(bool enabled)=>ChangeProperty(()=>
+                {
+                    prop.SetValue(selected,enabled);
+                    foreach(var span in selected.RichTextSpans??[])spanProp.SetValue(span,enabled);
+                });
+                cb.Checked+=(_,_)=>Set(true);cb.Unchecked+=(_,_)=>Set(false);row.Children.Add(cb);
+            }
             panel.Children.Add(row);
             var alignment=new ComboBox{Header=T("對齊"),ItemsSource=new[]{T("靠左"),T("置中"),T("靠右")},SelectedIndex=Array.IndexOf(new[]{"left","center","right"},selected.Align??"left")};alignment.SelectionChanged+=(_,_)=>ChangeProperty(()=>selected.Align=new[]{"left","center","right"}[Math.Max(0,alignment.SelectedIndex)]);panel.Children.Add(alignment);
-            var font=new ComboBox{Header=T("字型"),ItemsSource=new[]{"Microsoft JhengHei","Microsoft YaHei","Segoe UI","Consolas"},SelectedItem=selected.FontFamily??"Microsoft JhengHei"};font.SelectionChanged+=(_,_)=>ChangeProperty(()=>selected.FontFamily=font.SelectedItem?.ToString());panel.Children.Add(font);
             if(selected.Type=="sticky")
             {var styles=new[]{"classic","washi","cat","notebook","grid","soft"};var sticky=new ComboBox{Header=T("便簽風格"),ItemsSource=new[]{T("經典"),T("紙膠帶"),T("貓咪"),T("筆記本"),T("方格"),T("柔和")},SelectedIndex=Math.Max(0,Array.IndexOf(styles,selected.StickyStyle??"classic"))};sticky.SelectionChanged+=(_,_)=>ChangeProperty(()=>selected.StickyStyle=styles[Math.Max(0,sticky.SelectedIndex)]);panel.Children.Add(sticky);}
         }

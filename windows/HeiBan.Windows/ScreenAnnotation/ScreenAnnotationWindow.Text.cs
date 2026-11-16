@@ -28,16 +28,15 @@ internal sealed partial class ScreenAnnotationWindow
         if(window.AppWindow.Presenter is OverlappedPresenter presenter){presenter.IsAlwaysOnTop=true;presenter.IsResizable=false;presenter.SetBorderAndTitleBar(false,false);}
         var area=DisplayArea.GetFromWindowId(AppWindow.Id,DisplayAreaFallback.Primary).WorkArea;
         window.AppWindow.Move(new PointInt32((int)Math.Clamp(_overlay.Left+_textDraft.X,area.X,Math.Max(area.X,area.X+area.Width-340*_dpiScale)),(int)Math.Clamp(_overlay.Top+_textDraft.Y,area.Y,Math.Max(area.Y,area.Y+area.Height-240*_dpiScale))));
-        _textDpi=NativeOverlayWindow.DpiScale(WinRT.Interop.WindowNative.GetWindowHandle(window));window.AppWindow.Resize(new SizeInt32((int)(340*_textDpi),(int)(240*_textDpi)));
+        _textDpi=NativeOverlayWindow.DpiScale(WinRT.Interop.WindowNative.GetWindowHandle(window));window.AppWindow.Resize(new SizeInt32((int)(340*_textDpi),(int)(268*_textDpi)));
         var input=new TextDraftEditor{Text=_textDraft.Text??"",TextWrapping=TextWrapping.Wrap,Height=164,HorizontalAlignment=HorizontalAlignment.Stretch};_textInput=input;RefreshScreenTextDraft();
-        var panel=new StackPanel{Spacing=8,Padding=new Thickness(10),RequestedTheme=ElementTheme.Light};panel.Children.Add(input);
+        var panel=new StackPanel{Spacing=8,Padding=new Thickness(10),RequestedTheme=ElementTheme.Light};panel.Children.Add(input.CreateFormatBar());panel.Children.Add(input);
         var buttons=new StackPanel{Orientation=Orientation.Horizontal,Spacing=8};var done=new Button{Content=T("完成 · Ctrl+Enter")};var cancel=new Button{Content=T("取消 · Esc")};buttons.Children.Add(done);buttons.Children.Add(cancel);panel.Children.Add(buttons);
         window.Content=new Border{RequestedTheme=ElementTheme.Light,Child=panel,CornerRadius=new CornerRadius(12),Background=ChromeBrush(255,247,250,246),BorderBrush=ChromeBrush(90,92,123,108),BorderThickness=new Thickness(1)};
         done.Click+=(_,_)=>FinishScreenText();cancel.Click+=(_,_)=>FinishScreenText(false);
         input.KeyDown+=(_,args)=>{if(args.Key==VirtualKey.Escape){FinishScreenText(false);args.Handled=true;}else if(args.Key==VirtualKey.Enter&&Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control).HasFlag(global::Windows.UI.Core.CoreVirtualKeyStates.Down)){FinishScreenText();args.Handled=true;}};
         input.ContextFlyout=null;input.RightTapped+=(_,args)=>{
-            var draft=_textDraft;if(draft is null)return;var menu=input.CreateTextMenu();
-            TextStyleMenu.Append(menu,new[]{draft},change=>{if(ReferenceEquals(_textDraft,draft)){TextStyles.Apply(draft,change,_dpiScale);RefreshScreenTextDraft();}},flyout=>{flyout.ShouldConstrainToRootBounds=false;flyout.ShowAt(input);},()=>ReferenceEquals(_textDraft,draft),scale:_dpiScale,draft:true);
+            var menu=input.CreateTextMenu();
             menu.ShouldConstrainToRootBounds=false;menu.ShowAt(input,new FlyoutShowOptions{Position=args.GetPosition(input)});args.Handled=true;
         };
         window.AppWindow.Closing+=(_,args)=>{if(!ReferenceEquals(_textWindow,window))return;args.Cancel=true;FinishScreenText();};
@@ -51,13 +50,14 @@ internal sealed partial class ScreenAnnotationWindow
     private void FinishScreenText(bool commit=true)
     {
         if(_textWindow is null||_textDraft is null||_textInput is null)return;
-        var window=_textWindow;var draft=_textDraft;var original=_textOriginalId;var text=_textInput.Text;
+        var window=_textWindow;var draft=_textDraft;var original=_textOriginalId;
+        if(commit)_textInput.ReadDraft(draft);
         _textWindow=null;_textDraft=null;_textInput=null;_textOriginalId=null;window.Close();
         if(!commit)return;
-        if(original is null&&string.IsNullOrWhiteSpace(text))return;
+        if(original is null&&string.IsNullOrWhiteSpace(draft.Text))return;
         var existing=original is null?null:_session.PageObjects.FirstOrDefault(o=>o.Id==original&&o.IsLocked!=true);
         if(original is not null&&existing is null)return;
-        var contentChanged=draft.Text!=text;draft.Text=text;if(contentChanged)draft.RichTextSpans=null;TextStyles.GrowHeight(draft);
+        TextStyles.GrowHeight(draft);
         _session.Begin();if(existing is null)_session.Add(draft);else{var index=_session.Document.Objects.IndexOf(existing);_session.Document.Objects[index]=draft;_session.SelectedId=draft.Id;}_session.Commit();_tool="select";RefreshButtons();Changed();
     }
     private void AppendScreenTextMenu(MenuFlyout menu)

@@ -10,11 +10,11 @@ public static class WindowSelection
         if (o.IsVisible == false) return false;
         var frame = new VectorMath.RectBounds(Math.Min(start.X,end.X),Math.Min(start.Y,end.Y),Math.Max(start.X,end.X),Math.Max(start.Y,end.Y));
         var crossing = end.X < start.X;
-        var radius = o.Type is "image" or "text" or "sticky" or "tape" ? 0 : Math.Max(0,o.StrokeWidth)/2;
+        var radius = o.Type is "image" or "text" or "sticky" or "tape" || o is {Type:"arrow",SolidArrow:true} ? 0 : Math.Max(0,o.StrokeWidth)/2;
         var paths = Outlines(o).Select(path => path.Select(p => ObjectHandles.ToWorld(o,new(p.X+o.PreviewOffsetX,p.Y+o.PreviewOffsetY))).ToArray()).ToArray();
         if (!crossing)
         {
-            if (o.Extension is "start" or "end" or "both") return false;
+            if (o.SolidArrow!=true && o.Extension is "start" or "end" or "both") return false;
             return paths.Length>0 && paths.SelectMany(p=>p).All(p=>frame.Contains(p.X-radius,p.Y-radius)&&frame.Contains(p.X+radius,p.Y+radius));
         }
         var expanded = new VectorMath.RectBounds(frame.MinX-radius,frame.MinY-radius,frame.MaxX+radius,frame.MaxY+radius);
@@ -24,7 +24,7 @@ public static class WindowSelection
             for(var i=1;i<path.Length;i++) if (SegmentTouches(path[i-1],path[i],expanded)) return true;
         }
         // Text and images own their whole surface; filled polygons also select when the frame is inside them.
-        if (o.Type is "image" or "text" or "sticky" or "tape" || o.FillColor is not (null or "none") && (o.FillOpacity??o.Opacity)>0)
+        if (o.Type is "image" or "text" or "sticky" or "tape" || o is {Type:"arrow",SolidArrow:true} || o.FillColor is not (null or "none") && (o.FillOpacity??o.Opacity)>0)
             return paths.Any(path=>LassoSelection.Contains(new(frame.MidX,frame.MidY),path));
         return false;
     }
@@ -46,6 +46,12 @@ public static class WindowSelection
     {
         if(o.Type is "line" or "arrow")
         {
+            if(o is {Type:"arrow",SolidArrow:true})
+            {
+                var outline=ArrowGeometry.Outline(o);
+                if(outline.Length>0)yield return outline.Append(outline[0]).ToArray();
+                yield break;
+            }
             var a=new InkPoint(o.X1??o.X,o.Y1??o.Y);var b=new InkPoint(o.X2??o.X+o.Width,o.Y2??o.Y+o.Height);
             var dx=b.X-a.X;var dy=b.Y-a.Y;var length=Math.Sqrt(dx*dx+dy*dy);
             if(length>1e-12)

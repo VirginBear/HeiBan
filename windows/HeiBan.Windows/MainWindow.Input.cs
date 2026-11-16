@@ -219,6 +219,7 @@ public partial class MainWindow
     }
     private BoardObject Styled(BoardObject o)
     {
+        if(o.Type=="arrow")o.SolidArrow=true;
         o.StrokeColor = _strokeColor;
         o.StrokeWidth = EffectiveWidth;
         o.Opacity = _opacity;
@@ -567,13 +568,15 @@ public partial class MainWindow
     {
         FinishText();if(o.IsLocked==true)return;_editingObject=DocumentCodec.Clone(o);_editingNew=isNew;_editingBoard=_session.Document.Board.Id;_editingPage=_session.Document.Board.ActivePageId;var p=_viewport.WorldToScreen(o.X,o.Y);
         _editor=new TextDraftEditor{Text=o.Text??"",TextWrapping=TextWrapping.Wrap,Width=Math.Max(120,o.Width*_viewport.Zoom),Height=Math.Max(80,o.Height*_viewport.Zoom)};
-        _editor.SyncStyle(_editingObject,_viewport.Zoom);var input=_editor;var draft=_editingObject;
-        Canvas.SetLeft(input,p.X);Canvas.SetTop(input,p.Y);TextOverlay.IsHitTestVisible=true;TextOverlay.Children.Add(input);
+        _editor.SyncStyle(_editingObject,_viewport.Zoom);var input=_editor;
+        var panel=new StackPanel{Width=Math.Max(320,input.Width),Spacing=4};
+        panel.Children.Add(input.CreateFormatBar(DrawingArea));panel.Children.Add(input);
+        Canvas.SetLeft(panel,Math.Clamp(p.X,0,Math.Max(0,TextOverlay.ActualWidth-panel.Width)));
+        Canvas.SetTop(panel,Math.Max(0,p.Y-36));TextOverlay.IsHitTestVisible=true;TextOverlay.Children.Add(panel);
         input.KeyDown+=(_,e)=>{var ctrl=Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control).HasFlag(global::Windows.UI.Core.CoreVirtualKeyStates.Down);
             if(e.Key==VirtualKey.Escape){FinishText(false);e.Handled=true;}else if(ctrl&&e.Key==VirtualKey.Enter){FinishText();e.Handled=true;}};
         input.ContextFlyout=null;input.RightTapped+=(_,args)=>{
-            var menu=input.CreateTextMenu();bool Current()=>ReferenceEquals(_editingObject,draft)&&_editingBoard==_session.Document.Board.Id&&_editingPage==_session.Document.Board.ActivePageId;
-            TextStyleMenu.Append(menu,new[]{draft},change=>{if(Current()){TextStyles.Apply(draft,change);input.SyncStyle(draft,_viewport.Zoom);}},flyout=>{flyout.ShouldConstrainToRootBounds=false;flyout.ShowAt(input);},Current,draft:true);
+            var menu=input.CreateTextMenu();
             menu.ShouldConstrainToRootBounds=false;menu.ShowAt(input,new Microsoft.UI.Xaml.Controls.Primitives.FlyoutShowOptions{Position=args.GetPosition(input)});args.Handled=true;
         };input.Focus(FocusState.Programmatic);
     }
@@ -582,11 +585,12 @@ public partial class MainWindow
         FinishPinRename(commit);
         if(_editor is null||_editingObject is null)return;
         var input=_editor;var draft=_editingObject;var isNew=_editingNew;var scope=_editingBoard==_session.Document.Board.Id&&_editingPage==_session.Document.Board.ActivePageId;
+        if(commit&&scope)input.ReadDraft(draft);
         _editor=null;_editingObject=null;TextOverlay.Children.Clear();TextOverlay.IsHitTestVisible=false;
         if(commit&&scope&&(!isNew||!string.IsNullOrWhiteSpace(input.Text)))
         {
             var existing=isNew?null:_session.PageObjects.FirstOrDefault(o=>o.Id==draft.Id&&o.IsLocked!=true);
-            if(isNew||existing is not null){if(draft.Text!=input.Text)draft.RichTextSpans=null;draft.Text=input.Text;TextStyles.GrowHeight(draft);_session.Begin();if(isNew)_session.Add(draft);else _session.Document.Objects[_session.Document.Objects.IndexOf(existing!)]=draft;_session.Commit();RefreshEditor();}
+            if(isNew||existing is not null){TextStyles.GrowHeight(draft);_session.Begin();if(isNew)_session.Add(draft);else _session.Document.Objects[_session.Document.Objects.IndexOf(existing!)]=draft;_session.Commit();RefreshEditor();}
         }
         FocusCanvasSurface();InvalidateCanvas();
     }

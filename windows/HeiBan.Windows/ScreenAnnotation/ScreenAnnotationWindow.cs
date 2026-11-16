@@ -92,11 +92,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         _hotkeyRegistrationFailed=failed>0;if(failed>0)_status.Text=T("部分快捷鍵被其他程式占用，請使用控制列按鈕。");
         _renderTimer.Tick+=(_,_)=>{if(!IsActive)return;try{PollScreenRadial();RefreshScreenShiftPreview();while(_cane.TakeImpactSound(Now) is >0 and var impact)CaneSound.PlayImpact(impact,ReportCaneSoundError);UpdateScreenEraser();UpdateScreenMagnetHover();if(_dirty||_laser.Samples.Count>0||_cane.NeedsAnimation(Now)||_caneWasAnimating)Render();}catch(Exception e){_renderTimer.Stop();_overlay.Hide();CloseCaptureOutput();_status.Text=T("螢幕繪圖已停止：")+e.Message;}};
         _focusRememberTimer.Tick+=(_,_)=>{if(IsActive)RememberExternalFocus();};
-        _straightenTimer.Tick+=(_,_)=>
-        {
-            if(IsActive&&_drawing&&_tool=="pen"&&_start is not null&&Now-_penHoldSince>=StraightStrokeRecognizer.HoldSeconds&&StraightStrokeRecognizer.IsEligible(_points,1/_dpiScale))
-            {_screenPenStraight=true;_straightenTimer.Stop();DamageStrokeTail(true);_dirty=true;}
-        };
+        _straightenTimer.Tick+=(_,_)=>UpdateScreenStraightStroke(Now);
         _saveTimer.Tick+=async(_,_)=>{_saveTimer.Stop();if(!_owner.AutoSaveEnabled||_stopping||!IsActive)return;if(_start is not null||_textDraft is not null||_session.HasTransaction){_saveTimer.Start();return;}await SaveAsync();};
         AppWindow.Hide();
     }
@@ -383,7 +379,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         {
             if(_tool=="select")DamageSelectedObjects(); // Remove the previous selection adorners even when the new gesture starts on blank space.
             _start=_last=p;if(regularPolygon&&_curveAnchors.Count==1){_start=_curveAnchors[0];_curveAnchors.Clear();}if(_tool is not("select" or "pen" or "highlighter" or "paint")&&!ScreenShapeTools.Contains(_tool)&&_tool!="tape")_session.Begin();_points.Clear();_points.Add(p);
-            _screenPenStraight=false;_penHoldAnchor=_tool=="pen"?p:null;_penHoldSince=Now;_straightenTimer.Stop();if(_penHoldAnchor is not null)_straightenTimer.Start();
+            _screenPenStraight=false;_penHoldAnchor=_tool is "pen" or "highlighter" or "paint"?p:null;_penHoldSince=Now;_straightenTimer.Stop();if(_penHoldAnchor is not null)_straightenTimer.Start();
             if(_tool=="select")
             {
                 var additive=input.Control||input.Shift;
@@ -417,7 +413,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             {
                 _points.Add(p);
                 // The screen host stores physical overlay pixels, so compare movement in screen DIP.
-                if(_tool=="pen"&&_penHoldAnchor is { } anchor&&Math.Sqrt(Math.Pow(p.X-anchor.X,2)+Math.Pow(p.Y-anchor.Y,2))>12*_dpiScale)
+                if(_penHoldAnchor is { } anchor&&Math.Sqrt(Math.Pow(p.X-anchor.X,2)+Math.Pow(p.Y-anchor.Y,2))>12*_dpiScale)
                 {if(_screenPenStraight)DamageStrokeTail(true);_penHoldAnchor=p;_penHoldSince=Now;_screenPenStraight=false;_straightenTimer.Stop();_straightenTimer.Start();}
             }
             if(regionalSelection)
@@ -438,7 +434,8 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             else if(_preview is not null)_session.AppendShape(_preview);
             else if(_points.Count>0&&_tool is "pen" or "highlighter" or "paint")
             {
-                var bounds=VectorMath.ComputeBoundingBox(_points,_width*_dpiScale);
+                IReadOnlyList<InkPoint> points=_screenPenStraight&&_points.Count>1?new[]{_points[0],_points[^1]}:_points;
+                var bounds=VectorMath.ComputeBoundingBox(points,_width*_dpiScale);
                 if(_tool=="pen"&&_screenPenStraight)
                 {
                     var line=Styled(new BoardObject{Type="line",X=bounds.MinX,Y=bounds.MinY,Width=bounds.Width,Height=bounds.Height});
@@ -447,7 +444,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
                 else
                 {
                     var item=Styled(new BoardObject{Type=_tool=="pen"?"stroke":_tool,X=bounds.MinX,Y=bounds.MinY,Width=bounds.Width,Height=bounds.Height});
-                    item.SetCompletedInkPoints(_points);AppendScreenInk(item);
+                    item.SetCompletedInkPoints(points);AppendScreenInk(item);
                 }
             }
             _straightenTimer.Stop();_penHoldAnchor=null;_screenPenStraight=false;_session.Commit();ClearObjectDrag();if(_marquee)DamageSelectedObjects();var committedDamage=_damage;RefreshScreenStyleButtons();_marquee=false;_points.Clear();_start=_last=null;_preview=null;_handle=null;_renderer.ResetLive();Changed();
@@ -476,8 +473,17 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         _overlay.SetManipulationCursor(selected,handle,_tool,_tool=="laser"?_laser.Color:_color);
     }
     private BoardObject Styled(BoardObject item)
-    {item.StrokeColor=_color;if(item.Type is "line" or "arrow")item.Extension=_screenExtension;item.StrokeWidth=_width*_dpiScale;item.Opacity=_tool=="highlighter"?_opacity*.4:_opacity;item.LineStyle=_dash;if(item.Type is "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star")item.FillColor=_fill;if(item.Type=="tape"){item.StrokeColor=item.FillColor="#F59E0B";item.IsRevealed=false;}return item;}
+    {item.StrokeColor=_color;if(item.Type=="line")item.Extension=_screenExtension;if(item.Type=="arrow"){item.SolidArrow=true;item.ArrowHeadLength=16*_dpiScale;item.ArrowHeadWidth=10*_dpiScale;}item.StrokeWidth=_width*_dpiScale;item.Opacity=_tool=="highlighter"?_opacity*.4:_opacity;item.LineStyle=_dash;if(item.Type is "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star")item.FillColor=_fill;if(item.Type=="tape"){item.StrokeColor=item.FillColor="#F59E0B";item.IsRevealed=false;}return item;}
     private static double Now=>Stopwatch.GetTimestamp()/(double)Stopwatch.Frequency;
+    private void UpdateScreenStraightStroke(double now)
+    {
+        if(!IsActive||!_drawing||_penHoldAnchor is null||_start is null||now-_penHoldSince<StraightStrokeRecognizer.HoldSeconds)return;
+        if(!StraightStrokeRecognizer.IsEligible(_points,1/_dpiScale))return;
+        _screenPenStraight=true;
+        _straightenTimer.Stop();
+        DamageStrokeTail(true);
+        _dirty=true;
+    }
     private void DamageStrokeTail(bool entire=false)
     {
         // The newest sample changes only the last two Catmull-Rom segments. Include

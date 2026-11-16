@@ -728,5 +728,7 @@
   "清除筆跡": "Borrar trazos",
   "清除筆跡？": "¿Borrar los trazos?",
   "只清除目前頁面未鎖定的筆跡，可用復原恢復。": "Solo se borrarán los trazos desbloqueados de esta página. Puedes deshacerlo.",
-  "已清除筆跡，可按復原恢復。": "Trazos borrados. Usa Deshacer para restaurarlos."
+  "已清除筆跡，可按復原恢復。": "Trazos borrados. Usa Deshacer para restaurarlos.",
+  "箭尾長度": "Longitud del asta",
+  "箭尾寬度": "Anchura del asta"
 }

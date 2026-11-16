@@ -43,11 +43,20 @@ public partial class MainWindow
             if(_session.Document.Objects.Count!=count||_editor is null)throw new InvalidOperationException("普通文字草稿提前寫入文件。");
             _editor.Text="中文\n新文字";TextStyles.Apply(_editingObject!,new(Bold:true,Underline:true,Color:"#a855f7"));_editor.SyncStyle(_editingObject!);FinishText();
             var added=_session.Selected;if(added?.Text!="中文\n新文字"||added.IsUnderline!=true||added.IsBold!=true)throw new InvalidOperationException("普通文字草稿樣式未提交。");
+            StartText(added);
+            var selectedFormat=_editor!.TextDocument.GetRange(3,4).CharacterFormat;
+            selectedFormat.Size=27;selectedFormat.Name="Consolas";
+            selectedFormat.Strikethrough=Microsoft.UI.Text.FormatEffect.On;
+            selectedFormat.BackgroundColor=Microsoft.UI.Colors.Yellow;
+            FinishText();
+            added=_session.Selected!;
+            if(added.RichTextSpans?.Any(s=>s.Text=="新"&&s.FontFamily=="Consolas"&&s.FontSize>24&&s.IsStrikethrough==true&&s.HighlightColor is not null)!=true)
+                throw new InvalidOperationException("多行局部文字格式未提交。");
             StartText(added);_editor!.Text="取消修改";FinishText(false);if(_session.Document.Objects.First(o=>o.Id==added.Id).Text!="中文\n新文字")throw new InvalidOperationException("Esc取消修改了普通文字。");
             var originalText=_session.PageObjects.First(o=>o.Type=="text"&&o.Id!=added.Id);_session.SetSelection(new[]{originalText.Id,added.Id});
             var screen=_viewport.WorldToScreen(added.X+5,added.Y+5);ShowContext(new((float)screen.X,(float)screen.Y));
             if(_session.SelectedIds.Count!=2)throw new InvalidOperationException("右鍵丟失文字多選。");
-            return new{draftSeparate=true,chineseMultiline=true,wholeDraftStyle=true,cancelPreserves=true,rightClickKeepsMultiSelection=true,hardwareIme="未執行"};
+            return new{draftSeparate=true,chineseMultiline=true,wholeDraftStyle=true,rangeFormat=true,cancelPreserves=true,rightClickKeepsMultiSelection=true,hardwareIme="未執行"};
         }
         finally{FinishText(false);_session.Open(before);RefreshEditor();}
     }

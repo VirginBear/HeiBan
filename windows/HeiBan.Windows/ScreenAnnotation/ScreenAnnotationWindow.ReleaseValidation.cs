@@ -18,6 +18,16 @@ internal sealed partial class ScreenAnnotationWindow
             OnPointer(new("down",500,edgeY-38*RulerScale));OnPointer(new("move",520,437));OnPointer(new("up",540,450));
             Check(_session.Document.Objects.Last().ParsedPoints.Any(p=>Math.Abs(p.Y-437)<.001),"Ruler attracted a stroke begun outside its edge");
             _rulerEnabled=false;CancelGesture();
+            foreach(var brush in new[]{"highlighter","paint"})
+            {
+                ChooseScreenTool(brush);
+                OnPointer(new("down",300,330));
+                for(var i=1;i<=6;i++)OnPointer(new("move",300+i*18,330+i%2));
+                UpdateScreenStraightStroke(_penHoldSince+StraightStrokeRecognizer.HoldSeconds+.01);
+                Check(_screenPenStraight,"Screen hold did not straighten "+brush);
+                OnPointer(new("up",408,330));
+                Check(_session.Document.Objects.Last() is {ParsedPoints.Count:2} stroke&&stroke.Type==brush,"Straightened stroke lost its brush type");
+            }
             _session.Open(new(){Objects=[new(){Id="erase-me",Type="rect",X=100,Y=100,Width=40,Height=40,FillColor="#5F9E71"},new(){Id="below",Type="rect",X=80,Y=80,Width=100,Height=100,IsLocked=true,StrokeColor="#336699",FillColor="#336699",ZIndex=-1}]});
             ChooseScreenTool("eraser");_eraserWhole=true;_eraserSize=40;Changed();Render();
             OnPointer(new("down",110,110));var gesture=_circularEraser??throw new Exception("No eraser gesture");

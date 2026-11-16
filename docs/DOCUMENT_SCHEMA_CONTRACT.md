@@ -66,6 +66,7 @@ HeiBan 為高效能向量黑板／白板協作系統，在 Web（TypeScript / Re
 - `x1`, `y1`, `x2`, `y2`: `Double?` (A/B 點線段與箭頭專用端點座標，反向繪製時不翻轉端點)
 - `extension`: `"none" | "start" | "end" | "both"` (A/B 線段向兩端射線延伸模式)
 - `isFreehandInk`: 可選 `Boolean`。Windows 對由鋼筆筆跡吸直而成的 `line` 寫入 `true`，供「清除筆跡」區分手寫註記與圖形工具建立的直線。舊直線缺少此欄時保留原狀，無需遷移。其他讀取器可依未知欄位契約保留。
+- `solidArrow`: 可選 `Boolean`。Windows 新箭頭寫入 `true`，以端點、`strokeWidth`、`arrowHeadLength`、`arrowHeadWidth` 產生無接縫實心輪廓；箭頭不超過端點，尾桿寬度受箭頭底邊限制。既有未標記箭頭維持原樣。
 - `points`: `String?` (筆跡點陣列之 JSON 字串，支援壓力值 `pressure?: Double`)
 - `strokeColor`, `fillColor`: `String`（`#RRGGBB` 或 `#RRGGBBAA`，alpha 在最後兩碼；`none` 表示無填色。RGB 與全不透明 FF alpha 等價，不能以 ARGB 解讀或根據色碼猜測來源。）
 - `strokeWidth`: `Double`
@@ -83,6 +84,7 @@ HeiBan 為高效能向量黑板／白板協作系統，在 Web（TypeScript / Re
 - `isBold`, `isItalic`, `isUnderline`, `isStrikethrough`: `Bool?`
 - `highlightColor`: `String?`
 - `richTextSpans`: `[TextSpan]?` (富文本片段陣列，每個片段包含文字、個別粗斜體、底線、刪除線與局部高亮色)
+- Windows 的 `TextSpan` 可選填 `fontFamily` 與 `fontSize`，大小使用文件座標，缺省時沿用物件設定。這兩欄及 `solidArrow` 都不需要遷移；其他讀取器可依未知欄位規定保留。
 
 ### 4.3 圖片與裁切欄位 (W20 擴展支援)
 - `imageUrl`: `String?` (顯示用圖片 URL / Base64)

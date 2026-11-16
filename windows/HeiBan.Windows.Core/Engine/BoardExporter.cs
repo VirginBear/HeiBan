@@ -18,6 +18,7 @@ public static class BoardExporter
     }
     private static string N(double value)=>double.IsFinite(value)?value.ToString("0.###",CultureInfo.InvariantCulture):"0";
     private static string E(string? value)=>WebUtility.HtmlEncode(value??"");
+    private static string FontCss(string family)=>E("'"+family.Replace("\\","\\5c ").Replace("'","\\27 ").Replace("\r"," ").Replace("\n"," ")+"'");
     private static string Decoration(bool underline,bool strike)=>underline||strike?string.Join(' ',new[]{underline?"underline":"",strike?"line-through":""}.Where(value=>value.Length>0)):"none";
     private static string Color(string? value)=>value is not null&&(value=="none"||value=="transparent"||System.Text.RegularExpressions.Regex.IsMatch(value,"^#[0-9a-fA-F]{3,8}$"))?value:"none";
     public static string Svg(HeiBanDocument document,IEnumerable<BoardObject> source,ExportArea area)
@@ -59,6 +60,11 @@ public static class BoardExporter
                     if(Math.Abs(sweep)>=359.999)b.Append($"<circle cx=\"{N(cx)}\" cy=\"{N(cy)}\" r=\"{N(radius)}\"/>");
                     else b.Append($"<path fill=\"none\" d=\"M{N(cx+radius*Math.Cos(start))} {N(cy+radius*Math.Sin(start))} A{N(radius)} {N(radius)} 0 {(Math.Abs(sweep)>180?1:0)} {(sweep>=0?1:0)} {N(cx+radius*Math.Cos(end))} {N(cy+radius*Math.Sin(end))}\"/>");break;
                 case "line":case "arrow":
+                    if(o is {Type:"arrow",SolidArrow:true})
+                    {
+                        b.Append($"<polygon points=\"{string.Join(' ',ArrowGeometry.Outline(o).Select(p=>N(p.X)+","+N(p.Y)))}\" fill=\"{stroke}\" fill-opacity=\"1\" stroke=\"none\"/>");
+                        break;
+                    }
                     var ax=o.X1??o.X;var ay=o.Y1??o.Y;var bx=o.X2??o.X+o.Width;var by=o.Y2??o.Y+o.Height;var length=Math.Sqrt(Math.Pow(bx-ax,2)+Math.Pow(by-ay,2));var dx=(bx-ax)/Math.Max(.001,length);var dy=(by-ay)/Math.Max(.001,length);var reach=Math.Max(area.Width,area.Height)*4+Math.Abs(area.X)+Math.Abs(area.Y)+Math.Abs(ax)+Math.Abs(ay);
                     b.Append($"<path fill=\"none\" d=\"M{N(ax-(o.Extension is "start" or "both"?dx*reach:0))} {N(ay-(o.Extension is "start" or "both"?dy*reach:0))} L{N(bx+(o.Extension is "end" or "both"?dx*reach:0))} {N(by+(o.Extension is "end" or "both"?dy*reach:0))}\"/>");
                     if(o.Type=="arrow"&&length>.001){var head=o.ArrowHeadLength??16;var hw=o.ArrowHeadWidth??10;b.Append($"<path stroke-width=\"{N(o.StrokeWidth)}\" stroke-dasharray=\"none\" fill=\"none\" d=\"M{N(bx-dx*head-dy*hw/2)} {N(by-dy*head+dx*hw/2)} L{N(bx)} {N(by)} L{N(bx-dx*head+dy*hw/2)} {N(by-dy*head-dx*hw/2)}\"/>");}break;
@@ -74,8 +80,16 @@ public static class BoardExporter
                     if(o.Type=="sticky"&&o.StickyStyle=="washi")b.Append($"<rect x=\"{N(o.X+o.Width*.2)}\" y=\"{N(o.Y-6)}\" width=\"{N(o.Width*.6)}\" height=\"18\" fill=\"#A8BDB0\" fill-opacity=\".6\" stroke=\"none\"/>");
                     if(o.Type=="sticky"&&o.StickyStyle=="cat")foreach(var xx in new[]{o.X+12,o.X+o.Width-12})b.Append($"<ellipse cx=\"{N(xx)}\" cy=\"{N(o.Y+6)}\" rx=\"10\" ry=\"14\" fill=\"{(fill=="none"?"#FFF0AB":fill)}\" stroke=\"none\"/>");
                     var pad=o.Type=="sticky"?12:0;var align=o.Align??"left";var tx=o.X+pad+(align=="center"?(o.Width-pad*2)/2:align=="right"?o.Width-pad*2:0);var size=o.FontSize??18;
-                    b.Append($"<foreignObject x=\"{N(o.X+pad)}\" y=\"{N(o.Y+pad)}\" width=\"{N(o.Width-pad*2)}\" height=\"{N(o.Height-pad*2)}\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"white-space:pre-wrap;overflow-wrap:anywhere;margin:0;font-family:{E(o.FontFamily??"Microsoft JhengHei, sans-serif")};font-size:{N(size)}px;color:{stroke};font-weight:{(o.IsBold==true?"bold":"normal")};font-style:{(o.IsItalic==true?"italic":"normal")};text-align:{(align is "center" or "right"?align:"left")};text-decoration:{Decoration(o.IsUnderline==true,o.IsStrikethrough==true)}\">");
-                    if(o.RichTextSpans is {Count:>0} spans)foreach(var span in spans)b.Append($"<span style=\"background-color:{Color(span.HighlightColor??"transparent")};color:{Color(span.Color??o.StrokeColor)};font-weight:{(span.IsBold==true?"bold":"normal")};font-style:{(span.IsItalic==true?"italic":"normal")};text-decoration:{Decoration(span.IsUnderline==true,span.IsStrikethrough==true)}\">{E(span.Text)}</span>");else b.Append(E(o.Text));b.Append("</div></foreignObject>");break;
+                    var hasSpans=o.RichTextSpans is {Count:>0};
+                    var familyCss=string.Join(',',(o.FontFamily??"Microsoft JhengHei").Split(',').Select(family=>FontCss(family.Trim())));
+                    b.Append($"<foreignObject x=\"{N(o.X+pad)}\" y=\"{N(o.Y+pad)}\" width=\"{N(o.Width-pad*2)}\" height=\"{N(o.Height-pad*2)}\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"white-space:pre-wrap;overflow-wrap:anywhere;margin:0;font-family:{familyCss},sans-serif;font-size:{N(size)}px;color:{stroke};font-weight:{(o.IsBold==true?"bold":"normal")};font-style:{(o.IsItalic==true?"italic":"normal")};text-align:{(align is "center" or "right"?align:"left")};text-decoration:{Decoration(!hasSpans&&o.IsUnderline==true,!hasSpans&&o.IsStrikethrough==true)}\">");
+                    if(o.RichTextSpans is {Count:>0} spans)foreach(var span in spans)
+                    {
+                        var spanFont=span.FontFamily is {Length:>0} family?$"font-family:{FontCss(family)};":"";
+                        var spanSize=span.FontSize is >0 and var fontSize&&double.IsFinite(fontSize)?$"font-size:{N(fontSize)}px;":"";
+                        b.Append($"<span style=\"{spanFont}{spanSize}background-color:{Color(span.HighlightColor??"transparent")};color:{Color(span.Color??o.StrokeColor)};font-weight:{(span.IsBold==true?"bold":"normal")};font-style:{(span.IsItalic==true?"italic":"normal")};text-decoration:{Decoration(span.IsUnderline==true,span.IsStrikethrough==true)}\">{E(span.Text)}</span>");
+                    }
+                    else b.Append(E(o.Text));b.Append("</div></foreignObject>");break;
                 case "image":
                     if(o.ImageUrl?.StartsWith("data:image/",StringComparison.Ordinal)==true)
                     {var ow=o.OriginalWidth??o.Width;var oh=o.OriginalHeight??o.Height;var cropW=Math.Max(1,o.CropWidth??ow);var cropH=Math.Max(1,o.CropHeight??oh);b.Append($"<svg x=\"{x}\" y=\"{y}\" width=\"{w}\" height=\"{h}\" viewBox=\"{N(o.CropX??0)} {N(o.CropY??0)} {N(cropW)} {N(cropH)}\" preserveAspectRatio=\"none\" overflow=\"hidden\"><image width=\"{N(ow)}\" height=\"{N(oh)}\" href=\"{E(o.ImageUrl)}\" xlink:href=\"{E(o.ImageUrl)}\"/></svg>");}break;

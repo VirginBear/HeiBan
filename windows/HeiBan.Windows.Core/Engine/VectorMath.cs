@@ -73,6 +73,14 @@ public static class VectorMath
 
         if(obj.Type is "line" or "arrow")
         {
+            if(obj is {Type:"arrow",SolidArrow:true})
+            {
+                var outline=ArrowGeometry.Outline(obj);
+                if(LassoSelection.Contains(p,outline))return true;
+                for(var i=0;i<outline.Length;i++)
+                    if(DistanceToSegment(pt,new Vector2((float)outline[i].X,(float)outline[i].Y),new Vector2((float)outline[(i+1)%outline.Length].X,(float)outline[(i+1)%outline.Length].Y))<=threshold)return true;
+                return false;
+            }
             var a=new Vector2((float)(obj.X1??obj.X),(float)(obj.Y1??obj.Y));
             var b=new Vector2((float)(obj.X2??obj.X+obj.Width),(float)(obj.Y2??obj.Y+obj.Height));
             var ab=b-a;var lengthSquared=ab.LengthSquared();

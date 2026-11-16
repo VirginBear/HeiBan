@@ -969,6 +969,7 @@ Check(System.Text.RegularExpressions.Regex.Matches(printedPages,"<svg ").Count==
 await PalettePreferenceChecks.Run(Check);
 await TrashRetentionChecks.Run(Check);
 ClearInkChecks.Run(Check);
+TextAndArrowChecks.Run(Check);
 CanvasCaptureChecks.Run(Check);
 PointSelectionChecks.Run(Check);
 ObjectDragChecks.Run(Check);

@@ -272,6 +272,9 @@ public sealed class BoardObject
     [JsonPropertyName("fillOpacity")] public double? FillOpacity { get; set; }
     [JsonPropertyName("arrowHeadLength")] public double? ArrowHeadLength { get; set; }
     [JsonPropertyName("arrowHeadWidth")] public double? ArrowHeadWidth { get; set; }
+    [JsonPropertyName("solidArrow")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? SolidArrow { get; set; }
 
     [JsonPropertyName("brushKind")] public string? BrushKind { get; set; }
     [JsonPropertyName("isRevealed")] public bool? IsRevealed { get; set; }
@@ -445,6 +448,13 @@ public sealed class InkPoint
 /// </summary>
 public sealed class TextSpan
 {
+    [JsonPropertyName("fontFamily")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? FontFamily { get; set; }
+    [JsonPropertyName("fontSize")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? FontSize { get; set; }
+
     // Immutable payload strings are shared; mutable collections belong to this snapshot.
     internal TextSpan Snapshot() { var copy=(TextSpan)MemberwiseClone();copy.ExtraFields=Engine.DocumentSnapshot.CopyFields(ExtraFields);return copy; }
 

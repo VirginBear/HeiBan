@@ -13,7 +13,13 @@ public static class RectangularEraser
         if(!MayIntersect(item,footprint))return false;
         var pad=item.StrokeWidth/2;
         var paths=new List<IReadOnlyList<InkPoint>>();var closed=false;
-        if(item.Type is "line" or "arrow")
+        if(item is {Type:"arrow",SolidArrow:true})
+        {
+            paths.Add(ArrowGeometry.Outline(item).Select(p=>ObjectHandles.ToWorld(item,p)).ToArray());
+            closed=true;
+            pad=0;
+        }
+        else if(item.Type is "line" or "arrow")
         {
             var a=ObjectHandles.Endpoint(item,0);var b=ObjectHandles.Endpoint(item,1);paths.Add(new[]{a,b});
             if(item.Type=="arrow")

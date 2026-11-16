@@ -17,7 +17,7 @@ public static class TextStyles
         if(item.IsLocked==true||item.Type is not("text" or "sticky")||
             change.Size is { } size&&!double.IsFinite(size)||change.Opacity is { } opacity&&!double.IsFinite(opacity))return false;
         var before=JsonSerializer.Serialize(item,DocumentCodec.Options);
-        if(change.Size is { } fontSize){item.FontSize=Math.Clamp(fontSize,8,144)*coordinateScale;GrowHeight(item);}
+        if(change.Size is { } fontSize)item.FontSize=Math.Clamp(fontSize,8,144)*coordinateScale;
         if(change.Color is { } color&&ValidColor(color))item.StrokeColor=color;
         if(change.Family is { } family&&!string.IsNullOrWhiteSpace(family))item.FontFamily=family.Trim();
         if(change.Align is "left" or "center" or "right")item.Align=change.Align;
@@ -27,11 +27,14 @@ public static class TextStyles
         if(change.Underline is { } underline)item.IsUnderline=underline;
         foreach(var span in item.RichTextSpans??[])
         {
+            if(change.Size.HasValue)span.FontSize=null;
+            if(change.Family is { } appliedFamily&&!string.IsNullOrWhiteSpace(appliedFamily))span.FontFamily=null;
             if(change.Color is { } spanColor&&ValidColor(spanColor))span.Color=spanColor;
             if(change.Bold is { } spanBold)span.IsBold=spanBold;
             if(change.Italic is { } spanItalic)span.IsItalic=spanItalic;
             if(change.Underline is { } spanUnderline)span.IsUnderline=spanUnderline;
         }
+        if(change.Size.HasValue)GrowHeight(item);
         if(before==JsonSerializer.Serialize(item,DocumentCodec.Options))return false;
         item.UpdatedAt=DateTime.UtcNow.ToString("o");return true;
     }
@@ -45,7 +48,7 @@ public static class TextStyles
     public static void GrowHeight(BoardObject item)
     {
         if(item.Type!="text")return;
-        var size=item.FontSize??24;var width=Math.Max(20,item.Width-28);var lines=0;
+        var size=Math.Max(item.FontSize??24,item.RichTextSpans is {Count:>0} spans?spans.Max(span=>span.FontSize??0):0);var width=Math.Max(20,item.Width-28);var lines=0;
         foreach(var line in (item.Text??"").Split('\n'))
         {
             var used=0d;var count=1;

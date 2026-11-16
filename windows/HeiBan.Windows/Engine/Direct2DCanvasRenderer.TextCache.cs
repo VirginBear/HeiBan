@@ -37,7 +37,7 @@ public sealed partial class Direct2DCanvasRenderer
         for(var i=0;i<cached.Length;i++)
         {
             var a=spans![i];var b=cached[i];
-            if(a.Text!=b.Text||a.IsBold!=b.IsBold||a.IsItalic!=b.IsItalic||a.IsUnderline!=b.IsUnderline||a.IsStrikethrough!=b.IsStrikethrough||a.Color!=b.Color||a.HighlightColor!=b.HighlightColor)return false;
+            if(a.Text!=b.Text||a.IsBold!=b.IsBold||a.IsItalic!=b.IsItalic||a.IsUnderline!=b.IsUnderline||a.IsStrikethrough!=b.IsStrikethrough||a.Color!=b.Color||a.HighlightColor!=b.HighlightColor||a.FontFamily!=b.FontFamily||a.FontSize!=b.FontSize)return false;
         }
         return true;
     }
@@ -61,6 +61,8 @@ public sealed partial class Direct2DCanvasRenderer
                 layout.SetFontWeight(offset,length,new global::Windows.UI.Text.FontWeight{Weight=(ushort)(span.IsBold==true?700:400)});
                 layout.SetFontStyle(offset,length,span.IsItalic==true?global::Windows.UI.Text.FontStyle.Italic:global::Windows.UI.Text.FontStyle.Normal);
                 layout.SetUnderline(offset,length,span.IsUnderline==true);layout.SetStrikethrough(offset,length,span.IsStrikethrough==true);
+                if(span.FontFamily is {Length:>0} family)layout.SetFontFamily(offset,length,family);
+                if(span.FontSize is >0 and var size&&double.IsFinite(size))layout.SetFontSize(offset,length,(float)size);
                 if(span.Color is not null)layout.SetColor(offset,length,HexToColor(span.Color,(float)o.Opacity));offset+=length;
             }
             var highlights=new List<(Rect,Color)>();offset=0;

@@ -221,6 +221,12 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
                 }
                 break;
             case "line": case "arrow":
+                if(o is {Type:"arrow",SolidArrow:true})
+                {
+                    using var arrow=Path(ds,ArrowGeometry.Outline(o),true,false);
+                    if(arrow is not null)ds.FillGeometry(arrow,stroke);
+                    break;
+                }
                 var a=new Vector2((float)(o.X1??o.X),(float)(o.Y1??o.Y));var b=new Vector2((float)(o.X2??o.X+o.Width),(float)(o.Y2??o.Y+o.Height));
                 var ea=a;var eb=b;if(Vector2.Distance(a,b)>.01f){var direction=Vector2.Normalize(b-a);if(o.Extension is "start" or "both")ea-=direction*100000;if(o.Extension is "end" or "both")eb+=direction*100000;}
                 ds.DrawLine(ea,eb,stroke,(float)o.StrokeWidth,style);

@@ -10,7 +10,7 @@ internal sealed partial class ScreenAnnotationWindow
         foreach(var o in _objectDrag?.Selected??_session.SelectedObjects)
         {
             if(o.Extension is "start" or "end" or "both"){_fullDamage=true;continue;}
-            var corners=ObjectHandles.Outline(o);if(_objectDrag is { } drag&&drag.IsMoving(o))corners=corners.Select(p=>new InkPoint(p.X+drag.X,p.Y+drag.Y)).ToArray();var pad=Math.Max(40*_dpiScale,o.StrokeWidth+(o.ArrowHeadLength??0));
+            var corners=ObjectHandles.Outline(o);if(_objectDrag is { } drag&&drag.IsMoving(o))corners=corners.Select(p=>new InkPoint(p.X+drag.X,p.Y+drag.Y)).ToArray();var pad=Math.Max(40*_dpiScale,o.StrokeWidth+Math.Max(o.ArrowHeadLength??0,(o.ArrowHeadWidth??0)/2));
             // Catmull-Rom curves can extend beyond point bounds; include their control hull after rotation.
             if(o.Type is "stroke" or "pen" or "highlighter" or "paint" or "curve")pad+=Math.Sqrt(o.Width*o.Width+o.Height*o.Height)/3;
             var left=Math.Max(0,Math.Floor(corners.Min(p=>p.X)-pad));var top=Math.Max(0,Math.Floor(corners.Min(p=>p.Y)-pad));

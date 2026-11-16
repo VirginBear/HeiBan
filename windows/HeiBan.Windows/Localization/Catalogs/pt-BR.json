@@ -728,5 +728,7 @@
   "清除筆跡": "Limpar traços",
   "清除筆跡？": "Limpar os traços?",
   "只清除目前頁面未鎖定的筆跡，可用復原恢復。": "Somente os traços desbloqueados da página atual serão apagados. Você pode desfazer a ação.",
-  "已清除筆跡，可按復原恢復。": "Traços apagados. Use Desfazer para restaurá-los."
+  "已清除筆跡，可按復原恢復。": "Traços apagados. Use Desfazer para restaurá-los.",
+  "箭尾長度": "Comprimento da haste",
+  "箭尾寬度": "Largura da haste"
 }

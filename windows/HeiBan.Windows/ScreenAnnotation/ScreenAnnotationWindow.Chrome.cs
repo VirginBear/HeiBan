@@ -202,13 +202,13 @@ internal sealed partial class ScreenAnnotationWindow
         var panel=new StackPanel{Width=360,Spacing=12,RequestedTheme=ElementTheme.Light};
         panel.Children.Add(new TextBlock{Text=selected is null?T("顏色與筆刷"):T("選取物件樣式"),FontSize=16,FontWeight=Microsoft.UI.Text.FontWeights.SemiBold});
         var type=selected?.Type??_tool;
-        var controls=ToolbarUi.AddBrushControls(panel,_owner.ProfilePalette,currentColor,currentWidth,currentAlpha,320,type is not("text" or "sticky" or "image"));
+        var controls=ToolbarUi.AddBrushControls(panel,_owner.ProfilePalette,currentColor,currentWidth,currentAlpha,320,type is not("text" or "sticky" or "image")&&selected?.SolidArrow!=true);
         var wheel=controls.Color;var width=controls.Width;var alpha=controls.Opacity;
         wheel.ColorChanged+=(_,e)=>SetScreenColor($"#{e.NewColor.R:X2}{e.NewColor.G:X2}{e.NewColor.B:X2}{e.NewColor.A:X2}");
         width.ValueChanged+=(_,_)=>{if(StyleSelection is not null)EditScreenStyle(o=>o.StrokeWidth=width.Value*_dpiScale);else{_width=width.Value;_laser.Width=_width;}};
         alpha.ValueChanged+=(_,_)=>{if(StyleSelection is not null)EditScreenStyle(o=>o.Opacity=alpha.Value);else _opacity=alpha.Value;};
 
-        if(type is not("text" or "image" or "sticky" or "eraser" or "laser" or "cane"))
+        if(type is not("text" or "image" or "sticky" or "eraser" or "laser" or "cane")&&selected?.SolidArrow!=true)
         {
             var currentDash=selected?.LineStyle??_dash;
             panel.Children.Add(ToolbarUi.CreateDashComboBox(currentDash,SetScreenDash));
@@ -247,6 +247,7 @@ internal sealed partial class ScreenAnnotationWindow
 
         if(selected?.Type=="arrow"||type=="arrow")
         {
+            if(selected is {SolidArrow:true})ToolbarUi.AddArrowShaftControls(panel,selected,_dpiScale,edit=>EditScreenStyle(o=>{if(o.SolidArrow==true)edit(o);}));
             var headLength=ToolbarUi.BrushSlider(T("箭頭頭部長度（pt）"),4,128,(selected?.ArrowHeadLength??16)/_dpiScale,1);
             headLength.ValueChanged+=(_,_)=>EditScreenStyle(o=>{if(o.Type=="arrow")o.ArrowHeadLength=headLength.Value*_dpiScale;});
             panel.Children.Add(headLength);
@@ -256,7 +257,7 @@ internal sealed partial class ScreenAnnotationWindow
             panel.Children.Add(headWidth);
         }
 
-        if(type is "line" or "arrow")
+        if(type=="line"||selected is {Type:"arrow",SolidArrow:not true})
         {
             var options=new[]{"none","start","end","both"};
             var extension=new ComboBox
