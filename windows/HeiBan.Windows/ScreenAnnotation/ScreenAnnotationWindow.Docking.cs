@@ -126,6 +126,7 @@ internal sealed partial class ScreenAnnotationWindow
         else { root.ColumnDefinitions.Add(new() { Width = GridLength.Auto }); root.ColumnDefinitions.Add(new() { Width = new GridLength(1, GridUnitType.Star) }); root.ColumnDefinitions.Add(new() { Width = GridLength.Auto }); Grid.SetColumn(_chromeToolHost, 1); Grid.SetColumn(_chromeEnd, 2); }
 
         root.Children.Add(_chromeStart); root.Children.Add(_chromeToolHost); root.Children.Add(_chromeEnd); ((Border)Content).Child = root;
+        if(_textInput is not null)AttachScreenTextToolbar();
     }
 
     private void ResizeChrome()
@@ -136,6 +137,14 @@ internal sealed partial class ScreenAnnotationWindow
         _chromeStart.Measure(unbounded); _chromeEnd.Measure(unbounded);
         var scale = ToolbarUi.SizeScale(_toolbarPreferences.ToolbarSize);
         var workWidth = Math.Max(1, available.Width / _dpiScale - 24); var workHeight = Math.Max(1, available.Height / _dpiScale - 24);
+        if(_textInput is not null&&_chromeToolHost.Child is FrameworkElement textPage)
+        {
+            textPage.Measure(new global::Windows.Foundation.Size(workWidth,workHeight));
+            NativeOverlayWindow.ResizeCompactWindow(WinRT.Interop.WindowNative.GetWindowHandle(this),
+                (int)Math.Ceiling(Math.Min(workWidth,textPage.DesiredSize.Width+24)*_dpiScale),
+                (int)Math.Ceiling(Math.Min(workHeight,textPage.DesiredSize.Height+20)*_dpiScale));
+            return;
+        }
         _chromeTools.RunLength = VerticalChrome ? Math.Max(32, workHeight - _chromeStart.DesiredSize.Height - _chromeEnd.DesiredSize.Height - 30) : Math.Max(32, workWidth - _chromeStart.DesiredSize.Width - _chromeEnd.DesiredSize.Width - 38);
         if (_labeledScreenFlow is { } labeled) { const int extra = 90; labeled.RunLength = VerticalChrome ? Math.Max(128 * scale, workHeight - _chromeStart.DesiredSize.Height - _chromeEnd.DesiredSize.Height - (_toolbarPreferences.DisplayMode == "labels" ? 278 : 172) * scale) : Math.Max(84 * scale, workWidth - _chromeStart.DesiredSize.Width - _chromeEnd.DesiredSize.Width - (310 + extra) * scale); labeled.InvalidateMeasure(); }
         _chromeTools.InvalidateMeasure(); _chromeTools.Measure(unbounded);

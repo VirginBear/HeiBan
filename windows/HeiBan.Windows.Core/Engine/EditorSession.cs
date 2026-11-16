@@ -173,13 +173,14 @@ public sealed class EditorSession
         var objects=SelectedObjects.Where(o=>o.IsLocked!=true).ToArray();if(objects.Length==0)return;
         Begin();foreach(var o in objects)Document.Objects.Remove(o);SelectedId=null;Commit();
     }
-    public bool ClearPageInk()
+    public bool ClearPageInk() => ClearCurrentPage(inkOnly:true);
+    public bool ClearCurrentPage(bool inkOnly = false)
     {
         var board = Document.Board;
         // PageId-less objects in notebooks are shared and can appear on other pages.
-        bool ShouldRemove(BoardObject item) => item.IsLocked != true
-            && (board.CanvasMode != "notebook" || (item.PageId is not null && item.PageId == board.ActivePageId))
-            && (item.Type is "stroke" or "pen" or "highlighter" or "paint" || item is { Type: "line", IsFreehandInk: true });
+        bool ShouldRemove(BoardObject item) => (board.CanvasMode != "notebook" || (item.PageId is not null && item.PageId == board.ActivePageId))
+            && (!inkOnly || item.IsLocked != true &&
+                (item.Type is "stroke" or "pen" or "highlighter" or "paint" || item is { Type: "line", IsFreehandInk: true }));
 
         if (!Document.Objects.Exists(ShouldRemove)) return false;
         Begin();

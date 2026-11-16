@@ -18,6 +18,7 @@ internal sealed partial class ScreenAnnotationWindow
             OnPointer(new("down",500,edgeY-38*RulerScale));OnPointer(new("move",520,437));OnPointer(new("up",540,450));
             Check(_session.Document.Objects.Last().ParsedPoints.Any(p=>Math.Abs(p.Y-437)<.001),"Ruler attracted a stroke begun outside its edge");
             _rulerEnabled=false;CancelGesture();
+            var text=ValidateScreenText();
             foreach(var brush in new[]{"highlighter","paint"})
             {
                 ChooseScreenTool(brush);
@@ -49,7 +50,7 @@ internal sealed partial class ScreenAnnotationWindow
             ShowScreenCustomizeToolbarWindow();Check(IsAuxiliaryToolWindow(_customizeToolbarWindow!.Handle),"Customize window mistaken for external app");
             _customizeToolbarWindow.Close();_timerCoordinator.TogglePlayPause();EnsureScreenTimerTick();Check(_screenTimerTick!.IsEnabled,"Running timer did not tick");
             CloseFloatingTeachingTools();Check(!_screenTimerTick.IsEnabled&&_timerCoordinator.Status!=TimerStatus.Running,"Screen close left timer running");
-            Changed();return new{assertions,pixelFrames,rulerLatch=true,eraserInsertion=true,independentUndo=true,staleEditRejected=true,auxiliaryWindows=true,timerStopped=true};
+            Changed();return new{assertions,pixelFrames,text,rulerLatch=true,eraserInsertion=true,independentUndo=true,staleEditRejected=true,auxiliaryWindows=true,timerStopped=true};
         }
         finally{await StopAsync();}
     }

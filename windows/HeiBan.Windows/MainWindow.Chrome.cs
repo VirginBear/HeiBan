@@ -503,7 +503,7 @@ public partial class MainWindow
         {
             AddPalette(StrokePalette, color => ChangeProperty(() => { if (_session.Selected is { } o) o.StrokeColor = color; else { CurrentStyle.Color = color; LoadActiveStyle(); } }));
             AddPalette(FillPalette, color => ChangeProperty(() => SetFillColor(color)),()=>_session.Selected?.FillColor is { } fill&&fill!="none"?fill:CurrentStyle.Fill);
-            WidthSlider.ValueChanged += (_, e) => ChangeProperty(() => { if (_session.Selected is { } o) o.StrokeWidth = e.NewValue; else { CurrentStyle.Width = e.NewValue; LoadActiveStyle(); } });
+            WidthSlider.ValueChanged += (_, e) => ChangeProperty(() => { if (_session.Selected is { } o) ArrowGeometry.SetThickness(o,e.NewValue); else { CurrentStyle.Width = e.NewValue; LoadActiveStyle(); } });
             OpacitySlider.ValueChanged += (_, e) => ChangeProperty(() => { if (_session.Selected is { } o) o.Opacity = e.NewValue; else { CurrentStyle.Opacity = e.NewValue; LoadActiveStyle(); } });
             FillToggle.Checked += FillChanged;
             FillToggle.Unchecked += FillChanged;
@@ -579,10 +579,6 @@ public partial class MainWindow
         var screenItem=new MenuFlyoutItem { Text=T("我的螢幕就是我的畫布"),Icon=ToolIcons.CreateMenuIcon("screen") };
         screenItem.Click+=(_,_)=>ScreenCanvas_Click(this,new());menu.Items.Add(screenItem);menu.Items.Add(new MenuFlyoutSeparator());
 
-        var clearInkItem=new MenuFlyoutItem{Text=T("清除筆跡"),Icon=ToolIcons.CreateMenuIcon("eraser")};
-        clearInkItem.Click+=(_,_)=>ClearPage(inkOnly:true);
-        menu.Items.Add(clearInkItem);
-
         var boardEraserItem=new ToggleMenuFlyoutItem { Text=T("顯示板擦"),IsChecked=_toolbarPrefs.BoardEraserVisible };
         boardEraserItem.Click+=async(_,_)=>
         {
@@ -643,7 +639,7 @@ public partial class MainWindow
             case "extension": Inspector.Visibility=Visibility.Visible;RefreshProperties();RefreshChrome();break;
             case "layers": Layers_Click(this,new RoutedEventArgs());break;
             case "viewLock": NavigationLock_Click(this,new RoutedEventArgs());break;
-            case "clearAll": ClearPage();break;
+            case "clearAll": ShowClearPageMenu();break;
             case "calculator":
                 ShowCalculatorPanel(GetToolAnchor("calculator"));
                 break;
@@ -877,7 +873,7 @@ public partial class MainWindow
         }
         CanvasFormatText.Text = _session.Document.Board.CanvasMode switch { "notebook" => T("筆記本"), "fixed" => T("有邊界黑板"), _ => T("無邊界筆記") };
         RefreshNavigationChrome();UpdateSaveStatusLight(StatusText.Text);
-        InspectorBookmark.Visibility = Inspector.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
+        InspectorBookmark.Visibility = _editor is not null || Inspector.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private Button? _dashIconButton;
@@ -1079,7 +1075,7 @@ public partial class MainWindow
         }
 
         wheel.ColorChanged += (_, e) => { ChangeProperty(() => { if (_session.Selected is { } o) o.StrokeColor = ColorHex(e.NewColor); else { CurrentStyle.Color = ColorHex(e.NewColor); LoadActiveStyle(); } }); Sync(); };
-        width.ValueChanged += (_, e) => { ChangeProperty(() => { if (_session.Selected is { } o) o.StrokeWidth = e.NewValue; else { CurrentStyle.Width = e.NewValue; LoadActiveStyle(); } }); Sync(); };
+        width.ValueChanged += (_, e) => { ChangeProperty(() => { if (_session.Selected is { } o) ArrowGeometry.SetThickness(o,e.NewValue); else { CurrentStyle.Width = e.NewValue; LoadActiveStyle(); } }); Sync(); };
         alpha.ValueChanged += (_, e) => { ChangeProperty(() => { if (_session.Selected is { } o) o.Opacity = e.NewValue; else { CurrentStyle.Opacity = e.NewValue; LoadActiveStyle(); } }); Sync(); };
         if (_rulerEnabled) { var b = new Button { Content = T("尺規角度與配色…") }; b.Click += (_, _) => ShowRulerSettings(anchor); panel.Children.Add(b); }
         Sync();
@@ -1110,7 +1106,7 @@ public partial class MainWindow
     {
         if (SelectionBar is null || SelectionBarTools is null) return;
         var selected = _session.Selected;
-        if (selected is null || !_workspaceOpen || _objectDetailsId!=selected.Id)
+        if (_editor is not null || selected is null || !_workspaceOpen || _objectDetailsId!=selected.Id)
         {
             _selectionBarSignature = null;_selectionBarObject=null;_selectionBarUpdates.Clear();
             SelectionBar.Visibility = Visibility.Collapsed;
@@ -1167,7 +1163,7 @@ public partial class MainWindow
                     wBtn.Click += (_, _) =>
                     {
                         var s = new Slider { Minimum = .5, Maximum = 128, Value = selected.StrokeWidth, StepFrequency = .5, Width = 180 };
-                        s.ValueChanged += (_, e) => ChangeProperty(() => selected.StrokeWidth = e.NewValue);
+                        s.ValueChanged += (_, e) => ChangeProperty(() => ArrowGeometry.SetThickness(selected,e.NewValue));
                         ShowExclusiveFlyout(new Flyout { Content = new StackPanel { Spacing = 8, Children = { new TextBlock { Text = T("粗細（pt）"), FontSize = 12 }, s } } }, wBtn);
                     };
                     _selectionBarUpdates.Add(o=>((TextBlock)wBtn.Content).Text=$"{o.StrokeWidth:0.#}");

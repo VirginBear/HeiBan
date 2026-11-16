@@ -730,5 +730,8 @@
   "只清除目前頁面未鎖定的筆跡，可用復原恢復。": "Nur ungesperrte Freihandstriche der aktuellen Seite werden gelöscht. Die Aktion lässt sich rückgängig machen.",
   "已清除筆跡，可按復原恢復。": "Freihandstriche gelöscht. Mit Rückgängig stellst du sie wieder her.",
   "箭尾長度": "Schaftlänge",
-  "箭尾寬度": "Schaftbreite"
+  "箭尾寬度": "Schaftbreite",
+  "全部清除": "Alles löschen",
+  "僅清除筆跡": "Nur Freihandstriche löschen",
+  "進階箭頭尺寸": "Erweiterte Pfeilabmessungen"
 }

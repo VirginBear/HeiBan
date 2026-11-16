@@ -92,7 +92,7 @@ internal sealed partial class ScreenAnnotationWindow
         _quickPalette=new QuickPalette(_owner.ProfilePalette,()=>StyleSelection?.StrokeColor??(_tool=="laser"?_laser.Color:_color),color=>{SetScreenColor(color);CommitScreenStyle();});
         ToolbarUi.BindQuickPalette(_brushButton,_quickPalette);
         _styleCommitTimer.Tick+=(_,_)=>CommitScreenStyle();
-        _clearButton=ActionButton("delete",T("一鍵清空所有螢幕註記 · Ctrl+Alt+K · 可復原"),ClearScreenObjects,"clearAll");_buttons["clearAll"]=_clearButton;
+        _clearButton=ActionButton("delete",T("清除本頁")+" · Ctrl+Alt+K",ShowScreenClearMenu,"clearAll");_buttons["clearAll"]=_clearButton;
         _closeButton=ActionButton("close",T("結束螢幕畫布 · Ctrl+Alt+Q"),async()=>await StopAsync());
         _moreButton=ChromeButton("more",T("螢幕畫布更多設定"));_moreButton.Click+=(_,_)=>ShowScreenMenu(_moreButton);
         var content=new Border{Language=Localization.Strings.Language,RequestedTheme=ElementTheme.Light,CornerRadius=new CornerRadius(16),Background=ChromeBrush(150,247,250,246),BorderBrush=ChromeBrush(55,92,123,108),BorderThickness=new Thickness(1)};
@@ -205,7 +205,7 @@ internal sealed partial class ScreenAnnotationWindow
         var controls=ToolbarUi.AddBrushControls(panel,_owner.ProfilePalette,currentColor,currentWidth,currentAlpha,320,type is not("text" or "sticky" or "image")&&selected?.SolidArrow!=true);
         var wheel=controls.Color;var width=controls.Width;var alpha=controls.Opacity;
         wheel.ColorChanged+=(_,e)=>SetScreenColor($"#{e.NewColor.R:X2}{e.NewColor.G:X2}{e.NewColor.B:X2}{e.NewColor.A:X2}");
-        width.ValueChanged+=(_,_)=>{if(StyleSelection is not null)EditScreenStyle(o=>o.StrokeWidth=width.Value*_dpiScale);else{_width=width.Value;_laser.Width=_width;}};
+        width.ValueChanged+=(_,_)=>{if(StyleSelection is not null)EditScreenStyle(o=>ArrowGeometry.SetThickness(o,width.Value*_dpiScale));else{_width=width.Value;_laser.Width=_width;}};
         alpha.ValueChanged+=(_,_)=>{if(StyleSelection is not null)EditScreenStyle(o=>o.Opacity=alpha.Value);else _opacity=alpha.Value;};
 
         if(type is not("text" or "image" or "sticky" or "eraser" or "laser" or "cane")&&selected?.SolidArrow!=true)
@@ -245,9 +245,10 @@ internal sealed partial class ScreenAnnotationWindow
             panel.Children.Add(ToolbarUi.CreateRotationSlider(selected.Rotation,rot=>EditScreenStyle(o=>o.Rotation=rot)));
         }
 
-        if(selected?.Type=="arrow"||type=="arrow")
+        if(selected is {Type:"arrow",SolidArrow:true})
+            ToolbarUi.AddArrowControls(panel,selected,_dpiScale,edit=>EditScreenStyle(o=>{if(o is {Type:"arrow",SolidArrow:true})edit(o);}));
+        else if(selected?.Type=="arrow")
         {
-            if(selected is {SolidArrow:true})ToolbarUi.AddArrowShaftControls(panel,selected,_dpiScale,edit=>EditScreenStyle(o=>{if(o.SolidArrow==true)edit(o);}));
             var headLength=ToolbarUi.BrushSlider(T("箭頭頭部長度（pt）"),4,128,(selected?.ArrowHeadLength??16)/_dpiScale,1);
             headLength.ValueChanged+=(_,_)=>EditScreenStyle(o=>{if(o.Type=="arrow")o.ArrowHeadLength=headLength.Value*_dpiScale;});
             panel.Children.Add(headLength);
@@ -340,7 +341,7 @@ internal sealed partial class ScreenAnnotationWindow
         menu.Items.Add(_owner.CreateOperateRadialMenuItem());
         menu.Items.Add(_owner.CreateCaneMuteMenuItem());
         Item("settings",T("自訂工具列…"),()=>ShowScreenCustomizeToolbarWindow());
-        Item("export",T("儲存可編輯註記／透明 PNG…"),async()=>await ExportAnnotationsAsync());Item("eraser",T("清除筆跡"),ClearScreenInk);Item("delete",T("一鍵清空畫布（可復原）"),ClearScreenObjects);Item("reading",T("使用說明"),async()=>await _owner.OpenUserGuideAsync());
+        Item("export",T("儲存可編輯註記／透明 PNG…"),async()=>await ExportAnnotationsAsync());Item("delete",T("清除本頁"),ShowScreenClearMenu);Item("reading",T("使用說明"),async()=>await _owner.OpenUserGuideAsync());
         Item("copy",T("貼上已複製物件"),async()=>await PasteScreenSelectionAsync());Item("select",_collapsed?T("展開工具區"):T("收合工具區"),()=>SetChromeCollapsed(!_collapsed));menu.Items.Add(new MenuFlyoutSeparator());menu.Items.Add(new MenuFlyoutItem{Text=_status.Text,IsEnabled=false});return menu;
     }
     private void ShowChromeFlyout(FlyoutBase flyout,FrameworkElement anchor,FlyoutShowOptions? options=null)

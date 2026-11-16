@@ -4,6 +4,19 @@ namespace HeiBan.Windows.Engine;
 
 public static class ArrowGeometry
 {
+    public static void SetThickness(BoardObject item, double width)
+    {
+        if (!double.IsFinite(width) || width<=0) return;
+        if (item is {Type:"arrow",SolidArrow:true})
+        {
+            var old=Math.Max(.1,item.StrokeWidth);
+            var ratio=width/old;
+            item.ArrowHeadLength=Math.Max(width,(item.ArrowHeadLength??Math.Max(16,2.5*old))*ratio);
+            item.ArrowHeadWidth=Math.Max(width*1.5,(item.ArrowHeadWidth??Math.Max(10,2.2*old))*ratio);
+        }
+        item.StrokeWidth=width;
+    }
+
     public static InkPoint[] Outline(BoardObject item)
     {
         var a = new InkPoint(item.X1 ?? item.X, item.Y1 ?? item.Y);

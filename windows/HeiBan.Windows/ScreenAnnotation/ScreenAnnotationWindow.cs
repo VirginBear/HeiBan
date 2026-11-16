@@ -85,7 +85,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             if(_stopping)return;
             if(id==1){await _requestStart();return;}
             if(!IsActive||_captureCancellation is not null)return;
-            if(id==2)SetDrawing(!_drawing);else if(id==3)await CaptureAsync();else if(id==4)await StopAsync();else if(id==5)ClearScreenObjects();
+            if(id==2)SetDrawing(!_drawing);else if(id==3)await CaptureAsync();else if(id==4)await StopAsync();else if(id==5)ShowScreenClearMenu();
         };
         var failed=0;
         foreach(var key in new[]{(1,0x41u),(2,0x44u),(3,0x53u),(4,0x51u),(5,0x4Bu)})if(!_overlay.RegisterShortcut(key.Item1,0x0002|0x0001,key.Item2))failed++;
@@ -320,7 +320,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             else if(hit is {IsLocked:not true}){CancelGesture();_tool="select";_session.SelectedId=hit.Id;RefreshButtons();Changed();ShowBrushSettings();}
             return;
         }
-        if(input.Kind=="down"){if(_chromeFlyout is not null){CommitScreenStyle();_chromeFlyout.Hide();_chromeFlyout=null;}FinishScreenText();if(_tool is "text" or "sticky"){BeginScreenText(p,type:_tool);return;}}
+        if(input.Kind=="down"){if(_chromeFlyout is not null){CommitScreenStyle();_chromeFlyout.Hide();_chromeFlyout=null;}if(_textInput is not null){FinishScreenText();return;}if(_tool is "text" or "sticky"){BeginScreenText(p,type:_tool);return;}}
         if(_preview is not null)DamagePreview();
         var regularPolygon=ShapeConstruction.IsVertexPolygon(_tool)&&input.Shift&&_curveAnchors.Count<=1;
         if(regularPolygon&&input.Kind=="move"&&input.LeftDown&&_curveAnchors.Count==1&&_start is null)
@@ -473,7 +473,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         _overlay.SetManipulationCursor(selected,handle,_tool,_tool=="laser"?_laser.Color:_color);
     }
     private BoardObject Styled(BoardObject item)
-    {item.StrokeColor=_color;if(item.Type=="line")item.Extension=_screenExtension;if(item.Type=="arrow"){item.SolidArrow=true;item.ArrowHeadLength=16*_dpiScale;item.ArrowHeadWidth=10*_dpiScale;}item.StrokeWidth=_width*_dpiScale;item.Opacity=_tool=="highlighter"?_opacity*.4:_opacity;item.LineStyle=_dash;if(item.Type is "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star")item.FillColor=_fill;if(item.Type=="tape"){item.StrokeColor=item.FillColor="#F59E0B";item.IsRevealed=false;}return item;}
+    {item.StrokeColor=_color;if(item.Type=="line")item.Extension=_screenExtension;if(item.Type=="arrow"){item.SolidArrow=true;item.ArrowHeadLength=Math.Max(16,_width*2.5)*_dpiScale;item.ArrowHeadWidth=Math.Max(10,_width*2.2)*_dpiScale;}item.StrokeWidth=_width*_dpiScale;item.Opacity=_tool=="highlighter"?_opacity*.4:_opacity;item.LineStyle=_dash;if(item.Type is "rect" or "circle" or "triangle" or "quadrilateral" or "diamond" or "pentagon" or "star")item.FillColor=_fill;if(item.Type=="tape"){item.StrokeColor=item.FillColor="#F59E0B";item.IsRevealed=false;}return item;}
     private static double Now=>Stopwatch.GetTimestamp()/(double)Stopwatch.Frequency;
     private void UpdateScreenStraightStroke(double now)
     {
@@ -570,7 +570,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         if(!_benchmarkFullFrames)_target.CopyPixelsFromBitmap(_committed,(int)region.X,(int)region.Y,(int)region.X,(int)region.Y,(int)region.Width,(int)region.Height);
         using(var ds=_target.CreateDrawingSession())
         {
-            if(_benchmarkFullFrames){ds.Clear(blank);_renderer.Prune(sceneSession.Document.Objects);_renderer.RenderObjects(ds,sceneSession.VisibleObjects,_viewport,_overlay.Width,_overlay.Height);}
+            if(_benchmarkFullFrames){ds.Clear(blank);_renderer.Prune(sceneSession.Document.Objects);_renderer.RenderObjects(ds,ScreenSceneObjects(sceneSession.VisibleObjects),_viewport,_overlay.Width,_overlay.Height);}
             using var clip=ds.CreateLayer(1,region);
             if(_preview is not null)_renderer.RenderPreview(ds,_preview,_viewport,_overlay.Width,_overlay.Height);
             if(_points.Count>0&&_tool is "pen" or "highlighter" or "paint" or "lasso")
@@ -578,7 +578,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
                 IReadOnlyList<InkPoint> livePoints=_screenPenStraight&&_points.Count>1?new[]{_points[0],_points[^1]}:_points;
                 _renderer.RenderWetInk(ds,livePoints,_viewport,_tool=="lasso"?"#39735A":_color,_tool=="lasso"?1:_width*_dpiScale,_tool=="highlighter"?_opacity*.4:_opacity,_tool=="lasso"?"dashed":_dash,new global::Windows.Foundation.Size(_overlay.Width,_overlay.Height));
             }
-            if(_tool=="select")foreach(var selected in _objectDrag?.Selected??_session.SelectedObjects)_renderer.RenderSelection(ds,selected,DragViewport(selected),_session.SelectedIds.Count==1);
+            if(_tool=="select"&&_textInput is null)foreach(var selected in _objectDrag?.Selected??_session.SelectedObjects)_renderer.RenderSelection(ds,selected,DragViewport(selected),_session.SelectedIds.Count==1);
             if(rulerDamage is { } rulerBounds&&DamageIntersects(region,rulerBounds))DrawRuler(ds);
             if(compassDamage is { } compassBounds&&DamageIntersects(region,compassBounds))_renderer.RenderCompass(ds,_compass,_viewport);
             _renderer.RenderLaser(ds,_laser,_viewport,now,_dpiScale);

@@ -49,6 +49,7 @@ public partial class MainWindow
     }
     private void ArrangeMainToolbar()
     {
+        ArrangeTextToolbarPage();
         var labels=_toolbarPrefs.DisplayMode=="labels";var vertical=_dock is "左側" or "右側";
         var scale=ToolbarUi.SizeScale(_toolbarPrefs.ToolbarSize);
         if(labels||vertical)

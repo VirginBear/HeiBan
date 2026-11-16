@@ -34,22 +34,18 @@ public partial class MainWindow
         }
         else _laserTimer.Stop();
     }
-    private async void ClearPage(bool inkOnly = false)
+    private void ShowClearPageMenu()
     {
-        if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();
-        CommitPropertyEdit();FinishText();if(_gesture)CancelGesture();
         var epoch=_session.DocumentEpoch;var page=_session.Document.Board.ActivePageId;
-        var result=await new ContentDialog{FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,
-            Title=inkOnly?T("清除筆跡？"):T("清除目前頁面？"),
-            Content=inkOnly?T("只清除目前頁面未鎖定的筆跡，可用復原恢復。"):T("可用復原恢復。其他頁面不受影響。"),
-            PrimaryButtonText=T("清除"),CloseButtonText=T("取消"),XamlRoot=Root.XamlRoot}.ShowAsync();
-        if(result!=ContentDialogResult.Primary||!_workspaceOpen||epoch!=_session.DocumentEpoch||page!=_session.Document.Board.ActivePageId)return;
-        if(inkOnly)
+        var menu=ToolbarUi.ClearPageMenu(async inkOnly=>
         {
-            if(_session.ClearPageInk())RefreshEditor();
-            return;
-        }
-        _session.Begin();foreach(var o in _session.PageObjects.ToArray())_session.Document.Objects.Remove(o);_session.SelectedId=null;_session.Commit();RefreshEditor();
+            if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();
+            if(!_workspaceOpen||epoch!=_session.DocumentEpoch||page!=_session.Document.Board.ActivePageId)return;
+            CommitPropertyEdit();FinishText();if(_gesture)CancelGesture();
+            if(_session.ClearCurrentPage(inkOnly))RefreshEditor();
+        });
+        var anchor=GetToolAnchor("clearAll");
+        ShowExclusiveFlyout(menu,anchor.XamlRoot is null?GetToolAnchor("more"):anchor,DrawingArea);
     }
     private void Visibility_Click(object sender,RoutedEventArgs e)
     {if(_session.Selected is not { } o)return;CommitPropertyEdit();_session.Begin();o.IsVisible=o.IsVisible==false;_session.Commit();RefreshEditor();}
@@ -101,9 +97,10 @@ public partial class MainWindow
     {
         if(selected?.Type is "line" or "arrow" && selected.SolidArrow!=true)
         {var b=new Button{Content=T("延伸直線設定")};b.Click+=(_,_)=>ShowExtensionSettings(b);panel.Children.Add(b);}
-        if(selected?.Type=="arrow")
+        if(selected is {Type:"arrow",SolidArrow:true})
+            ToolbarUi.AddArrowControls(panel,selected,1,edit=>ChangeProperty(()=>edit(selected)));
+        else if(selected?.Type=="arrow")
         {
-            if(selected.SolidArrow==true)ToolbarUi.AddArrowShaftControls(panel,selected,1,edit=>ChangeProperty(()=>edit(selected)));
             var length=new Slider{Header=T("箭頭頭部長度"),Minimum=4,Maximum=128,Value=selected.ArrowHeadLength??16,StepFrequency=1};
             length.ValueChanged+=(_,e)=>ChangeProperty(()=>selected.ArrowHeadLength=e.NewValue);panel.Children.Add(length);
             var width=new Slider{Header=T("箭頭頭部寬度"),Minimum=4,Maximum=96,Value=selected.ArrowHeadWidth??10,StepFrequency=1};

@@ -41,8 +41,14 @@ public partial class MainWindow
         {
             StartText(new BoardObject{Type="text",X=200,Y=200,Width=280,Height=100,Text="",FontSize=24},true);
             if(_session.Document.Objects.Count!=count||_editor is null)throw new InvalidOperationException("普通文字草稿提前寫入文件。");
+            if(!ReferenceEquals(_editor.Parent,TextOverlay)||TextToolbarPage.Visibility!=Microsoft.UI.Xaml.Visibility.Visible||
+                ToolScroll.Visibility!=Microsoft.UI.Xaml.Visibility.Collapsed||Inspector.Visibility==Microsoft.UI.Xaml.Visibility.Visible||
+                SelectionBar.Visibility==Microsoft.UI.Xaml.Visibility.Visible)
+                throw new InvalidOperationException("文字編輯須使用原位輸入及暫時工具列，並收起物件操作。");
             _editor.Text="中文\n新文字";TextStyles.Apply(_editingObject!,new(Bold:true,Underline:true,Color:"#a855f7"));_editor.SyncStyle(_editingObject!);FinishText();
             var added=_session.Selected;if(added?.Text!="中文\n新文字"||added.IsUnderline!=true||added.IsBold!=true)throw new InvalidOperationException("普通文字草稿樣式未提交。");
+            if(TextToolbarPage.Content is not null||ToolScroll.Visibility!=Microsoft.UI.Xaml.Visibility.Visible)
+                throw new InvalidOperationException("提交文字後一般工具列未恢復。");
             StartText(added);
             var selectedFormat=_editor!.TextDocument.GetRange(3,4).CharacterFormat;
             selectedFormat.Size=27;selectedFormat.Name="Consolas";
@@ -56,7 +62,7 @@ public partial class MainWindow
             var originalText=_session.PageObjects.First(o=>o.Type=="text"&&o.Id!=added.Id);_session.SetSelection(new[]{originalText.Id,added.Id});
             var screen=_viewport.WorldToScreen(added.X+5,added.Y+5);ShowContext(new((float)screen.X,(float)screen.Y));
             if(_session.SelectedIds.Count!=2)throw new InvalidOperationException("右鍵丟失文字多選。");
-            return new{draftSeparate=true,chineseMultiline=true,wholeDraftStyle=true,rangeFormat=true,cancelPreserves=true,rightClickKeepsMultiSelection=true,hardwareIme="未執行"};
+            return new{draftSeparate=true,toolbarPage=true,chineseMultiline=true,wholeDraftStyle=true,rangeFormat=true,cancelPreserves=true,rightClickKeepsMultiSelection=true,hardwareIme="未執行"};
         }
         finally{FinishText(false);_session.Open(before);RefreshEditor();}
     }

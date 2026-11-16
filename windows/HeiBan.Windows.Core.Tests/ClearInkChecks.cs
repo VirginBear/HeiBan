@@ -38,6 +38,10 @@ static class ClearInkChecks
         check(!session.CanUndo, "Clear ink records exactly one undo");
         session.Redo();
         check(session.Document.Objects.Select(item => item.Id).SequenceEqual(remaining), "Redo clears the same pen marks");
+        check(session.ClearCurrentPage() && session.Document.Objects.Select(item=>item.Id).SequenceEqual(["other","shared"]),
+            "Full-page clearing includes locked page objects and preserves other pages and shared objects");
+        session.Undo();
+        check(session.Document.Objects.Select(item=>item.Id).SequenceEqual(remaining),"Full-page clearing can be undone as one operation");
 
         session.Open(new HeiBanDocument { Objects = [new() { Type = "pen" }, new() { Type = "arrow" }] });
         check(session.ClearPageInk() && session.Document.Objects.Single().Type == "arrow", "Unpaged canvas clears ink without removing shapes");

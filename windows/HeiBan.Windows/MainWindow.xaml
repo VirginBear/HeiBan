@@ -90,6 +90,7 @@
        <ScrollViewer x:Name="ToolScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" HorizontalScrollMode="Enabled" VerticalScrollMode="Disabled">
         <StackPanel x:Name="Tools" Orientation="Horizontal" Spacing="4"/>
        </ScrollViewer>
+       <ContentControl x:Name="TextToolbarPage" Visibility="Collapsed" HorizontalContentAlignment="Stretch"/>
       </StackPanel>
      </Border>
      <Border x:Name="DockHint" Visibility="Collapsed" IsHitTestVisible="False" CornerRadius="12" Background="#2239735A" BorderBrush="#39735A" BorderThickness="2" Width="76" Height="180" Margin="12"><TextBlock x:Name="DockHintText" loc:Ui.Text="直排" Foreground="#39735A" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>

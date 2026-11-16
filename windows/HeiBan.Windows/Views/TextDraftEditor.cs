@@ -9,10 +9,17 @@ using System.Globalization;
 
 namespace HeiBan.Windows.Views;
 
-/// <summary>Native IME editor without a permanent format bar; whole-box styles use the shared context menu.</summary>
+/// <summary>Native IME editor with a separate page hosted in the canvas toolbar.</summary>
 internal sealed class TextDraftEditor : RichEditBox
 {
     public TextDraftEditor(){AcceptsReturn=true;}
+    internal void SetEditorPaper(string? color)
+    {
+        var paper=new SolidColorBrush(Direct2DCanvasRenderer.HexToColor(color is null or "none"?"#FFF0AB":color));
+        Background=paper;
+        Resources["TextControlBackgroundFocused"]=paper;
+        Resources["TextControlBackgroundPointerOver"]=paper;
+    }
     public MenuFlyout CreateTextMenu()
     {
         var menu=new MenuFlyout();
@@ -109,15 +116,23 @@ internal sealed class TextDraftEditor : RichEditBox
         &&a.IsStrikethrough==b.IsStrikethrough&&a.Color==b.Color&&a.HighlightColor==b.HighlightColor
         &&a.FontFamily==b.FontFamily&&a.FontSize==b.FontSize&&ReferenceEquals(a.ExtraFields,b.ExtraFields);
 
-    internal FrameworkElement CreateFormatBar(UIElement? clickThrough = null)
+    internal FrameworkElement CreateFormatPage(bool vertical, UIElement? clickThrough = null, Action? focusEditor = null)
     {
-        var bar=new StackPanel{Orientation=Orientation.Horizontal,Spacing=2};
+        var bar=new StackPanel{Orientation=vertical?Orientation.Vertical:Orientation.Horizontal,Spacing=3};
+        var tab=new Border
+        {
+            Background=new SolidColorBrush(Direct2DCanvasRenderer.HexToColor("#DCEBDD")),
+            CornerRadius=new CornerRadius(8),Padding=new Thickness(8,4,8,4),
+            VerticalAlignment=VerticalAlignment.Center,
+            Child=new TextBlock{Text=T("編輯文字"),FontSize=12,TextWrapping=TextWrapping.Wrap}
+        };
+        bar.Children.Add(tab);
         void Add(string label,string glyph,Action<ITextCharacterFormat> change)
         {
             var button=new Button{Content=glyph,AllowFocusOnInteraction=false,Padding=new Thickness(6,3,6,3)};
             ToolTipService.SetToolTip(button,T(label));
             Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(button,T(label));
-            button.Click+=(_,_)=>change(TextDocument.Selection.CharacterFormat);
+            button.Click+=(_,_)=>{change(TextDocument.Selection.CharacterFormat);Refocus();};
             bar.Children.Add(button);
         }
         Add("粗體","B",f=>f.Bold=f.Bold==FormatEffect.On?FormatEffect.Off:FormatEffect.On);
@@ -160,7 +175,11 @@ internal sealed class TextDraftEditor : RichEditBox
             confirm.Click+=(_,_)=>{format.ForegroundColor=picker.Color;flyout.Hide();};
             return new StackPanel{Spacing=4,Children={picker,confirm}};
         });
-        return new ScrollViewer{Content=bar,HorizontalScrollMode=ScrollMode.Enabled,HorizontalScrollBarVisibility=ScrollBarVisibility.Auto,VerticalScrollMode=ScrollMode.Disabled};
+        return new ScrollViewer{Content=bar,
+            HorizontalScrollMode=vertical?ScrollMode.Disabled:ScrollMode.Enabled,HorizontalScrollBarVisibility=ScrollBarVisibility.Hidden,
+            VerticalScrollMode=vertical?ScrollMode.Enabled:ScrollMode.Disabled,VerticalScrollBarVisibility=ScrollBarVisibility.Hidden};
+
+        void Refocus(){if(IsLoaded){focusEditor?.Invoke();Focus(FocusState.Programmatic);}}
 
         void AddPicker(string label,Func<Flyout,ITextCharacterFormat,FrameworkElement> content)
         {
@@ -172,7 +191,7 @@ internal sealed class TextDraftEditor : RichEditBox
                 var flyout=new Flyout{OverlayInputPassThroughElement=clickThrough};
                 var format=start==end?selection.CharacterFormat:TextDocument.GetRange(start,end).CharacterFormat;
                 flyout.Content=content(flyout,format);
-                flyout.Closed+=(_,_)=>{if(IsLoaded){Focus(FocusState.Programmatic);TextDocument.Selection.SetRange(start,end);}};
+                flyout.Closed+=(_,_)=>{if(IsLoaded){Refocus();TextDocument.Selection.SetRange(start,end);}};
                 flyout.ShowAt(button);
             };
             bar.Children.Add(button);

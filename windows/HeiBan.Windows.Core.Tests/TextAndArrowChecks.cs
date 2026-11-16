@@ -20,6 +20,15 @@ static class TextAndArrowChecks
         ArrowGeometry.SetShaftLength(arrow,35);
         check(Math.Abs(ArrowGeometry.ShaftLength(arrow)-35)<.01&&ObjectHandles.Endpoint(arrow,1).X==tip.X,
             "Setting shaft length preserves the tip and independent head dimensions");
+        arrow.StrokeWidth=4;arrow.ArrowHeadLength=18;arrow.ArrowHeadWidth=12;
+        ArrowGeometry.SetThickness(arrow,8);
+        check(arrow.StrokeWidth==8&&arrow.ArrowHeadLength==36&&arrow.ArrowHeadWidth==24&&ObjectHandles.Endpoint(arrow,1).X==tip.X,
+            "Increasing solid arrow thickness scales both head dimensions and keeps the endpoint");
+        ArrowGeometry.SetThickness(arrow,4);
+        check(arrow.ArrowHeadLength==18&&arrow.ArrowHeadWidth==12,"Reducing thickness restores the original proportions");
+        var legacy=new BoardObject{Type="arrow",ArrowHeadWidth=15};
+        ArrowGeometry.SetThickness(legacy,6);
+        check(legacy.ArrowHeadWidth==15&&legacy.StrokeWidth==6,"Legacy arrows keep their original head dimensions");
 
         var text=new BoardObject{Type="text",Text="ABC",FontSize=12,Width=120,Height=24,
             RichTextSpans=[new(){Text="A"},new(){Text="B",FontFamily="Consolas",FontSize=36},new(){Text="C"}]};

@@ -80,7 +80,7 @@ internal sealed partial class ScreenAnnotationWindow
             {
                 ds.Clear(blank);
                 if(_objectDrag is { } drag)(_objectDragRenderer??=new()).Draw(ds,_committed!,_renderer,drag,_viewport,_overlay.Width,_overlay.Height,new(-(float)region.X,-(float)region.Y));
-                else _renderer.RenderObjects(ds,sceneSession.DrawingObjects,_eraserPatchView,width,height);
+                else _renderer.RenderObjects(ds,ScreenSceneObjects(sceneSession.DrawingObjects),_eraserPatchView,width,height);
             }
             _committed!.CopyPixelsFromBitmap(_eraserPatch,(int)region.X,(int)region.Y,0,0,width,height);
         }
@@ -88,8 +88,10 @@ internal sealed partial class ScreenAnnotationWindow
         {
             using var ds=_committed!.CreateDrawingSession();ds.Clear(blank);
             if(_objectDrag is { } drag)(_objectDragRenderer??=new()).Draw(ds,_committed!,_renderer,drag,_viewport,_overlay.Width,_overlay.Height);
-            else _renderer.RenderObjects(ds,sceneSession.DrawingObjects,_viewport,_overlay.Width,_overlay.Height);
+            else _renderer.RenderObjects(ds,ScreenSceneObjects(sceneSession.DrawingObjects),_viewport,_overlay.Width,_overlay.Height);
         }
         _committedDamage=null;_committedDirty=false;_committedBuilds++;
     }
+    private IEnumerable<BoardObject> ScreenSceneObjects(IEnumerable<BoardObject> objects)
+        =>_textOriginalId is { } id?objects.Where(item=>item.Id!=id):objects;
 }

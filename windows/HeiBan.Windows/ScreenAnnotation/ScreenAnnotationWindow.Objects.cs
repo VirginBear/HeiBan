@@ -91,19 +91,26 @@ internal sealed partial class ScreenAnnotationWindow
     private void DeleteScreenSelection(){DamageSelectedObjects();CancelGesture();_session.DeleteSelected();RefreshScreenStyleButtons();Changed();}
     private void ChangeScreenLayer(LayerMove move)
     {CancelGesture();if(LayerReorder.MoveSelection(_session,move))Changed();}
-    private async void ClearScreenObjects()
+    private void ShowScreenClearMenu()
     {
-        if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();
-        if(!IsActive)return;FinishScreenText();_chromeFlyout?.Hide();CancelGesture();_session.Begin();_session.Document.Objects.Clear();_session.SelectedId=null;_session.Commit();_laser.Clear();Changed();_status.Text=T("已清除全部註記 · 可按復原恢復");
-    }
-    private async void ClearScreenInk()
-    {
-        if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();
         if(!IsActive)return;
-        FinishScreenText();_chromeFlyout?.Hide();CommitScreenStyle();CancelGesture();
-        if(!_session.ClearPageInk())return;
+        FinishScreenText();
+        var epoch=_session.DocumentEpoch;
+        var menu=ToolbarUi.ClearPageMenu(async inkOnly=>
+        {
+            if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();
+            if(IsActive&&epoch==_session.DocumentEpoch)ClearScreenObjects(inkOnly);
+        });
+        var anchor=_clearButton.XamlRoot is null?(FrameworkElement)Content:_clearButton;
+        ShowChromeFlyout(menu,anchor);
+    }
+    private void ClearScreenObjects(bool inkOnly = false)
+    {
+        CommitScreenStyle();CancelGesture();
+        _session.ClearCurrentPage(inkOnly);
+        if(!inkOnly)_laser.Clear();
         RefreshScreenStyleButtons();Changed();
-        _status.Text=T("已清除筆跡，可按復原恢復。");
+        _status.Text=inkOnly?T("已清除筆跡，可按復原恢復。"):T("已清除全部註記 · 可按復原恢復");
     }
     private object ValidateObjectCommands()
     {

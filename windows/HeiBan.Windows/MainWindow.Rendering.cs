@@ -70,6 +70,8 @@ public partial class MainWindow
                 using(var layer=board.CanvasMode=="infinite"?null:drawing.CreateLayer(1,clip))
                 {
                     if(append)foreach(var ink in _pendingInkScene)_renderer.RenderAppendedInk(drawing,ink,_viewport,width,height);
+                    else if(_editingObject is { } draft&&!_editingNew)
+                        _renderer.RenderObjects(drawing,sceneSession.DrawingObjects.Where(item=>item.Id!=draft.Id),_viewport,width,height);
                     else _renderer.RenderObjects(drawing,sceneSession.DrawingObjects,_viewport,width,height);
                 }
             }

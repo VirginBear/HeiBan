@@ -335,7 +335,7 @@ public partial class MainWindow : Window
     {await new ContentDialog{FlowDirection=Localization.Strings.RightToLeft?FlowDirection.RightToLeft:FlowDirection.LeftToRight,Title=T("黑板 · Windows ")+typeof(App).Assembly.GetName().Version?.ToString(3),Content=T("C# / .NET 10 / WinUI 3 / Win2D\n本機作品資料：\n")+_storage.DataDirectory+T("\n\n功能基準：Mac 1.0.12。Windows 預覽版；實體手寫裝置、多螢幕及完整跨 App 操作仍待驗收。"),CloseButtonText=T("關閉"),XamlRoot=Root.XamlRoot}.ShowAsync();}
     private void Tool_Click(object sender,RoutedEventArgs e)=>ActivateTool((string)((FrameworkElement)sender).Tag);
     private void Properties_Click(object sender,RoutedEventArgs e)
-    {Inspector.Visibility=Inspector.Visibility==Visibility.Visible?Visibility.Collapsed:Visibility.Visible;if(Inspector.Visibility==Visibility.Visible){_changingLayers=true;try{RefreshLayersIfNeeded();}finally{_changingLayers=false;}}RefreshProperties();RefreshChrome();}
+    {if(_editor is not null)return;Inspector.Visibility=Inspector.Visibility==Visibility.Visible?Visibility.Collapsed:Visibility.Visible;if(Inspector.Visibility==Visibility.Visible){_changingLayers=true;try{RefreshLayersIfNeeded();}finally{_changingLayers=false;}}RefreshProperties();RefreshChrome();}
     private void Layers_Click(object sender,RoutedEventArgs e){_layerPreview?.End();_layerDragId=_layerDropId=null;LayersPanel.Visibility=LayersPanel.Visibility==Visibility.Visible?Visibility.Collapsed:Visibility.Visible;RefreshEditor();}
     private async Task<string?> ChooseColor(string title,string current)
     {
