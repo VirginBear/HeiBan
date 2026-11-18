@@ -11,3 +11,8 @@
 - 更新 Windows 開發 metadata 至 1.1.6／1.1.6.0，以及十種語言的介面與圖片使用說明。介面與指南分別執行 `python windows/scripts/Build-LocalizationCatalogs.py`、`python windows/scripts/Build-UserGuides.py`，十語系共 738 個介面鍵、無缺漏，每語系指南 26 章。
 - `dotnet run --project windows/HeiBan.Windows.Core.Tests -c Release --artifacts-path …/core` 通過 6,903 項。`dotnet build windows/HeiBan.Windows/HeiBan.Windows.csproj -c Release -r win-x64 --artifacts-path …/app -p:Platform=x64 -p:WindowsPackageType=None -p:HeiBanValidationBuild=true` 成功，0 警告、0 錯誤。
 - 用 `--release-validation-output`、`--release-validation-exit` 及隔離資料路徑啟動 WinUI 驗證。原始 PNG 是 3840 × 18382，Win2D 裝置上限 16384，舊載入方法實測被拒。檔案及點陣圖兩種資料格式均可貼進 400 × 300 畫布且渲染出可見像素；適應後是 62 × 300，裁切、幾何與翻轉通過檢查，Undo 回復來源、Redo 後序列化重開仍可渲染。測試直接使用 DataPackageView，未操作 Explorer 拖曳手勢、系統剪貼簿或右鍵選單。原圖只供本機驗證。
+
+## 免安裝試用交付
+
+已執行 `Package-PortableTrial.ps1 -Runtime win-x64 -Label image-resolution-2026-11-18-r1`。來源 `43f1ec9`，ZIP `windows/dist/trials/HeiBan-Windows-Portable-1.1.6-image-resolution-2026-11-18-r1-win-x64.zip`，100,557,637 bytes，SHA-256 `f3c95b74f7f86ee6217e1724856d6fcf8c023003550d27c981255f01855e028b`。驗證 ZIP CRC、724 份產物的雜湊、空白試用資料庫，及既有 1.1.5.0 的 x64／ARM64／合併 Store 包雜湊。未製作、上傳或送審 1.1.6 Store 套件。
+試用 EXE 檔案版本為 1.1.6.0，另以空白隔離資料啟動並正常關閉。
