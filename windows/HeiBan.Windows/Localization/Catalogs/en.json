@@ -733,5 +733,8 @@
   "箭尾寬度": "Shaft width",
   "全部清除": "Clear all",
   "僅清除筆跡": "Clear ink only",
-  "進階箭頭尺寸": "Advanced arrow dimensions"
+  "進階箭頭尺寸": "Advanced arrow dimensions",
+  "圖片解析度已符合畫布，無須縮減。": "The image already fits the canvas resolution.",
+  "圖片解析度已調整為 {0} × {1}，可復原。": "Image resolution adjusted to {0} × {1}. You can undo this.",
+  "解析度適應": "Fit resolution to canvas"
 }

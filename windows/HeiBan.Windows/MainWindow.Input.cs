@@ -723,30 +723,6 @@ public partial class MainWindow
         catch (Exception ex) { await Error(ex); }
     }
 
-    private async Task<bool> InsertImageFileAsync(string path, InkPoint location, bool isCenter)
-    {
-        using var bitmap = await CanvasBitmap.LoadAsync(CanvasSurface, path);
-        var bytes = await File.ReadAllBytesAsync(path);
-        var ext = Path.GetExtension(path).TrimStart('.').ToLowerInvariant();
-        if (ext == "jpg") ext = "jpeg";
-        if (string.IsNullOrEmpty(ext)) ext = "png";
-        var dataUri = $"data:image/{ext};base64," + Convert.ToBase64String(bytes);
-        return await ApplyImageInsertionAsync(bitmap.SizeInPixels.Width, bitmap.SizeInPixels.Height, dataUri, location, isCenter);
-    }
-
-    private async Task<bool> InsertImageStreamAsync(IRandomAccessStream stream, InkPoint location, bool isCenter, string? expectedRequestId = null, string? expectedBoardId = null, string? expectedPageId = null)
-    {
-        using var bitmap = await CanvasBitmap.LoadAsync(CanvasSurface, stream);
-        using var memory = new InMemoryRandomAccessStream();
-        await bitmap.SaveAsync(memory, CanvasBitmapFileFormat.Png);
-        memory.Seek(0);
-        using var netStream = memory.AsStreamForRead();
-        using var ms = new MemoryStream();
-        await netStream.CopyToAsync(ms);
-        var dataUri = "data:image/png;base64," + Convert.ToBase64String(ms.ToArray());
-        return await ApplyImageInsertionAsync(bitmap.SizeInPixels.Width, bitmap.SizeInPixels.Height, dataUri, location, isCenter, expectedRequestId, expectedBoardId, expectedPageId);
-    }
-
     private async Task<bool> ApplyImageInsertionAsync(double naturalW, double naturalH, string dataUri, InkPoint location, bool isCenter, string? expectedRequestId = null, string? expectedBoardId = null, string? expectedPageId = null)
     {
         if (naturalW <= 0 || naturalH <= 0 || !_workspaceOpen || _preparingClose || _saveBoundaryBusy) return false;
@@ -809,7 +785,7 @@ public partial class MainWindow
 
     private void DrawingArea_DragOver(object sender, DragEventArgs e)
     {
-        if (e.DataView.Contains(StandardDataFormats.StorageItems))
+        if (HasImageTransfer(e.DataView))
         {
             e.AcceptedOperation = DataPackageOperation.Copy;
             e.Handled = true;
@@ -823,8 +799,8 @@ public partial class MainWindow
         {
             var position = e.GetPosition(CanvasSurface);
             var world = _viewport.ScreenToWorld(position.X, position.Y);
-            foreach (var file in (await e.DataView.GetStorageItemsAsync()).OfType<StorageFile>())
-                await InsertImageFileAsync(file.Path, world, isCenter: true);
+            await InsertTransferredImagesAsync(e.DataView, world);
+            e.Handled = true;
         }
         catch (Exception ex) { await Error(ex); }
         finally { deferral.Complete(); }
@@ -844,6 +820,13 @@ public partial class MainWindow
         if(_session.Selected is not null){Add(T("複製"),CopySelected);Add(T("直接複製一個"),DuplicateSelected);Add(T("刪除"),()=>Delete_Click(this,new RoutedEventArgs()));
             var selection=_session.SelectedIds.ToHashSet();
             bool Current()=>SamePage()&&_session.SelectedIds.SetEquals(selection);
+            if(selection.Count==1&&_session.Selected is { Type: "image", IsLocked: not true } image&&!_readingMode
+                &&image.ImageUrl?.StartsWith("data:image/",StringComparison.Ordinal)==true)
+            {
+                var item=new MenuFlyoutItem{Text=T("解析度適應")};
+                item.Click+=async(_,_)=>{if(Current())await FitImageResolutionAsync(image);};
+                menu.Items.Add(item);
+            }
             foreach(var (label,horizontal) in new[]{("水平翻轉",true),("垂直翻轉",false)})
             {
                 var item=new MenuFlyoutItem{Text=T(label),IsEnabled=!_readingMode&&_session.SelectedObjects.Any(o=>o.IsLocked!=true&&o.IsVisible!=false)};
@@ -868,18 +851,7 @@ public partial class MainWindow
             var clipboard = Clipboard.GetContent();
             var centerScreen = new Vector2((float)CanvasSurface.ActualWidth / 2, (float)CanvasSurface.ActualHeight / 2);
             var targetCenter = _viewport.ScreenToWorld(centerScreen.X, centerScreen.Y);
-            if (clipboard.Contains(StandardDataFormats.Bitmap))
-            {
-                using var stream = await (await clipboard.GetBitmapAsync()).OpenReadAsync();
-                await InsertImageStreamAsync(stream, targetCenter, isCenter: true);
-                return;
-            }
-            if (clipboard.Contains(StandardDataFormats.StorageItems))
-            {
-                foreach (var file in (await clipboard.GetStorageItemsAsync()).OfType<StorageFile>())
-                    await InsertImageFileAsync(file.Path, targetCenter, isCenter: true);
-                return;
-            }
+            if (HasImageTransfer(clipboard) && await InsertTransferredImagesAsync(clipboard, targetCenter)) return;
             if (!clipboard.Contains(StandardDataFormats.Text)) return;
             var text = await clipboard.GetTextAsync();
             var objects=text.StartsWith("HEIBAN_OBJECTS:",StringComparison.Ordinal)?JsonSerializer.Deserialize<List<BoardObject>>(text[15..],DocumentCodec.Options):text.StartsWith("HEIBAN_OBJECT:",StringComparison.Ordinal)?new List<BoardObject>{JsonSerializer.Deserialize<BoardObject>(text[14..],DocumentCodec.Options)!}:null;

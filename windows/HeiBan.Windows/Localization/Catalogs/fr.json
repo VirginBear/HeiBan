@@ -733,5 +733,8 @@
   "箭尾寬度": "Largeur de la tige",
   "全部清除": "Tout effacer",
   "僅清除筆跡": "Effacer les tracés uniquement",
-  "進階箭頭尺寸": "Dimensions avancées de la flèche"
+  "進階箭頭尺寸": "Dimensions avancées de la flèche",
+  "圖片解析度已符合畫布，無須縮減。": "La résolution de l’image est déjà adaptée au canevas.",
+  "圖片解析度已調整為 {0} × {1}，可復原。": "Résolution ajustée à {0} × {1}. Vous pouvez annuler.",
+  "解析度適應": "Adapter la résolution au canevas"
 }

@@ -5,6 +5,7 @@ using Microsoft.Graphics.Canvas.Brushes;
 using Microsoft.Graphics.Canvas.Geometry;
 using Microsoft.Graphics.Canvas.Text;
 using global::Windows.Foundation;
+using global::Windows.Graphics.Imaging;
 using global::Windows.UI;
 
 namespace HeiBan.Windows.Engine;
@@ -13,7 +14,7 @@ namespace HeiBan.Windows.Engine;
 public sealed partial class Direct2DCanvasRenderer : IDisposable
 {
     private readonly Dictionary<string, (object Key, CanvasGeometry Geometry)> _geometry = [];
-    private readonly Dictionary<string, CanvasBitmap> _images = [];
+    private readonly Dictionary<string, (CanvasBitmap Bitmap, uint SourceWidth, uint SourceHeight)> _images = [];
     private readonly ObjectViewportCache _viewportCandidates=new();
     // Diagnostic/reference switch; production still falls back automatically for small/dense views.
     internal bool BypassViewportCache { get; set; }
@@ -46,7 +47,7 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
     {
         foreach(var source in _images.Keys.Where(source=>!sources.Contains(source)).ToArray())
         {
-            _images[source].Dispose();
+            _images[source].Bitmap.Dispose();
             _images.Remove(source);
         }
     }
@@ -67,10 +68,28 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
             {
                 var bytes=Convert.FromBase64String(source[(source.IndexOf(',')+1)..]);
                 using var stream=new MemoryStream(bytes);
-                var bitmap=await CanvasBitmap.LoadAsync(device,stream.AsRandomAccessStream());
+                using var encoded=stream.AsRandomAccessStream();
+                var decoder=await BitmapDecoder.CreateAsync(encoded);
+                var width=decoder.OrientedPixelWidth;
+                var height=decoder.OrientedPixelHeight;
+                var target=CanvasImageDecoding.FitTexture(width,height,device.Device.MaximumBitmapSizeInPixels);
+                CanvasBitmap bitmap;
+                if(target==(width,height))
+                {
+                    encoded.Seek(0);
+                    bitmap=await CanvasBitmap.LoadAsync(device,encoded);
+                    width=bitmap.SizeInPixels.Width;
+                    height=bitmap.SizeInPixels.Height;
+                }
+                else
+                {
+                    using var pixels=await CanvasImageDecoding.DecodeAsync(decoder,target.Width,target.Height);
+                    if(epoch!=_imageEpoch||isCurrent?.Invoke()==false)break;
+                    bitmap=CanvasBitmap.CreateFromSoftwareBitmap(device,pixels);
+                }
                 if(epoch!=_imageEpoch||isCurrent?.Invoke()==false){bitmap.Dispose();break;}
-                if(_images.TryGetValue(source,out var previous))previous.Dispose();
-                _images[source]=bitmap;changed=true;
+                if(_images.TryGetValue(source,out var previous))previous.Bitmap.Dispose();
+                _images[source]=(bitmap,width,height);changed=true;
             }
             catch (Exception e) when(e is FormatException or ArgumentException or System.Runtime.InteropServices.COMException) { }
         }
@@ -80,7 +99,7 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
     {
         _imageEpoch++;ClearCaneShard();ClearRadialResources();ClearLaserResources();ResetLive();ClearWetResources();ClearTextCache();_viewportCandidates.Clear();
         foreach(var value in _geometry.Values)value.Geometry.Dispose(); _geometry.Clear();
-        foreach(var value in _images.Values)value.Dispose(); _images.Clear();
+        foreach(var value in _images.Values)value.Bitmap.Dispose(); _images.Clear();
     }
     public void Prune(IEnumerable<BoardObject> objects,bool pruneImages=true)
     {
@@ -249,7 +268,18 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
                 RenderStickyPaper(ds,o,rect);
                 RenderText(ds,o,new Rect(o.X+12,o.Y+12,Math.Max(1,o.Width-24),Math.Max(1,o.Height-24)),stroke);break;
             case "image":
-                if(o.ImageUrl is not null && _images.TryGetValue(o.ImageUrl,out var bitmap))ds.DrawImage(bitmap,rect,new Rect(Math.Clamp(o.CropX??0,0,bitmap.SizeInPixels.Width-1),Math.Clamp(o.CropY??0,0,bitmap.SizeInPixels.Height-1),Math.Clamp(o.CropWidth??bitmap.SizeInPixels.Width,1,bitmap.SizeInPixels.Width-Math.Clamp(o.CropX??0,0,bitmap.SizeInPixels.Width-1)),Math.Clamp(o.CropHeight??bitmap.SizeInPixels.Height,1,bitmap.SizeInPixels.Height-Math.Clamp(o.CropY??0,0,bitmap.SizeInPixels.Height-1))),(float)o.Opacity);
+                if(o.ImageUrl is not null && _images.TryGetValue(o.ImageUrl,out var image))
+                {
+                    var bitmap=image.Bitmap;
+                    // Documents keep crop coordinates in source pixels even when this device has a smaller texture.
+                    var xScale=bitmap.Size.Width/image.SourceWidth;
+                    var yScale=bitmap.Size.Height/image.SourceHeight;
+                    var x=Math.Clamp(o.CropX??0,0,image.SourceWidth-1);
+                    var y=Math.Clamp(o.CropY??0,0,image.SourceHeight-1);
+                    var width=Math.Clamp(o.CropWidth??image.SourceWidth,1,image.SourceWidth-x);
+                    var height=Math.Clamp(o.CropHeight??image.SourceHeight,1,image.SourceHeight-y);
+                    ds.DrawImage(bitmap,rect,new Rect(x*xScale,y*yScale,width*xScale,height*yScale),(float)o.Opacity);
+                }
                 else ds.DrawRectangle(rect,HexToColor("#7d9386"),1);break;
             case "pin":DrawPin(ds,new((float)(o.X+o.Width/2),(float)(o.Y+o.Height/2)),1);break;
         }

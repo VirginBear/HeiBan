@@ -733,5 +733,8 @@
   "箭尾寬度": "Largura da haste",
   "全部清除": "Limpar tudo",
   "僅清除筆跡": "Limpar apenas os traços",
-  "進階箭頭尺寸": "Dimensões avançadas da seta"
+  "進階箭頭尺寸": "Dimensões avançadas da seta",
+  "圖片解析度已符合畫布，無須縮減。": "A resolução da imagem já cabe na tela.",
+  "圖片解析度已調整為 {0} × {1}，可復原。": "Resolução ajustada para {0} × {1}. Você pode desfazer.",
+  "解析度適應": "Ajustar resolução à tela"
 }

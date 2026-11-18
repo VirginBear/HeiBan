@@ -13,6 +13,11 @@ public partial class MainWindow
         Directory.CreateDirectory(output);
         try
         {
+            if(Environment.GetEnvironmentVariable("HEIBAN_QA_IMAGE_FILE") is { Length: > 0 } imageFile)
+            {
+                await ValidateImageResolutionAsync(output,imageFile);
+                return;
+            }
             var screen=await _screenAnnotation!.ValidateRelease110Async();
             await OpenAsync(new(){Board=new(){Title="HeiBan 1.1.0 QA",CanvasMode="infinite",GridStyle="dots"},Objects=[new(){Type="text",X=160,Y=180,Width=600,Height=100,Text="HeiBan 1.1.0 · More menu",FontSize=28}]});
             await Task.Delay(250);var text=await ValidateMainTextAsync();var icons=0;
