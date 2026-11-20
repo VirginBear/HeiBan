@@ -135,5 +135,27 @@
     "arm64Packaging": "success"
   },
   "scope": "Local x64 native synthetic checks and document/source checks. Manual pointer latency, hardware IME, ARM64 runtime and Store certification remain unverified.",
-  "guideStageCompatibility": true
+  "guideStageCompatibility": true,
+  "githubDeliveryRun": {
+    "commit": "71b2e7322113b59c4b10da8d0f05c1ea435e8170",
+    "url": "https://github.com/VirginBear/HeiBan/actions/runs/44690642007",
+    "conclusion": "success",
+    "scope": "Push verification; package jobs run on pull_request or workflow_dispatch."
+  },
+  "trial": {
+    "version": "1.1.6",
+    "label": "architecture-2026-11-20-r3",
+    "sourceCommit": "71b2e7322113b59c4b10da8d0f05c1ea435e8170",
+    "zip": "windows/dist/trials/HeiBan-Windows-Portable-1.1.6-architecture-2026-11-20-r3-win-x64.zip",
+    "exe": "windows/dist/trials/HeiBan-Windows-Portable-1.1.6-architecture-2026-11-20-r3-win-x64/HeiBan.exe",
+    "sha256": "b3fe900b7b4e4d57c79ac2b72958ff203c7a83bf2fd4d97ae4cb16476879eca7",
+    "bytes": 100559329,
+    "payload_files_verified": 724,
+    "startupAndNormalClose": {
+      "closed": true,
+      "version": "1.1.6.0",
+      "exitCode": 0,
+      "opened": true
+    }
+  }
 }

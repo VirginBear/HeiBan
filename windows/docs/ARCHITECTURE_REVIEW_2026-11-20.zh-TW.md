@@ -91,3 +91,13 @@ flowchart LR
 ## 最後的 CLI 相容性驗證
 
 verify-compatibility 的 8 步全部通過，政策自身檢查增為 28 項，涵蓋 guide-view 章節 ID 的原值保留。Core 6,903／Optimization 68、十語資源、x64 WinUI 與兩份原生程序通過，popup 開啟後正常關閉程式與 EXIF 長圖處理均正常。資料及來源在本輪一致。交付以本輪與其後的 R3 試用包為準。
+
+## 試用交付與 GitHub 同步
+
+最新程式來源 71b2e73，已推送 GitHub。[該來源的 CI](https://github.com/VirginBear/HeiBan/actions/runs/44690642007) 通過。PR／手動兩架構封裝已在首輪 CI 43d8e64 驗證成功，日常 push 跑完整的快速核對。
+
+執行 Package-PortableTrial.ps1 -Runtime win-x64 -Label architecture-2026-11-20-r3，產出 100,559,329 bytes ZIP，SHA-256 `b3fe900b7b4e4d57c79ac2b72958ff203c7a83bf2fd4d97ae4cb16476879eca7`。ZIP CRC 與 724 份產物雜湊核對通過，開發用 Roslyn DLL 未進入 App 包。正常試用程式以新隔離資料啟動、正常關閉並退出 0。既有 1.1.5.0 x64／ARM64／合併 Store 包仍通過原雜湊核對。
+
+請使用 `windows/dist/trials/HeiBan-Windows-Portable-1.1.6-architecture-2026-11-20-r3-win-x64/HeiBan.exe`，分享用 ZIP 為 `windows/dist/trials/HeiBan-Windows-Portable-1.1.6-architecture-2026-11-20-r3-win-x64.zip`。R1／R2 是本批較早的中間包，交付以 R3 為準。本次未進行商店封裝與送審，實際筆跡延遲與硬體 IME 留待實機。
+
+這次最後的紀錄提交只有開發文件與證據 JSON，以 skip ci 標記避免重複執行程式檢查。程式來源及原生驗證以 71b2e73 的工作內容與本批來源清單為準。
