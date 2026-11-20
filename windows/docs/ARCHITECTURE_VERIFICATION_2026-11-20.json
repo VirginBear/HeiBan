@@ -2,8 +2,8 @@
   "date": "2026-11-20",
   "version": "1.1.6",
   "command": "./windows/scripts/Verify-Development.ps1 -IncludeNative",
-  "sourceCommitBeforeChanges": "eb9b394c2fab22185fe033d4ece48116e52349d5",
-  "workingTreeSourceInventorySha256": "82913860f0f3104906d78104ddc67d0b78215ac9e8edd40c0443426a7ad91e37",
+  "sourceCommitBeforeChanges": "43d8e64750b6cef8f147419de3c9ea9bce70b112",
+  "workingTreeSourceInventorySha256": "e19a2960886bbd1e936150a030ef9b58bd37ec003165cdd663850443ab49d5f0",
   "sourceFiles": 507,
   "sourcesStable": true,
   "dotnetVersion": "10.0.401",
@@ -75,6 +75,11 @@
       "Height": 120
     }
   },
+  "openPopupNormalClose": {
+    "passed": true,
+    "nativeProcessExitCode": 0,
+    "usesProductDismissal": true
+  },
   "steps": [
     {
       "name": "architecture",
@@ -109,16 +114,24 @@
       "exitCode": 0
     }
   ],
-  "scope": "Local x64 native synthetic checks and document/source checks. Manual mouse/pen input latency, hardware IME, ARM64 runtime and Store certification remain unverified.",
-  "evidenceDirectory": "windows/.build/architecture-review-20261120/verify-final",
+  "evidenceDirectory": "windows/.build/architecture-review-20261120/verify-delivery",
+  "previousPassedAttempts": [
+    "verify-r4",
+    "verify-final",
+    "verify-product-close"
+  ],
   "failedAttemptsPreserved": [
     "verify-r1",
     "verify-r2",
     "native-probe",
     "verify-r3"
   ],
-  "passedAttempts": [
-    "verify-r4",
-    "verify-final"
-  ]
+  "githubInitialFullRun": {
+    "commit": "43d8e64750b6cef8f147419de3c9ea9bce70b112",
+    "url": "https://github.com/VirginBear/HeiBan/actions/runs/44689277249",
+    "verify": "success",
+    "x64Packaging": "success",
+    "arm64Packaging": "success"
+  },
+  "scope": "Local x64 native synthetic checks and document/source checks. Manual pointer latency, hardware IME, ARM64 runtime and Store certification remain unverified."
 }

@@ -340,7 +340,28 @@ public partial class MainWindow
         _activeFlyout = flyout;
         flyout.Closed += (_, _) => { if (_activeFlyout == flyout) _activeFlyout = null; };
         flyout.OverlayInputPassThroughElement=passThrough ?? ToolBorder;
-        flyout.ShowAt(anchor);
+        try { flyout.ShowAt(anchor); }
+        catch
+        {
+            if(ReferenceEquals(_activeFlyout,flyout))_activeFlyout=null;
+            throw;
+        }
+    }
+
+    private async Task DismissActiveFlyoutAsync()
+    {
+        var flyout=_activeFlyout;
+        if(flyout is null)return;
+        var closed=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        EventHandler<object> onClosed=(_,_)=>closed.TrySetResult();
+        flyout.Closed+=onClosed;
+        try
+        {
+            flyout.Hide();
+            // Hide begins dismissal. Wait for native popup teardown before its owner or anchor can be destroyed.
+            if(ReferenceEquals(_activeFlyout,flyout))await closed.Task;
+        }
+        finally { flyout.Closed-=onClosed; }
     }
 
     private void BuildChrome()

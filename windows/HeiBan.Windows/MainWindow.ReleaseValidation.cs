@@ -33,17 +33,13 @@ public partial class MainWindow
             {
                 var menu=_activeFlyout??throw new InvalidOperationException("More menu was not opened.");
                 var opened=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-                var closed=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
                 EventHandler<object> onOpened=(_,_)=>opened.TrySetResult();
-                EventHandler<object> onClosed=(_,_)=>closed.TrySetResult();
-                menu.Opened+=onOpened;menu.Closed+=onClosed;
+                menu.Opened+=onOpened;
                 try
                 {
                     if(!menu.IsOpen)await opened.Task.WaitAsync(TimeSpan.FromSeconds(5));
-                    menu.Hide();
-                    await closed.Task.WaitAsync(TimeSpan.FromSeconds(5));
                 }
-                finally{menu.Opened-=onOpened;menu.Closed-=onClosed;}
+                finally{menu.Opened-=onOpened;}
             }
             await File.WriteAllTextAsync(Path.Combine(output,"release110-result.json"),JsonSerializer.Serialize(new{success=true,screen,text,brushColorChecks,svgIconsParsed=icons,hardwarePointer="Not measured",scope="Native WinUI/Win2D isolated self-checks; no Store installation/WACK"},new JsonSerializerOptions{WriteIndented=true}));
         }

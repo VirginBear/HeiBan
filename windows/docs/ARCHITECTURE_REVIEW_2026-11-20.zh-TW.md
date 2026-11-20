@@ -27,7 +27,7 @@ pstack 原始 README 將品質與可驗證性置於產碼量之前。HeiBan 採�
 | 保存與相容性 | DocumentSnapshot 共用不可變圖片字串，逐物件複製可變資料；寫入有 gate、檔案鎖、revision 衝突與原子替換；unknown JSON 欄位保留 | 核心及最佳化保存／復原對照加入固定入口，文件 schema 維持現有契約 |
 | 渲染成本 | 共用 renderer 有 committed scene／wet ink／髒區；螢幕 overlay 仍須 CPU 讀回與 HWND 呈現 | 本批未改寫圖形後端。後續採樣先拆解 PresentBitmap 讀回量、幀時與 UI 延遲，再決定是否導入 DirectComposition |
 | 驗證可信度 | 核心斷言多，原生驗證與私人附件路徑分散。原生檢查以前 catch 後可正常 exit | 新 runner 留來源雜湊、日誌、輸出及 scope；原生失敗設非零 exit code；加入可重建合成長圖與 EXIF 檢查 |
-| CI 與資產 | workflow 原本無 push；語言與指南產生工具會寫檔，缺少檢查模式 | push main／PR／手動共用同一驗證入口；--check 可攔過期產物。兩架構封裝等待 verify 成功 |
+| CI 與資產 | workflow 原本無 push；語言與指南產生工具會寫檔，缺少檢查模式 | push main／PR／手動共用同一驗證入口；--check 可攔過期產物。PR／手動的兩架構封裝等待 verify 成功，日常 push 跑快速檢查 |
 | 體積與整理 | runtime 含自包含 .NET／Windows App SDK，原始碼行數不直接等於安裝大小；舊 updater 已排除產品編譯 | 新架構檢查是獨立開發工具，未加入 App 參考。未刪使用者資料與歷史包，體積改善須使用同類型套件比較 |
 | 維護文件 | 狀態與日誌保有歷史，但開發者缺少單一可執行入口及使用者功能到程式的對照 | 建立 DEVELOPMENT_WORKFLOW，狀態及架構文件連回本批實際證據 |
 
@@ -73,3 +73,15 @@ flowchart LR
 - x64 WinUI Release 編譯 0 警告、0 錯誤。原生一般／螢幕編輯、More popup 關閉及圖片檢查的兩份程序均正常退出。合成長圖 384 × 18000，適應後 6 × 300，裁切／翻轉／Undo／Redo／重開檢查通過。EXIF 方向來源 120 × 60 正確呈現 60 × 120。
 - 十語介面及指南資源檢查通過，--check 未寫入來源。該次 .NET 10.0.401，Python 3.11.9。
 - 實機滑鼠／數位筆延遲、硬體 IME、ARM64 執行與 Store 認證未執行。完整摘要見 [驗證資料](ARCHITECTURE_VERIFICATION_2026-11-20.json)。日常命令與功能對照見 [開發流程](DEVELOPMENT_WORKFLOW.zh-TW.md)。
+
+## 將已重現問題落到產品 API
+
+進一步審查發現主視窗正常關閉原本也只呼叫 Hide 後等 32ms，無法證明 native popup 已完成移除。本批新增 DismissActiveFlyoutAsync，等待 Closed 事件後才讓關閉／離開流程進入保存與資源釋放；ShowAt 失敗時解除目前 popup 參考。原生檢查調整為保留 More 開啟，直接走正式 Close，驗證產品流程自行等候，不由測試預先收起選單。
+
+產品關閉流程驗證通過。保持 More popup 開啟並直接 Close 的 native-editor 退出為 0，圖片檢查也正常退出。初版 GitHub run 44689277249 的 verify、x64 與 ARM64 封裝全部成功。此完整試跑證明既有兩架構封裝可接新 verify 前置工作。為減少每次日常 push 的二進位產物與等待，後續 push 執行 verify，PR／手動保留原本兩架構封裝行為。
+
+## 產品流程的交付驗證
+
+最終以 verify-delivery 新目錄執行完整 8 步，全部通過。Core 6,903、Optimization 68、Roslyn 194 份來源與 27 項政策案例，正常關閉時保留 More popup 開啟，驗證主視窗自行等待 Closed 後正常退出。來源 507 份程式與資源在本輪維持一致，來源與證據摘要已更新。先前 verify-final 是更早的診斷處理版本，交付以 verify-delivery 及其後封裝來源為準。
+
+首輪 GitHub verify、x64 封裝與 ARM64 封裝全部通過。[完整 CI 結果](https://github.com/VirginBear/HeiBan/actions/runs/44689277249)。後續工作樹的 CI 將以 push 快速核對流程再確認。

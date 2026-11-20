@@ -103,7 +103,8 @@ public partial class MainWindow : Window
             if(_closing)return;e.Cancel=true;if(_documentImporting||_preparingClose||_saveBoundaryBusy)return;_preparingClose=true;
             try
             {
-                _autosave.Stop();_thumbnailTimer.Stop();_activeFlyout?.Hide();ShowSavingOverlay(true);
+                _autosave.Stop();_thumbnailTimer.Stop();ShowSavingOverlay(true);
+                await DismissActiveFlyoutAsync();
                 await Task.Delay(32);
                 CancelScreenshotCapture("視窗關閉");FinishText();CommitPropertyEdit();if(_gesture)CancelGesture();
                 if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();

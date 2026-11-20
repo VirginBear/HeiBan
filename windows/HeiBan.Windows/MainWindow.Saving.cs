@@ -100,9 +100,10 @@ public partial class MainWindow
     {
         if (_saveBoundaryBusy || _preparingClose) return false;
         _saveBoundaryBusy = true; _autosave.Stop(); _thumbnailTimer.Stop();
-        _activeFlyout?.Hide(); ShowSavingOverlay(true);
+        ShowSavingOverlay(true);
         try
         {
+            await DismissActiveFlyoutAsync();
             // Allow an animation frame before cloning; IO/encoding already runs off the UI thread.
             await Task.Delay(32);
             FinishText(); CommitPropertyEdit(); if (_gesture) CancelGesture();

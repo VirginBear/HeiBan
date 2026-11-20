@@ -2,7 +2,7 @@
 
 ## 2026-11-20 — Windows 架構與開發驗證改善
 
-參考 Lauren Tan 原始演講檢討依賴、熱路徑、手勢、保存、影像、體積與 CI。共用影像讀取及 EXIF 預覽、集中診斷模式、加入 Roslyn 政策及來源可核對的 Verify-Development 入口。Core 6,903／Optimization 68、本機 x64 原生測試通過，曾發現原生測試 popup 關閉故障並修正。[完整檢討](ARCHITECTURE_REVIEW_2026-11-20.zh-TW.md) · [開發流程](DEVELOPMENT_WORKFLOW.zh-TW.md)。
+參考 Lauren Tan 原始演講檢討依賴、熱路徑、手勢、保存、影像、體積與 CI。共用影像讀取及 EXIF 預覽、集中診斷模式、加入 Roslyn 政策與 Verify-Development。主視窗離開／關閉明確等候 native popup 關閉。Core 6,903／Optimization 68、本機 x64 原生測試通過。日常 push 跑核對，PR／手動另製作兩架構產物。[完整檢討](ARCHITECTURE_REVIEW_2026-11-20.zh-TW.md) · [開發流程](DEVELOPMENT_WORKFLOW.zh-TW.md)。
 
 ## 2026-11-18 — Windows 1.1.6 長圖匯入與解析度適應
 

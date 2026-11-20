@@ -36,7 +36,7 @@ HeiBan.Windows.ArchitectureChecks 使用 SDK 內 Roslyn 解析語法。HB001 保
 
 ## 交付與實機驗收
 
-GitHub 的 Windows workflow 在 push main、Windows PR 或手動啟動時跑共用檢查，成功後才製作兩架構產物。雲端 GUI 測試不包含在此流程，CI 完成狀態應從該次 run 核對。
+GitHub 的 Windows workflow 在 push main、Windows PR 或手動啟動時跑共用檢查。PR 與手動啟動在檢查成功後製作兩架構產物，日常 push 使用快速檢查。雲端 GUI 測試不包含在此流程，CI 完成狀態應從該次 run 核對。
 
 封裝試用時附上來源、ZIP 及產物雜湊。使用者作品接續需在正常保存並關閉後進行。Store 版號及提交沿用使用者當次指示。
 
