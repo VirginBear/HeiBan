@@ -1,5 +1,9 @@
 # Windows 架構決策（2026-10-08）
 
+## 2026-11-20 — Windows 架構與開發驗證改善
+
+參考 Lauren Tan 原始演講檢討依賴、熱路徑、手勢、保存、影像、體積與 CI。共用影像讀取及 EXIF 預覽、集中診斷模式、加入 Roslyn 政策及來源可核對的 Verify-Development 入口。Core 6,903／Optimization 68、本機 x64 原生測試通過，曾發現原生測試 popup 關閉故障並修正。[完整檢討](ARCHITECTURE_REVIEW_2026-11-20.zh-TW.md) · [開發流程](DEVELOPMENT_WORKFLOW.zh-TW.md)。
+
 ## 2026-11-13 — 當頁解碼與螢幕髒區
 
 一般畫布的文件 epoch、Generation 及頁面決定載圖請求。請求序號與單一解碼 gate 保護快速切頁、資源重建與離開。縮圖與輸出以獨立 renderer 或原文件產生。螢幕畫布讓提交沿用髒區；不確定範圍、延伸線、取消等路徑保守回退。[本批紀錄](PDF_SCREEN_PERFORMANCE_2026-11-13.zh-TW.md)。

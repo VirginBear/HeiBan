@@ -83,8 +83,19 @@ catalogs = {"zh-TW": {key: key for key in SOURCES},
             "zh-CN": {key: simplified(key) for key in SOURCES}}
 catalogs.update({code: {key: translations[key][code] for key in SOURCES} for code in CODES})
 target = ROOT / "Catalogs"
-target.mkdir(exist_ok=True)
+check_only = "--check" in sys.argv
+if not check_only:
+    target.mkdir(exist_ok=True)
+stale = []
 for code, catalog in catalogs.items():
-    (target / f"{code}.json").write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    path = target / f"{code}.json"
+    expected = json.dumps(catalog, ensure_ascii=False, indent=2) + "\n"
+    if check_only:
+        if not path.exists() or path.read_text(encoding="utf-8-sig") != expected:
+            stale.append(code)
+    else:
+        path.write_text(expected, encoding="utf-8")
+if stale:
+    raise ValueError("Stale localization catalogs. Run Build-LocalizationCatalogs.py: " + ", ".join(stale))
 print(json.dumps({"languages": list(catalogs), "sourcesPerLanguage": len(SOURCES),
-                  "authoringRows": len(translations), "missing": 0}, ensure_ascii=False))
+                  "authoringRows": len(translations), "missing": 0, "checkOnly": check_only}, ensure_ascii=False))

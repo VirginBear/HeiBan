@@ -39,6 +39,8 @@
 
 ## Windows端減重評估接手
 
+- [2026-11-20 Windows 架構、流程與驗證檢討](../windows/docs/ARCHITECTURE_REVIEW_2026-11-20.zh-TW.md)，含 Lauren Tan 原始來源對照、已實作項目與後續範圍。[日常開發及驗證入口](../windows/docs/DEVELOPMENT_WORKFLOW.zh-TW.md)。
+
 - [2026-10-31 Windows六項優化最終包與驗收指南](../windows/docs/OPTIMIZATION_TEST_GUIDE_2026-10-31.zh-TW.md)：擦除／快照／共用筆刷／增量Undo／owned保存與FD候選；維持1.0.18，26項資料檢查通過、最終來源96bf6ac，待實機與安裝驗收。
 
 - [2026-10-31 Ponytail對照與Windows六項優化方案](../windows/docs/PONYTAIL_REVIEW_2026-10-31.zh-TW.md)：擦除候選／快照、共用筆刷設定、增量Undo與Store相依減重；僅靜態分析，未實作／未進版。

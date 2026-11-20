@@ -73,25 +73,17 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
                 var width=decoder.OrientedPixelWidth;
                 var height=decoder.OrientedPixelHeight;
                 var target=CanvasImageDecoding.FitTexture(width,height,device.Device.MaximumBitmapSizeInPixels);
-                CanvasBitmap bitmap;
-                if(target==(width,height))
-                {
-                    encoded.Seek(0);
-                    bitmap=await CanvasBitmap.LoadAsync(device,encoded);
-                    width=bitmap.SizeInPixels.Width;
-                    height=bitmap.SizeInPixels.Height;
-                }
-                else
-                {
-                    using var pixels=await CanvasImageDecoding.DecodeAsync(decoder,target.Width,target.Height);
-                    if(epoch!=_imageEpoch||isCurrent?.Invoke()==false)break;
-                    bitmap=CanvasBitmap.CreateFromSoftwareBitmap(device,pixels);
-                }
+                using var pixels=await CanvasImageDecoding.DecodeAsync(decoder,target.Width,target.Height);
+                if(epoch!=_imageEpoch||isCurrent?.Invoke()==false)break;
+                var bitmap=CanvasBitmap.CreateFromSoftwareBitmap(device,pixels);
                 if(epoch!=_imageEpoch||isCurrent?.Invoke()==false){bitmap.Dispose();break;}
                 if(_images.TryGetValue(source,out var previous))previous.Bitmap.Dispose();
                 _images[source]=(bitmap,width,height);changed=true;
             }
-            catch (Exception e) when(e is FormatException or ArgumentException or System.Runtime.InteropServices.COMException) { }
+            catch (Exception e) when(e is FormatException or ArgumentException or System.Runtime.InteropServices.COMException)
+            {
+                Diagnostics.CanvasSurfaceDiagnostics.Record("decode-page-image",e);
+            }
         }
         if(changed&&epoch==_imageEpoch&&isCurrent?.Invoke()!=false)ResourcesChanged?.Invoke();
     }

@@ -1,5 +1,7 @@
 # Windows進版與驗收規則
 
+Windows 共用驗證與功能來源對照見 [開發流程](docs/DEVELOPMENT_WORKFLOW.zh-TW.md)。每批依實際變更選擇檢查，來源或結果改變時以新證據目錄重驗。
+
 ## 2026-11-18 Windows 1.1.6 開發版號
 
 依使用者指示，暫用產品版號 1.1.6／套件 metadata 1.1.6.0 開發。長圖匯入與解析度適應以獨立試用版驗證。[開發紀錄](docs/IMAGE_RESOLUTION_2026-11-18.zh-TW.md)。

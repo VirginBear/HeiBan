@@ -5,6 +5,28 @@ namespace HeiBan.Windows.Engine;
 
 internal static class CanvasImageDecoding
 {
+    internal sealed record EncodedImage(string DataUri, uint Width, uint Height);
+
+    internal static async Task<EncodedImage> ReadAsync(IRandomAccessStream stream, int maximumSide)
+    {
+        stream.Seek(0);
+        var decoder = await BitmapDecoder.CreateAsync(stream);
+        var width = decoder.OrientedPixelWidth;
+        var height = decoder.OrientedPixelHeight;
+        var codec = decoder.DecoderInformation.CodecId;
+        var subtype = codec == BitmapDecoder.PngDecoderId ? "png"
+            : codec == BitmapDecoder.JpegDecoderId ? "jpeg"
+            : codec == BitmapDecoder.GifDecoderId ? "gif"
+            : codec == BitmapDecoder.TiffDecoderId ? "tiff"
+            : codec == BitmapDecoder.BmpDecoderId ? "bmp" : null;
+        if (subtype is not null)
+            return new(await ReadDataUriAsync(stream, subtype), width, height);
+
+        // Export readers share the same encoded format. Normalize other Windows codecs once at import.
+        (width, height) = FitTexture(width, height, maximumSide);
+        return new(await EncodeAsync(decoder, width, height), width, height);
+    }
+
     // Bound the decoded texture as well as either dimension. The encoded original stays in the document.
     private const double PreviewPixelBudget = 16_000_000;
 

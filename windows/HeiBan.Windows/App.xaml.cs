@@ -6,6 +6,7 @@ public partial class App : Application
     private Window? _errorWindow;
     private readonly List<string> _resourceErrors=[];
     internal static string StartupStage { get; set; }="建立主視窗";
+    internal static Diagnostics.DiagnosticLaunchOptions? DiagnosticLaunch { get; private set; }
     public App()
     {
         DebugSettings.IsXamlResourceReferenceTracingEnabled=true;
@@ -23,16 +24,19 @@ public partial class App : Application
     {
         try
         {
-            if(Environment.GetCommandLineArgs().Any(arg=>new[]{"--performance-output=","--validation-output=","--drawing-workflow-output=","--guide-view=","--release-validation-output=","--marquee-validation-output=","--canvas-capture-validation-output=","--selection-feedback-validation-output=","--object-drag-validation-output=","--operate-radial-validation-output=","--operate-input-probe-output=","--cursor-cane-validation-output=","--icon-style-validation-output="}.Any(prefix=>arg.StartsWith(prefix,StringComparison.Ordinal))))
+            DiagnosticLaunch=Diagnostics.DiagnosticLaunchOptions.Parse(Environment.GetCommandLineArgs());
+            if(DiagnosticLaunch is not null)
             {
-                var isolated=Environment.GetEnvironmentVariable("HEIBAN_WINDOWS_DATA_DIRECTORY");
-                // Check before storage/library initialization. Reusing an existing root could read or replace real recovery data.
-                if(string.IsNullOrWhiteSpace(isolated)||Directory.Exists(isolated)||File.Exists(isolated))
-                    throw new InvalidOperationException("效能診斷必須指定尚不存在的 HEIBAN_WINDOWS_DATA_DIRECTORY。");
+                Diagnostics.DiagnosticLaunchOptions.RequireFreshDataDirectory(
+                    Environment.GetEnvironmentVariable("HEIBAN_WINDOWS_DATA_DIRECTORY"));
+#if !HEIBAN_RELEASE_VALIDATION
+                if(DiagnosticLaunch.RequiresValidationBuild)
+                    throw new InvalidOperationException("This diagnostic mode requires HeiBanValidationBuild=true.");
+#endif
             }
 #if HEIBAN_RELEASE_VALIDATION
-            var probe=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--operate-input-probe-output=",StringComparison.Ordinal));
-            if(probe is not null){ShowOperateInputProbe(probe["--operate-input-probe-output=".Length..]);return;}
+            var probe=DiagnosticLaunch?.OutputFor("operate-input-probe-output");
+            if(probe is not null){ShowOperateInputProbe(probe);return;}
 #endif
             _window = new MainWindow();
             _window.Activate();

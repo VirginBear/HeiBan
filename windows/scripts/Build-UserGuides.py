@@ -211,22 +211,33 @@ def practice_document(code, rows):
 
 catalogs={code:read(code) for code in LANGUAGES if code!='zh-CN'}
 catalogs['zh-CN']={key:[simplify(value) for value in values] for key,values in catalogs['zh-TW'].items()}
-TARGET.mkdir(exist_ok=True,parents=True)
+check_only='--check' in sys.argv
+if not check_only:
+    TARGET.mkdir(exist_ok=True,parents=True)
+def emit(path, data, text=False):
+    if check_only:
+        actual=path.read_bytes() if path.exists() else None
+        if text and actual is not None:
+            actual=actual.replace(b'\r\n',b'\n')
+        if actual!=data:
+            raise ValueError(f"Stale guide asset. Run Build-UserGuides.py: {path.name}")
+    else:
+        path.write_bytes(data)
 manifest={'schema':1,'defaultLanguage':'zh-TW','sections':SECTIONS,'languageCodes':list(LANGUAGES),
           'scope':'Bundled offline help, not app execution or native-language review','pages':[]}
 manifest['screenshots']=[{'file':'images/'+name,'sha256':hashlib.sha256((TARGET/'images'/name).read_bytes()).hexdigest()} for name in SCREENSHOTS.values()]
 manifest['practiceDocuments']=[]
 for code in LANGUAGES:
     practice=json.dumps(practice_document(code,catalogs[code]),ensure_ascii=False,indent=2).encode('utf-8')
-    filename=f'QuickStart-{code}.heiban';(TARGET/filename).write_bytes(practice)
+    filename=f'QuickStart-{code}.heiban';emit(TARGET/filename,practice)
     manifest['practiceDocuments'].append({'language':code,'file':filename,'bytes':len(practice),'sha256':hashlib.sha256(practice).hexdigest(),
                                          'canvasMode':'infinite','chapters':len(SECTIONS),'toolKeys':list(re.findall(r'"([^"]+)"',re.search(r'AllDefaultTools\s*=\s*\[(.*?)\];',(ROOT/'HeiBan.Windows.Core/Engine/ToolbarPreferences.cs').read_text(encoding='utf-8-sig'),re.S)[1]))})
     data=render(code,catalogs[code]).encode('utf-8')
-    (TARGET/f'{code}.html').write_bytes(data)
+    emit(TARGET/f'{code}.html',data)
     manifest['pages'].append({'language':code,'file':f'{code}.html','sections':len(SECTIONS),
                             'paragraphs':sum(len(catalogs[code][s])-1 for s in SECTIONS),
                             'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()})
-(TARGET/'manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
-(TARGET.parent/'HeiBanUserGuide.html').write_text(render('zh-TW',catalogs['zh-TW'],legacy=True),encoding='utf-8')
+emit(TARGET/'manifest.json',(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n').encode('utf-8'),text=True)
+emit(TARGET.parent/'HeiBanUserGuide.html',render('zh-TW',catalogs['zh-TW'],legacy=True).encode('utf-8'),text=True)
 print(json.dumps({'languages':list(LANGUAGES),'sectionsPerGuide':len(SECTIONS),'pages':len(manifest['pages']),
-                 'paragraphsPerGuide':{p['language']:p['paragraphs'] for p in manifest['pages']}},ensure_ascii=False))
+                 'paragraphsPerGuide':{p['language']:p['paragraphs'] for p in manifest['pages']},'checkOnly':check_only},ensure_ascii=False))

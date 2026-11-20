@@ -28,26 +28,9 @@ public partial class MainWindow
     {
         if (!CanEditImages) return false;
         var page = CurrentImagePage;
-        var decoder = await BitmapDecoder.CreateAsync(stream);
-        var width = decoder.OrientedPixelWidth;
-        var height = decoder.OrientedPixelHeight;
-        var codec = decoder.DecoderInformation.CodecId;
-        var subtype = codec == BitmapDecoder.PngDecoderId ? "png"
-            : codec == BitmapDecoder.JpegDecoderId ? "jpeg"
-            : codec == BitmapDecoder.GifDecoderId ? "gif"
-            : codec == BitmapDecoder.TiffDecoderId ? "tiff"
-            : codec == BitmapDecoder.BmpDecoderId ? "bmp" : null;
-        string data;
-        if (subtype is not null)
-            data = await CanvasImageDecoding.ReadDataUriAsync(stream, subtype);
-        else
-        {
-            // Normalize codecs that cannot be shared with the SVG/HTML export path.
-            (width, height) = CanvasImageDecoding.FitTexture(width, height, CanvasSurface.Device.MaximumBitmapSizeInPixels);
-            data = await CanvasImageDecoding.EncodeAsync(decoder, width, height);
-        }
+        var image = await CanvasImageDecoding.ReadAsync(stream, CanvasSurface.Device.MaximumBitmapSizeInPixels);
         if (!CanEditImages || page != CurrentImagePage) return false;
-        return await ApplyImageInsertionAsync(width, height, data, location, isCenter,
+        return await ApplyImageInsertionAsync(image.Width, image.Height, image.DataUri, location, isCenter,
             expectedRequestId, expectedBoardId, expectedPageId);
     }
 

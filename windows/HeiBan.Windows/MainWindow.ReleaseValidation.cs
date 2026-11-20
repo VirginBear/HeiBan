@@ -15,6 +15,7 @@ public partial class MainWindow
         {
             if(Environment.GetEnvironmentVariable("HEIBAN_QA_IMAGE_FILE") is { Length: > 0 } imageFile)
             {
+                if(imageFile=="generated")imageFile=await CreateImageValidationFixtureAsync(output);
                 await ValidateImageResolutionAsync(output,imageFile);
                 return;
             }
@@ -26,12 +27,36 @@ public partial class MainWindow
             using var drawing=sheet.CreateDrawingSession();drawing.Clear(Microsoft.UI.Colors.White);
             foreach(var file in Directory.GetFiles(Path.Combine(AppContext.BaseDirectory,"Assets","MenuIcons"),"*.svg")){using var svg=CanvasSvgDocument.LoadFromXml(CanvasSurface,await File.ReadAllTextAsync(file));drawing.Transform=Matrix3x2.CreateTranslation(icons%9*100+30,icons/9*100+12);drawing.DrawSvg(svg,new global::Windows.Foundation.Size(40,40));drawing.DrawText(Path.GetFileNameWithoutExtension(file),-22,46,Microsoft.UI.Colors.DarkGreen,new Microsoft.Graphics.Canvas.Text.CanvasTextFormat{FontSize=11});icons++;}
             drawing.Dispose();await sheet.SaveAsync(Path.Combine(output,"menu-icons.png"),CanvasBitmapFileFormat.Png);
-            await File.WriteAllTextAsync(Path.Combine(output,"release110-result.json"),JsonSerializer.Serialize(new{success=true,screen,text,brushColorChecks,svgIconsParsed=icons,hardwarePointer="Not measured",scope="Native WinUI/Win2D isolated self-checks; no Store installation/WACK"},new JsonSerializerOptions{WriteIndented=true}));
             _toolbarPrefs.HideTool("calculator");_toolbarPrefs.HideTool("timer");_toolbarPrefs.HideTool("ruler");_toolbarPrefs.HideTool("compass");BuildChrome();
             ShowMoreToolsMenu(GetToolAnchor("more"));
+            if(Environment.GetCommandLineArgs().Contains("--release-validation-exit"))
+            {
+                var menu=_activeFlyout??throw new InvalidOperationException("More menu was not opened.");
+                var opened=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                var closed=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                EventHandler<object> onOpened=(_,_)=>opened.TrySetResult();
+                EventHandler<object> onClosed=(_,_)=>closed.TrySetResult();
+                menu.Opened+=onOpened;menu.Closed+=onClosed;
+                try
+                {
+                    if(!menu.IsOpen)await opened.Task.WaitAsync(TimeSpan.FromSeconds(5));
+                    menu.Hide();
+                    await closed.Task.WaitAsync(TimeSpan.FromSeconds(5));
+                }
+                finally{menu.Opened-=onOpened;menu.Closed-=onClosed;}
+            }
+            await File.WriteAllTextAsync(Path.Combine(output,"release110-result.json"),JsonSerializer.Serialize(new{success=true,screen,text,brushColorChecks,svgIconsParsed=icons,hardwarePointer="Not measured",scope="Native WinUI/Win2D isolated self-checks; no Store installation/WACK"},new JsonSerializerOptions{WriteIndented=true}));
         }
-        catch(Exception error){await File.WriteAllTextAsync(Path.Combine(output,"release110-error.txt"),error.ToString());}
-        finally{if(Environment.GetCommandLineArgs().Contains("--release-validation-exit"))Microsoft.UI.Xaml.Application.Current.Exit();}
+        catch(Exception error)
+        {
+            Environment.ExitCode=1;
+            await File.WriteAllTextAsync(Path.Combine(output,"release110-error.txt"),error.ToString());
+        }
+        finally
+        {
+            // Exercise the application's save/close boundary and release auxiliary HWNDs in their owning order.
+            if(Environment.GetCommandLineArgs().Contains("--release-validation-exit"))Close();
+        }
     }
 }
 #endif

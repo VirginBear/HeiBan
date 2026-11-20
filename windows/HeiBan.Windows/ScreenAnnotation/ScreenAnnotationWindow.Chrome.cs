@@ -143,17 +143,11 @@ internal sealed partial class ScreenAnnotationWindow
             var file=await picker.PickSingleFileAsync();
             if(file is not null&&IsCurrentScreenSession(epoch))
             {
-                var bytes=await File.ReadAllBytesAsync(file.Path);
+                using var stream=await file.OpenReadAsync();
+                var source=await CanvasImageDecoding.ReadAsync(stream,_target!.Device.MaximumBitmapSizeInPixels);
                 if(!IsCurrentScreenSession(epoch))return;
-                var ext=Path.GetExtension(file.Path).TrimStart('.').ToLowerInvariant();
-                var imageType=ext=="jpg"?"jpeg":string.IsNullOrEmpty(ext)?"png":ext;
-                var dataUri=$"data:image/{imageType};base64,"+Convert.ToBase64String(bytes);
-                using var stream=new MemoryStream(bytes);
-                using var ras=stream.AsRandomAccessStream();
-                var decoder=await global::Windows.Graphics.Imaging.BitmapDecoder.CreateAsync(ras);
-                if(!IsCurrentScreenSession(epoch))return;
-                var width=(double)decoder.PixelWidth;
-                var height=(double)decoder.PixelHeight;
+                var width=(double)source.Width;
+                var height=(double)source.Height;
                 var maxW=_overlay.Width*0.6;
                 var maxH=_overlay.Height*0.6;
                 if(width>maxW||height>maxH)
@@ -166,8 +160,8 @@ internal sealed partial class ScreenAnnotationWindow
                 var image=new BoardObject
                 {
                     Type="image",X=x,Y=y,Width=width,Height=height,
-                    ImageUrl=dataUri,OriginalImageUrl=dataUri,
-                    OriginalWidth=decoder.PixelWidth,OriginalHeight=decoder.PixelHeight,
+                    ImageUrl=source.DataUri,OriginalImageUrl=source.DataUri,
+                    OriginalWidth=source.Width,OriginalHeight=source.Height,
                     Opacity=1,Name=file.Name
                 };
                 if(_target is not null)await _renderer.LoadImagesAsync(_target,new[]{image});

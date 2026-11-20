@@ -12,6 +12,28 @@ namespace HeiBan.Windows;
 
 public partial class MainWindow
 {
+    private static async Task<string> CreateImageValidationFixtureAsync(string output)
+    {
+        // Synthetic pixels reproduce the texture limit without depending on a user's downloaded image.
+        var path=Path.Combine(output,"generated-tall.png");
+        using var stream=new InMemoryRandomAccessStream();
+        var encoder=await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId,stream);
+        var pixels=new byte[384*18000*4];
+        for(var offset=0;offset<pixels.Length;offset+=4)
+        {
+            pixels[offset]=(byte)(offset/4%251);
+            pixels[offset+1]=175;
+            pixels[offset+2]=35;
+            pixels[offset+3]=255;
+        }
+        encoder.SetPixelData(BitmapPixelFormat.Bgra8,BitmapAlphaMode.Straight,384,18000,96,96,pixels);
+        await encoder.FlushAsync();
+        stream.Seek(0);
+        using var file=File.Create(path);
+        await stream.AsStreamForRead().CopyToAsync(file);
+        return path;
+    }
+
     private async Task ValidateImageResolutionAsync(string output, string path)
     {
         var file = await StorageFile.GetFileFromPathAsync(path);
@@ -65,11 +87,12 @@ public partial class MainWindow
         var serialized = DocumentCodec.Clone(_session.Document);
         await OpenAsync(serialized);
         Check(await IsVisibleAsync(_session.Document.Objects.Single(o => o.Id == id)), "adapted image renders after reopening");
+        var orientation=await ValidateImageOrientationAsync();
         await File.WriteAllTextAsync(Path.Combine(output, "image-resolution.json"), JsonSerializer.Serialize(new
         {
             success = true, native.OrientedPixelWidth, native.OrientedPixelHeight, maximumTexture, oldLoadRejected,
             adaptedWidth = expected.Width, adaptedHeight = expected.Height,
-            originalEncodedLength = original?.Length, adaptedEncodedLength = image.ImageUrl?.Length
+            originalEncodedLength = original?.Length, adaptedEncodedLength = image.ImageUrl?.Length, orientation
         }));
 
         async Task<bool> IsVisibleAsync(BoardObject item)
@@ -91,6 +114,28 @@ public partial class MainWindow
         {
             if (!condition) throw new InvalidOperationException("Image QA failed: " + name);
         }
+    }
+
+    private async Task<object> ValidateImageOrientationAsync()
+    {
+        using var stream=new InMemoryRandomAccessStream();
+        var encoder=await BitmapEncoder.CreateAsync(BitmapEncoder.JpegEncoderId,stream);
+        var pixels=new byte[120*60*4];
+        for(var i=0;i<pixels.Length;i+=4){pixels[i+1]=170;pixels[i+2]=50;pixels[i+3]=255;}
+        encoder.SetPixelData(BitmapPixelFormat.Bgra8,BitmapAlphaMode.Ignore,120,60,96,96,pixels);
+        await encoder.BitmapProperties.SetPropertiesAsync(new BitmapPropertySet
+        {
+            ["System.Photo.Orientation"]=new BitmapTypedValue((ushort)6,global::Windows.Foundation.PropertyType.UInt16)
+        });
+        await encoder.FlushAsync();
+        stream.Seek(0);
+        var imported=await CanvasImageDecoding.ReadAsync(stream,CanvasSurface.Device.MaximumBitmapSizeInPixels);
+        if(imported.Width!=60||imported.Height!=120)throw new InvalidOperationException("EXIF import dimensions differ from the oriented image.");
+        stream.Seek(0);
+        var decoder=await BitmapDecoder.CreateAsync(stream);
+        using var preview=await CanvasImageDecoding.DecodeAsync(decoder,imported.Width,imported.Height);
+        if(preview.PixelWidth!=60||preview.PixelHeight!=120)throw new InvalidOperationException("EXIF preview dimensions differ from the image placement.");
+        return new{passed=true,imported.Width,imported.Height};
     }
 }
 #endif

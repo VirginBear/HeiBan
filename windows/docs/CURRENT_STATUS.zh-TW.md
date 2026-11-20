@@ -1,5 +1,9 @@
 # Windows 目前開發狀態
 
+## 2026-11-20 — Windows 架構與開發驗證改善
+
+參考 Lauren Tan 原始演講檢討依賴、熱路徑、手勢、保存、影像、體積與 CI。共用影像讀取及 EXIF 預覽、集中診斷模式、加入 Roslyn 政策及來源可核對的 Verify-Development 入口。Core 6,903／Optimization 68、本機 x64 原生測試通過，曾發現原生測試 popup 關閉故障並修正。[完整檢討](ARCHITECTURE_REVIEW_2026-11-20.zh-TW.md) · [開發流程](DEVELOPMENT_WORKFLOW.zh-TW.md)。
+
 ## 2026-11-18 — Windows 1.1.6 長圖匯入與解析度適應
 
 原圖匯入先讀取像素尺寸與編碼資料，預覽受裝置貼圖尺寸限制。冒煙驗證重現舊方法無法載入 3840 × 18382 PNG，並驗證檔案／點陣圖匯入、右鍵解析度適應、裁切、復原及重開渲染。[本批紀錄](IMAGE_RESOLUTION_2026-11-18.zh-TW.md)。

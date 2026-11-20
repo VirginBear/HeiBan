@@ -1,6 +1,11 @@
 name: HeiBan Windows packages
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'windows/**'
+      - '.github/workflows/windows-build.yml'
   pull_request:
     paths:
       - 'windows/**'
@@ -8,7 +13,32 @@ on:
 permissions:
   contents: read
 jobs:
+  verify:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Check architecture, generated assets and document behavior
+        shell: pwsh
+        run: ./windows/scripts/Verify-Development.ps1 -OutputDirectory windows/.build/ci-verification
+      - name: Keep verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-verification
+          path: |
+            windows/.build/ci-verification/*.json
+            windows/.build/ci-verification/*.log
+            windows/.build/ci-verification/optimization/results.json
+          retention-days: 14
+          if-no-files-found: error
   windows:
+    needs: verify
     runs-on: windows-latest
     strategy:
       fail-fast: false
@@ -19,9 +49,6 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - name: Verify Windows interaction geometry
-        shell: pwsh
-        run: dotnet run --project windows/HeiBan.Windows.Core.Tests -c Release
       - name: Install Inno Setup compiler
         run: choco install innosetup --no-progress -y
       - name: Build portable package

@@ -1,0 +1,124 @@
+{
+  "date": "2026-11-20",
+  "version": "1.1.6",
+  "command": "./windows/scripts/Verify-Development.ps1 -IncludeNative",
+  "sourceCommitBeforeChanges": "eb9b394c2fab22185fe033d4ece48116e52349d5",
+  "workingTreeSourceInventorySha256": "82913860f0f3104906d78104ddc67d0b78215ac9e8edd40c0443426a7ad91e37",
+  "sourceFiles": 507,
+  "sourcesStable": true,
+  "dotnetVersion": "10.0.401",
+  "pythonVersion": "Python 3.11.9",
+  "architecture": {
+    "inspectedFiles": 194,
+    "violations": 0,
+    "checkerChecks": 27
+  },
+  "coreAssertions": 6903,
+  "optimizationAssertions": 68,
+  "nativeEditor": {
+    "success": true,
+    "screen": {
+      "assertions": 26,
+      "pixelFrames": 1,
+      "text": {
+        "draftSeparate": true,
+        "toolbarPage": true,
+        "clickCanvasCommits": true,
+        "chineseMultiline": true,
+        "doubleClickEdit": true,
+        "reopenPreserves": true,
+        "cancelPreserves": true,
+        "toolSwitchCommits": true,
+        "textContextMenu": true,
+        "shiftMultiSelection": true,
+        "objectMenuKeepsMultiSelection": true,
+        "selectionAddsNoUndo": true,
+        "styleUndo": true,
+        "imeHardware": "未執行"
+      },
+      "rulerLatch": true,
+      "eraserInsertion": true,
+      "independentUndo": true,
+      "staleEditRejected": true,
+      "auxiliaryWindows": true,
+      "timerStopped": true
+    },
+    "text": {
+      "draftSeparate": true,
+      "toolbarPage": true,
+      "chineseMultiline": true,
+      "wholeDraftStyle": true,
+      "rangeFormat": true,
+      "reopenPreserves": true,
+      "cancelPreserves": true,
+      "rightClickKeepsMultiSelection": true,
+      "hardwareIme": "未執行"
+    },
+    "brushColorChecks": 54,
+    "svgIconsParsed": 66,
+    "hardwarePointer": "Not measured",
+    "scope": "Native WinUI/Win2D isolated self-checks; no Store installation/WACK"
+  },
+  "nativeImages": {
+    "success": true,
+    "OrientedPixelWidth": 384,
+    "OrientedPixelHeight": 18000,
+    "maximumTexture": 16384,
+    "oldLoadRejected": true,
+    "adaptedWidth": 6,
+    "adaptedHeight": 300,
+    "originalEncodedLength": 269010,
+    "adaptedEncodedLength": 1626,
+    "orientation": {
+      "passed": true,
+      "Width": 60,
+      "Height": 120
+    }
+  },
+  "steps": [
+    {
+      "name": "architecture",
+      "exitCode": 0
+    },
+    {
+      "name": "localization",
+      "exitCode": 0
+    },
+    {
+      "name": "guides",
+      "exitCode": 0
+    },
+    {
+      "name": "core",
+      "exitCode": 0
+    },
+    {
+      "name": "optimization",
+      "exitCode": 0
+    },
+    {
+      "name": "winui-build",
+      "exitCode": 0
+    },
+    {
+      "name": "native-editor",
+      "exitCode": 0
+    },
+    {
+      "name": "native-images",
+      "exitCode": 0
+    }
+  ],
+  "scope": "Local x64 native synthetic checks and document/source checks. Manual mouse/pen input latency, hardware IME, ARM64 runtime and Store certification remain unverified.",
+  "evidenceDirectory": "windows/.build/architecture-review-20261120/verify-final",
+  "failedAttemptsPreserved": [
+    "verify-r1",
+    "verify-r2",
+    "native-probe",
+    "verify-r3"
+  ],
+  "passedAttempts": [
+    "verify-r4",
+    "verify-final"
+  ]
+}

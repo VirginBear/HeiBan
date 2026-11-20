@@ -130,38 +130,38 @@ public partial class MainWindow : Window
     public async void InitializeAsync(string? file)
     {
         try { await EnsureQuickStartAsync();if(file is null)await RefreshLibrary();else await OpenAsync(await _storage.ImportAsync(file));
-            var guideView=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--guide-view=",StringComparison.Ordinal));
-            var workflow=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--drawing-workflow-output=",StringComparison.Ordinal));
-            var validation=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--validation-output=",StringComparison.Ordinal));
-            var performance=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--performance-output=",StringComparison.Ordinal));
+            var guideView=App.DiagnosticLaunch?.OutputFor("guide-view");
+            var workflow=App.DiagnosticLaunch?.OutputFor("drawing-workflow-output");
+            var validation=App.DiagnosticLaunch?.OutputFor("validation-output");
+            var performance=App.DiagnosticLaunch?.OutputFor("performance-output");
 #if HEIBAN_RELEASE_VALIDATION
-            var cursorCaneCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--cursor-cane-validation-output=",StringComparison.Ordinal));
-            var iconCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--icon-style-validation-output=",StringComparison.Ordinal));
-            var operateCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--operate-radial-validation-output=",StringComparison.Ordinal));
-            var dragCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--object-drag-validation-output=",StringComparison.Ordinal));
-            var feedbackCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--selection-feedback-validation-output=",StringComparison.Ordinal));
-            var captureCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--canvas-capture-validation-output=",StringComparison.Ordinal));
-            var marqueeCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--marquee-validation-output=",StringComparison.Ordinal));
-            var releaseCheck=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--release-validation-output=",StringComparison.Ordinal));
-            if(cursorCaneCheck is not null)await RunCursorCaneValidationAsync(cursorCaneCheck["--cursor-cane-validation-output=".Length..]);
-            else if(iconCheck is not null)await RunIconStyleValidationAsync(iconCheck["--icon-style-validation-output=".Length..]);
+            var cursorCaneCheck=App.DiagnosticLaunch?.OutputFor("cursor-cane-validation-output");
+            var iconCheck=App.DiagnosticLaunch?.OutputFor("icon-style-validation-output");
+            var operateCheck=App.DiagnosticLaunch?.OutputFor("operate-radial-validation-output");
+            var dragCheck=App.DiagnosticLaunch?.OutputFor("object-drag-validation-output");
+            var feedbackCheck=App.DiagnosticLaunch?.OutputFor("selection-feedback-validation-output");
+            var captureCheck=App.DiagnosticLaunch?.OutputFor("canvas-capture-validation-output");
+            var marqueeCheck=App.DiagnosticLaunch?.OutputFor("marquee-validation-output");
+            var releaseCheck=App.DiagnosticLaunch?.OutputFor("release-validation-output");
+            if(cursorCaneCheck is not null)await RunCursorCaneValidationAsync(cursorCaneCheck);
+            else if(iconCheck is not null)await RunIconStyleValidationAsync(iconCheck);
             else if(operateCheck is not null)
             {
                 var pidArg=Environment.GetCommandLineArgs().FirstOrDefault(arg=>arg.StartsWith("--operate-probe-pid=",StringComparison.Ordinal));
                 var pid=pidArg is not null&&int.TryParse(pidArg["--operate-probe-pid=".Length..],out var parsed)?parsed:-1;
-                await _screenAnnotation!.ValidateOperateRadialAsync(operateCheck["--operate-radial-validation-output=".Length..],pid);
+                await _screenAnnotation!.ValidateOperateRadialAsync(operateCheck,pid);
             }
-            else if(dragCheck is not null)await RunObjectDragValidationAsync(dragCheck["--object-drag-validation-output=".Length..]);
-            else if(feedbackCheck is not null)await RunSelectionFeedbackValidationAsync(feedbackCheck["--selection-feedback-validation-output=".Length..]);
-            else if(captureCheck is not null)await RunCanvasCaptureValidationAsync(captureCheck["--canvas-capture-validation-output=".Length..]);
-            else if(marqueeCheck is not null)await PrepareMarqueeValidationAsync(marqueeCheck["--marquee-validation-output=".Length..]);
-            else if(releaseCheck is not null)await RunRelease110ChecksAsync(releaseCheck["--release-validation-output=".Length..]);
+            else if(dragCheck is not null)await RunObjectDragValidationAsync(dragCheck);
+            else if(feedbackCheck is not null)await RunSelectionFeedbackValidationAsync(feedbackCheck);
+            else if(captureCheck is not null)await RunCanvasCaptureValidationAsync(captureCheck);
+            else if(marqueeCheck is not null)await PrepareMarqueeValidationAsync(marqueeCheck);
+            else if(releaseCheck is not null)await RunRelease110ChecksAsync(releaseCheck);
             else
 #endif
-            if(guideView is not null)ConfigureGuideView(guideView[13..]);
-            else if(workflow is not null)await RunDrawingWorkflowChecksAsync(workflow[26..]);
-            else if(performance is not null)await RunPerformanceBatchAsync(performance[21..]);
-            else if(validation is not null)await RunNativeValidationAsync(validation[20..]);
+            if(guideView is not null)ConfigureGuideView(guideView);
+            else if(workflow is not null)await RunDrawingWorkflowChecksAsync(workflow);
+            else if(performance is not null)await RunPerformanceBatchAsync(performance);
+            else if(validation is not null)await RunNativeValidationAsync(validation);
             else {if(Environment.GetCommandLineArgs().Contains("--screen-canvas"))await StartScreenAnnotationAsync();} }
         catch(Exception e){await Error(e);}
     }
