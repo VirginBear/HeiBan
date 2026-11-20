@@ -27,7 +27,9 @@ internal sealed record DiagnosticLaunchOptions(string Name, string Output)
             if (result is not null) throw new ArgumentException("Only one diagnostic mode can run per process.");
             var output = argument[(equals + 1)..];
             if (string.IsNullOrWhiteSpace(output)) throw new ArgumentException("A diagnostic output path is required.");
-            result = new(argument[2..equals], Path.GetFullPath(output));
+            var name = argument[2..equals];
+            // Guide capture takes a stage ID such as "triangle", not an output directory.
+            result = new(name, name == "guide-view" ? output : Path.GetFullPath(output));
         }
         return result;
     }

@@ -85,3 +85,9 @@ flowchart LR
 最終以 verify-delivery 新目錄執行完整 8 步，全部通過。Core 6,903、Optimization 68、Roslyn 194 份來源與 27 項政策案例，正常關閉時保留 More popup 開啟，驗證主視窗自行等待 Closed 後正常退出。來源 507 份程式與資源在本輪維持一致，來源與證據摘要已更新。先前 verify-final 是更早的診斷處理版本，交付以 verify-delivery 及其後封裝來源為準。
 
 首輪 GitHub verify、x64 封裝與 ARM64 封裝全部通過。[完整 CI 結果](https://github.com/VirginBear/HeiBan/actions/runs/44689277249)。後續工作樹的 CI 將以 push 快速核對流程再確認。
+
+最終命令相容性審查發現 guide-view 是章節 ID（triangle／properties／pdf），其餘選項才是輸出資料夾。新集中解析曾一律轉完整路徑，會使指南截圖模式失去原本的章節分流。已針對 guide-view 保留原 ID，增加直接覆蓋既有參數契約的政策測試。再以新證據與新試用標籤驗證交付。
+
+## 最後的 CLI 相容性驗證
+
+verify-compatibility 的 8 步全部通過，政策自身檢查增為 28 項，涵蓋 guide-view 章節 ID 的原值保留。Core 6,903／Optimization 68、十語資源、x64 WinUI 與兩份原生程序通過，popup 開啟後正常關閉程式與 EXIF 長圖處理均正常。資料及來源在本輪一致。交付以本輪與其後的 R3 試用包為準。

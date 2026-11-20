@@ -73,8 +73,11 @@ Check(ArchitecturePolicy.Inspect("Engine/Direct2DCanvasRenderer.ToolArt.cs",
 foreach (var name in DiagnosticLaunchOptions.Names)
 {
     var launch = DiagnosticLaunchOptions.Parse(["--" + name + "=evidence"]);
-    Check(launch?.Name == name && Path.IsPathFullyQualified(launch.Output), "Diagnostic mode parsing failed.");
+    Check(launch?.Name == name && (name == "guide-view" ? launch.Output == "evidence" : Path.IsPathFullyQualified(launch.Output)),
+        "Diagnostic mode parsing failed.");
 }
+Check(DiagnosticLaunchOptions.Parse(["--guide-view=triangle"])?.OutputFor("guide-view") == "triangle",
+    "Guide capture must retain its existing stage argument.");
 Check(DiagnosticLaunchOptions.Parse(["--screen-canvas"]) is null, "Normal startup changed.");
 foreach (var invalid in new[] { new[] { "--validation-output=" }, new[] { "--validation-output=a", "--performance-output=b" } })
 {

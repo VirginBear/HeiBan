@@ -2,8 +2,8 @@
   "date": "2026-11-20",
   "version": "1.1.6",
   "command": "./windows/scripts/Verify-Development.ps1 -IncludeNative",
-  "sourceCommitBeforeChanges": "43d8e64750b6cef8f147419de3c9ea9bce70b112",
-  "workingTreeSourceInventorySha256": "e19a2960886bbd1e936150a030ef9b58bd37ec003165cdd663850443ab49d5f0",
+  "sourceCommitBeforeChanges": "f95c8154a98e9b44a237548de003400f51ab3456",
+  "workingTreeSourceInventorySha256": "f3a1e0072ea605d92c0edbd65f414e60aaab0d0fadbff9c3bb2960c99b5ef9c3",
   "sourceFiles": 507,
   "sourcesStable": true,
   "dotnetVersion": "10.0.401",
@@ -11,7 +11,7 @@
   "architecture": {
     "inspectedFiles": 194,
     "violations": 0,
-    "checkerChecks": 27
+    "checkerChecks": 28
   },
   "coreAssertions": 6903,
   "optimizationAssertions": 68,
@@ -114,11 +114,12 @@
       "exitCode": 0
     }
   ],
-  "evidenceDirectory": "windows/.build/architecture-review-20261120/verify-delivery",
+  "evidenceDirectory": "windows/.build/architecture-review-20261120/verify-compatibility",
   "previousPassedAttempts": [
     "verify-r4",
     "verify-final",
-    "verify-product-close"
+    "verify-product-close",
+    "verify-delivery"
   ],
   "failedAttemptsPreserved": [
     "verify-r1",
@@ -133,5 +134,6 @@
     "x64Packaging": "success",
     "arm64Packaging": "success"
   },
-  "scope": "Local x64 native synthetic checks and document/source checks. Manual pointer latency, hardware IME, ARM64 runtime and Store certification remain unverified."
+  "scope": "Local x64 native synthetic checks and document/source checks. Manual pointer latency, hardware IME, ARM64 runtime and Store certification remain unverified.",
+  "guideStageCompatibility": true
 }
