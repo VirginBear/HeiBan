@@ -41,7 +41,7 @@
 
 ## 試用成品與 GitHub
 
-來源 79bd0fb35f8b5d900b4a65a2bcf1026300639f78 已推送 origin/main。GitHub Windows CI [44875935333](https://github.com/VirginBear/HeiBan/actions/runs/44875935333) 的九項來源／資料核對工作流程完成，結論 success；雲端不執行本機 GUI 測試。
+來源 79bd0fb35f8b5d900b4a65a2bcf1026300639f78 已推送 origin/main。GitHub Windows CI [44875935333](https://github.com/VirginBear/HeiBan/actions/runs/44875935333) 的來源／資料核對工作流程完成，結論 success；雲端不執行本機 GUI 測試。
 
 執行 `Package-PortableTrial.ps1 -Runtime win-x64 -Label screen-text-2026-11-21-r1` 完成獨立免安裝包。ZIP `windows/dist/trials/HeiBan-Windows-Portable-1.1.6-screen-text-2026-11-21-r1-win-x64.zip`，100,573,029 bytes，SHA-256 `f2d836420f8c1cdba66e22cf4206636f20dbb77e6db9fdb8a53667899c4ea174`。直接開啟同名資料夾內 HeiBan.exe。726 份 payload 與 ZIP 逐檔相同、CRC 通過、440 份來源雜湊核對；驗證程式方法與 Roslyn 檢查器未進入產品 DLL。產品 1.1.6／套件 metadata 1.1.6.0 不進版。
 
