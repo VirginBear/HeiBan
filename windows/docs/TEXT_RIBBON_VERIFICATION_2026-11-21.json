@@ -1,9 +1,9 @@
 {
   "date": "2026-11-21",
   "version": "1.1.6",
-  "sourceCommitBeforeChanges": "6c77baa367705aa7a0718179346c77142cb24236",
+  "sourceCommitBeforeChanges": "d0b31d19129d5ecc3c39338fed10603dcb20cab7",
   "sourceFiles": 513,
-  "sourceInventorySha256": "68529a8c3c5a16dc2facaa92e136c77d203f05178ab10c465f1b9a58b9e743fa",
+  "sourceInventorySha256": "720eea11a02e5d367b0bb005b0e20b738d0ef127f4a76e565af1d342f6115b25",
   "sourcesStable": true,
   "coreAssertions": 6918,
   "optimizationAssertions": 68,
@@ -79,7 +79,7 @@
       "exitCode": 0
     }
   ],
-  "evidenceDirectory": "windows/.build/text-ribbon-20261121/verification-r8",
+  "evidenceDirectory": "windows/.build/text-ribbon-20261121/verification-r9",
   "failedEvidencePreserved": [
     "build-r1.log",
     "build-r2.log",
@@ -96,6 +96,7 @@
   "intermediatePassedAttempts": [
     "verification-r3",
     "verification-r6",
-    "verification-r7"
+    "verification-r7",
+    "verification-r8"
   ]
 }

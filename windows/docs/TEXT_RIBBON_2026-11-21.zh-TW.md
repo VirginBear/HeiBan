@@ -30,7 +30,7 @@
 
 ## 最終命令與驗證結果
 
-執行 `python windows/scripts/Build-LocalizationCatalogs.py`（10語、772個source key）、`python windows/scripts/Build-UserGuides.py`（10語、每份26節），以及 `./windows/scripts/Verify-Development.ps1 -OutputDirectory windows/.build/text-ribbon-20261121/verification-r8 -IncludeNative`。九步全通過，513份來源資源於驗證期間雜湊一致。Core6918、Optimization68、Roslyn199檔零違規／28政策檢查；x64 WinUI零警告零錯誤。
+執行 `python windows/scripts/Build-LocalizationCatalogs.py`（10語、772個source key）、`python windows/scripts/Build-UserGuides.py`（10語、每份26節），以及 `./windows/scripts/Verify-Development.ps1 -OutputDirectory windows/.build/text-ribbon-20261121/verification-r9 -IncludeNative`。九步全通過，513份來源資源於驗證期間雜湊一致。Core6918、Optimization68、Roslyn199檔零違規／28政策檢查；x64 WinUI零警告零錯誤。
 
 原生驗證確認選取範圍的黃色螢光底色不波及其他字、整框斜體涵蓋全文、局部字型色彩字級重開保留、20000字純文字只讀1個格式區段。Win2D字元區域確認中文直排沿同欄向下，上／下對齊位置不同，未變內容沿用快取。螢幕工具列實際呼叫排版頁按鈕後預覽至少200×100可用，再回文字頁；兩種畫布的貼上、撤銷及舊圖片／工具原生回歸通過。
 
@@ -39,3 +39,7 @@
 - verification-r7九步通過，直排靠下／靠右的實體位移斷言也通過。最後實際拖右側握把，發現雖有移動卻在放開時回到接近原位。根因是舊FinishChromeDrag用「滑鼠位置／整個螢幕」當停靠位置，但PositionChrome使用「視窗左上／可移動距離」，兩者不是相同座標。改為依放開時的AppWindow.Position與工作區扣視窗尺寸後的行程正規化；DockChrome共用該轉換，新增右側75%位置不回彈的原生斷言。最終驗證verification-r8，之後再用真實握把確認。
 
 - 最終verification-r8九步全通過，來源與資源雜湊一致；沒有沿用前輪測試數字當成這輪結果。右側75%位置不回彈的原生斷言、直排實體軸對齊、排版尺寸500ms停留、20000字區段讀取及舊編輯／圖片檢查均通過。前述行尾空白清理已包含於r8最終來源。
+
+- r8九步與原生座標斷言通過，先產生來源d0b31d1的text-ribbon-r1候選包。真實拖曳仍未更新停靠偏好；懷疑隱藏系統caption區域先攔走PointerPressed，既有自訂握把未完整接到capture／release。依Microsoft InputNonClientPointerSource的Passthrough區域做法，讓borderless工具窗整個可互動區交由XAML接收；ResizeChrome同步實體像素區域。診斷版只在實際capture／release完成才寫grip-pointer.json，用來區分視窗原生搬移和自訂握把交易。產品包不含此診斷寫檔。最終改驗r9與實際握把，r1候選保留且不作最終交付。
+
+- 最終verification-r9九步全通過，source inventory與目前程式byte一致；x64編譯零警告零錯誤。SetRegionRects依實體像素更新，可用性核對條件包含AppWindowTitleBar.IsCustomizationSupported，舊平台不支援時不呼叫新區域API。

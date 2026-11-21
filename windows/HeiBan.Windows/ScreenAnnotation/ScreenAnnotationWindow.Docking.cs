@@ -55,6 +55,10 @@ internal sealed partial class ScreenAnnotationWindow
         _chromeDragPointer=null;
         _chromeGrip.ReleasePointerCapture(args.Pointer);
         FinishChromeDrag();
+#if HEIBAN_RELEASE_VALIDATION
+        if(Environment.GetEnvironmentVariable("HEIBAN_QA_SCREEN_TEXT_PREVIEW")=="1"&&Environment.GetEnvironmentVariable("HEIBAN_WINDOWS_DATA_DIRECTORY") is {Length:>0} qaData)
+            File.WriteAllText(Path.Combine(qaData,"grip-pointer.json"),"{\"captured\":true,\"released\":true}");
+#endif
         args.Handled=true;
     }
 
@@ -189,6 +193,7 @@ internal sealed partial class ScreenAnnotationWindow
             NativeOverlayWindow.ResizeCompactWindow(WinRT.Interop.WindowNative.GetWindowHandle(this),
                 (int)Math.Ceiling(Math.Min(workWidth,textWidth)*_dpiScale),
                 (int)Math.Ceiling(Math.Min(workHeight,textHeight)*_dpiScale));
+            SetChromeClientInput();
             return;
         }
         _chromeTools.RunLength = VerticalChrome ? Math.Max(32, workHeight - _chromeStart.DesiredSize.Height - _chromeEnd.DesiredSize.Height - 30) : Math.Max(32, workWidth - _chromeStart.DesiredSize.Width - _chromeEnd.DesiredSize.Width - 38);
@@ -199,6 +204,17 @@ internal sealed partial class ScreenAnnotationWindow
         var desiredHeight = VerticalChrome ? start.Height + tools.Height + end.Height + 30 * scale : Math.Max(60 * scale, Math.Max(start.Height, Math.Max(tools.Height, end.Height)) + 26 * scale);
         var width = (int)Math.Ceiling(desiredWidth * _dpiScale); var height = (int)Math.Ceiling(desiredHeight * _dpiScale);
         NativeOverlayWindow.ResizeCompactWindow(WinRT.Interop.WindowNative.GetWindowHandle(this), Math.Max(1, Math.Min(width, available.Width - (int)(24 * _dpiScale))), Math.Max(1, Math.Min(height, available.Height - (int)(24 * _dpiScale))));
+        SetChromeClientInput();
+    }
+
+    private void SetChromeClientInput()
+    {
+        // Hidden system caption regions can consume the grip's pointer events.
+        // This borderless tool window delegates all gestures to its XAML controls.
+        if(!AppWindowTitleBar.IsCustomizationSupported())return;
+        var size=AppWindow.Size;
+        Microsoft.UI.Input.InputNonClientPointerSource.GetForWindowId(AppWindow.Id).SetRegionRects(
+            Microsoft.UI.Input.NonClientRegionKind.Passthrough,[new(0,0,size.Width,size.Height)]);
     }
 
     private void PositionChrome()
