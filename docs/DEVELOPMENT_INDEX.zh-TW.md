@@ -39,6 +39,8 @@
 
 ## Windows端減重評估接手
 
+- [2026-11-21 Windows 螢幕畫布與文字編輯](../windows/docs/SCREEN_TEXT_EDITING_2026-11-21.zh-TW.md)：Delete、停靠握把、共用文字色圓／外觀／格式及外部純文字貼上；維持 1.1.6，隔離實機與自動驗證見日誌。
+
 - [2026-11-20 Windows 架構、流程與驗證檢討](../windows/docs/ARCHITECTURE_REVIEW_2026-11-20.zh-TW.md)，含 Lauren Tan 原始來源對照、已實作項目與後續範圍。[日常開發及驗證入口](../windows/docs/DEVELOPMENT_WORKFLOW.zh-TW.md)。
 
 - [2026-10-31 Windows六項優化最終包與驗收指南](../windows/docs/OPTIMIZATION_TEST_GUIDE_2026-10-31.zh-TW.md)：擦除／快照／共用筆刷／增量Undo／owned保存與FD候選；維持1.0.18，26項資料檢查通過、最終來源96bf6ac，待實機與安裝驗收。

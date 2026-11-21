@@ -183,7 +183,13 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
         var rect=new Rect(o.X,o.Y,Math.Max(.1,o.Width),Math.Max(.1,o.Height));
         var stroke=HexToColor(o.StrokeColor,(float)o.Opacity);
         var style=StrokeStyle(o.LineStyle);
-        if(o.Type=="text"){RenderText(ds,o,rect,stroke);return;}
+        if(o.Type=="text")
+        {
+            ds.FillRectangle(rect,HexToColor(o.FillColor,(float)(o.FillOpacity??o.Opacity)));
+            RenderTextBorder(ds,o,rect);
+            RenderText(ds,o,rect,stroke);
+            return;
+        }
         if(o.Type is "stroke" or "pen" or "highlighter" or "paint" or "curve")
         {
             if(o.ParsedPoints.Count==1){var p=o.ParsedPoints[0];ds.FillCircle((float)p.X,(float)p.Y,(float)(o.StrokeWidth/2),stroke);return;}
@@ -255,9 +261,9 @@ public sealed partial class Direct2DCanvasRenderer : IDisposable
                 if(o.IsRevealed==true){using var dashed=new CanvasStrokeStyle{DashStyle=CanvasDashStyle.Dash};ds.DrawRoundedRectangle(rect,5,5,stroke,1,dashed);}
                 else using(var clipped=ds.CreateLayer(1,rect)){for(var x=o.X-o.Height;x<o.X+o.Width;x+=16)ds.DrawLine((float)x,(float)(o.Y+o.Height),(float)(x+o.Height),(float)o.Y,HexToColor("#FFFFFF",.3f),4);}
                 break;
-            case "text":RenderText(ds,o,rect,stroke);break;
             case "sticky":
                 RenderStickyPaper(ds,o,rect);
+                RenderTextBorder(ds,o,rect);
                 RenderText(ds,o,new Rect(o.X+12,o.Y+12,Math.Max(1,o.Width-24),Math.Max(1,o.Height-24)),stroke);break;
             case "image":
                 if(o.ImageUrl is not null && _images.TryGetValue(o.ImageUrl,out var image))

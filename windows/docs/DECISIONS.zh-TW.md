@@ -1,5 +1,9 @@
 # Windows 開發決策
 
+## 2026-11-21 — 螢幕畫布與文字編輯
+
+Windows 沿用 1.1.6。修正螢幕畫布 Delete、右側握把及文字編輯時失去握把；共用格式列採色圓，新增對齊、格式複製與文字方塊外觀，兩畫布支援外部純文字貼上。Core 6,915／Optimization 68、九步本機驗證通過；隔離場景實際 Delete／拖動及色圓目視通過。ARM64 與混合 DPI 跨螢幕待驗。[本批紀錄](SCREEN_TEXT_EDITING_2026-11-21.zh-TW.md) · [驗證摘要](SCREEN_TEXT_VERIFICATION_2026-11-21.json)。
+
 ## 2026-11-20 — Windows 架構與開發驗證改善
 
 參考 Lauren Tan 原始演講檢討依賴、熱路徑、手勢、保存、影像、體積與 CI。共用影像讀取及 EXIF 預覽、集中診斷模式、加入 Roslyn 政策與 Verify-Development。主視窗離開／關閉明確等候 native popup 關閉。Core 6,903／Optimization 68、本機 x64 原生測試通過。日常 push 跑核對，PR／手動另製作兩架構產物。[完整檢討](ARCHITECTURE_REVIEW_2026-11-20.zh-TW.md) · [開發流程](DEVELOPMENT_WORKFLOW.zh-TW.md)。

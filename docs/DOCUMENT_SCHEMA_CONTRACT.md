@@ -1,5 +1,9 @@
 # HeiBan 文件契約與遷移規格書 (Document Schema Contract)
 
+## 2026-11-21 Windows 文字方塊外觀延伸
+
+文件版本沿用 1.0.0。文字與便條紙可選帶 textBorderColor、textBorderWidth、textBorderStyle，分別表示邊框色彩、在物件座標中的寬度及 solid／dashed／dotted。省略時保留舊外觀。邊框繪製於物件外框內，文字顏色仍為 strokeColor，背景仍使用既有 fillColor。align 新增 justify 值，表示文字方塊內左右對齊。Windows 原稿、Undo／Redo、Win2D 與 SVG 共用這些資料。其他平台應保留未知欄位，外觀顯示需依其平台實作另行驗收。
+
 文件版本：`1.0.0`  
 生效日期：2026-10-02  
 關聯工作：W02  

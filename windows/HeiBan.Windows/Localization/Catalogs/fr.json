@@ -736,5 +736,18 @@
   "進階箭頭尺寸": "Dimensions avancées de la flèche",
   "圖片解析度已符合畫布，無須縮減。": "La résolution de l’image est déjà adaptée au canevas.",
   "圖片解析度已調整為 {0} × {1}，可復原。": "Résolution ajustée à {0} × {1}. Vous pouvez annuler.",
-  "解析度適應": "Adapter la résolution au canevas"
+  "解析度適應": "Adapter la résolution au canevas",
+  "填滿顏色": "Couleur de remplissage",
+  "外觀": "Apparence",
+  "邊框樣式": "Style de bordure",
+  "邊框粗細": "Épaisseur de bordure",
+  "邊框顏色": "Couleur de bordure",
+  "放大文字": "Augmenter la taille du texte",
+  "縮小文字": "Réduire la taille du texte",
+  "文字方塊對齊": "Alignement du texte",
+  "左右對齊": "Justifier",
+  "清除格式": "Effacer la mise en forme",
+  "複製格式": "Copier la mise en forme",
+  "套用格式": "Appliquer la mise en forme",
+  "文字方塊外觀": "Apparence de la zone de texte"
 }

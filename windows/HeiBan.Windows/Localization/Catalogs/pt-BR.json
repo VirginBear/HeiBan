@@ -736,5 +736,18 @@
   "進階箭頭尺寸": "Dimensões avançadas da seta",
   "圖片解析度已符合畫布，無須縮減。": "A resolução da imagem já cabe na tela.",
   "圖片解析度已調整為 {0} × {1}，可復原。": "Resolução ajustada para {0} × {1}. Você pode desfazer.",
-  "解析度適應": "Ajustar resolução à tela"
+  "解析度適應": "Ajustar resolução à tela",
+  "填滿顏色": "Cor de preenchimento",
+  "外觀": "Aparência",
+  "邊框樣式": "Estilo da borda",
+  "邊框粗細": "Espessura da borda",
+  "邊框顏色": "Cor da borda",
+  "放大文字": "Aumentar fonte",
+  "縮小文字": "Diminuir fonte",
+  "文字方塊對齊": "Alinhamento da caixa de texto",
+  "左右對齊": "Justificar",
+  "清除格式": "Limpar formatação",
+  "複製格式": "Copiar formatação",
+  "套用格式": "Aplicar formatação",
+  "文字方塊外觀": "Aparência da caixa de texto"
 }

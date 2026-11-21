@@ -57,7 +57,13 @@ internal sealed partial class ScreenAnnotationWindow
     {
         _chromeGrip=new Grid{Width=24,Height=30,Background=ChromeBrush(0,0,0,0)};
         _chromeGrip.Children.Add(new TextBlock{Text="☰",FontSize=18,HorizontalAlignment=HorizontalAlignment.Center,VerticalAlignment=VerticalAlignment.Center,Foreground=ChromeBrush(255,62,81,69)});
-        ToolTipService.SetToolTip(_chromeGrip,T("拖曳到螢幕上下左右；放開後停靠"));ExtendsContentIntoTitleBar=true;SetTitleBar(_chromeGrip);
+        ToolTipService.SetToolTip(_chromeGrip,T("拖曳到螢幕上下左右；放開後停靠"));
+        ExtendsContentIntoTitleBar=false;
+        _chromeGrip.PointerPressed+=ChromeGrip_Pressed;
+        _chromeGrip.PointerMoved+=ChromeGrip_Moved;
+        _chromeGrip.PointerReleased+=ChromeGrip_Released;
+        _chromeGrip.PointerCaptureLost+=ChromeGrip_Cancelled;
+        _chromeGrip.PointerCanceled+=ChromeGrip_Cancelled;
 
         _mode.Height=32;_mode.MinWidth=_mode.MinHeight=0;_mode.Padding=new Thickness(3);_mode.BorderThickness=new Thickness(0);_mode.CornerRadius=new CornerRadius(6);_mode.Background=ChromeBrush(0,0,0,0);_mode.Click+=(_,_)=>SetDrawing(!_drawing);
         foreach(var pair in ToolbarUi.ScreenTools.Where(pair=>pair.Key is not("undo" or "redo" or "screenshot" or "layers" or "brush" or "dash" or "clearAll")))
@@ -96,8 +102,7 @@ internal sealed partial class ScreenAnnotationWindow
         _closeButton=ActionButton("close",T("結束螢幕畫布 · Ctrl+Alt+Q"),async()=>await StopAsync());
         _moreButton=ChromeButton("more",T("螢幕畫布更多設定"));_moreButton.Click+=(_,_)=>ShowScreenMenu(_moreButton);
         var content=new Border{Language=Localization.Strings.Language,RequestedTheme=ElementTheme.Light,CornerRadius=new CornerRadius(16),Background=ChromeBrush(150,247,250,246),BorderBrush=ChromeBrush(55,92,123,108),BorderThickness=new Thickness(1)};
-        content.KeyDown+=Screen_KeyDown;
-        content.Loaded+=(_,_)=>{if(VisualTreeHelper.GetParent(content) is UIElement rootHost){rootHost.KeyDown-=Screen_KeyDown;rootHost.KeyDown+=Screen_KeyDown;}};
+        content.AddHandler(UIElement.KeyDownEvent,new Microsoft.UI.Xaml.Input.KeyEventHandler(Screen_KeyDown),true);
         Content=content;
         InitializeChromeDocking();SystemBackdrop=new DesktopAcrylicBackdrop();
     }

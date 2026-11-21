@@ -11,6 +11,25 @@ public sealed record TextStyleChange(double? Size=null,string? Color=null,string
 /// <summary>Text-only changes shared by regular and screen canvases. Null means untouched, including mixed values.</summary>
 public static class TextStyles
 {
+    public static BoardObject? CreatePastedText(string text,BoardObject style,InkPoint center,double availableWidth,double coordinateScale=1)
+    {
+        if(string.IsNullOrWhiteSpace(text))return null;
+        var item=DocumentCodec.Clone(style);
+        item.Id=Guid.NewGuid().ToString();
+        item.Type="text";
+        item.Text=text.Replace("\r\n","\n",StringComparison.Ordinal).Replace('\r','\n');
+        item.RichTextSpans=null;
+        item.FillColor="none";
+        item.Width=Math.Min(400*coordinateScale,Math.Max(80*coordinateScale,availableWidth*.75));
+        item.Height=Math.Max(48*coordinateScale,(item.FontSize??18)*2);
+        item.Rotation=0;
+        GrowHeight(item);
+        // Native editing includes line padding beyond the saved glyph bounds.
+        item.Height+=24*coordinateScale;
+        item.X=center.X-item.Width/2;
+        item.Y=center.Y-item.Height/2;
+        return item;
+    }
     public static bool ValidColor(string value)=>Regex.IsMatch(value,"^#[0-9a-fA-F]{6}$");
     public static bool Apply(BoardObject item,TextStyleChange change,double coordinateScale=1)
     {
@@ -20,7 +39,7 @@ public static class TextStyles
         if(change.Size is { } fontSize)item.FontSize=Math.Clamp(fontSize,8,144)*coordinateScale;
         if(change.Color is { } color&&ValidColor(color))item.StrokeColor=color;
         if(change.Family is { } family&&!string.IsNullOrWhiteSpace(family))item.FontFamily=family.Trim();
-        if(change.Align is "left" or "center" or "right")item.Align=change.Align;
+        if(change.Align is "left" or "center" or "right" or "justify")item.Align=change.Align;
         if(change.Opacity is { } alpha)item.Opacity=Math.Clamp(alpha,.05,1);
         if(change.Bold is { } bold)item.IsBold=bold;
         if(change.Italic is { } italic)item.IsItalic=italic;

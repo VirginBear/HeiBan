@@ -19,10 +19,10 @@ internal sealed partial class ScreenAnnotationWindow
     private BoardObject? _textDraft;
     private string? _textOriginalId;
     private BoardObject[] ScreenTexts=>_session.SelectedObjects.Where(o=>o.Type is "text" or "sticky"&&o.IsLocked!=true).ToArray();
-    private void BeginScreenText(InkPoint point,BoardObject? existing=null,string type="text")
+    private void BeginScreenText(InkPoint point,BoardObject? existing=null,string type="text",bool isNew=false)
     {
         FinishScreenText();CancelGesture();if(existing?.IsLocked==true)return;
-        _textOriginalId=existing?.Id;_textDraft=existing is null?new BoardObject{Type=type,X=point.X,Y=point.Y,Width=280*_dpiScale,Height=100*_dpiScale,FontSize=24*_dpiScale,StrokeColor=_color,Opacity=_opacity,FillColor=type=="sticky"?"#FFF0AB":"none",Text=""}:DocumentCodec.Clone(existing);
+        _textOriginalId=isNew?null:existing?.Id;_textDraft=existing is null?new BoardObject{Type=type,X=point.X,Y=point.Y,Width=280*_dpiScale,Height=100*_dpiScale,FontSize=24*_dpiScale,StrokeColor=_color,Opacity=_opacity,FillColor=type=="sticky"?"#FFF0AB":"none",Text=""}:DocumentCodec.Clone(existing);
         var window=new Window{Title=T("文字")};_textWindow=window;
         if(window.AppWindow.Presenter is OverlappedPresenter presenter){presenter.PreferredMinimumWidth=1;presenter.PreferredMinimumHeight=1;presenter.IsAlwaysOnTop=true;presenter.IsResizable=false;presenter.SetBorderAndTitleBar(false,false);}
         var x=(int)Math.Round(_overlay.Left+_textDraft.X);var y=(int)Math.Round(_overlay.Top+_textDraft.Y);
@@ -60,12 +60,12 @@ internal sealed partial class ScreenAnnotationWindow
         _textWindow=null;_textDraft=null;_textInput=null;_textOriginalId=null;window.Close();
         UpdateScreenTextToolbar();
         InvalidateScreenTextScene();
-        if(!commit)return;
+        if(!commit){FocusScreenChrome();return;}
         if(original is null&&string.IsNullOrWhiteSpace(draft.Text))return;
         var existing=original is null?null:_session.PageObjects.FirstOrDefault(o=>o.Id==original&&o.IsLocked!=true);
         if(original is not null&&existing is null)return;
         TextStyles.GrowHeight(draft);
-        _session.Begin();if(existing is null)_session.Add(draft);else{var index=_session.Document.Objects.IndexOf(existing);_session.Document.Objects[index]=draft;_session.SelectedId=draft.Id;}_session.Commit();_tool="select";RefreshButtons();Changed();
+        _session.Begin();if(existing is null)_session.Add(draft);else{var index=_session.Document.Objects.IndexOf(existing);_session.Document.Objects[index]=draft;_session.SelectedId=draft.Id;}_session.Commit();_tool="select";RefreshButtons();Changed();FocusScreenChrome();
     }
     private void UpdateScreenTextToolbar()
     {
@@ -74,10 +74,11 @@ internal sealed partial class ScreenAnnotationWindow
     }
     private void AttachScreenTextToolbar()
     {
-        _chromeStart.Visibility=_chromeEnd.Visibility=_textInput is null?Visibility.Visible:Visibility.Collapsed;
+        _chromeStart.Visibility=_chromeEnd.Visibility=Visibility.Visible;
+        _mode.Visibility=_textInput is null?Visibility.Visible:Visibility.Collapsed;
         _chromeToolHost.Visibility=_textInput is null&&_collapsed?Visibility.Collapsed:Visibility.Visible;
         _chromeToolHost.Child=_textInput is { } input
-            ?input.CreateFormatPage(VerticalChrome,focusEditor:()=>_textWindow?.Activate())
+            ?input.CreateFormatPage(VerticalChrome,focusEditor:()=>_textWindow?.Activate(),formatScale:1)
             :_chromeTools;
     }
     private void InvalidateScreenTextScene()

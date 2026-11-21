@@ -846,23 +846,41 @@ public partial class MainWindow
     {if(_session.Selected is not { } o)return;var package=new DataPackage();package.SetText("HEIBAN_OBJECTS:"+JsonSerializer.Serialize(_session.SelectedObjects.ToArray(),DocumentCodec.Options));Clipboard.SetContent(package);}
     private async void PasteObject()
     {
-        try
+        try { await PasteObjectContentAsync(Clipboard.GetContent()); }
+        catch(Exception error) { await Error(error); }
+    }
+    private async Task PasteObjectContentAsync(DataPackageView clipboard)
+    {
+        if(!CanEditImages)return;
+        var context=CurrentImagePage;
+        var centerScreen = new Vector2((float)CanvasSurface.ActualWidth / 2, (float)CanvasSurface.ActualHeight / 2);
+        var targetCenter = _viewport.ScreenToWorld(centerScreen.X, centerScreen.Y);
+        if (HasImageTransfer(clipboard) && await InsertTransferredImagesAsync(clipboard, targetCenter)) return;
+        if (!clipboard.Contains(StandardDataFormats.Text)) return;
+        var text = await clipboard.GetTextAsync();
+        if(!CanEditImages||context!=CurrentImagePage)return;
+        var objects=text.StartsWith("HEIBAN_OBJECTS:",StringComparison.Ordinal)?JsonSerializer.Deserialize<List<BoardObject>>(text[15..],DocumentCodec.Options):text.StartsWith("HEIBAN_OBJECT:",StringComparison.Ordinal)?new List<BoardObject>{JsonSerializer.Deserialize<BoardObject>(text[14..],DocumentCodec.Options)!}:null;
+        if(objects is null)
         {
-            var clipboard = Clipboard.GetContent();
-            var centerScreen = new Vector2((float)CanvasSurface.ActualWidth / 2, (float)CanvasSurface.ActualHeight / 2);
-            var targetCenter = _viewport.ScreenToWorld(centerScreen.X, centerScreen.Y);
-            if (HasImageTransfer(clipboard) && await InsertTransferredImagesAsync(clipboard, targetCenter)) return;
-            if (!clipboard.Contains(StandardDataFormats.Text)) return;
-            var text = await clipboard.GetTextAsync();
-            var objects=text.StartsWith("HEIBAN_OBJECTS:",StringComparison.Ordinal)?JsonSerializer.Deserialize<List<BoardObject>>(text[15..],DocumentCodec.Options):text.StartsWith("HEIBAN_OBJECT:",StringComparison.Ordinal)?new List<BoardObject>{JsonSerializer.Deserialize<BoardObject>(text[14..],DocumentCodec.Options)!}:null;
-            if(objects is null||objects.Count==0||objects.Any(o=>o is null))return;
-            ActivateTool("select");_session.Begin();var ids=new List<string>();
-            foreach(var o in objects){o.Id=Guid.NewGuid().ToString();_session.Move(o,20,20);_session.Add(o);ids.Add(o.Id);}
-            _session.SetSelection(ids);_session.Commit();
-            await LoadCurrentPageImagesAsync(CanvasSurface);
-            RefreshEditor();
+            var board=_session.Document.Board;
+            var width=board.CanvasMode=="infinite"?CanvasSurface.ActualWidth/_viewport.Zoom:board.CanvasWidth??595;
+            var draft=TextStyles.CreatePastedText(text,Styled(new BoardObject{Type="text",FontSize=CurrentStyle.FontSize}),targetCenter,width);
+            if(draft is null)return;
+            if(board.CanvasMode!="infinite")
+            {
+                draft.X=Math.Clamp(draft.X,0,Math.Max(0,(board.CanvasWidth??595)-draft.Width));
+                draft.Y=Math.Clamp(draft.Y,0,Math.Max(0,(board.CanvasHeight??842)-draft.Height));
+            }
+            ActivateTool("select");
+            StartText(draft,true);
+            return;
         }
-        catch (Exception ex) { await Error(ex); }
+        if(objects.Count==0||objects.Any(o=>o is null))return;
+        ActivateTool("select");_session.Begin();var ids=new List<string>();
+        foreach(var o in objects){o.Id=Guid.NewGuid().ToString();_session.Move(o,20,20);_session.Add(o);ids.Add(o.Id);}
+        _session.SetSelection(ids);_session.Commit();
+        await LoadCurrentPageImagesAsync(CanvasSurface);
+        RefreshEditor();
     }
     private void DuplicateSelected()
     {var originals=_session.SelectedObjects.ToArray();if(originals.Length==0)return;_session.Begin();var ids=new List<string>();foreach(var selected in originals){var o=DocumentCodec.Clone(selected);o.Id=Guid.NewGuid().ToString();_session.Move(o,20,20);_session.Add(o);ids.Add(o.Id);}_session.SetSelection(ids);_session.Commit();RefreshEditor();}

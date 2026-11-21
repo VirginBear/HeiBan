@@ -736,5 +736,18 @@
   "進階箭頭尺寸": "Advanced arrow dimensions",
   "圖片解析度已符合畫布，無須縮減。": "The image already fits the canvas resolution.",
   "圖片解析度已調整為 {0} × {1}，可復原。": "Image resolution adjusted to {0} × {1}. You can undo this.",
-  "解析度適應": "Fit resolution to canvas"
+  "解析度適應": "Fit resolution to canvas",
+  "填滿顏色": "Fill color",
+  "外觀": "Appearance",
+  "邊框樣式": "Border style",
+  "邊框粗細": "Border width",
+  "邊框顏色": "Border color",
+  "放大文字": "Increase font size",
+  "縮小文字": "Decrease font size",
+  "文字方塊對齊": "Text box alignment",
+  "左右對齊": "Justify",
+  "清除格式": "Clear formatting",
+  "複製格式": "Copy formatting",
+  "套用格式": "Apply formatting",
+  "文字方塊外觀": "Text box appearance"
 }

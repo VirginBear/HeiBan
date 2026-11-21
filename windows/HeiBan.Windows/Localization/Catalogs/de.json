@@ -736,5 +736,18 @@
   "進階箭頭尺寸": "Erweiterte Pfeilabmessungen",
   "圖片解析度已符合畫布，無須縮減。": "Die Bildauflösung passt bereits zur Leinwand.",
   "圖片解析度已調整為 {0} × {1}，可復原。": "Auflösung auf {0} × {1} angepasst. Rückgängig möglich.",
-  "解析度適應": "Auflösung an Leinwand anpassen"
+  "解析度適應": "Auflösung an Leinwand anpassen",
+  "填滿顏色": "Füllfarbe",
+  "外觀": "Darstellung",
+  "邊框樣式": "Rahmenstil",
+  "邊框粗細": "Rahmenbreite",
+  "邊框顏色": "Rahmenfarbe",
+  "放大文字": "Schrift vergrößern",
+  "縮小文字": "Schrift verkleinern",
+  "文字方塊對齊": "Textfeldausrichtung",
+  "左右對齊": "Blocksatz",
+  "清除格式": "Formatierung entfernen",
+  "複製格式": "Formatierung kopieren",
+  "套用格式": "Formatierung anwenden",
+  "文字方塊外觀": "Darstellung des Textfelds"
 }

@@ -74,15 +74,22 @@ public static class BoardExporter
                 case "tape":
                     b.Append($"<rect x=\"{x}\" y=\"{y}\" width=\"{w}\" height=\"{h}\" rx=\"5\" fill=\"{stroke}\" fill-opacity=\"{(o.IsRevealed==true?".12":".96")}\" stroke-width=\"1\" stroke-dasharray=\"{(o.IsRevealed==true?"5 4":"none")}\"/>");if(o.IsRevealed!=true){b.Append($"<defs><pattern id=\"{id}-tape\" width=\"16\" height=\"16\" patternUnits=\"userSpaceOnUse\"><path d=\"M-4 4L4-4 M0 16L16 0 M12 20L20 12\" stroke=\"white\" stroke-opacity=\".3\" stroke-width=\"4\"/></pattern></defs><rect x=\"{x}\" y=\"{y}\" width=\"{w}\" height=\"{h}\" rx=\"5\" fill=\"url(#{id}-tape)\" fill-opacity=\"1\" stroke=\"none\"/>");}break;
                 case "sticky":case "text":
+                    if(o.Type=="text"&&fill!="none")b.Append($"<rect x=\"{x}\" y=\"{y}\" width=\"{w}\" height=\"{h}\" fill=\"{fill}\" stroke=\"none\"/>");
                     if(o.Type=="sticky")b.Append($"<rect x=\"{x}\" y=\"{y}\" width=\"{w}\" height=\"{h}\" rx=\"{(o.StickyStyle=="soft"?14:6)}\" fill=\"{(fill=="none"?"#FFF0AB":fill)}\" stroke=\"#BBC6BB\" stroke-width=\"1\"/>");
                     if(o.Type=="sticky"&&o.StickyStyle is "notebook" or "grid")
                     {for(var yy=o.Y+28;yy<o.Y+o.Height;yy+=20)b.Append($"<path d=\"M{N(o.X+8)} {N(yy)}H{N(o.X+o.Width-8)}\" fill=\"none\" stroke=\"#516A72\" stroke-opacity=\".16\" stroke-width=\"1\"/>");if(o.StickyStyle=="grid")for(var xx=o.X+28;xx<o.X+o.Width;xx+=20)b.Append($"<path d=\"M{N(xx)} {N(o.Y+8)}V{N(o.Y+o.Height-8)}\" fill=\"none\" stroke=\"#516A72\" stroke-opacity=\".16\" stroke-width=\"1\"/>");}
                     if(o.Type=="sticky"&&o.StickyStyle=="washi")b.Append($"<rect x=\"{N(o.X+o.Width*.2)}\" y=\"{N(o.Y-6)}\" width=\"{N(o.Width*.6)}\" height=\"18\" fill=\"#A8BDB0\" fill-opacity=\".6\" stroke=\"none\"/>");
                     if(o.Type=="sticky"&&o.StickyStyle=="cat")foreach(var xx in new[]{o.X+12,o.X+o.Width-12})b.Append($"<ellipse cx=\"{N(xx)}\" cy=\"{N(o.Y+6)}\" rx=\"10\" ry=\"14\" fill=\"{(fill=="none"?"#FFF0AB":fill)}\" stroke=\"none\"/>");
+                    if(o.TextBorderWidth is >0 and var textBorder&&double.IsFinite(textBorder))
+                    {
+                        var inset=Math.Min(Math.Min(o.Width,o.Height)/2,textBorder/2);
+                        var borderDash=o.TextBorderStyle=="dashed"?"6 4":o.TextBorderStyle=="dotted"?"1 3":"none";
+                        b.Append($"<rect x=\"{N(o.X+inset)}\" y=\"{N(o.Y+inset)}\" width=\"{N(Math.Max(.1,o.Width-inset*2))}\" height=\"{N(Math.Max(.1,o.Height-inset*2))}\" fill=\"none\" stroke=\"{Color(o.TextBorderColor??"#39735A")}\" stroke-width=\"{N(inset*2)}\" stroke-dasharray=\"{borderDash}\"/>");
+                    }
                     var pad=o.Type=="sticky"?12:0;var align=o.Align??"left";var tx=o.X+pad+(align=="center"?(o.Width-pad*2)/2:align=="right"?o.Width-pad*2:0);var size=o.FontSize??18;
                     var hasSpans=o.RichTextSpans is {Count:>0};
                     var familyCss=string.Join(',',(o.FontFamily??"Microsoft JhengHei").Split(',').Select(family=>FontCss(family.Trim())));
-                    b.Append($"<foreignObject x=\"{N(o.X+pad)}\" y=\"{N(o.Y+pad)}\" width=\"{N(o.Width-pad*2)}\" height=\"{N(o.Height-pad*2)}\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"white-space:pre-wrap;overflow-wrap:anywhere;margin:0;font-family:{familyCss},sans-serif;font-size:{N(size)}px;color:{stroke};font-weight:{(o.IsBold==true?"bold":"normal")};font-style:{(o.IsItalic==true?"italic":"normal")};text-align:{(align is "center" or "right"?align:"left")};text-decoration:{Decoration(!hasSpans&&o.IsUnderline==true,!hasSpans&&o.IsStrikethrough==true)}\">");
+                    b.Append($"<foreignObject x=\"{N(o.X+pad)}\" y=\"{N(o.Y+pad)}\" width=\"{N(o.Width-pad*2)}\" height=\"{N(o.Height-pad*2)}\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"white-space:pre-wrap;overflow-wrap:anywhere;margin:0;font-family:{familyCss},sans-serif;font-size:{N(size)}px;color:{stroke};font-weight:{(o.IsBold==true?"bold":"normal")};font-style:{(o.IsItalic==true?"italic":"normal")};text-align:{(align is "center" or "right" or "justify"?align:"left")};text-decoration:{Decoration(!hasSpans&&o.IsUnderline==true,!hasSpans&&o.IsStrikethrough==true)}\">");
                     if(o.RichTextSpans is {Count:>0} spans)foreach(var span in spans)
                     {
                         var spanFont=span.FontFamily is {Length:>0} family?$"font-family:{FontCss(family)};":"";

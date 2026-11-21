@@ -56,6 +56,12 @@ internal sealed partial class NativeOverlayWindow : IDisposable
     public static bool MouseButtonDown=>(GetAsyncKeyState(1)&0x8000)!=0;
     public static (int X,int Y) CurrentPointer {get{GetCursorPos(out var p);return(p.X,p.Y);}}
     public static void RestoreFocus(nint window){if(window!=0&&IsWindowVisible(window))SetForegroundWindow(window);}
+    internal static void FocusOwnedWindow(nint window)
+    {
+        if(window==0||!IsWindowVisible(window))return;
+        SetForegroundWindow(window);
+        SetFocus(window);
+    }
     public static void ResizeCompactWindow(nint window,int width,int height)
     {
         // AppWindow.Resize applies the caption's tracking minimum even to this borderless tool window.
@@ -188,6 +194,7 @@ internal sealed partial class NativeOverlayWindow : IDisposable
     [DllImport("user32.dll")] private static extern nint GetWindow(nint window,uint command);
     [DllImport("user32.dll")] private static extern bool IsWindowVisible(nint window);
     [DllImport("user32.dll")] private static extern bool SetForegroundWindow(nint window);
+    [DllImport("user32.dll")] private static extern nint SetFocus(nint window);
     [DllImport("user32.dll")] private static extern bool DestroyWindow(nint hwnd);
     [DllImport("user32.dll")] private static extern bool ShowWindow(nint hwnd,int command);
     [DllImport("user32.dll",SetLastError=true)] private static extern bool SetWindowPos(nint hwnd,nint after,int x,int y,int width,int height,uint flags);

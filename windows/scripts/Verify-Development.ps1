@@ -43,7 +43,7 @@ function Invoke-Check([string]$Name,[string]$Executable,[string[]]$Arguments) {
     Write-Output "Passed $Name"
 }
 
-function Invoke-NativeCheck([string]$Name,[bool]$Images) {
+function Invoke-NativeCheck([string]$Name,[bool]$Images,[bool]$ScreenText=$false) {
     $resultFolder=Join-Path $output $Name
     $data=Join-Path $output ($Name+'-data')
     $launch=[Diagnostics.ProcessStartInfo]::new((Join-Path $output 'build/bin/HeiBan.Windows/release_win-x64/HeiBan.exe'))
@@ -52,6 +52,10 @@ function Invoke-NativeCheck([string]$Name,[bool]$Images) {
     $launch.CreateNoWindow=$true
     $launch.Environment['HEIBAN_WINDOWS_DATA_DIRECTORY']=$data
     $launch.Environment.Remove('HEIBAN_QA_IMAGE_FILE') | Out-Null
+    foreach($variable in @('HEIBAN_QA_SCREEN_TEXT','HEIBAN_QA_SCREEN_TEXT_PREVIEW','HEIBAN_QA_SCREEN_TEXT_EDIT')){
+        $launch.Environment.Remove($variable) | Out-Null
+    }
+    if($ScreenText){$launch.Environment['HEIBAN_QA_SCREEN_TEXT']='1'}
     if($Images){$launch.Environment['HEIBAN_QA_IMAGE_FILE']='generated'}
     $launch.ArgumentList.Add('--release-validation-output='+$resultFolder)
     $launch.ArgumentList.Add('--release-validation-exit')
@@ -60,7 +64,7 @@ function Invoke-NativeCheck([string]$Name,[bool]$Images) {
     try {
         if(!$process.WaitForExit(45000)){throw "Native validation timed out: $Name"}
         if($process.ExitCode -ne 0){throw "Native process failed: $Name, exit code $($process.ExitCode)"}
-        $filename=if($Images){'image-resolution.json'}else{'release110-result.json'}
+        $filename=if($ScreenText){'screen-text.json'}elseif($Images){'image-resolution.json'}else{'release110-result.json'}
         $result=Get-Content -LiteralPath (Join-Path $resultFolder $filename) -Raw | ConvertFrom-Json
         if(!$result.success -or (Test-Path -LiteralPath (Join-Path $resultFolder 'release110-error.txt')) -or
             (Test-Path -LiteralPath (Join-Path $data 'last-ui-error.txt'))){throw "Native evidence failed: $Name"}
@@ -89,6 +93,7 @@ try {
         Invoke-Check 'winui-build' $dotnet @('build','windows/HeiBan.Windows/HeiBan.Windows.csproj','-c','Release','-r','win-x64','--artifacts-path',$artifacts,'-p:Platform=x64','-p:WindowsPackageType=None','-p:HeiBanValidationBuild=true')
         Invoke-NativeCheck 'native-editor' $false
         Invoke-NativeCheck 'native-images' $true
+        Invoke-NativeCheck 'native-text' $false $true
     }
     $sourcesAfter=Get-SourceInventory
     $sourcesStable=($sourcesBefore | ConvertTo-Json -Compress) -eq ($sourcesAfter | ConvertTo-Json -Compress)

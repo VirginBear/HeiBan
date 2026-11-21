@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Windowing;
+using Microsoft.UI.Xaml.Input;
 using global::Windows.Graphics;
 
 namespace HeiBan.Windows.ScreenAnnotation;
@@ -26,6 +27,54 @@ internal sealed partial class ScreenAnnotationWindow
     private readonly DispatcherTimer _dockTimer = new() { Interval = TimeSpan.FromMilliseconds(150) };
     private string ChromePreferencesPath => Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(_recoveryPath))!, "Settings", "screen-ui.json");
     private bool VerticalChrome => _chromeDock is "left" or "right";
+    private uint? _chromeDragPointer;
+    private PointInt32 _chromeDragOrigin;
+    private (int X,int Y) _chromeDragStart;
+
+    private void ChromeGrip_Pressed(object sender,PointerRoutedEventArgs args)
+    {
+        if(_stopping||_screenClearDialog is not null||!args.GetCurrentPoint(_chromeGrip).Properties.IsLeftButtonPressed)return;
+        _dockTimer.Stop();
+        _chromeDragOrigin=AppWindow.Position;
+        _chromeDragStart=NativeOverlayWindow.CurrentPointer;
+        if(_chromeGrip.CapturePointer(args.Pointer))_chromeDragPointer=args.Pointer.PointerId;
+        args.Handled=true;
+    }
+
+    private void ChromeGrip_Moved(object sender,PointerRoutedEventArgs args)
+    {
+        if(_chromeDragPointer!=args.Pointer.PointerId)return;
+        var pointer=NativeOverlayWindow.CurrentPointer;
+        // AppWindow and the desktop pointer use physical pixels. Moving the window must not change this drag origin.
+        _requestedChromePosition=new(_chromeDragOrigin.X+pointer.X-_chromeDragStart.X,_chromeDragOrigin.Y+pointer.Y-_chromeDragStart.Y);
+        AppWindow.Move(_requestedChromePosition.Value);
+        args.Handled=true;
+    }
+
+    private void ChromeGrip_Released(object sender,PointerRoutedEventArgs args)
+    {
+        if(_chromeDragPointer!=args.Pointer.PointerId)return;
+        _chromeDragPointer=null;
+        _chromeGrip.ReleasePointerCapture(args.Pointer);
+        FinishChromeDrag();
+        args.Handled=true;
+    }
+
+    private void ChromeGrip_Cancelled(object sender,PointerRoutedEventArgs args)
+    {
+        if(_chromeDragPointer!=args.Pointer.PointerId)return;
+        _chromeDragPointer=null;
+        _dockTimer.Stop();
+        PositionChrome();
+    }
+
+    private void CancelChromeDrag()
+    {
+        if(_chromeDragPointer is null)return;
+        _chromeDragPointer=null;
+        _chromeGrip.ReleasePointerCaptures();
+        _dockTimer.Stop();
+    }
 
     private void InitializeChromeDocking()
     {
@@ -47,7 +96,7 @@ internal sealed partial class ScreenAnnotationWindow
 
         AppWindow.Changed += (_, args) =>
         {
-            if (!IsActive || _screenClearDialog is not null || !args.DidPositionChange) return;
+            if (!IsActive || _chromeDragPointer is not null || _screenClearDialog is not null || !args.DidPositionChange) return;
             var p = AppWindow.Position;
             if (_requestedChromePosition is { } expected && p.X == expected.X && p.Y == expected.Y) return;
             _dockTimer.Stop();
@@ -73,6 +122,7 @@ internal sealed partial class ScreenAnnotationWindow
     }
     private void RebuildChromeLayout()
     {
+        CancelChromeDrag();
         ToolIcons.SetStyle(_toolbarPreferences.IconStyle);
         if(_chromeIconStyle!=ToolIcons.Style)
         {
@@ -140,10 +190,20 @@ internal sealed partial class ScreenAnnotationWindow
         var workWidth = Math.Max(1, available.Width / _dpiScale - 24); var workHeight = Math.Max(1, available.Height / _dpiScale - 24);
         if(_textInput is not null&&_chromeToolHost.Child is FrameworkElement textPage)
         {
-            textPage.Measure(new global::Windows.Foundation.Size(workWidth,workHeight));
+            var extraWidth=_chromeStart.DesiredSize.Width+_chromeEnd.DesiredSize.Width+38;
+            var extraHeight=_chromeStart.DesiredSize.Height+_chromeEnd.DesiredSize.Height+30;
+            textPage.Measure(new global::Windows.Foundation.Size(
+                Math.Max(80,workWidth-(VerticalChrome?0:extraWidth)),
+                Math.Max(80,workHeight-(VerticalChrome?extraHeight:0))));
+            var textWidth=VerticalChrome
+                ?Math.Max(textPage.DesiredSize.Width,Math.Max(_chromeStart.DesiredSize.Width,_chromeEnd.DesiredSize.Width))+12
+                :textPage.DesiredSize.Width+extraWidth;
+            var textHeight=VerticalChrome
+                ?textPage.DesiredSize.Height+extraHeight
+                :Math.Max(textPage.DesiredSize.Height,Math.Max(_chromeStart.DesiredSize.Height,_chromeEnd.DesiredSize.Height))+26;
             NativeOverlayWindow.ResizeCompactWindow(WinRT.Interop.WindowNative.GetWindowHandle(this),
-                (int)Math.Ceiling(Math.Min(workWidth,textPage.DesiredSize.Width+24)*_dpiScale),
-                (int)Math.Ceiling(Math.Min(workHeight,textPage.DesiredSize.Height+20)*_dpiScale));
+                (int)Math.Ceiling(Math.Min(workWidth,textWidth)*_dpiScale),
+                (int)Math.Ceiling(Math.Min(workHeight,textHeight)*_dpiScale));
             return;
         }
         _chromeTools.RunLength = VerticalChrome ? Math.Max(32, workHeight - _chromeStart.DesiredSize.Height - _chromeEnd.DesiredSize.Height - 30) : Math.Max(32, workWidth - _chromeStart.DesiredSize.Width - _chromeEnd.DesiredSize.Width - 38);
@@ -158,7 +218,7 @@ internal sealed partial class ScreenAnnotationWindow
 
     private void PositionChrome()
     {
-        if(_screenClearDialog is not null)return;
+        if(_screenClearDialog is not null||_chromeDragPointer is not null)return;
         var area = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea; var size = AppWindow.Size; var gap = (int)(12 * _dpiScale);
         var x = VerticalChrome ? (_chromeDock == "left" ? area.X + gap : area.X + area.Width - size.Width - gap) : area.X + (int)((area.Width - size.Width) * _chromePosition);
         var y = VerticalChrome ? area.Y + (int)((area.Height - size.Height) * _chromePosition) : (_chromeDock == "top" ? area.Y + gap : area.Y + area.Height - size.Height - gap);

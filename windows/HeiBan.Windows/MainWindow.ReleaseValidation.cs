@@ -13,6 +13,14 @@ public partial class MainWindow
         Directory.CreateDirectory(output);
         try
         {
+            if(Environment.GetEnvironmentVariable("HEIBAN_QA_SCREEN_TEXT")=="1")
+            {
+                var mainText=await ValidateExternalTextAsync();
+                var preview=Environment.GetEnvironmentVariable("HEIBAN_QA_SCREEN_TEXT_PREVIEW")=="1";
+                var screenText=await _screenAnnotation!.ValidateScreenTextControlsAsync(preview);
+                await File.WriteAllTextAsync(Path.Combine(output,"screen-text.json"),JsonSerializer.Serialize(new{success=true,mainText,screenText}));
+                return;
+            }
             if(Environment.GetEnvironmentVariable("HEIBAN_QA_IMAGE_FILE") is { Length: > 0 } imageFile)
             {
                 if(imageFile=="generated")imageFile=await CreateImageValidationFixtureAsync(output);

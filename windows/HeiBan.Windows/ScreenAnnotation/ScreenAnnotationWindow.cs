@@ -127,11 +127,11 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     private async void SetDrawing(bool value)
     {
         if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();
-        if(!value)RememberExternalFocus();
+        RememberExternalFocus();
         FinishScreenText();CancelGesture();_drawing=value;_overlay.SetDrawing(value);_overlay.SetManipulationCursor(null,null,_tool,_tool=="laser"?_laser.Color:_color);UpdateScreenEraser();
         _status.Text=value?T("作畫中 · 右鍵物件可編輯"):T("操作中 · Ctrl+Alt+D 繼續作畫");
         RefreshMode();ResizeChrome();PositionChrome();
-        _laser.Clear();_dirty=_fullDamage=_committedDirty=true;if(!value)NativeOverlayWindow.RestoreFocus(_lastExternal);SyncOperateRadial();
+        _laser.Clear();_dirty=_fullDamage=_committedDirty=true;if(value)FocusScreenChrome();else NativeOverlayWindow.RestoreFocus(_lastExternal);SyncOperateRadial();
     }
     private void RememberExternalFocus()
     {var current=NativeOverlayWindow.CurrentForeground;if(current!=0&&current!=_overlay.Handle&&current!=WinRT.Interop.WindowNative.GetWindowHandle(this)&&current!=WinRT.Interop.WindowNative.GetWindowHandle(_owner)&&current!=(_radialSettings?.Handle??0)&&!IsAuxiliaryToolWindow(current))_lastExternal=current;}
@@ -387,7 +387,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
                 _handle=!additive&&_session.SelectedIds.Count==1&&_session.Selected is {IsLocked:not true} selected&&(hit is null||hit.Id==selected.Id)?ObjectHandles.Get(selected,1).Where(h=>Math.Sqrt(Math.Pow(h.Point.X-p.X,2)+Math.Pow(h.Point.Y-p.Y,2))<14).Select(h=>(ObjectHandles.Handle?)h).FirstOrDefault():null;
                 if(_handle is null)
                 {
-                    if(hit is not null){if(additive){_session.ToggleSelection(hit.Id);_start=_last=null;_points.Clear();RefreshScreenStyleButtons();_dirty=_fullDamage=true;return;}else if(_session.SelectedIds.Count>1&&_session.SelectedIds.Contains(hit.Id))_selectionClickId=hit.Id;else _session.SelectedId=hit.Id;}
+                    if(hit is not null){if(additive){_session.ToggleSelection(hit.Id);_start=_last=null;_points.Clear();RefreshScreenStyleButtons();_dirty=_fullDamage=true;if(_session.Selected is not null)FocusScreenChrome();return;}else if(_session.SelectedIds.Count>1&&_session.SelectedIds.Contains(hit.Id))_selectionClickId=hit.Id;else _session.SelectedId=hit.Id;}
                     else{_marquee=true;_marqueeSelection=additive?_session.SelectedIds.ToArray():[];if(!additive)_session.SelectedId=null;_preview=new BoardObject{Type="rect",X=p.X,Y=p.Y,Width=1,Height=1,StrokeColor="#39735a",StrokeWidth=1,LineStyle="dashed",FillColor="none"};}
                 }
                 if(!_marquee&&_handle is null&&_session.SelectedObjects.Any(o=>o.IsLocked!=true))_objectDragArmed=true;else if(_handle is not null)_session.Begin();
@@ -717,6 +717,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     }
     public async Task<bool> StopAsync()
     {
+        CancelChromeDrag();
         if(!IsActive)return true;if(_stopping)return false;RememberExternalFocus();_stopping=true;
         var originalContent=Content;var originalSize=AppWindow.Size;
         var ring=new ProgressRing{IsActive=true,Width=30,Height=30};

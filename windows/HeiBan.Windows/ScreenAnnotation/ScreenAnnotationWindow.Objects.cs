@@ -60,13 +60,25 @@ internal sealed partial class ScreenAnnotationWindow
         if(_session.Selected is not { } selected)return;CancelGesture();_session.Begin();
         var originals=_session.SelectedObjects.ToArray();var copies=new List<string>();foreach(var original in originals){var copy=DocumentCodec.Clone(original);copy.Id=Guid.NewGuid().ToString();copy.IsLocked=false;_session.Move(copy,20*_dpiScale,20*_dpiScale);_session.Add(copy);copies.Add(copy.Id);}_session.SetSelection(copies);_session.Commit();_tool="select";RefreshButtons();Changed();
     }
-    private async Task PasteScreenSelectionAsync()
+    private async Task PasteScreenSelectionAsync(DataPackageView? content=null)
     {
         try
         {
-            var view=Clipboard.GetContent();if(!view.Contains(StandardDataFormats.Text)){_status.Text=T("先複製黑板物件再貼上");return;}
+            var epoch=_session.DocumentEpoch;
+            if(!IsCurrentScreenSession(epoch))return;
+            var view=content??Clipboard.GetContent();if(!view.Contains(StandardDataFormats.Text)){_status.Text=T("先複製黑板物件再貼上");return;}
             var text=await view.GetTextAsync();var objects=text.StartsWith("HEIBAN_OBJECTS:",StringComparison.Ordinal)?JsonSerializer.Deserialize<List<BoardObject>>(text[15..],DocumentCodec.Options):text.StartsWith("HEIBAN_OBJECT:",StringComparison.Ordinal)?new List<BoardObject>{JsonSerializer.Deserialize<BoardObject>(text[14..],DocumentCodec.Options)!}:null;
-            if(objects is null||objects.Count==0||objects.Any(o=>o is null)){_status.Text=T("剪貼簿沒有黑板物件");return;}
+            if(!IsCurrentScreenSession(epoch))return;
+            if(objects is null)
+            {
+                var center=new InkPoint(_overlay.Width/2d,_overlay.Height/2d);
+                var draft=TextStyles.CreatePastedText(text,new BoardObject{Type="text",StrokeColor=_color,FontSize=24*_dpiScale,Opacity=_opacity},
+                    center,_overlay.Width,_dpiScale);
+                if(draft is null)return;
+                BeginScreenText(new(draft.X,draft.Y),draft,isNew:true);
+                return;
+            }
+            if(objects.Count==0||objects.Any(o=>o is null)){_status.Text=T("剪貼簿沒有黑板物件");return;}
             CancelGesture();_session.Begin();foreach(var o in objects){o.Id=Guid.NewGuid().ToString();o.BoardId=_session.Document.Board.Id;o.PageId=null;o.IsLocked=false;_session.Move(o,20*_dpiScale,20*_dpiScale);_session.Add(o);}_session.Commit();
             await _renderer.LoadImagesAsync(_target!,objects);_tool="select";RefreshButtons();Changed();
         }
@@ -77,15 +89,23 @@ internal sealed partial class ScreenAnnotationWindow
         if(!IsActive||_stopping||!_drawing||_textInput is not null)return;
         var handle=WinRT.Interop.WindowNative.GetWindowHandle(this);
         if(NativeOverlayWindow.CurrentForeground!=handle)Activate();
+        NativeOverlayWindow.FocusOwnedWindow(handle);
         _mode.Focus(FocusState.Programmatic);
     }
     private void Screen_KeyDown(object sender,Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
     {
-        if(e.Handled||!IsActive||_stopping||!_drawing||_textInput is not null||_screenClearDialog is not null)return;
+        if(!IsActive||_stopping||!_drawing||_textInput is not null||_screenClearDialog is not null)return;
         if(e.OriginalSource is TextBox or NumberBox or RichEditBox)return;
         if(e.Key is global::Windows.System.VirtualKey.Delete or global::Windows.System.VirtualKey.Back)
         {
-            if(_session.Selected is {IsLocked:not true}){DeleteScreenSelection();e.Handled=true;}
+            if(_session.SelectedObjects.Any(o=>o.IsLocked!=true)){DeleteScreenSelection();e.Handled=true;}
+        }
+        else if(e.Key==global::Windows.System.VirtualKey.V&&
+            Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(global::Windows.System.VirtualKey.Control)
+                .HasFlag(global::Windows.UI.Core.CoreVirtualKeyStates.Down))
+        {
+            e.Handled=true;
+            _=PasteScreenSelectionAsync();
         }
     }
     private void DeleteScreenSelection(){DamageSelectedObjects();CancelGesture();_session.DeleteSelected();RefreshScreenStyleButtons();Changed();}

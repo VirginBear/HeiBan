@@ -736,5 +736,18 @@
   "進階箭頭尺寸": "Dimensiones avanzadas de la flecha",
   "圖片解析度已符合畫布，無須縮減。": "La resolución de la imagen ya se ajusta al lienzo.",
   "圖片解析度已調整為 {0} × {1}，可復原。": "Resolución ajustada a {0} × {1}. Puedes deshacerlo.",
-  "解析度適應": "Ajustar resolución al lienzo"
+  "解析度適應": "Ajustar resolución al lienzo",
+  "填滿顏色": "Color de relleno",
+  "外觀": "Apariencia",
+  "邊框樣式": "Estilo del borde",
+  "邊框粗細": "Grosor del borde",
+  "邊框顏色": "Color del borde",
+  "放大文字": "Aumentar tamaño de fuente",
+  "縮小文字": "Reducir tamaño de fuente",
+  "文字方塊對齊": "Alineación del cuadro de texto",
+  "左右對齊": "Justificar",
+  "清除格式": "Borrar formato",
+  "複製格式": "Copiar formato",
+  "套用格式": "Aplicar formato",
+  "文字方塊外觀": "Apariencia del cuadro de texto"
 }

@@ -10,8 +10,9 @@ using System.Globalization;
 namespace HeiBan.Windows.Views;
 
 /// <summary>Native IME editor with a separate page hosted in the canvas toolbar.</summary>
-internal sealed class TextDraftEditor : RichEditBox
+internal sealed partial class TextDraftEditor : RichEditBox
 {
+    private BoardObject? _draft;
     public TextDraftEditor(){AcceptsReturn=true;}
     internal void SetEditorPaper(string? color)
     {
@@ -35,7 +36,10 @@ internal sealed class TextDraftEditor : RichEditBox
     private bool _awaitingInitialFormat;
     internal void LoadDraft(BoardObject draft,double scale=1)
     {
+        _draft=draft;
+        _displayScale=scale;
         ApplyControlStyle(draft,scale);
+        RefreshAppearance();
         Text=draft.Text??"";
         _awaitingInitialFormat=true;
         Loaded+=RestoreAfterTemplate;
@@ -48,19 +52,23 @@ internal sealed class TextDraftEditor : RichEditBox
             {
                 if(IsLoaded)ApplyDocumentStyle(draft,scale);
                 _awaitingInitialFormat=false;
+                FormatReady?.Invoke();
             });
         }
     }
     public void SyncStyle(BoardObject draft,double scale=1)
     {
+        _draft=draft;
         ApplyControlStyle(draft,scale);
         ApplyDocumentStyle(draft,scale);
         _awaitingInitialFormat=false;
+        RefreshAppearance();
+        FormatReady?.Invoke();
     }
     private void ApplyControlStyle(BoardObject draft,double scale)
     {
         FontSize=Math.Max(8,(draft.FontSize??24)*scale);FontFamily=new FontFamily(draft.FontFamily??"Microsoft JhengHei");
-        TextAlignment=draft.Align=="center"?TextAlignment.Center:draft.Align=="right"?TextAlignment.Right:TextAlignment.Left;
+        TextAlignment=draft.Align switch{"center"=>TextAlignment.Center,"right"=>TextAlignment.Right,"justify"=>TextAlignment.Justify,_=>TextAlignment.Left};
     }
     private void ApplyDocumentStyle(BoardObject draft,double scale)
     {
@@ -81,6 +89,14 @@ internal sealed class TextDraftEditor : RichEditBox
             if(span.FontFamily is {Length:>0} family)f.Name=family;
             if(span.FontSize is >0 and var size && double.IsFinite(size))f.Size=(float)(size*scale*.75);
             if(span.Color is not null)f.ForegroundColor=Direct2DCanvasRenderer.HexToColor(span.Color);if(span.HighlightColor is not null)f.BackgroundColor=Direct2DCanvasRenderer.HexToColor(span.HighlightColor);offset+=length;
+        }
+        // Restoring runs does not update RichEdit's collapsed insertion format. Keep the
+        // next typed character and the toolbar in agreement with the adjacent text.
+        var selection=TextDocument.Selection;
+        if(lengthOfText>0&&selection.StartPosition==selection.EndPosition)
+        {
+            var adjacent=Math.Clamp(selection.StartPosition-1,0,lengthOfText-1);
+            selection.CharacterFormat.SetClone(TextDocument.GetRange(adjacent,adjacent+1).CharacterFormat.GetClone());
         }
     }
 
@@ -144,88 +160,6 @@ internal sealed class TextDraftEditor : RichEditBox
     private static bool SameFormat(TextSpan a,TextSpan b)=>a.IsBold==b.IsBold&&a.IsItalic==b.IsItalic&&a.IsUnderline==b.IsUnderline
         &&a.IsStrikethrough==b.IsStrikethrough&&a.Color==b.Color&&a.HighlightColor==b.HighlightColor
         &&a.FontFamily==b.FontFamily&&a.FontSize==b.FontSize&&ReferenceEquals(a.ExtraFields,b.ExtraFields);
-
-    internal FrameworkElement CreateFormatPage(bool vertical, UIElement? clickThrough = null, Action? focusEditor = null)
-    {
-        var bar=new StackPanel{Orientation=vertical?Orientation.Vertical:Orientation.Horizontal,Spacing=3};
-        var tab=new Border
-        {
-            Background=new SolidColorBrush(Direct2DCanvasRenderer.HexToColor("#DCEBDD")),
-            CornerRadius=new CornerRadius(8),Padding=new Thickness(8,4,8,4),
-            VerticalAlignment=VerticalAlignment.Center,
-            Child=new TextBlock{Text=T("編輯文字"),FontSize=12,TextWrapping=TextWrapping.Wrap}
-        };
-        bar.Children.Add(tab);
-        void Add(string label,string glyph,Action<ITextCharacterFormat> change)
-        {
-            var button=new Button{Content=glyph,AllowFocusOnInteraction=false,Padding=new Thickness(6,3,6,3)};
-            ToolTipService.SetToolTip(button,T(label));
-            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(button,T(label));
-            button.Click+=(_,_)=>{change(TextDocument.Selection.CharacterFormat);Refocus();};
-            bar.Children.Add(button);
-        }
-        Add("粗體","B",f=>f.Bold=f.Bold==FormatEffect.On?FormatEffect.Off:FormatEffect.On);
-        Add("斜體","I",f=>f.Italic=f.Italic==FormatEffect.On?FormatEffect.Off:FormatEffect.On);
-        Add("底線","U",f=>f.Underline=f.Underline==UnderlineType.Single?UnderlineType.None:UnderlineType.Single);
-        Add("刪除線","S̶",f=>f.Strikethrough=f.Strikethrough==FormatEffect.On?FormatEffect.Off:FormatEffect.On);
-        Add("標記","▧",f=>f.BackgroundColor=f.BackgroundColor.Equals(_plainBackground)?Direct2DCanvasRenderer.HexToColor("#FDE68A"):_plainBackground);
-
-        AddPicker("文字大小", (flyout,format) =>
-        {
-            var current=format.Size/.75/_displayScale;
-            var size=ToolbarUi.BrushSlider(T("文字大小"),8,144,Math.Clamp(current>0?current:24,8,144),1);
-            size.Width=220;
-            size.ValueChanged+=(_,e)=>format.Size=(float)(e.NewValue*_displayScale*.75);
-            return size;
-        });
-        AddPicker("字型", (flyout,format) =>
-        {
-            var fonts=InstalledFonts.Value;
-            var search=new AutoSuggestBox{Width=260,Text=format.Name??"",PlaceholderText=T("字型")};
-            search.TextChanged+=(_,e)=>
-            {
-                if(e.Reason==AutoSuggestionBoxTextChangeReason.UserInput)
-                    search.ItemsSource=fonts.Where(name=>name.Contains(search.Text,StringComparison.OrdinalIgnoreCase)).Take(30).ToArray();
-            };
-            search.SuggestionChosen+=(_,e)=>{if(e.SelectedItem is string name){format.Name=name;flyout.Hide();}};
-            search.QuerySubmitted+=(_,e)=>
-            {
-                var name=fonts.FirstOrDefault(value=>value.Equals(e.QueryText.Trim(),StringComparison.OrdinalIgnoreCase));
-                if(name is not null){format.Name=name;flyout.Hide();}
-            };
-            var list=new ListView{ItemsSource=fonts,Height=180,Width=260,IsItemClickEnabled=true,SelectionMode=ListViewSelectionMode.None};
-            list.ItemClick+=(_,e)=>{if(e.ClickedItem is string name){format.Name=name;flyout.Hide();}};
-            return new StackPanel{Spacing=4,Children={search,list}};
-        });
-        AddPicker("文字顏色", (flyout,format) =>
-        {
-            var picker=ToolbarUi.CreateColorWheel(Hex(format.ForegroundColor));
-            var confirm=new Button{Content=T("套用")};
-            confirm.Click+=(_,_)=>{format.ForegroundColor=picker.Color;flyout.Hide();};
-            return new StackPanel{Spacing=4,Children={picker,confirm}};
-        });
-        return new ScrollViewer{Content=bar,
-            HorizontalScrollMode=vertical?ScrollMode.Disabled:ScrollMode.Enabled,HorizontalScrollBarVisibility=ScrollBarVisibility.Hidden,
-            VerticalScrollMode=vertical?ScrollMode.Enabled:ScrollMode.Disabled,VerticalScrollBarVisibility=ScrollBarVisibility.Hidden};
-
-        void Refocus(){if(IsLoaded){focusEditor?.Invoke();Focus(FocusState.Programmatic);}}
-
-        void AddPicker(string label,Func<Flyout,ITextCharacterFormat,FrameworkElement> content)
-        {
-            var button=new Button{Content=T(label),AllowFocusOnInteraction=false,Padding=new Thickness(6,3,6,3)};
-            button.Click+=(_,_) =>
-            {
-                var selection=TextDocument.Selection;
-                var start=selection.StartPosition;var end=selection.EndPosition;
-                var flyout=new Flyout{OverlayInputPassThroughElement=clickThrough};
-                var format=start==end?selection.CharacterFormat:TextDocument.GetRange(start,end).CharacterFormat;
-                flyout.Content=content(flyout,format);
-                flyout.Closed+=(_,_)=>{if(IsLoaded){Refocus();TextDocument.Selection.SetRange(start,end);}};
-                flyout.ShowAt(button);
-            };
-            bar.Children.Add(button);
-        }
-    }
 
     private static readonly Lazy<string[]> InstalledFonts=new(()=>Microsoft.Graphics.Canvas.Text.CanvasTextFormat.GetSystemFontFamilies()
         .Distinct(StringComparer.OrdinalIgnoreCase).Order(StringComparer.CurrentCultureIgnoreCase).ToArray());

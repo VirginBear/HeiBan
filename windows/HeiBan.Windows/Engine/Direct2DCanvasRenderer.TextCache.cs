@@ -9,6 +9,13 @@ namespace HeiBan.Windows.Engine;
 
 public sealed partial class Direct2DCanvasRenderer
 {
+    private void RenderTextBorder(CanvasDrawingSession ds,BoardObject item,Rect rect)
+    {
+        if(item.TextBorderWidth is not (>0 and var width)||!double.IsFinite(width))return;
+        var inset=(float)Math.Min(Math.Min(rect.Width,rect.Height)/2,width/2);
+        ds.DrawRectangle(new Rect(rect.X+inset,rect.Y+inset,Math.Max(.1,rect.Width-inset*2),Math.Max(.1,rect.Height-inset*2)),
+            HexToColor(item.TextBorderColor??"#39735A",(float)item.Opacity),inset*2,StrokeStyle(item.TextBorderStyle??"solid"));
+    }
     private readonly record struct TextKey(string Text,string Family,float Size,float Width,float Height,
         bool Bold,bool Italic,bool Underline,bool Strike,string? Align,double Opacity);
     private sealed record TextEntry(TextKey Key,TextSpan[] Spans,CanvasTextLayout Layout,(Rect Bounds,Color Color)[] Highlights);
@@ -51,7 +58,7 @@ public sealed partial class Direct2DCanvasRenderer
             using var format=new CanvasTextFormat{FontFamily=key.Family,FontSize=key.Size,
                 FontWeight=new global::Windows.UI.Text.FontWeight{Weight=(ushort)(key.Bold?700:400)},
                 FontStyle=key.Italic?global::Windows.UI.Text.FontStyle.Italic:global::Windows.UI.Text.FontStyle.Normal,
-                HorizontalAlignment=key.Align switch{"center"=>CanvasHorizontalAlignment.Center,"right"=>CanvasHorizontalAlignment.Right,_=>CanvasHorizontalAlignment.Left},WordWrapping=CanvasWordWrapping.Wrap};
+                HorizontalAlignment=key.Align switch{"center"=>CanvasHorizontalAlignment.Center,"right"=>CanvasHorizontalAlignment.Right,"justify"=>CanvasHorizontalAlignment.Justified,_=>CanvasHorizontalAlignment.Left},WordWrapping=CanvasWordWrapping.Wrap};
             var layout=new CanvasTextLayout(ds,key.Text,format,key.Width,key.Height);var count=key.Text.Length;
             if(count>0){layout.SetUnderline(0,count,key.Underline);layout.SetStrikethrough(0,count,key.Strike);}
             var spans=(o.RichTextSpans??[]).Select(DocumentCodec.Clone).ToArray();var offset=0;

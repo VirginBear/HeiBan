@@ -22,7 +22,7 @@
 ./windows/scripts/Verify-Development.ps1 -IncludeNative
 ```
 
-可用 -OutputDirectory 指定新的證據目錄。預設在 windows/.build 以唯一目錄保存每輪結果。入口依序檢查 C# 架構政策、介面目錄、操作指南、核心行為及最佳化對照。IncludeNative 另編譯 x64 驗證版本，在兩份隔離資料中執行文字／工具／螢幕及合成長圖／方向檢查。
+可用 -OutputDirectory 指定新的證據目錄。預設在 windows/.build 以唯一目錄保存每輪結果。入口依序檢查 C# 架構政策、介面目錄、操作指南、核心行為及最佳化對照。IncludeNative 另編譯 x64 驗證版本，在三份隔離資料中執行文字／工具／螢幕、合成長圖／方向，以及外部文字貼上／格式重開／色圓／握把檢查。真實 Delete 按鍵與 pointer capture 拖動另用獨立測試視窗驗證。
 
 verification.json 記錄本次命令結果、執行環境、來源 commit、來源清單與未驗證範圍。sources.json 是實際工作樹的程式與資源雜湊，包含未提交來源。驗證期間來源有變動會失敗，須以新目錄重跑。程序正常結束後仍須有成功結果檔，不能沿用前輪證據。
 

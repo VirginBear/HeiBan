@@ -1,0 +1,98 @@
+{
+  "date": "2026-11-21",
+  "version": "1.1.6",
+  "sourceCommitBeforeChanges": "95c8d1fc65b907dbb9c6f0a2f85752225d82c411",
+  "sourceInventorySha256": "79fb6faea25f38766a18a9e93bd5df81e11070bda16afb3ff048e0662364a052",
+  "sourcesStable": true,
+  "sourceFiles": 511,
+  "coreAssertions": 6915,
+  "optimizationAssertions": 68,
+  "architecture": {
+    "files": 197,
+    "violations": 0,
+    "checkerChecks": 28
+  },
+  "nativeText": {
+    "success": true,
+    "mainText": {
+      "plainText": true,
+      "unicode": true,
+      "draftIsolated": true,
+      "colorCircle": true,
+      "partialFormatting": true,
+      "appearanceReopens": true,
+      "singleUndo": true
+    },
+    "screenText": {
+      "plainText": true,
+      "unicode": true,
+      "singleUndo": true,
+      "colorCircle": true,
+      "editingGripVisible": true,
+      "fourSideReparenting": true,
+      "desktopWidth": 5760,
+      "desktopHeight": 2160,
+      "dpiScale": 2,
+      "keyboardAndPhysicalDrag": "Require real input verification"
+    }
+  },
+  "realInput": {
+    "selectedScreenObjectDelete": true,
+    "rightGripDockedToTop": true,
+    "rightGripMovedWhileEditing": true,
+    "reopenedColorCircleMatchesText": true,
+    "pastedTwoLinesVisible": true,
+    "normalClose": true,
+    "desktopPhysicalPixels": [
+      5760,
+      2160
+    ],
+    "dpiScale": 2
+  },
+  "steps": [
+    {
+      "name": "architecture",
+      "exitCode": 0
+    },
+    {
+      "name": "localization",
+      "exitCode": 0
+    },
+    {
+      "name": "guides",
+      "exitCode": 0
+    },
+    {
+      "name": "core",
+      "exitCode": 0
+    },
+    {
+      "name": "optimization",
+      "exitCode": 0
+    },
+    {
+      "name": "winui-build",
+      "exitCode": 0
+    },
+    {
+      "name": "native-editor",
+      "exitCode": 0
+    },
+    {
+      "name": "native-images",
+      "exitCode": 0
+    },
+    {
+      "name": "native-text",
+      "exitCode": 0
+    }
+  ],
+  "evidenceDirectory": "windows/.build/screen-text-20261121/verification-r1",
+  "notExecuted": [
+    "ARM64 runtime",
+    "hardware IME",
+    "mixed-DPI monitor crossing",
+    "Store installation/certification"
+  ],
+  "scope": "Synthetic documents only. No user clipboard overwritten or user documents migrated. Desktop screenshots are not stored in the repository."
+}
