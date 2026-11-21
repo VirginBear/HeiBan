@@ -30,7 +30,7 @@
 
 ## 最終命令與驗證結果
 
-執行 `python windows/scripts/Build-LocalizationCatalogs.py`（10語、772個source key）、`python windows/scripts/Build-UserGuides.py`（10語、每份26節），以及 `./windows/scripts/Verify-Development.ps1 -OutputDirectory windows/.build/text-ribbon-20261121/verification-r9 -IncludeNative`。九步全通過，513份來源資源於驗證期間雜湊一致。Core6918、Optimization68、Roslyn199檔零違規／28政策檢查；x64 WinUI零警告零錯誤。
+執行 `python windows/scripts/Build-LocalizationCatalogs.py`（10語、772個source key）、`python windows/scripts/Build-UserGuides.py`（10語、每份26節），以及 `./windows/scripts/Verify-Development.ps1 -OutputDirectory windows/.build/text-ribbon-20261121/verification-r10 -IncludeNative`。九步全通過，513份來源資源於驗證期間雜湊一致。Core6918、Optimization68、Roslyn199檔零違規／28政策檢查；x64 WinUI零警告零錯誤。
 
 原生驗證確認選取範圍的黃色螢光底色不波及其他字、整框斜體涵蓋全文、局部字型色彩字級重開保留、20000字純文字只讀1個格式區段。Win2D字元區域確認中文直排沿同欄向下，上／下對齊位置不同，未變內容沿用快取。螢幕工具列實際呼叫排版頁按鈕後預覽至少200×100可用，再回文字頁；兩種畫布的貼上、撤銷及舊圖片／工具原生回歸通過。
 
@@ -43,3 +43,7 @@
 - r8九步與原生座標斷言通過，先產生來源d0b31d1的text-ribbon-r1候選包。真實拖曳仍未更新停靠偏好；懷疑隱藏系統caption區域先攔走PointerPressed，既有自訂握把未完整接到capture／release。依Microsoft InputNonClientPointerSource的Passthrough區域做法，讓borderless工具窗整個可互動區交由XAML接收；ResizeChrome同步實體像素區域。診斷版只在實際capture／release完成才寫grip-pointer.json，用來區分視窗原生搬移和自訂握把交易。產品包不含此診斷寫檔。最終改驗r9與實際握把，r1候選保留且不作最終交付。
 
 - 最終verification-r9九步全通過，source inventory與目前程式byte一致；x64編譯零警告零錯誤。SetRegionRects依實體像素更新，可用性核對條件包含AppWindowTitleBar.IsCustomizationSupported，舊平台不支援時不呼叫新區域API。
+
+- r9九步通過，實際輸入診斷確認capture/release都有進入，但位置仍為0.5。進一步定位Pressed使用GetCursorPos作起點：快速輸入排隊時，全域指標可能早已到拖曳終點，使位移算成零。改用PointerPressed封包在Content內的位置乘當下XamlRoot DPI，加視窗原點；放開時以最新指標補齊最後位移，停靠使用獨立requestedPosition，避開AppWindow快取位置延遲。這也修正滑鼠快速拖曳或UI負載時事件排隊的座標邊界。最終將再做r10與實際capture/release＋偏好位置證據；先前r2同屬候選，不作最終交付。
+
+- 最終r10九步全通過，來源及資源byte一致。@oai/sky在已啟用的獨立測試工具窗實際從握把拖動：grip-pointer.json確認captured/released都為true，右側停靠偏好由0.5改為0.7576452599388379，正常保存拖後位置。這份證據區別於先前只看裁切視窗圖而無法確認位移的嘗試。文字／排版／外觀頁和中文直排預覽已實際核對。

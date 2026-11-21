@@ -34,7 +34,11 @@ internal sealed partial class ScreenAnnotationWindow
     {
         if(_stopping||_screenClearDialog is not null||!args.GetCurrentPoint(_chromeGrip).Properties.IsLeftButtonPressed)return;
         _chromeDragOrigin=AppWindow.Position;
-        _chromeDragStart=NativeOverlayWindow.CurrentPointer;
+        // Use the press packet, not GetCursorPos: queued input may already have
+        // moved the global cursor to its release position before this callback runs.
+        var point=args.GetCurrentPoint((UIElement)Content).Position;
+        var dpi=((FrameworkElement)Content).XamlRoot?.RasterizationScale??_dpiScale;
+        _chromeDragStart=(_chromeDragOrigin.X+(int)Math.Round(point.X*dpi),_chromeDragOrigin.Y+(int)Math.Round(point.Y*dpi));
         if(_chromeGrip.CapturePointer(args.Pointer))_chromeDragPointer=args.Pointer.PointerId;
         args.Handled=true;
     }
@@ -52,6 +56,9 @@ internal sealed partial class ScreenAnnotationWindow
     private void ChromeGrip_Released(object sender,PointerRoutedEventArgs args)
     {
         if(_chromeDragPointer!=args.Pointer.PointerId)return;
+        var pointer=NativeOverlayWindow.CurrentPointer;
+        _requestedChromePosition=new(_chromeDragOrigin.X+pointer.X-_chromeDragStart.X,_chromeDragOrigin.Y+pointer.Y-_chromeDragStart.Y);
+        AppWindow.Move(_requestedChromePosition.Value);
         _chromeDragPointer=null;
         _chromeGrip.ReleasePointerCapture(args.Pointer);
         FinishChromeDrag();
@@ -249,7 +256,7 @@ internal sealed partial class ScreenAnnotationWindow
     {
         var pointer = NativeOverlayWindow.CurrentPointer; var area = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
         var nearest = new[] { ("top", Math.Abs(pointer.Y - area.Y)), ("bottom", Math.Abs(pointer.Y - area.Y - area.Height)), ("left", Math.Abs(pointer.X - area.X)), ("right", Math.Abs(pointer.X - area.X - area.Width)) }.OrderBy(edge => edge.Item2).First().Item1;
-        DockChrome(nearest,AppWindow.Position);
+        DockChrome(nearest,_requestedChromePosition??AppWindow.Position);
     }
 
     private async Task SaveChromePreferencesAsync()

@@ -1,9 +1,9 @@
 {
   "date": "2026-11-21",
   "version": "1.1.6",
-  "sourceCommitBeforeChanges": "d0b31d19129d5ecc3c39338fed10603dcb20cab7",
+  "sourceCommitBeforeChanges": "7b6a9a32026f5c4cbb3e4498dd464feef7e9fc98",
   "sourceFiles": 513,
-  "sourceInventorySha256": "720eea11a02e5d367b0bb005b0e20b738d0ef127f4a76e565af1d342f6115b25",
+  "sourceInventorySha256": "dc875e0f8cd51e4db74616326693e980b5f07f211169eff61be05e85b62b5ed3",
   "sourcesStable": true,
   "coreAssertions": 6918,
   "optimizationAssertions": 68,
@@ -79,7 +79,7 @@
       "exitCode": 0
     }
   ],
-  "evidenceDirectory": "windows/.build/text-ribbon-20261121/verification-r9",
+  "evidenceDirectory": "windows/.build/text-ribbon-20261121/verification-r10",
   "failedEvidencePreserved": [
     "build-r1.log",
     "build-r2.log",
@@ -97,6 +97,16 @@
     "verification-r3",
     "verification-r6",
     "verification-r7",
-    "verification-r8"
-  ]
+    "verification-r8",
+    "verification-r9"
+  ],
+  "realInput": {
+    "textLayoutAppearanceTabsInspected": true,
+    "verticalPreviewInspected": true,
+    "gripCaptureAndRelease": true,
+    "dockBefore": 0.5,
+    "dockAfter": 0.7576452599388379,
+    "syntheticDataOnly": true,
+    "desktopScreenshotsStored": false
+  }
 }
