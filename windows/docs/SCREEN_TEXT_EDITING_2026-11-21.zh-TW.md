@@ -38,3 +38,11 @@
 2. 將工具列停右側，切工具、雙擊文字，按住頂部握把拖動；應保持可拖，放開停靠且重新開啟保留位置。
 3. 複製其他軟體的兩行文字，回到畫布 Ctrl+V；應立即進入文字方塊編輯，點畫布提交，Undo 一次移除該次貼上。
 4. 反白部分文字改色、大小及粗斜體，選對齊與外觀；點畫布後再雙擊，內容及格式應保留，色圓應與插入點格式一致。
+
+## 試用成品與 GitHub
+
+來源 79bd0fb35f8b5d900b4a65a2bcf1026300639f78 已推送 origin/main。GitHub Windows CI [44875935333](https://github.com/VirginBear/HeiBan/actions/runs/44875935333) 的九項來源／資料核對工作流程完成，結論 success；雲端不執行本機 GUI 測試。
+
+執行 `Package-PortableTrial.ps1 -Runtime win-x64 -Label screen-text-2026-11-21-r1` 完成獨立免安裝包。ZIP `windows/dist/trials/HeiBan-Windows-Portable-1.1.6-screen-text-2026-11-21-r1-win-x64.zip`，100,573,029 bytes，SHA-256 `f2d836420f8c1cdba66e22cf4206636f20dbb77e6db9fdb8a53667899c4ea174`。直接開啟同名資料夾內 HeiBan.exe。726 份 payload 與 ZIP 逐檔相同、CRC 通過、440 份來源雜湊核對；驗證程式方法與 Roslyn 檢查器未進入產品 DLL。產品 1.1.6／套件 metadata 1.1.6.0 不進版。
+
+以另一份隔離資料啟動封裝後的正常 EXE，目視首頁與免安裝標示、預載操作說明；正常 Alt+F4 後程序消失，沒有 last-ui-error。交付資料夾 Data 維持空白，沒有接續或搬動舊作品。既有 1.1.5.0 三份商店成品與原紀錄 SHA-256 相同。沒有上傳 Store／發布新 GitHub Release，商店認證未執行。機讀成品摘要見 SCREEN_TEXT_ARTIFACT_2026-11-21.json。
