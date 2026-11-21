@@ -1,0 +1,26 @@
+{
+  "date": "2026-11-21",
+  "automaticDeletionExecuted": false,
+  "reason": "Automatic approval review rejected recursive candidate cleanup: blocked by policy. No deletion was attempted through another tool.",
+  "candidates": [
+    {
+      "label": "text-ribbon-2026-11-21-r1",
+      "payload": "D:\\Game\\HaiBan x64\\windows\\dist\\trials\\HeiBan-Windows-Portable-1.1.6-text-ribbon-2026-11-21-r1-win-x64",
+      "zip": "D:\\Game\\HaiBan x64\\windows\\dist\\trials\\HeiBan-Windows-Portable-1.1.6-text-ribbon-2026-11-21-r1-win-x64.zip",
+      "bytes": 100584194,
+      "sha256": "0804d7c02f210395656897c2cc31fee3e047e0b7e1c9f496a60c2863a6e984e7",
+      "ownedAndUnmodified": true,
+      "dataEmpty": true
+    },
+    {
+      "label": "text-ribbon-2026-11-21-r2",
+      "payload": "D:\\Game\\HaiBan x64\\windows\\dist\\trials\\HeiBan-Windows-Portable-1.1.6-text-ribbon-2026-11-21-r2-win-x64",
+      "zip": "D:\\Game\\HaiBan x64\\windows\\dist\\trials\\HeiBan-Windows-Portable-1.1.6-text-ribbon-2026-11-21-r2-win-x64.zip",
+      "bytes": 100584366,
+      "sha256": "58591b1e30705202048c8accc3c688bed8503bf3cd27a98598bc363d5c734706",
+      "ownedAndUnmodified": true,
+      "dataEmpty": true
+    }
+  ],
+  "preserve": "Keep text-ribbon-2026-11-21-r3, previous user trials, all Store packages and every user Data directory."
+}

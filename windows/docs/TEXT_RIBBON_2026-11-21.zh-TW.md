@@ -47,3 +47,15 @@
 - r9九步通過，實際輸入診斷確認capture/release都有進入，但位置仍為0.5。進一步定位Pressed使用GetCursorPos作起點：快速輸入排隊時，全域指標可能早已到拖曳終點，使位移算成零。改用PointerPressed封包在Content內的位置乘當下XamlRoot DPI，加視窗原點；放開時以最新指標補齊最後位移，停靠使用獨立requestedPosition，避開AppWindow快取位置延遲。這也修正滑鼠快速拖曳或UI負載時事件排隊的座標邊界。最終將再做r10與實際capture/release＋偏好位置證據；先前r2同屬候選，不作最終交付。
 
 - 最終r10九步全通過，來源及資源byte一致。@oai/sky在已啟用的獨立測試工具窗實際從握把拖動：grip-pointer.json確認captured/released都為true，右側停靠偏好由0.5改為0.7576452599388379，正常保存拖後位置。這份證據區別於先前只看裁切視窗圖而無法確認位移的嘗試。文字／排版／外觀頁和中文直排預覽已實際核對。
+
+## 候選清理未執行
+
+本次建立的text-ribbon-r1／r2已確認Data無檔案、payload逐檔與原ZIP相同，且路徑限制在本專案windows/dist/trials。準備清除這兩份未交付候選時，工具自動安全審查拒絕執行（blocked by policy），沒有執行刪除，也沒有改用其他工具繞過。兩份候選與其ZIP／SHA保留，手動清單見TEXT_RIBBON_CLEANUP_2026-11-21.json。最終交付為r3；先前使用者試用、商店成品及任何作品均保留。
+
+## 最終交付
+
+最終來源 `ee6ecc6d2891d73e4f78accacdd8c075c5e7748e`，本機免安裝標籤 `text-ribbon-2026-11-21-r3`。執行Package-PortableTrial.ps1的win-x64封裝完成，ZIP `windows/dist/trials/HeiBan-Windows-Portable-1.1.6-text-ribbon-2026-11-21-r3-win-x64.zip`，100,584,580 bytes，SHA256 `52895d076ba246488d30e82dcc07e63f21daf1377fa5bfd056c8a19a18df4cd1`。442份來源雜湊、726份payload與ZIP逐檔相同、CRC、QA方法排除與無Roslyn產品依賴均核對。1.1.5.0既有三份Store成品SHA保持。
+
+正常R3 EXE以另一份隔離資料啟動到首頁，看到免安裝標示與預載操作說明；Alt+F4正常關閉後程序消失，無last-ui-error。交付資料夾Data仍無檔案，未接續或搬動使用者作品。產品／metadata保持1.1.6／1.1.6.0。來源已推送origin/main，GitHub [CI44881798548](https://github.com/VirginBear/HeiBan/actions/runs/44881798548)結論success。
+
+本機R1、R2僅為中間候選，最後交付請用R3。其清理遭工具安全審查拒絕，保留原檔及手動清單，不把清理寫成成功。未上傳Store、未發布GitHub Release，ARM64執行／硬體IME／混合DPI跨螢幕／Store安裝與認證未執行。
