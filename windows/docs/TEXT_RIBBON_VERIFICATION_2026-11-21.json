@@ -1,0 +1,101 @@
+{
+  "date": "2026-11-21",
+  "version": "1.1.6",
+  "sourceCommitBeforeChanges": "6c77baa367705aa7a0718179346c77142cb24236",
+  "sourceFiles": 513,
+  "sourceInventorySha256": "68529a8c3c5a16dc2facaa92e136c77d203f05178ab10c465f1b9a58b9e743fa",
+  "sourcesStable": true,
+  "coreAssertions": 6918,
+  "optimizationAssertions": 68,
+  "architecture": {
+    "inspectedFiles": 199,
+    "checkerChecks": 28,
+    "violations": 0
+  },
+  "nativeText": {
+    "success": true,
+    "mainText": {
+      "plainText": true,
+      "unicode": true,
+      "draftIsolated": true,
+      "colorCircle": true,
+      "partialFormatting": true,
+      "appearanceReopens": true,
+      "singleUndo": true,
+      "highlightScope": true,
+      "wholeTextScope": true,
+      "longTextLength": 20000,
+      "formatReads": 1
+    },
+    "screenText": {
+      "plainText": true,
+      "unicode": true,
+      "singleUndo": true,
+      "colorCircle": true,
+      "editingGripVisible": true,
+      "fourSideReparenting": true,
+      "layoutPreviewUsable": true,
+      "desktopWidth": 5760,
+      "desktopHeight": 2160,
+      "dpiScale": 2,
+      "keyboardAndPhysicalDrag": "Require real input verification"
+    }
+  },
+  "steps": [
+    {
+      "name": "architecture",
+      "exitCode": 0
+    },
+    {
+      "name": "localization",
+      "exitCode": 0
+    },
+    {
+      "name": "guides",
+      "exitCode": 0
+    },
+    {
+      "name": "core",
+      "exitCode": 0
+    },
+    {
+      "name": "optimization",
+      "exitCode": 0
+    },
+    {
+      "name": "winui-build",
+      "exitCode": 0
+    },
+    {
+      "name": "native-editor",
+      "exitCode": 0
+    },
+    {
+      "name": "native-images",
+      "exitCode": 0
+    },
+    {
+      "name": "native-text",
+      "exitCode": 0
+    }
+  ],
+  "evidenceDirectory": "windows/.build/text-ribbon-20261121/verification-r8",
+  "failedEvidencePreserved": [
+    "build-r1.log",
+    "build-r2.log",
+    "verification-r1",
+    "verification-r2",
+    "verification-r4",
+    "verification-r5"
+  ],
+  "limitations": [
+    "Vertical writing and block alignment use a live layout preview; native input stays horizontal.",
+    "Hardware IME, mixed-DPI monitor crossing, ARM64 runtime and Store certification not executed.",
+    "Format-run counts do not measure end-to-end pointer latency."
+  ],
+  "intermediatePassedAttempts": [
+    "verification-r3",
+    "verification-r6",
+    "verification-r7"
+  ]
+}

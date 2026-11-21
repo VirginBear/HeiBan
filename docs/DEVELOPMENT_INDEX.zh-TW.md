@@ -39,6 +39,8 @@
 
 ## Windows端減重評估接手
 
+- [2026-11-21 Windows 文字分頁與排版重整](../windows/docs/TEXT_RIBBON_2026-11-21.zh-TW.md)：三分頁、選字／整框範圍、三種顏色、橫直排與上下對齊預覽、格式區段讀取及停靠修正；版本仍為1.1.6。
+
 - [2026-11-21 Windows 螢幕畫布與文字編輯](../windows/docs/SCREEN_TEXT_EDITING_2026-11-21.zh-TW.md)：Delete、停靠握把、共用文字色圓／外觀／格式及外部純文字貼上；維持 1.1.6，隔離實機與自動驗證見日誌。
 
 - [2026-11-20 Windows 架構、流程與驗證檢討](../windows/docs/ARCHITECTURE_REVIEW_2026-11-20.zh-TW.md)，含 Lauren Tan 原始來源對照、已實作項目與後續範圍。[日常開發及驗證入口](../windows/docs/DEVELOPMENT_WORKFLOW.zh-TW.md)。

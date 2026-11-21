@@ -24,7 +24,6 @@ internal sealed partial class ScreenAnnotationWindow
     private string _chromeDock = "top";
     private double _chromePosition = .5;
     private PointInt32? _requestedChromePosition;
-    private readonly DispatcherTimer _dockTimer = new() { Interval = TimeSpan.FromMilliseconds(150) };
     private string ChromePreferencesPath => Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(_recoveryPath))!, "Settings", "screen-ui.json");
     private bool VerticalChrome => _chromeDock is "left" or "right";
     private uint? _chromeDragPointer;
@@ -34,7 +33,6 @@ internal sealed partial class ScreenAnnotationWindow
     private void ChromeGrip_Pressed(object sender,PointerRoutedEventArgs args)
     {
         if(_stopping||_screenClearDialog is not null||!args.GetCurrentPoint(_chromeGrip).Properties.IsLeftButtonPressed)return;
-        _dockTimer.Stop();
         _chromeDragOrigin=AppWindow.Position;
         _chromeDragStart=NativeOverlayWindow.CurrentPointer;
         if(_chromeGrip.CapturePointer(args.Pointer))_chromeDragPointer=args.Pointer.PointerId;
@@ -64,7 +62,6 @@ internal sealed partial class ScreenAnnotationWindow
     {
         if(_chromeDragPointer!=args.Pointer.PointerId)return;
         _chromeDragPointer=null;
-        _dockTimer.Stop();
         PositionChrome();
     }
 
@@ -73,7 +70,6 @@ internal sealed partial class ScreenAnnotationWindow
         if(_chromeDragPointer is null)return;
         _chromeDragPointer=null;
         _chromeGrip.ReleasePointerCaptures();
-        _dockTimer.Stop();
     }
 
     private void InitializeChromeDocking()
@@ -94,22 +90,9 @@ internal sealed partial class ScreenAnnotationWindow
 
         RebuildChromeLayout();
 
-        AppWindow.Changed += (_, args) =>
-        {
-            if (!IsActive || _chromeDragPointer is not null || _screenClearDialog is not null || !args.DidPositionChange) return;
-            var p = AppWindow.Position;
-            if (_requestedChromePosition is { } expected && p.X == expected.X && p.Y == expected.Y) return;
-            _dockTimer.Stop();
-            _dockTimer.Start();
-        };
+        // Grip release is the only docking transaction. AppWindow position notifications
+        // also occur during our own resizes and must not rebuild the active text page.
 
-        _dockTimer.Tick += (_, _) =>
-        {
-            if (!IsActive) { _dockTimer.Stop(); return; }
-            if (NativeOverlayWindow.MouseButtonDown) return;
-            _dockTimer.Stop();
-            FinishChromeDrag();
-        };
     }
 
     private string _chromeIconStyle="";
@@ -192,6 +175,8 @@ internal sealed partial class ScreenAnnotationWindow
         {
             var extraWidth=_chromeStart.DesiredSize.Width+_chromeEnd.DesiredSize.Width+38;
             var extraHeight=_chromeStart.DesiredSize.Height+_chromeEnd.DesiredSize.Height+30;
+            textPage.Width=Math.Max(240,Math.Min(560,workWidth-(VerticalChrome?12:extraWidth)));
+            textPage.MaxHeight=Math.Max(180,Math.Min(430,workHeight-(VerticalChrome?extraHeight:26)));
             textPage.Measure(new global::Windows.Foundation.Size(
                 Math.Max(80,workWidth-(VerticalChrome?0:extraWidth)),
                 Math.Max(80,workHeight-(VerticalChrome?extraHeight:0))));
@@ -225,12 +210,21 @@ internal sealed partial class ScreenAnnotationWindow
         x = Math.Clamp(x, area.X, Math.Max(area.X, area.X + area.Width - size.Width)); y = Math.Clamp(y, area.Y, Math.Max(area.Y, area.Y + area.Height - size.Height)); _requestedChromePosition = new(x, y); AppWindow.Move(_requestedChromePosition.Value);
     }
 
-    private void DockChrome(string side)
+    private void DockChrome(string side,PointInt32? draggedPosition=null)
     {
-        _dockTimer.Stop();
         _chromeDock = side;
         RebuildChromeLayout();
         ResizeChrome();
+        if(draggedPosition is { } position)
+        {
+            var area=DisplayArea.GetFromWindowId(AppWindow.Id,DisplayAreaFallback.Primary).WorkArea;
+            var size=AppWindow.Size;
+            // Preferences describe the window's travel, not the pointer's position.
+            // Normalizing by the whole monitor made a moved grip snap back on release.
+            _chromePosition=VerticalChrome
+                ?Math.Clamp((position.Y-area.Y)/(double)Math.Max(1,area.Height-size.Height),0,1)
+                :Math.Clamp((position.X-area.X)/(double)Math.Max(1,area.Width-size.Width),0,1);
+        }
         PositionChrome();
         _ = SaveChromePreferencesAsync();
     }
@@ -239,7 +233,7 @@ internal sealed partial class ScreenAnnotationWindow
     {
         var pointer = NativeOverlayWindow.CurrentPointer; var area = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
         var nearest = new[] { ("top", Math.Abs(pointer.Y - area.Y)), ("bottom", Math.Abs(pointer.Y - area.Y - area.Height)), ("left", Math.Abs(pointer.X - area.X)), ("right", Math.Abs(pointer.X - area.X - area.Width)) }.OrderBy(edge => edge.Item2).First().Item1;
-        _chromeDock = nearest; _chromePosition = VerticalChrome ? Math.Clamp((pointer.Y - area.Y) / (double)area.Height, 0, 1) : Math.Clamp((pointer.X - area.X) / (double)area.Width, 0, 1); DockChrome(nearest);
+        DockChrome(nearest,AppWindow.Position);
     }
 
     private async Task SaveChromePreferencesAsync()
@@ -259,6 +253,10 @@ internal sealed partial class ScreenAnnotationWindow
             DockChrome("left"); var left = AppWindow.Size; if (left.Width < 60 * _dpiScale || left.Width >= left.Height || _chromeTools.Orientation != Orientation.Vertical) throw new InvalidOperationException($"左側直排未生效：{left.Width}×{left.Height}，DPI={_dpiScale}。");
             SetChromeCollapsed(true); var collapsed = AppWindow.Size; if (collapsed.Height >= left.Height) throw new InvalidOperationException("直排收合未生效。");
             SetChromeCollapsed(false); DockChrome("right"); if (_chromeTools.Orientation != Orientation.Vertical) throw new InvalidOperationException("右側直排未生效。");
+            var workArea=DisplayArea.GetFromWindowId(AppWindow.Id,DisplayAreaFallback.Primary).WorkArea;
+            var movedY=workArea.Y+(int)Math.Round(Math.Max(0,workArea.Height-AppWindow.Size.Height)*.75);
+            DockChrome("right",new(AppWindow.Position.X,movedY));
+            if(Math.Abs(AppWindow.Position.Y-movedY)>3)throw new InvalidOperationException("Dragged window position snapped back on release.");
             DockChrome("bottom"); if (_chromeTools.Orientation != Orientation.Horizontal) throw new InvalidOperationException("下方橫排未生效。");
             DockChrome("top"); return new { fourSides = true, verticalWidth = left.Width, verticalHeight = left.Height, collapsedVerticalHeight = collapsed.Height, iconOnly = true, fixedClearClose = true, wrapsWithoutScrollbars = true, valuesAndHandlersRetained = true, dragHardware = "未執行" };
         }

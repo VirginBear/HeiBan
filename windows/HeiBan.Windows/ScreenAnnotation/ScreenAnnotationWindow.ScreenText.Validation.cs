@@ -3,6 +3,8 @@ using HeiBan.Windows.Engine;
 using HeiBan.Windows.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
+using Microsoft.UI.Xaml.Automation.Peers;
+using Microsoft.UI.Xaml.Automation.Provider;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Shapes;
 using global::Windows.ApplicationModel.DataTransfer;
@@ -27,6 +29,17 @@ internal sealed partial class ScreenAnnotationWindow
         var colorButton=MainWindow.FindEditingControl<Button>(_chromeToolHost,
             button=>AutomationProperties.GetAutomationId(button)=="text-color");
         if(colorButton?.Content is not Ellipse)throw new InvalidOperationException("Screen editor has no color circle.");
+        var layoutButton=MainWindow.FindEditingControl<Button>(_chromeToolHost,
+            button=>AutomationProperties.GetAutomationId(button)=="text-tab-layout")!;
+        ((IInvokeProvider)new ButtonAutomationPeer(layoutButton).GetPattern(PatternInterface.Invoke)).Invoke();
+        await Task.Delay(500);
+        var previewCanvas=MainWindow.FindEditingControl<Microsoft.Graphics.Canvas.UI.Xaml.CanvasControl>(_chromeToolHost,_=>true);
+        if(previewCanvas is null||previewCanvas.ActualWidth<200||previewCanvas.ActualHeight<100)
+            throw new InvalidOperationException($"Layout preview must have a usable visible size. width={previewCanvas?.ActualWidth}, height={previewCanvas?.ActualHeight}, host={_chromeToolHost.ActualWidth}x{_chromeToolHost.ActualHeight}");
+        var characterButton=MainWindow.FindEditingControl<Button>(_chromeToolHost,
+            button=>AutomationProperties.GetAutomationId(button)=="text-tab-character")!;
+        ((IInvokeProvider)new ButtonAutomationPeer(characterButton).GetPattern(PatternInterface.Invoke)).Invoke();
+        await Task.Delay(100);
         FinishScreenText();
         if(_session.Document.Objects.Count!=2)throw new InvalidOperationException("Screen text paste did not commit.");
         _session.Undo();
@@ -46,9 +59,11 @@ internal sealed partial class ScreenAnnotationWindow
         {
             var text=_session.Document.Objects.Single(item=>item.Type=="text");
             BeginScreenText(new(text.X,text.Y),text);
+            // The diagnostic preview must not capture the user's work in other apps.
+            _overlay.SetDrawing(false);
         }
         if(!preview)await StopAsync();
-        return new{plainText=true,unicode=true,singleUndo=true,colorCircle=true,editingGripVisible=true,fourSideReparenting=true,
+        return new{plainText=true,unicode=true,singleUndo=true,colorCircle=true,editingGripVisible=true,fourSideReparenting=true,layoutPreviewUsable=true,
             desktopWidth=_overlay.Width,desktopHeight=_overlay.Height,dpiScale=_dpiScale,
             keyboardAndPhysicalDrag="Require real input verification"};
     }

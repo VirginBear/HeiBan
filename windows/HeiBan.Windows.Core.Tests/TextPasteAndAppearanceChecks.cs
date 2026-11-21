@@ -37,5 +37,12 @@ internal static class TextPasteAndAppearanceChecks
         check(session.Selected is null&&session.Document.Objects.Single().TextBorderWidth==3,"Redo retains text appearance");
         var legacy=DocumentCodec.Encode(new(){Objects=[new(){Type="text",Text="legacy"}]});
         check(!legacy.Contains("textBorder"),"Old text needs no border extension fields");
+        loaded.TextDirection="vertical-rl";loaded.TextVerticalAlignment="bottom";
+        var vertical=DocumentCodec.Decode(DocumentCodec.Encode(document)).Objects.Single();
+        check(vertical.TextDirection=="vertical-rl"&&vertical.TextVerticalAlignment=="bottom","Text direction and block alignment round trip");
+        var height=vertical.Height;TextStyles.GrowHeight(vertical);
+        check(vertical.Height==height,"Vertical columns do not use horizontal automatic height growth");
+        var verticalSvg=BoardExporter.Svg(new(){Objects=[vertical]},[vertical],new(0,0,640,480));
+        check(verticalSvg.Contains("writing-mode:vertical-rl")&&verticalSvg.Contains("vertical-align:bottom"),"SVG retains writing direction and block alignment");
     }
 }

@@ -86,6 +86,10 @@ internal sealed partial class NativeOverlayWindow : IDisposable
     public void Hide(){CancelPointerCapture();ShowWindow(_window,0);ReleaseReadback();}
     public void SetDrawing(bool value)
     {
+#if HEIBAN_RELEASE_VALIDATION
+        // Synthetic checks call the gesture pipeline directly and must not intercept other apps' input.
+        if(Environment.GetCommandLineArgs().Contains("--release-validation-exit"))value=false;
+#endif
         _drawing=value;
         if(!value)CancelPointerCapture();
         var style=GetWindowLongPtr(_window,-20).ToInt64();

@@ -724,7 +724,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
         try
         {
             StopOperateRadial();_radialSettings?.Close();CloseFloatingTeachingTools();_customizeToolbarWindow?.Close();_customizeToolbarWindow=null;CancelRadial();_radialSaveTimer.Stop();
-            _saveTimer.Stop();_renderTimer.Stop();_focusRememberTimer.Stop();_dockTimer.Stop();_chromeFlyout?.Hide();
+            _saveTimer.Stop();_renderTimer.Stop();_focusRememberTimer.Stop();_chromeFlyout?.Hide();
             _captureCancellation?.Cancel();if(_circularEraser?.IsFinishing==true)await CompleteCircularEraserAsync();FinishScreenText();CancelGesture();
             _radialSaveTimer.Stop();await _owner.RadialTools.SaveAsync();
             // Replace only the chrome while the native annotation session is frozen.
@@ -732,7 +732,7 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
             AppWindow.Resize(new SizeInt32((int)(320*_dpiScale),(int)(72*_dpiScale)));AppWindow.Show();Activate();await Task.Delay(32);
             if(!await SaveAsync())return false;
             if(_session.IsDirty){_status.Text=T("尚有變更");return false;}
-            CloseCaptureOutput();IsActive=false;_renderTimer.Stop();_focusRememberTimer.Stop();_saveTimer.Stop();_dockTimer.Stop();await SaveChromePreferencesAsync();_overlay.Hide();AppWindow.Hide();_laser.Clear();DisposeEraserPatch();_target?.Dispose();_target=null;_committed?.Dispose();_committed=null;_renderer.ClearCache();_sessionLease?.Dispose();_sessionLease=null;
+            CloseCaptureOutput();IsActive=false;_renderTimer.Stop();_focusRememberTimer.Stop();_saveTimer.Stop();await SaveChromePreferencesAsync();_overlay.Hide();AppWindow.Hide();_laser.Clear();DisposeEraserPatch();_target?.Dispose();_target=null;_committed?.Dispose();_committed=null;_renderer.ClearCache();_sessionLease?.Dispose();_sessionLease=null;
             _owner.AppWindow.Show();_owner.Activate();return true;
         }
         catch(Exception error){_status.Text=T("註記保存失敗，內容仍保留：")+error.Message;return false;}
@@ -740,6 +740,6 @@ internal sealed partial class ScreenAnnotationWindow : Window, IDisposable
     }
     public void Dispose()
     {
-        if(_disposed)return;CloseCaptureOutput();_quickPalette?.Dispose();StopOperateRadial();ClearObjectDrag();CloseFloatingTeachingTools();_customizeToolbarWindow?.Close();_customizeToolbarWindow=null;_radialSaveTimer.Stop();_radialSettings?.Close();CancelRadial();CancelCircularEraser();FinishScreenText();_disposed=true;_captureCancellation?.Cancel();_renderTimer.Stop();_focusRememberTimer.Stop();_straightenTimer.Stop();_saveTimer.Stop();_styleCommitTimer.Stop();_dockTimer.Stop();DisposeEraserPatch();_target?.Dispose();_committed?.Dispose();_renderer.Dispose();_sessionLease?.Dispose();_sessionLease=null;_overlay.Dispose();Close();
+        if(_disposed)return;CloseCaptureOutput();_quickPalette?.Dispose();StopOperateRadial();ClearObjectDrag();CloseFloatingTeachingTools();_customizeToolbarWindow?.Close();_customizeToolbarWindow=null;_radialSaveTimer.Stop();_radialSettings?.Close();CancelRadial();CancelCircularEraser();FinishScreenText();_disposed=true;_captureCancellation?.Cancel();_renderTimer.Stop();_focusRememberTimer.Stop();_straightenTimer.Stop();_saveTimer.Stop();_styleCommitTimer.Stop();DisposeEraserPatch();_target?.Dispose();_committed?.Dispose();_renderer.Dispose();_sessionLease?.Dispose();_sessionLease=null;_overlay.Dispose();Close();
     }
 }

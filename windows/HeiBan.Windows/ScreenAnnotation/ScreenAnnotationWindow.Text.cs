@@ -78,8 +78,11 @@ internal sealed partial class ScreenAnnotationWindow
         _mode.Visibility=_textInput is null?Visibility.Visible:Visibility.Collapsed;
         _chromeToolHost.Visibility=_textInput is null&&_collapsed?Visibility.Collapsed:Visibility.Visible;
         _chromeToolHost.Child=_textInput is { } input
-            ?input.CreateFormatPage(VerticalChrome,focusEditor:()=>_textWindow?.Activate(),formatScale:1)
+            ?input.CreateFormatPage(VerticalChrome,focusEditor:()=>_textWindow?.Activate(),formatScale:1,
+                layoutChanged:()=>DispatcherQueue.TryEnqueue(()=>{if(IsActive&&_textInput is not null){ResizeChrome();PositionChrome();}}))
             :_chromeTools;
+        if(_textInput is not null&&_chromeToolHost.Child is FrameworkElement page)
+            page.SizeChanged+=(_,_)=>DispatcherQueue.TryEnqueue(()=>{if(IsActive&&ReferenceEquals(_chromeToolHost.Child,page)){ResizeChrome();PositionChrome();}});
     }
     private void InvalidateScreenTextScene()
     {
@@ -107,16 +110,18 @@ internal sealed partial class ScreenAnnotationWindow
             ChooseScreenTool("text");OnPointer(new("down",420,480));
             if(_textWindow is null||!_overlay.IsBelow(WinRT.Interop.WindowNative.GetWindowHandle(_textWindow)))throw new InvalidOperationException("文字輸入視窗被螢幕層遮住。");if(_textInput is null||_session.Document.Objects.Count!=count)throw new InvalidOperationException("文字草稿提前寫入文件。");
             if(!ReferenceEquals(_textWindow.Content,_textInput)||ReferenceEquals(_chromeToolHost.Child,_chromeTools))throw new InvalidOperationException("螢幕文字沒有借用工具列。");
-            await Task.Delay(150);
+            for(var wait=0;wait<40&&!_textInput.ReadyForInput;wait++)await Task.Delay(50);
+            if(!_textInput.ReadyForInput)throw new InvalidOperationException("Screen text editor did not finish loading.");
             _textInput.Text="中文文字\n第二行";
             var selectedFormat=_textInput.TextDocument.GetRange(0,2).CharacterFormat;
             selectedFormat.Name="Consolas";selectedFormat.Size=30;selectedFormat.ForegroundColor=Microsoft.UI.Colors.DarkBlue;
-            OnPointer(new("down",720,480));if(_session.Document.Objects.Count!=count+1||_session.Selected?.Text!="中文文字\n第二行"||!ReferenceEquals(_chromeToolHost.Child,_chromeTools))throw new InvalidOperationException("點畫布未提交文字或恢復工具列。");
+            OnPointer(new("down",720,480));if(_session.Document.Objects.Count!=count+1||_session.Selected?.Text!="中文文字\n第二行"||!ReferenceEquals(_chromeToolHost.Child,_chromeTools))throw new InvalidOperationException($"點畫布未提交文字或恢復工具列。count={_session.Document.Objects.Count}, expected={count+1}, text={_session.Selected?.Text}, editing={_textInput is not null}");
             var text=_session.Selected!;OnPointer(new("double",text.X+5,text.Y+5));if(_textInput is null)throw new InvalidOperationException("雙擊文字未開始編輯。");_textInput.Text="取消";FinishScreenText(false);if(_session.Selected?.Text!="中文文字\n第二行")throw new InvalidOperationException("取消文字修改了文件。");
-            BeginScreenText(new(text.X,text.Y),text);await Task.Delay(150);
+            BeginScreenText(new(text.X,text.Y),text);
+            for(var wait=0;wait<40&&_textInput is {ReadyForInput:false};wait++)await Task.Delay(50);
             var reopened=_textInput!.TextDocument.GetRange(0,2).CharacterFormat;
             if(reopened.Name!="Consolas"||Math.Abs(reopened.Size-30)>.1||!reopened.ForegroundColor.Equals(Microsoft.UI.Colors.DarkBlue))
-                throw new InvalidOperationException("螢幕文字重新編輯時遺失局部格式。");
+                throw new InvalidOperationException($"螢幕文字重新編輯時遺失局部格式。font={reopened.Name}, size={reopened.Size}, color={reopened.ForegroundColor}, ready={_textInput.ReadyForInput}, spans={System.Text.Json.JsonSerializer.Serialize(text.RichTextSpans)}");
             _textInput.Text="修改後";ChooseScreenTool("pen");if(_session.Document.Objects.First(o=>o.Id==text.Id).Text!="修改後")throw new InvalidOperationException("換工具未提交文字。");
             var second=DocumentCodec.Clone(_session.Document.Objects.First(o=>o.Id==text.Id));second.Id=Guid.NewGuid().ToString();second.X=1200;_session.Begin();_session.Add(second);_session.Commit();_session.SelectedId=text.Id;ChooseScreenTool("select");var generation=_session.Generation;
             OnPointer(new("down",second.X+5,second.Y+5,true));OnPointer(new("up",second.X+5,second.Y+5,true));

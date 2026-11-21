@@ -621,7 +621,7 @@ public partial class MainWindow
             page.Tag=vertical;
             TextToolbarPage.Content=page;
         }
-        page.MaxWidth=vertical?96:Math.Max(120,DrawingArea.ActualWidth-80);
+        page.MaxWidth=Math.Max(240,Math.Min(560,DrawingArea.ActualWidth-100));
         page.MaxHeight=Math.Max(100,DrawingArea.ActualHeight-80);
     }
     private void CancelScreenshotCapture(string reason)

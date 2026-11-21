@@ -14,6 +14,7 @@ public partial class MainWindow
 {
     private async Task<object> ValidateExternalTextAsync()
     {
+        Direct2DCanvasRenderer.ValidateTextRibbonLayout();
         await OpenAsync(new(){Board=new(){Title="Text editing QA",CanvasMode="fixed",CanvasWidth=640,CanvasHeight=480}});
         var package=new DataPackage();
         package.SetText("外部文字\r\nABC 😀");
@@ -48,13 +49,30 @@ public partial class MainWindow
         await Task.Delay(200);
         if(_editingObject?.TextBorderWidth!=3||_editor!.TextDocument.GetRange(0,2).CharacterFormat.Size!=30)
             throw new InvalidOperationException("Reopening lost text formatting or its border.");
+        _editor.TextDocument.Selection.SetRange(0,2);
+        _editor.SetWholeTextScope(false);
+        _editor.ApplyCharacterFormat(f=>f.BackgroundColor=Microsoft.UI.Colors.Yellow);
+        if(!_editor.TextDocument.GetRange(0,2).CharacterFormat.BackgroundColor.Equals(Microsoft.UI.Colors.Yellow)||
+            _editor.TextDocument.GetRange(3,4).CharacterFormat.BackgroundColor.Equals(Microsoft.UI.Colors.Yellow))
+            throw new InvalidOperationException("Highlight scope affected unselected text.");
+        _editor.SetWholeTextScope(true);
+        _editor.ApplyCharacterFormat(f=>f.Italic=Microsoft.UI.Text.FormatEffect.On);
+        if(_editor.TextDocument.GetRange(0,_editor.Text.Length).CharacterFormat.Italic!=Microsoft.UI.Text.FormatEffect.On)
+            throw new InvalidOperationException("Whole text scope missed characters.");
+        _editor.SetWholeTextScope(false);
         _editor.TextDocument.Selection.SetRange(0,0);
         _editor.SyncStyle(_editingObject!);
         if(!_editor.TextDocument.Selection.CharacterFormat.ForegroundColor.Equals(Microsoft.UI.Colors.Red))
             throw new InvalidOperationException("Reopened insertion color disagrees with restored text.");
+        _editor.Text=new string('x',20000);
+        var longDraft=DocumentCodec.Clone(_editingObject!);
+        _editor.ReadDraft(longDraft);
+        var formatReads=_editor.LastFormatRunReads;
+        if(longDraft.Text?.Length!=20000||formatReads>8)
+            throw new InvalidOperationException("Long text formats must be read by runs, not by characters.");
         FinishText(false);
         return new{plainText=true,unicode=true,draftIsolated=true,colorCircle=true,partialFormatting=true,
-            appearanceReopens=true,singleUndo=true};
+            appearanceReopens=true,singleUndo=true,highlightScope=true,wholeTextScope=true,longTextLength=20000,formatReads};
     }
 
     internal static T? FindEditingControl<T>(DependencyObject? root,Func<T,bool> predicate) where T:DependencyObject

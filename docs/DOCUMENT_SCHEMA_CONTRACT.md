@@ -2,6 +2,8 @@
 
 ## 2026-11-21 Windows 文字方塊外觀延伸
 
+同日文字列重整新增 optional textDirection（horizontal-tb／vertical-rl）與 textVerticalAlignment（top／center／bottom），省略時為橫排與靠上。直排按上到下、欄由右至左；垂直對齊表示整個文字方塊的排版偏好。Win2D 與 SVG 均讀取，其他平台保留未知欄位。Windows 原生輸入區維持橫排，排版分頁提供直排及垂直對齊即時預覽，不以變更字串或插入換行模擬直排。
+
 文件版本沿用 1.0.0。文字與便條紙可選帶 textBorderColor、textBorderWidth、textBorderStyle，分別表示邊框色彩、在物件座標中的寬度及 solid／dashed／dotted。省略時保留舊外觀。邊框繪製於物件外框內，文字顏色仍為 strokeColor，背景仍使用既有 fillColor。align 新增 justify 值，表示文字方塊內左右對齊。Windows 原稿、Undo／Redo、Win2D 與 SVG 共用這些資料。其他平台應保留未知欄位，外觀顯示需依其平台實作另行驗收。
 
 文件版本：`1.0.0`  

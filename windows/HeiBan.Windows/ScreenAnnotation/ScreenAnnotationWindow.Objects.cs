@@ -132,7 +132,7 @@ internal sealed partial class ScreenAnnotationWindow
         {
             // The toolbar is normally compact. The modal needs a monitor-sized XamlRoot and the existing acrylic backdrop.
             StopOperateRadial();
-            _dockTimer.Stop();
+
             chromeBody.Visibility=Visibility.Collapsed;
             chrome.Background=null;
             chrome.BorderThickness=new Thickness(0);

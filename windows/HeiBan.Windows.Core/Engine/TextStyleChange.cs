@@ -67,6 +67,8 @@ public static class TextStyles
     public static void GrowHeight(BoardObject item)
     {
         if(item.Type!="text")return;
+        // Vertical text wraps into columns within its height; horizontal line estimates do not apply.
+        if(item.TextDirection=="vertical-rl")return;
         var size=Math.Max(item.FontSize??24,item.RichTextSpans is {Count:>0} spans?spans.Max(span=>span.FontSize??0):0);var width=Math.Max(20,item.Width-28);var lines=0;
         foreach(var line in (item.Text??"").Split('\n'))
         {

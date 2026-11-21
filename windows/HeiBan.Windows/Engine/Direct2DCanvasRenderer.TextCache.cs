@@ -17,7 +17,7 @@ public sealed partial class Direct2DCanvasRenderer
             HexToColor(item.TextBorderColor??"#39735A",(float)item.Opacity),inset*2,StrokeStyle(item.TextBorderStyle??"solid"));
     }
     private readonly record struct TextKey(string Text,string Family,float Size,float Width,float Height,
-        bool Bold,bool Italic,bool Underline,bool Strike,string? Align,double Opacity);
+        bool Bold,bool Italic,bool Underline,bool Strike,string? Align,string? Direction,string? VerticalAlign,double Opacity);
     private sealed record TextEntry(TextKey Key,TextSpan[] Spans,CanvasTextLayout Layout,(Rect Bounds,Color Color)[] Highlights);
     private readonly Dictionary<string,TextEntry> _textLayouts=[];
     private readonly Dictionary<string,CanvasStrokeStyle> _strokeStyles=[];
@@ -51,14 +51,23 @@ public sealed partial class Direct2DCanvasRenderer
     private void RenderText(CanvasDrawingSession ds,BoardObject o,Rect rect,Color color)
     {
         var key=new TextKey(o.Text??"",o.FontFamily?.Split(',')[0]??"Microsoft JhengHei",(float)(o.FontSize??18),(float)rect.Width,(float)rect.Height,
-            o.IsBold==true,o.IsItalic==true,o.IsUnderline==true,o.IsStrikethrough==true,o.Align,o.Opacity);
+            o.IsBold==true,o.IsItalic==true,o.IsUnderline==true,o.IsStrikethrough==true,o.Align,o.TextDirection,o.TextVerticalAlignment,o.Opacity);
         if(BypassTextCache||!_textLayouts.TryGetValue(o.Id,out var entry)||entry.Key!=key||!SameSpans(o.RichTextSpans,entry.Spans))
         {
             if(_textLayouts.Remove(o.Id,out var previous))previous.Layout.Dispose();
             using var format=new CanvasTextFormat{FontFamily=key.Family,FontSize=key.Size,
                 FontWeight=new global::Windows.UI.Text.FontWeight{Weight=(ushort)(key.Bold?700:400)},
                 FontStyle=key.Italic?global::Windows.UI.Text.FontStyle.Italic:global::Windows.UI.Text.FontStyle.Normal,
-                HorizontalAlignment=key.Align switch{"center"=>CanvasHorizontalAlignment.Center,"right"=>CanvasHorizontalAlignment.Right,"justify"=>CanvasHorizontalAlignment.Justified,_=>CanvasHorizontalAlignment.Left},WordWrapping=CanvasWordWrapping.Wrap};
+                Direction=key.Direction=="vertical-rl"?CanvasTextDirection.TopToBottomThenRightToLeft:CanvasTextDirection.LeftToRightThenTopToBottom,
+                VerticalGlyphOrientation=CanvasVerticalGlyphOrientation.Default,
+                // DirectWrite alignment follows reading/column axes. Keep the UI's
+                // left/right and top/bottom controls on physical canvas axes in vertical writing.
+                VerticalAlignment=key.Direction=="vertical-rl"
+                    ?key.Align switch{"center"=>CanvasVerticalAlignment.Center,"right"=>CanvasVerticalAlignment.Top,_=>CanvasVerticalAlignment.Bottom}
+                    :key.VerticalAlign switch{"center"=>CanvasVerticalAlignment.Center,"bottom"=>CanvasVerticalAlignment.Bottom,_=>CanvasVerticalAlignment.Top},
+                HorizontalAlignment=key.Direction=="vertical-rl"
+                    ?key.VerticalAlign switch{"center"=>CanvasHorizontalAlignment.Center,"bottom"=>CanvasHorizontalAlignment.Right,_=>CanvasHorizontalAlignment.Left}
+                    :key.Align switch{"center"=>CanvasHorizontalAlignment.Center,"right"=>CanvasHorizontalAlignment.Right,"justify"=>CanvasHorizontalAlignment.Justified,_=>CanvasHorizontalAlignment.Left},WordWrapping=CanvasWordWrapping.Wrap};
             var layout=new CanvasTextLayout(ds,key.Text,format,key.Width,key.Height);var count=key.Text.Length;
             if(count>0){layout.SetUnderline(0,count,key.Underline);layout.SetStrikethrough(0,count,key.Strike);}
             var spans=(o.RichTextSpans??[]).Select(DocumentCodec.Clone).ToArray();var offset=0;

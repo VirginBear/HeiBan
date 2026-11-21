@@ -297,6 +297,11 @@ public sealed class BoardObject
     [JsonPropertyName("align")]
     public string? Align { get; set; } = "left";
 
+    [JsonPropertyName("textDirection")]
+    public string? TextDirection { get; set; }
+    [JsonPropertyName("textVerticalAlignment")]
+    public string? TextVerticalAlignment { get; set; }
+
     [JsonPropertyName("textBorderColor")]
     public string? TextBorderColor { get; set; }
     [JsonPropertyName("textBorderWidth")]

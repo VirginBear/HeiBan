@@ -13,7 +13,7 @@ namespace HeiBan.Windows.Views;
 internal sealed partial class TextDraftEditor : RichEditBox
 {
     private BoardObject? _draft;
-    public TextDraftEditor(){AcceptsReturn=true;}
+    public TextDraftEditor(){AcceptsReturn=true;TextChanged+=(_,_)=>QueueLayoutPreview();}
     internal void SetEditorPaper(string? color)
     {
         var paper=new SolidColorBrush(Direct2DCanvasRenderer.HexToColor(color is null or "none"?"#FFF0AB":color));
@@ -34,6 +34,7 @@ internal sealed partial class TextDraftEditor : RichEditBox
         set=>TextDocument.SetText(TextSetOptions.None,value.Replace("\r\n","\r").Replace('\n','\r'));
     }
     private bool _awaitingInitialFormat;
+    internal bool ReadyForInput=>!_awaitingInitialFormat&&IsLoaded;
     internal void LoadDraft(BoardObject draft,double scale=1)
     {
         _draft=draft;
@@ -102,6 +103,7 @@ internal sealed partial class TextDraftEditor : RichEditBox
 
     private double _displayScale=1;
     private global::Windows.UI.Color _plainBackground;
+    internal int LastFormatRunReads {get;private set;}
     internal void ReadDraft(BoardObject draft)
     {
         if(_awaitingInitialFormat)return; // An editor closed before loading has no changes to commit.
@@ -118,23 +120,31 @@ internal sealed partial class TextDraftEditor : RichEditBox
             while(prefix<common&&original[prefix]==text[prefix])prefix++;
             while(prefix+suffix<common&&original[^(suffix+1)]==text[^(suffix+1)])suffix++;
         }
+        if(prefix>0&&prefix<text.Length&&char.IsHighSurrogate(text[prefix-1])&&char.IsLowSurrogate(text[prefix]))prefix--;
+        if(suffix>0&&suffix<text.Length&&char.IsLowSurrogate(text[text.Length-suffix])&&char.IsHighSurrogate(text[text.Length-suffix-1]))suffix--;
         var oldIndex=0;var oldEnd=0;
         var spans=new List<TextSpan>();
-        var elements=StringInfo.GetTextElementEnumerator(text);
-        System.Text.StringBuilder run=new();
-        TextSpan? previous=null;
-        while(elements.MoveNext())
+        LastFormatRunReads=0;
+        for(var start=0;start<text.Length;)
         {
-            var part=elements.GetTextElement();
-            var start=elements.ElementIndex;
-            var f=TextDocument.GetRange(start,start+part.Length).CharacterFormat;
-            var fontSize=Math.Round(f.Size/.75/_displayScale,3);
-            // Keep extension data with surviving text around a replacement.
+            // RichEdit already maintains runs. Read one format per run, not per grapheme.
+            var range=TextDocument.GetRange(start,start+1);
+            range.Expand(TextRangeUnit.CharacterFormat);
+            LastFormatRunReads++;
+            var end=Math.Clamp(range.EndPosition,start+1,text.Length);
             var oldStart=start<prefix?start:start>=text.Length-suffix?start+original.Length-text.Length:-1;
+            if(start<prefix)end=Math.Min(end,prefix);
+            else if(start<text.Length-suffix)end=Math.Min(end,text.Length-suffix);
             while(oldSpans is not null&&oldIndex<oldSpans.Count&&oldStart>=oldEnd+oldSpans[oldIndex].Text.Length)
                 oldEnd+=oldSpans[oldIndex++].Text.Length;
+            if(oldStart>=0&&oldSpans is not null&&oldIndex<oldSpans.Count)
+                end=Math.Min(end,start+oldEnd+oldSpans[oldIndex].Text.Length-oldStart);
+            end=Math.Max(start+1,end);
+            var f=TextDocument.GetRange(start,end).CharacterFormat;
+            var fontSize=Math.Round(f.Size/.75/_displayScale,3);
             var next=new TextSpan
             {
+                Text=text[start..end],
                 FontFamily=string.IsNullOrWhiteSpace(f.Name)||string.Equals(f.Name,baseFamily,StringComparison.OrdinalIgnoreCase)?null:f.Name,
                 FontSize=fontSize>0&&Math.Abs(fontSize-baseSize)>.01?fontSize:null,
                 IsBold=f.Bold==FormatEffect.On,IsItalic=f.Italic==FormatEffect.On,
@@ -143,14 +153,10 @@ internal sealed partial class TextDraftEditor : RichEditBox
                 HighlightColor=f.BackgroundColor.Equals(_plainBackground)?null:Hex(f.BackgroundColor),
                 ExtraFields=oldStart>=0&&oldSpans is not null&&oldIndex<oldSpans.Count?oldSpans[oldIndex].ExtraFields:null
             };
-            if(previous is null||!SameFormat(previous,next))
-            {
-                if(previous is not null){previous.Text=run.ToString();spans.Add(previous);run.Clear();}
-                previous=next;
-            }
-            run.Append(part);
+            if(spans.Count>0&&SameFormat(spans[^1],next))spans[^1].Text+=next.Text;
+            else spans.Add(next);
+            start=end;
         }
-        if(previous is not null){previous.Text=run.ToString();spans.Add(previous);}
         draft.Text=text;
         draft.RichTextSpans=spans.Any(span=>span.FontSize is not null||span.FontFamily is not null||span.Color is not null||span.HighlightColor is not null||span.ExtraFields is not null
             ||span.IsBold!=(draft.IsBold==true)||span.IsItalic!=(draft.IsItalic==true)||span.IsUnderline!=(draft.IsUnderline==true)||span.IsStrikethrough!=(draft.IsStrikethrough==true))?spans:null;
