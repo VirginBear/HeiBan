@@ -1,0 +1,150 @@
+{
+  "date": "2026-11-23",
+  "success": true,
+  "sourceCommit": "3b4f3b1dbfda7ac8c4fe29458e522bccaeae0400",
+  "version": "1.1.6",
+  "packageVersion": "1.1.6.0",
+  "runtimeMode": "SelfContained",
+  "previousStoreFilesPreserved": 130,
+  "sourceFiles": 540,
+  "payloadChecks": [
+    {
+      "noUserDataOrStandaloneUpdater": true,
+      "menuIcons": 132,
+      "originalDocumentsMatched": true,
+      "appExecutionChecked": false,
+      "entries": 775,
+      "requiredPayloadPresent": true,
+      "legalDocuments": 28,
+      "architecture": "x64",
+      "identityMatched": true,
+      "guideDocuments": 21,
+      "runtimeDependencies": [],
+      "runtimeMode": "SelfContained"
+    },
+    {
+      "noUserDataOrStandaloneUpdater": true,
+      "menuIcons": 132,
+      "originalDocumentsMatched": true,
+      "appExecutionChecked": false,
+      "entries": 771,
+      "requiredPayloadPresent": true,
+      "legalDocuments": 28,
+      "architecture": "arm64",
+      "identityMatched": true,
+      "guideDocuments": 21,
+      "runtimeDependencies": [],
+      "runtimeMode": "SelfContained"
+    }
+  ],
+  "independentPackageChecks": [
+    {
+      "architecture": "x64",
+      "crc": true,
+      "identity": true,
+      "languages": 10,
+      "restrictedCapabilities": [
+        "runFullTrust"
+      ],
+      "peMachine": "0x8664",
+      "validationHooksAbsent": true,
+      "noUserDataOrStandaloneUpdaterOrDebugPayload": true
+    },
+    {
+      "architecture": "arm64",
+      "crc": true,
+      "identity": true,
+      "languages": 10,
+      "restrictedCapabilities": [
+        "runFullTrust"
+      ],
+      "peMachine": "0xaa64",
+      "validationHooksAbsent": true,
+      "noUserDataOrStandaloneUpdaterOrDebugPayload": true
+    }
+  ],
+  "bundleCrcIdentityArchitecturesAndEmbeddedBytesMatched": true,
+  "artifacts": [
+    {
+      "file": "HeiBan-Store-1.1.6.0-x64.msix",
+      "sha256": "2c53b26d89c7f7902b8a720c45570ebd11650930cf0e60fbb01fb44646d806c2",
+      "bytes": 100481498
+    },
+    {
+      "file": "HeiBan-Store-1.1.6.0-arm64.msix",
+      "sha256": "dd7ffbc1598914ce3844d92447f57246870b292504d0b46488fd801fecd2855d",
+      "bytes": 97912946
+    },
+    {
+      "file": "HeiBan-Store-1.1.6.0-x64-arm64.msixbundle",
+      "sha256": "74494d2015ac5b255d8106db6425a5c4ffc54ec27c9270265882a623e3ecaea9",
+      "bytes": 198396479
+    }
+  ],
+  "freshVerification": {
+    "path": "windows/.build/store-release-116-20261123/verification/verification.json",
+    "passed": true,
+    "sourcesStable": true,
+    "steps": [
+      {
+        "name": "architecture",
+        "exitCode": 0
+      },
+      {
+        "name": "localization",
+        "exitCode": 0
+      },
+      {
+        "name": "guides",
+        "exitCode": 0
+      },
+      {
+        "name": "core",
+        "exitCode": 0
+      },
+      {
+        "name": "optimization",
+        "exitCode": 0
+      }
+    ],
+    "coreAssertions": 6918,
+    "optimizationAssertions": 68,
+    "architecture": {
+      "files": 199,
+      "violations": 0,
+      "checkerChecks": 28
+    },
+    "interfaceLanguages": 10,
+    "sourcesPerLanguage": 772,
+    "guides": 10,
+    "sectionsPerGuide": 26
+  },
+  "priorNativeEvidence": {
+    "date": "2026-11-21",
+    "document": "windows/docs/TEXT_RIBBON_VERIFICATION_2026-11-21.json",
+    "sourceInventoryFilesMatched": 513,
+    "rerunThisBatch": false
+  },
+  "signed": false,
+  "storeSubmitted": false,
+  "notExecuted": [
+    "WACK",
+    "Store installation and upgrade",
+    "ARM64 hardware run",
+    "Store upload and certification"
+  ],
+  "buildResults": {
+    "x64": {
+      "warnings": 0,
+      "errors": 0,
+      "fileVersion": "1.1.6.0",
+      "productVersion": "1.1.6+3b4f3b1dbfda7ac8c4fe29458e522bccaeae0400"
+    },
+    "arm64": {
+      "warnings": 0,
+      "errors": 0,
+      "fileVersion": "1.1.6.0",
+      "productVersion": "1.1.6+3b4f3b1dbfda7ac8c4fe29458e522bccaeae0400"
+    }
+  }
+}
